@@ -2,36 +2,69 @@
 
 [![casehub-neural-text](https://github.com/casehubio/neural-text/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/casehubio/neural-text/actions/workflows/publish.yml)
 
-Local ONNX text inference and LangChain4j RAG wiring for the [casehubio](https://github.com/casehubio) platform. Two module sets: `inference-*` covers the scoring and classification tasks LangChain4j doesn't touch; `rag-*` wires the retrieval pipeline with casehub tenancy and hybrid dense+sparse search.
+Local ONNX text inference and LangChain4j RAG wiring for the [casehubio](https://github.com/casehubio) platform. Two module sets: `inference-*` covers the scoring and classification tasks LangChain4j doesn't handle; `rag-*` wires the retrieval pipeline with casehub tenancy and hybrid dense+sparse search.
 
-The `inference-*` modules are also used by [Hortora](https://github.com/Hortora/spec). They carry zero casehub, Quarkus, Spring, or LangChain4j dependencies — ArchUnit-enforced.
-
----
-
-## inference-* — what it does and where it lands in casehub
-
-| Task | Adapter | casehub integration |
-|---|---|---|
-| NLI — faithfulness scoring | `NliClassifier` | **casehub-engine** — scores LLM output against input facts before it enters the typed fact space; flags contradictions before they propagate |
-| Multi-class text classification | `TextClassifier` | **casehub-openclaw** — implements the `ActionRiskClassifier` SPI; decides whether an agent output proceeds autonomously or routes to human oversight |
-| Scalar regression | `ScalarRegressor` | **casehub-eidos** — estimates epistemic domain confidence from agent output history; replaces static declarations in `AgentCapability.epistemicDomains` |
-| Cross-encoder reranking | `CrossEncoderReranker` | **casehub-rag** — precision-mode reranking of retrieved chunks before LLM prompt injection; also used directly by Hortora |
-| SPLADE sparse embeddings | `SparseEmbedder` | **casehub-rag** — sparse leg of hybrid search; term-weight maps for Qdrant named vector spaces |
-
-All models run in-process via ONNX Runtime JVM. No API call, no Python, no network dependency.
+The `inference-*` modules carry zero casehub, Quarkus, Spring, or LangChain4j dependencies — ArchUnit-enforced from day one. They are shared with [Hortora](https://github.com/Hortora/spec), which uses them independently in a different stack.
 
 ---
 
-## rag-* — what it does and where it lands in casehub
+## Why this is needed
 
-| SPI | Implementation | What it enables |
-|---|---|---|
-| `CorpusStore` | Apache Tika ingestion → LangChain4j chunking → dual embedding → Qdrant | Application repos (aml, clinical, devtown) manage named, tenancy-scoped document corpora — SAR typologies, trial protocols, coding standards |
-| `CaseRetriever` | Hybrid search: LangChain4j dense + SPLADE sparse, fused via RRF | Engine case steps retrieve grounded context before LLM dispatch; the fact space prompt compiler injects relevant corpus chunks into agent prompts |
+LangChain4j gives you dense embeddings, document parsing, chunking, and retrieval. What it doesn't give you is the ability to run arbitrary pre-trained ONNX models for scoring, classification, and sparse retrieval — the things the platform needs to reason about agent behaviour without making external API calls. In regulated deployments (clinical, AML, financial), data cannot leave the tenant's infrastructure, so running models locally isn't optional.
 
-Every SPI call requires a `CorpusRef` carrying `tenantId`. Cross-tenant retrieval is blocked at the boundary.
+---
 
-Hybrid search runs both a dense query (semantic similarity) and a sparse query (lexical precision via SPLADE), then fuses results with Reciprocal Rank Fusion. The sparse leg matters for regulated domains where specific terms — `Art. 22 GDPR`, `ICH E6`, `FinCEN SAR-F` — must appear, not just be semantically adjacent.
+## inference-* — neural scoring in casehub
+
+All models run in-process via ONNX Runtime JVM. No API call, no Python.
+
+### Hallucination detection — `NliClassifier`
+
+LLM agents assert things not supported by the facts they were given. Before an LLM worker's output enters the typed fact space — the shared epistemic workspace the AI Fusion architecture uses — an NLI model scores the output for faithfulness against the input facts: entailment, neutral, or contradiction. Outputs that contradict the input facts are flagged before they propagate downstream to Drools rules or other agents.
+
+**Lands in:** `casehub-engine` observability module.
+
+### Action risk classification — `TextClassifier`
+
+`casehub-openclaw` provisions OpenClaw agents as casehub workers. The `ActionRiskClassifier` SPI decides whether an agent's output proceeds autonomously or routes to human oversight. The current implementation is a stub — always autonomous. A real implementation is a per-deployment ONNX classifier trained on the organisation's own escalation decisions: fast, in-process, deterministic.
+
+**Lands in:** `casehub-openclaw`, replacing the always-AUTONOMOUS stub.
+
+### Epistemic confidence estimation — `ScalarRegressor`
+
+`casehub-eidos` lets agents declare domain confidence statically: `{"java": 0.95, "rust": 0.42}`. A regression model trained on agent output history can estimate actual confidence dynamically. That estimate feeds into `CapabilityHealth.probe()`, so the engine's routing decisions improve over time rather than relying on declarations that were accurate at registration and wrong six months later.
+
+**Lands in:** `casehub-eidos` — dynamic `epistemicDomains` values.
+
+### SPLADE sparse embeddings — `SparseEmbedder`
+
+Dense embeddings capture semantic similarity but dilute the weight of specific regulatory and clinical terms. SPLADE produces sparse term weight maps — only vocabulary tokens with meaningful weight are non-zero — giving the lexical precision that dense vectors sacrifice. When a query needs to find `Art. 22 GDPR` or `ICH E6` rather than something semantically similar to those terms, sparse retrieval finds it; dense retrieval may not.
+
+`SparseEmbedder` output (`Map<Integer, Float>`) goes directly into Qdrant named vector spaces alongside dense vectors. Retrieval fuses both using Reciprocal Rank Fusion.
+
+**Lands in:** `casehub-rag` sparse search leg. Also used directly by Hortora.
+
+### Cross-encoder reranking — `CrossEncoderReranker`
+
+Initial retrieval (top-20 candidates) ranks by vector similarity. A cross-encoder jointly encodes each query+candidate pair and scores relevance more accurately than dot-product similarity. The top-N after reranking are what get injected into the LLM prompt. Optional — adds latency, use when retrieval accuracy matters more than speed.
+
+**Lands in:** `casehub-rag` precision mode. Also used directly by Hortora for human-facing retrieval UI.
+
+---
+
+## rag-* — knowledge retrieval for case steps
+
+### CorpusStore — document ingestion
+
+Application repos manage named, tenancy-scoped document corpora. A corpus is a collection of documents relevant to a domain: SAR typologies for AML investigations, clinical trial protocols, coding standards for devtown. `CorpusStore` handles ingest (Apache Tika extracts text from any format), chunking, dual embedding — dense via LangChain4j `OnnxEmbeddingModel`, sparse via `SparseEmbedder` — and Qdrant storage.
+
+Every call requires a `CorpusRef` carrying the tenant ID. Cross-tenant access is blocked at the SPI boundary.
+
+### CaseRetriever — retrieval for case steps and the fact space
+
+`casehub-engine`'s fact space prompt compiler uses `CaseRetriever` to ground LLM workers before dispatch. When a clinical trial case reaches a step requiring protocol interpretation, the LLM worker receives the relevant protocol excerpts retrieved from the clinical corpus alongside the case context — it reasons against actual documents, not just training data.
+
+Retrieval runs both a dense query (semantic similarity) and a sparse query (lexical precision), fuses results via RRF, then optionally reranks with `CrossEncoderReranker`. The sparse leg is what makes this usable in regulated domains where specific terminology must appear in the results, not merely something semantically related to it.
 
 ---
 
@@ -40,14 +73,14 @@ Hybrid search runs both a dense query (semantic similarity) and a sparse query (
 | Module | Artifact | Type | Purpose |
 |---|---|---|---|
 | `inference-api/` | `casehub-inference-api` | Pure Java, zero deps | `InferenceModel` SPI, `InferenceInput`, `InferenceOutput`, `ModelConfig` |
-| `inference-runtime/` | `casehub-inference-runtime` | ONNX Runtime JVM + HF Tokenizers JNI | Session management, tokenization |
+| `inference-runtime/` | `casehub-inference-runtime` | ONNX Runtime + HF Tokenizers JNI | Session management, tokenization |
 | `inference-tasks/` | `casehub-inference-tasks` | Pure Java | `NliClassifier`, `TextClassifier`, `ScalarRegressor`, `CrossEncoderReranker` |
 | `inference-splade/` | `casehub-inference-splade` | Pure Java | `SparseEmbedder` — log-saturation SPLADE, `Map<Integer, Float>` output |
 | `inference-inmem/` | `casehub-inference-inmem` | Pure Java | Deterministic stubs — no JNI, safe in all test contexts |
-| `inference-quarkus/` | `casehub-inference-quarkus` | Quarkus | `@InferenceModel` qualifier, CDI lifecycle, model config |
+| `inference-quarkus/` | `casehub-inference-quarkus` | Quarkus | `@InferenceModel` qualifier, CDI model lifecycle |
 | `rag-api/` | `casehub-rag-api` | Pure Java, zero deps | `CorpusStore`, `CaseRetriever`, `RetrievedChunk`, `CorpusRef` |
 | `rag/` | `casehub-rag` | Quarkus + LangChain4j | Tika ingestion, Qdrant, hybrid RRF, tenancy isolation |
-| `rag-testing/` | `casehub-rag-testing` | Pure Java | In-memory stubs — no Qdrant required in `@QuarkusTest` |
+| `rag-testing/` | `casehub-rag-testing` | Pure Java | In-memory stubs — no Qdrant in `@QuarkusTest` |
 
 ---
 
@@ -66,13 +99,13 @@ This module sits below LangChain4j for inference and above it for RAG.
 
 ## Shared with Hortora
 
-Hortora takes `casehub-inference-api`, `inference-runtime`, `inference-tasks`, `inference-splade`, and `inference-inmem`. They wire LangChain4j RAG independently in their own stack. The `rag-*` modules are casehub-specific — Hortora does not take them.
+Hortora takes `inference-api`, `inference-runtime`, `inference-tasks`, `inference-splade`, and `inference-inmem`. They wire LangChain4j RAG independently in their own stack. The `rag-*` modules are casehub-specific.
 
 ---
 
 ## Status
 
-Scaffold — no source code. Design agreed. Pending: ONNX Runtime JNI + HuggingFace Tokenizers JNI in Quarkus native image on macOS ARM. That prototype gates the native deployment path for both casehub and Hortora.
+Scaffold — no source code yet. Design agreed between casehub and Hortora. Pending: ONNX Runtime JNI + HuggingFace Tokenizers JNI working in a Quarkus native image on macOS ARM. That prototype gates the native deployment path for both projects.
 
 | Epic | Title | Status |
 |---|---|---|
