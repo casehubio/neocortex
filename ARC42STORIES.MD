@@ -1,9 +1,9 @@
 # ARC42STORIES — casehub-neural-text
 
 **Version:** 0.1  
-**Status:** Scaffold — delivery not yet started  
+**Status:** C3 complete — SPI Foundation + Runtime Core delivered  
 **Spec:** [arc42stories-spec.md](https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-spec.md)  
-**Last updated:** 2026-06-04
+**Last updated:** 2026-06-07
 
 ---
 
@@ -322,7 +322,7 @@ noClasses().that().resideInAPackage("io.casehub.inference..")
 
 | Journey | Description | Chapters | Status |
 |---|---|---|---|
-| J1 Neural Inference | Deliver the standalone ONNX inference layer — SPI, runtime, adapters, SPLADE, Quarkus wiring | C1–C6 | 🚧 In progress (C1 complete) |
+| J1 Neural Inference | Deliver the standalone ONNX inference layer — SPI, runtime, adapters, SPLADE, Quarkus wiring | C1–C6 | 🚧 In progress (C1–C3 complete) |
 | J2 RAG Integration | Deliver casehub-specific LangChain4j RAG pipeline with hybrid search | C7 | 🔲 Pending (blocked on C6) |
 
 ### §9.2 Chapter Index
@@ -339,8 +339,8 @@ flowchart LR
   C6 --> C7["C7: RAG\n+ L6, L7"]
 
   style C1 fill:#90EE90,color:#000
-  style C2 fill:#D3D3D3,color:#000
-  style C3 fill:#D3D3D3,color:#000
+  style C2 fill:#90EE90,color:#000
+  style C3 fill:#90EE90,color:#000
   style C4 fill:#D3D3D3,color:#000
   style C5 fill:#D3D3D3,color:#000
   style C6 fill:#D3D3D3,color:#000
@@ -351,7 +351,7 @@ flowchart LR
 |---|---|---|---|---|---|
 | 1 | Scaffold | J1 | — | None | ✅ |
 | 2 | Native Image Gate | J1 | (cross-cutting) | Risk validation | ✅ |
-| 3 | SPI Foundation + Runtime Core | J1 | L1, L2 | High, High | 🔲 |
+| 3 | SPI Foundation + Runtime Core | J1 | L1, L2 | High, High | ✅ |
 | 4 | Task Adapters | J1 | L3 | High | 🔲 |
 | 5 | Quarkus Integration | J1 | L5 | High | 🔲 |
 | 6 | Sparse Embeddings (SPLADE) | J1 | L4 | High | 🔲 |
@@ -418,7 +418,7 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 #### Chapter 3 — SPI Foundation + Runtime Core
 
 **Journey:** J1 | **Sequence:** 3 of 7 | **Status:** ✅ Complete  
-**Issues:** #3 | **Blocked by:** — (independent of C2)
+**Delivered:** 2026-06-07 | **Issues:** #3 | **Blocked by:** — (independent of C2)
 
 **What this delivers**  
 `inference-api` and `inference-runtime` are published artifacts. Any JVM project (casehub or Hortora) can depend on `casehub-inference-api` and `casehub-inference-runtime` and execute ONNX model inference. `inference-inmem` stubs are available for testing without JNI.
@@ -539,28 +539,44 @@ Defines the contract between callers and ONNX model execution. Before this layer
 | Testability without JNI | Unit tests require ONNX Runtime native libs | `inference-inmem` stubs implement `InferenceModel` |
 
 #### Key files
-🔲 — populated at C3 close
+
+| File | Role |
+|---|---|
+| `inference-api/.../InferenceModel.java` | SPI interface — `run()`, `runBatch()`, `outputSize()`, `close()` |
+| `inference-api/.../InferenceInput.java` | Record — `List<String> texts`, factories `of()` and `pair()` |
+| `inference-api/.../InferenceOutput.java` | Record — `float[] values` with value-based equality |
+| `inference-api/.../InferenceException.java` | Unchecked exception for inference failures |
+| `inference-inmem/.../InMemoryInferenceModel.java` | Deterministic stub — `returning()` and `withFunction()` factories |
+| `inference-api/.../DependencyConstraintTest.java` | ArchUnit — blocks Quarkus, Spring, LangChain4j, ONNX Runtime, DJL |
 
 #### Key wiring
-🔲 — populated at C3 close
+
+`InferenceModel` extends `AutoCloseable`. `close()` must not throw — contract specifies silent cleanup. `runBatch()` has a default implementation that delegates to `run()` sequentially; `OnnxInferenceModel` overrides with a true batched implementation. `outputSize()` returns `OptionalInt` — models that don't know their output size at construction time return empty.
+
+`InMemoryInferenceModel.returning(float...)` returns the same values for every input — simplest stub. `InMemoryInferenceModel.withFunction(int, Function<InferenceInput, float[]>)` allows input-dependent responses for adapter tests.
 
 #### Architectural decisions
 
 `InferenceInput` uses `List<String> texts` only — tokenization is the runtime's responsibility, not the caller's. Callers never touch token IDs or attention masks. This keeps the SPI portable across tokenizer versions and model families.
 
-`InferenceOutput` exposes `float[] tensor(String outputName)` — raw tensor by name. Task adapters in L3 interpret tensor names. Callers never see tensor names directly. This isolates model-specific output structure from consuming code.
+`InferenceOutput` simplified to `float[] values` (design departure from Hortora spec which proposed `Map<String, float[]>` keyed by tensor name). Single-output models are the dominant case; named tensors add complexity for no benefit at the SPI boundary. Task adapters know the output structure of their models.
+
+`InferenceInput` capped at max 2 texts (design departure). NLI requires exactly 2 (premise + hypothesis); single-text tasks require 1. No known task requires 3+ texts in a single input. Enforced by the `InferenceInput` constructor.
+
+`ModelConfig` placed in `inference-runtime` not `inference-api` (design departure). Config carries runtime-specific concerns (thread counts, sequence length) that don't belong in the zero-dep SPI.
 
 #### Pattern introduced
 `InferenceModel` SPI — thin contract over any ONNX model; stubs via `inference-inmem`; implementations via `inference-runtime`; typed interpretation via `inference-tasks`.
 
 #### Pattern anchor
-🔲 — `InferenceModel.java`, `InferenceInput.java` (to be created in `inference-api/`)
+`inference-api/src/main/java/io/casehub/inference/InferenceModel.java`, `inference-api/src/main/java/io/casehub/inference/InferenceInput.java`
 
 #### Gotchas
-🔲 — populated at C3 close
+- `Objects.requireNonNull` throws NPE, not IAE — SPI contracts that specify "throws IAE for null" need explicit null checks (GE-20260607-db04c6)
+- Sequential try-catch for `close()` with multiple resources — must not let first failure prevent closing remaining resources (GE-20260607-9cef08)
 
 #### Pattern to replicate
-🔲 — populated at C3 close
+ArchUnit `DependencyConstraintTest` per module — blocks Quarkus, Spring, LangChain4j, ONNX Runtime, DJL. Copy this test into every new `inference-*` module. The constraint list in each module should match its tier — `inference-api` blocks everything; `inference-runtime` allows ONNX Runtime and DJL but blocks Quarkus/Spring/LangChain4j.
 
 ---
 
@@ -584,23 +600,35 @@ Bridges the JVM world and ONNX Runtime JNI. Before this layer: ONNX models canno
 | Air-gapped deployment | Regulated deployments (clinical, AML) cannot call external APIs | ONNX Runtime runs locally; no network required |
 
 #### Key files
-🔲 — populated at C3 close
+
+| File | Role |
+|---|---|
+| `inference-runtime/.../OnnxInferenceModel.java` | `InferenceModel` impl — wraps `OrtSession` + `HuggingFaceTokenizer` |
+| `inference-runtime/.../ModelConfig.java` | Record — `modelPath`, `tokenizerPath`, `maxSequenceLength`, thread counts |
+| `inference-runtime/.../ModelLoadException.java` | Unchecked exception for model/tokenizer loading failures |
 
 #### Key wiring
 
+`OnnxInferenceModel` constructor takes `ModelConfig` and eagerly loads both the ONNX model (`OrtSession`) and tokenizer (`HuggingFaceTokenizer`). Validation: model file must exist, tokenizer file must exist, model must have at least one input/output node.
+
 `OrtSession` is thread-safe for concurrent inference — do not create a new session per request. One session per `ModelConfig`, loaded at startup, held for process lifetime. In `inference-quarkus`, each model config becomes an `@ApplicationScoped` CDI bean.
 
-HuggingFace Tokenizers JNI: requires the native library to be on `java.library.path` or bundled in the JAR. For native image, a GraalVM resource config JSON must register the native lib path.
+`close()` uses sequential try-catch: session closed first, then environment, then tokenizer. Each close is independent — failure of one does not prevent the others.
+
+DJL `HuggingFaceTokenizer` used instead of the HuggingFace Tokenizers JNI directly (design departure from C2). DJL wraps the same Rust JNI layer but provides a cleaner Java API and Maven-published native libs.
 
 #### Architectural decisions
 
-Two JNI layers (ONNX Runtime + HuggingFace Tokenizers) are required rather than one. ONNX Runtime handles model execution; HuggingFace Tokenizers handles tokenization. Alternative (LangChain4j tokenization) rejected — LangChain4j tokenizers are dense-embedding-specific and do not produce token ID + attention mask tensors needed for arbitrary ONNX model input.
+Two JNI layers (ONNX Runtime + DJL Tokenizers) are required rather than one. ONNX Runtime handles model execution; DJL HuggingFace Tokenizers handles tokenization. Alternative (LangChain4j tokenization) rejected — LangChain4j tokenizers are dense-embedding-specific and do not produce token ID + attention mask tensors needed for arbitrary ONNX model input.
+
+`outputSize` auto-detected from the ONNX model's output metadata when the shape is statically known; returned as `OptionalInt.empty()` when the model has dynamic output dimensions (design departure — spec proposed mandatory int).
 
 #### Gotchas
-See `inference-quarkus/src/main/resources/NATIVE-IMAGE-NOTES.md` — 3 gotchas documented (GE-20260606-d3cd87, GE-20260606-7bf5dd, GE-20260606-025601)
+- C2 native image gotchas: `inference-quarkus/src/main/resources/NATIVE-IMAGE-NOTES.md` — 3 entries (GE-20260606-d3cd87, GE-20260606-7bf5dd, GE-20260606-025601)
+- C3 runtime gotchas: requireNonNull NPE vs IAE (GE-20260607-db04c6), sequential try-catch close (GE-20260607-9cef08)
 
 #### Pattern to replicate
-🔲 — populated at C3 close
+`OnnxInferenceModel` constructor pattern: validate config → load model → validate model structure → load tokenizer → detect output size. Any failure during construction throws `ModelLoadException` and cleans up already-allocated resources. This eager-validate-or-fail pattern should be replicated in any future `InferenceModel` implementation.
 
 ---
 
