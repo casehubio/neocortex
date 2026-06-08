@@ -1,9 +1,9 @@
 # ARC42STORIES — casehub-neural-text
 
 **Version:** 0.1  
-**Status:** C3 complete — SPI Foundation + Runtime Core delivered  
+**Status:** C4 complete — Task Adapters delivered  
 **Spec:** [arc42stories-spec.md](https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-spec.md)  
-**Last updated:** 2026-06-07
+**Last updated:** 2026-06-08
 
 ---
 
@@ -322,7 +322,7 @@ noClasses().that().resideInAPackage("io.casehub.inference..")
 
 | Journey | Description | Chapters | Status |
 |---|---|---|---|
-| J1 Neural Inference | Deliver the standalone ONNX inference layer — SPI, runtime, adapters, SPLADE, Quarkus wiring | C1–C6 | 🚧 In progress (C1–C3 complete) |
+| J1 Neural Inference | Deliver the standalone ONNX inference layer — SPI, runtime, adapters, SPLADE, Quarkus wiring | C1–C6 | 🚧 In progress (C1–C4 complete) |
 | J2 RAG Integration | Deliver casehub-specific LangChain4j RAG pipeline with hybrid search | C7 | 🔲 Pending (blocked on C6) |
 
 ### §9.2 Chapter Index
@@ -341,7 +341,7 @@ flowchart LR
   style C1 fill:#90EE90,color:#000
   style C2 fill:#90EE90,color:#000
   style C3 fill:#90EE90,color:#000
-  style C4 fill:#D3D3D3,color:#000
+  style C4 fill:#90EE90,color:#000
   style C5 fill:#D3D3D3,color:#000
   style C6 fill:#D3D3D3,color:#000
   style C7 fill:#D3D3D3,color:#000
@@ -352,7 +352,7 @@ flowchart LR
 | 1 | Scaffold | J1 | — | None | ✅ |
 | 2 | Native Image Gate | J1 | (cross-cutting) | Risk validation | ✅ |
 | 3 | SPI Foundation + Runtime Core | J1 | L1, L2 | High, High | ✅ |
-| 4 | Task Adapters | J1 | L3 | High | 🔲 |
+| 4 | Task Adapters | J1 | L3 | High | ✅ |
 | 5 | Quarkus Integration | J1 | L5 | High | 🔲 |
 | 6 | Sparse Embeddings (SPLADE) | J1 | L4 | High | 🔲 |
 | 7 | RAG Pipeline | J2 | L6, L7 | High, High | 🔲 |
@@ -437,8 +437,8 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 
 #### Chapter 4 — Task Adapters
 
-**Journey:** J1 | **Sequence:** 4 of 7 | **Status:** 🔲 Pending  
-**Issues:** #4 | **Blocked by:** C3
+**Journey:** J1 | **Sequence:** 4 of 7 | **Status:** ✅ Complete  
+**Delivered:** 2026-06-07 | **Issues:** #4 | **Blocked by:** C3
 
 **What this delivers**  
 `inference-tasks` published with all four typed adapters. casehub-engine can integrate `NliClassifier` for hallucination detection. casehub-openclaw can integrate `TextClassifier` for `ActionRiskClassifier`. casehub-eidos can integrate `ScalarRegressor` for epistemic confidence. Hortora can integrate `CrossEncoderReranker` for precision-mode reranking.
@@ -637,26 +637,46 @@ Two JNI layers (ONNX Runtime + DJL Tokenizers) are required rather than one. ONN
 **Participates in chapters:** C4  
 **Architectural patterns:** Adapter (wraps InferenceModel; exposes domain types)  
 **Issues:** #4 | parent#158  
-**Completed:** 🔲
+**Completed:** ✅
 
 #### What it adds
 
 Callers interact with domain types, never raw tensors. `NliClassifier` interprets the `logits` tensor as entailment/neutral/contradiction scores. `TextClassifier` interprets softmax output as label + confidence. `ScalarRegressor` reads a scalar output tensor. `CrossEncoderReranker` ranks candidate texts by relevance to a query. All four wrap any `InferenceModel` — tests inject `inference-inmem` stubs.
 
 #### Key files
-🔲 — populated at C4 close
+
+| File | Role |
+|---|---|
+| `inference-tasks/.../NliClassifier.java` | Adapter — convention + explicit-index constructors, softmax, runtime guard |
+| `inference-tasks/.../NliLabel.java` | Enum — ENTAILMENT, NEUTRAL, CONTRADICTION |
+| `inference-tasks/.../NliResult.java` | Record — entailment/neutral/contradiction + `predicted()` + `scores()` |
+| `inference-tasks/.../TextClassifier.java` | Adapter — labels at construction, softmax, `classify()` → `ClassificationResult` |
+| `inference-tasks/.../ClassificationResult.java` | Record — label, confidence, scores (Map.copyOf) |
+| `inference-tasks/.../ScalarRegressor.java` | Adapter — raw scalar output, `predict()` → float |
+| `inference-tasks/.../CrossEncoderReranker.java` | Adapter — `score()` + batch `rerank()` via `runBatch()` |
+| `inference-tasks/.../RankedResult.java` | Record — text, score, originalIndex |
+| `inference-tasks/.../Softmax.java` | Package-private — numerically stable softmax utility |
+| `inference-tasks/.../DependencyConstraintTest.java` | ArchUnit — framework + casehub domain exclusion (new `DescribedPredicate` rule) |
 
 #### Architectural decisions
 
-Each adapter is constructed with an `InferenceModel` dependency (injected or passed directly). This makes adapters independently testable without Quarkus or JNI. Quarkus wiring (`@InferenceModel` qualifier) is in L5 — adapters do not know about CDI.
+Each adapter is constructed with an `InferenceModel` dependency (injected or passed directly). Adapters are **not AutoCloseable** — they do not own the model. This makes adapters independently testable without Quarkus or JNI, and prevents double-close bugs when multiple adapters share a model. Quarkus wiring (`@InferenceModel` qualifier) is in L5 — adapters do not know about CDI.
+
+`NliClassifier` has two constructors: convention (HuggingFace standard order 0=contradiction, 1=neutral, 2=entailment) and explicit-index (for non-standard models). `TextClassifier` fallback was rejected for non-standard NLI models — it returns `ClassificationResult`, not `NliResult`, losing the typed three-way distribution.
+
+All adapters validate `model.outputSize()` at construction (fail-fast) and validate `values.length` at runtime (defence-in-depth). Softmax is a package-private utility class shared by NliClassifier and TextClassifier — zero public API surface.
 
 SPLADE output is not an adapter in `inference-tasks` — it is a separate module (`inference-splade`, L4) because its post-processing (log-saturation, sparse map output) is distinct from the classifier/regressor/reranker pattern and because Hortora may want `inference-splade` independently without `inference-tasks`.
 
 #### Gotchas
-🔲 — populated at C4 close
+
+- Adapter null-arg validation must precede `InferenceInput.of()`/`.pair()` construction — otherwise callers get `NullPointerException` from `Objects.requireNonNull` in the factory instead of `IllegalArgumentException` with an adapter-specific message
+- `ClassificationResult` compact constructor must use `Map.copyOf()` — records with Map fields need defensive copies to maintain immutability
+- ArchUnit casehub domain exclusion requires `DescribedPredicate.describe()` with a lambda checking `getPackageName()` — the existing `resideInAnyPackage()` pattern cannot express "allow io.casehub.inference but block all other io.casehub" (backport tracked as #10)
 
 #### Pattern to replicate
-🔲 — populated at C4 close
+
+Adapter construction pattern: validate null model → validate `outputSize()` when present → store model. Method pattern: validate null args (IAE with adapter-specific message) → `model.run(InferenceInput.of/pair(...))` → extract `values()` exactly once → validate `values.length` (InferenceException) → interpret. This two-layer validation (construction + runtime) should be replicated in any future adapter including `SparseEmbedder` (C6).
 
 ---
 
