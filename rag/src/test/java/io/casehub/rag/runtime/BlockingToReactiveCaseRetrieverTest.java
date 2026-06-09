@@ -8,8 +8,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class BlockingToReactiveCaseRetrieverTest {
 
@@ -30,6 +32,19 @@ class BlockingToReactiveCaseRetrieverTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).content()).isEqualTo("result for test query");
         assertThat(result.get(0).relevanceScore()).isEqualTo(0.95);
+    }
+
+    @Test
+    void retrieve_executesOnWorkerThread() {
+        var capturedId = new AtomicLong(Thread.currentThread().getId());
+        CaseRetriever spy = (query, corpus, maxResults) -> {
+            capturedId.set(Thread.currentThread().getId());
+            return List.of();
+        };
+        var b = new BlockingToReactiveCaseRetriever(spy);
+        b.retrieve("q", new CorpusRef("t", "c"), 5).await().indefinitely();
+        assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
+            "retrieve() must offload to a worker thread");
     }
 
     @Test

@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class BlockingToReactiveCorpusStoreTest {
 
@@ -52,6 +54,76 @@ class BlockingToReactiveCorpusStoreTest {
         List<String> result = bridge.listDocuments(corpus).await().indefinitely();
         assertThat(result).containsExactly("d1", "d2");
         assertThat(blocking.calls).containsExactly("listDocuments:t1:docs");
+    }
+
+    @Test
+    void ingest_executesOnWorkerThread() {
+        var capturedId = new AtomicLong(Thread.currentThread().getId());
+        CorpusStore spy = new CorpusStore() {
+            @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {
+                capturedId.set(Thread.currentThread().getId());
+            }
+            @Override public void deleteDocument(CorpusRef c, String id) {}
+            @Override public void deleteCorpus(CorpusRef c) {}
+            @Override public List<String> listDocuments(CorpusRef c) { return List.of(); }
+        };
+        var b = new BlockingToReactiveCorpusStore(spy);
+        b.ingest(new CorpusRef("t", "c"), List.of(new ChunkInput("x", "d", Map.of())))
+            .await().indefinitely();
+        assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
+            "ingest() must offload to a worker thread");
+    }
+
+    @Test
+    void deleteDocument_executesOnWorkerThread() {
+        var capturedId = new AtomicLong(Thread.currentThread().getId());
+        CorpusStore spy = new CorpusStore() {
+            @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {}
+            @Override public void deleteDocument(CorpusRef c, String id) {
+                capturedId.set(Thread.currentThread().getId());
+            }
+            @Override public void deleteCorpus(CorpusRef c) {}
+            @Override public List<String> listDocuments(CorpusRef c) { return List.of(); }
+        };
+        var b = new BlockingToReactiveCorpusStore(spy);
+        b.deleteDocument(new CorpusRef("t", "c"), "d1").await().indefinitely();
+        assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
+            "deleteDocument() must offload to a worker thread");
+    }
+
+    @Test
+    void deleteCorpus_executesOnWorkerThread() {
+        var capturedId = new AtomicLong(Thread.currentThread().getId());
+        CorpusStore spy = new CorpusStore() {
+            @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {}
+            @Override public void deleteDocument(CorpusRef c, String id) {}
+            @Override public void deleteCorpus(CorpusRef c) {
+                capturedId.set(Thread.currentThread().getId());
+            }
+            @Override public List<String> listDocuments(CorpusRef c) { return List.of(); }
+        };
+        var b = new BlockingToReactiveCorpusStore(spy);
+        b.deleteCorpus(new CorpusRef("t", "c")).await().indefinitely();
+        assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
+            "deleteCorpus() must offload to a worker thread");
+    }
+
+    @Test
+    void listDocuments_executesOnWorkerThread() {
+        var capturedId = new AtomicLong(Thread.currentThread().getId());
+        CorpusStore spy = new CorpusStore() {
+            @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {}
+            @Override public void deleteDocument(CorpusRef c, String id) {}
+            @Override public void deleteCorpus(CorpusRef c) {}
+            @Override public List<String> listDocuments(CorpusRef c) {
+                capturedId.set(Thread.currentThread().getId());
+                return List.of();
+            }
+        };
+        var b = new BlockingToReactiveCorpusStore(spy);
+        b.listDocuments(new CorpusRef("t", "c")).await().indefinitely();
+        assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
+            "listDocuments() must offload to a worker thread");
     }
 
     static class RecordingCorpusStore implements CorpusStore {
