@@ -755,12 +755,12 @@ For new inference model consumers: inject `@Inference("name") InferenceModel mod
 
 **Participates in chapters:** C7  
 **Architectural patterns:** Hexagonal (Ports and Adapters)  
-**Issues:** #7 | parent#164  
+**Issues:** #7, #11 | parent#164  
 **Completed:** 🔲
 
 #### What it adds
 
-Defines the contract for knowledge corpus management and retrieval within casehub. `CorpusStore` allows application repos to ingest and manage documents scoped to a tenant corpus. `CaseRetriever` provides the retrieval interface for engine case steps and the typed fact space prompt compiler. `rag-testing` stubs make both interfaces usable in `@QuarkusTest` without Qdrant.
+Defines the contract for knowledge corpus management and retrieval within casehub. `CorpusStore` allows application repos to ingest and manage documents scoped to a tenant corpus. `CaseRetriever` provides the retrieval interface for engine case steps and the typed fact space prompt compiler. Reactive variants (`ReactiveCorpusStore`, `ReactiveCaseRetriever`) enable consumers on the Vert.x event loop (e.g. casehub-engine's `CaseContextChangedEventHandler`). Mutiny is `provided` scope — same pattern as casehub-ledger-api and casehub-eidos-api. `rag-testing` stubs make both blocking and reactive interfaces usable in `@QuarkusTest` without Qdrant.
 
 #### Architectural decisions
 
@@ -788,7 +788,7 @@ Defines the contract for knowledge corpus management and retrieval within casehu
 
 #### What it adds
 
-Implements `CorpusStore` and `CaseRetriever` using LangChain4j `EmbeddingModel` (dense embeddings) + `inference-splade` `SparseEmbedder` (sparse) + Qdrant Java client (gRPC) for hybrid search with RRF fusion. Optional `CrossEncoderReranker` for precision-mode top-N. Configurable tenancy isolation — separate collections per tenant (default) or shared collection with payload filtering.
+Implements `CorpusStore` and `CaseRetriever` using LangChain4j `EmbeddingModel` (dense embeddings) + `inference-splade` `SparseEmbedder` (sparse) + Qdrant Java client (gRPC) for hybrid search with RRF fusion. Optional `CrossEncoderReranker` for precision-mode top-N. Configurable tenancy isolation — separate collections per tenant (default) or shared collection with payload filtering. `@DefaultBean` bridges (`BlockingToReactiveCorpusStore`, `BlockingToReactiveCaseRetriever`) wrap blocking implementations with `runSubscriptionOn(workerPool)` for consumers that inject reactive SPIs without native reactive Qdrant impls (#13).
 
 `langchain4j-qdrant` not used — LangChain4j does not support Qdrant named vector spaces or hybrid search ([langchain4j#4994](https://github.com/langchain4j/langchain4j/issues/4994), open, no timeline). Both dense and sparse legs use the Qdrant Java gRPC client directly for unified architecture. LangChain4j used only for `EmbeddingModel`, `DocumentSplitter`, and Tika parser (in `rag-tika`).
 

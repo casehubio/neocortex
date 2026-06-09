@@ -127,7 +127,7 @@ Tracks `casehubio/parent#158`. Authoritative design: `Hortora/spec: docs/superpo
 
 ### 2. RAG Integration (`rag-*` modules)
 
-casehub-specific LangChain4j RAG pipeline wiring. Exposes `CorpusStore` SPI (ingest documents) and `CaseRetriever` SPI (retrieve context for case steps). Tenancy-isolated Qdrant collections. Hybrid dense (LangChain4j) + sparse (inference-splade) search via RRF fusion.
+casehub-specific LangChain4j RAG pipeline wiring. Exposes `CorpusStore` SPI (ingest documents) and `CaseRetriever` SPI (retrieve context for case steps), with reactive variants (`ReactiveCorpusStore`, `ReactiveCaseRetriever`) for consumers on the Vert.x event loop. Tenancy-isolated Qdrant collections. Hybrid dense (LangChain4j) + sparse (inference-splade) search via RRF fusion.
 
 Tracks `casehubio/parent#164`.
 
@@ -142,9 +142,9 @@ inference-tasks/    — NliClassifier, TextClassifier, ScalarRegressor, CrossEnc
 inference-splade/   — sparse SPLADE embeddings (Map<Integer, Float>)
 inference-inmem/    — deterministic stubs; no JNI; safe in all test contexts
 inference-quarkus/  — CDI wiring, @InferenceModel qualifier, Dev Services, @QuarkusTest
-rag-api/            — CorpusStore SPI, CaseRetriever SPI, RetrievedChunk, CorpusRef — zero deps
-rag/                — LangChain4j wiring, Qdrant, hybrid RRF fusion, Quarkus CDI
-rag-testing/        — in-memory CorpusStore + CaseRetriever stubs for @QuarkusTest
+rag-api/            — CorpusStore + ReactiveCorpusStore SPIs, CaseRetriever + ReactiveCaseRetriever SPIs, value types — Mutiny provided
+rag/                — LangChain4j wiring, Qdrant, hybrid RRF fusion, @DefaultBean blocking-to-reactive bridges
+rag-testing/        — in-memory stubs for both blocking and reactive SPIs (@Alternative @Priority(1) @ApplicationScoped)
 ```
 
 ## Maven Coordinates
