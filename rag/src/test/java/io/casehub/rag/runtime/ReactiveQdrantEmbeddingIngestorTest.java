@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
-class QdrantCorpusStoreTest {
+class ReactiveQdrantEmbeddingIngestorTest {
 
     @SuppressWarnings("resource")
     @Container
@@ -36,11 +36,10 @@ class QdrantCorpusStoreTest {
 
     private static final int DENSE_DIM = 4;
     private static final String TENANT = "tenant-1";
-
     private static final AtomicInteger corpusCounter = new AtomicInteger();
 
-    private QdrantClient client;
-    private QdrantCorpusStore store;
+    private QdrantClient                    client;
+    private ReactiveQdrantEmbeddingIngestor store;
 
     @BeforeEach
     void setUp() {
@@ -54,9 +53,6 @@ class QdrantCorpusStoreTest {
 
         EmbeddingModel embeddingModel = new StubEmbeddingModel(DENSE_DIM);
 
-        // SPLADE stub: 8-element output, some above threshold (0.01), some not.
-        // log1p(max(0, v)) ≥ 0.01 when v ≥ ~0.01005.
-        // Values: 0.5, 0.0, 0.3, 0.0, 0.8, 0.0, 0.0, 0.2 → indices 0,2,4,7 survive threshold
         InMemoryInferenceModel spladeModel = InMemoryInferenceModel.returning(
             0.5f, 0.0f, 0.3f, 0.0f, 0.8f, 0.0f, 0.0f, 0.2f
         );
@@ -64,10 +60,10 @@ class QdrantCorpusStoreTest {
 
         CurrentPrincipal principal = stubPrincipal(TENANT);
 
-        store = new QdrantCorpusStore(
+        store = new ReactiveQdrantEmbeddingIngestor(
             client, embeddingModel, sparseEmbedder,
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse",
+            "dense", "sparse", DENSE_DIM,
             principal
         );
     }
@@ -77,12 +73,13 @@ class QdrantCorpusStoreTest {
         CorpusRef corpus = uniqueCorpus();
         store.ingest(corpus, List.of(
             new ChunkInput("first chunk", "doc-1", Map.of("key", "val"))
-        ));
+        )).await().indefinitely();
 
         assertThat(client.collectionExistsAsync(
             TenancyStrategy.SEPARATE_COLLECTIONS.collectionName(corpus)).get())
             .isTrue();
-        assertThat(store.listDocuments(corpus)).containsExactly("doc-1");
+        List<String> docs = store.listDocuments(corpus).await().indefinitely();
+        assertThat(docs).containsExactly("doc-1");
     }
 
     @Test
@@ -91,12 +88,13 @@ class QdrantCorpusStoreTest {
         store.ingest(corpus, List.of(
             new ChunkInput("chunk a", "doc-1", Map.of()),
             new ChunkInput("chunk b", "doc-1", Map.of())
-        ));
+        )).await().indefinitely();
         store.ingest(corpus, List.of(
             new ChunkInput("chunk c", "doc-2", Map.of())
-        ));
+        )).await().indefinitely();
 
-        assertThat(store.listDocuments(corpus)).containsExactlyInAnyOrder("doc-1", "doc-2");
+        List<String> docs = store.listDocuments(corpus).await().indefinitely();
+        assertThat(docs).containsExactlyInAnyOrder("doc-1", "doc-2");
     }
 
     @Test
@@ -105,11 +103,12 @@ class QdrantCorpusStoreTest {
         store.ingest(corpus, List.of(
             new ChunkInput("chunk a", "doc-1", Map.of()),
             new ChunkInput("chunk b", "doc-2", Map.of())
-        ));
+        )).await().indefinitely();
 
-        store.deleteDocument(corpus, "doc-1");
+        store.deleteDocument(corpus, "doc-1").await().indefinitely();
 
-        assertThat(store.listDocuments(corpus)).containsExactly("doc-2");
+        List<String> docs = store.listDocuments(corpus).await().indefinitely();
+        assertThat(docs).containsExactly("doc-2");
     }
 
     @Test
@@ -119,10 +118,10 @@ class QdrantCorpusStoreTest {
 
         store.ingest(corpus, List.of(
             new ChunkInput("content", "doc-1", Map.of())
-        ));
+        )).await().indefinitely();
         assertThat(client.collectionExistsAsync(collection).get()).isTrue();
 
-        store.deleteCorpus(corpus);
+        store.deleteCorpus(corpus).await().indefinitely();
 
         assertThat(client.collectionExistsAsync(collection).get()).isFalse();
     }
@@ -132,29 +131,33 @@ class QdrantCorpusStoreTest {
         CorpusRef wrongTenant = new CorpusRef("other-tenant", "corpus");
 
         assertThatThrownBy(() -> store.ingest(wrongTenant, List.of(
-            new ChunkInput("text", "doc-1", Map.of()))))
+            new ChunkInput("text", "doc-1", Map.of()))).await().indefinitely())
             .isInstanceOf(SecurityException.class);
 
-        assertThatThrownBy(() -> store.deleteDocument(wrongTenant, "doc-1"))
+        assertThatThrownBy(() -> store.deleteDocument(wrongTenant, "doc-1")
+            .await().indefinitely())
             .isInstanceOf(SecurityException.class);
 
-        assertThatThrownBy(() -> store.deleteCorpus(wrongTenant))
+        assertThatThrownBy(() -> store.deleteCorpus(wrongTenant)
+            .await().indefinitely())
             .isInstanceOf(SecurityException.class);
 
-        assertThatThrownBy(() -> store.listDocuments(wrongTenant))
+        assertThatThrownBy(() -> store.listDocuments(wrongTenant)
+            .await().indefinitely())
             .isInstanceOf(SecurityException.class);
     }
 
     @Test
     void listDocumentsOnNonExistentCorpusReturnsEmpty() {
         CorpusRef corpus = uniqueCorpus();
-        assertThat(store.listDocuments(corpus)).isEmpty();
+        List<String> docs = store.listDocuments(corpus).await().indefinitely();
+        assertThat(docs).isEmpty();
     }
 
     // --- helpers ---
 
     private CorpusRef uniqueCorpus() {
-        return new CorpusRef(TENANT, "corpus" + corpusCounter.incrementAndGet());
+        return new CorpusRef(TENANT, "rxcorpus" + corpusCounter.incrementAndGet());
     }
 
     private static CurrentPrincipal stubPrincipal(String tenantId) {
@@ -166,18 +169,9 @@ class QdrantCorpusStoreTest {
         };
     }
 
-    /**
-     * Deterministic embedding model that produces fixed-value vectors.
-     * Returns vectors of the given dimension with all components set to 0.1f.
-     */
     private static final class StubEmbeddingModel implements EmbeddingModel {
-
         private final int dim;
-
-        StubEmbeddingModel(int dim) {
-            this.dim = dim;
-        }
-
+        StubEmbeddingModel(int dim) { this.dim = dim; }
         @Override
         public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
             List<Embedding> embeddings = new ArrayList<>(segments.size());
@@ -188,10 +182,7 @@ class QdrantCorpusStoreTest {
             }
             return Response.from(embeddings);
         }
-
         @Override
-        public int dimension() {
-            return dim;
-        }
+        public int dimension() { return dim; }
     }
 }

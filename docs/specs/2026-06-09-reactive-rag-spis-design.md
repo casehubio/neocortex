@@ -1,4 +1,4 @@
-# Reactive CorpusStore + CaseRetriever Variants
+# Reactive EmbeddingIngestor + CaseRetriever Variants
 
 **Issue:** casehubio/neural-text#11
 **Date:** 2026-06-09
@@ -6,7 +6,7 @@
 
 ## Problem
 
-`CorpusStore` and `CaseRetriever` are blocking-only. The planned integration with
+`EmbeddingIngestor` and `CaseRetriever` are blocking-only. The planned integration with
 casehub-engine's `CaseContextChangedEventHandler` (which runs on the Vert.x IO thread
 via `@ConsumeEvent`) will need `Uni<T>` variants — calling blocking SPIs from the
 event loop causes `BlockingOperationNotAllowedException`. This is proactive enablement
@@ -44,10 +44,10 @@ Add dependency:
 
 New interfaces in `io.casehub.rag`:
 
-**`ReactiveCorpusStore`** — mirrors `CorpusStore`:
+**`ReactiveEmbeddingIngestor`** — mirrors `EmbeddingIngestor`:
 
 ```java
-public interface ReactiveCorpusStore {
+public interface ReactiveEmbeddingIngestor {
     Uni<Void> ingest(CorpusRef corpus, List<ChunkInput> chunks);
     Uni<Void> deleteDocument(CorpusRef corpus, String sourceDocumentId);
     Uni<Void> deleteCorpus(CorpusRef corpus);
@@ -72,7 +72,7 @@ Follows ledger's `BlockingReactiveParityTest` semantics.
 
 **Bridge beans** (`@DefaultBean @ApplicationScoped`, no `@IfBuildProperty`):
 
-- `BlockingToReactiveCorpusStore implements ReactiveCorpusStore` — injects `CorpusStore`,
+- `BlockingToReactiveEmbeddingIngestor implements ReactiveEmbeddingIngestor` — injects `EmbeddingIngestor`,
   wraps each call with `Uni.createFrom().item(...).runSubscriptionOn(Infrastructure.getDefaultWorkerPool())`.
   Void methods use `Uni.createFrom().<Void>item(() -> { delegate.xxx(); return null; })`.
 
@@ -90,7 +90,7 @@ needed since they do no blocking I/O).
 
 **Reactive Qdrant implementations** (build-gated):
 
-- `ReactiveQdrantCorpusStore` — `@IfBuildProperty(name = "casehub.rag.reactive.enabled", stringValue = "true")`, `@ApplicationScoped`. Native reactive Qdrant gRPC calls via `ListenableFuture` → Mutiny bridge. Displaces the `@DefaultBean` bridge when active.
+- `ReactiveQdrantEmbeddingIngestor` — `@IfBuildProperty(name = "casehub.rag.reactive.enabled", stringValue = "true")`, `@ApplicationScoped`. Native reactive Qdrant gRPC calls via `ListenableFuture` → Mutiny bridge. Displaces the `@DefaultBean` bridge when active.
 
 - `ReactiveHybridCaseRetriever` — same gating. Native reactive dense + sparse search,
   RRF fusion, optional cross-encoder reranking.
@@ -100,10 +100,10 @@ automatically — no `@Alternative` annotation needed on the reactive Qdrant imp
 
 ### `rag-testing/` — reactive in-memory stubs
 
-- `InMemoryReactiveCorpusStore implements ReactiveCorpusStore` —
+- `InMemoryReactiveEmbeddingIngestor implements ReactiveEmbeddingIngestor` —
   `@Alternative @Priority(1) @ApplicationScoped`. No `@IfBuildProperty` gate — these
   stubs have no Hibernate Reactive dependency and are safe to activate unconditionally
-  (same reasoning as PP-20260529-5745c1 for bridges). Injects `InMemoryCorpusStore`,
+  (same reasoning as PP-20260529-5745c1 for bridges). Injects `InMemoryEmbeddingIngestor`,
   delegates with `Uni.createFrom().item(...)`. Void methods use `.invoke() + .replaceWithVoid()`.
 
 - `InMemoryReactiveCaseRetriever implements ReactiveCaseRetriever` — same pattern,
@@ -112,7 +112,7 @@ automatically — no `@Alternative` annotation needed on the reactive Qdrant imp
 Follows `casehub-eidos` `persistence-memory/` pattern (`InMemoryReactiveAgentRegistry` —
 `@Alternative @Priority(1) @ApplicationScoped`, no build-property gate).
 
-**Pre-existing fix:** The existing blocking stubs `InMemoryCorpusStore` and
+**Pre-existing fix:** The existing blocking stubs `InMemoryEmbeddingIngestor` and
 `InMemoryCaseRetriever` are missing `@ApplicationScoped` — they are dependent-scoped
 by default. Since the reactive wrappers `@Inject` them, scope mismatch would give each
 injection point its own instance with its own backing data. Fix: add `@ApplicationScoped`

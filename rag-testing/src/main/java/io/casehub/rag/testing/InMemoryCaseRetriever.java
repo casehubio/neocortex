@@ -17,10 +17,10 @@ import java.util.List;
 @ApplicationScoped
 public class InMemoryCaseRetriever implements CaseRetriever {
 
-    private final InMemoryCorpusStore store;
-    private final List<RetrievedChunk> fixedResponse;
+    private final InMemoryEmbeddingIngestor store;
+    private final List<RetrievedChunk>      fixedResponse;
 
-    public InMemoryCaseRetriever(InMemoryCorpusStore store) {
+    public InMemoryCaseRetriever(InMemoryEmbeddingIngestor store) {
         this.store = store;
         this.fixedResponse = null;
     }

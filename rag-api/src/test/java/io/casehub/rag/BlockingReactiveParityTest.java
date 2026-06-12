@@ -15,8 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BlockingReactiveParityTest {
 
     private static final Map<Class<?>, Class<?>> PAIRS = Map.of(
-        CorpusStore.class, ReactiveCorpusStore.class,
-        CaseRetriever.class, ReactiveCaseRetriever.class
+            EmbeddingIngestor.class, ReactiveEmbeddingIngestor.class,
+            CaseRetriever.class, ReactiveCaseRetriever.class
     );
 
     @Test

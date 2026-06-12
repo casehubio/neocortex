@@ -12,7 +12,7 @@
 
   <artifactId>casehub-rag-tika</artifactId>
   <name>CaseHub Neural Text - RAG Tika</name>
-  <description>Optional Apache Tika document parsing for CorpusStore ingestion</description>
+  <description>Optional Apache Tika document parsing for EmbeddingIngestor ingestion</description>
 
   <dependencies>
 

@@ -2,7 +2,7 @@ package io.casehub.rag.runtime;
 
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
-import io.casehub.rag.CorpusStore;
+import io.casehub.rag.EmbeddingIngestor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,15 +14,15 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-class BlockingToReactiveCorpusStoreTest {
+class BlockingToReactiveEmbeddingIngestorTest {
 
-    private RecordingCorpusStore blocking;
-    private BlockingToReactiveCorpusStore bridge;
+    private RecordingEmbeddingIngestor          blocking;
+    private BlockingToReactiveEmbeddingIngestor bridge;
 
     @BeforeEach
     void setUp() {
-        blocking = new RecordingCorpusStore();
-        bridge = new BlockingToReactiveCorpusStore(blocking);
+        blocking = new RecordingEmbeddingIngestor();
+        bridge = new BlockingToReactiveEmbeddingIngestor(blocking);
     }
 
     @Test
@@ -59,7 +59,7 @@ class BlockingToReactiveCorpusStoreTest {
     @Test
     void ingest_executesOnWorkerThread() {
         var capturedId = new AtomicLong(Thread.currentThread().getId());
-        CorpusStore spy = new CorpusStore() {
+        EmbeddingIngestor spy = new EmbeddingIngestor() {
             @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {
                 capturedId.set(Thread.currentThread().getId());
             }
@@ -67,7 +67,7 @@ class BlockingToReactiveCorpusStoreTest {
             @Override public void deleteCorpus(CorpusRef c) {}
             @Override public List<String> listDocuments(CorpusRef c) { return List.of(); }
         };
-        var b = new BlockingToReactiveCorpusStore(spy);
+        var b = new BlockingToReactiveEmbeddingIngestor(spy);
         b.ingest(new CorpusRef("t", "c"), List.of(new ChunkInput("x", "d", Map.of())))
             .await().indefinitely();
         assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
@@ -77,7 +77,7 @@ class BlockingToReactiveCorpusStoreTest {
     @Test
     void deleteDocument_executesOnWorkerThread() {
         var capturedId = new AtomicLong(Thread.currentThread().getId());
-        CorpusStore spy = new CorpusStore() {
+        EmbeddingIngestor spy = new EmbeddingIngestor() {
             @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {}
             @Override public void deleteDocument(CorpusRef c, String id) {
                 capturedId.set(Thread.currentThread().getId());
@@ -85,7 +85,7 @@ class BlockingToReactiveCorpusStoreTest {
             @Override public void deleteCorpus(CorpusRef c) {}
             @Override public List<String> listDocuments(CorpusRef c) { return List.of(); }
         };
-        var b = new BlockingToReactiveCorpusStore(spy);
+        var b = new BlockingToReactiveEmbeddingIngestor(spy);
         b.deleteDocument(new CorpusRef("t", "c"), "d1").await().indefinitely();
         assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
             "deleteDocument() must offload to a worker thread");
@@ -94,7 +94,7 @@ class BlockingToReactiveCorpusStoreTest {
     @Test
     void deleteCorpus_executesOnWorkerThread() {
         var capturedId = new AtomicLong(Thread.currentThread().getId());
-        CorpusStore spy = new CorpusStore() {
+        EmbeddingIngestor spy = new EmbeddingIngestor() {
             @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {}
             @Override public void deleteDocument(CorpusRef c, String id) {}
             @Override public void deleteCorpus(CorpusRef c) {
@@ -102,7 +102,7 @@ class BlockingToReactiveCorpusStoreTest {
             }
             @Override public List<String> listDocuments(CorpusRef c) { return List.of(); }
         };
-        var b = new BlockingToReactiveCorpusStore(spy);
+        var b = new BlockingToReactiveEmbeddingIngestor(spy);
         b.deleteCorpus(new CorpusRef("t", "c")).await().indefinitely();
         assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
             "deleteCorpus() must offload to a worker thread");
@@ -111,7 +111,7 @@ class BlockingToReactiveCorpusStoreTest {
     @Test
     void listDocuments_executesOnWorkerThread() {
         var capturedId = new AtomicLong(Thread.currentThread().getId());
-        CorpusStore spy = new CorpusStore() {
+        EmbeddingIngestor spy = new EmbeddingIngestor() {
             @Override public void ingest(CorpusRef c, List<ChunkInput> ch) {}
             @Override public void deleteDocument(CorpusRef c, String id) {}
             @Override public void deleteCorpus(CorpusRef c) {}
@@ -120,13 +120,13 @@ class BlockingToReactiveCorpusStoreTest {
                 return List.of();
             }
         };
-        var b = new BlockingToReactiveCorpusStore(spy);
+        var b = new BlockingToReactiveEmbeddingIngestor(spy);
         b.listDocuments(new CorpusRef("t", "c")).await().indefinitely();
         assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
             "listDocuments() must offload to a worker thread");
     }
 
-    static class RecordingCorpusStore implements CorpusStore {
+    static class RecordingEmbeddingIngestor implements EmbeddingIngestor {
         final List<String> calls = new ArrayList<>();
         List<String> documentsToReturn = List.of();
 

@@ -10,13 +10,13 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class InMemoryCorpusStoreTest {
+class InMemoryEmbeddingIngestorTest {
 
-    private InMemoryCorpusStore store;
+    private InMemoryEmbeddingIngestor store;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryCorpusStore();
+        store = new InMemoryEmbeddingIngestor();
     }
 
     @Test

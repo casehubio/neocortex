@@ -2,8 +2,8 @@ package io.casehub.rag.runtime;
 
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
-import io.casehub.rag.CorpusStore;
-import io.casehub.rag.ReactiveCorpusStore;
+import io.casehub.rag.EmbeddingIngestor;
+import io.casehub.rag.ReactiveEmbeddingIngestor;
 import io.quarkus.arc.DefaultBean;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -14,13 +14,14 @@ import java.util.List;
 
 @DefaultBean
 @ApplicationScoped
-public class BlockingToReactiveCorpusStore implements ReactiveCorpusStore {
+public class BlockingToReactiveEmbeddingIngestor implements ReactiveEmbeddingIngestor {
 
-    @Inject CorpusStore delegate;
+    @Inject
+    EmbeddingIngestor delegate;
 
-    public BlockingToReactiveCorpusStore() {}
+    public BlockingToReactiveEmbeddingIngestor() {}
 
-    public BlockingToReactiveCorpusStore(CorpusStore delegate) {
+    public BlockingToReactiveEmbeddingIngestor(EmbeddingIngestor delegate) {
         this.delegate = delegate;
     }
 

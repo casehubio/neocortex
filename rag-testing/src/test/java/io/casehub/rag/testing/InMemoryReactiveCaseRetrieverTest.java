@@ -13,12 +13,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InMemoryReactiveCaseRetrieverTest {
 
-    private InMemoryCorpusStore store;
+    private InMemoryEmbeddingIngestor     store;
     private InMemoryReactiveCaseRetriever reactive;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryCorpusStore();
+        store = new InMemoryEmbeddingIngestor();
         var blocking = new InMemoryCaseRetriever(store);
         reactive = new InMemoryReactiveCaseRetriever(blocking);
     }

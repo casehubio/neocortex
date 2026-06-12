@@ -13,12 +13,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InMemoryCaseRetrieverTest {
 
-    private InMemoryCorpusStore store;
-    private CorpusRef corpus;
+    private InMemoryEmbeddingIngestor store;
+    private CorpusRef                 corpus;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryCorpusStore();
+        store = new InMemoryEmbeddingIngestor();
         corpus = new CorpusRef("tenant1", "corpus1");
     }
 

@@ -12,7 +12,7 @@
 
   <artifactId>casehub-rag-testing</artifactId>
   <name>CaseHub Neural Text - RAG Testing</name>
-  <description>In-memory CorpusStore and CaseRetriever stubs for @QuarkusTest — no Qdrant required, deterministic retrieval responses</description>
+  <description>In-memory EmbeddingIngestor and CaseRetriever stubs for @QuarkusTest — no Qdrant required, deterministic retrieval responses</description>
 
   <dependencies>
 

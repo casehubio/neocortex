@@ -9,7 +9,7 @@ import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.memory.MemoryPermissions;
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
-import io.casehub.rag.ReactiveCorpusStore;
+import io.casehub.rag.ReactiveEmbeddingIngestor;
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.QdrantClient;
@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ReactiveQdrantCorpusStore implements ReactiveCorpusStore {
+public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngestor {
 
     private final QdrantClient client;
     private final EmbeddingModel embeddingModel;
@@ -57,7 +57,7 @@ public class ReactiveQdrantCorpusStore implements ReactiveCorpusStore {
 
     private final ConcurrentHashMap<String, Uni<Void>> ensuredCollections = new ConcurrentHashMap<>();
 
-    public ReactiveQdrantCorpusStore(
+    public ReactiveQdrantEmbeddingIngestor(
             QdrantClient client,
             EmbeddingModel embeddingModel,
             SparseEmbedder sparseEmbedder,

@@ -10,15 +10,15 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class InMemoryReactiveCorpusStoreTest {
+class InMemoryReactiveEmbeddingIngestorTest {
 
-    private InMemoryCorpusStore blocking;
-    private InMemoryReactiveCorpusStore reactive;
+    private InMemoryEmbeddingIngestor         blocking;
+    private InMemoryReactiveEmbeddingIngestor reactive;
 
     @BeforeEach
     void setUp() {
-        blocking = new InMemoryCorpusStore();
-        reactive = new InMemoryReactiveCorpusStore(blocking);
+        blocking = new InMemoryEmbeddingIngestor();
+        reactive = new InMemoryReactiveEmbeddingIngestor(blocking);
     }
 
     @Test

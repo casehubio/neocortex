@@ -41,8 +41,8 @@ class ReactiveHybridCaseRetrieverTest {
     private static final String SPARSE_VECTOR_NAME = "sparse";
     private static final AtomicInteger corpusCounter = new AtomicInteger();
 
-    private QdrantClient client;
-    private QdrantCorpusStore store;
+    private QdrantClient                client;
+    private QdrantEmbeddingIngestor     store;
     private ReactiveHybridCaseRetriever retriever;
 
     @BeforeEach
@@ -64,7 +64,7 @@ class ReactiveHybridCaseRetrieverTest {
 
         CurrentPrincipal principal = stubPrincipal(TENANT);
 
-        store = new QdrantCorpusStore(
+        store = new QdrantEmbeddingIngestor(
             client, embeddingModel, sparseEmbedder,
             TenancyStrategy.SEPARATE_COLLECTIONS,
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,

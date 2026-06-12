@@ -12,7 +12,7 @@
 
   <artifactId>casehub-rag</artifactId>
   <name>CaseHub Neural Text - RAG</name>
-  <description>LangChain4j RAG pipeline wiring — Tika ingestion, dense + sparse hybrid search, Qdrant, tenancy isolation, CorpusStore + CaseRetriever implementations</description>
+  <description>LangChain4j RAG pipeline wiring — Tika ingestion, dense + sparse hybrid search, Qdrant, tenancy isolation, EmbeddingIngestor + CaseRetriever implementations</description>
 
   <dependencies>
 

@@ -13,7 +13,7 @@
 
 **Neural Text Inference** — a standalone, general-purpose ONNX model execution layer for JVM projects. Fills the gap LangChain4j leaves: NLI (hallucination detection), classification (action risk), regression (epistemic confidence), SPLADE sparse embeddings, and cross-encoder reranking. Zero casehub domain dependencies in the core modules. Shared with Hortora.
 
-**RAG Integration** — casehub-specific LangChain4j RAG pipeline wiring with tenancy-isolated Qdrant corpus storage, hybrid dense+sparse search via RRF fusion, and `CorpusStore`/`CaseRetriever` SPIs for use by engine case steps and the typed fact space.
+**RAG Integration** — casehub-specific LangChain4j RAG pipeline wiring with tenancy-isolated Qdrant corpus storage, hybrid dense+sparse search via RRF fusion, and `EmbeddingIngestor`/`CaseRetriever` SPIs for use by engine case steps and the typed fact space.
 
 ### Stakeholders
 
@@ -119,7 +119,7 @@ C4Context
 
 **Hybrid RAG** — two vector representations per document: dense (LangChain4j `OnnxEmbeddingModel`) and sparse (SPLADE via `inference-splade`). Both stored in Qdrant named vector spaces. Retrieval uses either or both, fused via RRF. Dense handles semantic similarity; sparse handles lexical precision for regulatory/clinical text.
 
-**Tenancy isolation at the SPI boundary** — `CaseRetriever.retrieve()` and `CorpusStore.ingest()` require a `CorpusRef` carrying the tenant ID. No cross-tenant retrieval is possible through the SPI. Qdrant payload filtering enforces isolation at the storage layer.
+**Tenancy isolation at the SPI boundary** — `CaseRetriever.retrieve()` and `EmbeddingIngestor.ingest()` require a `CorpusRef` carrying the tenant ID. No cross-tenant retrieval is possible through the SPI. Qdrant payload filtering enforces isolation at the storage layer.
 
 ### Relationship to LangChain4j
 
@@ -168,8 +168,8 @@ C4Container
   }
 
   Container_Boundary(b_rag_spi, "Layer: RAG SPI") {
-    Container(rag_api, "rag-api", "Pure Java", "CorpusStore SPI, CaseRetriever SPI, RetrievedChunk, CorpusRef")
-    Container(rag_testing, "rag-testing", "Pure Java", "In-memory CorpusStore + CaseRetriever stubs")
+    Container(rag_api, "rag-api", "Pure Java", "EmbeddingIngestor SPI, CaseRetriever SPI, RetrievedChunk, CorpusRef")
+    Container(rag_testing, "rag-testing", "Pure Java", "In-memory EmbeddingIngestor + CaseRetriever stubs")
   }
 
   Container_Boundary(b_rag_rt, "Layer: RAG Runtime") {
@@ -181,7 +181,7 @@ C4Container
   Rel(inference_rt, inference_api, "implements InferenceModel")
   Rel(inference_inmem, inference_api, "implements InferenceModel (stub)")
   Rel(inference_quarkus, inference_rt, "CDI wires")
-  Rel(rag, rag_api, "implements CorpusStore + CaseRetriever")
+  Rel(rag, rag_api, "implements EmbeddingIngestor + CaseRetriever")
   Rel(rag, inference_splade, "SparseEmbedder for sparse search leg")
   Rel(rag_testing, rag_api, "implements stubs")
 ```
@@ -499,7 +499,7 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 **Issues:** #7 | **Blocked by:** C6 (SparseEmbedder for sparse search leg)
 
 **What this delivers**  
-`rag-api`, `rag`, `rag-tika`, and `rag-testing` published. casehub application repos can define named corpora in configuration, ingest documents via `CorpusStore`, and retrieve grounded context via `CaseRetriever`. Hybrid dense+sparse search operates across tenancy-isolated Qdrant collections. `rag-tika` provides optional Apache Tika document parsing → chunked `ChunkInput`. The fact space prompt compiler in casehub-engine can inject retrieved context into LLM worker prompts.
+`rag-api`, `rag`, `rag-tika`, and `rag-testing` published. casehub application repos can define named corpora in configuration, ingest documents via `EmbeddingIngestor`, and retrieve grounded context via `CaseRetriever`. Hybrid dense+sparse search operates across tenancy-isolated Qdrant collections. `rag-tika` provides optional Apache Tika document parsing → chunked `ChunkInput`. The fact space prompt compiler in casehub-engine can inject retrieved context into LLM worker prompts.
 
 **Accountability gaps closed**  
 - Knowledge-grounded LLM reasoning → CaseRetriever available for engine case steps
@@ -760,13 +760,13 @@ For new inference model consumers: inject `@Inference("name") InferenceModel mod
 
 #### What it adds
 
-Defines the contract for knowledge corpus management and retrieval within casehub. `CorpusStore` allows application repos to ingest and manage documents scoped to a tenant corpus. `CaseRetriever` provides the retrieval interface for engine case steps and the typed fact space prompt compiler. Reactive variants (`ReactiveCorpusStore`, `ReactiveCaseRetriever`) enable consumers on the Vert.x event loop (e.g. casehub-engine's `CaseContextChangedEventHandler`). Mutiny is `provided` scope — same pattern as casehub-ledger-api and casehub-eidos-api. `rag-testing` stubs make both blocking and reactive interfaces usable in `@QuarkusTest` without Qdrant.
+Defines the contract for knowledge corpus management and retrieval within casehub. `EmbeddingIngestor` allows application repos to ingest and manage documents scoped to a tenant corpus. `CaseRetriever` provides the retrieval interface for engine case steps and the typed fact space prompt compiler. Reactive variants (`ReactiveEmbeddingIngestor`, `ReactiveCaseRetriever`) enable consumers on the Vert.x event loop (e.g. casehub-engine's `CaseContextChangedEventHandler`). Mutiny is `provided` scope — same pattern as casehub-ledger-api and casehub-eidos-api. `rag-testing` stubs make both blocking and reactive interfaces usable in `@QuarkusTest` without Qdrant.
 
 #### Architectural decisions
 
 `CorpusRef` (tenantId + corpusName) is mandatory on all SPI calls — no implicit ambient tenancy. This enforces tenancy isolation at the type level, not just the runtime level.
 
-`CorpusStore` and `CaseRetriever` are separate SPIs. `CorpusStore` is write-oriented (ingest, delete, list). `CaseRetriever` is read-oriented (retrieve). This separation allows different implementations and different CDI beans for admin vs. runtime contexts.
+`EmbeddingIngestor` and `CaseRetriever` are separate SPIs. `EmbeddingIngestor` is write-oriented (ingest, delete, list). `CaseRetriever` is read-oriented (retrieve). This separation allows different implementations and different CDI beans for admin vs. runtime contexts.
 
 `RetrievedChunk` carries `sourceDocumentId`, `content`, `relevanceScore`, and `metadata`. No per-chunk `embeddingStrategy` field — after RRF fusion, every result is hybrid. The fused score is what matters for ranking; per-leg provenance is not recoverable from the fused result and would be architecturally misleading.
 
@@ -790,7 +790,7 @@ Reactive SPI co-location in Tier 1 api modules with Mutiny `provided` scope — 
 
 #### What it adds
 
-Implements `CorpusStore` and `CaseRetriever` using LangChain4j `EmbeddingModel` (dense embeddings) + `inference-splade` `SparseEmbedder` (sparse) + Qdrant Java client (gRPC) for hybrid search with RRF fusion. Optional `CrossEncoderReranker` for precision-mode top-N. Configurable tenancy isolation — separate collections per tenant (default) or shared collection with payload filtering. `@DefaultBean` bridges (`BlockingToReactiveCorpusStore`, `BlockingToReactiveCaseRetriever`) wrap blocking implementations with `runSubscriptionOn(workerPool)` as the default reactive path. Native reactive Qdrant implementations (`ReactiveQdrantCorpusStore`, `ReactiveHybridCaseRetriever`) activate via `casehub.rag.reactive.enabled=true` — use `QdrantFutures.toUni()` (`ListenableFuture` → Mutiny `Uni` via `Futures.addCallback` + `directExecutor`) for natively async Qdrant I/O, with blocking ONNX embedding offloaded to the worker pool. `ReactiveRagBeanProducer` (`@IfBuildProperty` + `@Startup`) produces both; `@DefaultBean` bridges are removed from the bean graph when active (#13).
+Implements `EmbeddingIngestor` and `CaseRetriever` using LangChain4j `EmbeddingModel` (dense embeddings) + `inference-splade` `SparseEmbedder` (sparse) + Qdrant Java client (gRPC) for hybrid search with RRF fusion. Optional `CrossEncoderReranker` for precision-mode top-N. Configurable tenancy isolation — separate collections per tenant (default) or shared collection with payload filtering. `@DefaultBean` bridges (`BlockingToReactiveEmbeddingIngestor`, `BlockingToReactiveCaseRetriever`) wrap blocking implementations with `runSubscriptionOn(workerPool)` as the default reactive path. Native reactive Qdrant implementations (`ReactiveQdrantEmbeddingIngestor`, `ReactiveHybridCaseRetriever`) activate via `casehub.rag.reactive.enabled=true` — use `QdrantFutures.toUni()` (`ListenableFuture` → Mutiny `Uni` via `Futures.addCallback` + `directExecutor`) for natively async Qdrant I/O, with blocking ONNX embedding offloaded to the worker pool. `ReactiveRagBeanProducer` (`@IfBuildProperty` + `@Startup`) produces both; `@DefaultBean` bridges are removed from the bean graph when active (#13).
 
 `langchain4j-qdrant` not used — LangChain4j does not support Qdrant named vector spaces or hybrid search ([langchain4j#4994](https://github.com/langchain4j/langchain4j/issues/4994), open, no timeline). Both dense and sparse legs use the Qdrant Java gRPC client directly for unified architecture. LangChain4j used only for `EmbeddingModel`, `DocumentSplitter`, and Tika parser (in `rag-tika`).
 

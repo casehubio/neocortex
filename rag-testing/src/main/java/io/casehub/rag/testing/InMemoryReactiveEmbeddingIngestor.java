@@ -2,7 +2,7 @@ package io.casehub.rag.testing;
 
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
-import io.casehub.rag.ReactiveCorpusStore;
+import io.casehub.rag.ReactiveEmbeddingIngestor;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -14,14 +14,14 @@ import java.util.List;
 @Alternative
 @Priority(1)
 @ApplicationScoped
-public class InMemoryReactiveCorpusStore implements ReactiveCorpusStore {
+public class InMemoryReactiveEmbeddingIngestor implements ReactiveEmbeddingIngestor {
 
     @Inject
-    InMemoryCorpusStore delegate;
+    InMemoryEmbeddingIngestor delegate;
 
-    public InMemoryReactiveCorpusStore() {}
+    public InMemoryReactiveEmbeddingIngestor() {}
 
-    public InMemoryReactiveCorpusStore(InMemoryCorpusStore delegate) {
+    public InMemoryReactiveEmbeddingIngestor(InMemoryEmbeddingIngestor delegate) {
         this.delegate = delegate;
     }
 

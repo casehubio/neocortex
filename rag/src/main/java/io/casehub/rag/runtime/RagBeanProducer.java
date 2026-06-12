@@ -22,8 +22,8 @@ public class RagBeanProducer {
 
     @Produces
     @ApplicationScoped
-    QdrantCorpusStore corpusStore() {
-        return new QdrantCorpusStore(
+    QdrantEmbeddingIngestor corpusStore() {
+        return new QdrantEmbeddingIngestor(
             client,
             embeddingModel,
             sparseEmbedder,

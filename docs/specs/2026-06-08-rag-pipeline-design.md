@@ -9,7 +9,7 @@
 
 ## What This Delivers
 
-`rag-api`, `rag`, `rag-tika`, and `rag-testing` published. CaseHub application repos can define named corpora in configuration, ingest documents via `CorpusStore`, and retrieve grounded context via `CaseRetriever`. Hybrid dense+sparse search operates across tenancy-isolated Qdrant collections. Optional cross-encoder reranking for precision mode.
+`rag-api`, `rag`, `rag-tika`, and `rag-testing` published. CaseHub application repos can define named corpora in configuration, ingest documents via `EmbeddingIngestor`, and retrieve grounded context via `CaseRetriever`. Hybrid dense+sparse search operates across tenancy-isolated Qdrant collections. Optional cross-encoder reranking for precision mode.
 
 ---
 
@@ -17,14 +17,14 @@
 
 ```
 rag-api/       Pure Java, zero deps.
-               CorpusStore SPI, CaseRetriever SPI, CorpusRef, ChunkInput, RetrievedChunk.
+               EmbeddingIngestor SPI, CaseRetriever SPI, CorpusRef, ChunkInput, RetrievedChunk.
                Package: io.casehub.rag
                (matches inference-api convention: io.casehub.inference)
                Zero-deps for quality and testability — same reason inference-api
                is zero-deps. Not shared with Hortora (see Hortora Boundary below).
 
 rag/           Quarkus library JAR (Jandex-indexed, not a Quarkus extension).
-               QdrantCorpusStore, HybridCaseRetriever, TenancyStrategy, QdrantConfig.
+               QdrantEmbeddingIngestor, HybridCaseRetriever, TenancyStrategy, QdrantConfig.
                Package: io.casehub.rag.runtime
 
 rag-tika/      NEW MODULE (not in original scaffold — must be created and added
@@ -32,7 +32,7 @@ rag-tika/      NEW MODULE (not in original scaffold — must be created and adde
                List<ChunkInput>. Callers add as compile dep to activate.
                Package: io.casehub.rag.tika
 
-rag-testing/   In-memory CorpusStore + CaseRetriever stubs.
+rag-testing/   In-memory EmbeddingIngestor + CaseRetriever stubs.
                @Alternative @Priority(1). No Qdrant, no embeddings.
                Package: io.casehub.rag.testing
 ```
@@ -121,12 +121,12 @@ public record RetrievedChunk(String content, String sourceDocumentId,
 }
 ```
 
-### CorpusStore
+### EmbeddingIngestor
 
 Write-oriented SPI. Ingest pre-chunked content, delete documents, manage corpora.
 
 ```java
-public interface CorpusStore {
+public interface EmbeddingIngestor {
     void ingest(CorpusRef corpus, List<ChunkInput> chunks);
     void deleteDocument(CorpusRef corpus, String sourceDocumentId);
     void deleteCorpus(CorpusRef corpus);
@@ -146,9 +146,9 @@ public interface CaseRetriever {
 
 ### Design decisions
 
-- `CorpusStore.ingest()` accepts pre-chunked `ChunkInput`, not raw documents. Callers chunk themselves or use `rag-tika`. Keeps Tika dependency optional.
+- `EmbeddingIngestor.ingest()` accepts pre-chunked `ChunkInput`, not raw documents. Callers chunk themselves or use `rag-tika`. Keeps Tika dependency optional.
 - `CaseRetriever.retrieve()` takes `maxResults` as a parameter — different case steps may want different result counts.
-- Separate SPIs for write (CorpusStore) and read (CaseRetriever). Different implementations, different CDI beans, different lifecycle concerns.
+- Separate SPIs for write (EmbeddingIngestor) and read (CaseRetriever). Different implementations, different CDI beans, different lifecycle concerns.
 - `CorpusRef` is the tenancy enforcement point. Every SPI method requires it explicitly.
 
 ---
@@ -157,7 +157,7 @@ public interface CaseRetriever {
 
 ### Tenancy validation
 
-`QdrantCorpusStore` and `HybridCaseRetriever` are data access classes. Per the platform tenancy protocol (`casehub/garden: docs/protocols/casehub/tenancy-repository-pattern.md`), they validate tenancy internally — never trust the caller.
+`QdrantEmbeddingIngestor` and `HybridCaseRetriever` are data access classes. Per the platform tenancy protocol (`casehub/garden: docs/protocols/casehub/tenancy-repository-pattern.md`), they validate tenancy internally — never trust the caller.
 
 Both beans inject `CurrentPrincipal` and call `MemoryPermissions.assertTenant(corpusRef.tenantId(), currentPrincipal)` at the top of every operation. This is the same pattern used by all `CaseMemoryStore` adapters (`casehub/garden: docs/protocols/casehub/casememorystore-adapter-asserttenant-contract.md`). A caller that constructs `CorpusRef` with a tenant ID that doesn't match the authenticated principal gets `SecurityException`.
 
@@ -198,9 +198,9 @@ Maps `CorpusRef` to Qdrant collection name + optional filter. Configurable — o
 - Filter: `must[match("tenantId", ref.tenantId())]` on every query and delete
 - `deleteCorpus` → delete all points matching tenantId filter
 
-### QdrantCorpusStore
+### QdrantEmbeddingIngestor
 
-`@ApplicationScoped`. Implements `CorpusStore`. Injects `CurrentPrincipal`.
+`@ApplicationScoped`. Implements `EmbeddingIngestor`. Injects `CurrentPrincipal`.
 
 **Ingest pipeline:**
 1. Validate tenancy: `MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal)`
@@ -270,7 +270,7 @@ casehub.rag.tika.chunk-size = 512
 casehub.rag.tika.chunk-overlap = 64
 ```
 
-Callers add `casehub-rag-tika` as compile dep to activate. Without it, `CorpusStore.ingest()` still works — callers provide their own `List<ChunkInput>`.
+Callers add `casehub-rag-tika` as compile dep to activate. Without it, `EmbeddingIngestor.ingest()` still works — callers provide their own `List<ChunkInput>`.
 
 ---
 
@@ -278,10 +278,10 @@ Callers add `casehub-rag-tika` as compile dep to activate. Without it, `CorpusSt
 
 Deterministic in-memory stubs. Both `@Alternative @Priority(1)`.
 
-**`InMemoryCorpusStore`** — `Map<CorpusRef, Map<String, List<ChunkInput>>>`. All operations in-memory. Displaces `QdrantCorpusStore` on test classpath.
+**`InMemoryEmbeddingIngestor`** — `Map<CorpusRef, Map<String, List<ChunkInput>>>`. All operations in-memory. Displaces `QdrantEmbeddingIngestor` on test classpath.
 
 **`InMemoryCaseRetriever`** — two modes:
-- Default: backed by an `InMemoryCorpusStore` instance (injected). Returns stored chunks for the corpus as `RetrievedChunk` (content + sourceDocumentId from the `ChunkInput`, relevanceScore = 1.0), insertion order, truncated to `maxResults`. No embedding, no scoring. Tests that use both stubs together get consistent ingest → retrieve behavior.
+- Default: backed by an `InMemoryEmbeddingIngestor` instance (injected). Returns stored chunks for the corpus as `RetrievedChunk` (content + sourceDocumentId from the `ChunkInput`, relevanceScore = 1.0), insertion order, truncated to `maxResults`. No embedding, no scoring. Tests that use both stubs together get consistent ingest → retrieve behavior.
 - Programmatic: `InMemoryCaseRetriever.returning(List<RetrievedChunk>)` — factory method producing a standalone instance with fixed responses regardless of query. For tests that need controlled retrieval without ingesting.
 
 Consumer test classpath:

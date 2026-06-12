@@ -56,9 +56,9 @@ Initial retrieval (top-20 candidates) ranks by vector similarity. A cross-encode
 
 ## rag-* — knowledge retrieval for case steps
 
-### CorpusStore — document ingestion
+### EmbeddingIngestor — document ingestion
 
-Application repos manage named, tenancy-scoped document corpora. A corpus is a collection of documents relevant to a domain: SAR typologies for AML investigations, clinical trial protocols, coding standards for devtown. `CorpusStore` handles ingest (Apache Tika extracts text from any format), chunking, dual embedding — dense via LangChain4j `OnnxEmbeddingModel`, sparse via `SparseEmbedder` — and Qdrant storage.
+Application repos manage named, tenancy-scoped document corpora. A corpus is a collection of documents relevant to a domain: SAR typologies for AML investigations, clinical trial protocols, coding standards for devtown. `EmbeddingIngestor` handles ingest (Apache Tika extracts text from any format), chunking, dual embedding — dense via LangChain4j `OnnxEmbeddingModel`, sparse via `SparseEmbedder` — and Qdrant storage.
 
 Every call requires a `CorpusRef` carrying the tenant ID. Cross-tenant access is blocked at the SPI boundary.
 
@@ -80,7 +80,7 @@ Retrieval runs both a dense query (semantic similarity) and a sparse query (lexi
 | `inference-splade/` | `casehub-inference-splade` | Pure Java | `SparseEmbedder` — log-saturation SPLADE, `Map<Integer, Float>` output |
 | `inference-inmem/` | `casehub-inference-inmem` | Pure Java | Deterministic stubs — no JNI, safe in all test contexts |
 | `inference-quarkus/` | `casehub-inference-quarkus` | Quarkus | `@InferenceModel` qualifier, CDI model lifecycle |
-| `rag-api/` | `casehub-rag-api` | Pure Java, zero deps | `CorpusStore`, `CaseRetriever`, `RetrievedChunk`, `CorpusRef` |
+| `rag-api/` | `casehub-rag-api` | Pure Java, zero deps | `EmbeddingIngestor`, `CaseRetriever`, `RetrievedChunk`, `CorpusRef` |
 | `rag/` | `casehub-rag` | Quarkus + LangChain4j | Tika ingestion, Qdrant, hybrid RRF, tenancy isolation |
 | `rag-testing/` | `casehub-rag-testing` | Pure Java | In-memory stubs — no Qdrant in `@QuarkusTest` |
 

@@ -94,6 +94,9 @@ https://raw.githubusercontent.com/casehubio/parent/main/docs/repos/casehub-neura
 - AI Fusion brief: `https://raw.githubusercontent.com/casehubio/parent/main/docs/specs/2026-06-03-ai-fusion-hybrid-fact-space.md`
 - ONNX inference brief: `https://raw.githubusercontent.com/casehubio/parent/main/docs/specs/2026-06-03-standalone-rag-retrieval-brief.md`
 
+**Upstream work in progress:**
+- quarkus-langchain4j #2572: `@RagPipeline`, `@HybridSearch`, `@DocumentIngestion` composition annotations — simplifies RAG wiring. Also `@RegisterAiService` supplier→bean migration. When shipped, adopt these in `rag/` module to replace manual CDI wiring. Track at `https://github.com/quarkiverse/quarkus-langchain4j/issues/2572`
+
 ---
 
 ## Reference Documents
@@ -127,7 +130,7 @@ Tracks `casehubio/parent#158`. Authoritative design: `Hortora/spec: docs/superpo
 
 ### 2. RAG Integration (`rag-*` modules)
 
-casehub-specific LangChain4j RAG pipeline wiring. Exposes `CorpusStore` SPI (ingest documents) and `CaseRetriever` SPI (retrieve context for case steps), with reactive variants (`ReactiveCorpusStore`, `ReactiveCaseRetriever`) for consumers on the Vert.x event loop. Tenancy-isolated Qdrant collections. Hybrid dense (LangChain4j) + sparse (inference-splade) search via RRF fusion.
+casehub-specific LangChain4j RAG pipeline wiring. Exposes `EmbeddingIngestor` SPI (ingest documents) and `CaseRetriever` SPI (retrieve context for case steps), with reactive variants (`ReactiveEmbeddingIngestor`, `ReactiveCaseRetriever`) for consumers on the Vert.x event loop. Tenancy-isolated Qdrant collections. Hybrid dense (LangChain4j) + sparse (inference-splade) search via RRF fusion.
 
 Tracks `casehubio/parent#164`.
 
@@ -142,7 +145,7 @@ inference-tasks/    — NliClassifier, TextClassifier, ScalarRegressor, CrossEnc
 inference-splade/   — sparse SPLADE embeddings (Map<Integer, Float>)
 inference-inmem/    — deterministic stubs; no JNI; safe in all test contexts
 inference-quarkus/  — CDI wiring, @InferenceModel qualifier, Dev Services, @QuarkusTest
-rag-api/            — CorpusStore + ReactiveCorpusStore SPIs, CaseRetriever + ReactiveCaseRetriever SPIs, value types — Mutiny provided
+rag-api/            — EmbeddingIngestor + ReactiveEmbeddingIngestor SPIs, CaseRetriever + ReactiveCaseRetriever SPIs, value types — Mutiny provided
 rag/                — LangChain4j wiring, Qdrant, hybrid RRF fusion, @DefaultBean blocking-to-reactive bridges
 rag-testing/        — in-memory stubs for both blocking and reactive SPIs (@Alternative @Priority(1) @ApplicationScoped)
 ```

@@ -9,7 +9,7 @@ import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.memory.MemoryPermissions;
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
-import io.casehub.rag.CorpusStore;
+import io.casehub.rag.EmbeddingIngestor;
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.QdrantClient;
@@ -39,7 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
-public class QdrantCorpusStore implements CorpusStore {
+public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
 
     private final QdrantClient client;
     private final EmbeddingModel embeddingModel;
@@ -51,7 +51,7 @@ public class QdrantCorpusStore implements CorpusStore {
 
     private final Set<String> knownCollections = ConcurrentHashMap.newKeySet();
 
-    public QdrantCorpusStore(
+    public QdrantEmbeddingIngestor(
             QdrantClient client,
             EmbeddingModel embeddingModel,
             SparseEmbedder sparseEmbedder,

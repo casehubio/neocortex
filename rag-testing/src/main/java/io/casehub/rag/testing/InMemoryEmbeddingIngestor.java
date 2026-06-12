@@ -2,7 +2,7 @@ package io.casehub.rag.testing;
 
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
-import io.casehub.rag.CorpusStore;
+import io.casehub.rag.EmbeddingIngestor;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Alternative
 @Priority(1)
 @ApplicationScoped
-public class InMemoryCorpusStore implements CorpusStore {
+public class InMemoryEmbeddingIngestor implements EmbeddingIngestor {
 
     private final Map<CorpusRef, Map<String, List<ChunkInput>>> data = new ConcurrentHashMap<>();
 

@@ -34,8 +34,8 @@ public class ReactiveRagBeanProducer {
 
     @Produces
     @ApplicationScoped
-    ReactiveQdrantCorpusStore corpusStore() {
-        return new ReactiveQdrantCorpusStore(
+    ReactiveQdrantEmbeddingIngestor corpusStore() {
+        return new ReactiveQdrantEmbeddingIngestor(
             client, embeddingModel, sparseEmbedder,
             config.tenancyStrategy(),
             config.denseVectorName(), config.sparseVectorName(),

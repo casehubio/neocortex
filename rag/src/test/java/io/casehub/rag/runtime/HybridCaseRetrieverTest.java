@@ -42,9 +42,9 @@ class HybridCaseRetrieverTest {
 
     private static final AtomicInteger corpusCounter = new AtomicInteger();
 
-    private QdrantClient client;
-    private QdrantCorpusStore store;
-    private HybridCaseRetriever retriever;
+    private QdrantClient            client;
+    private QdrantEmbeddingIngestor store;
+    private HybridCaseRetriever     retriever;
     private CurrentPrincipal principal;
 
     @BeforeEach
@@ -67,7 +67,7 @@ class HybridCaseRetrieverTest {
 
         principal = stubPrincipal(TENANT);
 
-        store = new QdrantCorpusStore(
+        store = new QdrantEmbeddingIngestor(
             client, embeddingModel, sparseEmbedder,
             TenancyStrategy.SEPARATE_COLLECTIONS,
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
