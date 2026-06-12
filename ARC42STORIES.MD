@@ -248,7 +248,7 @@ C4Dynamic
 
 ```mermaid
 C4Deployment
-  title casehub-neural-text — Deployment (JVM mode, pending native image gate)
+  title casehub-neural-text — Deployment (native image gate passed)
 
   Deployment_Node(jvm, "JVM (Java 21+)", "hosting process") {
     Deployment_Node(quarkus, "Quarkus application", "consuming app") {
@@ -411,7 +411,7 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 |---|---|
 | L2 Runtime Core | Low (validation only — no production code) |
 
-**Note:** If prototype fails, C5 (Quarkus CDI wiring) proceeds in JVM-only mode. Hortora's distributable native binary goal is deferred pending alternative options (JVM + CDS, sidecar process).
+**Note:** Native image gate passed (C2 complete). Both ONNX Runtime JNI and HuggingFace Tokenizers JNI work in Quarkus native image on macOS ARM.
 
 ---
 
