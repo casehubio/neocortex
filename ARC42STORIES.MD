@@ -3,7 +3,7 @@
 **Version:** 0.1  
 **Status:** All chapters complete (C1–C7) — J1 + J2 ✅  
 **Spec:** [arc42stories-spec.md](https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-spec.md)  
-**Last updated:** 2026-06-08
+**Last updated:** 2026-06-12
 
 ---
 
@@ -698,7 +698,7 @@ SPLADE output is `Map<Integer, Float>` not `float[]`. Qdrant named vector spaces
 
 Log-saturation applied before threshold: `log(1 + relu(w))` for each raw weight w. This compresses high-weight terms and prevents dominance by single high-attention tokens. Threshold 0.01 removes noise — empirically established in the SPLADE paper.
 
-Candidate for upstream LangChain4j contribution (issue #1600) once stable.
+Candidate for upstream LangChain4j contribution once stable (langchain4j#1600 was metadata filtering, now closed — a SPLADE-specific upstream issue has not been filed yet).
 
 #### Gotchas
 
@@ -839,10 +839,10 @@ LangChain4j provides Tika document parsing, chunking, `OnnxEmbeddingModel` (dens
 
 | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|
-| ONNX Runtime JNI fails in Quarkus native image | Medium | High | C2 prototype is mandatory first deliverable; fallback to JVM-only mode documented |
-| HuggingFace Tokenizers JNI fails in native image | Medium | High | Same — C2 validates both JNI layers together |
+| ~~ONNX Runtime JNI fails in Quarkus native image~~ | ~~Medium~~ | ~~High~~ | ✅ Resolved — C2 prototype passed; both JNI layers work in native image on macOS ARM |
+| ~~HuggingFace Tokenizers JNI fails in native image~~ | ~~Medium~~ | ~~High~~ | ✅ Resolved — validated together with ONNX Runtime in C2 |
 | LangChain4j #4994 (Qdrant hybrid) ships | Low | Low | Unified Qdrant gRPC client used for both legs — no migration needed; evaluate langchain4j-qdrant adoption opportunistically if it simplifies code |
-| Hortora's usage pattern conflicts with SPI design | Medium | Medium | Hortora/spec#15 validation required before C3 implementation begins |
+| Hortora's usage pattern conflicts with SPI design | Medium | Medium | C3 complete — SPI design validated through implementation; Hortora integration pending their adoption |
 | ArchUnit rule drift | Low | High | ArchUnit tests run in CI on every build; fail-fast |
 
 **Technical debt:**
