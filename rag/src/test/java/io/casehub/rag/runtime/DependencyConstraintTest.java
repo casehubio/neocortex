@@ -21,6 +21,7 @@ class DependencyConstraintTest {
                     return pkg.startsWith("io.casehub.")
                         && !pkg.startsWith("io.casehub.rag")
                         && !pkg.startsWith("io.casehub.inference")
+                        && !pkg.startsWith("io.casehub.corpus")
                         && !pkg.startsWith("io.casehub.platform.api");
                 }));
 }

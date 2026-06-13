@@ -42,10 +42,22 @@
       <artifactId>quarkus-arc</artifactId>
     </dependency>
 
-    <!-- LangChain4j — EmbeddingModel, Embedding, TextSegment types only -->
+    <!-- Corpus implementation — used only by CorpusBindingProducer -->
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-corpus</artifactId>
+    </dependency>
+
+    <!-- LangChain4j — EmbeddingModel, TextSegment, DocumentSplitters -->
     <dependency>
       <groupId>dev.langchain4j</groupId>
-      <artifactId>langchain4j-core</artifactId>
+      <artifactId>langchain4j</artifactId>
+    </dependency>
+
+    <!-- Quarkus scheduler — @Scheduled for polling loop -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
     </dependency>
 
     <!-- Qdrant Java client — gRPC, both dense and sparse legs -->

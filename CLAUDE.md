@@ -130,7 +130,7 @@ Tracks `casehubio/parent#158`. Authoritative design: `Hortora/spec: docs/superpo
 
 ### 2. RAG Integration (`rag-*` modules)
 
-casehub-specific LangChain4j RAG pipeline wiring. Exposes `EmbeddingIngestor` SPI (ingest documents) and `CaseRetriever` SPI (retrieve context for case steps), with reactive variants (`ReactiveEmbeddingIngestor`, `ReactiveCaseRetriever`) for consumers on the Vert.x event loop. Tenancy-isolated Qdrant collections. Hybrid dense (LangChain4j) + sparse (inference-splade) search via RRF fusion.
+casehub-specific LangChain4j RAG pipeline wiring. Exposes `EmbeddingIngestor` SPI (ingest documents) and `CaseRetriever` SPI (retrieve context for case steps), with reactive variants (`ReactiveEmbeddingIngestor`, `ReactiveCaseRetriever`) for consumers on the Vert.x event loop. Tenancy-isolated Qdrant collections. Hybrid dense (LangChain4j) + sparse (inference-splade) search via RRF fusion. `CorpusIngestionService` bridges corpus modules to RAG — polls `ChangeSource`, reads via `CorpusReader`, extracts metadata (`MetadataExtractor` SPI), chunks, and pushes to Qdrant via `EmbeddingIngestor`. Config-driven with cursor persistence (`CursorStore` SPI) and admin-triggered reconciliation.
 
 Tracks `casehubio/parent#164`.
 
@@ -145,9 +145,9 @@ inference-tasks/    — NliClassifier, TextClassifier, ScalarRegressor, CrossEnc
 inference-splade/   — sparse SPLADE embeddings (Map<Integer, Float>)
 inference-inmem/    — deterministic stubs; no JNI; safe in all test contexts
 inference-quarkus/  — CDI wiring, @InferenceModel qualifier, Dev Services, @QuarkusTest
-rag-api/            — EmbeddingIngestor + ReactiveEmbeddingIngestor SPIs, CaseRetriever + ReactiveCaseRetriever SPIs, value types — Mutiny provided
-rag/                — LangChain4j wiring, Qdrant, hybrid RRF fusion, @DefaultBean blocking-to-reactive bridges
-rag-testing/        — in-memory stubs for both blocking and reactive SPIs (@Alternative @Priority(1) @ApplicationScoped)
+rag-api/            — EmbeddingIngestor + ReactiveEmbeddingIngestor SPIs, CaseRetriever + ReactiveCaseRetriever SPIs, MetadataExtractor + CursorStore SPIs, value types — Mutiny provided
+rag/                — LangChain4j wiring, Qdrant, hybrid RRF fusion, @DefaultBean blocking-to-reactive bridges, CorpusIngestionService (@Scheduled polling bridge: ChangeSource → chunk → embed → Qdrant)
+rag-testing/        — in-memory stubs for both blocking and reactive SPIs + InMemoryCursorStore (@Alternative @Priority(1) @ApplicationScoped)
 corpus-api/         — CorpusStore + CorpusReader + ChangeSource + CorpusIntegrity SPIs, reactive variants, value types — zero deps, Hortora-eligible
 corpus/             — Zip4j implementation: ZipCorpusStore (rolling archives, chain manifest), FlatCorpusStore, CompositeCorpusStore, compaction, migration — Hortora-eligible
 ```

@@ -8,7 +8,6 @@ import io.casehub.inference.splade.SparseEmbedder;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.memory.MemoryPermissions;
 import io.casehub.rag.ChunkInput;
-import io.quarkus.arc.Arc;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.ReactiveEmbeddingIngestor;
 import io.qdrant.client.ConditionFactory;
@@ -77,15 +76,10 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
         this.currentPrincipal = currentPrincipal;
     }
 
-    private boolean requestContextActive() {
-        var c = Arc.container();
-        return c == null || c.requestContext().isActive();
-    }
-
     @Override
     public Uni<Void> ingest(CorpusRef corpus, List<ChunkInput> chunks) {
         return Uni.createFrom().deferred(() -> {
-            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, requestContextActive());
+            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, RequestContextCheck.isActive());
             String collection = tenancyStrategy.collectionName(corpus);
 
             return ensureCollection(collection)
@@ -115,7 +109,7 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
     @Override
     public Uni<Void> deleteDocument(CorpusRef corpus, String sourceDocumentId) {
         return Uni.createFrom().deferred(() -> {
-            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, requestContextActive());
+            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, RequestContextCheck.isActive());
             String collection = tenancyStrategy.collectionName(corpus);
 
             Filter.Builder filterBuilder = Filter.newBuilder()
@@ -131,7 +125,7 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
     @Override
     public Uni<Void> deleteCorpus(CorpusRef corpus) {
         return Uni.createFrom().deferred(() -> {
-            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, requestContextActive());
+            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, RequestContextCheck.isActive());
             String collection = tenancyStrategy.collectionName(corpus);
 
             if (tenancyStrategy == TenancyStrategy.SEPARATE_COLLECTIONS) {
@@ -152,7 +146,7 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
     @Override
     public Uni<List<String>> listDocuments(CorpusRef corpus) {
         return Uni.createFrom().deferred(() -> {
-            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, requestContextActive());
+            MemoryPermissions.assertTenant(corpus.tenantId(), currentPrincipal, RequestContextCheck.isActive());
             String collection = tenancyStrategy.collectionName(corpus);
             Optional<Filter> tenantFilter = tenancyStrategy.tenantFilter(corpus);
 
