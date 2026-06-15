@@ -80,9 +80,14 @@ Retrieval runs both a dense query (semantic similarity) and a sparse query (lexi
 | `inference-splade/` | `casehub-inference-splade` | Pure Java | `SparseEmbedder` — log-saturation SPLADE, `Map<Integer, Float>` output |
 | `inference-inmem/` | `casehub-inference-inmem` | Pure Java | Deterministic stubs — no JNI, safe in all test contexts |
 | `inference-quarkus/` | `casehub-inference-quarkus` | Quarkus | `@InferenceModel` qualifier, CDI model lifecycle |
-| `rag-api/` | `casehub-rag-api` | Pure Java, zero deps | `EmbeddingIngestor`, `CaseRetriever`, `RetrievedChunk`, `CorpusRef` |
-| `rag/` | `casehub-rag` | Quarkus + LangChain4j | Tika ingestion, Qdrant, hybrid RRF, tenancy isolation |
+| `rag-api/` | `casehub-rag-api` | Pure Java, zero deps | `EmbeddingIngestor`, `CaseRetriever`, `MetadataExtractor`, `CursorStore`, `CorpusRef` |
+| `rag/` | `casehub-rag` | Quarkus + LangChain4j | Qdrant, hybrid RRF, tenancy isolation, corpus ingestion bridge |
+| `rag-tika/` | `casehub-rag-tika` | LangChain4j + Tika | Apache Tika document parsing → chunked `ChunkInput` |
 | `rag-testing/` | `casehub-rag-testing` | Pure Java | In-memory stubs — no Qdrant in `@QuarkusTest` |
+| `corpus-api/` | `casehub-corpus-api` | Pure Java, zero deps | `CorpusStore`, `CorpusReader`, `ChangeSource`, `CorpusIntegrity` SPIs |
+| `corpus/` | `casehub-corpus` | Zip4j | ZIP-backed rolling archives, chain manifest, compaction |
+| `examples/example-text-analysis/` | `casehub-example-text-analysis` | Pure Java | Standalone demos: NLI, classification, scoring, reranking, SPLADE |
+| `examples/example-rag-pipeline/` | `casehub-example-rag-pipeline` | Quarkus | Corpus ingestion + hybrid search demos (requires Qdrant) |
 
 ---
 
@@ -107,17 +112,20 @@ Hortora takes `inference-api`, `inference-runtime`, `inference-tasks`, `inferenc
 
 ## Status
 
-Scaffold — no source code yet. Design agreed between casehub and Hortora. Pending: ONNX Runtime JNI + HuggingFace Tokenizers JNI working in a Quarkus native image on macOS ARM. That prototype gates the native deployment path for both projects.
+All core modules are complete and published. The native image gate (C2) passed — both ONNX Runtime JNI and HuggingFace Tokenizers JNI work in Quarkus native image on macOS ARM. Inference, RAG, and corpus storage are production-ready.
 
 | Epic | Title | Status |
 |---|---|---|
 | [#1](https://github.com/casehubio/neural-text/issues/1) | Scaffold | ✅ |
-| [#2](https://github.com/casehubio/neural-text/issues/2) | Native image prototype | 🔲 |
-| [#3](https://github.com/casehubio/neural-text/issues/3) | SPI Foundation + Runtime Core | 🔲 |
-| [#4](https://github.com/casehubio/neural-text/issues/4) | Task adapters | 🔲 |
-| [#5](https://github.com/casehubio/neural-text/issues/5) | Quarkus integration | 🔲 |
-| [#6](https://github.com/casehubio/neural-text/issues/6) | SPLADE | 🔲 |
-| [#7](https://github.com/casehubio/neural-text/issues/7) | RAG pipeline | 🔲 |
+| [#2](https://github.com/casehubio/neural-text/issues/2) | Native image prototype | ✅ |
+| [#3](https://github.com/casehubio/neural-text/issues/3) | SPI Foundation + Runtime Core | ✅ |
+| [#4](https://github.com/casehubio/neural-text/issues/4) | Task adapters | ✅ |
+| [#5](https://github.com/casehubio/neural-text/issues/5) | Quarkus integration | ✅ |
+| [#6](https://github.com/casehubio/neural-text/issues/6) | SPLADE | ✅ |
+| [#7](https://github.com/casehubio/neural-text/issues/7) | RAG pipeline | ✅ |
+| [#18](https://github.com/casehubio/neural-text/issues/18) | Corpus storage (ZIP-backed) | ✅ |
+| [#19](https://github.com/casehubio/neural-text/issues/19) | Corpus ingestion bridge | ✅ |
+| [#24](https://github.com/casehubio/neural-text/issues/24) | Examples project | ✅ |
 
 ---
 

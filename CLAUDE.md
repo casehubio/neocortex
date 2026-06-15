@@ -147,6 +147,7 @@ inference-inmem/    — deterministic stubs; no JNI; safe in all test contexts
 inference-quarkus/  — CDI wiring, @InferenceModel qualifier, Dev Services, @QuarkusTest
 rag-api/            — EmbeddingIngestor + ReactiveEmbeddingIngestor SPIs, CaseRetriever + ReactiveCaseRetriever SPIs, MetadataExtractor + CursorStore SPIs, value types — Mutiny provided
 rag/                — LangChain4j wiring, Qdrant, hybrid RRF fusion, @DefaultBean blocking-to-reactive bridges, CorpusIngestionService (@Scheduled polling bridge: ChangeSource → chunk → embed → Qdrant)
+rag-tika/           — optional Apache Tika document parsing → chunked ChunkInput
 rag-testing/        — in-memory stubs for both blocking and reactive SPIs + InMemoryCursorStore (@Alternative @Priority(1) @ApplicationScoped)
 corpus-api/         — CorpusStore + CorpusReader + ChangeSource + CorpusIntegrity SPIs, reactive variants, value types — zero deps, Hortora-eligible
 corpus/             — Zip4j implementation: ZipCorpusStore (rolling archives, chain manifest), FlatCorpusStore, CompositeCorpusStore, compaction, migration — Hortora-eligible
@@ -172,6 +173,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Inference Quarkus | `casehub-inference-quarkus` |
 | RAG API | `casehub-rag-api` |
 | RAG | `casehub-rag` |
+| RAG Tika | `casehub-rag-tika` |
 | RAG testing | `casehub-rag-testing` |
 | Corpus API | `casehub-corpus-api` |
 | Corpus | `casehub-corpus` |
