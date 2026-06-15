@@ -1,9 +1,9 @@
 # ARC42STORIES — casehub-neural-text
 
-**Version:** 0.1  
-**Status:** All chapters complete (C1–C7) — J1 + J2 ✅  
+**Version:** 0.2  
+**Status:** All chapters complete (C1–C9) — J1 + J2 + J3 ✅  
 **Spec:** [arc42stories-spec.md](https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-spec.md)  
-**Last updated:** 2026-06-12
+**Last updated:** 2026-06-15
 
 ---
 
@@ -140,6 +140,8 @@ This module sits **below** LangChain4j for inference and **above** LangChain4j f
 - C4 before C6: **soft** — `inference-splade` follows the same adapter pattern as `inference-tasks`; C4 establishes it.
 - C6 before C7: **hard** — `casehub-rag` uses `SparseEmbedder` from `inference-splade` for the sparse search leg.
 - C3 and C5 independent: C5 (Quarkus CDI wiring) wraps C3 (runtime), but C3 ships first as a usable JVM-only artifact; C5 adds the Quarkus layer separately.
+- C7 before C8: **hard** — corpus storage feeds the RAG pipeline; the pipeline must exist first.
+- C8 before C9: **hard** — `CorpusIngestionService` reads `ChangeSource` + `CorpusReader` from `corpus-api`; corpus modules must exist before the bridge.
 
 ---
 
@@ -173,7 +175,15 @@ C4Container
   }
 
   Container_Boundary(b_rag_rt, "Layer: RAG Runtime") {
-    Container(rag, "rag", "Quarkus + LangChain4j", "LangChain4j pipeline, Qdrant, hybrid RRF fusion, tenancy isolation")
+    Container(rag, "rag", "Quarkus + LangChain4j", "LangChain4j pipeline, Qdrant, hybrid RRF fusion, tenancy isolation, CorpusIngestionService")
+  }
+
+  Container_Boundary(b_corpus_spi, "Layer: Corpus SPI") {
+    Container(corpus_api, "corpus-api", "Pure Java, zero deps", "CorpusStore, CorpusReader, ChangeSource, CorpusIntegrity SPIs")
+  }
+
+  Container_Boundary(b_corpus_rt, "Layer: Corpus Runtime") {
+    Container(corpus, "corpus", "Zip4j", "ZipCorpusStore, FlatCorpusStore, CompositeCorpusStore, compaction, migration")
   }
 
   Rel(inference_tasks, inference_api, "wraps InferenceModel")
@@ -183,7 +193,9 @@ C4Container
   Rel(inference_quarkus, inference_rt, "CDI wires")
   Rel(rag, rag_api, "implements EmbeddingIngestor + CaseRetriever")
   Rel(rag, inference_splade, "SparseEmbedder for sparse search leg")
+  Rel(rag, corpus_api, "CorpusIngestionService reads ChangeSource + CorpusReader")
   Rel(rag_testing, rag_api, "implements stubs")
+  Rel(corpus, corpus_api, "implements CorpusStore, CorpusReader, ChangeSource")
 ```
 
 ### Layers
@@ -197,6 +209,8 @@ C4Container
 | L5 Quarkus Integration | `inference-quarkus` | Quarkus extension | casehub only |
 | L6 RAG SPI | `rag-api`, `rag-testing` | Pure Java, zero deps | casehub only |
 | L7 RAG Runtime | `rag` | Quarkus + LangChain4j | casehub only |
+| L8 Corpus SPI | `corpus-api` | Pure Java, zero deps | ✅ yes |
+| L9 Corpus Runtime | `corpus` | Zip4j | ✅ yes |
 
 ---
 
@@ -324,6 +338,7 @@ noClasses().that().resideInAPackage("io.casehub.inference..")
 |---|---|---|---|
 | J1 Neural Inference | Deliver the standalone ONNX inference layer — SPI, runtime, adapters, SPLADE, Quarkus wiring | C1–C6 | ✅ Complete |
 | J2 RAG Integration | Deliver casehub-specific LangChain4j RAG pipeline with hybrid search | C7 | ✅ Complete |
+| J3 Corpus Storage | ZIP-backed document storage and ingestion bridge to RAG pipeline | C8–C9 | ✅ Complete |
 
 ### §9.2 Chapter Index
 
@@ -337,6 +352,8 @@ flowchart LR
   C4 --> C5
   C4 --> C6
   C6 --> C7["C7: RAG\n+ L6, L7"]
+  C7 --> C8["C8: Corpus Storage\n+ L8, L9"]
+  C8 --> C9["C9: Ingestion Bridge\n+ L7 (extended)"]
 
   style C1 fill:#90EE90,color:#000
   style C2 fill:#90EE90,color:#000
@@ -345,6 +362,8 @@ flowchart LR
   style C5 fill:#90EE90,color:#000
   style C6 fill:#90EE90,color:#000
   style C7 fill:#90EE90,color:#000
+  style C8 fill:#90EE90,color:#000
+  style C9 fill:#90EE90,color:#000
 ```
 
 | # | Chapter | Journey | Layers touched | Delta summary | Status |
@@ -356,18 +375,22 @@ flowchart LR
 | 5 | Quarkus Integration | J1 | L5 | High | ✅ |
 | 6 | Sparse Embeddings (SPLADE) | J1 | L4 | High | ✅ |
 | 7 | RAG Pipeline | J2 | L6, L7 | High, High | ✅ |
+| 8 | Corpus Storage | J3 | L8, L9 | High, High | ✅ |
+| 9 | Ingestion Bridge | J3 | L6, L7 | Low, Med | ✅ |
 
 **Layer × Chapter matrix**
 
-| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 |
-|---|---|---|---|---|---|---|---|
-| L1 SPI Foundation | — | — | High | — | — | — | — |
-| L2 Runtime Core | — | Low* | High | — | — | — | — |
-| L3 Task Adapters | — | — | — | High | — | — | — |
-| L4 Sparse Embeddings | — | — | — | — | — | High | Low |
-| L5 Quarkus Integration | — | — | — | — | High | — | — |
-| L6 RAG SPI | — | — | — | — | — | — | High |
-| L7 RAG Runtime | — | — | — | — | — | — | High |
+| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 |
+|---|---|---|---|---|---|---|---|---|---|
+| L1 SPI Foundation | — | — | High | — | — | — | — | — | — |
+| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — |
+| L3 Task Adapters | — | — | — | High | — | — | — | — | — |
+| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — |
+| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — |
+| L6 RAG SPI | — | — | — | — | — | — | High | — | Low |
+| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med |
+| L8 Corpus SPI | — | — | — | — | — | — | — | High | — |
+| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — |
 
 *C2 validates L2's JNI stack in native image; L2 itself is not built until C3.
 
@@ -511,6 +534,48 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 | L4 Sparse Embeddings | Low (consumed, not extended) |
 | L6 RAG SPI | High |
 | L7 RAG Runtime | High |
+
+---
+
+#### Chapter 8 — Corpus Storage
+
+**Journey:** J3 | **Sequence:** 8 of 9 | **Status:** ✅ Complete  
+**Issues:** #18 | **Blocked by:** C7 (RAG pipeline must exist before corpus storage can feed it)
+
+**What this delivers**  
+`corpus-api` and `corpus` published. Application repos and Hortora can store, read, and track changes to document corpora via ZIP-backed rolling archives with chain integrity. `CorpusStore` handles writes (append, delete). `CorpusReader` handles reads (read, readVersion, versions, list, exists). `ChangeSource` provides delta tracking (changes since a cursor). `CorpusIntegrity` validates archive chain health. `FlatCorpusStore` provides a filesystem-based alternative. `CompositeCorpusStore` combines ZIP + flat sources. Zero casehub domain dependencies — Hortora-eligible.
+
+**Accountability gaps closed**  
+- Document storage for RAG corpora → CorpusStore + CorpusReader available
+- Change tracking for incremental ingestion → ChangeSource available
+
+**Layer Impact**
+
+| Layer | Delta |
+|---|---|
+| L8 Corpus SPI | High |
+| L9 Corpus Runtime | High |
+
+---
+
+#### Chapter 9 — Ingestion Bridge
+
+**Journey:** J3 | **Sequence:** 9 of 9 | **Status:** ✅ Complete  
+**Issues:** #19 | **Blocked by:** C8 (corpus modules provide ChangeSource + CorpusReader)
+
+**What this delivers**  
+`CorpusIngestionService` in `rag/` bridges corpus storage to the RAG pipeline. Polls `ChangeSource.changesSince()`, reads document content via `CorpusReader`, extracts metadata (`MetadataExtractor` SPI with YAML frontmatter default), chunks, embeds (dense + sparse), and pushes to Qdrant via `EmbeddingIngestor`. Handles deletion sync. `CursorStore` SPI persists polling cursors (`FileCursorStore` default, `InMemoryCursorStore` in `rag-testing`). Admin-triggered reconciliation mode compares `ChangeSource.fullScan()` against Qdrant and resyncs. Configuration-driven via `casehub.rag.ingestion.*`.
+
+**Accountability gaps closed**  
+- Automated corpus-to-RAG pipeline → documents flow from CorpusStore to Qdrant without manual embedding calls
+- Metadata extraction → MetadataExtractor SPI available for custom extractors
+
+**Layer Impact**
+
+| Layer | Delta |
+|---|---|
+| L6 RAG SPI | Low (MetadataExtractor + CursorStore SPIs added) |
+| L7 RAG Runtime | Med (CorpusIngestionService + FileCursorStore + IngestionConfig added) |
 
 ---
 
@@ -753,9 +818,9 @@ For new inference model consumers: inject `@Inference("name") InferenceModel mod
 
 #### Layer L6 — RAG SPI
 
-**Participates in chapters:** C7  
+**Participates in chapters:** C7, C9  
 **Architectural patterns:** Hexagonal (Ports and Adapters)  
-**Issues:** #7, #11 | parent#164  
+**Issues:** #7, #11, #19 | parent#164  
 **Completed:** ✅
 
 #### What it adds
@@ -782,10 +847,10 @@ Reactive SPI co-location in Tier 1 api modules with Mutiny `provided` scope — 
 
 #### Layer L7 — RAG Runtime
 
-**Participates in chapters:** C7  
+**Participates in chapters:** C7, C9  
 **Architectural patterns:** Pipeline (ingest → chunk → embed → store; query → embed → retrieve → rerank → assemble)  
 **Key protocols:** `flyway-extension-migration-registration.md` (no migrations — Qdrant managed externally)  
-**Issues:** #7, #11, #13 | parent#164  
+**Issues:** #7, #11, #13, #19 | parent#164  
 **Completed:** ✅
 
 #### What it adds
@@ -809,6 +874,92 @@ RRF (Reciprocal Rank Fusion) used to merge dense and sparse result lists. Scores
 #### Pattern to replicate
 
 Unified Qdrant gRPC client for both dense and sparse legs — one client, one code path. `TenancyStrategy` enum for configurable collection isolation. `@DefaultBean` bridges for reactive SPIs that wrap blocking delegates on the worker pool. `QdrantFutures.toUni()` for `ListenableFuture` → `Uni` bridging with cancellation propagation. `@IfBuildProperty` on a dedicated producer class gates all produced beans behind a single property. `ConcurrentHashMap<String, Uni<Void>>` + `computeIfAbsent` + `.memoize().indefinitely()` for concurrent-safe lazy collection creation with failure eviction.
+
+---
+
+#### Layer L8 — Corpus SPI
+
+**Participates in chapters:** C8  
+**Architectural patterns:** Hexagonal (Ports and Adapters), Three-plane separation (data, delta, ops)  
+**Issues:** #18  
+**Completed:** ✅
+
+#### What it adds
+
+Defines the contract for document corpus management independent of storage backend. Three-plane separation: `CorpusStore` (data plane — append, delete), `ChangeSource` (delta plane — changes since cursor for incremental sync), `CorpusIntegrity` (ops plane — validate archive health). `CorpusReader` provides read-only access (read, readVersion, versions, list, exists). Reactive variants (`ReactiveCorpusStore`, `ReactiveCorpusReader`, `ReactiveChangeSource`) follow the same Mutiny `provided` scope pattern as `rag-api`. Zero casehub domain dependencies — Hortora-eligible.
+
+#### Accountability gaps closed
+
+| Gap | What breaks without it | Closed by |
+|---|---|---|
+| No document storage abstraction | Corpus ingestion coupled to filesystem layout | `CorpusStore` + `CorpusReader` SPIs |
+| No change tracking for incremental ingestion | Full re-ingestion on every sync | `ChangeSource` with cursor-based delta tracking |
+| No integrity verification | Corrupted archives silently return wrong content | `CorpusIntegrity` + `IntegrityReport` |
+
+#### Key files
+
+| File | Role |
+|---|---|
+| `corpus-api/.../CorpusStore.java` | SPI — append, delete (write-only) |
+| `corpus-api/.../CorpusReader.java` | SPI — read, readVersion, versions, list, exists (read-only) |
+| `corpus-api/.../ChangeSource.java` | SPI — changesSince(cursor), fullScan() |
+| `corpus-api/.../CorpusIntegrity.java` | SPI — check() → IntegrityReport |
+| `corpus-api/.../ChangedEntry.java` | Record — path, type |
+| `corpus-api/.../ChangeSet.java` | Record — List<ChangedEntry> entries, newCursor |
+| `corpus-api/.../VersionInfo.java` | Record — version, timestamp, zipFile |
+
+#### Architectural decisions
+
+Three-plane separation (data/delta/ops) keeps concerns independent — a consumer that only needs change tracking depends on `ChangeSource` alone, not the full `CorpusStore`. `CorpusReader` is separated from `CorpusStore` to enforce read-write separation — the ingestion bridge reads via `CorpusReader` and never writes to the corpus.
+
+`ChangeType` enum (ADDED, MODIFIED, DELETED) — three states, no UPDATE alias. MODIFIED covers content changes; ADDED is first version only.
+
+#### Pattern to replicate
+
+Three-plane SPI separation for any storage module. Reactive variants co-located in the same api module with Mutiny `provided` scope.
+
+---
+
+#### Layer L9 — Corpus Runtime
+
+**Participates in chapters:** C8  
+**Architectural patterns:** Rolling Archive (size-threshold rollover), Chain Manifest (ordered archive list)  
+**Issues:** #18  
+**Completed:** ✅
+
+#### What it adds
+
+Implements all corpus SPIs using Zip4j for ZIP-backed storage. `ZipCorpusStore` manages rolling ZIP archives with size-threshold rollover, chain manifest (`chain.json`), tombstone-based deletion, and compaction (TOMBSTONES_ONLY default, FULL explicit). `FlatCorpusStore` provides filesystem-based storage for development and migration. `CompositeCorpusStore` combines ZIP + flat sources. `ZipChangeSource` tracks changes via central directory scanning; `CompositeChangeSource` merges changes from multiple sources. `ZipIntegrityChecker` validates chain integrity. `CorpusMigrator` enables onboarding existing document collections.
+
+#### Key files
+
+| File | Role |
+|---|---|
+| `corpus/.../ZipCorpusStore.java` | Rolling ZIP archives, chain manifest, compaction |
+| `corpus/.../FlatCorpusStore.java` | Filesystem-based alternative |
+| `corpus/.../CompositeCorpusStore.java` | ZIP + flat combined view |
+| `corpus/.../ZipChangeSource.java` | Delta tracking from ZIP central directories |
+| `corpus/.../CompositeChangeSource.java` | Merged changes from multiple sources |
+| `corpus/.../ZipIntegrityChecker.java` | Chain integrity validation |
+| `corpus/.../ChainManifest.java` | Ordered archive list with UUIDs |
+| `corpus/.../Compactor.java` | Tombstone removal and full compaction |
+| `corpus/.../CorpusMigrator.java` | Onboarding existing document collections |
+
+#### Architectural decisions
+
+Rolling archives with size threshold — a single ZIP grows until the threshold, then a new archive is created. Chain manifest (`chain.json`) records the ordered list of archives with UUIDs. Compaction replaces archive UUIDs to invalidate stale references.
+
+Tombstone-based deletion — deleted entries are marked, not physically removed. This preserves change history for `ChangeSource` until compaction runs. TOMBSTONES_ONLY compaction removes tombstones; FULL compaction rebuilds archives without gaps.
+
+`_` prefix reserved for internal paths (`_chain/meta.json`) — user paths starting with `_` are rejected.
+
+#### Gotchas
+
+Zip4j does not support in-place entry removal — compaction must rewrite the entire archive. This is acceptable for the expected corpus sizes (hundreds to low thousands of documents per archive).
+
+#### Pattern to replicate
+
+Rolling archive pattern with chain manifest for any append-heavy storage where individual files are small relative to the archive. Tombstone + compaction for soft-delete semantics with change tracking.
 
 ---
 
