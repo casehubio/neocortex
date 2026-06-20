@@ -72,4 +72,25 @@ class FileCursorStoreTest {
         Files.writeString(tempDir.resolve("garden.cursor"), "   \n  ");
         assertThat(store.load("garden")).isEmpty();
     }
+
+    @Test
+    void deleteRemovesCursor() {
+        store.save("garden", "cursor-1");
+        store.delete("garden");
+        assertThat(store.load("garden")).isEmpty();
+    }
+
+    @Test
+    void deleteNonExistentIsNoOp() {
+        store.delete("nonexistent"); // no exception
+        assertThat(store.load("nonexistent")).isEmpty();
+    }
+
+    @Test
+    void deleteRemovesFile() {
+        store.save("garden", "cursor-1");
+        assertThat(Files.exists(tempDir.resolve("garden.cursor"))).isTrue();
+        store.delete("garden");
+        assertThat(Files.exists(tempDir.resolve("garden.cursor"))).isFalse();
+    }
 }

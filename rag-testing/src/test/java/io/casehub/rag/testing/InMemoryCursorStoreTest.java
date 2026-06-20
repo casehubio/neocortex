@@ -56,4 +56,17 @@ class InMemoryCursorStoreTest {
         var all = store.getAll();
         assertThat(all).containsEntry("garden", "c1").containsEntry("legal", "c2");
     }
+
+    @Test
+    void deleteRemovesCursor() {
+        store.save("garden", "cursor-1");
+        store.delete("garden");
+        assertThat(store.load("garden")).isEmpty();
+    }
+
+    @Test
+    void deleteNonExistentIsNoOp() {
+        store.delete("nonexistent"); // no exception
+        assertThat(store.load("nonexistent")).isEmpty();
+    }
 }

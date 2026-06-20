@@ -26,6 +26,11 @@ public class InMemoryCursorStore implements CursorStore {
         cursors.put(corpusName, cursor);
     }
 
+    @Override
+    public void delete(String corpusName) {
+        cursors.remove(corpusName);
+    }
+
     public void reset() {
         cursors.clear();
     }

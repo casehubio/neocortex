@@ -53,4 +53,14 @@ public class FileCursorStore implements CursorStore {
             throw new UncheckedIOException("Failed to save cursor for " + corpusName, e);
         }
     }
+
+    @Override
+    public void delete(String corpusName) {
+        Path file = baseDir.resolve(corpusName + ".cursor");
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to delete cursor for " + corpusName, e);
+        }
+    }
 }
