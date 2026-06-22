@@ -4,6 +4,7 @@ import io.casehub.rag.CaseRetriever;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.PayloadFilter;
 import io.casehub.rag.ReactiveCaseRetriever;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.quarkus.arc.DefaultBean;
 import io.smallrye.mutiny.Uni;
@@ -26,7 +27,7 @@ public class BlockingToReactiveCaseRetriever implements ReactiveCaseRetriever {
     }
 
     @Override
-    public Uni<List<RetrievedChunk>> retrieve(String query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
+    public Uni<List<RetrievedChunk>> retrieve(RetrievalQuery query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
         return Uni.createFrom().item(() -> delegate.retrieve(query, corpus, maxResults, filter))
             .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }

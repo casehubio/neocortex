@@ -5,7 +5,9 @@ import io.casehub.rag.PayloadFilter;
 import io.casehub.rag.ReactiveCaseRetriever;
 import io.casehub.rag.RelevanceEvaluator;
 import io.casehub.rag.RetrievalQuality;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
+import io.quarkus.arc.properties.IfBuildProperty;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.annotation.Priority;
@@ -20,6 +22,7 @@ import java.util.List;
 
 @Decorator
 @Priority(100)
+@IfBuildProperty(name = "casehub.rag.crag.enabled", stringValue = "true")
 public class ReactiveCorrectiveCaseRetriever implements ReactiveCaseRetriever {
 
     private final ReactiveCaseRetriever delegate;
@@ -39,7 +42,7 @@ public class ReactiveCorrectiveCaseRetriever implements ReactiveCaseRetriever {
     }
 
     @Override
-    public Uni<List<RetrievedChunk>> retrieve(String query, CorpusRef corpus,
+    public Uni<List<RetrievedChunk>> retrieve(RetrievalQuery query, CorpusRef corpus,
                                                int maxResults, PayloadFilter filter) {
         return delegate.retrieve(query, corpus, maxResults, filter)
             .onItem().transformToUni(chunks -> {
@@ -51,14 +54,14 @@ public class ReactiveCorrectiveCaseRetriever implements ReactiveCaseRetriever {
     }
 
     private Uni<List<RetrievedChunk>> evaluateAndCorrect(
-            String query, CorpusRef corpus, int maxResults,
+            RetrievalQuery query, CorpusRef corpus, int maxResults,
             PayloadFilter filter, List<RetrievedChunk> chunks) {
 
         return Uni.createFrom().item(() -> {
                 List<String> contents = chunks.stream()
                     .map(RetrievedChunk::content).toList();
                 return CragEvaluationLogic.gradeChunks(chunks,
-                    evaluator.evaluateBatch(query, contents));
+                    evaluator.evaluateBatch(query.text(), contents));
             })
             .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
             .onItem().transformToUni(initial -> {
@@ -98,7 +101,7 @@ public class ReactiveCorrectiveCaseRetriever implements ReactiveCaseRetriever {
                                 List<String> newContents = newChunks.stream()
                                     .map(RetrievedChunk::content).toList();
                                 return CragEvaluationLogic.gradeChunks(newChunks,
-                                    evaluator.evaluateBatch(query, newContents));
+                                    evaluator.evaluateBatch(query.text(), newContents));
                             })
                             .runSubscriptionOn(
                                 Infrastructure.getDefaultWorkerPool())

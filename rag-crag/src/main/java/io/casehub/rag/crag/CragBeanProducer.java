@@ -2,12 +2,14 @@ package io.casehub.rag.crag;
 
 import io.casehub.inference.tasks.CrossEncoderReranker;
 import io.casehub.rag.RelevanceEvaluator;
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
+@IfBuildProperty(name = "casehub.rag.crag.enabled", stringValue = "true")
 public class CragBeanProducer {
 
     @Inject CragConfig config;

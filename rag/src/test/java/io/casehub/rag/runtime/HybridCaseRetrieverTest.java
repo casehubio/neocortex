@@ -7,6 +7,7 @@ import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.PayloadFilter;
 import io.casehub.rag.RelevanceGrade;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QdrantGrpcClient;
@@ -89,7 +90,7 @@ class HybridCaseRetrieverTest {
                 Map.of("category", "tech"))
         ));
 
-        List<RetrievedChunk> results = retriever.retrieve("brown fox", corpus, 10, null);
+        List<RetrievedChunk> results = retriever.retrieve(RetrievalQuery.of("brown fox"), corpus, 10, null);
 
         assertThat(results).isNotEmpty();
         assertThat(results).allSatisfy(chunk -> {
@@ -113,7 +114,7 @@ class HybridCaseRetrieverTest {
             new ChunkInput("chunk three about birds", "doc-3", Map.of())
         ));
 
-        List<RetrievedChunk> results = retriever.retrieve("animals", corpus, 1, null);
+        List<RetrievedChunk> results = retriever.retrieve(RetrievalQuery.of("animals"), corpus, 1, null);
 
         assertThat(results).hasSizeLessThanOrEqualTo(1);
     }
@@ -122,7 +123,7 @@ class HybridCaseRetrieverTest {
     void retrieveEmptyCorpus() {
         CorpusRef corpus = uniqueCorpus(); // never ingested — collection does not exist
 
-        List<RetrievedChunk> results = retriever.retrieve("anything", corpus, 10, null);
+        List<RetrievedChunk> results = retriever.retrieve(RetrievalQuery.of("anything"), corpus, 10, null);
 
         assertThat(results).isEmpty();
     }
@@ -131,7 +132,7 @@ class HybridCaseRetrieverTest {
     void tenancyMismatchThrows() {
         CorpusRef wrongTenant = new CorpusRef("other-tenant", "corpus");
 
-        assertThatThrownBy(() -> retriever.retrieve("query", wrongTenant, 10, null))
+        assertThatThrownBy(() -> retriever.retrieve(RetrievalQuery.of("query"), wrongTenant, 10, null))
             .isInstanceOf(SecurityException.class);
     }
 
@@ -167,7 +168,7 @@ class HybridCaseRetrieverTest {
         ));
 
         List<RetrievedChunk> results = denseOnlyRetriever.retrieve(
-            "dense retrieval", corpus, 10, null);
+            RetrievalQuery.of("dense retrieval"), corpus, 10, null);
 
         assertThat(results).isNotEmpty();
         assertThat(results).allSatisfy(chunk -> {
@@ -186,8 +187,8 @@ class HybridCaseRetrieverTest {
             new ChunkInput("Java Spring Boot", "doc-3", Map.of("domain", "jvm"))
         ));
 
-        List<RetrievedChunk> allResults = retriever.retrieve("programming", corpus, 10, null);
-        List<RetrievedChunk> jvmOnly = retriever.retrieve("programming", corpus, 10,
+        List<RetrievedChunk> allResults = retriever.retrieve(RetrievalQuery.of("programming"), corpus, 10, null);
+        List<RetrievedChunk> jvmOnly = retriever.retrieve(RetrievalQuery.of("programming"), corpus, 10,
             PayloadFilter.eq("domain", "jvm"));
 
         assertThat(allResults.size()).isGreaterThanOrEqualTo(jvmOnly.size());
@@ -222,7 +223,7 @@ class HybridCaseRetrieverTest {
         ));
 
         List<RetrievedChunk> results = noTenantRetriever.retrieve(
-            "searchable", corpus, 10, null);
+            RetrievalQuery.of("searchable"), corpus, 10, null);
         assertThat(results).isNotEmpty();
     }
 

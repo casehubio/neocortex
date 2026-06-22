@@ -4,6 +4,7 @@ import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.ReactiveCaseRetriever;
 import io.casehub.rag.ReactiveEmbeddingIngestor;
+import io.casehub.rag.RetrievalQuery;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ class AssertTenantReactiveTest {
     void retrieverDeliversSecurityExceptionThroughUniFailureChannel() {
         ReactiveCaseRetriever retriever = createRetriever();
 
-        Uni<?> uni = retriever.retrieve("query", WRONG_TENANT_CORPUS, 10, null);
+        Uni<?> uni = retriever.retrieve(RetrievalQuery.of("query"), WRONG_TENANT_CORPUS, 10, null);
 
         uni.subscribe().withSubscriber(UniAssertSubscriber.create())
             .awaitFailure()

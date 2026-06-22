@@ -9,6 +9,7 @@ import io.casehub.inference.tasks.RankedResult;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.PayloadFilter;
 import io.casehub.rag.ReactiveCaseRetriever;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.qdrant.client.QueryFactory;
 import io.qdrant.client.QdrantClient;
@@ -78,7 +79,7 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
     }
 
     @Override
-    public Uni<List<RetrievedChunk>> retrieve(String query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
+    public Uni<List<RetrievedChunk>> retrieve(RetrievalQuery query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
         return Uni.createFrom().deferred(() -> {
             tenantGuard.assertTenant(corpus.tenantId());
 
@@ -107,10 +108,10 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
         });
     }
 
-    private QueryEmbeddings embedQuery(String query) {
-        Embedding denseEmbedding = embeddingModel.embed(TextSegment.from(query)).content();
+    private QueryEmbeddings embedQuery(RetrievalQuery query) {
+        Embedding denseEmbedding = embeddingModel.embed(TextSegment.from(query.searchText())).content();
         Map<Integer, Float> sparseMap = sparseEmbedder != null
-            ? sparseEmbedder.embed(query) : null;
+            ? sparseEmbedder.embed(query.text()) : null;
         return new QueryEmbeddings(denseEmbedding, sparseMap);
     }
 
@@ -186,7 +187,7 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
         return chunks;
     }
 
-    private Uni<List<RetrievedChunk>> maybeRerank(String query,
+    private Uni<List<RetrievedChunk>> maybeRerank(RetrievalQuery query,
             List<RetrievedChunk> chunks, int maxResults) {
         if (!rerankEnabled || reranker == null || chunks.isEmpty()) {
             chunks.sort((a, b) -> Double.compare(b.relevanceScore(), a.relevanceScore()));
@@ -195,7 +196,7 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
         return Uni.createFrom().item(() -> {
             List<String> texts = new ArrayList<>(chunks.size());
             for (RetrievedChunk chunk : chunks) texts.add(chunk.content());
-            List<RankedResult> ranked = reranker.rerank(query, texts);
+            List<RankedResult> ranked = reranker.rerank(query.text(), texts);
             List<RetrievedChunk> reranked = new ArrayList<>(
                 Math.min(ranked.size(), maxResults));
             for (int i = 0; i < Math.min(ranked.size(), maxResults); i++) {

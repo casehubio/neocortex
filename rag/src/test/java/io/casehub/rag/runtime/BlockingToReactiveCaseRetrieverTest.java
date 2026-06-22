@@ -3,6 +3,7 @@ package io.casehub.rag.runtime;
 import io.casehub.rag.CaseRetriever;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.RelevanceGrade;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,14 +22,14 @@ class BlockingToReactiveCaseRetrieverTest {
     @BeforeEach
     void setUp() {
         CaseRetriever blocking = (query, corpus, maxResults, filter) ->
-            List.of(new RetrievedChunk("result for " + query, "d1", 0.95, Map.of()));
+            List.of(new RetrievedChunk("result for " + query.text(), "d1", 0.95, Map.of()));
         bridge = new BlockingToReactiveCaseRetriever(blocking);
     }
 
     @Test
     void retrieveDelegatesToBlocking() {
         var corpus = new CorpusRef("t1", "docs");
-        List<RetrievedChunk> result = bridge.retrieve("test query", corpus, 5, null)
+        List<RetrievedChunk> result = bridge.retrieve(RetrievalQuery.of("test query"), corpus, 5, null)
             .await().indefinitely();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).content()).isEqualTo("result for test query");
@@ -45,7 +46,7 @@ class BlockingToReactiveCaseRetrieverTest {
             return List.of();
         };
         var b = new BlockingToReactiveCaseRetriever(spy);
-        b.retrieve("q", new CorpusRef("t", "c"), 5, null).await().indefinitely();
+        b.retrieve(RetrievalQuery.of("q"), new CorpusRef("t", "c"), 5, null).await().indefinitely();
         assertNotEquals(Thread.currentThread().getId(), capturedId.get(),
             "retrieve() must offload to a worker thread");
     }
@@ -55,7 +56,7 @@ class BlockingToReactiveCaseRetrieverTest {
         CaseRetriever empty = (query, corpus, maxResults, filter) -> List.of();
         bridge = new BlockingToReactiveCaseRetriever(empty);
         var corpus = new CorpusRef("t1", "docs");
-        List<RetrievedChunk> result = bridge.retrieve("q", corpus, 10, null)
+        List<RetrievedChunk> result = bridge.retrieve(RetrievalQuery.of("q"), corpus, 10, null)
             .await().indefinitely();
         assertThat(result).isEmpty();
     }

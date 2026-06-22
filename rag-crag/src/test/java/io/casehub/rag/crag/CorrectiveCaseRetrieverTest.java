@@ -6,6 +6,7 @@ import io.casehub.rag.PayloadFilter;
 import io.casehub.rag.RelevanceEvaluator;
 import io.casehub.rag.RelevanceGrade;
 import io.casehub.rag.RetrievalQuality;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.casehub.rag.testing.InMemoryCaseRetriever;
 import io.casehub.rag.testing.InMemoryRelevanceEvaluator;
@@ -35,7 +36,7 @@ class CorrectiveCaseRetrieverTest {
         var quality = new AtomicReference<RetrievalQuality>();
 
         var retriever = corrective(delegate, RelevanceGrade.CORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 10, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null);
 
         assertThat(results).hasSize(2);
         assertThat(results).allSatisfy(c -> assertThat(c.grade()).isEqualTo(RelevanceGrade.CORRECT));
@@ -52,7 +53,7 @@ class CorrectiveCaseRetrieverTest {
         var quality = new AtomicReference<RetrievalQuality>();
 
         var retriever = corrective(delegate, RelevanceGrade.INCORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 5, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null);
 
         assertThat(results).isEmpty();
         assertThat(quality.get().expandedSearch()).isTrue();
@@ -76,7 +77,7 @@ class CorrectiveCaseRetrieverTest {
         var retriever = new CorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 10, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null);
 
         assertThat(results).hasSize(2);
         assertThat(results).extracting(RetrievedChunk::content)
@@ -105,7 +106,7 @@ class CorrectiveCaseRetrieverTest {
         var retriever = new CorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 2, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 2, null);
 
         assertThat(results).hasSize(2);
         assertThat(results.get(0).content()).isEqualTo("correct1");
@@ -118,7 +119,7 @@ class CorrectiveCaseRetrieverTest {
         var quality = new AtomicReference<RetrievalQuality>();
 
         var retriever = corrective(delegate, RelevanceGrade.CORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 5, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null);
 
         assertThat(results).isEmpty();
         assertThat(quality.get().expandedSearch()).isFalse();
@@ -131,7 +132,7 @@ class CorrectiveCaseRetrieverTest {
         var quality = new AtomicReference<RetrievalQuality>();
 
         var retriever = corrective(delegate, RelevanceGrade.CORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 5, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null);
 
         assertThat(results).hasSize(1);
         assertThat(quality.get().expandedSearch()).isFalse();
@@ -159,7 +160,7 @@ class CorrectiveCaseRetrieverTest {
         var retriever = new CorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 5, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null);
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).content()).isEqualTo("good");
@@ -190,7 +191,7 @@ class CorrectiveCaseRetrieverTest {
         var retriever = new CorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 5, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null);
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).content()).isEqualTo("new");
@@ -214,12 +215,30 @@ class CorrectiveCaseRetrieverTest {
         var retriever = new CorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 10, null);
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null);
 
         assertThat(results).hasSize(2);
         assertThat(results).isEqualTo(preGraded);
         assertThat(evaluatorCalled.get()).isFalse();
         assertThat(quality.get()).isNull();
+    }
+
+    @Test
+    void evaluatesAgainstOriginalQueryNotExpansion() {
+        var delegate = fixedRetriever(chunk("content", "doc1", 0.9));
+        var capturedQuery = new AtomicReference<String>();
+        RelevanceEvaluator capturingEvaluator = (query, content) -> {
+            capturedQuery.set(query);
+            return RelevanceGrade.CORRECT;
+        };
+        var quality = new AtomicReference<RetrievalQuality>();
+        var retriever = new CorrectiveCaseRetriever(
+            delegate, capturingEvaluator, stubConfig(3), capturingEvent(quality));
+
+        var expandedQuery = new RetrievalQuery("original question", "hypothetical document about original question");
+        retriever.retrieve(expandedQuery, CORPUS, 10, null);
+
+        assertThat(capturedQuery.get()).isEqualTo("original question");
     }
 
     // -- helpers --
@@ -247,6 +266,7 @@ class CorrectiveCaseRetrieverTest {
             @Override public double correctThreshold() { return 0.7; }
             @Override public double incorrectThreshold() { return 0.3; }
             @Override public int expansionMultiplier() { return expansionMultiplier; }
+            @Override public boolean enabled() { return true; }
         };
     }
 

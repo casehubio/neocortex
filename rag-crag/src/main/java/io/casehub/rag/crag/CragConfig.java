@@ -14,4 +14,7 @@ public interface CragConfig {
 
     @WithDefault("3")
     int expansionMultiplier();
+
+    @WithDefault("false")
+    boolean enabled();
 }

@@ -5,7 +5,9 @@ import io.casehub.rag.CorpusRef;
 import io.casehub.rag.PayloadFilter;
 import io.casehub.rag.RelevanceEvaluator;
 import io.casehub.rag.RetrievalQuality;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
 import jakarta.decorator.Delegate;
@@ -18,6 +20,7 @@ import java.util.List;
 
 @Decorator
 @Priority(100)
+@IfBuildProperty(name = "casehub.rag.crag.enabled", stringValue = "true")
 public class CorrectiveCaseRetriever implements CaseRetriever {
 
     private final CaseRetriever delegate;
@@ -37,7 +40,7 @@ public class CorrectiveCaseRetriever implements CaseRetriever {
     }
 
     @Override
-    public List<RetrievedChunk> retrieve(String query, CorpusRef corpus,
+    public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus,
                                           int maxResults, PayloadFilter filter) {
         List<RetrievedChunk> chunks = delegate.retrieve(query, corpus, maxResults, filter);
 
@@ -47,7 +50,7 @@ public class CorrectiveCaseRetriever implements CaseRetriever {
 
         List<String> contents = chunks.stream().map(RetrievedChunk::content).toList();
         var initial = CragEvaluationLogic.gradeChunks(chunks,
-            evaluator.evaluateBatch(query, contents));
+            evaluator.evaluateBatch(query.text(), contents));
         int totalRetrieved = chunks.size();
 
         List<RetrievedChunk> surviving = new ArrayList<>(
@@ -71,7 +74,7 @@ public class CorrectiveCaseRetriever implements CaseRetriever {
                 List<String> newContents = newChunks.stream()
                     .map(RetrievedChunk::content).toList();
                 var expansionResult = CragEvaluationLogic.gradeChunks(newChunks,
-                    evaluator.evaluateBatch(query, newContents));
+                    evaluator.evaluateBatch(query.text(), newContents));
 
                 totalRetrieved += newChunks.size();
                 correct += expansionResult.correct();

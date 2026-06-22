@@ -4,10 +4,12 @@ import io.casehub.rag.CaseRetriever;
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.PayloadFilter;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +24,7 @@ public class InMemoryCaseRetriever implements CaseRetriever {
     private final InMemoryEmbeddingIngestor store;
     private final List<RetrievedChunk>      fixedResponse;
 
+    @Inject
     public InMemoryCaseRetriever(InMemoryEmbeddingIngestor store) {
         this.store = store;
         this.fixedResponse = null;
@@ -37,7 +40,7 @@ public class InMemoryCaseRetriever implements CaseRetriever {
     }
 
     @Override
-    public List<RetrievedChunk> retrieve(String query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
+    public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
         if (fixedResponse != null) {
             return fixedResponse;
         }

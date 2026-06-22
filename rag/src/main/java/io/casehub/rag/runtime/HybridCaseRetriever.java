@@ -9,6 +9,7 @@ import io.casehub.inference.tasks.RankedResult;
 import io.casehub.rag.CaseRetriever;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.PayloadFilter;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.qdrant.client.QueryFactory;
 import io.qdrant.client.QdrantClient;
@@ -77,7 +78,7 @@ public class HybridCaseRetriever implements CaseRetriever {
     }
 
     @Override
-    public List<RetrievedChunk> retrieve(String query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
+    public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus, int maxResults, PayloadFilter filter) {
         tenantGuard.assertTenant(corpus.tenantId());
 
         String collection = tenancyStrategy.collectionName(corpus);
@@ -96,7 +97,7 @@ public class HybridCaseRetriever implements CaseRetriever {
         }
 
         // Embed query: dense (always) + sparse (when available)
-        Embedding denseEmbedding = embeddingModel.embed(TextSegment.from(query)).content();
+        Embedding denseEmbedding = embeddingModel.embed(TextSegment.from(query.searchText())).content();
 
         // Determine query limit: fetch more candidates if reranking
         int queryLimit = rerankEnabled && reranker != null
@@ -106,7 +107,7 @@ public class HybridCaseRetriever implements CaseRetriever {
         QueryPoints queryPoints;
         if (sparseEmbedder != null) {
             // Hybrid mode: dense + sparse prefetch with RRF fusion
-            Map<Integer, Float> sparseMap = sparseEmbedder.embed(query);
+            Map<Integer, Float> sparseMap = sparseEmbedder.embed(query.text());
             List<Float> sparseValues = new ArrayList<>(sparseMap.size());
             List<Integer> sparseIndices = new ArrayList<>(sparseMap.size());
             for (Map.Entry<Integer, Float> entry : sparseMap.entrySet()) {
@@ -181,7 +182,7 @@ public class HybridCaseRetriever implements CaseRetriever {
                 texts.add(chunk.content());
             }
 
-            List<RankedResult> ranked = reranker.rerank(query, texts);
+            List<RankedResult> ranked = reranker.rerank(query.text(), texts);
 
             List<RetrievedChunk> reranked = new ArrayList<>(Math.min(ranked.size(), maxResults));
             for (int i = 0; i < Math.min(ranked.size(), maxResults); i++) {

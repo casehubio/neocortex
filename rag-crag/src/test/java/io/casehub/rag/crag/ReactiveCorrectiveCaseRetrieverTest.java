@@ -6,6 +6,7 @@ import io.casehub.rag.ReactiveCaseRetriever;
 import io.casehub.rag.RelevanceEvaluator;
 import io.casehub.rag.RelevanceGrade;
 import io.casehub.rag.RetrievalQuality;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.casehub.rag.testing.InMemoryRelevanceEvaluator;
 import io.smallrye.mutiny.Uni;
@@ -47,7 +48,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
         var retriever = new ReactiveCorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingAsyncEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 10, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(2);
@@ -64,7 +65,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
 
         var retriever = reactiveCorrective(
             delegate, RelevanceGrade.CORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 10, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(2);
@@ -83,7 +84,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
 
         var retriever = reactiveCorrective(
             delegate, RelevanceGrade.INCORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 5, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null)
             .await().indefinitely();
 
         assertThat(results).isEmpty();
@@ -108,7 +109,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
         var retriever = new ReactiveCorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingAsyncEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 10, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(2);
@@ -135,7 +136,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
         var retriever = new ReactiveCorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingAsyncEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 2, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 2, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(2);
@@ -149,7 +150,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
 
         var retriever = reactiveCorrective(
             delegate, RelevanceGrade.CORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 5, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null)
             .await().indefinitely();
 
         assertThat(results).isEmpty();
@@ -164,7 +165,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
 
         var retriever = reactiveCorrective(
             delegate, RelevanceGrade.CORRECT, quality);
-        var results = retriever.retrieve("query", CORPUS, 5, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(1);
@@ -191,7 +192,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
         var retriever = new ReactiveCorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingAsyncEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 5, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(1);
@@ -220,7 +221,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
         var retriever = new ReactiveCorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingAsyncEvent(quality));
 
-        var results = retriever.retrieve("query", CORPUS, 5, null)
+        var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null)
             .await().indefinitely();
 
         assertThat(results).hasSize(1);
@@ -243,10 +244,29 @@ class ReactiveCorrectiveCaseRetrieverTest {
         var retriever = new ReactiveCorrectiveCaseRetriever(
             delegate, evaluator, stubConfig(3), capturingAsyncEvent(quality));
 
-        retriever.retrieve("query", CORPUS, 5, null).await().indefinitely();
+        retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 5, null).await().indefinitely();
 
         assertNotEquals(Thread.currentThread().getId(), evaluatorThreadId.get(),
             "evaluator must execute on a worker thread, not the subscribing thread");
+    }
+
+    @Test
+    void evaluatesAgainstOriginalQueryNotExpansion() {
+        var delegate = fixedReactiveRetriever(chunk("content", "doc1", 0.9));
+        var capturedQuery = new AtomicReference<String>();
+        RelevanceEvaluator capturingEvaluator = (query, content) -> {
+            capturedQuery.set(query);
+            return RelevanceGrade.CORRECT;
+        };
+        var quality = new AtomicReference<RetrievalQuality>();
+        var retriever = new ReactiveCorrectiveCaseRetriever(
+            delegate, capturingEvaluator, stubConfig(3), capturingAsyncEvent(quality));
+
+        var expandedQuery = new RetrievalQuery("original question", "hypothetical document about original question");
+        retriever.retrieve(expandedQuery, CORPUS, 10, null)
+            .await().indefinitely();
+
+        assertThat(capturedQuery.get()).isEqualTo("original question");
     }
 
     // -- helpers --
@@ -279,6 +299,7 @@ class ReactiveCorrectiveCaseRetrieverTest {
             @Override public double correctThreshold() { return 0.7; }
             @Override public double incorrectThreshold() { return 0.3; }
             @Override public int expansionMultiplier() { return expansionMultiplier; }
+            @Override public boolean enabled() { return true; }
         };
     }
 

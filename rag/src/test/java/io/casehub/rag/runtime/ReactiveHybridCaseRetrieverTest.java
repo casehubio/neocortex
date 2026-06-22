@@ -5,6 +5,7 @@ import io.casehub.inference.inmem.InMemoryInferenceModel;
 import io.casehub.inference.splade.SparseEmbedder;
 import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.RetrievedChunk;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QdrantGrpcClient;
@@ -85,7 +86,7 @@ class ReactiveHybridCaseRetrieverTest {
                 Map.of("category", "tech"))
         ));
 
-        List<RetrievedChunk> results = retriever.retrieve("brown fox", corpus, 10, null)
+        List<RetrievedChunk> results = retriever.retrieve(RetrievalQuery.of("brown fox"), corpus, 10, null)
             .await().indefinitely();
 
         assertThat(results).isNotEmpty();
@@ -108,7 +109,7 @@ class ReactiveHybridCaseRetrieverTest {
             new ChunkInput("chunk three about birds", "doc-3", Map.of())
         ));
 
-        List<RetrievedChunk> results = retriever.retrieve("animals", corpus, 1, null)
+        List<RetrievedChunk> results = retriever.retrieve(RetrievalQuery.of("animals"), corpus, 1, null)
             .await().indefinitely();
 
         assertThat(results).hasSizeLessThanOrEqualTo(1);
@@ -118,7 +119,7 @@ class ReactiveHybridCaseRetrieverTest {
     void retrieveEmptyCorpus() {
         CorpusRef corpus = uniqueCorpus();
 
-        List<RetrievedChunk> results = retriever.retrieve("anything", corpus, 10, null)
+        List<RetrievedChunk> results = retriever.retrieve(RetrievalQuery.of("anything"), corpus, 10, null)
             .await().indefinitely();
 
         assertThat(results).isEmpty();
@@ -128,7 +129,7 @@ class ReactiveHybridCaseRetrieverTest {
     void tenancyMismatchThrows() {
         CorpusRef wrongTenant = new CorpusRef("other-tenant", "corpus");
 
-        assertThatThrownBy(() -> retriever.retrieve("query", wrongTenant, 10, null)
+        assertThatThrownBy(() -> retriever.retrieve(RetrievalQuery.of("query"), wrongTenant, 10, null)
             .await().indefinitely())
             .isInstanceOf(SecurityException.class);
     }
@@ -160,7 +161,7 @@ class ReactiveHybridCaseRetrieverTest {
         );
 
         List<RetrievedChunk> results = noTenantRetriever.retrieve(
-            "searchable", corpus, 10, null).await().indefinitely();
+            RetrievalQuery.of("searchable"), corpus, 10, null).await().indefinitely();
         assertThat(results).isNotEmpty();
     }
 

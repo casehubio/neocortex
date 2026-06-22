@@ -4,6 +4,7 @@ import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import io.casehub.corpus.zip.FlatChangeSource;
 import io.casehub.corpus.zip.FlatCorpusStore;
 import io.casehub.rag.CorpusRef;
+import io.casehub.rag.RetrievalQuery;
 import io.casehub.rag.runtime.CorpusIngestionBinding;
 import io.casehub.rag.runtime.CorpusIngestionService;
 import io.casehub.rag.runtime.YamlFrontmatterExtractor;
@@ -62,7 +63,7 @@ class RagEdgeCaseTest {
     @Test
     void searchOnEmptyRetrieverReturnsEmptyList() {
         var retriever = InMemoryCaseRetriever.returning(List.of());
-        var results = retriever.retrieve("anything", CORPUS, 5, null);
+        var results = retriever.retrieve(RetrievalQuery.of("anything"), CORPUS, 5, null);
         assertThat(results).isEmpty();
     }
 }

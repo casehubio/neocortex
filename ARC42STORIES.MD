@@ -1,7 +1,7 @@
 # ARC42STORIES — casehub-neural-text
 
 **Version:** 0.3  
-**Status:** All chapters complete (C1–C9) — J1 + J2 + J3 ✅ | J4 pending (C10) 🔲  
+**Status:** All chapters complete (C1–C9) — J1 + J2 + J3 ✅ | J4 pending (C10, C11) 🔲  
 **Spec:** [arc42stories-spec.md](https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-spec.md)  
 **Last updated:** 2026-06-18
 
@@ -144,6 +144,7 @@ This module sits **below** LangChain4j for inference and **above** LangChain4j f
 - C7 before C8: **hard** — corpus storage feeds the RAG pipeline; the pipeline must exist first.
 - C8 before C9: **hard** — `CorpusIngestionService` reads `ChangeSource` + `CorpusReader` from `corpus-api`; corpus modules must exist before the bridge.
 - C10 after C7 and C4: **hard** — CRAG decorates CaseRetriever (C7) using CrossEncoderReranker (C4); both must exist first.
+- C11 after C7 and C10: **hard** — HyDE decorates CaseRetriever (C7) and retrofits CRAG's activation model (C10); both must exist first.
 
 ---
 
@@ -192,6 +193,10 @@ C4Container
     Container(rag_crag, "rag-crag", "CDI library", "CorrectiveCaseRetriever @Decorator, CrossEncoderRelevanceEvaluator, RelevanceEvaluator SPI consumer")
   }
 
+  Container_Boundary(b_rag_hyde, "Layer: HyDE") {
+    Container(rag_hyde, "rag-hyde", "CDI library", "HydeCaseRetriever @Decorator, LlmQueryExpander, TemplateQueryExpander, QueryExpander SPI consumer")
+  }
+
   Rel(inference_tasks, inference_api, "wraps InferenceModel")
   Rel(inference_splade, inference_api, "wraps InferenceModel")
   Rel(inference_rt, inference_api, "implements InferenceModel")
@@ -204,6 +209,7 @@ C4Container
   Rel(corpus, corpus_api, "implements CorpusStore, CorpusReader, ChangeSource")
   Rel(rag_crag, rag_api, "decorates CaseRetriever")
   Rel(rag_crag, inference_tasks, "uses CrossEncoderReranker")
+  Rel(rag_hyde, rag_api, "decorates CaseRetriever")
 ```
 
 ### Layers
@@ -219,7 +225,8 @@ C4Container
 | L7 RAG Runtime | `rag` | Quarkus + LangChain4j | ✅ yes |
 | L8 Corpus SPI | `corpus-api` | Pure Java, zero deps | ✅ yes |
 | L9 Corpus Runtime | `corpus` | Zip4j | ✅ yes |
-| L10 CRAG | `rag-crag` | CDI library, classpath-activated | ✅ yes |
+| L10 CRAG | `rag-crag` | CDI library, classpath + config activated | ✅ yes |
+| L11 HyDE | `rag-hyde` | CDI library, classpath + config activated | ✅ yes |
 
 ---
 
@@ -348,7 +355,7 @@ noClasses().that().resideInAPackage("io.casehub.inference..")
 | J1 Neural Inference | Deliver the standalone ONNX inference layer — SPI, runtime, adapters, SPLADE, Quarkus wiring | C1–C6 | ✅ Complete |
 | J2 RAG Integration | Deliver casehub-specific LangChain4j RAG pipeline with hybrid search | C7 | ✅ Complete |
 | J3 Corpus Storage | ZIP-backed document storage and ingestion bridge to RAG pipeline | C8–C9 | ✅ Complete |
-| J4 Retrieval Quality | Self-healing retrieval — evaluate, filter, and correct poor retrieval results | C10 | 🔲 pending |
+| J4 Retrieval Quality | Self-healing and expanded retrieval — evaluate, filter, correct, and expand queries | C10, C11 | 🔲 pending |
 
 ### §9.2 Chapter Index
 
@@ -366,6 +373,8 @@ flowchart LR
   C8 --> C9["C9: Ingestion Bridge\n+ L7 (extended)"]
   C7 --> C10["C10: CRAG\n+ L10, L6 (enriched)"]
   C4 --> C10
+  C7 --> C11["C11: HyDE\n+ L11, L6, L7, L10"]
+  C10 --> C11
 
   style C1 fill:#90EE90,color:#000
   style C2 fill:#90EE90,color:#000
@@ -377,6 +386,7 @@ flowchart LR
   style C8 fill:#90EE90,color:#000
   style C9 fill:#90EE90,color:#000
   style C10 fill:#FFD700,color:#000
+  style C11 fill:#87CEEB,color:#000
 ```
 
 | # | Chapter | Journey | Layers touched | Delta summary | Status |
@@ -391,21 +401,23 @@ flowchart LR
 | 8 | Corpus Storage | J3 | L8, L9 | High, High | ✅ |
 | 9 | Ingestion Bridge | J3 | L6, L7 | Low, Med | ✅ |
 | 10 | Corrective RAG (CRAG) | J4 | L6, L7, L10 | L6: Low, L7: Low, L10: High | ✅ (#33, #38, #41) |
+| 11 | HyDE Query Expansion | J4 | L6, L7, L10, L11 | L6: Med, L7: Med, L10: Low, L11: High | 🔲 (#32) |
 
 **Layer × Chapter matrix**
 
-| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| L1 SPI Foundation | — | — | High | — | — | — | — | — | — | — |
-| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — | — |
-| L3 Task Adapters | — | — | — | High | — | — | — | — | — | — |
-| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — | — |
-| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — | — |
-| L6 RAG SPI | — | — | — | — | — | — | High | — | Low | Low |
-| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med | Low |
-| L8 Corpus SPI | — | — | — | — | — | — | — | High | — | — |
-| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — | — |
-| L10 CRAG | — | — | — | — | — | — | — | — | — | High |
+| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| L1 SPI Foundation | — | — | High | — | — | — | — | — | — | — | — |
+| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — | — | — |
+| L3 Task Adapters | — | — | — | High | — | — | — | — | — | — | — |
+| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — | — | — |
+| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — | — | — |
+| L6 RAG SPI | — | — | — | — | — | — | High | — | Low | Low | Med |
+| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med | Low | Med |
+| L8 Corpus SPI | — | — | — | — | — | — | — | High | — | — | — |
+| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — | — | — |
+| L10 CRAG | — | — | — | — | — | — | — | — | — | High | Low |
+| L11 HyDE | — | — | — | — | — | — | — | — | — | — | High |
 
 *C2 validates L2's JNI stack in native image; L2 itself is not built until C3.
 
@@ -596,7 +608,7 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 
 #### Chapter 10 — Corrective RAG (CRAG)
 
-**Journey:** J4 | **Sequence:** 1 of 1 | **Status:** ✅
+**Journey:** J4 | **Sequence:** 1 of 2 | **Status:** ✅
 **Issues:** #33, #38, #41 | **Blocked by:** C7 (CaseRetriever SPI), C4 (CrossEncoderReranker)
 
 **What this delivers**
@@ -617,6 +629,33 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 | L6 RAG SPI | Low (RelevanceEvaluator SPI, RelevanceGrade, enriched RetrievedChunk, RetrievalQuality event) |
 | L7 RAG Runtime | Low (no structural change — convenience constructor handles backward compat) |
 | L10 CRAG | High (new module: CorrectiveCaseRetriever decorator, CrossEncoderRelevanceEvaluator, CragBeanProducer, CragConfig) |
+
+---
+
+#### Chapter 11 — HyDE Query Expansion
+
+**Journey:** J4 | **Sequence:** 2 of 2 | **Status:** 🔲
+**Issues:** #32 | **Blocked by:** C7 (CaseRetriever SPI), C10 (CRAG)
+
+**What this delivers**
+`rag-hyde` module — a CDI `@Decorator` on `CaseRetriever` and `ReactiveCaseRetriever` that expands queries using HyDE (Hypothetical Document Embeddings) before retrieval. `QueryExpander` SPI in `rag-api` defines the expansion contract. Two implementations: `LlmQueryExpander` (LLM-generated hypothetical documents) and `TemplateQueryExpander` (pattern-based expansion). New `RetrievalQuery` value type replaces raw `String query` in CaseRetriever/ReactiveCaseRetriever — carries original text plus expanded `searchText()` for dense embedding. Sparse embedding and reranking continue to use original `text()`. Classpath + config activated (`casehub.rag.hyde.enabled=true`). CRAG retrofitted to same activation model (`casehub.rag.crag.enabled=true`).
+
+**Accountability gaps closed**
+
+| Gap | What breaks without it | Closed by |
+|---|---|---|
+| Vocabulary mismatch | Short user queries miss semantically relevant documents due to embedding distance | HyDE generates hypothetical answer, embedding matches document space |
+| No query expansion SPI | Query expansion locked to single strategy | QueryExpander SPI — swap LLM, template, or custom implementations |
+| CRAG always-on | No way to disable CRAG without removing classpath dependency | Config-gated activation for both CRAG and HyDE |
+
+**Layer Impact**
+
+| Layer | Delta |
+|---|---|
+| L6 RAG SPI | Med (RetrievalQuery value type, QueryExpander SPI, CaseRetriever/ReactiveCaseRetriever SPI signature change) |
+| L7 RAG Runtime | Med (dense/sparse split — dense uses searchText(), sparse uses text(), HybridCaseRetriever updated) |
+| L10 CRAG | Low (activation model retrofit — classpath-only → classpath + config) |
+| L11 HyDE | High (new module: HydeCaseRetriever decorator, ReactiveHydeCaseRetriever, LlmQueryExpander, TemplateQueryExpander, HydeConfig) |
 
 ---
 
@@ -1013,7 +1052,7 @@ Rolling archive pattern with chain manifest for any append-heavy storage where i
 
 #### What it adds
 
-Classpath-activated corrective retrieval — when `casehub-rag-crag` is on the classpath, `CorrectiveCaseRetriever` and `ReactiveCorrectiveCaseRetriever` intercept all `CaseRetriever.retrieve()` and `ReactiveCaseRetriever.retrieve()` calls via CDI `@Decorator`. Evaluates each retrieved chunk as CORRECT/AMBIGUOUS/INCORRECT, filters INCORRECT, expands search when quality filtering leaves too few results, and fires `RetrievalQuality` CDI events for observability. Already-graded guard prevents double CRAG application when the blocking-to-reactive bridge is active — uses `RelevanceGrade.UNGRADED` as the idempotency signal. Shared `CragEvaluationLogic` helper provides pure functions consumed by both decorators.
+Classpath + config activated corrective retrieval — when `casehub-rag-crag` is on the classpath and `casehub.rag.crag.enabled=true`, `CorrectiveCaseRetriever` and `ReactiveCorrectiveCaseRetriever` intercept all `CaseRetriever.retrieve()` and `ReactiveCaseRetriever.retrieve()` calls via CDI `@Decorator`. Evaluates each retrieved chunk as CORRECT/AMBIGUOUS/INCORRECT, filters INCORRECT, expands search when quality filtering leaves too few results, and fires `RetrievalQuality` CDI events for observability. Already-graded guard prevents double CRAG application when the blocking-to-reactive bridge is active — uses `RelevanceGrade.UNGRADED` as the idempotency signal. Shared `CragEvaluationLogic` helper provides pure functions consumed by both decorators.
 
 #### Accountability gaps closed
 
@@ -1044,6 +1083,50 @@ Float-to-double comparison: `score >= correctThreshold` fails at boundaries when
 #### Pattern to replicate
 
 CDI `@Decorator` with constructor injection for classpath-activated pipeline stages. `@Decorator @Priority(N)` + `@Inject` constructor with `@Delegate @Any` — enables both CDI interception and pure Java unit testing. Stub the `Event<T>` interface in tests to capture fired events.
+
+---
+
+#### Layer L11 — HyDE
+
+**Participates in chapters:** C11
+**Architectural patterns:** Decorator (CDI @Decorator), SPI consumer (QueryExpander)
+**Issues:** #32
+**Completed:** 🔲
+
+#### What it adds
+
+Config-gated HyDE query expansion — when `casehub-rag-hyde` is on the classpath and `casehub.rag.hyde.enabled=true`, `HydeCaseRetriever` and `ReactiveHydeCaseRetriever` intercept all `CaseRetriever.retrieve()` and `ReactiveCaseRetriever.retrieve()` calls via CDI `@Decorator`. Expands the original query through `QueryExpander` SPI before passing to the delegate retriever. Dense embedding uses the expanded `searchText()`; sparse embedding and reranking use the original `text()`. Two bundled expanders: `LlmQueryExpander` (LLM-generated hypothetical documents via LangChain4j `ChatModel`) and `TemplateQueryExpander` (pattern-based string expansion). Each bean carries its own `@IfBuildProperty` annotation — decorators gated by `casehub.rag.hyde.enabled`, expanders gated by `casehub.rag.hyde.mode`.
+
+#### Accountability gaps closed
+
+| Gap | What breaks without it | Closed by |
+|---|---|---|
+| Vocabulary mismatch | Short queries produce poor dense embeddings | HyDE-expanded searchText() aligns with document embedding space |
+| Single expansion strategy | No way to swap query expansion approach | QueryExpander SPI with pluggable implementations |
+
+#### Key files
+
+| File | Role |
+|---|---|
+| `rag-hyde/.../HydeCaseRetriever.java` | @Decorator — expand query via QueryExpander, pass RetrievalQuery to delegate |
+| `rag-hyde/.../ReactiveHydeCaseRetriever.java` | @Decorator on ReactiveCaseRetriever — Uni chains, worker thread offload |
+| `rag-hyde/.../LlmQueryExpander.java` | QueryExpander impl — LLM generates hypothetical document |
+| `rag-hyde/.../TemplateQueryExpander.java` | QueryExpander impl — pattern-based string expansion |
+| `rag-hyde/.../HydeConfig.java` | @ConfigMapping — enabled flag, expander selection |
+| `rag-api/.../RetrievalQuery.java` | Value type — text() + searchText(), replaces raw String in CaseRetriever SPI |
+| `rag-api/.../QueryExpander.java` | SPI — expand(RetrievalQuery query) |
+
+#### Architectural decisions
+
+CDI `@Decorator` chosen (same pattern as CRAG L10) for consistency and to avoid priority collisions. Config-gated via `@IfBuildProperty` — classpath alone does not activate the decorator. This same activation model was retrofitted to CRAG. `RetrievalQuery` carries both original `text()` and expanded `searchText()` — dense embedding benefits from expansion while sparse embedding preserves lexical precision of the original query.
+
+#### Gotchas
+
+Decorator priority ordering: HyDE must run before CRAG in the decorator chain — HyDE expands the query, then CRAG evaluates retrieval quality. `@Priority` values must reflect this ordering.
+
+#### Pattern to replicate
+
+Config-gated CDI decorator with `@IfBuildProperty` — same pattern for any future retrieval pipeline stage. `RetrievalQuery` dual-text pattern (original + expanded) for any transformation that should affect some embedding strategies but not others.
 
 ---
 
