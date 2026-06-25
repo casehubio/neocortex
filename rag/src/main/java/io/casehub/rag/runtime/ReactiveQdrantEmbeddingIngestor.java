@@ -9,11 +9,7 @@ import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.ReactiveEmbeddingIngestor;
 import io.qdrant.client.ConditionFactory;
-import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.QdrantClient;
-import io.qdrant.client.ValueFactory;
-import io.qdrant.client.VectorFactory;
-import io.qdrant.client.VectorsFactory;
 import io.qdrant.client.WithPayloadSelectorFactory;
 import io.qdrant.client.grpc.Collections.CreateCollection;
 import io.qdrant.client.grpc.Collections.Distance;
@@ -28,19 +24,15 @@ import io.qdrant.client.grpc.JsonWithInt.Value;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.RetrievedPoint;
 import io.qdrant.client.grpc.Points.ScrollPoints;
-import io.qdrant.client.grpc.Points.Vector;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngestor {
@@ -95,16 +87,13 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
                 return new EmbeddingResult(denseResponse.content(), sparseEmbeddings);
             }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool()))
             .chain(embeddings -> {
-                Map<String, Integer> counters = new HashMap<>();
+                int[] chunkIndices = QdrantPointBuilder.computeChunkIndices(chunks);
                 List<PointStruct> points = new ArrayList<>(chunks.size());
                 for (int i = 0; i < chunks.size(); i++) {
-                    ChunkInput chunk = chunks.get(i);
-                    int chunkIndex = counters.merge(chunk.sourceDocumentId(), 0, Integer::sum);
-                    counters.put(chunk.sourceDocumentId(), chunkIndex + 1);
-                    points.add(buildPoint(chunk, corpus,
-                        embeddings.dense.get(i),
-                        embeddings.sparse != null ? embeddings.sparse.get(i) : null,
-                        chunkIndex));
+                    points.add(QdrantPointBuilder.buildPoint(chunks.get(i), corpus,
+                        embeddings.dense().get(i),
+                        embeddings.sparse() != null ? embeddings.sparse().get(i) : null,
+                        chunkIndices[i], denseVectorName, sparseVectorName));
                 }
                 return QdrantFutures.toUni(client.upsertAsync(collection, points))
                     .replaceWithVoid();
@@ -226,44 +215,6 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
             builder.setSparseVectorsConfig(sparseConfig);
         }
         return builder.build();
-    }
-
-    private PointStruct buildPoint(ChunkInput chunk, CorpusRef corpus,
-            Embedding denseEmbedding, Map<Integer, Float> sparseMap,
-            int chunkIndex) {
-        // Deterministic point ID from sourceDocumentId + per-document chunk index
-        String idInput = chunk.sourceDocumentId() + "#" + chunkIndex;
-        UUID pointId = UUID.nameUUIDFromBytes(idInput.getBytes(StandardCharsets.UTF_8));
-
-        Vector denseVector = VectorFactory.vector(denseEmbedding.vectorAsList());
-        Map<String, Vector> namedVectors;
-        if (sparseMap != null) {
-            List<Float> sparseValues = new ArrayList<>(sparseMap.size());
-            List<Integer> sparseIndices = new ArrayList<>(sparseMap.size());
-            for (Map.Entry<Integer, Float> entry : sparseMap.entrySet()) {
-                sparseIndices.add(entry.getKey());
-                sparseValues.add(entry.getValue());
-            }
-            Vector sparseVector = VectorFactory.vector(sparseValues, sparseIndices);
-            namedVectors = Map.of(
-                denseVectorName, denseVector,
-                sparseVectorName, sparseVector
-            );
-        } else {
-            namedVectors = Map.of(denseVectorName, denseVector);
-        }
-        Map<String, Value> payload = new HashMap<>();
-        payload.put("content", ValueFactory.value(chunk.content()));
-        payload.put("sourceDocumentId", ValueFactory.value(chunk.sourceDocumentId()));
-        payload.put("tenantId", ValueFactory.value(corpus.tenantId()));
-        for (Map.Entry<String, String> meta : chunk.metadata().entrySet()) {
-            payload.put(meta.getKey(), ValueFactory.value(meta.getValue()));
-        }
-        return PointStruct.newBuilder()
-            .setId(PointIdFactory.id(pointId))
-            .setVectors(VectorsFactory.namedVectors(namedVectors))
-            .putAllPayload(payload)
-            .build();
     }
 
     private record EmbeddingResult(List<Embedding> dense, List<Map<Integer, Float>> sparse) {}

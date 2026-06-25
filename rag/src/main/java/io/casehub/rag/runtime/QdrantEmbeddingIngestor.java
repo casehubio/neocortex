@@ -9,11 +9,7 @@ import io.casehub.rag.ChunkInput;
 import io.casehub.rag.CorpusRef;
 import io.casehub.rag.EmbeddingIngestor;
 import io.qdrant.client.ConditionFactory;
-import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.QdrantClient;
-import io.qdrant.client.ValueFactory;
-import io.qdrant.client.VectorFactory;
-import io.qdrant.client.VectorsFactory;
 import io.qdrant.client.grpc.Collections.CreateCollection;
 import io.qdrant.client.grpc.Collections.Distance;
 import io.qdrant.client.grpc.Collections.SparseVectorConfig;
@@ -27,15 +23,12 @@ import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.RetrievedPoint;
 import io.qdrant.client.grpc.Points.ScrollPoints;
 import io.qdrant.client.grpc.Points.ScrollResponse;
-import io.qdrant.client.grpc.Points.Vector;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
@@ -75,7 +68,6 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
         String collection = tenancyStrategy.collectionName(corpus);
         ensureCollection(collection);
 
-        // Batch embed dense
         List<TextSegment> segments = new ArrayList<>(chunks.size());
         List<String> texts = new ArrayList<>(chunks.size());
         for (ChunkInput chunk : chunks) {
@@ -85,24 +77,18 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
         Response<List<Embedding>> denseResponse = embeddingModel.embedAll(segments);
         List<Embedding> denseEmbeddings = denseResponse.content();
 
-        // Batch embed sparse (only if sparse embedder is available)
         List<Map<Integer, Float>> sparseEmbeddings = sparseEmbedder != null
             ? sparseEmbedder.embedBatch(texts) : null;
 
-        // Build points with per-document chunk counters for deterministic IDs
-        Map<String, Integer> counters = new HashMap<>();
+        int[] chunkIndices = QdrantPointBuilder.computeChunkIndices(chunks);
         List<PointStruct> points = new ArrayList<>(chunks.size());
         for (int i = 0; i < chunks.size(); i++) {
-            ChunkInput chunk = chunks.get(i);
-            int chunkIndex = counters.merge(chunk.sourceDocumentId(), 0, Integer::sum);
-            counters.put(chunk.sourceDocumentId(), chunkIndex + 1);
-            points.add(buildPoint(chunk, corpus,
+            points.add(QdrantPointBuilder.buildPoint(chunks.get(i), corpus,
                 denseEmbeddings.get(i),
                 sparseEmbeddings != null ? sparseEmbeddings.get(i) : null,
-                chunkIndex));
+                chunkIndices[i], denseVectorName, sparseVectorName));
         }
 
-        // Upsert
         try {
             client.upsertAsync(collection, points).get();
         } catch (InterruptedException e) {
@@ -264,49 +250,4 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
         }
     }
 
-    private PointStruct buildPoint(
-            ChunkInput chunk, CorpusRef corpus,
-            Embedding denseEmbedding, Map<Integer, Float> sparseMap,
-            int chunkIndex) {
-
-        // Deterministic point ID from sourceDocumentId + per-document chunk index
-        String idInput = chunk.sourceDocumentId() + "#" + chunkIndex;
-        UUID pointId = UUID.nameUUIDFromBytes(idInput.getBytes(StandardCharsets.UTF_8));
-
-        // Dense vector
-        Vector denseVector = VectorFactory.vector(denseEmbedding.vectorAsList());
-
-        // Named vectors — include sparse only when available
-        Map<String, Vector> namedVectors;
-        if (sparseMap != null) {
-            List<Float> sparseValues = new ArrayList<>(sparseMap.size());
-            List<Integer> sparseIndices = new ArrayList<>(sparseMap.size());
-            for (Map.Entry<Integer, Float> entry : sparseMap.entrySet()) {
-                sparseIndices.add(entry.getKey());
-                sparseValues.add(entry.getValue());
-            }
-            Vector sparseVector = VectorFactory.vector(sparseValues, sparseIndices);
-            namedVectors = Map.of(
-                denseVectorName, denseVector,
-                sparseVectorName, sparseVector
-            );
-        } else {
-            namedVectors = Map.of(denseVectorName, denseVector);
-        }
-
-        // Payload
-        Map<String, Value> payload = new HashMap<>();
-        payload.put("content", ValueFactory.value(chunk.content()));
-        payload.put("sourceDocumentId", ValueFactory.value(chunk.sourceDocumentId()));
-        payload.put("tenantId", ValueFactory.value(corpus.tenantId()));
-        for (Map.Entry<String, String> meta : chunk.metadata().entrySet()) {
-            payload.put(meta.getKey(), ValueFactory.value(meta.getValue()));
-        }
-
-        return PointStruct.newBuilder()
-            .setId(PointIdFactory.id(pointId))
-            .setVectors(VectorsFactory.namedVectors(namedVectors))
-            .putAllPayload(payload)
-            .build();
-    }
 }
