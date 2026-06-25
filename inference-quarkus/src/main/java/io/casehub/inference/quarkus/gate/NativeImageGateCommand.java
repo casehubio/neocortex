@@ -5,10 +5,8 @@ import io.casehub.inference.InferenceOutput;
 import io.casehub.inference.runtime.ModelConfig;
 import io.casehub.inference.runtime.OnnxInferenceModel;
 import io.quarkus.runtime.QuarkusApplication;
-import io.quarkus.runtime.annotations.QuarkusMain;
 import java.nio.file.Path;
 
-@QuarkusMain
 public class NativeImageGateCommand implements QuarkusApplication {
 
     @Override
