@@ -3,6 +3,8 @@ package io.casehub.rag.runtime;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
 
 @ConfigMapping(prefix = "casehub.rag")
 public interface RagConfig {
@@ -22,6 +24,24 @@ public interface RagConfig {
 
     @WithDefault("100")
     int embeddingBatchSize();
+
+    MatryoshkaConfig matryoshka();
+
+    interface MatryoshkaConfig {
+        OptionalInt dimension();
+    }
+
+    QuantizationConfig quantization();
+
+    interface QuantizationConfig {
+        @WithDefault("NONE")
+        DenseQuantization type();
+
+        @WithDefault("true")
+        boolean alwaysRam();
+
+        OptionalDouble oversampling();
+    }
 
     interface QdrantConfig {
         @WithDefault("localhost")
