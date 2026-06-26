@@ -20,6 +20,8 @@ import io.qdrant.client.grpc.Points.PrefetchQuery;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.Rrf;
 import io.qdrant.client.grpc.Points.ScoredPoint;
+import io.qdrant.client.grpc.Points.SearchParams;
+import io.qdrant.client.grpc.Points.QuantizationSearchParams;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.concurrent.ExecutionException;
 
 public class HybridCaseRetriever implements CaseRetriever {
@@ -47,6 +50,8 @@ public class HybridCaseRetriever implements CaseRetriever {
     private final int rerankTopN;
     private final CrossEncoderReranker reranker;
     private final TenantGuard tenantGuard;
+    private final DenseQuantization quantizationType;
+    private final OptionalDouble oversampling;
 
     HybridCaseRetriever(
             QdrantClient client,
@@ -61,7 +66,9 @@ public class HybridCaseRetriever implements CaseRetriever {
             boolean rerankEnabled,
             int rerankTopN,
             CrossEncoderReranker reranker,
-            TenantGuard tenantGuard) {
+            TenantGuard tenantGuard,
+            DenseQuantization quantizationType,
+            OptionalDouble oversampling) {
         this.client = client;
         this.embeddingModel = embeddingModel;
         this.sparseEmbedder = sparseEmbedder;
@@ -75,6 +82,8 @@ public class HybridCaseRetriever implements CaseRetriever {
         this.rerankTopN = rerankTopN;
         this.reranker = reranker;
         this.tenantGuard = tenantGuard;
+        this.quantizationType = quantizationType;
+        this.oversampling = oversampling;
     }
 
     @Override
@@ -119,6 +128,9 @@ public class HybridCaseRetriever implements CaseRetriever {
                 .setQuery(QueryFactory.nearest(denseEmbedding.vectorAsList()))
                 .setUsing(denseVectorName)
                 .setLimit(denseTopK);
+            if (quantizationType != DenseQuantization.NONE && oversampling.isPresent()) {
+                densePrefetch.setParams(quantizationSearchParams());
+            }
             mergedFilter.ifPresent(densePrefetch::setFilter);
 
             PrefetchQuery.Builder sparsePrefetch = PrefetchQuery.newBuilder()
@@ -143,6 +155,9 @@ public class HybridCaseRetriever implements CaseRetriever {
                 .setUsing(denseVectorName)
                 .setLimit(queryLimit)
                 .setWithPayload(WithPayloadSelectorFactory.enable(true));
+            if (quantizationType != DenseQuantization.NONE && oversampling.isPresent()) {
+                builder.setParams(quantizationSearchParams());
+            }
             mergedFilter.ifPresent(builder::setFilter);
             queryPoints = builder.build();
         }
@@ -228,5 +243,14 @@ public class HybridCaseRetriever implements CaseRetriever {
             return value.getStringValue();
         }
         return null;
+    }
+
+    private SearchParams quantizationSearchParams() {
+        return SearchParams.newBuilder()
+            .setQuantization(QuantizationSearchParams.newBuilder()
+                .setOversampling(oversampling.getAsDouble())
+                .setRescore(true)
+                .build())
+            .build();
     }
 }

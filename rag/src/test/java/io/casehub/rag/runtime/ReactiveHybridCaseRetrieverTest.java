@@ -17,6 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,7 +75,8 @@ class ReactiveHybridCaseRetrieverTest {
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
             64, 64, 60,
             false, 10, null,
-            guard
+            guard,
+            DenseQuantization.NONE, OptionalDouble.empty()
         );
     }
 
@@ -161,7 +163,8 @@ class ReactiveHybridCaseRetrieverTest {
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
             64, 64, 60,
             false, 10, null,
-            noTenantGuard
+            noTenantGuard,
+            DenseQuantization.NONE, OptionalDouble.empty()
         );
 
         List<RetrievedChunk> results = noTenantRetriever.retrieve(

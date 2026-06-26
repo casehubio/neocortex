@@ -13,6 +13,8 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
+import java.util.OptionalDouble;
+
 @IfBuildProperty(name = "casehub.rag.reactive.enabled", stringValue = "true")
 @ApplicationScoped
 @Startup
@@ -66,6 +68,8 @@ public class ReactiveRagBeanProducer {
             config.denseVectorName(), config.sparseVectorName(),
             config.retrieval().denseTopK(), config.retrieval().sparseTopK(),
             config.retrieval().rrfK(), config.retrieval().rerankEnabled(),
-            config.retrieval().rerankTopN(), reranker, tenantGuard);
+            config.retrieval().rerankTopN(), reranker, tenantGuard,
+            DenseQuantization.NONE,
+            OptionalDouble.empty());
     }
 }

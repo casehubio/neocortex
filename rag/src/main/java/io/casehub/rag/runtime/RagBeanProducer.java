@@ -10,6 +10,8 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
+import java.util.OptionalDouble;
+
 @ApplicationScoped
 public class RagBeanProducer {
 
@@ -64,6 +66,8 @@ public class RagBeanProducer {
             config.retrieval().rerankEnabled(),
             config.retrieval().rerankTopN(),
             reranker,
-            tenantGuard);
+            tenantGuard,
+            DenseQuantization.NONE,
+            OptionalDouble.empty());
     }
 }

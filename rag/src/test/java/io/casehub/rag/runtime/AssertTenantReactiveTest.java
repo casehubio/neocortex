@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -92,6 +93,7 @@ class AssertTenantReactiveTest {
             "dense", "sparse",
             64, 64, 60,
             false, 10, null,
-            TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)));
+            TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
+            DenseQuantization.NONE, OptionalDouble.empty());
     }
 }

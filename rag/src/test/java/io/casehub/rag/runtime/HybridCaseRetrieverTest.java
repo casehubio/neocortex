@@ -19,6 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,7 +79,8 @@ class HybridCaseRetrieverTest {
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
             64, 64, 60,
             false, 10, null,
-            guard
+            guard,
+            DenseQuantization.NONE, OptionalDouble.empty()
         );
     }
 
@@ -160,7 +162,8 @@ class HybridCaseRetrieverTest {
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
             64, 64, 60,
             false, 10, null,
-            denseOnlyGuard
+            denseOnlyGuard,
+            DenseQuantization.NONE, OptionalDouble.empty()
         );
 
         CorpusRef corpus = uniqueCorpus();
@@ -220,7 +223,8 @@ class HybridCaseRetrieverTest {
             DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
             64, 64, 60,
             false, 10, null,
-            noTenantGuard
+            noTenantGuard,
+            DenseQuantization.NONE, OptionalDouble.empty()
         );
 
         CorpusRef corpus = uniqueCorpus();
@@ -230,6 +234,41 @@ class HybridCaseRetrieverTest {
 
         List<RetrievedChunk> results = noTenantRetriever.retrieve(
             RetrievalQuery.of("searchable"), corpus, 10, null);
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    void quantizedRetrieverIngestsAndRetrieves() {
+        // Verify end-to-end: quantized ingestor + retriever work together
+        EmbeddingModel model = new RagTestFixtures.StubEmbeddingModel(DENSE_DIM);
+        TenantGuard guard = TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT));
+
+        QdrantEmbeddingIngestor quantizedStore = new QdrantEmbeddingIngestor(
+            client, model, null,
+            TenancyStrategy.SEPARATE_COLLECTIONS,
+            DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
+            guard, Integer.MAX_VALUE,
+            DenseQuantization.BINARY, true
+        );
+
+        HybridCaseRetriever quantizedRetriever = new HybridCaseRetriever(
+            client, model, null,
+            TenancyStrategy.SEPARATE_COLLECTIONS,
+            DENSE_VECTOR_NAME, SPARSE_VECTOR_NAME,
+            64, 64, 60,
+            false, 10, null,
+            guard,
+            DenseQuantization.BINARY, java.util.OptionalDouble.of(2.0)
+        );
+
+        CorpusRef corpus = uniqueCorpus();
+        quantizedStore.ingest(corpus, List.of(
+            new ChunkInput("quantized search content", "doc-1", Map.of())
+        ));
+
+        List<RetrievedChunk> results = quantizedRetriever.retrieve(
+            RetrievalQuery.of("quantized"), corpus, 10, null);
+
         assertThat(results).isNotEmpty();
     }
 
