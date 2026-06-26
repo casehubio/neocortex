@@ -45,6 +45,8 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
     private final String sparseVectorName;
     private final TenantGuard tenantGuard;
     private final int batchSize;
+    private final DenseQuantization quantizationType;
+    private final boolean alwaysRam;
 
     private final Set<String> knownCollections = ConcurrentHashMap.newKeySet();
 
@@ -56,7 +58,9 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
             String denseVectorName,
             String sparseVectorName,
             TenantGuard tenantGuard,
-            int batchSize) {
+            int batchSize,
+            DenseQuantization quantizationType,
+            boolean alwaysRam) {
         if (batchSize <= 0) {
             throw new IllegalArgumentException("batchSize must be positive, got: " + batchSize);
         }
@@ -68,6 +72,8 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
         this.sparseVectorName = sparseVectorName;
         this.tenantGuard = tenantGuard;
         this.batchSize = batchSize;
+        this.quantizationType = quantizationType;
+        this.alwaysRam = alwaysRam;
     }
 
     @Override
@@ -235,14 +241,43 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
 
         try {
             if (client.collectionExistsAsync(collection).get()) {
+                var info = client.getCollectionInfoAsync(collection).get();
+                int existingDim = (int) info.getConfig().getParams().getVectorsConfig()
+                    .getParamsMap().getMapMap().get(denseVectorName).getSize();
+                int configuredDim = embeddingModel.dimension();
+                if (existingDim != configuredDim) {
+                    throw new IllegalStateException(
+                        "Configured embedding dimension (" + configuredDim
+                            + ") does not match existing collection dimension (" + existingDim
+                            + ") for collection '" + collection
+                            + "'. Re-index the collection or adjust matryoshka.dimension.");
+                }
                 knownCollections.add(collection);
                 return;
             }
 
-            VectorParams denseParams = VectorParams.newBuilder()
+            VectorParams.Builder denseParamsBuilder = VectorParams.newBuilder()
                 .setSize(embeddingModel.dimension())
-                .setDistance(Distance.Cosine)
-                .build();
+                .setDistance(Distance.Cosine);
+
+            if (quantizationType == DenseQuantization.BINARY) {
+                denseParamsBuilder.setQuantizationConfig(
+                    io.qdrant.client.grpc.Collections.QuantizationConfig.newBuilder()
+                        .setBinary(io.qdrant.client.grpc.Collections.BinaryQuantization.newBuilder()
+                            .setAlwaysRam(alwaysRam)
+                            .build())
+                        .build());
+            } else if (quantizationType == DenseQuantization.SCALAR) {
+                denseParamsBuilder.setQuantizationConfig(
+                    io.qdrant.client.grpc.Collections.QuantizationConfig.newBuilder()
+                        .setScalar(io.qdrant.client.grpc.Collections.ScalarQuantization.newBuilder()
+                            .setType(io.qdrant.client.grpc.Collections.QuantizationType.Int8)
+                            .setAlwaysRam(alwaysRam)
+                            .build())
+                        .build());
+            }
+
+            VectorParams denseParams = denseParamsBuilder.build();
 
             VectorParamsMap paramsMap = VectorParamsMap.newBuilder()
                 .putMap(denseVectorName, denseParams)

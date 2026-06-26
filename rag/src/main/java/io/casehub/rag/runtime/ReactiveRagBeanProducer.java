@@ -44,8 +44,10 @@ public class ReactiveRagBeanProducer {
             client, embeddingModel, sparseEmbedder,
             config.tenancyStrategy(),
             config.denseVectorName(), config.sparseVectorName(),
-            denseDimension, tenantGuard,
-            config.embeddingBatchSize());
+            tenantGuard,
+            config.embeddingBatchSize(),
+            DenseQuantization.NONE,
+            true);
     }
 
     @Produces

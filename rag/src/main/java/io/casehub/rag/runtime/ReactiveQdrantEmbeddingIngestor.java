@@ -50,6 +50,8 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
     private final int denseDimension;
     private final TenantGuard tenantGuard;
     private final int batchSize;
+    private final DenseQuantization quantizationType;
+    private final boolean alwaysRam;
 
     private final ConcurrentHashMap<String, Uni<Void>> ensuredCollections = new ConcurrentHashMap<>();
 
@@ -60,9 +62,10 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
             TenancyStrategy tenancyStrategy,
             String denseVectorName,
             String sparseVectorName,
-            int denseDimension,
             TenantGuard tenantGuard,
-            int batchSize) {
+            int batchSize,
+            DenseQuantization quantizationType,
+            boolean alwaysRam) {
         if (batchSize <= 0) {
             throw new IllegalArgumentException("batchSize must be positive, got: " + batchSize);
         }
@@ -72,9 +75,11 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
         this.tenancyStrategy = tenancyStrategy;
         this.denseVectorName = denseVectorName;
         this.sparseVectorName = sparseVectorName;
-        this.denseDimension = denseDimension;
+        this.denseDimension = embeddingModel.dimension();
         this.tenantGuard = tenantGuard;
         this.batchSize = batchSize;
+        this.quantizationType = quantizationType;
+        this.alwaysRam = alwaysRam;
     }
 
     @Override
@@ -193,7 +198,22 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
         return ensuredCollections.computeIfAbsent(collection, k ->
             QdrantFutures.<Boolean>toUni(client.collectionExistsAsync(k))
                 .chain(exists -> {
-                    if (exists) return Uni.createFrom().voidItem();
+                    if (exists) {
+                        return QdrantFutures.toUni(client.getCollectionInfoAsync(k))
+                            .invoke(info -> {
+                                int existingDim = (int) info.getConfig().getParams()
+                                    .getVectorsConfig().getParamsMap().getMapMap()
+                                    .get(denseVectorName).getSize();
+                                if (existingDim != denseDimension) {
+                                    throw new IllegalStateException(
+                                        "Configured embedding dimension (" + denseDimension
+                                            + ") does not match existing collection dimension ("
+                                            + existingDim + ") for collection '" + k
+                                            + "'. Re-index the collection or adjust matryoshka.dimension.");
+                                }
+                            })
+                            .replaceWithVoid();
+                    }
                     return QdrantFutures.toUni(
                         client.createCollectionAsync(buildCreateRequest(k)))
                         .replaceWithVoid();
@@ -231,10 +251,29 @@ public class ReactiveQdrantEmbeddingIngestor implements ReactiveEmbeddingIngesto
     }
 
     private CreateCollection buildCreateRequest(String collection) {
-        VectorParams denseParams = VectorParams.newBuilder()
+        VectorParams.Builder denseParamsBuilder = VectorParams.newBuilder()
             .setSize(denseDimension)
-            .setDistance(Distance.Cosine)
-            .build();
+            .setDistance(Distance.Cosine);
+
+        if (quantizationType == DenseQuantization.BINARY) {
+            denseParamsBuilder.setQuantizationConfig(
+                io.qdrant.client.grpc.Collections.QuantizationConfig.newBuilder()
+                    .setBinary(io.qdrant.client.grpc.Collections.BinaryQuantization.newBuilder()
+                        .setAlwaysRam(alwaysRam)
+                        .build())
+                    .build());
+        } else if (quantizationType == DenseQuantization.SCALAR) {
+            denseParamsBuilder.setQuantizationConfig(
+                io.qdrant.client.grpc.Collections.QuantizationConfig.newBuilder()
+                    .setScalar(io.qdrant.client.grpc.Collections.ScalarQuantization.newBuilder()
+                        .setType(io.qdrant.client.grpc.Collections.QuantizationType.Int8)
+                        .setAlwaysRam(alwaysRam)
+                        .build())
+                    .build());
+        }
+
+        VectorParams denseParams = denseParamsBuilder.build();
+
         VectorParamsMap paramsMap = VectorParamsMap.newBuilder()
             .putMap(denseVectorName, denseParams)
             .build();

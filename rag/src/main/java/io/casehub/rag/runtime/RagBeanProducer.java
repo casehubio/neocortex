@@ -36,7 +36,9 @@ public class RagBeanProducer {
             config.denseVectorName(),
             config.sparseVectorName(),
             tenantGuard,
-            config.embeddingBatchSize());
+            config.embeddingBatchSize(),
+            DenseQuantization.NONE,
+            true);
     }
 
     @Produces

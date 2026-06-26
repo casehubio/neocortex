@@ -61,7 +61,8 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            Integer.MAX_VALUE
+            Integer.MAX_VALUE,
+            DenseQuantization.NONE, true
         );
     }
 
@@ -174,7 +175,8 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            Integer.MAX_VALUE
+            Integer.MAX_VALUE,
+            DenseQuantization.NONE, true
         );
 
         CorpusRef corpus = uniqueCorpus();
@@ -235,7 +237,8 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(null),
-            Integer.MAX_VALUE
+            Integer.MAX_VALUE,
+            DenseQuantization.NONE, true
         );
 
         CorpusRef corpus = uniqueCorpus();
@@ -259,7 +262,8 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            2);
+            2,
+            DenseQuantization.NONE, true);
 
         CorpusRef corpus = uniqueCorpus();
         batchedStore.ingest(corpus, List.of(
@@ -283,7 +287,8 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            2);
+            2,
+            DenseQuantization.NONE, true);
 
         CorpusRef corpus = uniqueCorpus();
         // Batch 1: [A#0, A#1], Batch 2: [A#2]
@@ -312,7 +317,8 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            1);
+            1,
+            DenseQuantization.NONE, true);
 
         CorpusRef corpus = uniqueCorpus();
         batchedStore.ingest(corpus, List.of(
@@ -333,9 +339,104 @@ class QdrantEmbeddingIngestorTest {
             TenancyStrategy.SEPARATE_COLLECTIONS,
             "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            0))
+            0,
+            DenseQuantization.NONE, true))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("batchSize");
+    }
+
+    @Test
+    void ensureCollectionAppliesBinaryQuantization() throws Exception {
+        QdrantEmbeddingIngestor quantizedStore = new QdrantEmbeddingIngestor(
+            client,
+            new RagTestFixtures.StubEmbeddingModel(DENSE_DIM),
+            null,
+            TenancyStrategy.SEPARATE_COLLECTIONS,
+            "dense", "sparse",
+            TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
+            Integer.MAX_VALUE,
+            DenseQuantization.BINARY, true
+        );
+
+        CorpusRef corpus = uniqueCorpus();
+        quantizedStore.ingest(corpus, List.of(
+            new ChunkInput("content", "doc-1", Map.of())
+        ));
+
+        var info = client.getCollectionInfoAsync(
+            TenancyStrategy.SEPARATE_COLLECTIONS.collectionName(corpus)).get();
+        var denseParams = info.getConfig().getParams().getVectorsConfig()
+            .getParamsMap().getMapMap().get("dense");
+        assertThat(denseParams.hasQuantizationConfig()).isTrue();
+        assertThat(denseParams.getQuantizationConfig().hasBinary()).isTrue();
+        assertThat(denseParams.getQuantizationConfig().getBinary().getAlwaysRam()).isTrue();
+    }
+
+    @Test
+    void ensureCollectionAppliesScalarQuantization() throws Exception {
+        QdrantEmbeddingIngestor quantizedStore = new QdrantEmbeddingIngestor(
+            client,
+            new RagTestFixtures.StubEmbeddingModel(DENSE_DIM),
+            null,
+            TenancyStrategy.SEPARATE_COLLECTIONS,
+            "dense", "sparse",
+            TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
+            Integer.MAX_VALUE,
+            DenseQuantization.SCALAR, true
+        );
+
+        CorpusRef corpus = uniqueCorpus();
+        quantizedStore.ingest(corpus, List.of(
+            new ChunkInput("content", "doc-1", Map.of())
+        ));
+
+        var info = client.getCollectionInfoAsync(
+            TenancyStrategy.SEPARATE_COLLECTIONS.collectionName(corpus)).get();
+        var denseParams = info.getConfig().getParams().getVectorsConfig()
+            .getParamsMap().getMapMap().get("dense");
+        assertThat(denseParams.hasQuantizationConfig()).isTrue();
+        assertThat(denseParams.getQuantizationConfig().hasScalar()).isTrue();
+    }
+
+    @Test
+    void ensureCollectionNoQuantizationByDefault() throws Exception {
+        // Existing store uses DenseQuantization.NONE
+        CorpusRef corpus = uniqueCorpus();
+        store.ingest(corpus, List.of(
+            new ChunkInput("content", "doc-1", Map.of())
+        ));
+
+        var info = client.getCollectionInfoAsync(
+            TenancyStrategy.SEPARATE_COLLECTIONS.collectionName(corpus)).get();
+        var denseParams = info.getConfig().getParams().getVectorsConfig()
+            .getParamsMap().getMapMap().get("dense");
+        assertThat(denseParams.hasQuantizationConfig()).isFalse();
+    }
+
+    @Test
+    void ensureCollectionRejectsDimensionMismatch() {
+        // Create collection with dim=4 (via existing store)
+        CorpusRef corpus = uniqueCorpus();
+        store.ingest(corpus, List.of(
+            new ChunkInput("content", "doc-1", Map.of())
+        ));
+
+        // Try to ingest with dim=2 — should fail with dimension mismatch
+        QdrantEmbeddingIngestor wrongDimStore = new QdrantEmbeddingIngestor(
+            client,
+            new RagTestFixtures.StubEmbeddingModel(2),
+            null,
+            TenancyStrategy.SEPARATE_COLLECTIONS,
+            "dense", "sparse",
+            TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
+            Integer.MAX_VALUE,
+            DenseQuantization.NONE, true
+        );
+
+        assertThatThrownBy(() -> wrongDimStore.ingest(corpus, List.of(
+            new ChunkInput("content", "doc-2", Map.of()))))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("dimension");
     }
 
     // --- helpers ---

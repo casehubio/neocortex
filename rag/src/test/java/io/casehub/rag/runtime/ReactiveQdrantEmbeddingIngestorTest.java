@@ -55,9 +55,10 @@ class ReactiveQdrantEmbeddingIngestorTest {
         store = new ReactiveQdrantEmbeddingIngestor(
             client, embeddingModel, sparseEmbedder,
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse", DENSE_DIM,
+            "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            Integer.MAX_VALUE
+            Integer.MAX_VALUE,
+            DenseQuantization.NONE, true
         );
     }
 
@@ -175,9 +176,10 @@ class ReactiveQdrantEmbeddingIngestorTest {
             new RagTestFixtures.StubEmbeddingModel(DENSE_DIM),
             null,
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse", DENSE_DIM,
+            "dense", "sparse",
             TenantGuard.of(null),
-            Integer.MAX_VALUE
+            Integer.MAX_VALUE,
+            DenseQuantization.NONE, true
         );
 
         CorpusRef corpus = uniqueCorpus();
@@ -196,9 +198,10 @@ class ReactiveQdrantEmbeddingIngestorTest {
             new SparseEmbedder(InMemoryInferenceModel.returning(
                 0.5f, 0.0f, 0.3f, 0.0f, 0.8f, 0.0f, 0.0f, 0.2f)),
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse", DENSE_DIM,
+            "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            2);
+            2,
+            DenseQuantization.NONE, true);
 
         CorpusRef corpus = uniqueCorpus();
         batchedStore.ingest(corpus, List.of(
@@ -220,9 +223,10 @@ class ReactiveQdrantEmbeddingIngestorTest {
             new RagTestFixtures.StubEmbeddingModel(DENSE_DIM),
             null,
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse", DENSE_DIM,
+            "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            2);
+            2,
+            DenseQuantization.NONE, true);
 
         CorpusRef corpus = uniqueCorpus();
         batchedStore.ingest(corpus, List.of(
@@ -251,9 +255,10 @@ class ReactiveQdrantEmbeddingIngestorTest {
             new RagTestFixtures.StubEmbeddingModel(DENSE_DIM),
             null,
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse", DENSE_DIM,
+            "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            1);
+            1,
+            DenseQuantization.NONE, true);
 
         CorpusRef corpus = uniqueCorpus();
         batchedStore.ingest(corpus, List.of(
@@ -273,9 +278,10 @@ class ReactiveQdrantEmbeddingIngestorTest {
             new RagTestFixtures.StubEmbeddingModel(DENSE_DIM),
             null,
             TenancyStrategy.SEPARATE_COLLECTIONS,
-            "dense", "sparse", DENSE_DIM,
+            "dense", "sparse",
             TenantGuard.of(RagTestFixtures.stubPrincipal(TENANT)),
-            0))
+            0,
+            DenseQuantization.NONE, true))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("batchSize");
     }
