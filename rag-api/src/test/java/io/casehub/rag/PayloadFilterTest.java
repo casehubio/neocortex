@@ -227,6 +227,124 @@ class PayloadFilterTest {
             assertThat(filter).isInstanceOf(PayloadFilter.Or.class);
             assertThat(((PayloadFilter.Or) filter).filters()).containsExactly(f1, f2);
         }
+
+        @Test
+        void gteFactory() {
+            var filter = PayloadFilter.gte("score", 0.5);
+            assertThat(filter).isInstanceOf(PayloadFilter.Gte.class);
+            assertThat(((PayloadFilter.Gte) filter).field()).isEqualTo("score");
+            assertThat(((PayloadFilter.Gte) filter).value()).isEqualTo(0.5);
+        }
+
+        @Test
+        void lteFactory() {
+            var filter = PayloadFilter.lte("score", 0.9);
+            assertThat(filter).isInstanceOf(PayloadFilter.Lte.class);
+            assertThat(((PayloadFilter.Lte) filter).field()).isEqualTo("score");
+            assertThat(((PayloadFilter.Lte) filter).value()).isEqualTo(0.9);
+        }
+
+        @Test
+        void rangeFactory() {
+            var filter = PayloadFilter.range("score", 0.1, 0.9);
+            assertThat(filter).isInstanceOf(PayloadFilter.Range.class);
+            var range = (PayloadFilter.Range) filter;
+            assertThat(range.field()).isEqualTo("score");
+            assertThat(range.min()).isEqualTo(0.1);
+            assertThat(range.max()).isEqualTo(0.9);
+        }
+    }
+
+    // ── Gte ──────────────────────────────────────────────────────────────
+
+    @Nested
+    class GteTests {
+
+        @Test
+        void validConstruction() {
+            var gte = new PayloadFilter.Gte("score", 0.5);
+            assertThat(gte.field()).isEqualTo("score");
+            assertThat(gte.value()).isEqualTo(0.5);
+        }
+
+        @Test
+        void nullFieldThrowsNPE() {
+            assertThatThrownBy(() -> new PayloadFilter.Gte(null, 1.0))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("field");
+        }
+
+        @Test
+        void valueBasedEquality() {
+            var a = new PayloadFilter.Gte("score", 0.5);
+            var b = new PayloadFilter.Gte("score", 0.5);
+            assertThat(a).isEqualTo(b);
+            assertThat(a).hasSameHashCodeAs(b);
+        }
+    }
+
+    // ── Lte ──────────────────────────────────────────────────────────────
+
+    @Nested
+    class LteTests {
+
+        @Test
+        void validConstruction() {
+            var lte = new PayloadFilter.Lte("score", 0.9);
+            assertThat(lte.field()).isEqualTo("score");
+            assertThat(lte.value()).isEqualTo(0.9);
+        }
+
+        @Test
+        void nullFieldThrowsNPE() {
+            assertThatThrownBy(() -> new PayloadFilter.Lte(null, 1.0))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("field");
+        }
+
+        @Test
+        void valueBasedEquality() {
+            var a = new PayloadFilter.Lte("score", 0.9);
+            var b = new PayloadFilter.Lte("score", 0.9);
+            assertThat(a).isEqualTo(b);
+            assertThat(a).hasSameHashCodeAs(b);
+        }
+    }
+
+    // ── Range ────────────────────────────────────────────────────────────
+
+    @Nested
+    class RangeTests {
+
+        @Test
+        void validConstruction() {
+            var range = new PayloadFilter.Range("score", 0.1, 0.9);
+            assertThat(range.field()).isEqualTo("score");
+            assertThat(range.min()).isEqualTo(0.1);
+            assertThat(range.max()).isEqualTo(0.9);
+        }
+
+        @Test
+        void nullFieldThrowsNPE() {
+            assertThatThrownBy(() -> new PayloadFilter.Range(null, 0.1, 0.9))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("field");
+        }
+
+        @Test
+        void minGreaterThanMaxThrowsIAE() {
+            assertThatThrownBy(() -> new PayloadFilter.Range("score", 0.9, 0.1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("min must be <= max");
+        }
+
+        @Test
+        void valueBasedEquality() {
+            var a = new PayloadFilter.Range("score", 0.1, 0.9);
+            var b = new PayloadFilter.Range("score", 0.1, 0.9);
+            assertThat(a).isEqualTo(b);
+            assertThat(a).hasSameHashCodeAs(b);
+        }
     }
 
     // ── Nested composition ──────────────────────────────────────────────
@@ -282,8 +400,24 @@ class PayloadFilterTest {
                 case PayloadFilter.Not not -> "not";
                 case PayloadFilter.And and -> "and:" + and.filters().size();
                 case PayloadFilter.Or or -> "or:" + or.filters().size();
+                case PayloadFilter.Gte gte -> "gte:" + gte.field();
+                case PayloadFilter.Lte lte -> "lte:" + lte.field();
+                case PayloadFilter.Range range -> "range:" + range.field();
             };
             assertThat(result).isEqualTo("eq:f");
+        }
+
+        @Test
+        void rangeComposesWithAnd() {
+            var filter = PayloadFilter.and(
+                PayloadFilter.eq("type", "game"),
+                PayloadFilter.range("score", 0.5, 1.0)
+            );
+            assertThat(filter).isInstanceOf(PayloadFilter.And.class);
+            var and = (PayloadFilter.And) filter;
+            assertThat(and.filters()).hasSize(2);
+            assertThat(and.filters().get(0)).isInstanceOf(PayloadFilter.Eq.class);
+            assertThat(and.filters().get(1)).isInstanceOf(PayloadFilter.Range.class);
         }
     }
 }

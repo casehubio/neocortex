@@ -4,6 +4,7 @@ import io.casehub.rag.PayloadFilter;
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.grpc.Common.Condition;
 import io.qdrant.client.grpc.Common.Filter;
+import io.qdrant.client.grpc.Common.Range;
 
 import java.util.Optional;
 
@@ -56,6 +57,15 @@ final class PayloadFilterTranslator {
                 }
                 yield ConditionFactory.filter(nested.build());
             }
+            case PayloadFilter.Gte gte ->
+                ConditionFactory.range(gte.field(),
+                    Range.newBuilder().setGte(gte.value()).build());
+            case PayloadFilter.Lte lte ->
+                ConditionFactory.range(lte.field(),
+                    Range.newBuilder().setLte(lte.value()).build());
+            case PayloadFilter.Range range ->
+                ConditionFactory.range(range.field(),
+                    Range.newBuilder().setGte(range.min()).setLte(range.max()).build());
         };
     }
 }

@@ -65,6 +65,18 @@ public class InMemoryCaseRetriever implements CaseRetriever {
             case PayloadFilter.Not not -> !matches(metadata, not.inner());
             case PayloadFilter.And and -> and.filters().stream().allMatch(f -> matches(metadata, f));
             case PayloadFilter.Or or -> or.filters().stream().anyMatch(f -> matches(metadata, f));
+            case PayloadFilter.Gte gte -> {
+                String v = metadata.get(gte.field());
+                yield v != null && Double.parseDouble(v) >= gte.value();
+            }
+            case PayloadFilter.Lte lte -> {
+                String v = metadata.get(lte.field());
+                yield v != null && Double.parseDouble(v) <= lte.value();
+            }
+            case PayloadFilter.Range range -> {
+                String v = metadata.get(range.field());
+                yield v != null && Double.parseDouble(v) >= range.min() && Double.parseDouble(v) <= range.max();
+            }
         };
     }
 }

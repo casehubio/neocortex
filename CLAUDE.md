@@ -142,6 +142,12 @@ casehub-specific LangChain4j RAG pipeline wiring. Exposes `EmbeddingIngestor` SP
 
 Tracks `casehubio/parent#164`.
 
+### 3. CBR Memory (`memory-*` modules)
+
+Case-Based Reasoning retrieval SPI and implementations. `CbrCaseMemoryStore` (standalone SPI — does not extend `CaseMemoryStore`) provides structured feature-vector similarity search over past cases. Open `CbrCase` type hierarchy supports Textual, Feature-Vector, and Plan-Based CBR paradigms. Qdrant-backed implementation uses payload filters (categorical exact-match, numeric range) + optional dense vector for `problem()` text similarity. In-memory implementation for testing. Delegates durable storage to platform's `CaseMemoryStore` via composition.
+
+Tracks `casehubio/neural-text#20`, `casehubio/parent#227`. Design spec: `specs/issue-20-cbr-retrieval-architecture/`.
+
 ---
 
 ## Module Structure
@@ -161,6 +167,11 @@ rag-crag/           — Corrective RAG: CDI @Decorator on CaseRetriever and Reac
 rag-expansion/      — Query expansion: HyDE (hypothetical documents), step-back prompting (abstract reformulation), multi-query fan-out with RRF fusion; @Decorator on CaseRetriever + ReactiveCaseRetriever, classpath + config activated
 corpus-api/         — CorpusStore + CorpusReader + ChangeSource + WatchableChangeSource + CorpusIntegrity SPIs, reactive variants, value types — zero deps, Hortora-eligible
 corpus/             — Zip4j implementation: ZipCorpusStore (rolling archives, chain manifest), FlatCorpusStore, CompositeCorpusStore, compaction, migration — Hortora-eligible
+memory-api/         — CbrCaseMemoryStore + ReactiveCbrCaseMemoryStore SPIs, CbrCase hierarchy, CbrQuery, CbrFeatureSchema, FeatureField — Mutiny provided
+memory/             — NoOpCbrCaseMemoryStore @DefaultBean, BlockingToReactiveCbrBridge
+memory-testing/     — CbrCaseMemoryStoreContractTest abstract base (12 tests)
+memory-cbr-inmem/   — InMemoryCbrCaseMemoryStore @Alternative @Priority(2) — in-memory stub for tests
+memory-qdrant/      — QdrantCbrCaseMemoryStore — Qdrant-backed CBR with payload filters (categorical/numeric/text) + optional dense vector, Testcontainers integration tests
 examples/
   example-text-analysis/  — standalone demos: NLI, zero-shot classification, scoring, reranking, SPLADE — no Quarkus
   example-rag-pipeline/   — Quarkus demos: corpus ingestion (flat + zip), hybrid search, CDI wiring — requires Qdrant
@@ -189,6 +200,11 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | RAG Expansion | `casehub-rag-expansion` |
 | Corpus API | `casehub-corpus-api` |
 | Corpus | `casehub-corpus` |
+| Memory API | `casehub-memory-api` |
+| Memory CDI | `casehub-memory` |
+| Memory testing | `casehub-memory-testing` |
+| Memory CBR in-memory | `casehub-memory-cbr-inmem` |
+| Memory CBR Qdrant | `casehub-memory-qdrant` |
 | Example Text Analysis | `casehub-example-text-analysis` |
 | Example RAG Pipeline | `casehub-example-rag-pipeline` |
 | Root Java package (inference) | `io.casehub.inference` |
@@ -196,6 +212,8 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Root Java package (examples) | `io.casehub.examples.analysis`, `io.casehub.examples.rag` |
 | Root Java package (rag-expansion) | `io.casehub.rag.expansion` |
 | Root Java package (corpus) | `io.casehub.corpus` |
+| Root Java package (memory) | `io.casehub.memory.cbr` |
+| Root Java package (memory-qdrant) | `io.casehub.memory.cbr.qdrant` |
 
 ## Build Commands
 

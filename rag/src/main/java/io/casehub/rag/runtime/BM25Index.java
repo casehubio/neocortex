@@ -245,6 +245,9 @@ final class BM25Index {
                 }
                 yield false;
             }
+            case PayloadFilter.Gte gte -> false; // BM25 index does not support numeric filtering
+            case PayloadFilter.Lte lte -> false; // BM25 index does not support numeric filtering
+            case PayloadFilter.Range range -> false; // BM25 index does not support numeric filtering
         };
     }
 

@@ -28,6 +28,11 @@
     <module>rag-expansion</module>
     <module>corpus-api</module>
     <module>corpus</module>
+    <module>memory-api</module>
+    <module>memory</module>
+    <module>memory-testing</module>
+    <module>memory-cbr-inmem</module>
+    <module>memory-qdrant</module>
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
   </modules>
@@ -167,6 +172,31 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-corpus</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-memory-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-memory</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-memory-testing</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-memory-cbr-inmem</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-memory-qdrant</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

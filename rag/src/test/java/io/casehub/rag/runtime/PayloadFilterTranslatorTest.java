@@ -123,6 +123,91 @@ class PayloadFilterTranslatorTest {
     }
 
     @Test
+    void gteProducesRangeCondition() {
+        Optional<Filter> result = PayloadFilterTranslator.toQdrantFilter(
+            PayloadFilter.gte("score", 0.5));
+
+        assertThat(result).isPresent();
+        Filter filter = result.get();
+        assertThat(filter.getMustCount()).isEqualTo(1);
+
+        Condition condition = filter.getMust(0);
+        assertThat(condition.hasField()).isTrue();
+        assertThat(condition.getField().getKey()).isEqualTo("score");
+        assertThat(condition.getField().hasRange()).isTrue();
+        assertThat(condition.getField().getRange().hasGte()).isTrue();
+        assertThat(condition.getField().getRange().getGte()).isEqualTo(0.5);
+    }
+
+    @Test
+    void lteProducesRangeCondition() {
+        Optional<Filter> result = PayloadFilterTranslator.toQdrantFilter(
+            PayloadFilter.lte("score", 0.9));
+
+        assertThat(result).isPresent();
+        Filter filter = result.get();
+        assertThat(filter.getMustCount()).isEqualTo(1);
+
+        Condition condition = filter.getMust(0);
+        assertThat(condition.hasField()).isTrue();
+        assertThat(condition.getField().getKey()).isEqualTo("score");
+        assertThat(condition.getField().hasRange()).isTrue();
+        assertThat(condition.getField().getRange().hasLte()).isTrue();
+        assertThat(condition.getField().getRange().getLte()).isEqualTo(0.9);
+    }
+
+    @Test
+    void rangeProducesRangeConditionWithBothBounds() {
+        Optional<Filter> result = PayloadFilterTranslator.toQdrantFilter(
+            PayloadFilter.range("score", 0.1, 0.9));
+
+        assertThat(result).isPresent();
+        Filter filter = result.get();
+        assertThat(filter.getMustCount()).isEqualTo(1);
+
+        Condition condition = filter.getMust(0);
+        assertThat(condition.hasField()).isTrue();
+        assertThat(condition.getField().getKey()).isEqualTo("score");
+        assertThat(condition.getField().hasRange()).isTrue();
+        assertThat(condition.getField().getRange().hasGte()).isTrue();
+        assertThat(condition.getField().getRange().getGte()).isEqualTo(0.1);
+        assertThat(condition.getField().getRange().hasLte()).isTrue();
+        assertThat(condition.getField().getRange().getLte()).isEqualTo(0.9);
+    }
+
+    @Test
+    void rangeComposedWithEqTranslates() {
+        Optional<Filter> result = PayloadFilterTranslator.toQdrantFilter(
+            PayloadFilter.and(
+                PayloadFilter.eq("type", "game"),
+                PayloadFilter.range("score", 0.5, 1.0)));
+
+        assertThat(result).isPresent();
+        Filter filter = result.get();
+        assertThat(filter.getMustCount()).isEqualTo(1);
+
+        // Top-level And produces nested filter with 2 must conditions
+        Condition andCondition = filter.getMust(0);
+        assertThat(andCondition.hasFilter()).isTrue();
+        Filter andFilter = andCondition.getFilter();
+        assertThat(andFilter.getMustCount()).isEqualTo(2);
+
+        // First must: Eq("type","game")
+        Condition eqCondition = andFilter.getMust(0);
+        assertThat(eqCondition.hasField()).isTrue();
+        assertThat(eqCondition.getField().getKey()).isEqualTo("type");
+        assertThat(eqCondition.getField().getMatch().getKeyword()).isEqualTo("game");
+
+        // Second must: Range("score", 0.5, 1.0)
+        Condition rangeCondition = andFilter.getMust(1);
+        assertThat(rangeCondition.hasField()).isTrue();
+        assertThat(rangeCondition.getField().getKey()).isEqualTo("score");
+        assertThat(rangeCondition.getField().hasRange()).isTrue();
+        assertThat(rangeCondition.getField().getRange().getGte()).isEqualTo(0.5);
+        assertThat(rangeCondition.getField().getRange().getLte()).isEqualTo(1.0);
+    }
+
+    @Test
     void nestedAndOrNotComposition() {
         // And(Eq("domain","jvm"), Or(Eq("type","gotcha"), Not(In("lang", ["rust","go"]))))
         PayloadFilter complex = PayloadFilter.and(
