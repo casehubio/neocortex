@@ -180,6 +180,8 @@ memory-graphiti/    — GraphitiCaseMemoryStore @Alternative @Priority(2) — Gr
 examples/
   example-text-analysis/  — standalone demos: NLI, zero-shot classification, scoring, reranking, SPLADE — no Quarkus
   example-rag-pipeline/   — Quarkus demos: corpus ingestion (flat + zip), hybrid search, CDI wiring — requires Qdrant
+evaluation/
+  code_domain_embeddings/  — Python evaluation scripts for #49: tokenizer analysis, embedding discrimination, benchmark runner, deployment check. Requires own venv (not Maven). Run with `python3 -m evaluation.code_domain_embeddings.<script>`.
 ```
 
 Examples are excluded from the default build. Activate with `-Pexamples-smoke` (in-memory stubs) or `-Pexamples` (real ONNX models + Testcontainers Qdrant).

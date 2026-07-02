@@ -1,0 +1,11 @@
+# evaluation/code_domain_embeddings/requirements.txt
+# Note: jina-embeddings-v2-base-code requires transformers <5.0 (uses deprecated find_pruneable_heads_and_indices)
+transformers>=4.40.0,<5.0.0
+sentence-transformers>=3.0.0
+FlagEmbedding>=1.2.0
+torch>=2.0.0
+onnx>=1.15.0
+onnxruntime>=1.17.0
+numpy>=1.26.0
+scipy>=1.12.0
+einops>=0.7.0
