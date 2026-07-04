@@ -121,3 +121,34 @@ Switching backends requires no code changes — CDI selects the highest-priority
     <scope>test</scope>
 </dependency>
 ```
+
+## Dense Vector Search
+
+To enable semantic similarity on `problem()`, provide an `EmbeddingModel` CDI
+bean. See [Dense Vector Search](README.md#dense-vector-search) in the
+integration guide.
+
+## Qdrant Configuration
+
+```properties
+casehub.memory.cbr.qdrant.host=localhost
+casehub.memory.cbr.qdrant.port=6334
+casehub.memory.cbr.qdrant.collection-prefix=cbr
+```
+
+## Roadmap
+
+Future neocortex phases enhance DevTown PR review CBR:
+
+- **Phase 2 (Weighted Similarity, #82)**: Files changed and lines changed
+  contribute proportionally to similarity scores — large refactors weighted
+  by scale, small fixes weighted differently.
+- **Phase 3 (Semantic Retrieval, #83)**: PR descriptions enable cross-category
+  retrieval — "extract transaction handling" finds similar separation-of-concerns
+  refactors even if they involve different languages.
+- **Phase 4 (Outcome Learning, #84)**: Reviewer recommendations improve over
+  time as more PRs complete — the system learns which reviewers catch which
+  types of issues for which languages.
+- **Phase 5 (Plan Adaptation, #85)**: Plan traces suggest review sequences —
+  "for similar refactors, review order was: architecture check → test coverage
+  → implementation details."

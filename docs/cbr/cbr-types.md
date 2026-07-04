@@ -185,4 +185,4 @@ coordination, IoT situation handling, and StarCraft II battle planning.
 ## Further Reading
 
 - [CBR Integration Guide](README.md) — SPI usage, schemas, backends, Maven dependencies
-- [AML guide](guide-aml.md) · [Clinical guide](guide-clinical.md) · [DevTown guide](guide-devtown.md) · [Engine guide](guide-engine.md)
+- [AML guide](guide-aml.md) · [Clinical guide](guide-clinical.md) · [DevTown guide](guide-devtown.md) · [Engine guide](guide-engine.md) · [Life guide](guide-life.md) · [IoT guide](guide-iot.md)

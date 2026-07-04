@@ -41,6 +41,7 @@
     <module>memory-graphiti</module>
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
+    <module>examples/example-cbr</module>
   </modules>
 
   <distributionManagement>
@@ -349,6 +350,7 @@
       <modules>
         <module>examples/example-text-analysis</module>
         <module>examples/example-rag-pipeline</module>
+        <module>examples/example-cbr</module>
       </modules>
     </profile>
     <profile>
@@ -356,6 +358,7 @@
       <modules>
         <module>examples/example-text-analysis</module>
         <module>examples/example-rag-pipeline</module>
+        <module>examples/example-cbr</module>
       </modules>
     </profile>
   </profiles>

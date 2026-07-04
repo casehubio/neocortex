@@ -159,3 +159,34 @@ worker, adjust priority, skip/add bindings) is the Revise step and is future wor
     <scope>test</scope>
 </dependency>
 ```
+
+## Dense Vector Search
+
+To enable semantic similarity on `problem()`, provide an `EmbeddingModel` CDI
+bean. See [Dense Vector Search](README.md#dense-vector-search) in the
+integration guide.
+
+## Qdrant Configuration
+
+```properties
+casehub.memory.cbr.qdrant.host=localhost
+casehub.memory.cbr.qdrant.port=6334
+casehub.memory.cbr.qdrant.collection-prefix=cbr
+```
+
+## Roadmap
+
+Future neocortex phases enhance engine plan-based CBR:
+
+- **Phase 2 (Weighted Similarity, #82)**: Army size ratio and resource advantage
+  contribute proportionally to similarity scores — closer numeric matches weighted
+  more heavily in plan retrieval.
+- **Phase 3 (Semantic Retrieval, #83)**: Problem descriptions enable cross-category
+  retrieval — "early economic pressure" finds similar plans even with different
+  detected builds.
+- **Phase 4 (Outcome Learning, #84)**: Plan success predictions improve over time
+  as more games complete — the system learns which plan structures win for which
+  matchups.
+- **Phase 5 (Plan Adaptation, #85)**: Transformational adaptation SPI enables
+  modifying retrieved plans — swap a worker, adjust priority, skip/add bindings
+  rather than null adaptation (apply as-is).

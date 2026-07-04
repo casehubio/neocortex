@@ -132,3 +132,35 @@ ownership check → SAR."
     <scope>test</scope>
 </dependency>
 ```
+
+## Dense Vector Search
+
+To enable semantic similarity on `problem()`, provide an `EmbeddingModel` CDI
+bean. See [Dense Vector Search](README.md#dense-vector-search) in the
+integration guide.
+
+## Qdrant Configuration
+
+```properties
+casehub.memory.cbr.qdrant.host=localhost
+casehub.memory.cbr.qdrant.port=6334
+casehub.memory.cbr.qdrant.collection-prefix=cbr
+```
+
+## Roadmap
+
+Future neocortex phases enhance AML investigation CBR:
+
+- **Phase 2 (Weighted Similarity, #82)**: Transaction pattern, risk tier, and
+  jurisdiction contribute proportionally to similarity scores — PEP entities
+  weighted more heavily than non-PEP, high-risk jurisdictions weighted more
+  than low-risk.
+- **Phase 3 (Semantic Retrieval, #83)**: Investigation narratives enable
+  cross-category retrieval — "shell company in Cyprus" finds similar layering
+  cases even if they have different transaction patterns.
+- **Phase 4 (Outcome Learning, #84)**: SAR filing predictions improve over time
+  as more investigations close — the system learns which patterns consistently
+  lead to SAR filing.
+- **Phase 6 (Temporal Trajectory, #88)**: Temporal patterns — "entities with
+  this risk profile that triggered 2+ SARs within 90 days have 85% recidivism
+  rate."

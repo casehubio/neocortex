@@ -134,3 +134,34 @@ automation** — the safety officer applies clinical judgment to the CBR results
     <scope>test</scope>
 </dependency>
 ```
+
+## Dense Vector Search
+
+To enable semantic similarity on `problem()`, provide an `EmbeddingModel` CDI
+bean. See [Dense Vector Search](README.md#dense-vector-search) in the
+integration guide.
+
+## Qdrant Configuration
+
+```properties
+casehub.memory.cbr.qdrant.host=localhost
+casehub.memory.cbr.qdrant.port=6334
+casehub.memory.cbr.qdrant.collection-prefix=cbr
+```
+
+## Roadmap
+
+Future neocortex phases enhance clinical adverse event CBR:
+
+- **Phase 2 (Weighted Similarity, #82)**: Severity grade and time to onset
+  contribute proportionally to similarity scores — grade 4 events weighted
+  more heavily than grade 2, early-onset weighted differently from late-onset.
+- **Phase 3 (Semantic Retrieval, #83)**: Event descriptions enable cross-category
+  retrieval — "acute liver failure with concurrent statin use" finds similar
+  hepatotoxicity cases with different causal mechanisms.
+- **Phase 6 (Temporal Trajectory, #88)**: Temporal trajectory analysis —
+  "patients with this AE profile at day 21 progressed to grade 4 in 2 of 5
+  cases by day 45." Predicts AE progression patterns.
+- **Phase 7 (Hierarchical Scoping, #93)**: Multi-scope retrieval — DSMB sees
+  trial-level patterns across sites, site investigators see site-specific
+  patterns. Same SPI, different scopes.

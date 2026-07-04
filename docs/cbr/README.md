@@ -83,6 +83,67 @@ fields support range, text fields use keyword matching. `topK` limits results.
 | **InMemory** | `memory-cbr-inmem` | Tests and dev. Categorical exact match. No persistence. |
 | **Qdrant** | `memory-qdrant` | Production. Payload filters + optional dense vector on `problem()`. |
 
+## Dense Vector Search
+
+`CbrQuery.withProblem(text)` enables embedding-based similarity search within
+the filtered candidate set. Requires an `EmbeddingModel` CDI bean:
+
+```java
+@ApplicationScoped
+public class CbrEmbeddingProducer {
+    @Produces @ApplicationScoped
+    EmbeddingModel embeddingModel() {
+        return new AllMiniLmL6V2EmbeddingModel();
+    }
+}
+```
+
+Without an `EmbeddingModel` bean, queries fall back to payload-filter-only
+retrieval with synthetic 1.0 scores. Dense vector search adds semantic ranking
+within the structurally filtered set.
+
+Maven dependency:
+```xml
+<dependency>
+    <groupId>dev.langchain4j</groupId>
+    <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+</dependency>
+```
+
+## Dual Storage
+
+The Qdrant backend operates in two modes:
+
+- **Qdrant-only** (default): CBR data lives in Qdrant only. No additional
+  dependencies. Start here.
+- **Qdrant + CaseMemoryStore**: When a platform `CaseMemoryStore` bean is on
+  the classpath, `QdrantCbrBeanProducer` delegates durable storage to it.
+  Adds platform memory query APIs alongside CBR similarity search.
+
+## Configuration Reference
+
+```properties
+casehub.memory.cbr.qdrant.host=localhost
+casehub.memory.cbr.qdrant.port=6334
+# casehub.memory.cbr.qdrant.api-key=           # optional, for authenticated Qdrant
+# casehub.memory.cbr.qdrant.use-tls=false      # enable for production
+casehub.memory.cbr.qdrant.collection-prefix=cbr
+casehub.memory.cbr.qdrant.dense-vector-name=dense
+casehub.memory.cbr.qdrant.max-retries=3
+```
+
+## Dev Mode
+
+InMemory validates SPI wiring — schema registration, store/retrieve round-trip,
+query validation. It does not provide similarity ranking (all scores 1.0), text
+matching, or persistence. For retrieval quality, use Qdrant via Testcontainers.
+
+```properties
+%dev.quarkus.arc.selected-alternatives=io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore
+```
+
+Add `memory-cbr-inmem` at `runtime` scope (not just `test`) to use in dev mode.
+
 ## Maven Dependencies
 
 ```xml
@@ -122,3 +183,5 @@ fields support range, text fields use keyword matching. `topK` limits results.
 | AML | Textual + Feature-Vector | [guide-aml.md](guide-aml.md) |
 | Clinical | Feature-Vector | [guide-clinical.md](guide-clinical.md) |
 | Engine | Feature-Vector + Plan-Based | [guide-engine.md](guide-engine.md) |
+| Life | Feature-Vector | [guide-life.md](guide-life.md) |
+| IoT | Feature-Vector | [guide-iot.md](guide-iot.md) |

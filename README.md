@@ -4,7 +4,7 @@
 
 [![casehub-neocortex](https://github.com/casehubio/neocortex/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/casehubio/neocortex/actions/workflows/publish.yml)
 
-Local ONNX text inference and LangChain4j RAG wiring for the [casehubio](https://github.com/casehubio) platform. Two module sets: `inference-*` covers the scoring and classification tasks LangChain4j doesn't handle; `rag-*` wires the retrieval pipeline with casehub tenancy and hybrid dense+sparse search.
+Local ONNX text inference, LangChain4j RAG wiring, and case-based reasoning (CBR) for the [casehubio](https://github.com/casehubio) platform. Three module sets: `inference-*` covers scoring and classification; `rag-*` wires the retrieval pipeline; `memory-*` provides structured similarity search over past cases.
 
 The `inference-*` modules carry zero casehub, Quarkus, Spring, or LangChain4j dependencies — ArchUnit-enforced from day one. They are shared with [Hortora](https://github.com/Hortora/spec), which uses them independently in a different stack.
 
