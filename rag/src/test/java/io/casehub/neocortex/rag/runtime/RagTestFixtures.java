@@ -3,6 +3,7 @@ package io.casehub.neocortex.rag.runtime;
 import io.casehub.neocortex.inference.EmbeddingMode;
 import io.casehub.neocortex.inference.MultiModalEmbedder;
 import io.casehub.neocortex.inference.MultiModalEmbedding;
+import io.casehub.neocortex.rag.FusionStrategy;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 
 import java.util.ArrayList;
@@ -65,12 +66,20 @@ final class RagTestFixtures {
             @Override public String colbertVectorName() { return colbertVectorName; }
             @Override public RetrievalConfig retrieval() {
                 return new RetrievalConfig() {
+                    @Override public FusionStrategy fusionStrategy() { return FusionStrategy.RRF; }
                     @Override public int denseTopK() { return denseTopK; }
                     @Override public int sparseTopK() { return sparseTopK; }
                     @Override public int bm25TopK() { return bm25TopK; }
                     @Override public int rrfK() { return rrfK; }
                     @Override public boolean rerankEnabled() { return rerankEnabled; }
                     @Override public int rerankTopN() { return rerankTopN; }
+                    @Override public CcWeightsConfig ccWeights() {
+                        return new CcWeightsConfig() {
+                            @Override public double dense() { return 0.5; }
+                            @Override public double sparse() { return 0.3; }
+                            @Override public double bm25() { return 0.2; }
+                        };
+                    }
                 };
             }
             @Override public int embeddingBatchSize() { return batchSize; }

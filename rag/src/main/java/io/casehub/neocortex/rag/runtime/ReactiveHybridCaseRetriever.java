@@ -3,7 +3,9 @@ package io.casehub.neocortex.rag.runtime;
 import io.casehub.neocortex.inference.EmbeddingMode;
 import io.casehub.neocortex.inference.MultiModalEmbedder;
 import io.casehub.neocortex.inference.MultiModalEmbedding;
+import io.casehub.neocortex.rag.ConvexCombinationFusion;
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.neocortex.rag.FusionStrategy;
 import io.casehub.neocortex.rag.PayloadFilter;
 import io.casehub.neocortex.rag.ReactiveCaseRetriever;
 import io.casehub.neocortex.rag.RetrievalQuery;
@@ -14,6 +16,7 @@ import io.qdrant.client.WithPayloadSelectorFactory;
 import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.JsonWithInt.Value;
 import io.qdrant.client.grpc.Points.Document;
+import io.qdrant.client.grpc.Points.Fusion;
 import io.qdrant.client.grpc.Points.PrefetchQuery;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.Rrf;
@@ -70,24 +73,31 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
                     }
                     return Uni.createFrom().item(() -> embedder.embed(query.searchText()))
                         .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                        .chain(embedding -> executeQuery(query, collection, mergedFilter,
-                            embedding, maxResults))
-                        .map(this::mapToChunks);
+                        .chain(embedding -> executeRetrieve(query, collection, mergedFilter,
+                            embedding, maxResults));
                 });
         });
     }
 
-    private Uni<List<ScoredPoint>> executeQuery(RetrievalQuery query, String collection,
+    private Uni<List<RetrievedChunk>> executeRetrieve(RetrievalQuery query, String collection,
             Optional<Filter> mergedFilter, MultiModalEmbedding embedding, int maxResults) {
         List<Float> denseVector = QdrantPointBuilder.floatListFrom(embedding.dense());
 
-        QueryPoints queryPoints;
         boolean hasSparse = embedding.sparse() != null;
-        boolean useRrf = hasSparse || config.bm25Enabled();
-        if (useRrf) {
+        boolean useFusion = hasSparse || config.bm25Enabled();
+        FusionStrategy fusionStrategy = config.retrieval().fusionStrategy();
+
+        // CC fusion uses client-side fusion, not server-side prefetch
+        if (useFusion && fusionStrategy == FusionStrategy.CC) {
+            return executeConvexCombinationFusion(collection, query, embedding,
+                mergedFilter, maxResults);
+        }
+
+        QueryPoints queryPoints;
+        if (useFusion) {
             List<PrefetchQuery> prefetchLegs = new ArrayList<>();
 
-            // Dense prefetch (always present in RRF mode)
+            // Dense prefetch (always present in fusion mode)
             PrefetchQuery.Builder densePrefetch = PrefetchQuery.newBuilder()
                 .setQuery(QueryFactory.nearest(denseVector))
                 .setUsing(config.denseVectorName())
@@ -131,7 +141,8 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
                 prefetchLegs.add(bm25Prefetch.build());
             }
 
-            // ColBERT MAX_SIM two-stage: RRF as prefetch, ColBERT as outer query
+            // ColBERT MAX_SIM two-stage: fusion as prefetch, ColBERT as outer query
+            // Note: CC fusion does not support ColBERT reranking (handled separately above)
             if (embedder != null
                     && embedder.supportedModes().contains(EmbeddingMode.COLBERT)
                     && embedding.colbert() != null
@@ -139,7 +150,7 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
                 queryPoints = QueryPoints.newBuilder()
                     .setCollectionName(collection)
                     .addPrefetch(PrefetchQuery.newBuilder()
-                        .setQuery(QueryFactory.rrf(Rrf.newBuilder().setK(config.retrieval().rrfK()).build()))
+                        .setQuery(buildFusionQuery(fusionStrategy))
                         .setLimit(config.retrieval().rerankTopN())
                         .addAllPrefetch(prefetchLegs))
                     .setQuery(QueryFactory.nearest(embedding.colbert()))
@@ -151,7 +162,7 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
                 QueryPoints.Builder qb = QueryPoints.newBuilder()
                     .setCollectionName(collection);
                 qb.addAllPrefetch(prefetchLegs);
-                qb.setQuery(QueryFactory.rrf(Rrf.newBuilder().setK(config.retrieval().rrfK()).build()))
+                qb.setQuery(buildFusionQuery(fusionStrategy))
                    .setLimit(maxResults)
                    .setWithPayload(WithPayloadSelectorFactory.enable(true));
                 queryPoints = qb.build();
@@ -171,7 +182,8 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
             queryPoints = builder.build();
         }
 
-        return QdrantFutures.toUni(client.queryAsync(queryPoints));
+        return QdrantFutures.toUni(client.queryAsync(queryPoints))
+            .map(this::mapToChunks);
     }
 
     private List<RetrievedChunk> mapToChunks(List<ScoredPoint> scoredPoints) {
@@ -209,5 +221,122 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
                 .setRescore(true)
                 .build())
             .build();
+    }
+
+    private io.qdrant.client.grpc.Points.Query buildFusionQuery(FusionStrategy strategy) {
+        return switch (strategy) {
+            case RRF -> QueryFactory.rrf(Rrf.newBuilder().setK(config.retrieval().rrfK()).build());
+            case DBSF -> QueryFactory.fusion(Fusion.DBSF);
+            case CC -> throw new IllegalStateException(
+                "CC fusion should be handled by executeConvexCombinationFusion");
+        };
+    }
+
+    private Uni<List<RetrievedChunk>> executeConvexCombinationFusion(
+            String collection, RetrievalQuery query, MultiModalEmbedding embedding,
+            Optional<Filter> mergedFilter, int maxResults) {
+
+        List<Float> denseVector = QdrantPointBuilder.floatListFrom(embedding.dense());
+
+        // Build dense query
+        QueryPoints.Builder denseQuery = QueryPoints.newBuilder()
+            .setCollectionName(collection)
+            .setQuery(QueryFactory.nearest(denseVector))
+            .setUsing(config.denseVectorName())
+            .setLimit(config.retrieval().denseTopK())
+            .setWithPayload(WithPayloadSelectorFactory.enable(true));
+        if (config.quantization().type() != DenseQuantization.NONE && config.quantization().oversampling().isPresent()) {
+            denseQuery.setParams(quantizationSearchParams());
+        }
+        mergedFilter.ifPresent(denseQuery::setFilter);
+
+        Uni<List<RetrievedChunk>> denseUni = QdrantFutures.toUni(client.queryAsync(denseQuery.build()))
+            .map(this::mapToChunks);
+
+        // Build sparse query (if available)
+        Uni<List<RetrievedChunk>> sparseUni = null;
+        if (embedding.sparse() != null) {
+            Map<Integer, Float> sparseMap = embedding.sparse();
+            List<Float> sparseValues = new ArrayList<>(sparseMap.size());
+            List<Integer> sparseIndices = new ArrayList<>(sparseMap.size());
+            for (Map.Entry<Integer, Float> entry : sparseMap.entrySet()) {
+                sparseIndices.add(entry.getKey());
+                sparseValues.add(entry.getValue());
+            }
+
+            QueryPoints.Builder sparseQuery = QueryPoints.newBuilder()
+                .setCollectionName(collection)
+                .setQuery(QueryFactory.nearest(sparseValues, sparseIndices))
+                .setUsing(config.sparseVectorName())
+                .setLimit(config.retrieval().sparseTopK())
+                .setWithPayload(WithPayloadSelectorFactory.enable(true));
+            mergedFilter.ifPresent(sparseQuery::setFilter);
+
+            sparseUni = QdrantFutures.toUni(client.queryAsync(sparseQuery.build()))
+                .map(this::mapToChunks);
+        }
+
+        // Build BM25 query (if enabled)
+        Uni<List<RetrievedChunk>> bm25Uni = null;
+        if (config.bm25Enabled()) {
+            String expandedQuery = CamelCaseExpander.expand(query.text());
+            QueryPoints.Builder bm25Query = QueryPoints.newBuilder()
+                .setCollectionName(collection)
+                .setQuery(QueryFactory.nearest(
+                    Document.newBuilder()
+                        .setText(expandedQuery)
+                        .setModel(QdrantPointBuilder.BM25_MODEL)
+                        .build()))
+                .setUsing(config.bm25VectorName())
+                .setLimit(config.retrieval().bm25TopK())
+                .setWithPayload(WithPayloadSelectorFactory.enable(true));
+            mergedFilter.ifPresent(bm25Query::setFilter);
+
+            bm25Uni = QdrantFutures.toUni(client.queryAsync(bm25Query.build()))
+                .map(this::mapToChunks);
+        }
+
+        // Combine all Unis
+        List<Uni<List<RetrievedChunk>>> unis = new ArrayList<>();
+        unis.add(denseUni);
+        boolean hasSparseUni = sparseUni != null;
+        boolean hasBm25Uni = bm25Uni != null;
+        if (hasSparseUni) unis.add(sparseUni);
+        if (hasBm25Uni) unis.add(bm25Uni);
+
+        return Uni.combine().all().unis(unis).combinedWith(results -> {
+            List<ConvexCombinationFusion.ScoredLeg> legs = new ArrayList<>();
+
+            // Dense leg (always present at index 0)
+            @SuppressWarnings("unchecked")
+            List<RetrievedChunk> denseChunks = (List<RetrievedChunk>) results.get(0);
+            if (!denseChunks.isEmpty()) {
+                legs.add(new ConvexCombinationFusion.ScoredLeg(
+                    denseChunks, config.retrieval().ccWeights().dense()));
+            }
+
+            // Sparse leg (if present, at index 1)
+            if (hasSparseUni) {
+                @SuppressWarnings("unchecked")
+                List<RetrievedChunk> sparseChunks = (List<RetrievedChunk>) results.get(1);
+                if (!sparseChunks.isEmpty()) {
+                    legs.add(new ConvexCombinationFusion.ScoredLeg(
+                        sparseChunks, config.retrieval().ccWeights().sparse()));
+                }
+            }
+
+            // BM25 leg (if present, at index 1 or 2 depending on sparse)
+            if (hasBm25Uni) {
+                int bm25Index = hasSparseUni ? 2 : 1;
+                @SuppressWarnings("unchecked")
+                List<RetrievedChunk> bm25Chunks = (List<RetrievedChunk>) results.get(bm25Index);
+                if (!bm25Chunks.isEmpty()) {
+                    legs.add(new ConvexCombinationFusion.ScoredLeg(
+                        bm25Chunks, config.retrieval().ccWeights().bm25()));
+                }
+            }
+
+            return ConvexCombinationFusion.fuse(legs, maxResults);
+        });
     }
 }

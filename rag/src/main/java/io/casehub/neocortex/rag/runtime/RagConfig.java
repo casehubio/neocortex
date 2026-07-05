@@ -1,5 +1,6 @@
 package io.casehub.neocortex.rag.runtime;
 
+import io.casehub.neocortex.rag.FusionStrategy;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import java.util.Optional;
@@ -85,6 +86,9 @@ public interface RagConfig {
     }
 
     interface RetrievalConfig {
+        @WithDefault("RRF")
+        FusionStrategy fusionStrategy();
+
         @WithDefault("40")
         int denseTopK();
 
@@ -102,5 +106,18 @@ public interface RagConfig {
 
         @WithDefault("10")
         int rerankTopN();
+
+        CcWeightsConfig ccWeights();
+    }
+
+    interface CcWeightsConfig {
+        @WithDefault("0.5")
+        double dense();
+
+        @WithDefault("0.3")
+        double sparse();
+
+        @WithDefault("0.2")
+        double bm25();
     }
 }
