@@ -166,6 +166,23 @@ public interface CaseMemoryStore {
     }
 
     /**
+     * Returns distinct tenantIds matching the given attribute filter.
+     * Both null → all tenants. Both non-null → filtered. Mixed → IllegalArgumentException.
+     *
+     * <p>Cross-tenant admin operation. Implementations MUST call
+     * {@link MemoryPermissions#assertCrossTenantAdmin} before executing.
+     *
+     * @return a non-null, possibly empty, unmodifiable set of tenant identifiers
+     */
+    default Set<String> discoverTenants(String attributeKey, String attributeValue) {
+        if ((attributeKey == null) != (attributeValue == null)) {
+            throw new IllegalArgumentException(
+                "attributeKey and attributeValue must both be null or both be non-null");
+        }
+        throw new MemoryCapabilityException(MemoryCapability.DISCOVER_TENANTS, getClass());
+    }
+
+    /**
      * Convenience bulk store. Returns a {@link StoreAllResult} carrying the IDs of
      * successfully stored inputs and any backend failures.
      *

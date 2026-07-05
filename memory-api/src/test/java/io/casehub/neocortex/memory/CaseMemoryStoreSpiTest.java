@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CaseMemoryStoreSpiTest {
@@ -119,6 +120,30 @@ class CaseMemoryStoreSpiTest {
         final var ex = assertThrows(MemoryCapabilityException.class,
             () -> sut.scan(request));
         assertEquals(MemoryCapability.SCAN, ex.required());
+    }
+
+    @Test
+    void discoverTenants_defaultThrowsCapabilityException() {
+        CaseMemoryStore store = new CaseMemoryStore() {
+            @Override public String store(MemoryInput i) { return ""; }
+            @Override public List<Memory> query(MemoryQuery q) { return List.of(); }
+            @Override public int erase(EraseRequest r) { return 0; }
+        };
+        assertThatThrownBy(() -> store.discoverTenants("key", "val"))
+            .isInstanceOf(MemoryCapabilityException.class);
+    }
+
+    @Test
+    void discoverTenants_rejectsMixedNullParameters() {
+        CaseMemoryStore store = new CaseMemoryStore() {
+            @Override public String store(MemoryInput i) { return ""; }
+            @Override public List<Memory> query(MemoryQuery q) { return List.of(); }
+            @Override public int erase(EraseRequest r) { return 0; }
+        };
+        assertThatThrownBy(() -> store.discoverTenants("key", null))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> store.discoverTenants(null, "val"))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     private static CurrentPrincipal principal(String tenancyId) {

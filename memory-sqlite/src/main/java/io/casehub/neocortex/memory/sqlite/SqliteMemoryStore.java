@@ -43,7 +43,8 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_ENTITY,
             MemoryCapability.ERASE_DOMAIN_CASE,
             MemoryCapability.CROSS_TENANT_ERASE,
-            MemoryCapability.SCAN
+            MemoryCapability.SCAN,
+            MemoryCapability.DISCOVER_TENANTS
         );
     }
 
@@ -295,6 +296,41 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             return List.copyOf(results);
         } catch (SQLException e) {
             throw new IllegalStateException("scan() failed", e);
+        }
+    }
+
+    @Timed(value = "casehub.memory.sqlite", histogram = true, extraTags = {"operation", "discoverTenants"})
+    @Override
+    public Set<String> discoverTenants(String attributeKey, String attributeValue) {
+        if ((attributeKey == null) != (attributeValue == null)) {
+            throw new IllegalArgumentException(
+                "attributeKey and attributeValue must both be null or both be non-null");
+        }
+        MemoryPermissions.assertCrossTenantAdmin(principal);
+
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT tenant_id FROM memory_entry WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (attributeKey != null) {
+            sql.append(" AND json_extract(attributes, ?) = ?");
+            params.add("$.\"" + attributeKey + "\"");
+            params.add(attributeValue);
+        }
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            Set<String> tenants = new LinkedHashSet<>();
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    tenants.add(rs.getString(1));
+                }
+            }
+            return Set.copyOf(tenants);
+        } catch (SQLException e) {
+            throw new RuntimeException("discoverTenants failed", e);
         }
     }
 

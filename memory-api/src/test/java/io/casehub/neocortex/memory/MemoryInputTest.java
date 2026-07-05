@@ -3,6 +3,7 @@ package io.casehub.neocortex.memory;
 import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MemoryInputTest {
@@ -75,5 +76,46 @@ class MemoryInputTest {
     void empty_text_throws() {
         assertThrows(IllegalArgumentException.class,
             () -> new MemoryInput("e1", DOMAIN, "t1", null, "", Map.of()));
+    }
+
+    @Test
+    void withAttribute_addsToExistingAttributes() {
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var enriched = input.withAttribute("k2", "v2");
+        assertThat(enriched.attributes()).containsEntry("k1", "v1").containsEntry("k2", "v2");
+        assertThat(enriched.entityId()).isEqualTo("e1");
+        assertThat(enriched.text()).isEqualTo("text");
+    }
+
+    @Test
+    void withAttribute_overwritesExistingKey() {
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var enriched = input.withAttribute("k1", "v2");
+        assertThat(enriched.attributes()).containsEntry("k1", "v2");
+    }
+
+    @Test
+    void withAttributes_mergesMultiple() {
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var enriched = input.withAttributes(Map.of("k2", "v2", "k3", "v3"));
+        assertThat(enriched.attributes()).hasSize(3);
+    }
+
+    @Test
+    void withAttribute_preservesImmutability() {
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var enriched = input.withAttribute("k2", "v2");
+        assertThat(input.attributes()).hasSize(1);
+        assertThat(enriched.attributes()).hasSize(2);
+        assertThatThrownBy(() -> enriched.attributes().put("k3", "v3"))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void withText_replacesText() {
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "old", Map.of());
+        var enriched = input.withText("new");
+        assertThat(enriched.text()).isEqualTo("new");
+        assertThat(enriched.entityId()).isEqualTo("e1");
     }
 }

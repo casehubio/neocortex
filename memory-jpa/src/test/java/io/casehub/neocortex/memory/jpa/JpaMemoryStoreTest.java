@@ -191,4 +191,42 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_declaresScanCapability() {
         assertTrue(jpaStore.capabilities().contains(MemoryCapability.SCAN));
     }
+
+    @Test
+    void discoverTenants_returnsDistinctTenantIds() {
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("cbr.caseType", "game")));
+        principal.setTenancyId("tenant-b");
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of("cbr.caseType", "game")));
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e3", DOMAIN, "tenant-a", null, "text3", Map.of("cbr.caseType", "game")));
+        principal.setTenancyId("tenant-c");
+        store().store(new MemoryInput("e4", DOMAIN, "tenant-c", null, "text4", Map.of("cbr.caseType", "other")));
+
+        principal.setCrossTenantAdmin(true);
+        Set<String> tenants = jpaStore.discoverTenants("cbr.caseType", "game");
+        assertThat(tenants).containsExactlyInAnyOrder("tenant-a", "tenant-b");
+    }
+
+    @Test
+    void discoverTenants_allTenantsWhenNoFilter() {
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of()));
+        principal.setTenancyId("tenant-b");
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of()));
+
+        principal.setCrossTenantAdmin(true);
+        Set<String> tenants = jpaStore.discoverTenants(null, null);
+        assertThat(tenants).containsExactlyInAnyOrder("tenant-a", "tenant-b");
+    }
+
+    @Test
+    void discoverTenants_emptyWhenNoMatch() {
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("k", "v")));
+
+        principal.setCrossTenantAdmin(true);
+        Set<String> tenants = jpaStore.discoverTenants("k", "nonexistent");
+        assertThat(tenants).isEmpty();
+    }
 }

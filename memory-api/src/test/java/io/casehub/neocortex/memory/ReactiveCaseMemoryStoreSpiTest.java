@@ -3,6 +3,7 @@ package io.casehub.neocortex.memory;
 import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
 import java.util.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReactiveCaseMemoryStoreSpiTest {
@@ -42,5 +43,48 @@ class ReactiveCaseMemoryStoreSpiTest {
         final var ex = assertThrows(MemoryCapabilityException.class,
             () -> sut.eraseEntityAcrossTenants("e", Set.of("t")).await().indefinitely());
         assertEquals(MemoryCapability.CROSS_TENANT_ERASE, ex.required());
+    }
+
+    @Test
+    void scan_defaultFailsWithCapabilityException() {
+        ReactiveCaseMemoryStore store = minimalReactiveStore();
+        var request = new MemoryScanRequest("t1", null, null, null, 10, null);
+        assertThatThrownBy(() -> store.scan(request).await().indefinitely())
+            .isInstanceOf(MemoryCapabilityException.class);
+    }
+
+    @Test
+    void discoverTenants_defaultFailsWithCapabilityException() {
+        ReactiveCaseMemoryStore store = minimalReactiveStore();
+        assertThatThrownBy(() -> store.discoverTenants("k", "v").await().indefinitely())
+            .isInstanceOf(MemoryCapabilityException.class);
+    }
+
+    @Test
+    void discoverTenants_rejectsMixedNullParameters() {
+        ReactiveCaseMemoryStore store = minimalReactiveStore();
+        assertThatThrownBy(() -> store.discoverTenants("k", null).await().indefinitely())
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void capabilities_defaultReturnsEmpty() {
+        ReactiveCaseMemoryStore store = minimalReactiveStore();
+        assertThat(store.capabilities()).isEmpty();
+    }
+
+    @Test
+    void requireCapability_throwsWhenMissing() {
+        ReactiveCaseMemoryStore store = minimalReactiveStore();
+        assertThatThrownBy(() -> store.requireCapability(MemoryCapability.SCAN))
+            .isInstanceOf(MemoryCapabilityException.class);
+    }
+
+    private ReactiveCaseMemoryStore minimalReactiveStore() {
+        return new ReactiveCaseMemoryStore() {
+            @Override public Uni<String> store(MemoryInput i) { return Uni.createFrom().item(""); }
+            @Override public Uni<List<Memory>> query(MemoryQuery q) { return Uni.createFrom().item(List.of()); }
+            @Override public Uni<Integer> erase(EraseRequest r) { return Uni.createFrom().item(0); }
+        };
     }
 }

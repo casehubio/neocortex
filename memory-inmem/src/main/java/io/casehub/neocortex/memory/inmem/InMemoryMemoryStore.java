@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Alternative
 @Priority(10)
@@ -31,7 +32,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_BY_ID,
             MemoryCapability.ERASE_ENTITY,
             MemoryCapability.ERASE_DOMAIN_CASE,
-            MemoryCapability.CROSS_TENANT_ERASE
+            MemoryCapability.CROSS_TENANT_ERASE,
+            MemoryCapability.DISCOVER_TENANTS
         );
     }
 
@@ -149,5 +151,21 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             return false;
         });
         return count.get();
+    }
+
+    @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "discoverTenants"})
+    @Override
+    public Set<String> discoverTenants(String attributeKey, String attributeValue) {
+        if ((attributeKey == null) != (attributeValue == null)) {
+            throw new IllegalArgumentException(
+                "attributeKey and attributeValue must both be null or both be non-null");
+        }
+        MemoryPermissions.assertCrossTenantAdmin(principal);
+        return store.values().stream()
+            .flatMap(List::stream)
+            .filter(m -> attributeKey == null
+                || attributeValue.equals(m.attributes().get(attributeKey)))
+            .map(Memory::tenantId)
+            .collect(Collectors.toUnmodifiableSet());
     }
 }

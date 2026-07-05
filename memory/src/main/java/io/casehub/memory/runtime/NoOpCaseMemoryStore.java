@@ -8,6 +8,7 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -47,4 +48,18 @@ public class NoOpCaseMemoryStore implements GraphCaseMemoryStore {
     // capabilities() stays Set.of() — NoOp invariant is preserved.
     @Override
     public int eraseEntityAcrossTenants(final String entityId, final Set<String> tenantIds) { return 0; }
+
+    @Override
+    public List<Memory> scan(final MemoryScanRequest request) {
+        return List.of();
+    }
+
+    @Override
+    public Set<String> discoverTenants(final String attributeKey, final String attributeValue) {
+        if ((attributeKey == null) != (attributeValue == null)) {
+            throw new IllegalArgumentException(
+                "attributeKey and attributeValue must both be null or both be non-null");
+        }
+        return Set.of();
+    }
 }

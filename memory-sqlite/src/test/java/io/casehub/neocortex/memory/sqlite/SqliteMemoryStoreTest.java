@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
@@ -28,10 +29,10 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
         // Clean all data before each test to avoid interference from contract tests
         principal.setCrossTenantAdmin(true);
         principal.setTenancyId(TENANT);
-        // Erase all possible test entities across both tenants
-        for (String entityId : List.of("entity-1", "entity-2", "e1", "e2")) {
+        // Erase all possible test entities across all test tenants
+        for (String entityId : List.of("entity-1", "entity-2", "e1", "e2", "e3", "e4")) {
             try {
-                sqliteStore.eraseEntityAcrossTenants(entityId, Set.of(TENANT, OTHER_TENANT));
+                sqliteStore.eraseEntityAcrossTenants(entityId, Set.of(TENANT, OTHER_TENANT, "tenant-a", "tenant-b", "tenant-c"));
             } catch (Exception e) {
                 // Ignore - entity may not exist
             }
@@ -237,5 +238,43 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void scan_declaresScanCapability() {
         assertTrue(sqliteStore.capabilities().contains(MemoryCapability.SCAN));
+    }
+
+    @Test
+    void discoverTenants_returnsDistinctTenantIds() {
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("cbr.caseType", "game")));
+        principal.setTenancyId("tenant-b");
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of("cbr.caseType", "game")));
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e3", DOMAIN, "tenant-a", null, "text3", Map.of("cbr.caseType", "game")));
+        principal.setTenancyId("tenant-c");
+        store().store(new MemoryInput("e4", DOMAIN, "tenant-c", null, "text4", Map.of("cbr.caseType", "other")));
+
+        principal.setCrossTenantAdmin(true);
+        Set<String> tenants = sqliteStore.discoverTenants("cbr.caseType", "game");
+        assertThat(tenants).containsExactlyInAnyOrder("tenant-a", "tenant-b");
+    }
+
+    @Test
+    void discoverTenants_allTenantsWhenNoFilter() {
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of()));
+        principal.setTenancyId("tenant-b");
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of()));
+
+        principal.setCrossTenantAdmin(true);
+        Set<String> tenants = sqliteStore.discoverTenants(null, null);
+        assertThat(tenants).containsExactlyInAnyOrder("tenant-a", "tenant-b");
+    }
+
+    @Test
+    void discoverTenants_emptyWhenNoMatch() {
+        principal.setTenancyId("tenant-a");
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("k", "v")));
+
+        principal.setCrossTenantAdmin(true);
+        Set<String> tenants = sqliteStore.discoverTenants("k", "nonexistent");
+        assertThat(tenants).isEmpty();
     }
 }

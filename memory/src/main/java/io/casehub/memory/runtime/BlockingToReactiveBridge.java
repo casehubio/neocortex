@@ -4,8 +4,10 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.ReactiveCaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.quarkus.arc.DefaultBean;
 import io.smallrye.mutiny.Uni;
@@ -61,5 +63,27 @@ public class BlockingToReactiveBridge implements ReactiveCaseMemoryStore {
     public Uni<Integer> eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         return Uni.createFrom().item(() -> delegate.eraseEntityAcrossTenants(entityId, tenantIds))
             .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+
+    @Override
+    public Uni<List<Memory>> scan(MemoryScanRequest request) {
+        return Uni.createFrom().item(() -> delegate.scan(request))
+            .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+
+    @Override
+    public Uni<Set<String>> discoverTenants(String attributeKey, String attributeValue) {
+        return Uni.createFrom().item(() -> delegate.discoverTenants(attributeKey, attributeValue))
+            .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+
+    @Override
+    public Set<MemoryCapability> capabilities() {
+        return delegate.capabilities();
+    }
+
+    @Override
+    public void requireCapability(MemoryCapability capability) {
+        delegate.requireCapability(capability);
     }
 }

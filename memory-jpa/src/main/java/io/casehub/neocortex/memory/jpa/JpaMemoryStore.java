@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +35,8 @@ public class JpaMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_ENTITY,
             MemoryCapability.ERASE_DOMAIN_CASE,
             MemoryCapability.CROSS_TENANT_ERASE,
-            MemoryCapability.SCAN
+            MemoryCapability.SCAN,
+            MemoryCapability.DISCOVER_TENANTS
         );
     }
 
@@ -262,6 +264,42 @@ public class JpaMemoryStore implements CaseMemoryStore {
         if (request.afterMemoryId() != null) nq.setParameter("cursor", request.afterMemoryId());
 
         return ((List<MemoryEntry>) nq.getResultList()).stream().map(this::toMemory).toList();
+    }
+
+    @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "discoverTenants"})
+    @Override
+    @Transactional(TxType.REQUIRED)
+    public Set<String> discoverTenants(String attributeKey, String attributeValue) {
+        if ((attributeKey == null) != (attributeValue == null)) {
+            throw new IllegalArgumentException(
+                "attributeKey and attributeValue must both be null or both be non-null");
+        }
+        MemoryPermissions.assertCrossTenantAdmin(principal);
+
+        boolean isH2 = !config.fts().enabled();
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT m.tenant_id FROM memory_entry m WHERE 1=1");
+        Map<String, Object> params = new HashMap<>();
+
+        if (attributeKey != null) {
+            if (isH2) {
+                String escapedKey = attributeKey.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+                String escapedValue = attributeValue.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+                String pattern = "%\"" + escapedKey + "\":\"" + escapedValue + "\"%";
+                sql.append(" AND m.attributes LIKE :attrPattern ESCAPE '\\'");
+                params.put("attrPattern", pattern);
+            } else {
+                sql.append(" AND m.attributes::jsonb->>:attrKey = :attrValue");
+                params.put("attrKey", attributeKey);
+                params.put("attrValue", attributeValue);
+            }
+        }
+
+        var query = em.createNativeQuery(sql.toString());
+        params.forEach(query::setParameter);
+
+        @SuppressWarnings("unchecked")
+        List<String> results = query.getResultList();
+        return Set.copyOf(results);
     }
 
     private Memory toMemory(MemoryEntry e) {

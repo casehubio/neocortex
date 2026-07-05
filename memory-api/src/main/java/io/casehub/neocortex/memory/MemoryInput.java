@@ -20,4 +20,20 @@ public record MemoryInput(
         Objects.requireNonNull(attributes, "attributes required");
         attributes = Map.copyOf(attributes);
     }
+
+    public MemoryInput withAttribute(String key, String value) {
+        var merged = new java.util.HashMap<>(attributes);
+        merged.put(key, value);
+        return new MemoryInput(entityId, domain, tenantId, caseId, text, merged);
+    }
+
+    public MemoryInput withAttributes(Map<String, String> additional) {
+        var merged = new java.util.HashMap<>(attributes);
+        merged.putAll(additional);
+        return new MemoryInput(entityId, domain, tenantId, caseId, text, merged);
+    }
+
+    public MemoryInput withText(String newText) {
+        return new MemoryInput(entityId, domain, tenantId, caseId, newText, attributes);
+    }
 }

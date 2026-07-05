@@ -56,4 +56,25 @@ public interface ReactiveCaseMemoryStore {
         return Uni.createFrom().failure(
             new MemoryCapabilityException(MemoryCapability.CROSS_TENANT_ERASE, getClass()));
     }
+
+    default Uni<List<Memory>> scan(MemoryScanRequest request) {
+        return Uni.createFrom().failure(
+            new MemoryCapabilityException(MemoryCapability.SCAN, getClass()));
+    }
+
+    default Uni<Set<String>> discoverTenants(String attributeKey, String attributeValue) {
+        if ((attributeKey == null) != (attributeValue == null)) {
+            return Uni.createFrom().failure(new IllegalArgumentException(
+                "attributeKey and attributeValue must both be null or both be non-null"));
+        }
+        return Uni.createFrom().failure(
+            new MemoryCapabilityException(MemoryCapability.DISCOVER_TENANTS, getClass()));
+    }
+
+    default Set<MemoryCapability> capabilities() { return Set.of(); }
+
+    default void requireCapability(MemoryCapability capability) {
+        if (!capabilities().contains(capability))
+            throw new MemoryCapabilityException(capability, getClass());
+    }
 }

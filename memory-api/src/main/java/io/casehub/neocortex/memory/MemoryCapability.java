@@ -27,4 +27,5 @@ public enum MemoryCapability {
 
     // Admin / scan tier
     SCAN,                // paginated attribute-filtered enumeration
+    DISCOVER_TENANTS
 }
