@@ -52,6 +52,8 @@ class QdrantCbrDenseSearchTest {
             @Override public String denseVectorName() { return "dense"; }
             @Override public int maxRetries() { return 3; }
             @Override public boolean allowDimensionMigration() { return false; }
+            @Override public int oversampleFactor() { return 3; }
+            @Override public int overFetchLimit() { return 200; }
         };
 
         CbrCollectionManager collectionManager = new CbrCollectionManager(client, config);
@@ -90,9 +92,11 @@ class QdrantCbrDenseSearchTest {
         store.store(new TextualCbrCase("beta", "solution-b", null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-beta");
 
-        // Query with high threshold — "beta" should be excluded (orthogonal to "alpha")
+        // Query with high threshold and full vector weight — "beta" should be excluded
+        // (orthogonal to "alpha", cos≈0.0). vectorWeight=1.0 so composite = vectorScore.
         var query = CbrQuery.of(TENANT, CBR, "starcraft-game", Map.of(), 10)
             .withProblem("alpha")
+            .withVectorWeight(1.0)
             .withMinSimilarity(0.5);
 
         var results = store.retrieveSimilar(query, CbrCase.class);
@@ -121,7 +125,7 @@ class QdrantCbrDenseSearchTest {
     }
 
     @Test
-    void denseSearch_withPayloadFilters_combinesVectorAndFilter() {
+    void denseSearch_withPayloadFilters_combinesVectorAndFeatureScoring() {
         store.store(new FeatureVectorCbrCase("alpha", "sol-a", null, null,
                 Map.of("opponent_race", "Zerg")),
             "starcraft-game", ENTITY, CBR, TENANT, "case-combo-zerg");
@@ -129,15 +133,19 @@ class QdrantCbrDenseSearchTest {
                 Map.of("opponent_race", "Protoss")),
             "starcraft-game", ENTITY, CBR, TENANT, "case-combo-protoss");
 
-        // Dense search for "alpha" + filter for Zerg only
+        // Dense search for "alpha" + graded scoring for Zerg
+        // Zerg match: featureScore=1.0, vectorScore=1.0 → composite=1.0
+        // Protoss mismatch: featureScore=0.0, vectorScore=1.0 → composite=0.5
         var query = CbrQuery.of(TENANT, CBR, "starcraft-game",
                 Map.of("opponent_race", "Zerg"), 10)
             .withProblem("alpha");
 
         var results = store.retrieveSimilar(query, FeatureVectorCbrCase.class);
 
-        assertThat(results).hasSize(1);
+        // Both returned but Zerg ranks first with higher composite score
+        assertThat(results).hasSize(2);
         assertThat(results.get(0).cbrCase().features().get("opponent_race")).isEqualTo("Zerg");
+        assertThat(results.get(0).score()).isGreaterThan(results.get(1).score());
     }
 
     /**

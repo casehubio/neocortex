@@ -16,7 +16,10 @@ class ClinicalAdverseEventDemoTest {
         var results = ClinicalAdverseEventDemo.run(store);
 
         assertThat(results).isNotEmpty();
-        assertThat(results).allSatisfy(r -> {
+        // With graded similarity, matching cases score highest (1.0), non-matching cases score lower
+        // Check that the top 3 results are the matching cases with score 1.0
+        var topResults = results.stream().limit(3).toList();
+        assertThat(topResults).allSatisfy(r -> {
             assertThat(r.scored().score()).isEqualTo(1.0);
             assertThat(r.scored().cbrCase()).isInstanceOf(FeatureVectorCbrCase.class);
             var c = (FeatureVectorCbrCase) r.scored().cbrCase();
@@ -31,8 +34,12 @@ class ClinicalAdverseEventDemoTest {
     void resultCountMatchesSeedData() {
         var store = new InMemoryCbrCaseMemoryStore();
         var results = ClinicalAdverseEventDemo.run(store);
-        // 3 of 10 seed cases have adverse_event_type=Hepatotoxicity + trial_arm=TREATMENT
-        assertThat(results).hasSize(3);
+        // With graded similarity, all cases are returned (filtered by identity: tenant, domain, caseType)
+        // The query returns all 10 seed cases, with matching cases scoring highest
+        assertThat(results).hasSize(10);
+        // Verify that 3 cases have perfect match scores (adverse_event_type=Hepatotoxicity + trial_arm=TREATMENT)
+        var perfectMatches = results.stream().filter(r -> r.scored().score() == 1.0).toList();
+        assertThat(perfectMatches).hasSize(3);
     }
 
     @Test

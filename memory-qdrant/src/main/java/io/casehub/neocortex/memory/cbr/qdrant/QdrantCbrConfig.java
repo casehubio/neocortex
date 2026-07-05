@@ -29,4 +29,10 @@ public interface QdrantCbrConfig {
 
     @WithDefault("false")
     boolean allowDimensionMigration();
+
+    @WithDefault("3")
+    int oversampleFactor();
+
+    @WithDefault("200")
+    int overFetchLimit();
 }

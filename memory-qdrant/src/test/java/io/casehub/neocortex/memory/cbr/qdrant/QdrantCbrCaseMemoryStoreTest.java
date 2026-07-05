@@ -60,6 +60,8 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             @Override public String denseVectorName() { return "dense"; }
             @Override public int maxRetries() { return 3; }
             @Override public boolean allowDimensionMigration() { return allowMigration; }
+            @Override public int oversampleFactor() { return 3; }
+            @Override public int overFetchLimit() { return 200; }
         };
     }
 

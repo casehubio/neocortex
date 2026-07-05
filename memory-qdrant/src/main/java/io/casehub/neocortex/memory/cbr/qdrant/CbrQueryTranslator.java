@@ -23,7 +23,32 @@ final class CbrQueryTranslator {
     private CbrQueryTranslator() {}
 
     /**
+     * Build an identity-only Qdrant filter — tenant, domain, caseType, and notBefore.
+     * Feature conditions are excluded; they are handled by client-side graded scoring.
+     *
+     * @param query the CBR query
+     * @return a Qdrant filter with identity conditions only
+     */
+    static Filter toIdentityFilter(CbrQuery query) {
+        Filter.Builder builder = Filter.newBuilder();
+
+        builder.addMust(ConditionFactory.matchKeyword("tenantId", query.tenantId()));
+        builder.addMust(ConditionFactory.matchKeyword("domain", query.domain().name()));
+        builder.addMust(ConditionFactory.matchKeyword("caseType", query.caseType()));
+
+        if (query.notBefore() != null) {
+            builder.addMust(ConditionFactory.range("_stored_at",
+                Range.newBuilder()
+                    .setGte(query.notBefore().toEpochMilli())
+                    .build()));
+        }
+
+        return builder.build();
+    }
+
+    /**
      * Build a Qdrant filter from a CBR query and its registered schema.
+     * Retained for backward compatibility — includes feature conditions as hard filters.
      *
      * @param query  the CBR query
      * @param schema the feature schema (may be null if no schema registered)

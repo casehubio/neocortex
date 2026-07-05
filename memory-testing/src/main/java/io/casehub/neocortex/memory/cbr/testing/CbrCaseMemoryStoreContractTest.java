@@ -89,8 +89,11 @@ public abstract class CbrCaseMemoryStoreContractTest {
         var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
             Map.of("opponent_race", "Zerg"), 5);
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
-        assertThat(results).hasSize(1);
+        // Graded scoring: Zerg match scores 1.0, Protoss mismatch scores 0.0
+        // Both returned with minSimilarity=0.0, but Zerg ranks first
+        assertThat(results).hasSizeGreaterThanOrEqualTo(1);
         assertThat(results.getFirst().cbrCase().features()).containsEntry("opponent_race", "Zerg");
+        assertThat(results.getFirst().score()).isEqualTo(1.0);
     }
 
     @Test
@@ -144,7 +147,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     }
 
     @Test
-    void planCbrCase_featureMatchFilters() {
+    void planCbrCase_featureMatchRanking() {
         var trace = new PlanTrace("b", "c", "w", "OK", 1, Map.of());
         store().store(new PlanCbrCase("Zerg game", "rush", "WIN", null,
             Map.of("opponent_race", "Zerg"), List.of(trace)),
@@ -156,8 +159,10 @@ public abstract class CbrCaseMemoryStoreContractTest {
         var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
             Map.of("opponent_race", "Zerg"), 5);
         var results = store().retrieveSimilar(q, PlanCbrCase.class);
-        assertThat(results).hasSize(1);
+        // Both returned (minSimilarity=0.0), Zerg match ranks first with score 1.0
+        assertThat(results).hasSizeGreaterThanOrEqualTo(1);
         assertThat(results.getFirst().cbrCase().features()).containsEntry("opponent_race", "Zerg");
+        assertThat(results.getFirst().score()).isEqualTo(1.0);
     }
 
     @Test
@@ -228,7 +233,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
             "starcraft-game", ENTITY, CBR, TENANT, "case-new");
 
         var q = new CbrQuery(TENANT, CBR, "starcraft-game",
-            Map.of("opponent_race", "Zerg"), 10, 0.0, boundary, null);
+            Map.of("opponent_race", "Zerg"), Map.of(), 10, 0.0, boundary, null, 0.5);
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().cbrCase().problem()).isEqualTo("new game");
@@ -249,10 +254,10 @@ public abstract class CbrCaseMemoryStoreContractTest {
         assertThat(results).hasSize(2);
     }
 
-    // --- NumericRange tests ---
+    // --- Numeric graded similarity tests ---
 
     @Test
-    void retrieveSimilar_numericRange_matchesWithinTolerance() {
+    void retrieveSimilar_numericSimilarityDecay() {
         store().store(new FeatureVectorCbrCase("close game", "strat", "WIN", null,
             Map.of("opponent_race", "Zerg", "army_size_ratio", 0.65)),
             "starcraft-game", ENTITY, CBR, TENANT, "case-close");
@@ -260,12 +265,15 @@ public abstract class CbrCaseMemoryStoreContractTest {
             Map.of("opponent_race", "Zerg", "army_size_ratio", 2.0)),
             "starcraft-game", ENTITY, CBR, TENANT, "case-far");
 
+        // Query for army_size_ratio ~0.7 with range tolerance
         var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
             Map.of("opponent_race", "Zerg",
                    "army_size_ratio", NumericRange.within(0.7, 0.15)), 5);
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
-        assertThat(results).hasSize(1);
-        assertThat(results.getFirst().cbrCase().problem()).isEqualTo("close game");
+        // Both returned (minSimilarity=0.0), close game ranks higher
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(results.get(0).cbrCase().problem()).isEqualTo("close game");
+        assertThat(results.get(0).score()).isGreaterThan(results.get(1).score());
     }
 
     @Test
@@ -281,12 +289,14 @@ public abstract class CbrCaseMemoryStoreContractTest {
             Map.of("opponent_race", "Zerg",
                    "army_size_ratio", NumericRange.exact(0.7)), 5);
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
-        assertThat(results).hasSize(1);
+        // Both returned, exact match ranks first
+        assertThat(results).hasSizeGreaterThanOrEqualTo(1);
         assertThat(results.getFirst().cbrCase().problem()).isEqualTo("exact game");
+        assertThat(results.getFirst().score()).isGreaterThan(results.getLast().score());
     }
 
     @Test
-    void retrieveSimilar_numericExactMatch_backwardCompatible() {
+    void retrieveSimilar_numericExactMatch_closerValueScoresHigher() {
         store().store(new FeatureVectorCbrCase("match", "strat", "WIN", null,
             Map.of("opponent_race", "Zerg", "army_size_ratio", 0.7)),
             "starcraft-game", ENTITY, CBR, TENANT, "case-match");
@@ -297,8 +307,10 @@ public abstract class CbrCaseMemoryStoreContractTest {
         var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
             Map.of("opponent_race", "Zerg", "army_size_ratio", 0.7), 5);
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
-        assertThat(results).hasSize(1);
+        // Both returned, exact value match ranks first
+        assertThat(results).hasSizeGreaterThanOrEqualTo(1);
         assertThat(results.getFirst().cbrCase().problem()).isEqualTo("match");
+        assertThat(results.getFirst().score()).isGreaterThan(results.getLast().score());
     }
 
     @Test
@@ -397,5 +409,128 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
         var results = store().retrieveSimilar(query, FeatureVectorCbrCase.class);
         assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+    }
+
+    // --- Weighted scoring tests (new for #82 + #87) ---
+
+    @Test
+    void weightedScoringProducesExpectedRanking() {
+        // Two cases: one matches color (weight=3), other matches build (weight=1)
+        store().store(new FeatureVectorCbrCase("color match", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg", "detected_build", "MARINE_PUSH")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-color");
+        store().store(new FeatureVectorCbrCase("build match", "strat", "WIN", null,
+            Map.of("opponent_race", "Protoss", "detected_build", "ROACH_RUSH")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-build");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("opponent_race", "Zerg", "detected_build", "ROACH_RUSH"), 5)
+            .withWeights(Map.of("opponent_race", 3.0, "detected_build", 1.0));
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        // color match: (3*1.0 + 1*0.0) / 4 = 0.75
+        // build match: (3*0.0 + 1*1.0) / 4 = 0.25
+        // color match should rank first
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(results.get(0).cbrCase().problem()).isEqualTo("color match");
+        assertThat(results.get(0).score()).isGreaterThan(results.get(1).score());
+    }
+
+    @Test
+    void defaultWeightsAreUniform() {
+        store().store(new FeatureVectorCbrCase("both match", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg", "detected_build", "ROACH_RUSH")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-both");
+        store().store(new FeatureVectorCbrCase("one match", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg", "detected_build", "MARINE_PUSH")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-one");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("opponent_race", "Zerg", "detected_build", "ROACH_RUSH"), 5);
+        // No weights → uniform (all default to 1.0)
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        // both-match: (1+1)/2 = 1.0, one-match: (1+0)/2 = 0.5
+        assertThat(results.get(0).cbrCase().problem()).isEqualTo("both match");
+        assertThat(results.get(0).score()).isEqualTo(1.0);
+        assertThat(results.get(1).cbrCase().problem()).isEqualTo("one match");
+        assertThat(results.get(1).score()).isCloseTo(0.5, within(0.01));
+    }
+
+    @Test
+    void numericSimilarityDecay_closerValueScoresHigher() {
+        // army_size_ratio range is [0, 3]
+        store().store(new FeatureVectorCbrCase("close", "strat", "WIN", null,
+            Map.of("army_size_ratio", 1.0)),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-close");
+        store().store(new FeatureVectorCbrCase("far", "strat", "WIN", null,
+            Map.of("army_size_ratio", 2.5)),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-far");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("army_size_ratio", 1.0), 5);
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(results.get(0).cbrCase().problem()).isEqualTo("close");
+        assertThat(results.get(0).score()).isEqualTo(1.0);
+        assertThat(results.get(1).cbrCase().problem()).isEqualTo("far");
+        assertThat(results.get(1).score()).isLessThan(1.0);
+        assertThat(results.get(1).score()).isGreaterThan(0.0);
+    }
+
+    @Test
+    void minSimilarityThresholdOnCompositeScore() {
+        store().store(new FeatureVectorCbrCase("match", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-match");
+        store().store(new FeatureVectorCbrCase("no match", "strat", "WIN", null,
+            Map.of("opponent_race", "Protoss")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-no-match");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("opponent_race", "Zerg"), 5)
+            .withMinSimilarity(0.5);
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        // Only the Zerg match (score=1.0) passes the 0.5 threshold
+        // Protoss mismatch (score=0.0) is excluded
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().problem()).isEqualTo("match");
+    }
+
+    @Test
+    void missingFeatureScoresZero() {
+        // Case has no features, query asks for opponent_race
+        store().store(new FeatureVectorCbrCase("no features", "strat", "WIN", null,
+            Map.of()),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-empty");
+        store().store(new FeatureVectorCbrCase("has feature", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-feat");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("opponent_race", "Zerg"), 5);
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        // Case with feature scores 1.0, case without scores 0.0
+        assertThat(results.get(0).cbrCase().problem()).isEqualTo("has feature");
+        assertThat(results.get(0).score()).isEqualTo(1.0);
+        assertThat(results.get(1).cbrCase().problem()).isEqualTo("no features");
+        assertThat(results.get(1).score()).isEqualTo(0.0);
+    }
+
+    @Test
+    void emptyFeaturesScoresOne() {
+        store().store(new FeatureVectorCbrCase("any case", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-1");
+
+        // No features queried → vacuous truth → score = 1.0
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game", Map.of(), 5);
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().score()).isEqualTo(1.0);
+    }
+
+    private static org.assertj.core.data.Offset<Double> within(double tolerance) {
+        return org.assertj.core.data.Offset.offset(tolerance);
     }
 }

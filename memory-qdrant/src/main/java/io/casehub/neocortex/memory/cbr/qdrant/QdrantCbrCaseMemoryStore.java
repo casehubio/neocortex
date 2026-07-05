@@ -159,32 +159,52 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             throw new RuntimeException("Failed to check collection existence", e.getCause());
         }
 
-        Filter filter = CbrQueryTranslator.toFilter(query, schema);
+        // Identity-only filter — features handled by client-side graded scoring
+        Filter filter = CbrQueryTranslator.toIdentityFilter(query);
 
-        // Branch between dense search and filter-only based on model and problem text
+        boolean denseSearch = embeddingModel != null && query.problem() != null;
         List<ScoredPoint> scoredPoints;
-        if (embeddingModel != null && query.problem() != null) {
+        if (denseSearch) {
             scoredPoints = executeDenseSearch(collection, filter, query);
         } else {
             if (query.problem() != null) {
                 LOG.info("Dense search unavailable — problem text ignored, returning filter-only results for caseType=" + query.caseType());
             }
-            scoredPoints = executeFilterQuery(collection, filter, query.topK());
+            scoredPoints = executeFilterQuery(collection, filter,
+                Math.max(query.topK(), config.overFetchLimit()));
         }
 
-        List<ScoredCbrCase<C>> results = new ArrayList<>(scoredPoints.size());
+        // Reconstruct cases and compute graded similarity scores
+        List<ScoredCbrCase<C>> candidates = new ArrayList<>(scoredPoints.size());
         for (ScoredPoint point : scoredPoints) {
             try {
                 C cbrCase = (C) reconstructCase(point.getPayloadMap(), caseClass);
-                if (cbrCase != null) {
-                    results.add(new ScoredCbrCase<>(cbrCase, point.getScore()));
+                if (cbrCase == null) continue;
+
+                double featureScore = CbrSimilarityScorer.score(
+                    query.features(), cbrCase.features(), query.weights(), schema);
+                double finalScore;
+                if (denseSearch) {
+                    finalScore = CbrSimilarityScorer.compositeScore(
+                        featureScore, point.getScore(), query.vectorWeight());
+                } else {
+                    finalScore = featureScore;
+                }
+
+                if (finalScore >= query.minSimilarity()) {
+                    candidates.add(new ScoredCbrCase<>(cbrCase, finalScore));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
             }
         }
 
-        return Collections.unmodifiableList(results);
+        // Sort by score descending, take topK
+        candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
+        List<ScoredCbrCase<C>> results = candidates.size() <= query.topK()
+            ? candidates
+            : candidates.subList(0, query.topK());
+        return Collections.unmodifiableList(new ArrayList<>(results));
     }
 
     @Override
@@ -266,8 +286,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             .addAllVector(queryEmbedding.vectorAsList())
             .setVectorName(config.denseVectorName())
             .setFilter(filter)
-            .setLimit(query.topK())
-            .setScoreThreshold((float) query.minSimilarity())
+            .setLimit(query.topK() * config.oversampleFactor())
             .setWithPayload(WithPayloadSelectorFactory.enable(true));
 
         try {

@@ -46,19 +46,30 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
             validateQueryFeatures(query.features(), schema);
         }
 
-        List<ScoredCbrCase<C>> results = new ArrayList<>();
+        List<ScoredCbrCase<C>> candidates = new ArrayList<>();
         for (StoredCase stored : cases) {
+            // Identity filters — hard constraints
             if (!stored.tenantId().equals(query.tenantId())) continue;
             if (!stored.domain().equals(query.domain())) continue;
             if (!stored.caseType().equals(query.caseType())) continue;
             if (query.notBefore() != null && stored.storedAt().isBefore(query.notBefore())) continue;
             if (!caseClass.isInstance(stored.cbrCase())) continue;
-            if (schema != null && !matchesFeatures(stored.cbrCase(), query.features(), schema)) continue;
 
-            results.add(new ScoredCbrCase<>((C) stored.cbrCase(), 1.0));
-            if (results.size() >= query.topK()) break;
+            // Graded feature similarity scoring
+            double featureScore = CbrSimilarityScorer.score(
+                query.features(), stored.cbrCase().features(), query.weights(), schema);
+
+            if (featureScore >= query.minSimilarity()) {
+                candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), featureScore));
+            }
         }
-        return Collections.unmodifiableList(results);
+
+        // Sort by score descending, take topK
+        candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
+        List<ScoredCbrCase<C>> results = candidates.size() <= query.topK()
+            ? candidates
+            : candidates.subList(0, query.topK());
+        return Collections.unmodifiableList(new ArrayList<>(results));
     }
 
     @Override
@@ -78,36 +89,6 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
         cases.removeIf(sc ->
             sc.entityId().equals(entityId) && sc.tenantId().equals(tenantId));
         return before - cases.size();
-    }
-
-    private boolean matchesFeatures(CbrCase stored, Map<String, Object> queryFeatures,
-                                     CbrFeatureSchema schema) {
-        if (queryFeatures.isEmpty()) return true;
-        Map<String, Object> storedFeatures = stored.features();
-        if (storedFeatures.isEmpty()) return true;
-
-        for (var entry : queryFeatures.entrySet()) {
-            String name = entry.getKey();
-            Object queryValue = entry.getValue();
-            Object storedValue = storedFeatures.get(name);
-            if (storedValue == null) continue;
-
-            FeatureField field = schema != null
-                ? schema.fields().stream().filter(f -> f.name().equals(name)).findFirst().orElse(null)
-                : null;
-
-            if (field instanceof FeatureField.Categorical) {
-                if (!queryValue.equals(storedValue)) return false;
-            } else if (field instanceof FeatureField.Numeric) {
-                double storedNum = ((Number) storedValue).doubleValue();
-                if (queryValue instanceof NumericRange range) {
-                    if (!range.contains(storedNum)) return false;
-                } else if (queryValue instanceof Number queryNum) {
-                    if (Double.compare(queryNum.doubleValue(), storedNum) != 0) return false;
-                }
-            }
-        }
-        return true;
     }
 
     private void validateQueryFeatures(Map<String, Object> features, CbrFeatureSchema schema) {

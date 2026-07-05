@@ -16,7 +16,10 @@ class LifeContractorDemoTest {
         var results = LifeContractorDemo.run(store);
 
         assertThat(results).isNotEmpty();
-        assertThat(results).allSatisfy(r -> {
+        // With graded similarity, matching cases score highest (1.0), non-matching cases score lower
+        // Check that the top 4 results are the matching cases with score 1.0
+        var topResults = results.stream().limit(4).toList();
+        assertThat(topResults).allSatisfy(r -> {
             assertThat(r.scored().score()).isEqualTo(1.0);
             assertThat(r.scored().cbrCase()).isInstanceOf(FeatureVectorCbrCase.class);
             var c = (FeatureVectorCbrCase) r.scored().cbrCase();
@@ -31,8 +34,12 @@ class LifeContractorDemoTest {
     void resultCountMatchesSeedData() {
         var store = new InMemoryCbrCaseMemoryStore();
         var results = LifeContractorDemo.run(store);
-        // 4 of 10 seed cases have job_type=PLUMBING + property_area=HVAC
-        assertThat(results).hasSize(4);
+        // With graded similarity, all cases are returned (filtered by identity: tenant, domain, caseType)
+        // The query returns all 10 seed cases, with matching cases scoring highest
+        assertThat(results).hasSize(10);
+        // Verify that 4 cases have perfect match scores (job_type=PLUMBING + property_area=HVAC)
+        var perfectMatches = results.stream().filter(r -> r.scored().score() == 1.0).toList();
+        assertThat(perfectMatches).hasSize(4);
     }
 
     @Test

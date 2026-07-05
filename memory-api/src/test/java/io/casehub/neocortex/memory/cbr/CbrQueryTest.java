@@ -20,6 +20,8 @@ class CbrQueryTest {
         assertThat(q.minSimilarity()).isEqualTo(0.0);
         assertThat(q.notBefore()).isNull();
         assertThat(q.problem()).isNull();
+        assertThat(q.weights()).isEmpty();
+        assertThat(q.vectorWeight()).isEqualTo(0.5);
     }
 
     @Test
@@ -42,7 +44,7 @@ class CbrQueryTest {
 
     @Test
     void minSimilarityOutOfRangeRejected() {
-        assertThatThrownBy(() -> new CbrQuery("t", CBR, "type", Map.of(), 5, 1.5, null, null))
+        assertThatThrownBy(() -> new CbrQuery("t", CBR, "type", Map.of(), Map.of(), 5, 1.5, null, null, 0.5))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -79,5 +81,83 @@ class CbrQueryTest {
         var now = java.time.Instant.now();
         var q = CbrQuery.of("t", CBR, "type", Map.of(), 5).withNotBefore(now);
         assertThat(q.notBefore()).isEqualTo(now);
+    }
+
+    @Test
+    void vectorWeightOutOfRangeRejected() {
+        assertThatThrownBy(() -> CbrQuery.of("t", CBR, "type", Map.of(), 5).withVectorWeight(1.5))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("vectorWeight");
+    }
+
+    @Test
+    void negativeVectorWeightRejected() {
+        assertThatThrownBy(() -> CbrQuery.of("t", CBR, "type", Map.of(), 5).withVectorWeight(-0.1))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("vectorWeight");
+    }
+
+    @Test
+    void negativeWeightValueRejected() {
+        assertThatThrownBy(() -> CbrQuery.of("t", CBR, "type", Map.of(), 5)
+                .withWeight("field", -1.0))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("weight for 'field'");
+    }
+
+    @Test
+    void withWeights_setsWeights() {
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5)
+            .withWeights(Map.of("a", 2.0, "b", 1.0));
+        assertThat(q.weights()).containsEntry("a", 2.0).containsEntry("b", 1.0);
+    }
+
+    @Test
+    void withWeight_addsSingleWeight() {
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5)
+            .withWeight("a", 2.0).withWeight("b", 1.0);
+        assertThat(q.weights()).containsEntry("a", 2.0).containsEntry("b", 1.0);
+    }
+
+    @Test
+    void withVectorWeight_setsVectorWeight() {
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5).withVectorWeight(0.3);
+        assertThat(q.vectorWeight()).isEqualTo(0.3);
+    }
+
+    @Test
+    void weightsDefensivelyCopied() {
+        var weights = new java.util.HashMap<String, Double>();
+        weights.put("a", 1.0);
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5).withWeights(weights);
+        weights.put("b", 2.0);
+        assertThat(q.weights()).doesNotContainKey("b");
+    }
+
+    @Test
+    void withProblem_preservesWeightsAndVectorWeight() {
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5)
+            .withWeights(Map.of("a", 2.0)).withVectorWeight(0.3)
+            .withProblem("test");
+        assertThat(q.weights()).containsEntry("a", 2.0);
+        assertThat(q.vectorWeight()).isEqualTo(0.3);
+    }
+
+    @Test
+    void withMinSimilarity_preservesWeightsAndVectorWeight() {
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5)
+            .withWeights(Map.of("a", 2.0)).withVectorWeight(0.3)
+            .withMinSimilarity(0.5);
+        assertThat(q.weights()).containsEntry("a", 2.0);
+        assertThat(q.vectorWeight()).isEqualTo(0.3);
+    }
+
+    @Test
+    void withNotBefore_preservesWeightsAndVectorWeight() {
+        var q = CbrQuery.of("t", CBR, "type", Map.of(), 5)
+            .withWeights(Map.of("a", 2.0)).withVectorWeight(0.3)
+            .withNotBefore(java.time.Instant.now());
+        assertThat(q.weights()).containsEntry("a", 2.0);
+        assertThat(q.vectorWeight()).isEqualTo(0.3);
     }
 }

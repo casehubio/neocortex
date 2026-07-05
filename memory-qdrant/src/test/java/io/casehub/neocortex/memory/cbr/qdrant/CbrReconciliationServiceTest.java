@@ -261,6 +261,8 @@ class CbrReconciliationServiceTest {
             @Override public String denseVectorName() { return "dense"; }
             @Override public int maxRetries() { return 3; }
             @Override public boolean allowDimensionMigration() { return false; }
+            @Override public int oversampleFactor() { return 3; }
+            @Override public int overFetchLimit() { return 200; }
         };
     }
 

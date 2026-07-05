@@ -105,7 +105,7 @@ class CbrQueryTranslatorTest {
     void toFilter_notBefore_addsStoredAtRangeCondition() {
         Instant notBefore = Instant.parse("2025-01-01T00:00:00Z");
         var query = new CbrQuery("tenant-1", CBR, "starcraft-game",
-            Map.of(), 5, 0.0, notBefore, null);
+            Map.of(), Map.of(), 5, 0.0, notBefore, null, 0.5);
         Filter filter = CbrQueryTranslator.toFilter(query, schema);
 
         assertThat(filter.getMustCount()).isEqualTo(4);
@@ -138,6 +138,32 @@ class CbrQueryTranslatorTest {
 
         // 3 base + 2 features = 5
         assertThat(filter.getMustCount()).isEqualTo(5);
+    }
+
+    @Test
+    void toIdentityFilter_excludesFeatures() {
+        var query = CbrQuery.of("tenant-1", CBR, "starcraft-game",
+            Map.of("opponent_race", "Zerg", "army_size_ratio", 0.7), 5);
+        Filter filter = CbrQueryTranslator.toIdentityFilter(query);
+
+        // Only 3 identity conditions — no feature filters
+        assertThat(filter.getMustCount()).isEqualTo(3);
+        assertKeywordCondition(filter.getMust(0), "tenantId", "tenant-1");
+        assertKeywordCondition(filter.getMust(1), "domain", "cbr");
+        assertKeywordCondition(filter.getMust(2), "caseType", "starcraft-game");
+    }
+
+    @Test
+    void toIdentityFilter_includesNotBefore() {
+        Instant notBefore = Instant.parse("2025-01-01T00:00:00Z");
+        var query = new CbrQuery("tenant-1", CBR, "starcraft-game",
+            Map.of("opponent_race", "Zerg"), Map.of(), 5, 0.0, notBefore, null, 0.5);
+        Filter filter = CbrQueryTranslator.toIdentityFilter(query);
+
+        // 3 identity + 1 notBefore
+        assertThat(filter.getMustCount()).isEqualTo(4);
+        Condition storedAtCondition = filter.getMust(3);
+        assertThat(storedAtCondition.getField().getKey()).isEqualTo("_stored_at");
     }
 
     private void assertKeywordCondition(Condition condition, String expectedField, String expectedValue) {
