@@ -57,7 +57,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
             // Graded feature similarity scoring
             double featureScore = CbrSimilarityScorer.score(
-                query.features(), stored.cbrCase().features(), query.weights(), schema);
+                query.features(), stored.cbrCase().features(), query.weights(), schema, Map.of());
 
             if (featureScore >= query.minSimilarity()) {
                 candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), featureScore));

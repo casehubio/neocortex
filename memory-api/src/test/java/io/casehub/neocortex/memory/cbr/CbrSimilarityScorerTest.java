@@ -196,4 +196,44 @@ class CbrSimilarityScorerTest {
             SCHEMA);
         assertThat(sim).isCloseTo(0.7, org.assertj.core.data.Offset.offset(1e-9));
     }
+
+    @Test
+    void overrideReplacesDefaultTextBehavior() {
+        LocalSimilarityFunction prefixMatch = (q, c) ->
+            ((String) c).startsWith((String) q) ? 1.0 : 0.0;
+
+        double sim = CbrSimilarityScorer.score(
+            Map.of("label", "hel"),
+            Map.of("label", "hello world"),
+            Map.of(),
+            SCHEMA,
+            Map.of("label", prefixMatch));
+        assertThat(sim).isEqualTo(1.0);
+    }
+
+    @Test
+    void overrideForOneFieldDefaultForOthers() {
+        LocalSimilarityFunction always1 = (q, c) -> 1.0;
+
+        double sim = CbrSimilarityScorer.score(
+            Map.of("color", "red", "label", "a"),
+            Map.of("color", "blue", "label", "b"),
+            Map.of(),
+            SCHEMA,
+            Map.of("label", always1));
+        // color: exact match miss = 0.0, label: override = 1.0
+        // (0.0 + 1.0) / 2 = 0.5
+        assertThat(sim).isCloseTo(0.5, org.assertj.core.data.Offset.offset(1e-9));
+    }
+
+    @Test
+    void emptyOverridesPreservesExistingBehavior() {
+        double sim = CbrSimilarityScorer.score(
+            Map.of("label", "hello"),
+            Map.of("label", "hello"),
+            Map.of(),
+            SCHEMA,
+            Map.of());
+        assertThat(sim).isEqualTo(1.0);
+    }
 }

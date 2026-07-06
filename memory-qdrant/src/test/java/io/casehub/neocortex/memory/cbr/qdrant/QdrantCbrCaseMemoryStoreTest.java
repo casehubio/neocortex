@@ -155,6 +155,61 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         }
     }
 
+    @Test
+    void retrieveSimilar_semanticTextSimilarityRanking() {
+        // Create store with embedding model that produces semantically different vectors
+        var embeddingModel = new SemanticStubEmbeddingModel(4);
+        var semanticStore = createStore(embeddingModel, false);
+
+        // Register schema with semantic text field
+        semanticStore.registerSchema(CbrFeatureSchema.of("semantic-text-test",
+            FeatureField.categorical("category"),
+            FeatureField.semanticText("notes")));
+
+        // Store cases with different semantic content
+        semanticStore.store(new FeatureVectorCbrCase(
+            "marine rush problem",
+            "build bunkers early",
+            null, null,
+            Map.of("category", "defense", "notes", "early game marine rush attack")),
+            "semantic-text-test", ENTITY, CBR, TENANT, "case-1");
+
+        semanticStore.store(new FeatureVectorCbrCase(
+            "late game problem",
+            "expand to third base",
+            null, null,
+            Map.of("category", "economy", "notes", "late game economy management and expansion")),
+            "semantic-text-test", ENTITY, CBR, TENANT, "case-2");
+
+        semanticStore.store(new FeatureVectorCbrCase(
+            "early aggression problem",
+            "scout and prepare defenses",
+            null, null,
+            Map.of("category", "defense", "notes", "defending against early game aggression")),
+            "semantic-text-test", ENTITY, CBR, TENANT, "case-3");
+
+        // Query with text semantically similar to case-1 and case-3 (early game defense)
+        var query = CbrQuery.of(TENANT, CBR, "semantic-text-test",
+            Map.of("category", "defense", "notes", "how to stop early marine attacks"), 3);
+
+        var results = semanticStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+
+        // Should retrieve all defense cases, but case-1 and case-3 should rank higher than case-2
+        // due to semantic similarity in the "notes" field
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+
+        // Case-1 or case-3 should be first (both are semantically similar to the query)
+        var topCase = results.get(0);
+        assertThat(topCase.cbrCase().problem())
+            .isIn("marine rush problem", "early aggression problem");
+
+        // Case-2 (late game economy) should rank lower due to semantic dissimilarity
+        if (results.size() == 3) {
+            var lastCase = results.get(2);
+            assertThat(lastCase.cbrCase().problem()).isEqualTo("late game problem");
+        }
+    }
+
     private record StubEmbeddingModel(int dim) implements EmbeddingModel {
         @Override public Response<Embedding> embed(String text) {
             float[] vec = new float[dim];
@@ -170,5 +225,71 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             return new Response<>(embeddings);
         }
         @Override public int dimension() { return dim; }
+    }
+
+    /**
+     * Embedding model that produces different vectors for different texts based on keyword presence.
+     * Uses simple heuristics to simulate semantic similarity.
+     */
+    private record SemanticStubEmbeddingModel(int dim) implements EmbeddingModel {
+        @Override
+        public Response<Embedding> embed(String text) {
+            float[] vec = new float[dim];
+            String lower = text.toLowerCase();
+
+            // Dimension 0: early game concepts
+            if (lower.contains("early") || lower.contains("marine") || lower.contains("rush")) {
+                vec[0] = 1.0f;
+            }
+
+            // Dimension 1: defense concepts
+            if (lower.contains("defense") || lower.contains("defending") || lower.contains("bunker") ||
+                lower.contains("stop") || lower.contains("attack")) {
+                vec[1] = 1.0f;
+            }
+
+            // Dimension 2: late game / economy concepts
+            if (lower.contains("late") || lower.contains("economy") || lower.contains("expansion") ||
+                lower.contains("expand") || lower.contains("base")) {
+                vec[2] = 1.0f;
+            }
+
+            // Dimension 3: management / strategic concepts
+            if (lower.contains("management") || lower.contains("third")) {
+                vec[3] = 1.0f;
+            }
+
+            // Normalize to unit vector for cosine similarity
+            float norm = 0.0f;
+            for (float v : vec) {
+                norm += v * v;
+            }
+            if (norm > 0) {
+                norm = (float) Math.sqrt(norm);
+                for (int i = 0; i < vec.length; i++) {
+                    vec[i] /= norm;
+                }
+            }
+
+            return new Response<>(new Embedding(vec));
+        }
+
+        @Override
+        public Response<Embedding> embed(TextSegment segment) {
+            return embed(segment.text());
+        }
+
+        @Override
+        public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
+            List<Embedding> embeddings = segments.stream()
+                .map(s -> embed(s.text()).content())
+                .toList();
+            return new Response<>(embeddings);
+        }
+
+        @Override
+        public int dimension() {
+            return dim;
+        }
     }
 }

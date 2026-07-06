@@ -168,11 +168,12 @@ rag-expansion/      — Query expansion: HyDE (hypothetical documents), step-bac
 rag-tracking/       — Retrieval tracking: CDI @Decorator @Priority(50) on CaseRetriever + ReactiveCaseRetriever — records retrieval events via RetrievalTracker SPI, fires RetrievalRecorded CDI events, isAlreadyTracked guard prevents double-recording through bridge. SqliteRetrievalTracker (SQLite + HikariCP WAL + Flyway), BlockingToReactiveRetrievalTracker @DefaultBean bridge. Classpath + config activated (`casehub.rag.tracking.enabled=true`)
 corpus-api/         — CorpusStore + CorpusReader + ChangeSource + WatchableChangeSource + CorpusIntegrity SPIs, reactive variants, value types — zero deps, Hortora-eligible
 corpus/             — Zip4j implementation: ZipCorpusStore (rolling archives, chain manifest), FlatCorpusStore, CompositeCorpusStore, compaction, migration — Hortora-eligible
-memory-api/         — CaseMemoryStore + ReactiveCaseMemoryStore + CbrCaseMemoryStore + ReactiveCbrCaseMemoryStore SPIs, CaseEnrichmentStep SPI, MemoryCapability enum (incl. DISCOVER_TENANTS), CbrCase hierarchy, CbrQuery (weights + vectorWeight for per-field weighted similarity), CbrSimilarityScorer (pure-Java weighted composite scoring — categorical exact match, numeric linear decay, text exact match), CbrFeatureSchema, FeatureField, NumericRange, ScoredCbrCase, MemoryScanRequest — Mutiny provided
+memory-api/         — CaseMemoryStore + ReactiveCaseMemoryStore + CbrCaseMemoryStore + ReactiveCbrCaseMemoryStore SPIs, CaseEnrichmentStep SPI, MemoryCapability enum (incl. DISCOVER_TENANTS), CbrCase hierarchy, CbrQuery (weights + vectorWeight for per-field weighted similarity), CbrSimilarityScorer (pure-Java weighted composite scoring — categorical exact match, numeric linear decay, text exact match; per-field override via Map<String, LocalSimilarityFunction>), LocalSimilarityFunction (@FunctionalInterface, EXACT_MATCH constant), CbrFeatureSchema, FeatureField (Text.semantic flag, semanticText() factory), NumericRange, ScoredCbrCase, MemoryScanRequest — Mutiny provided
 memory/             — NoOpCbrCaseMemoryStore @DefaultBean, BlockingToReactiveCbrBridge, CaseEnrichmentDecorator (@Decorator on CaseMemoryStore — applies CaseEnrichmentStep pipeline before store)
-memory-testing/     — CbrCaseMemoryStoreContractTest abstract base (26 tests)
+memory-testing/     — CbrCaseMemoryStoreContractTest abstract base (28 tests)
 memory-cbr-inmem/   — InMemoryCbrCaseMemoryStore @Alternative @Priority(2) — in-memory stub for tests
-memory-qdrant/      — QdrantCbrCaseMemoryStore (@ApplicationScoped) + QdrantCbrBeanProducer (produces CbrCollectionManager) — Qdrant-backed CBR with payload filters (categorical/numeric/text) + dense vector search (cosine similarity on problem() via EmbeddingModel, with minSimilarity threshold) + notBefore temporal filtering + dimension validation (gated by allow-dimension-migration config, default false), CbrReconciliationService (@ApplicationScoped, discoverTenants + reconcileAll, @Timed + Micrometer counters, chunked batch upserts), auto-wires when on classpath (optional EmbeddingModel + CaseMemoryStore via Instance), Testcontainers integration tests
+memory-cbr-embedding/ — EmbeddingTextSimilarity: EmbeddingModel-based LocalSimilarityFunction for semantic text field cosine similarity, batch precompute() via embedAll(), cache-backed compute(). Depends on memory-api + langchain4j-core only — zero Qdrant deps
+memory-qdrant/      — QdrantCbrCaseMemoryStore (@ApplicationScoped) + QdrantCbrBeanProducer (produces CbrCollectionManager) — Qdrant-backed CBR with payload filters (categorical/numeric/text) + dense vector search (cosine similarity on problem() via EmbeddingModel, with minSimilarity threshold) + notBefore temporal filtering + dimension validation (gated by allow-dimension-migration config, default false), two-pass retrieveSimilar() with batch precompute for semantic text fields, CbrReconciliationService (@ApplicationScoped, discoverTenants + reconcileAll, @Timed + Micrometer counters, chunked batch upserts), auto-wires when on classpath (optional EmbeddingModel + CaseMemoryStore via Instance), Testcontainers integration tests
 memory-inmem/       — InMemoryMemoryStore @Alternative @Priority(10) — volatile ConcurrentHashMap, test + ephemeral + discoverTenants
 memory-jpa/         — JpaMemoryStore @ApplicationScoped — PostgreSQL + Flyway V1000 + FTS via websearch_to_tsquery + discoverTenants
 memory-sqlite/      — SqliteMemoryStore @Alternative @Priority(1) — SQLite + HikariCP WAL + FTS5 + discoverTenants
@@ -213,6 +214,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Memory CDI | `casehub-neocortex-memory` |
 | Memory testing | `casehub-neocortex-memory-testing` |
 | Memory CBR in-memory | `casehub-neocortex-memory-cbr-inmem` |
+| Memory CBR Embedding | `casehub-neocortex-memory-cbr-embedding` |
 | Memory CBR Qdrant | `casehub-neocortex-memory-qdrant` |
 | Memory In-Memory | `casehub-neocortex-memory-inmem` |
 | Memory JPA | `casehub-neocortex-memory-jpa` |
@@ -229,6 +231,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Root Java package (corpus) | `io.casehub.neocortex.corpus` |
 | Root Java package (memory) | `io.casehub.neocortex.memory` |
 | Root Java package (memory-cbr) | `io.casehub.neocortex.memory.cbr` |
+| Root Java package (memory-cbr-embedding) | `io.casehub.neocortex.memory.cbr.embedding` |
 | Root Java package (memory-qdrant) | `io.casehub.neocortex.memory.cbr.qdrant` |
 
 ## Build Commands

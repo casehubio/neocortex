@@ -23,7 +23,8 @@ public abstract class CbrCaseMemoryStoreContractTest {
         store().registerSchema(CbrFeatureSchema.of("starcraft-game",
             FeatureField.categorical("opponent_race"),
             FeatureField.categorical("detected_build"),
-            FeatureField.numeric("army_size_ratio", 0.0, 3.0)));
+            FeatureField.numeric("army_size_ratio", 0.0, 3.0),
+            FeatureField.text("notes")));
     }
 
     @Test
@@ -528,6 +529,36 @@ public abstract class CbrCaseMemoryStoreContractTest {
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().score()).isEqualTo(1.0);
+    }
+
+    @Test
+    void textExactMatch_identicalStrings() {
+        store().store(new FeatureVectorCbrCase("game", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg", "notes", "early pool")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-1");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("notes", "early pool"), 5);
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().score()).isEqualTo(1.0);
+    }
+
+    @Test
+    void textExactMatch_differentStrings() {
+        store().store(new FeatureVectorCbrCase("match", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg", "notes", "early pool")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-1");
+        store().store(new FeatureVectorCbrCase("no match", "strat", "WIN", null,
+            Map.of("opponent_race", "Zerg", "notes", "late game macro")),
+            "starcraft-game", ENTITY, CBR, TENANT, "case-2");
+
+        var q = CbrQuery.of(TENANT, CBR, "starcraft-game",
+            Map.of("notes", "early pool"), 5);
+        var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(results.get(0).cbrCase().problem()).isEqualTo("match");
+        assertThat(results.get(0).score()).isGreaterThan(results.get(1).score());
     }
 
     private static org.assertj.core.data.Offset<Double> within(double tolerance) {

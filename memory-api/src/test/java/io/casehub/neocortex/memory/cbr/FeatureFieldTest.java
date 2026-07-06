@@ -38,4 +38,25 @@ class FeatureFieldTest {
         assertThatThrownBy(() -> FeatureField.categorical(null))
             .isInstanceOf(NullPointerException.class);
     }
+
+    @Test
+    void textDefaultIsNotSemantic() {
+        var f = FeatureField.text("desc");
+        assertThat(f).isInstanceOf(FeatureField.Text.class);
+        assertThat(((FeatureField.Text) f).semantic()).isFalse();
+    }
+
+    @Test
+    void semanticTextIsSemantic() {
+        var f = FeatureField.semanticText("desc");
+        assertThat(f).isInstanceOf(FeatureField.Text.class);
+        assertThat(((FeatureField.Text) f).semantic()).isTrue();
+    }
+
+    @Test
+    void textAndSemanticTextWithSameNameAreNotEqual() {
+        var exact = FeatureField.text("desc");
+        var semantic = FeatureField.semanticText("desc");
+        assertThat(exact).isNotEqualTo(semantic);
+    }
 }

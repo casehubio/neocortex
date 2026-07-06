@@ -7,6 +7,7 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import io.casehub.neocortex.memory.cbr.*;
+import io.casehub.neocortex.memory.cbr.embedding.EmbeddingTextSimilarity;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
@@ -50,6 +51,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
     private static final TypeReference<List<PlanTrace>> PLAN_TRACE_TYPE = new TypeReference<>() {};
+
+    private record ReconstructedCandidate<C extends CbrCase>(C cbrCase, float vectorScore) {}
 
     private final CbrCollectionManager collectionManager;
     private final EmbeddingModel embeddingModel; // nullable
@@ -174,28 +177,47 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 Math.max(query.topK(), config.overFetchLimit()));
         }
 
-        // Reconstruct cases and compute graded similarity scores
-        List<ScoredCbrCase<C>> candidates = new ArrayList<>(scoredPoints.size());
+        // 1. Build overrides
+        EmbeddingTextSimilarity textSim = (schema != null && embeddingModel != null)
+            ? new EmbeddingTextSimilarity(embeddingModel) : null;
+        Map<String, LocalSimilarityFunction> overrides = schema != null
+            ? buildTextOverrides(schema, textSim)
+            : Map.of();
+
+        // 2. Reconstruct all candidates (pass 1)
+        List<ReconstructedCandidate<C>> reconstructed = new ArrayList<>(scoredPoints.size());
         for (ScoredPoint point : scoredPoints) {
             try {
                 C cbrCase = (C) reconstructCase(point.getPayloadMap(), caseClass);
-                if (cbrCase == null) continue;
-
-                double featureScore = CbrSimilarityScorer.score(
-                    query.features(), cbrCase.features(), query.weights(), schema);
-                double finalScore;
-                if (denseSearch) {
-                    finalScore = CbrSimilarityScorer.compositeScore(
-                        featureScore, point.getScore(), query.vectorWeight());
-                } else {
-                    finalScore = featureScore;
-                }
-
-                if (finalScore >= query.minSimilarity()) {
-                    candidates.add(new ScoredCbrCase<>(cbrCase, finalScore));
+                if (cbrCase != null) {
+                    reconstructed.add(new ReconstructedCandidate<>(cbrCase, point.getScore()));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
+            }
+        }
+
+        // 3. Batch precompute embeddings for semantic text values
+        if (textSim != null && !overrides.isEmpty()) {
+            List<String> texts = collectSemanticTextValues(query, reconstructed, overrides.keySet());
+            textSim.precompute(texts);
+        }
+
+        // 4. Score and filter (pass 2 — compute() hits warm cache)
+        List<ScoredCbrCase<C>> candidates = new ArrayList<>(reconstructed.size());
+        for (var rc : reconstructed) {
+            double featureScore = CbrSimilarityScorer.score(
+                query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
+            double finalScore;
+            if (denseSearch) {
+                finalScore = CbrSimilarityScorer.compositeScore(
+                    featureScore, rc.vectorScore(), query.vectorWeight());
+            } else {
+                finalScore = featureScore;
+            }
+
+            if (finalScore >= query.minSimilarity()) {
+                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), finalScore));
             }
         }
 
@@ -276,6 +298,30 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private int vectorDimension() {
         return embeddingModel != null ? embeddingModel.dimension() : 0;
+    }
+
+    private Map<String, LocalSimilarityFunction> buildTextOverrides(
+            CbrFeatureSchema schema, EmbeddingTextSimilarity textSim) {
+        if (textSim == null) return Map.of();
+        Map<String, LocalSimilarityFunction> overrides = new HashMap<>();
+        for (FeatureField field : schema.fields()) {
+            if (field instanceof FeatureField.Text t && t.semantic()) {
+                overrides.put(field.name(), textSim);
+            }
+        }
+        return overrides.isEmpty() ? Map.of() : Collections.unmodifiableMap(overrides);
+    }
+
+    private <C extends CbrCase> List<String> collectSemanticTextValues(
+            CbrQuery query, List<ReconstructedCandidate<C>> candidates, Set<String> fieldNames) {
+        List<String> texts = new ArrayList<>();
+        for (String fieldName : fieldNames) {
+            if (query.features().get(fieldName) instanceof String s) texts.add(s);
+            for (var rc : candidates) {
+                if (rc.cbrCase().features().get(fieldName) instanceof String s) texts.add(s);
+            }
+        }
+        return texts;
     }
 
     private List<ScoredPoint> executeDenseSearch(String collection, Filter filter, CbrQuery query) {

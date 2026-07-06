@@ -1,6 +1,7 @@
 package io.casehub.neocortex.memory.cbr;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Computes CBR similarity scores using per-field local similarity functions
@@ -33,6 +34,26 @@ public final class CbrSimilarityScorer {
                                 Map<String, Object> caseFeatures,
                                 Map<String, Double> weights,
                                 CbrFeatureSchema schema) {
+        return score(queryFeatures, caseFeatures, weights, schema, Map.of());
+    }
+
+    /**
+     * Compute weighted similarity between query features and case features with custom
+     * local similarity functions for specific fields.
+     *
+     * @param queryFeatures the query's feature values
+     * @param caseFeatures  the stored case's feature values
+     * @param weights       per-field weights (default 1.0 for unspecified fields)
+     * @param schema        the feature schema (null → return 1.0 for backward compat)
+     * @param overrides     per-field custom similarity functions (empty → use default)
+     * @return similarity in [0, 1]
+     */
+    public static double score(Map<String, Object> queryFeatures,
+                                Map<String, Object> caseFeatures,
+                                Map<String, Double> weights,
+                                CbrFeatureSchema schema,
+                                Map<String, LocalSimilarityFunction> overrides) {
+        Objects.requireNonNull(overrides, "overrides");
         if (queryFeatures.isEmpty()) return 1.0;
         if (schema == null) return 1.0;
 
@@ -46,7 +67,7 @@ public final class CbrSimilarityScorer {
             double weight = weights.getOrDefault(entry.getKey(), 1.0);
             Object caseValue = caseFeatures.get(entry.getKey());
             double localSim = caseValue == null ? 0.0
-                : localSimilarity(field, entry.getValue(), caseValue);
+                : localSimilarity(field, entry.getValue(), caseValue, overrides);
 
             weightedSum += weight * localSim;
             totalWeight += weight;
@@ -68,7 +89,11 @@ public final class CbrSimilarityScorer {
         return vectorWeight * vectorScore + (1.0 - vectorWeight) * featureScore;
     }
 
-    private static double localSimilarity(FeatureField field, Object queryVal, Object caseVal) {
+    private static double localSimilarity(FeatureField field, Object queryVal, Object caseVal,
+                                          Map<String, LocalSimilarityFunction> overrides) {
+        LocalSimilarityFunction override = overrides.get(field.name());
+        if (override != null) return override.compute(queryVal, caseVal);
+
         if (field instanceof FeatureField.Numeric n) {
             return numericSimilarity(n, queryVal, caseVal);
         }
