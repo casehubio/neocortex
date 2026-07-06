@@ -34,11 +34,4 @@ public class RagBeanProducer {
         return new QdrantEmbeddingIngestor(client, effectiveEmbedder(),
             resolveTenantGuard(), config);
     }
-
-    @Produces
-    @ApplicationScoped
-    HybridCaseRetriever caseRetriever() {
-        return new HybridCaseRetriever(client, effectiveEmbedder(),
-            resolveTenantGuard(), config);
-    }
 }

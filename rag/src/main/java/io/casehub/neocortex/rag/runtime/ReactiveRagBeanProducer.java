@@ -38,11 +38,4 @@ public class ReactiveRagBeanProducer {
         return new ReactiveQdrantEmbeddingIngestor(client, effectiveEmbedder(),
             resolveTenantGuard(), config);
     }
-
-    @Produces
-    @ApplicationScoped
-    ReactiveHybridCaseRetriever caseRetriever() {
-        return new ReactiveHybridCaseRetriever(client, effectiveEmbedder(),
-            resolveTenantGuard(), config);
-    }
 }

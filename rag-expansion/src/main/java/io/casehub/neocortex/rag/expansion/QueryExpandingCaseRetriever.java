@@ -7,6 +7,7 @@ import io.casehub.neocortex.rag.QueryExpander;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
 import io.casehub.neocortex.rag.RrfFusion;
+import io.quarkus.arc.Unremovable;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 
 @Decorator
 @Priority(200)
+@Unremovable
 @IfBuildProperty(name = "casehub.rag.expansion.enabled", stringValue = "true")
 public class QueryExpandingCaseRetriever implements CaseRetriever {
 
@@ -34,11 +36,14 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
                                        QueryExpander expander) {
         this.delegate = delegate;
         this.expander = expander;
+        LOG.fine(() -> "Query expansion decorator active, expander: " + expander.getClass().getSimpleName());
     }
 
     @Override
     public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus,
                                           int maxResults, PayloadFilter filter) {
+        LOG.fine(() -> "Intercepting retrieve for corpus " + corpus + ", query: " + query.text());
+
         List<RetrievalQuery> expanded;
         try {
             expanded = expander.expand(query);

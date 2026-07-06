@@ -7,6 +7,7 @@ import io.casehub.neocortex.rag.ReactiveCaseRetriever;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
 import io.casehub.neocortex.rag.RrfFusion;
+import io.quarkus.arc.Unremovable;
 import io.quarkus.arc.properties.IfBuildProperty;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Decorator
 @Priority(200)
+@Unremovable
 @IfBuildProperty(name = "casehub.rag.expansion.enabled", stringValue = "true")
 public class ReactiveQueryExpandingCaseRetriever implements ReactiveCaseRetriever {
 
@@ -36,11 +38,14 @@ public class ReactiveQueryExpandingCaseRetriever implements ReactiveCaseRetrieve
                                                QueryExpander expander) {
         this.delegate = delegate;
         this.expander = expander;
+        LOG.fine(() -> "Reactive query expansion decorator active, expander: " + expander.getClass().getSimpleName());
     }
 
     @Override
     public Uni<List<RetrievedChunk>> retrieve(RetrievalQuery query, CorpusRef corpus,
                                                int maxResults, PayloadFilter filter) {
+        LOG.fine(() -> "Intercepting reactive retrieve for corpus " + corpus + ", query: " + query.text());
+
         return Uni.createFrom().item(() -> expander.expand(query))
             .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
             .onFailure().recoverWithItem(t -> {

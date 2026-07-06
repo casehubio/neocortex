@@ -24,6 +24,12 @@ import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.SearchParams;
 import io.qdrant.client.grpc.Points.QuantizationSearchParams;
 
+import io.casehub.neocortex.inference.MatryoshkaMultiModalEmbedder;
+import io.casehub.platform.api.identity.CurrentPrincipal;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+@ApplicationScoped
 public class HybridCaseRetriever implements CaseRetriever {
 
     private final QdrantClient client;
@@ -39,11 +46,19 @@ public class HybridCaseRetriever implements CaseRetriever {
     private final TenantGuard tenantGuard;
     private final RagConfig config;
 
-    HybridCaseRetriever(
-            QdrantClient client,
-            MultiModalEmbedder embedder,
-            TenantGuard tenantGuard,
-            RagConfig config) {
+    @Inject
+    HybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
+                        Instance<CurrentPrincipal> currentPrincipalInstance,
+                        RagConfig config) {
+        this(client,
+            MatryoshkaMultiModalEmbedder.wrapIfNeeded(embedder, config.matryoshka().dimension()),
+            TenantGuard.of(currentPrincipalInstance.isResolvable()
+                ? currentPrincipalInstance.get() : null),
+            config);
+    }
+
+    HybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
+                        TenantGuard tenantGuard, RagConfig config) {
         this.client = client;
         this.embedder = embedder;
         this.tenantGuard = tenantGuard;

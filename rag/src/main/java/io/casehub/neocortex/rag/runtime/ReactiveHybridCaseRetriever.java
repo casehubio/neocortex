@@ -23,8 +23,14 @@ import io.qdrant.client.grpc.Points.Rrf;
 import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.SearchParams;
 import io.qdrant.client.grpc.Points.QuantizationSearchParams;
+import io.casehub.neocortex.inference.MatryoshkaMultiModalEmbedder;
+import io.casehub.platform.api.identity.CurrentPrincipal;
+import io.quarkus.arc.properties.IfBuildProperty;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@ApplicationScoped
+@IfBuildProperty(name = "casehub.rag.reactive.enabled", stringValue = "true")
 public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
 
     private final QdrantClient client;
@@ -40,11 +48,19 @@ public class ReactiveHybridCaseRetriever implements ReactiveCaseRetriever {
     private final TenantGuard tenantGuard;
     private final RagConfig config;
 
-    ReactiveHybridCaseRetriever(
-            QdrantClient client,
-            MultiModalEmbedder embedder,
-            TenantGuard tenantGuard,
-            RagConfig config) {
+    @Inject
+    ReactiveHybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
+                                Instance<CurrentPrincipal> currentPrincipalInstance,
+                                RagConfig config) {
+        this(client,
+            MatryoshkaMultiModalEmbedder.wrapIfNeeded(embedder, config.matryoshka().dimension()),
+            TenantGuard.of(currentPrincipalInstance.isResolvable()
+                ? currentPrincipalInstance.get() : null),
+            config);
+    }
+
+    ReactiveHybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
+                                TenantGuard tenantGuard, RagConfig config) {
         this.client = client;
         this.embedder = embedder;
         this.tenantGuard = tenantGuard;
