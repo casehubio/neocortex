@@ -87,28 +87,29 @@ public final class CbrFeatureValidator {
 
     public static void validateFilters(Map<String, CbrFilter> filters, CbrFeatureSchema schema) {
         for (var entry : filters.entrySet()) {
-            String name = entry.getKey();
-            CbrFilter filter = entry.getValue();
-            FeatureField field = findField(schema, name);
-            if (field == null)
-                throw new IllegalArgumentException("Filter field '" + name + "' not found in schema");
+            String       name   = entry.getKey();
+            CbrFilter    filter = entry.getValue();
+            FeatureField field  = findField(schema, name);
+            if (field == null) {throw new IllegalArgumentException("Filter field '" + name + "' not found in schema");}
 
             switch (filter) {
                 case CbrFilter.Contains c -> requireCategoricalList(name, field);
                 case CbrFilter.ContainsAll ca -> requireCategoricalList(name, field);
                 case CbrFilter.ContainsAny ca -> requireCategoricalList(name, field);
+                case CbrFilter.NotContains nc -> requireCategoricalList(name, field);
+                case CbrFilter.NotContainsAny nca -> requireCategoricalList(name, field);
                 case CbrFilter.HasMatch hm -> {
-                    if (!(field instanceof FeatureField.NestedObject) && !(field instanceof FeatureField.ObjectList))
+                    if (!(field instanceof FeatureField.NestedObject) && !(field instanceof FeatureField.ObjectList)) {
                         throw new IllegalArgumentException(
-                            "HasMatch filter on '" + name + "' requires NestedObject or ObjectList field, got: "
-                            + field.getClass().getSimpleName());
+                                "HasMatch filter on '" + name + "' requires NestedObject or ObjectList field, got: "
+                                + field.getClass().getSimpleName());
+                    }
                     List<FeatureField> innerFields = field instanceof FeatureField.NestedObject no
-                        ? no.innerFields() : ((FeatureField.ObjectList) field).innerFields();
+                                                     ? no.innerFields() : ((FeatureField.ObjectList) field).innerFields();
                     validateHasMatchSubFields(name, hm, innerFields);
                 }
             }
-        }
-    }
+        }}
 
     private static void validateHasMatchSubFields(String fieldName, CbrFilter.HasMatch hm,
                                                    List<FeatureField> innerFields) {

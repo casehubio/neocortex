@@ -137,6 +137,9 @@ final class CbrQueryTranslator {
                 case CbrFilter.ContainsAll ca -> ca.values().forEach(v ->
                                                                              builder.addMust(ConditionFactory.matchKeyword(payloadKey, v)));
                 case CbrFilter.ContainsAny ca -> builder.addMust(ConditionFactory.matchKeywords(payloadKey, ca.values()));
+                case CbrFilter.NotContains nc -> builder.addMustNot(ConditionFactory.matchKeyword(payloadKey, nc.value()));
+                case CbrFilter.NotContainsAny nca -> nca.values().forEach(v ->
+                                                                                  builder.addMustNot(ConditionFactory.matchKeyword(payloadKey, v)));
                 case CbrFilter.HasMatch hm -> {
                     if (field instanceof FeatureField.ObjectList) {
                         Filter.Builder inner = Filter.newBuilder();
@@ -152,8 +155,7 @@ final class CbrQueryTranslator {
                 }
             }
         }
-        return builder.build();
-    }
+        return builder.build();}
 
     private static void addSubFieldCondition(Filter.Builder builder, String key, Object value) {
         if (value instanceof String s) {

@@ -43,8 +43,28 @@ public sealed interface CbrFilter {
         }
     }
 
+    record NotContains(String value) implements CbrFilter {
+        public NotContains {
+            Objects.requireNonNull(value, "value");
+        }
+    }
+
+    record NotContainsAny(List<String> values) implements CbrFilter {
+        public NotContainsAny {
+            Objects.requireNonNull(values, "values");
+            if (values.isEmpty()) {throw new IllegalArgumentException("values must not be empty");}
+            values = List.copyOf(values);
+        }
+    }
+
+
     static Contains contains(String value) { return new Contains(value); }
     static ContainsAll containsAll(List<String> values) { return new ContainsAll(values); }
     static ContainsAny containsAny(List<String> values) { return new ContainsAny(values); }
     static HasMatch hasMatch(Map<String, Object> subFields) { return new HasMatch(subFields); }
+
+    static NotContains notContains(String value)            {return new NotContains(value);}
+
+    static NotContainsAny notContainsAny(List<String> values) {return new NotContainsAny(values);}
+
 }

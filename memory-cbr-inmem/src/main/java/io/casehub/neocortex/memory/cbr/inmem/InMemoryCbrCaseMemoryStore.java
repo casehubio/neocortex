@@ -1,13 +1,28 @@
 package io.casehub.neocortex.memory.cbr.inmem;
 
-import io.casehub.neocortex.memory.cbr.*;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.cbr.CbrCase;
+import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
+import io.casehub.neocortex.memory.cbr.CbrFilter;
+import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
+import io.casehub.neocortex.memory.cbr.FeatureField;
+import io.casehub.neocortex.memory.cbr.NumericRange;
+import io.casehub.neocortex.memory.cbr.RetrievalMode;
+import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
+
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -114,28 +129,26 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
     @SuppressWarnings("unchecked")
     private boolean matchesFilters(CbrCase storedCase, Map<String, CbrFilter> filters,
                                     CbrFeatureSchema schema) {
-        if (filters.isEmpty()) return true;
+        if (filters.isEmpty()) {return true;}
         for (var entry : filters.entrySet()) {
-            String fieldName = entry.getKey();
-            CbrFilter filter = entry.getValue();
-            Object storedValue = storedCase.features().get(fieldName);
-            if (storedValue == null) return false;
+            String    fieldName   = entry.getKey();
+            CbrFilter filter      = entry.getValue();
+            Object    storedValue = storedCase.features().get(fieldName);
+            if (storedValue == null) {return false;}
 
             FeatureField field = CbrFeatureValidator.findField(schema, fieldName);
 
             boolean matches = switch (filter) {
-                case CbrFilter.Contains c ->
-                    storedValue instanceof List<?> list && list.contains(c.value());
-                case CbrFilter.ContainsAll ca ->
-                    storedValue instanceof List<?> list && list.containsAll(ca.values());
-                case CbrFilter.ContainsAny ca ->
-                    storedValue instanceof List<?> list && ca.values().stream().anyMatch(list::contains);
+                case CbrFilter.Contains c -> storedValue instanceof List<?> list && list.contains(c.value());
+                case CbrFilter.ContainsAll ca -> storedValue instanceof List<?> list && list.containsAll(ca.values());
+                case CbrFilter.ContainsAny ca -> storedValue instanceof List<?> list && ca.values().stream().anyMatch(list::contains);
+                case CbrFilter.NotContains nc -> storedValue instanceof List<?> list && !list.contains(nc.value());
+                case CbrFilter.NotContainsAny nca -> storedValue instanceof List<?> list && nca.values().stream().noneMatch(list::contains);
                 case CbrFilter.HasMatch hm -> matchesHasMatch(storedValue, hm, field);
             };
-            if (!matches) return false;
+            if (!matches) {return false;}
         }
-        return true;
-    }
+        return true;}
 
     private boolean matchesHasMatch(Object storedValue, CbrFilter.HasMatch hm, FeatureField field) {
         if (field instanceof FeatureField.ObjectList) {
