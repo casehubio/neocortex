@@ -149,7 +149,7 @@ class DtwSimilarityTest {
                 Map.<String, Object>of("t", 1, "val", 52),
                 Map.<String, Object>of("t", 2, "val", 58));
         var full     = DtwSimilarity.compute(q, c, SCHEMA);
-        var windowed = DtwSimilarity.compute(q, c, SCHEMA, 100);
+        var windowed = DtwSimilarity.compute(q, c, SCHEMA, new WarpingConstraint.SakoeChibaBand(100));
         assertThat(windowed.score()).isCloseTo(full.score(), within(0.0001));
     }
 
@@ -167,7 +167,7 @@ class DtwSimilarityTest {
                 Map.<String, Object>of("t", 3, "val", 30),
                 Map.<String, Object>of("t", 4, "val", 40),
                 Map.<String, Object>of("t", 5, "val", 50));
-        var result = DtwSimilarity.compute(q, c, SCHEMA, 1);
+        var result = DtwSimilarity.compute(q, c, SCHEMA, new WarpingConstraint.SakoeChibaBand(1));
         for (var pair : result.alignment()) {
             assertThat(Math.abs(pair.queryIndex() - pair.caseIndex())).isLessThanOrEqualTo(1);
         }
@@ -184,7 +184,79 @@ class DtwSimilarityTest {
                 Map.<String, Object>of("t", 3, "val", 60),
                 Map.<String, Object>of("t", 4, "val", 65),
                 Map.<String, Object>of("t", 5, "val", 70));
-        var result = DtwSimilarity.compute(q, c, SCHEMA, 1);
+        var result = DtwSimilarity.compute(q, c, SCHEMA, new WarpingConstraint.SakoeChibaBand(1));
         assertThat(result.score()).isGreaterThan(0.0);
     }
+
+    @Test
+    void itakura_identicalSequences_perfectScore() {
+        var seq = List.of(
+                Map.<String, Object>of("t", 1, "val", 50),
+                Map.<String, Object>of("t", 2, "val", 60));
+        var result = DtwSimilarity.compute(seq, seq, SCHEMA, new WarpingConstraint.ItakuraParallelogram(2.0));
+        assertThat(result.score()).isEqualTo(1.0);
+        assertThat(result.alignment()).hasSize(2);
+    }
+
+    @Test
+    void itakura_feasible_similarSequences_positiveScore() {
+        var query = List.of(
+                Map.<String, Object>of("t", 1, "val", 10),
+                Map.<String, Object>of("t", 2, "val", 20),
+                Map.<String, Object>of("t", 3, "val", 30));
+        var caseSeq = List.of(
+                Map.<String, Object>of("t", 1, "val", 12),
+                Map.<String, Object>of("t", 2, "val", 22),
+                Map.<String, Object>of("t", 3, "val", 28));
+        var result = DtwSimilarity.compute(query, caseSeq, SCHEMA, new WarpingConstraint.ItakuraParallelogram(2.0));
+        assertThat(result.score()).isGreaterThan(0.5);
+        assertThat(result.alignment()).isNotEmpty();
+    }
+
+    @Test
+    void itakura_infeasible_extremeLengthMismatch_returnsZero() {
+        var query = List.of(Map.<String, Object>of("t", 1, "val", 50));
+        var caseSeq = List.of(
+                Map.<String, Object>of("t", 1, "val", 50),
+                Map.<String, Object>of("t", 2, "val", 60),
+                Map.<String, Object>of("t", 3, "val", 70),
+                Map.<String, Object>of("t", 4, "val", 80));
+        var result = DtwSimilarity.compute(query, caseSeq, SCHEMA, new WarpingConstraint.ItakuraParallelogram(1.5));
+        assertThat(result.score()).isEqualTo(0.0);
+        assertThat(result.alignment()).isEmpty();
+    }
+
+    @Test
+    void itakura_ceilFloorEdgeCase_n4m3_slope1_5_infeasible() {
+        var query = List.of(
+                Map.<String, Object>of("t", 1, "val", 10),
+                Map.<String, Object>of("t", 2, "val", 20),
+                Map.<String, Object>of("t", 3, "val", 30),
+                Map.<String, Object>of("t", 4, "val", 40));
+        var caseSeq = List.of(
+                Map.<String, Object>of("t", 1, "val", 10),
+                Map.<String, Object>of("t", 2, "val", 20),
+                Map.<String, Object>of("t", 3, "val", 30));
+        var result = DtwSimilarity.compute(query, caseSeq, SCHEMA, new WarpingConstraint.ItakuraParallelogram(1.5));
+        assertThat(result.score()).isEqualTo(0.0);
+        assertThat(result.alignment()).isEmpty();
+    }
+
+    @Test
+    void itakura_feasible_unequalLengths_withWideSlope() {
+        var query = List.of(
+                Map.<String, Object>of("t", 1, "val", 10),
+                Map.<String, Object>of("t", 2, "val", 20),
+                Map.<String, Object>of("t", 3, "val", 30));
+        var caseSeq = List.of(
+                Map.<String, Object>of("t", 1, "val", 12),
+                Map.<String, Object>of("t", 2, "val", 22),
+                Map.<String, Object>of("t", 3, "val", 28),
+                Map.<String, Object>of("t", 4, "val", 35));
+        var result = DtwSimilarity.compute(query, caseSeq, SCHEMA, new WarpingConstraint.ItakuraParallelogram(3.0));
+        assertThat(result.score()).isGreaterThan(0.0);
+        assertThat(result.alignment()).isNotEmpty();
+    }
+
+
 }

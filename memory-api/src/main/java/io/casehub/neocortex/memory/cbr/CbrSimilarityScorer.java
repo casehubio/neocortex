@@ -163,11 +163,11 @@ public final class CbrSimilarityScorer {
     @SuppressWarnings("unchecked")
     private static double dtwSimilarity(FeatureField.TimeSeries ts,
                                         Object queryVal, Object caseVal) {
-        Integer windowSize = ts.similaritySpec() instanceof SimilaritySpec.DtwSpec ds
-                             ? ds.windowSize() : null;
+        WarpingConstraint constraint = ts.similaritySpec() instanceof SimilaritySpec.DtwSpec ds
+                                       ? ds.constraint() : new WarpingConstraint.Unconstrained();
         return DtwSimilarity.compute(
                 (java.util.List<java.util.Map<String, Object>>) queryVal,
-                (java.util.List<java.util.Map<String, Object>>) caseVal, ts, windowSize).score();
+                (java.util.List<java.util.Map<String, Object>>) caseVal, ts, constraint).score();
     }
 
     @SuppressWarnings("unchecked")

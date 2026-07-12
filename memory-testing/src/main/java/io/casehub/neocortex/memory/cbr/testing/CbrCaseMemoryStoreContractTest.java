@@ -1421,7 +1421,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                                    FeatureField.categorical("race"),
                                                    FeatureField.numeric("mmr", 0, 8000),
                                                    FeatureField.timeSeries("economyCurve", "minute",
-                                                                           new SimilaritySpec.DtwSpec(5),
+                                                                           new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(5)),
                                                                            FeatureField.numeric("minute", 0, 30),
                                                                            FeatureField.numeric("economy", 0, 500),
                                                                            FeatureField.numeric("army", 0, 200),
@@ -1461,7 +1461,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void temporal_discreteSequence_dtwSpec_rejectedBySchema() {
         assertThatThrownBy(() -> store().registerSchema(CbrFeatureSchema.of("bad-ds",
-                                                                            FeatureField.discreteSequence("phases", new SimilaritySpec.DtwSpec(3)))))
+                                                                            FeatureField.discreteSequence("phases", new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(3))))))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

@@ -11,20 +11,19 @@ public final class DtwSimilarity {
     public static DtwResult compute(List<Map<String, Object>> query,
                                     List<Map<String, Object>> caseSeq,
                                     FeatureField.TimeSeries schema) {
-        return compute(query, caseSeq, schema, null);
+        return compute(query, caseSeq, schema, new WarpingConstraint.Unconstrained());
     }
 
     public static DtwResult compute(List<Map<String, Object>> query,
                                     List<Map<String, Object>> caseSeq,
                                     FeatureField.TimeSeries schema,
-                                    Integer windowSize) {
+                                    WarpingConstraint constraint) {
         int n = query.size();
         int m = caseSeq.size();
         if (n == 0 && m == 0) {return new DtwResult(1.0, List.of());}
         if (n == 0 || m == 0) {return new DtwResult(0.0, List.of());}
 
         List<FeatureField.Numeric> numericFields = scorableNumericFields(schema);
-        int                        w             = windowSize == null ? Math.max(n, m) : Math.max(windowSize, Math.abs(n - m));
 
         double[][] cost = new double[n + 1][m + 1];
         for (int i = 0; i <= n; i++) {
@@ -35,8 +34,9 @@ public final class DtwSimilarity {
         cost[0][0] = 0.0;
 
         for (int i = 1; i <= n; i++) {
-            int jStart = Math.max(1, i - w);
-            int jEnd   = Math.min(m, i + w);
+            int jStart = computeJStart(i, n, m, constraint);
+            int jEnd   = computeJEnd(i, n, m, constraint);
+            if (jStart > jEnd) {return new DtwResult(0.0, List.of());}
             for (int j = jStart; j <= jEnd; j++) {
                 double dist = observationDistance(query.get(i - 1), caseSeq.get(j - 1), numericFields);
                 cost[i][j] = dist + Math.min(cost[i - 1][j],
@@ -48,11 +48,12 @@ public final class DtwSimilarity {
         double normalized  = dtwDistance / Math.max(n, m);
         double score       = 1.0 / (1.0 + normalized);
 
-        List<AlignmentPair> path = backtrace(cost, n, m, w);
+        List<AlignmentPair> path = backtrace(cost, n, m, constraint);
         return new DtwResult(score, path);
     }
 
-    private static List<AlignmentPair> backtrace(double[][] cost, int n, int m, int w) {
+    private static List<AlignmentPair> backtrace(double[][] cost, int n, int m,
+                                                 WarpingConstraint constraint) {
         List<AlignmentPair> path = new ArrayList<>();
         int                 i    = n, j = m;
         while (i > 0 || j > 0) {
@@ -75,7 +76,41 @@ public final class DtwSimilarity {
                 j--;
             }
         }
-        return List.copyOf(path.reversed());}
+        return List.copyOf(path.reversed());
+    }
+
+    private static int computeJStart(int i, int n, int m, WarpingConstraint constraint) {
+        return switch (constraint) {
+            case WarpingConstraint.Unconstrained u -> 1;
+            case WarpingConstraint.SakoeChibaBand sc -> {
+                int w = Math.max(sc.windowSize(), Math.abs(n - m));
+                yield Math.max(1, i - w);
+            }
+            case WarpingConstraint.ItakuraParallelogram ip -> {
+                double s          = ip.maxSlope();
+                int    fromOrigin = (int) Math.ceil(i / s);
+                int    fromEnd    = (int) Math.ceil(m - s * (n - i));
+                yield Math.max(1, Math.max(fromOrigin, fromEnd));
+            }
+        };
+    }
+
+    private static int computeJEnd(int i, int n, int m, WarpingConstraint constraint) {
+        return switch (constraint) {
+            case WarpingConstraint.Unconstrained u -> m;
+            case WarpingConstraint.SakoeChibaBand sc -> {
+                int w = Math.max(sc.windowSize(), Math.abs(n - m));
+                yield Math.min(m, i + w);
+            }
+            case WarpingConstraint.ItakuraParallelogram ip -> {
+                double s          = ip.maxSlope();
+                int    fromOrigin = (int) Math.floor(s * i);
+                int    fromEnd    = (int) Math.floor(m - (n - i) / s);
+                yield Math.min(m, Math.min(fromOrigin, fromEnd));
+            }
+        };
+    }
+
 
     static List<FeatureField.Numeric> scorableNumericFields(FeatureField.TimeSeries schema) {
         List<FeatureField.Numeric> result = new ArrayList<>();

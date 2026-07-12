@@ -41,11 +41,9 @@ public sealed interface SimilaritySpec permits SimilaritySpec.CategoricalTable,
         }
     }
 
-    record DtwSpec(Integer windowSize) implements SimilaritySpec {
+    record DtwSpec(WarpingConstraint constraint) implements SimilaritySpec {
         public DtwSpec {
-            if (windowSize != null && windowSize < 1) {
-                throw new IllegalArgumentException("windowSize must be >= 1, got: " + windowSize);
-            }
+            Objects.requireNonNull(constraint, "constraint");
         }
     }
 

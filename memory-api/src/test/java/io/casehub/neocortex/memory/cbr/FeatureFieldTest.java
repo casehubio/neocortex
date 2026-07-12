@@ -385,11 +385,10 @@ class FeatureFieldTest {
                 .hasMessageContaining("DiscreteSequence");
     }
 
-    // --- TimeSeries SimilaritySpec ---
     @Test
     void timeSeries_dtwSpec_accepted() {
         var field = FeatureField.timeSeries("curve", "t",
-                                            new SimilaritySpec.DtwSpec(5),
+                                            new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(5)),
                                             FeatureField.numeric("t", 0, 30),
                                             FeatureField.numeric("val", 0, 100));
         assertThat(((FeatureField.TimeSeries) field).similaritySpec())
@@ -426,7 +425,7 @@ class FeatureFieldTest {
     @Test
     void discreteSequence_dtwSpec_rejected() {
         assertThatThrownBy(() -> FeatureField.discreteSequence("phases",
-                                                               new SimilaritySpec.DtwSpec(5)))
+                                                               new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(5))))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("EditDistanceSpec");
     }

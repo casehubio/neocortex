@@ -186,31 +186,28 @@ class SimilaritySpecTest {
         assertThat(t1).isEqualTo(t2);
     }
 
-    // --- DtwSpec ---
     @Test
-    void dtwSpec_nullWindowSize_accepted() {
-        var spec = new SimilaritySpec.DtwSpec(null);
-        assertThat(spec.windowSize()).isNull();
+    void dtwSpec_unconstrained_accepted() {
+        var spec = new SimilaritySpec.DtwSpec(new WarpingConstraint.Unconstrained());
+        assertThat(spec.constraint()).isInstanceOf(WarpingConstraint.Unconstrained.class);
     }
 
     @Test
-    void dtwSpec_positiveWindowSize_accepted() {
-        var spec = new SimilaritySpec.DtwSpec(5);
-        assertThat(spec.windowSize()).isEqualTo(5);
+    void dtwSpec_sakoeChibaBand_accepted() {
+        var spec = new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(5));
+        assertThat(spec.constraint()).isInstanceOf(WarpingConstraint.SakoeChibaBand.class);
     }
 
     @Test
-    void dtwSpec_zeroWindowSize_rejected() {
-        assertThatThrownBy(() -> new SimilaritySpec.DtwSpec(0))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("windowSize must be >= 1");
+    void dtwSpec_nullConstraint_rejected() {
+        assertThatThrownBy(() -> new SimilaritySpec.DtwSpec(null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    void dtwSpec_negativeWindowSize_rejected() {
-        assertThatThrownBy(() -> new SimilaritySpec.DtwSpec(-3))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("windowSize must be >= 1");
+    void dtwSpec_itakuraParallelogram_accepted() {
+        var spec = new SimilaritySpec.DtwSpec(new WarpingConstraint.ItakuraParallelogram(2.0));
+        assertThat(spec.constraint()).isInstanceOf(WarpingConstraint.ItakuraParallelogram.class);
     }
 
     // --- EditDistanceSpec ---
