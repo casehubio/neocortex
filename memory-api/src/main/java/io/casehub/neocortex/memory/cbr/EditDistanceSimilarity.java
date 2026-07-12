@@ -7,18 +7,27 @@ public final class EditDistanceSimilarity {
     private EditDistanceSimilarity() {}
 
     public static EditDistanceResult compute(List<String> query, List<String> caseSeq) {
-        return compute(query, caseSeq, null);
+        return compute(query, caseSeq, null, null, null);
     }
 
     public static EditDistanceResult compute(List<String> query, List<String> caseSeq,
                                              java.util.Map<String, java.util.Map<String, Double>> substitutionSimilarities) {
-        int n = query.size();
-        int m = caseSeq.size();
+        return compute(query, caseSeq, substitutionSimilarities, null, null);
+    }
+
+    public static EditDistanceResult compute(List<String> query, List<String> caseSeq,
+                                             java.util.Map<String, java.util.Map<String, Double>> substitutionSimilarities,
+                                             Double insertCost, Double deleteCost) {
+        int    n      = query.size();
+        int    m      = caseSeq.size();
+        double effIns = insertCost != null ? insertCost : 1.0;
+        double effDel = deleteCost != null ? deleteCost : 1.0;
+
         if (n == 0 && m == 0) {return new EditDistanceResult(1.0, List.of());}
 
         double[][] dp = new double[n + 1][m + 1];
-        for (int i = 0; i <= n; i++) {dp[i][0] = i;}
-        for (int j = 0; j <= m; j++) {dp[0][j] = j;}
+        for (int i = 0; i <= n; i++) {dp[i][0] = i * effDel;}
+        for (int j = 0; j <= m; j++) {dp[0][j] = j * effIns;}
 
         for (int i = 1; i <= n; i++) {
             for (int j = 1; j <= m; j++) {
@@ -30,17 +39,24 @@ public final class EditDistanceSimilarity {
                 } else {
                     subCost = 1.0 - lookupSimilarity(qLabel, cLabel, substitutionSimilarities);
                 }
-                dp[i][j] = Math.min(dp[i - 1][j] + 1.0,
-                                    Math.min(dp[i][j - 1] + 1.0, dp[i - 1][j - 1] + subCost));
+                dp[i][j] = Math.min(dp[i - 1][j] + effDel,
+                                    Math.min(dp[i][j - 1] + effIns, dp[i - 1][j - 1] + subCost));
             }
         }
 
         double editDistance = dp[n][m];
-        double score        = 1.0 - (editDistance / Math.max(n, m));
+        double maxDist;
+        if (1.0 <= effDel + effIns) {
+            maxDist = Math.min(n, m) + Math.max(0, n - m) * effDel + Math.max(0, m - n) * effIns;
+        } else {
+            maxDist = n * effDel + m * effIns;
+        }
+        double score = maxDist > 0 ? Math.max(0.0, 1.0 - editDistance / maxDist) : 1.0;
 
         List<EditStep> path = backtrace(dp, query, caseSeq);
         return new EditDistanceResult(score, path);
     }
+
 
     private static List<EditStep> backtrace(double[][] dp, List<String> query, List<String> caseSeq) {
         var path = new java.util.ArrayList<EditStep>();

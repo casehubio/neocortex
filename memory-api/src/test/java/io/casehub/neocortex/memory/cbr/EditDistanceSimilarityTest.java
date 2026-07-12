@@ -190,4 +190,55 @@ class EditDistanceSimilarityTest {
                 List.of("A", "A"), List.of("B", "C"), subSim);
         assertThat(result.alignment()).anyMatch(
                 s -> s.operation() == EditOp.SUBSTITUTE);}
+
+    @Test
+    void variableCosts_unitCosts_backwardCompatible() {
+        var withNull = EditDistanceSimilarity.compute(
+                List.of("A", "B"), List.of("X", "Y"), null, null, null);
+        var withExplicit = EditDistanceSimilarity.compute(
+                List.of("A", "B"), List.of("X", "Y"), null, 1.0, 1.0);
+        assertThat(withNull.score()).isEqualTo(withExplicit.score());
+    }
+
+    @Test
+    void variableCosts_highInsertCost_penalizesInsertions() {
+        var baseline = EditDistanceSimilarity.compute(
+                List.of("A"), List.of("A", "B", "C"), null, null, null);
+        var highInsert = EditDistanceSimilarity.compute(
+                List.of("A"), List.of("A", "B", "C"), null, 3.0, 1.0);
+        assertThat(highInsert.score()).isLessThan(baseline.score());
+    }
+
+    @Test
+    void variableCosts_highDeleteCost_penalizesDeletions() {
+        var baseline = EditDistanceSimilarity.compute(
+                List.of("A", "B", "C"), List.of("A"), null, null, null);
+        var highDelete = EditDistanceSimilarity.compute(
+                List.of("A", "B", "C"), List.of("A"), null, 1.0, 3.0);
+        assertThat(highDelete.score()).isLessThan(baseline.score());
+    }
+
+    @Test
+    void variableCosts_cheapDelIns_preferOverSub() {
+        var result = EditDistanceSimilarity.compute(
+                List.of("A", "B"), List.of("A", "X"), null, 0.3, 0.3);
+        assertThat(result.score()).isGreaterThan(0.0);
+        assertThat(result.score()).isLessThan(1.0);
+    }
+
+    @Test
+    void variableCosts_scoreAlwaysInZeroOne() {
+        var result = EditDistanceSimilarity.compute(
+                List.of("A", "B", "C"), List.of("X", "Y", "Z", "W"), null, 2.5, 0.5);
+        assertThat(result.score()).isBetween(0.0, 1.0);
+    }
+
+    @Test
+    void variableCosts_bothEmpty_perfectScore() {
+        var result = EditDistanceSimilarity.compute(
+                List.of(), List.of(), null, 2.0, 3.0);
+        assertThat(result.score()).isEqualTo(1.0);
+    }
+
+
 }

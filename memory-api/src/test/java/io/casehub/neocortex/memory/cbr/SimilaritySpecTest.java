@@ -247,6 +247,35 @@ class SimilaritySpecTest {
                 .hasMessageContaining("Conflicting");
     }
 
+    @Test
+    void editDistanceSpec_withCosts_accepted() {
+        var spec = new SimilaritySpec.EditDistanceSpec(Map.of(), 2.0, 0.5);
+        assertThat(spec.insertCost()).isEqualTo(2.0);
+        assertThat(spec.deleteCost()).isEqualTo(0.5);
+    }
+
+    @Test
+    void editDistanceSpec_nullCosts_accepted() {
+        var spec = new SimilaritySpec.EditDistanceSpec(Map.of(), null, null);
+        assertThat(spec.insertCost()).isNull();
+        assertThat(spec.deleteCost()).isNull();
+    }
+
+    @Test
+    void editDistanceSpec_zeroInsertCost_rejected() {
+        assertThatThrownBy(() -> new SimilaritySpec.EditDistanceSpec(Map.of(), 0.0, 1.0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("insertCost");
+    }
+
+    @Test
+    void editDistanceSpec_negativeDeleteCost_rejected() {
+        assertThatThrownBy(() -> new SimilaritySpec.EditDistanceSpec(Map.of(), 1.0, -0.5))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("deleteCost");
+    }
+
+
     // --- NaN fix (pre-existing bug in CategoricalTable) ---
     @Test
     void categoricalTable_nanScore_rejected() {

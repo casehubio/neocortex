@@ -47,10 +47,21 @@ public sealed interface SimilaritySpec permits SimilaritySpec.CategoricalTable,
         }
     }
 
-    record EditDistanceSpec(Map<String, Map<String, Double>> substitutionSimilarities) implements SimilaritySpec {
+    record EditDistanceSpec(Map<String, Map<String, Double>> substitutionSimilarities,
+                            Double insertCost, Double deleteCost) implements SimilaritySpec {
         public EditDistanceSpec {
             Objects.requireNonNull(substitutionSimilarities, "substitutionSimilarities");
             substitutionSimilarities = validateAndMirrorSimilarityMap(substitutionSimilarities);
+            if (insertCost != null && insertCost <= 0) {
+                throw new IllegalArgumentException("insertCost must be > 0, got: " + insertCost);
+            }
+            if (deleteCost != null && deleteCost <= 0) {
+                throw new IllegalArgumentException("deleteCost must be > 0, got: " + deleteCost);
+            }
+        }
+
+        public EditDistanceSpec(Map<String, Map<String, Double>> substitutionSimilarities) {
+            this(substitutionSimilarities, null, null);
         }
     }
 

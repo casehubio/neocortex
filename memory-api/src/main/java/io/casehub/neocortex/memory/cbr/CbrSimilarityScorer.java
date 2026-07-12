@@ -173,12 +173,17 @@ public final class CbrSimilarityScorer {
     @SuppressWarnings("unchecked")
     private static double editDistanceSimilarity(FeatureField.DiscreteSequence ds,
                                                  Object queryVal, Object caseVal) {
-        java.util.Map<String, java.util.Map<String, Double>> subSim =
-                ds.similaritySpec() instanceof SimilaritySpec.EditDistanceSpec es
-                ? es.substitutionSimilarities() : null;
+        java.util.Map<String, java.util.Map<String, Double>> subSim     = null;
+        Double                                               insertCost = null;
+        Double                                               deleteCost = null;
+        if (ds.similaritySpec() instanceof SimilaritySpec.EditDistanceSpec es) {
+            subSim     = es.substitutionSimilarities();
+            insertCost = es.insertCost();
+            deleteCost = es.deleteCost();
+        }
         return EditDistanceSimilarity.compute(
                 (java.util.List<String>) queryVal,
-                (java.util.List<String>) caseVal, subSim).score();
+                (java.util.List<String>) caseVal, subSim, insertCost, deleteCost).score();
     }
 
     private static FeatureField findField(CbrFeatureSchema schema, String name) {
