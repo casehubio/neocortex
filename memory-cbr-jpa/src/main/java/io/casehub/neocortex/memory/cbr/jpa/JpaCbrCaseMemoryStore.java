@@ -13,8 +13,8 @@ import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
+import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.NumericRange;
 import io.casehub.neocortex.memory.cbr.PlanCbrCase;
 import io.casehub.neocortex.memory.cbr.PlanTrace;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
@@ -79,7 +79,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         entity.solution = cbrCase.solution();
         entity.outcome = cbrCase.outcome();
         entity.confidence = cbrCase.confidence();
-        entity.features = serializeJson(cbrCase.features());
+        entity.features = serializeJson(FeatureValue.toRawMap(cbrCase.features()));
         entity.storedAt = Instant.now();
 
         if (cbrCase instanceof PlanCbrCase plan && !plan.planTrace().isEmpty()) {
@@ -177,7 +177,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     private CbrCase reconstruct(CbrCaseEntity entity) {
-        Map<String, Object> features = deserializeMap(entity.features);
+        Map<String, FeatureValue> features = FeatureValue.toFeatureMap(deserializeMap(entity.features));
         return switch (entity.cbrType) {
             case "plan" -> new PlanCbrCase(
                     entity.problem, entity.solution, entity.outcome, entity.confidence,
@@ -194,64 +194,62 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
     @SuppressWarnings("unchecked")
     private boolean matchesFilters(CbrCase storedCase, Map<String, CbrFilter> filters,
                                    CbrFeatureSchema schema) {
-        if (filters.isEmpty()) return true;
+        if (filters.isEmpty()) {return true;}
         for (var entry : filters.entrySet()) {
-            String fieldName = entry.getKey();
-            CbrFilter filter = entry.getValue();
-            Object storedValue = storedCase.features().get(fieldName);
-            if (storedValue == null) return false;
+            String       fieldName   = entry.getKey();
+            CbrFilter    filter      = entry.getValue();
+            FeatureValue storedValue = storedCase.features().get(fieldName);
+            if (storedValue == null) {return false;}
 
             FeatureField field = CbrFeatureValidator.findField(schema, fieldName);
-            if (!matchesSingleFilter(storedValue, filter, field)) return false;
+            if (!matchesSingleFilter(storedValue, filter, field)) {return false;}
         }
         return true;
     }
 
-    private boolean matchesSingleFilter(Object storedValue, CbrFilter filter, FeatureField field) {
+    private boolean matchesSingleFilter(FeatureValue storedValue, CbrFilter filter, FeatureField field) {
         return switch (filter) {
-            case CbrFilter.Contains c -> storedValue instanceof List<?> list && list.contains(c.value());
-            case CbrFilter.ContainsAll ca -> storedValue instanceof List<?> list && list.containsAll(ca.values());
-            case CbrFilter.ContainsAny ca -> storedValue instanceof List<?> list && ca.values().stream().anyMatch(list::contains);
-            case CbrFilter.NotContains nc -> storedValue instanceof List<?> list && !list.contains(nc.value());
-            case CbrFilter.NotContainsAny nca -> storedValue instanceof List<?> list && nca.values().stream().noneMatch(list::contains);
-            case CbrFilter.ContainsRange cr -> storedValue instanceof List<?> list && list.stream()
-                    .filter(Number.class::isInstance).map(Number.class::cast)
-                    .anyMatch(n -> n.doubleValue() >= cr.range().min() && n.doubleValue() <= cr.range().max());
+            case CbrFilter.Contains c -> storedValue instanceof FeatureValue.StringListVal sl && sl.values().contains(c.value());
+            case CbrFilter.ContainsAll ca -> storedValue instanceof FeatureValue.StringListVal sl && sl.values().containsAll(ca.values());
+            case CbrFilter.ContainsAny ca -> storedValue instanceof FeatureValue.StringListVal sl && ca.values().stream().anyMatch(sl.values()::contains);
+            case CbrFilter.NotContains nc -> storedValue instanceof FeatureValue.StringListVal sl && !sl.values().contains(nc.value());
+            case CbrFilter.NotContainsAny nca -> storedValue instanceof FeatureValue.StringListVal sl && nca.values().stream().noneMatch(sl.values()::contains);
+            case CbrFilter.ContainsRange cr -> storedValue instanceof FeatureValue.NumberListVal nl && nl.values().stream()
+                                                                                                         .anyMatch(n -> n >= cr.range().min() && n <= cr.range().max());
             case CbrFilter.HasMatch hm -> matchesHasMatch(storedValue, hm, field);
             case CbrFilter.AllOf allOf -> {
                 for (CbrFilter inner : allOf.filters()) {
-                    if (!matchesSingleFilter(storedValue, inner, field)) yield false;
+                    if (!matchesSingleFilter(storedValue, inner, field)) {yield false;}
                 }
                 yield true;
             }
         };
     }
 
-    private boolean matchesHasMatch(Object storedValue, CbrFilter.HasMatch hm, FeatureField field) {
+    private boolean matchesHasMatch(FeatureValue storedValue, CbrFilter.HasMatch hm, FeatureField field) {
         if (field instanceof FeatureField.ObjectList) {
-            if (!(storedValue instanceof List<?> list)) return false;
-            return list.stream().anyMatch(elem ->
-                    elem instanceof Map<?, ?> map && allSubFieldsMatch(map, hm.subFields()));
+            if (!(storedValue instanceof FeatureValue.StructListVal sl)) {return false;}
+            return sl.items().stream().anyMatch(elem -> allSubFieldsMatch(elem, hm.subFields()));
         } else {
-            if (!(storedValue instanceof Map<?, ?> map)) return false;
-            return allSubFieldsMatch(map, hm.subFields());
+            if (!(storedValue instanceof FeatureValue.StructVal sv)) {return false;}
+            return allSubFieldsMatch(sv.fields(), hm.subFields());
         }
     }
 
-    private boolean allSubFieldsMatch(Map<?, ?> stored, Map<String, Object> subFields) {
+    private boolean allSubFieldsMatch(Map<String, FeatureValue> stored, Map<String, FeatureValue> subFields) {
         for (var sub : subFields.entrySet()) {
-            Object storedVal = stored.get(sub.getKey());
-            if (storedVal == null) return false;
-            Object queryVal = sub.getValue();
-            if (queryVal instanceof NumericRange range) {
-                if (!(storedVal instanceof Number num)) return false;
-                double d = num.doubleValue();
-                if (d < range.min() || d > range.max()) return false;
-            } else if (queryVal instanceof Number qn) {
-                if (!(storedVal instanceof Number sn)) return false;
-                if (Double.compare(qn.doubleValue(), sn.doubleValue()) != 0) return false;
+            FeatureValue storedVal = stored.get(sub.getKey());
+            if (storedVal == null) {return false;}
+            FeatureValue queryVal = sub.getValue();
+            if (queryVal instanceof FeatureValue.RangeVal range) {
+                if (!(storedVal instanceof FeatureValue.NumberVal num)) {return false;}
+                double d = num.value();
+                if (d < range.min() || d > range.max()) {return false;}
+            } else if (queryVal instanceof FeatureValue.NumberVal qn) {
+                if (!(storedVal instanceof FeatureValue.NumberVal sn)) {return false;}
+                if (Double.compare(qn.value(), sn.value()) != 0) {return false;}
             } else {
-                if (!queryVal.equals(storedVal)) return false;
+                if (!queryVal.equals(storedVal)) {return false;}
             }
         }
         return true;

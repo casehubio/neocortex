@@ -64,12 +64,28 @@ public sealed interface FeatureValue {
         if (value instanceof FeatureValue fv) {return fv;}
         if (value instanceof String s) {return string(s);}
         if (value instanceof Number n) {return number(n.doubleValue());}
+        if (value instanceof Map<?, ?> map) {
+            var fields = new java.util.LinkedHashMap<String, FeatureValue>(map.size());
+            map.forEach((k, v) -> {if (v != null) {fields.put(k.toString(), of(v));}});
+            return struct(fields);
+        }
         if (value instanceof List<?> list) {
             if (list.isEmpty()) {return stringList(List.of());}
             Object first = list.getFirst();
             if (first instanceof String) {return stringList((List<String>) list);}
             if (first instanceof Number) {
                 return numberList(list.stream().map(e -> ((Number) e).doubleValue()).toList());
+            }
+            if (first instanceof Map) {
+                return structList(list.stream()
+                                      .map(e -> {
+                                          var itemFields = new java.util.LinkedHashMap<String, FeatureValue>();
+                                          ((Map<?, ?>) e).forEach((k, v) -> {
+                                              if (v != null) {itemFields.put(k.toString(), of(v));}
+                                          });
+                                          return (Map<String, FeatureValue>) (Map<String, ?>) itemFields;
+                                      })
+                                      .toList());
             }
             throw new IllegalArgumentException("unsupported list element type: " + first.getClass().getName());
         }
@@ -81,5 +97,24 @@ public sealed interface FeatureValue {
         raw.forEach((k, v) -> {if (v != null) {result.put(k, of(v));}});
         return result;
     }
+
+    default Object toRawValue() {
+        return switch (this) {
+            case StringVal sv -> sv.value();
+            case NumberVal nv -> nv.value();
+            case RangeVal rv -> Map.of("min", rv.min(), "max", rv.max());
+            case StringListVal sl -> sl.values();
+            case NumberListVal nl -> nl.values();
+            case StructVal sv -> toRawMap(sv.fields());
+            case StructListVal sl -> sl.items().stream().map(FeatureValue::toRawMap).toList();
+        };
+    }
+
+    static Map<String, Object> toRawMap(Map<String, FeatureValue> features) {
+        var result = new java.util.LinkedHashMap<String, Object>(features.size());
+        features.forEach((k, v) -> result.put(k, v.toRawValue()));
+        return result;
+    }
+
 
 }
