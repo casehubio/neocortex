@@ -113,4 +113,11 @@ public record CbrQuery(
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
                             minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
     }
+
+    public CbrQuery withFeatures(Map<String, FeatureValue> features) {
+        return new CbrQuery(tenantId, domain, caseType, features, filters, weights,
+                            topK, minSimilarity, notBefore, problem, vectorWeight,
+                            retrievalMode, fusionStrategy, temporalDecay);
+    }
+
 }

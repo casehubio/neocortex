@@ -105,9 +105,14 @@ public sealed interface FeatureField permits FeatureField.Categorical, FeatureFi
     }
 
     record TimeSeries(String name, List<FeatureField> innerFields, String timestampField,
-                      SimilaritySpec similaritySpec) implements FeatureField {
+                      SimilaritySpec similaritySpec, TrendSpec trendSpec) implements FeatureField {
         public TimeSeries(String name, List<FeatureField> innerFields, String timestampField) {
-            this(name, innerFields, timestampField, null);
+            this(name, innerFields, timestampField, null, null);
+        }
+
+        public TimeSeries(String name, List<FeatureField> innerFields, String timestampField,
+                          SimilaritySpec similaritySpec) {
+            this(name, innerFields, timestampField, similaritySpec, null);
         }
 
         public TimeSeries {
@@ -274,5 +279,11 @@ public sealed interface FeatureField permits FeatureField.Categorical, FeatureFi
     static FeatureField discreteSequence(String name, SimilaritySpec spec) {
         return new DiscreteSequence(name, spec);
     }
+
+    static FeatureField timeSeries(String name, String timestampField,
+                                   SimilaritySpec spec, TrendSpec trendSpec, FeatureField... innerFields) {
+        return new TimeSeries(name, List.of(innerFields), timestampField, spec, trendSpec);
+    }
+
 
 }

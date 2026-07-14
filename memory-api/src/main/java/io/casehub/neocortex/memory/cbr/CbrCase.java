@@ -13,4 +13,10 @@ public interface CbrCase {
 
     CbrCase withOutcome(String outcome, Double confidence);
 
+    default CbrCase withFeatures(Map<String, FeatureValue> features) {
+        throw new UnsupportedOperationException(
+                getClass().getSimpleName() + " does not support withFeatures");
+    }
+
+
 }

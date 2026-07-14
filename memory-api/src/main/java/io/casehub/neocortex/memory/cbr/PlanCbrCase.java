@@ -31,4 +31,10 @@ public record PlanCbrCase(String problem, String solution,
     public CbrCase withOutcome(String outcome, Double confidence) {
         return new PlanCbrCase(problem(), solution(), outcome, confidence, features(), planTrace());
     }
+
+    @Override
+    public CbrCase withFeatures(Map<String, FeatureValue> features) {
+        return new PlanCbrCase(problem(), solution(), outcome(), confidence(), features, planTrace());
+    }
+
 }

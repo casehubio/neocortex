@@ -10,7 +10,6 @@ import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
-import io.casehub.neocortex.memory.cbr.TemporalDecay;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
@@ -19,6 +18,9 @@ import io.casehub.neocortex.memory.cbr.PlanCbrCase;
 import io.casehub.neocortex.memory.cbr.PlanTrace;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
+import io.casehub.neocortex.memory.cbr.TemporalDecay;
+import io.casehub.neocortex.memory.cbr.TrendSpec;
+import io.casehub.neocortex.memory.cbr.TrendType;
 import io.casehub.neocortex.memory.cbr.TextualCbrCase;
 import io.casehub.neocortex.memory.cbr.WarpingConstraint;
 import org.junit.jupiter.api.BeforeEach;
@@ -1996,4 +1998,102 @@ public abstract class CbrCaseMemoryStoreContractTest {
         assertThat(decayed.topK()).isEqualTo(5);
         assertThat(decayed.temporalDecay()).isInstanceOf(TemporalDecay.HalfLife.class);
     }
+// ── Trend detection ──────────────────────────────────────────────────
+
+    private void registerTrendSchema() {
+        store().registerSchema(CbrFeatureSchema.of("trend-clinical",
+                                                   FeatureField.categorical("drug"),
+                                                   FeatureField.timeSeries("vitals", "t",
+                                                                           null,
+                                                                           new TrendSpec(java.util.Set.of(TrendType.SLOPE, TrendType.DELTA), java.time.temporal.ChronoUnit.HOURS),
+                                                                           FeatureField.numeric("t", 0, 100),
+                                                                           FeatureField.numeric("hr", 40, 200))));
+    }
+
+    private String storeTrendCase(String problem, Map<String, FeatureValue> features, String caseId) {
+        return store().store(
+                new FeatureVectorCbrCase(problem, "solution", null, null, features),
+                "trend-clinical", ENTITY, CBR, TENANT, caseId);
+    }
+
+    @Test
+    void trend_schemaWithTrendSpec_expandsDerivedFields() {
+        registerTrendSchema();
+    }
+
+    @Test
+    void trend_enrichment_storeWithTrendSpec_derivedFieldsPopulated() {
+        registerTrendSchema();
+        var obs = java.util.List.of(
+                Map.<String, FeatureValue>of("t", number(0), "hr", number(60)),
+                Map.<String, FeatureValue>of("t", number(1), "hr", number(80)));
+        storeTrendCase("escalating", Map.of(
+                "drug", string("aspirin"),
+                "vitals", structList(obs)), null);
+
+        var query = CbrQuery.of(TENANT, CBR, "trend-clinical",
+                                Map.of("drug", string("aspirin"),
+                                       "vitals", structList(obs)), 10);
+        var results = store().retrieveSimilar(query, FeatureVectorCbrCase.class);
+        assertThat(results).isNotEmpty();
+        assertThat(results.getFirst().score()).isGreaterThan(0.0);
+    }
+
+    @Test
+    void trend_slope_similarSlopesScoreHigher() {
+        registerTrendSchema();
+        var rising = java.util.List.of(
+                Map.<String, FeatureValue>of("t", number(0), "hr", number(60)),
+                Map.<String, FeatureValue>of("t", number(1), "hr", number(80)));
+        var flat = java.util.List.of(
+                Map.<String, FeatureValue>of("t", number(0), "hr", number(70)),
+                Map.<String, FeatureValue>of("t", number(1), "hr", number(70)));
+        storeTrendCase("rising", Map.of("drug", string("aspirin"), "vitals", structList(rising)), "c1");
+        storeTrendCase("flat", Map.of("drug", string("aspirin"), "vitals", structList(flat)), "c2");
+
+        var queryObs = java.util.List.of(
+                Map.<String, FeatureValue>of("t", number(0), "hr", number(65)),
+                Map.<String, FeatureValue>of("t", number(1), "hr", number(85)));
+        var query = CbrQuery.of(TENANT, CBR, "trend-clinical",
+                                Map.of("drug", string("aspirin"), "vitals", structList(queryObs)), 10)
+                            .withWeight("vitals_slope_hr", 5.0);
+        var results = store().retrieveSimilar(query, FeatureVectorCbrCase.class);
+        assertThat(results).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(results.getFirst().cbrCase().problem()).isEqualTo("rising");
+    }
+
+    @Test
+    void trend_noTrendSpec_noDerivedFields() {
+        registerTemporalSchema();
+        storeTemporalCase("test", Map.of(
+                "race", string("Terran"),
+                "economyCurve", structList(java.util.List.of(
+                        Map.<String, FeatureValue>of("minute", number(0), "economy", number(100), "army", number(10), "posture", string("def")),
+                        Map.<String, FeatureValue>of("minute", number(5), "economy", number(200), "army", number(20), "posture", string("atk")))),
+                "phaseProgression", stringList("early", "mid")), null);
+
+        var query = CbrQuery.of(TENANT, CBR, "temporal-game",
+                                Map.of("race", string("Terran"),
+                                       "economyCurve", structList(java.util.List.of(
+                                                Map.<String, FeatureValue>of("minute", number(0), "economy", number(100), "army", number(10), "posture", string("def")),
+                                                Map.<String, FeatureValue>of("minute", number(5), "economy", number(200), "army", number(20), "posture", string("atk")))),
+                                       "phaseProgression", stringList("early", "mid")), 10);
+        var results = store().retrieveSimilar(query, FeatureVectorCbrCase.class);
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    void trend_emptyObservations_trendFeaturesAreZero() {
+        registerTrendSchema();
+        storeTrendCase("empty", Map.of(
+                "drug", string("aspirin"),
+                "vitals", structList(java.util.List.of())), null);
+
+        var query = CbrQuery.of(TENANT, CBR, "trend-clinical",
+                                Map.of("drug", string("aspirin"),
+                                       "vitals", structList(java.util.List.of())), 10);
+        var results = store().retrieveSimilar(query, FeatureVectorCbrCase.class);
+        assertThat(results).isNotEmpty();
+    }
+
 }

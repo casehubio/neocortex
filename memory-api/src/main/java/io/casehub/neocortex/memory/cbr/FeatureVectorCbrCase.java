@@ -27,4 +27,10 @@ public record FeatureVectorCbrCase(String problem, String solution,
     public CbrCase withOutcome(String outcome, Double confidence) {
         return new FeatureVectorCbrCase(problem(), solution(), outcome, confidence, features());
     }
+
+    @Override
+    public CbrCase withFeatures(Map<String, FeatureValue> features) {
+        return new FeatureVectorCbrCase(problem(), solution(), outcome(), confidence(), features);
+    }
+
 }
