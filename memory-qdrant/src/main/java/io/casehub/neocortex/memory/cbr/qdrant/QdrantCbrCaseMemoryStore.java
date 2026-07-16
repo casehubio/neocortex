@@ -19,8 +19,8 @@ import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -126,6 +126,16 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
         return null;
     }
+
+    private static Instant extractStoredAt(Map<String, Value> payload) {
+        Value v = payload.get("_stored_at");
+        if (v != null && v.hasIntegerValue()) {
+            long millis = v.getIntegerValue();
+            return millis > 0 ? Instant.ofEpochMilli(millis) : null;
+        }
+        return null;
+    }
+
 
     private static Double extractDouble(Map<String, Value> payload, String key) {
         Value v = payload.get(key);
@@ -301,7 +311,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             double score = CbrSimilarityScorer.score(
                     query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
             if (score >= query.minSimilarity()) {
-                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score));
+                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score, false, Map.of(), rc.storedAt()));
             }
         }
 
@@ -320,7 +330,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 C cbrCase = (C) reconstructCase(point.getPayloadMap(), caseClass);
                 if (cbrCase != null && point.getScore() >= query.minSimilarity()) {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
-                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore()));
+                    Instant storedAt = extractStoredAt(point.getPayloadMap());
+                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore(), false, Map.of(), storedAt));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -375,21 +386,21 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             textSim.precompute(collectSemanticTextValues(query, allCandidates, overrides.keySet()));
         }
 
-        record FusionEntry<C extends CbrCase>(String pointId, C cbrCase, double score, String caseId) {}
+        record FusionEntry<C extends CbrCase>(String pointId, C cbrCase, double score, String caseId, Instant storedAt) {}
 
         // Build feature leg (always present)
         List<FusionEntry<C>> featureLeg = new ArrayList<>();
         for (var rc : allCandidates) {
             double featureScore = CbrSimilarityScorer.score(
                     query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
-            featureLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), featureScore, rc.caseId()));
+            featureLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), featureScore, rc.caseId(), rc.storedAt()));
         }
 
         // Build semantic legs — dense is always present when embeddingModel exists
         List<FusionEntry<C>> denseLeg = new ArrayList<>();
         for (var rc : allCandidates) {
             if (rc.vectorScore() > 0) {
-                denseLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), rc.vectorScore(), rc.caseId()));
+                denseLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), rc.vectorScore(), rc.caseId(), rc.storedAt()));
             }
         }
 
@@ -402,7 +413,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var rc : allCandidates) {
             Float score = spladeScores.get(rc.pointId());
             if (score != null && score > 0) {
-                spladeLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId()));
+                spladeLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId(), rc.storedAt()));
             }
         }
 
@@ -414,7 +425,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var rc : allCandidates) {
             Float score = bm25Scores.get(rc.pointId());
             if (score != null && score > 0) {
-                bm25Leg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId()));
+                bm25Leg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId(), rc.storedAt()));
             }
         }
 
@@ -455,7 +466,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var f : fused) {
             double score = Math.max(-1.0, Math.min(1.0, f.score()));
             if (query.fusionStrategy() == FusionStrategy.RRF || score >= query.minSimilarity()) {
-                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score));
+                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score, false, Map.of(), f.item().storedAt()));
             }
         }
         return Collections.unmodifiableList(results);
@@ -472,8 +483,9 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 C cbrCase = (C) reconstructCase(point.getPayloadMap(), caseClass);
                 if (cbrCase != null) {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
+                    Instant storedAt = extractStoredAt(point.getPayloadMap());
                     map.put(pointId, new ReconstructedCandidate<>(pointId, cbrCase,
-                                                                  useDenseScore ? point.getScore() : 0f, caseId));
+                                                                  useDenseScore ? point.getScore() : 0f, caseId, storedAt));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -490,8 +502,9 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 C cbrCase = (C) reconstructCase(point.getPayloadMap(), caseClass);
                 if (cbrCase != null) {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
+                    Instant storedAt = extractStoredAt(point.getPayloadMap());
                     reconstructed.add(new ReconstructedCandidate<>(
-                            point.getId().getUuid(), cbrCase, point.getScore(), caseId));
+                            point.getId().getUuid(), cbrCase, point.getScore(), caseId, storedAt));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -617,6 +630,72 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 throw new RuntimeException("Interrupted during recordOutcome", e);
             } catch (ExecutionException e) {
                 throw new RuntimeException("recordOutcome failed", e.getCause());
+            }
+        }
+    }
+
+    @Override
+    public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        for (String caseType : schemas.keySet()) {
+            String collection = collectionManager.collectionName(caseType);
+            try {
+                if (!collectionManager.client().collectionExistsAsync(collection).get()) continue;
+                UUID pointUuid = CbrPointBuilder.pointId(tenantId, caseType, caseId);
+                var pointId = PointIdFactory.id(pointUuid);
+                var points = collectionManager.client().retrieveAsync(collection, List.of(pointId), true, false, null).get();
+                if (points.isEmpty()) continue;
+
+                var payload = points.getFirst().getPayloadMap();
+                Map<String, Value> updates = new HashMap<>();
+
+                Value existing = payload.get("_superseded_at");
+                if (existing != null && existing.hasIntegerValue() && existing.getIntegerValue() > 0) {
+                    if (supersedingCaseId != null) updates.put("_superseding_case_id", ValueFactory.value(supersedingCaseId));
+                    if (reason != null) updates.put("_supersession_reason", ValueFactory.value(reason));
+                } else {
+                    updates.put("_superseded_at", ValueFactory.value(Instant.now().toEpochMilli()));
+                    if (supersedingCaseId != null) updates.put("_superseding_case_id", ValueFactory.value(supersedingCaseId));
+                    if (reason != null) updates.put("_supersession_reason", ValueFactory.value(reason));
+                }
+
+                if (!updates.isEmpty()) {
+                    collectionManager.client().setPayloadAsync(collection, updates, (PointId) pointId, null, null, null).get();
+                }
+                return;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted during supersede", e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException("supersede failed", e.getCause());
+            }
+        }
+    }
+
+    @Override
+    public void reinstate(String caseId, String tenantId) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        for (String caseType : schemas.keySet()) {
+            String collection = collectionManager.collectionName(caseType);
+            try {
+                if (!collectionManager.client().collectionExistsAsync(collection).get()) continue;
+                UUID pointUuid = CbrPointBuilder.pointId(tenantId, caseType, caseId);
+                var pointId = PointIdFactory.id(pointUuid);
+                var points = collectionManager.client().retrieveAsync(collection, List.of(pointId), true, false, null).get();
+                if (points.isEmpty()) continue;
+
+                Map<String, Value> updates = new HashMap<>();
+                updates.put("_superseded_at", ValueFactory.value(0L));
+                collectionManager.client().setPayloadAsync(collection, updates, (PointId) pointId, null, null, null).get();
+                collectionManager.client().deletePayloadAsync(collection, List.of("_superseded_at", "_superseding_case_id", "_supersession_reason"), (PointId) pointId, null, null, null).get();
+                return;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted during reinstate", e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException("reinstate failed", e.getCause());
             }
         }
     }
@@ -891,5 +970,5 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
     }
 
-    private record ReconstructedCandidate<C extends CbrCase>(String pointId, C cbrCase, float vectorScore, String caseId) {}
+    private record ReconstructedCandidate<C extends CbrCase>(String pointId, C cbrCase, float vectorScore, String caseId, Instant storedAt) {}
 }

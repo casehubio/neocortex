@@ -65,6 +65,28 @@ class DecoratorChainIntegrationTest {
         assertThat(tracedScores).containsExactly(weightedC2, weightedC1);
     }
 
+    @Test void storedAt_preservedThroughDecoratorChain() {
+        Instant oneHourAgo = Instant.now().minusSeconds(3600);
+        var c = new FeatureVectorCbrCase("p", "s", null, 0.8, Map.of());
+        var baseResults = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
+                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), oneHourAgo));
+
+        CbrCaseMemoryStore base = stubBlockingDelegate(baseResults);
+        CbrCaseMemoryStore weighted = new WeightingWrapper(base,
+                (score, confidence) -> score * (0.7 + 0.3 * confidence));
+        var decayed = new io.casehub.neocortex.memory.cbr.runtime.TemporalDecayCbrCaseMemoryStore(weighted);
+
+        var query = CbrQuery.of("t1", CBR, "default", Map.of(), 5)
+                .withTemporalDecay(new io.casehub.neocortex.memory.cbr.TemporalDecay.HalfLife(java.time.Duration.ofHours(1)));
+        var results = decayed.retrieveSimilar(query, FeatureVectorCbrCase.class);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().storedAt()).isEqualTo(oneHourAgo);
+        double expectedWeighted = 0.9 * (0.7 + 0.3 * 0.8);
+        double expectedDecayed = expectedWeighted * 0.5;
+        assertThat(results.getFirst().score()).isCloseTo(expectedDecayed, org.assertj.core.data.Offset.offset(0.05));
+    }
+
     @Test void reactiveDoubleRecordingGuard_bridgedStore_recordsOnce() {
         var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(new ScoredCbrCase<>(c, "c1", 0.85));
@@ -118,6 +140,8 @@ class DecoratorChainIntegrationTest {
             @Override public Integer eraseEntity(String e, String t) { return 0; }
             @Override public void recordOutcome(String c, String t, CbrOutcome o) {}
             @Override public Integer purge(CbrRetentionPolicy p) { return 0; }
+            @Override public void supersede(String c, String t, String s, String r) {}
+            @Override public void reinstate(String c, String t) {}
         };
     }
 
@@ -131,6 +155,8 @@ class DecoratorChainIntegrationTest {
             @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(0); }
             @Override public Uni<Void> recordOutcome(String c, String t, CbrOutcome o) { return Uni.createFrom().voidItem(); }
             @Override public Uni<Integer> purge(CbrRetentionPolicy p) { return Uni.createFrom().item(0); }
+            @Override public Uni<Void> supersede(String c, String t, String s, String r) { return Uni.createFrom().voidItem(); }
+            @Override public Uni<Void> reinstate(String c, String t) { return Uni.createFrom().voidItem(); }
         };
     }
 
@@ -175,7 +201,7 @@ class DecoratorChainIntegrationTest {
             var weighted = new java.util.ArrayList<ScoredCbrCase<C>>(results.size());
             for (var sc : results) {
                 double conf = sc.cbrCase().confidence() != null ? sc.cbrCase().confidence() : 1.0;
-                weighted.add(new ScoredCbrCase<>(sc.cbrCase(), sc.caseId(), fn.apply(sc.score(), conf), sc.reranked(), sc.featureSimilarities()));
+                weighted.add(sc.withScore(fn.apply(sc.score(), conf)));
             }
             weighted.sort((a, b) -> Double.compare(b.score(), a.score()));
             return Collections.unmodifiableList(weighted);
@@ -184,6 +210,8 @@ class DecoratorChainIntegrationTest {
         @Override public Integer eraseEntity(String e, String t) { return delegate.eraseEntity(e, t); }
         @Override public void recordOutcome(String c, String t, CbrOutcome o) { delegate.recordOutcome(c, t, o); }
         @Override public Integer purge(CbrRetentionPolicy p) { return delegate.purge(p); }
+        @Override public void supersede(String c, String t, String s, String r) { delegate.supersede(c, t, s, r); }
+        @Override public void reinstate(String c, String t) { delegate.reinstate(c, t); }
     }
 
     private static final class BridgedReactiveTestStore implements ReactiveCbrCaseMemoryStore, BridgedCbrStore {
@@ -196,6 +224,8 @@ class DecoratorChainIntegrationTest {
         @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(() -> delegate.eraseEntity(e, t)); }
         @Override public Uni<Void> recordOutcome(String c, String t, CbrOutcome o) { return Uni.createFrom().voidItem().invoke(() -> delegate.recordOutcome(c, t, o)); }
         @Override public Uni<Integer> purge(CbrRetentionPolicy p) { return Uni.createFrom().item(() -> delegate.purge(p)); }
+        @Override public Uni<Void> supersede(String c, String t, String s, String r) { return Uni.createFrom().voidItem().invoke(() -> delegate.supersede(c, t, s, r)); }
+        @Override public Uni<Void> reinstate(String c, String t) { return Uni.createFrom().voidItem().invoke(() -> delegate.reinstate(c, t)); }
     }
 
     private static final class SimpleReactiveCbrRetrievalTracker implements ReactiveCbrRetrievalTracker {

@@ -22,5 +22,7 @@ public interface ReactiveCbrCaseMemoryStore {
 
     Uni<Integer> purge(CbrRetentionPolicy policy);
 
+    Uni<Void> supersede(String caseId, String tenantId, String supersedingCaseId, String reason);
 
+    Uni<Void> reinstate(String caseId, String tenantId);
 }

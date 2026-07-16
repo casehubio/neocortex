@@ -50,4 +50,10 @@ public class NoOpCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return 0;
     }
 
+    @Override
+    public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {}
+
+    @Override
+    public void reinstate(String caseId, String tenantId) {}
+
 }

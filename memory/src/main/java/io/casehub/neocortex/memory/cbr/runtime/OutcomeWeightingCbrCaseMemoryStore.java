@@ -6,8 +6,8 @@ import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.OutcomeWeightingFunction;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.properties.IfBuildProperty;
@@ -57,14 +57,12 @@ public class OutcomeWeightingCbrCaseMemoryStore implements CbrCaseMemoryStore {
         List<ScoredCbrCase<C>> weighted = new ArrayList<>(results.size());
         for (ScoredCbrCase<C> scored : results) {
             double confidence = scored.cbrCase().confidence() != null
-                    ? scored.cbrCase().confidence() : 1.0;
+                                ? scored.cbrCase().confidence() : 1.0;
             double newScore = weightingFunction.apply(scored.score(), confidence);
-            weighted.add(new ScoredCbrCase<>(scored.cbrCase(), scored.caseId(),
-                    newScore, scored.reranked(), scored.featureSimilarities()));
+            weighted.add(scored.withScore(newScore));
         }
         weighted.sort((a, b) -> Double.compare(b.score(), a.score()));
-        return Collections.unmodifiableList(weighted);
-    }
+        return Collections.unmodifiableList(weighted);}
 
     @Override
     public Integer erase(EraseRequest request) {
@@ -84,6 +82,16 @@ public class OutcomeWeightingCbrCaseMemoryStore implements CbrCaseMemoryStore {
     @Override
     public Integer purge(CbrRetentionPolicy policy) {
         return delegate.purge(policy);
+    }
+
+    @Override
+    public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
+    }
+
+    @Override
+    public void reinstate(String caseId, String tenantId) {
+        delegate.reinstate(caseId, tenantId);
     }
 
 }

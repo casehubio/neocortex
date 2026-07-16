@@ -66,7 +66,7 @@ class TrackingCbrCaseMemoryStoreTest {
         var tracker = new InMemoryCbrRetrievalTracker();
         var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
-                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9)));
+                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null));
         var delegate = stubDelegate(results);
         var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, e -> {});
 
@@ -89,6 +89,8 @@ class TrackingCbrCaseMemoryStoreTest {
             @Override public Integer eraseEntity(String e, String t) { return 0; }
             @Override public void recordOutcome(String c, String t, CbrOutcome o) {}
             @Override public Integer purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return 0; }
+            @Override public void supersede(String c, String t, String s, String r) {}
+            @Override public void reinstate(String c, String t) {}
         };
     }
 }

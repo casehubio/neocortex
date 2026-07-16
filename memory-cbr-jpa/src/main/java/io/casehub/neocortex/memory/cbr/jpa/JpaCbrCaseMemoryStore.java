@@ -116,7 +116,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
             CbrFeatureValidator.validateFilters(query.filters(), schema);
         }
 
-        String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct"
+        String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct AND e.supersededAt IS NULL"
                       + (query.notBefore() != null ? " AND e.storedAt >= :nb" : "");
 
         var jpaQuery = em.createQuery(jpql, CbrCaseEntity.class)
@@ -140,12 +140,9 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
                     query.features(), reconstructed.features(), query.weights(), schema, Map.of());
 
             double score = breakdown.score();
-            if (query.temporalDecay() != null) {
-                score *= query.temporalDecay().factor(entity.storedAt, Instant.now());
-            }
             if (score >= query.minSimilarity()) {
                 candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId,
-                                                   score, false, breakdown.featureSimilarities()));
+                                                   score, false, breakdown.featureSimilarities(), entity.storedAt));
             }
         }
 
@@ -251,6 +248,39 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return deleted;
     }
 
+
+    @Override
+    @Transactional
+    public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        var results = em.createQuery("SELECT e FROM CbrCaseEntity e WHERE e.caseId = :cid AND e.tenantId = :t", CbrCaseEntity.class)
+                        .setParameter("cid", caseId).setParameter("t", tenantId).getResultList();
+        if (results.isEmpty()) return;
+        CbrCaseEntity entity = results.getFirst();
+        if (entity.supersededAt != null) {
+            if (supersedingCaseId != null) entity.supersedingCaseId = supersedingCaseId;
+            if (reason != null) entity.supersessionReason = reason;
+        } else {
+            entity.supersededAt = Instant.now();
+            entity.supersedingCaseId = supersedingCaseId;
+            entity.supersessionReason = reason;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void reinstate(String caseId, String tenantId) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        var results = em.createQuery("SELECT e FROM CbrCaseEntity e WHERE e.caseId = :cid AND e.tenantId = :t", CbrCaseEntity.class)
+                        .setParameter("cid", caseId).setParameter("t", tenantId).getResultList();
+        if (results.isEmpty()) return;
+        CbrCaseEntity entity = results.getFirst();
+        entity.supersededAt = null;
+        entity.supersedingCaseId = null;
+        entity.supersessionReason = null;
+    }
 
     private CbrCase reconstruct(CbrCaseEntity entity) {
         Map<String, FeatureValue> features = FeatureValue.toFeatureMap(deserializeMap(entity.features));

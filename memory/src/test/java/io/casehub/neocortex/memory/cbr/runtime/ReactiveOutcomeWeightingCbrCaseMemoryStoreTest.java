@@ -25,8 +25,8 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
         var highConf = testCase("high", 0.9);
         var lowConf = testCase("low", 0.5);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of()),
-                new ScoredCbrCase<>(highConf, "c2", 0.8, false, Map.of())));
+                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null),
+                new ScoredCbrCase<>(highConf, "c2", 0.8, false, Map.of(), null)));
         var decorator = new ReactiveOutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class)
                 .await().indefinitely();
@@ -36,7 +36,7 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void nullConfidence_treatedAsOne() {
         var noOutcome = testCase("none", null);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(noOutcome, "c1", 0.8, false, Map.of())));
+                new ScoredCbrCase<>(noOutcome, "c1", 0.8, false, Map.of(), null)));
         var decorator = new ReactiveOutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class)
                 .await().indefinitely();
@@ -47,8 +47,8 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
         var a = testCase("a", 1.0);
         var b = testCase("b", 1.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(a, "c1", 0.9, false, Map.of()),
-                new ScoredCbrCase<>(b, "c2", 0.7, false, Map.of())));
+                new ScoredCbrCase<>(a, "c1", 0.9, false, Map.of(), null),
+                new ScoredCbrCase<>(b, "c2", 0.7, false, Map.of(), null)));
         var decorator = new ReactiveOutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class)
                 .await().indefinitely();
@@ -60,7 +60,7 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
         var lowConf = testCase("low", 0.1);
         var noEffect = new DefaultOutcomeWeightingFunction(0.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of())));
+                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null)));
         var decorator = new ReactiveOutcomeWeightingCbrCaseMemoryStore(delegate, noEffect);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class)
                 .await().indefinitely();
@@ -70,7 +70,7 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void preservesCaseIdAndRerankedFlag() {
         var c = testCase("p", 0.8);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "case-42", 0.9, true, Map.of("f", 0.95))));
+                new ScoredCbrCase<>(c, "case-42", 0.9, true, Map.of("f", 0.95), null)));
         var decorator = new ReactiveOutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var result = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class)
                 .await().indefinitely().getFirst();
@@ -91,8 +91,8 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
         var highSim = testCase("highSim", 0.3);
         var lowSim = testCase("lowSim", 1.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(highSim, "c1", 0.9, false, Map.of()),
-                new ScoredCbrCase<>(lowSim, "c2", 0.5, false, Map.of())));
+                new ScoredCbrCase<>(highSim, "c1", 0.9, false, Map.of(), null),
+                new ScoredCbrCase<>(lowSim, "c2", 0.5, false, Map.of(), null)));
         var decorator = new ReactiveOutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class)
                 .await().indefinitely();
@@ -119,6 +119,8 @@ class ReactiveOutcomeWeightingCbrCaseMemoryStoreTest {
             @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(0); }
             @Override public Uni<Void> recordOutcome(String c, String t, CbrOutcome o) { return Uni.createFrom().voidItem(); }
             @Override public Uni<Integer> purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return Uni.createFrom().item(0); }
+            @Override public Uni<Void> supersede(String c, String t, String s, String r) { return Uni.createFrom().voidItem(); }
+            @Override public Uni<Void> reinstate(String c, String t) { return Uni.createFrom().voidItem(); }
         };
     }
 }

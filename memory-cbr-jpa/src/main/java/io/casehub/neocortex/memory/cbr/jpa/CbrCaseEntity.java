@@ -59,4 +59,12 @@ public class CbrCaseEntity {
     @Column(name = "last_outcome_at")
     public Instant lastOutcomeAt;
 
+    @Column(name = "superseded_at")
+    public Instant supersededAt;
+
+    @Column(name = "superseding_case_id")
+    public String supersedingCaseId;
+
+    @Column(name = "supersession_reason", columnDefinition = "TEXT")
+    public String supersessionReason;
 }

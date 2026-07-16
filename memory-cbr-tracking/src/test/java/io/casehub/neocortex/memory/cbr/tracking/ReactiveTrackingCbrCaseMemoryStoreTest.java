@@ -75,7 +75,7 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         var tracker = stubTracker();
         var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
-                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9)));
+                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null));
         var delegate = stubDelegate(results);
         var decorator = new ReactiveTrackingCbrCaseMemoryStore(delegate, tracker, stubEvent(new AtomicReference<>()));
 
@@ -126,6 +126,8 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
             @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(0); }
             @Override public Uni<Void> recordOutcome(String c, String t, CbrOutcome o) { return Uni.createFrom().voidItem(); }
             @Override public Uni<Integer> purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return Uni.createFrom().item(0); }
+            @Override public Uni<Void> supersede(String c, String t, String s, String r) { return Uni.createFrom().voidItem(); }
+            @Override public Uni<Void> reinstate(String c, String t) { return Uni.createFrom().voidItem(); }
         };
     }
 
@@ -146,6 +148,8 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(0); }
         @Override public Uni<Void> recordOutcome(String c, String t, CbrOutcome o) { return Uni.createFrom().voidItem(); }
         @Override public Uni<Integer> purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return Uni.createFrom().item(0); }
+        @Override public Uni<Void> supersede(String c, String t, String s, String r) { return Uni.createFrom().voidItem(); }
+        @Override public Uni<Void> reinstate(String c, String t) { return Uni.createFrom().voidItem(); }
     }
 
     @SuppressWarnings("unchecked")
