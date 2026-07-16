@@ -102,4 +102,14 @@ public class ReactiveTrackingCbrCaseMemoryStore implements ReactiveCbrCaseMemory
         return delegate.purge(policy);
     }
 
+    @Override
+    public Uni<Void> supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        return delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
+    }
+
+    @Override
+    public Uni<Void> reinstate(String caseId, String tenantId) {
+        return delegate.reinstate(caseId, tenantId);
+    }
+
 }

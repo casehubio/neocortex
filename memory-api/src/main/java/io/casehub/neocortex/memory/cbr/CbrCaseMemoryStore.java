@@ -21,5 +21,7 @@ public interface CbrCaseMemoryStore {
 
     Integer purge(CbrRetentionPolicy policy);
 
+    void supersede(String caseId, String tenantId, String supersedingCaseId, String reason);
 
+    void reinstate(String caseId, String tenantId);
 }

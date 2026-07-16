@@ -106,6 +106,16 @@ public class ReactiveRerankingCbrCaseMemoryStore implements ReactiveCbrCaseMemor
         return delegate.purge(policy);
     }
 
+    @Override
+    public Uni<Void> supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        return delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
+    }
+
+    @Override
+    public Uni<Void> reinstate(String caseId, String tenantId) {
+        return delegate.reinstate(caseId, tenantId);
+    }
+
 
     private <C extends CbrCase> List<ScoredCbrCase<C>> rerankBlocking(
             CbrQuery query, List<ScoredCbrCase<C>> candidates) {
@@ -121,7 +131,7 @@ public class ReactiveRerankingCbrCaseMemoryStore implements ReactiveCbrCaseMemor
             RankedResult r = ranked.get(i);
             ScoredCbrCase<C> original = candidates.get(r.originalIndex());
             double sigmoidScore = 1.0 / (1.0 + Math.exp(-r.score()));
-            results.add(new ScoredCbrCase<C>(original.cbrCase(), original.caseId(), sigmoidScore).withReranked());
+            results.add(original.withScore(sigmoidScore).withReranked());
         }
         return Collections.unmodifiableList(results);
     }

@@ -61,8 +61,7 @@ public class ReactiveOutcomeWeightingCbrCaseMemoryStore implements ReactiveCbrCa
                         double confidence = scored.cbrCase().confidence() != null
                                 ? scored.cbrCase().confidence() : 1.0;
                         double newScore = weightingFunction.apply(scored.score(), confidence);
-                        weighted.add(new ScoredCbrCase<>(scored.cbrCase(), scored.caseId(),
-                                newScore, scored.reranked(), scored.featureSimilarities()));
+                        weighted.add(scored.withScore(newScore));
                     }
                     weighted.sort((a, b) -> Double.compare(b.score(), a.score()));
                     return Collections.unmodifiableList(weighted);
@@ -87,6 +86,16 @@ public class ReactiveOutcomeWeightingCbrCaseMemoryStore implements ReactiveCbrCa
     @Override
     public Uni<Integer> purge(CbrRetentionPolicy policy) {
         return delegate.purge(policy);
+    }
+
+    @Override
+    public Uni<Void> supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        return delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
+    }
+
+    @Override
+    public Uni<Void> reinstate(String caseId, String tenantId) {
+        return delegate.reinstate(caseId, tenantId);
     }
 
 }

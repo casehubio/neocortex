@@ -70,4 +70,18 @@ public class BlockingToReactiveCbrBridge implements ReactiveCbrCaseMemoryStore, 
         return Uni.createFrom().item(() -> delegate.purge(policy))
                   .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());}
 
+    @Override
+    public Uni<Void> supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        return Uni.createFrom().voidItem()
+                  .invoke(() -> delegate.supersede(caseId, tenantId, supersedingCaseId, reason))
+                  .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+
+    @Override
+    public Uni<Void> reinstate(String caseId, String tenantId) {
+        return Uni.createFrom().voidItem()
+                  .invoke(() -> delegate.reinstate(caseId, tenantId))
+                  .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+
 }

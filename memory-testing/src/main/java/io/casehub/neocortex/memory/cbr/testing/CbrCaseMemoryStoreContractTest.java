@@ -9,6 +9,7 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -2094,6 +2095,110 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                        "vitals", structList(java.util.List.of())), 10);
         var results = store().retrieveSimilar(query, FeatureVectorCbrCase.class);
         assertThat(results).isNotEmpty();
+    }
+
+    // ── storedAt ──────────────────────────────────────────────
+
+    @Test
+    void storedAt_populatedOnRetrievedCases() {
+        store().registerSchema(new CbrFeatureSchema("sa-type",
+                List.of(new FeatureField.Numeric("severity", 0, 10))));
+        store().store(new FeatureVectorCbrCase("p", "s", null, null,
+                Map.of("severity", number(5))), "sa-type", ENTITY, CBR, TENANT, "sa-c1");
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, "sa-type", Map.of("severity", number(5)), 10),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().storedAt()).isNotNull();
+    }
+
+    // ── Supersession ─────────────────────────────────────────
+
+    private void registerSupersessionSchema() {
+        store().registerSchema(new CbrFeatureSchema("ss-type",
+                List.of(new FeatureField.Numeric("severity", 0, 10))));
+    }
+
+    private String storeSupersessionCase(String caseId) {
+        return store().store(new FeatureVectorCbrCase("problem", "solution", null, null,
+                Map.of("severity", number(5))), "ss-type", ENTITY, CBR, TENANT, caseId);
+    }
+
+    private List<ScoredCbrCase<FeatureVectorCbrCase>> querySupersession() {
+        return store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, "ss-type", Map.of("severity", number(5)), 10),
+                FeatureVectorCbrCase.class);
+    }
+
+    @Test
+    void supersede_excludesFromRetrieval() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c1");
+        store().supersede("sup-c1", TENANT, null, null);
+        assertThat(querySupersession()).isEmpty();
+    }
+
+    @Test
+    void reinstate_restoresRetrievalVisibility() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c2");
+        store().supersede("sup-c2", TENANT, null, "overturned");
+        store().reinstate("sup-c2", TENANT);
+        assertThat(querySupersession()).hasSize(1);
+    }
+
+    @Test
+    void supersede_alreadySuperseded_noThrow() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c3");
+        store().supersede("sup-c3", TENANT, null, "first");
+        assertThatCode(() -> store().supersede("sup-c3", TENANT, "replacement", "second"))
+                .doesNotThrowAnyException();
+        assertThat(querySupersession()).isEmpty();
+    }
+
+    @Test
+    void reinstate_idempotent() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c4");
+        assertThatCode(() -> store().reinstate("sup-c4", TENANT))
+                .doesNotThrowAnyException();
+        assertThat(querySupersession()).hasSize(1);
+    }
+
+    @Test
+    void supersede_nonExistentCase_noOp() {
+        registerSupersessionSchema();
+        assertThatCode(() -> store().supersede("nonexistent", TENANT, null, null))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void supersede_eraseStillWorks() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c5");
+        store().supersede("sup-c5", TENANT, null, null);
+        Integer erased = store().erase(new io.casehub.neocortex.memory.EraseRequest(ENTITY, CBR, TENANT, "sup-c5"));
+        assertThat(erased).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void supersede_recordOutcomeStillWorks() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c6");
+        store().supersede("sup-c6", TENANT, null, null);
+        assertThatCode(() -> store().recordOutcome("sup-c6", TENANT,
+                CbrOutcome.of(1.0, "ok", Instant.now())))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void supersede_purgeStillApplies() {
+        registerSupersessionSchema();
+        storeSupersessionCase("sup-c7");
+        store().supersede("sup-c7", TENANT, null, null);
+        assertThatCode(() -> store().purge(new CbrRetentionPolicy(TENANT, CBR, "ss-type", null, 1)))
+                .doesNotThrowAnyException();
     }
 
 }

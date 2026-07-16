@@ -85,4 +85,14 @@ public class TrendEnrichmentCbrCaseMemoryStore implements CbrCaseMemoryStore {
     public Integer purge(CbrRetentionPolicy policy) {
         return delegate.purge(policy);
     }
+
+    @Override
+    public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
+    }
+
+    @Override
+    public void reinstate(String caseId, String tenantId) {
+        delegate.reinstate(caseId, tenantId);
+    }
 }

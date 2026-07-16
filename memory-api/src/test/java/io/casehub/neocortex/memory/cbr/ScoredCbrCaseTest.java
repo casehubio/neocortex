@@ -157,4 +157,53 @@ class ScoredCbrCaseTest {
         assertThat(reranked.reranked()).isTrue();
     }
 
+
+    @Test
+    void storedAt_includedInCanonicalConstructor() {
+        var now    = java.time.Instant.now();
+        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), now);
+        assertThat(scored.storedAt()).isEqualTo(now);
+    }
+
+    @Test
+    void storedAt_nullableAndDefaultsToNull() {
+        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), null);
+        assertThat(scored.storedAt()).isNull();
+    }
+
+    @Test
+    void convenienceConstructors_defaultStoredAtToNull() {
+        assertThat(new ScoredCbrCase<>(textCase(), "c1", 0.9).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), 0.9).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), 0.9, false).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), 0.9, false, java.util.Map.of()).storedAt()).isNull();
+    }
+
+    @Test
+    void withScore_preservesAllFieldsExceptScore() {
+        var now      = java.time.Instant.now();
+        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, true, java.util.Map.of("f", 0.8), now);
+        var modified = original.withScore(0.5);
+        assertThat(modified.score()).isEqualTo(0.5);
+        assertThat(modified.cbrCase()).isSameAs(original.cbrCase());
+        assertThat(modified.caseId()).isEqualTo("c1");
+        assertThat(modified.reranked()).isTrue();
+        assertThat(modified.featureSimilarities()).isEqualTo(java.util.Map.of("f", 0.8));
+        assertThat(modified.storedAt()).isEqualTo(now);
+    }
+
+    @Test
+    void withReranked_preservesStoredAt() {
+        var now      = java.time.Instant.now();
+        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of("f", 0.8), now);
+        var reranked = original.withReranked();
+        assertThat(reranked.reranked()).isTrue();
+        assertThat(reranked.score()).isEqualTo(0.9);
+        assertThat(reranked.storedAt()).isEqualTo(now);
+        assertThat(reranked.featureSimilarities()).isEqualTo(java.util.Map.of("f", 0.8));
+    }
+
+    private TextualCbrCase textCase() {
+        return new TextualCbrCase("problem", "solution", null, null);
+    }
 }

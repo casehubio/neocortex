@@ -39,79 +39,8 @@ final class CbrQueryTranslator {
         builder.addMust(ConditionFactory.matchKeyword("domain", query.domain().name()));
         builder.addMust(ConditionFactory.matchKeyword("caseType", query.caseType()));
 
-        if (query.notBefore() != null) {
-            builder.addMust(ConditionFactory.range("_stored_at",
-                Range.newBuilder()
-                    .setGte(query.notBefore().toEpochMilli())
-                    .build()));
-        }
-
-        return builder.build();
-    }
-
-    /**
-     * Build a Qdrant filter from a CBR query and its registered schema.
-     * Retained for backward compatibility — includes feature conditions as hard filters.
-     *
-     * @param query  the CBR query
-     * @param schema the feature schema (may be null if no schema registered)
-     * @return a Qdrant filter with all conditions combined via must
-     */
-    static Filter toFilter(CbrQuery query, CbrFeatureSchema schema) {
-        Filter.Builder builder = Filter.newBuilder();
-
-        // Always filter by tenant, domain, and case type
-        builder.addMust(ConditionFactory.matchKeyword("tenantId", query.tenantId()));
-        builder.addMust(ConditionFactory.matchKeyword("domain", query.domain().name()));
-        builder.addMust(ConditionFactory.matchKeyword("caseType", query.caseType()));
-
-        // Validate and add feature filters
-        if (!query.features().isEmpty() && schema != null) {
-            validateQueryFeatures(query.features(), schema);
-
-            for (var entry : query.features().entrySet()) {
-                String name = entry.getKey();
-                FeatureValue value = entry.getValue();
-
-                FeatureField field = findField(schema, name);
-                if (field == null) {
-                    continue; // unknown fields ignored
-                }
-
-                String payloadKey = "f_" + name;
-                switch (field) {
-                    case FeatureField.Categorical c ->
-                        builder.addMust(ConditionFactory.matchKeyword(payloadKey, ((FeatureValue.StringVal) value).value()));
-                    case FeatureField.Numeric n -> {
-                        if (value instanceof FeatureValue.RangeVal range) {
-                            builder.addMust(ConditionFactory.range(payloadKey,
-                                Range.newBuilder()
-                                    .setGte(range.min())
-                                    .setLte(range.max())
-                                    .build()));
-                        } else if (value instanceof FeatureValue.NumberVal nv) {
-                            builder.addMust(ConditionFactory.range(payloadKey,
-                                Range.newBuilder()
-                                    .setGte(nv.value())
-                                    .setLte(nv.value())
-                                    .build()));
-                        }
-                    }
-                    case FeatureField.Text t ->
-                        builder.addMust(ConditionFactory.matchKeyword(payloadKey, ((FeatureValue.StringVal) value).value()));
-                    case FeatureField.CategoricalList cl -> throw new IllegalStateException(
-                        "Structured field in toFilter — use applyStructuralFilters");
-                    case FeatureField.NumericList nl -> throw new IllegalStateException(
-                        "Structured field in toFilter — use applyStructuralFilters");
-                    case FeatureField.NestedObject no -> throw new IllegalStateException(
-                        "Structured field in toFilter — use applyStructuralFilters");
-                    case FeatureField.ObjectList ol -> throw new IllegalStateException(
-                        "Structured field in toFilter — use applyStructuralFilters");
-                    case FeatureField.TimeSeries ts -> {}
-                    case FeatureField.DiscreteSequence ds -> {}
-                }
-            }
-        }
+        builder.addMustNot(ConditionFactory.range("_superseded_at",
+            Range.newBuilder().setGt(0).build()));
 
         if (query.notBefore() != null) {
             builder.addMust(ConditionFactory.range("_stored_at",

@@ -52,7 +52,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
             CbrFeatureValidator.validateStoreFeatures(cbrCase.features(), schema);
         }
         String id = UUID.randomUUID().toString();
-        cases.add(new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, Instant.now(), null));
+        cases.add(new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, Instant.now(), null, null, null, null));
         return id;
     }
 
@@ -95,6 +95,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
             if (!stored.domain().equals(query.domain())) {continue;}
             if (!stored.caseType().equals(query.caseType())) {continue;}
             if (query.notBefore() != null && stored.storedAt().isBefore(query.notBefore())) {continue;}
+            if (stored.supersededAt() != null) {continue;}
             if (!caseClass.isInstance(stored.cbrCase())) {continue;}
 
             if (!matchesFilters(stored.cbrCase(), query.filters(), schema)) {continue;}
@@ -128,12 +129,9 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                     abandonCost);
 
             double score = breakdown.score();
-            if (query.temporalDecay() != null) {
-                score *= query.temporalDecay().factor(stored.storedAt(), Instant.now());
-            }
             if (score >= query.minSimilarity()) {
                 candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), stored.caseId(),
-                                                   score, false, breakdown.featureSimilarities()));
+                                                   score, false, breakdown.featureSimilarities(), stored.storedAt()));
                 candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
             }
         }
@@ -179,7 +177,8 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                         outcome.result().name(), newConfidence);
                 cases.set(i, new StoredCase(stored.id(), updated, stored.caseType(),
                                             stored.entityId(), stored.domain(), stored.tenantId(),
-                                            stored.caseId(), stored.storedAt(), outcome.observedAt()));
+                                            stored.caseId(), stored.storedAt(), outcome.observedAt(),
+                                            stored.supersededAt(), stored.supersedingCaseId(), stored.supersessionReason()));
                 return;
             }
         }
@@ -215,6 +214,38 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return before - cases.size();
     }
 
+
+    @Override
+    public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        for (int i = 0; i < cases.size(); i++) {
+            StoredCase sc = cases.get(i);
+            if (caseId.equals(sc.caseId()) && tenantId.equals(sc.tenantId())) {
+                if (sc.supersededAt() != null) {
+                    String newId = supersedingCaseId != null ? supersedingCaseId : sc.supersedingCaseId();
+                    String newReason = reason != null ? reason : sc.supersessionReason();
+                    cases.set(i, sc.withSupersession(sc.supersededAt(), newId, newReason));
+                } else {
+                    cases.set(i, sc.withSupersession(Instant.now(), supersedingCaseId, reason));
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void reinstate(String caseId, String tenantId) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        for (int i = 0; i < cases.size(); i++) {
+            StoredCase sc = cases.get(i);
+            if (caseId.equals(sc.caseId()) && tenantId.equals(sc.tenantId())) {
+                cases.set(i, sc.withSupersession(null, null, null));
+                return;
+            }
+        }
+    }
 
     @SuppressWarnings("unchecked")
     private boolean matchesFilters(CbrCase storedCase, Map<String, CbrFilter> filters,
@@ -282,6 +313,12 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private record StoredCase(
             String id, CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-            String tenantId, String caseId, Instant storedAt, Instant lastOutcomeAt
-    ) {}
+            String tenantId, String caseId, Instant storedAt, Instant lastOutcomeAt,
+            Instant supersededAt, String supersedingCaseId, String supersessionReason
+    ) {
+        StoredCase withSupersession(Instant supersededAt, String supersedingCaseId, String supersessionReason) {
+            return new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, storedAt, lastOutcomeAt,
+                                  supersededAt, supersedingCaseId, supersessionReason);
+        }
+    }
 }

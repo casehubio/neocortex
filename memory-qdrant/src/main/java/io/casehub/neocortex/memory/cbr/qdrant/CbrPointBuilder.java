@@ -58,9 +58,15 @@ final class CbrPointBuilder {
         payload.put("caseType", ValueFactory.value(caseType));
         payload.put("entityId", ValueFactory.value(entityId));
         payload.put("domain", ValueFactory.value(domainName));
-        payload.put("caseId", ValueFactory.value(caseId));
-        payload.put("problem", ValueFactory.value(cbrCase.problem()));
-        payload.put("solution", ValueFactory.value(cbrCase.solution()));
+        if (caseId != null) {
+            payload.put("caseId", ValueFactory.value(caseId));
+        }
+        if (cbrCase.problem() != null) {
+            payload.put("problem", ValueFactory.value(cbrCase.problem()));
+        }
+        if (cbrCase.solution() != null) {
+            payload.put("solution", ValueFactory.value(cbrCase.solution()));
+        }
         if (cbrCase.outcome() != null) {
             payload.put("outcome", ValueFactory.value(cbrCase.outcome()));
         }
