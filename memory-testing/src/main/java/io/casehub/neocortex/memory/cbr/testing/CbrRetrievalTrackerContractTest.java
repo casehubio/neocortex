@@ -2,6 +2,7 @@ package io.casehub.neocortex.memory.cbr.testing;
 
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.platform.api.path.Path;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
@@ -22,11 +23,11 @@ public abstract class CbrRetrievalTrackerContractTest {
     protected abstract CbrRetrievalTracker tracker();
 
     private CbrQuery query(String tenantId) {
-        return CbrQuery.of(tenantId, CBR, "default", Map.of(), 5);
+        return CbrQuery.of(tenantId, CBR, Path.root(), "default", Map.of(), 5);
     }
 
     private CbrQuery query(String tenantId, MemoryDomain domain) {
-        return CbrQuery.of(tenantId, domain, "default", Map.of(), 5);
+        return CbrQuery.of(tenantId, domain, Path.root(), "default", Map.of(), 5);
     }
 
     private List<ScoredCbrCase<?>> results() {
@@ -50,7 +51,7 @@ public abstract class CbrRetrievalTrackerContractTest {
 
     @Test void findTraces_byCaseTypeAndTenant() {
         tracker().record(query("t1"), results());
-        tracker().record(CbrQuery.of("t2", CBR, "default", Map.of(), 5), results());
+        tracker().record(CbrQuery.of("t2", CBR, Path.root(), "default", Map.of(), 5), results());
         var traces = tracker().findTraces("default", "t1", CBR,
                 Instant.EPOCH, Instant.now().plus(1, ChronoUnit.HOURS));
         assertThat(traces).hasSize(1);

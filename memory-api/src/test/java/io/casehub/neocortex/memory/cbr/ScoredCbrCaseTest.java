@@ -161,13 +161,13 @@ class ScoredCbrCaseTest {
     @Test
     void storedAt_includedInCanonicalConstructor() {
         var now    = java.time.Instant.now();
-        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), now);
+        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), now, io.casehub.platform.api.path.Path.root());
         assertThat(scored.storedAt()).isEqualTo(now);
     }
 
     @Test
     void storedAt_nullableAndDefaultsToNull() {
-        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), null);
+        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), null, io.casehub.platform.api.path.Path.root());
         assertThat(scored.storedAt()).isNull();
     }
 
@@ -182,7 +182,7 @@ class ScoredCbrCaseTest {
     @Test
     void withScore_preservesAllFieldsExceptScore() {
         var now      = java.time.Instant.now();
-        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, true, java.util.Map.of("f", 0.8), now);
+        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, true, java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root());
         var modified = original.withScore(0.5);
         assertThat(modified.score()).isEqualTo(0.5);
         assertThat(modified.cbrCase()).isSameAs(original.cbrCase());
@@ -195,7 +195,7 @@ class ScoredCbrCaseTest {
     @Test
     void withReranked_preservesStoredAt() {
         var now      = java.time.Instant.now();
-        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of("f", 0.8), now);
+        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root());
         var reranked = original.withReranked();
         assertThat(reranked.reranked()).isTrue();
         assertThat(reranked.score()).isEqualTo(0.9);

@@ -35,8 +35,8 @@ public class BlockingToReactiveCbrBridge implements ReactiveCbrCaseMemoryStore, 
 
     @Override
     public Uni<String> store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-                             String tenantId, String caseId) {
-        return Uni.createFrom().item(() -> delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId))
+                             String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
+        return Uni.createFrom().item(() -> delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId, scope))
                   .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 

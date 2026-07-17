@@ -20,7 +20,9 @@ public record CbrQuery(
         double vectorWeight,
         RetrievalMode retrievalMode,
         FusionStrategy fusionStrategy,
-        TemporalDecay temporalDecay
+        TemporalDecay temporalDecay,
+        io.casehub.platform.api.path.Path scope,
+        ScopeDecay scopeDecay
 ) {
     public CbrQuery {
         Objects.requireNonNull(tenantId, "tenantId required");
@@ -49,32 +51,38 @@ public record CbrQuery(
         }
         Objects.requireNonNull(retrievalMode, "retrievalMode required");
         Objects.requireNonNull(fusionStrategy, "fusionStrategy required");
+        Objects.requireNonNull(scope, "scope required");
     }
 
-    public static CbrQuery of(String tenantId, MemoryDomain domain,
+    public static CbrQuery of(String tenantId, MemoryDomain domain, io.casehub.platform.api.path.Path scope,
                               String caseType, Map<String, FeatureValue> features, int topK) {
         return new CbrQuery(tenantId, domain, caseType, features, Map.of(), Map.of(), topK,
-                            0.0, null, null, 0.5, RetrievalMode.HYBRID, FusionStrategy.RRF, null);
+                            0.0, null, null, 0.5, RetrievalMode.HYBRID, FusionStrategy.RRF, null,
+                            scope, null);
     }
 
     public CbrQuery withProblem(String problem) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withMinSimilarity(double minSimilarity) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withNotBefore(Instant notBefore) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withWeights(Map<String, Double> weights) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withWeight(String field, double weight) {
@@ -85,17 +93,20 @@ public record CbrQuery(
 
     public CbrQuery withVectorWeight(double vectorWeight) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withRetrievalMode(RetrievalMode retrievalMode) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withFusionStrategy(FusionStrategy fusionStrategy) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withFilter(String field, CbrFilter filter) {
@@ -106,18 +117,32 @@ public record CbrQuery(
 
     public CbrQuery withFilters(Map<String, CbrFilter> filters) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withTemporalDecay(TemporalDecay temporalDecay) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
-                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay);
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
     public CbrQuery withFeatures(Map<String, FeatureValue> features) {
         return new CbrQuery(tenantId, domain, caseType, features, filters, weights,
                             topK, minSimilarity, notBefore, problem, vectorWeight,
-                            retrievalMode, fusionStrategy, temporalDecay);
+                            retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
     }
 
+    public CbrQuery withScope(io.casehub.platform.api.path.Path scope) {
+        return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
+    }
+
+    public CbrQuery withScopeDecay(ScopeDecay scopeDecay) {
+        return new CbrQuery(tenantId, domain, caseType, features, filters, weights, topK,
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay);
+    }
 }

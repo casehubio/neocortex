@@ -38,7 +38,7 @@ final class CbrPointBuilder {
                                   String tenantId, String caseId,
                                   Embedding embedding, String denseVectorName) {
         return buildPoint(cbrCase, caseType, entityId, domainName, tenantId, caseId,
-                          embedding, denseVectorName, null, null, null, null, null);
+                          embedding, denseVectorName, null, null, null, null, null, "");
     }
 
     static PointStruct buildPoint(CbrCase cbrCase, String caseType,
@@ -46,7 +46,8 @@ final class CbrPointBuilder {
                                   String tenantId, String caseId,
                                   Embedding embedding, String denseVectorName,
                                   Map<Integer, Float> sparseEmbedding, String sparseVectorName,
-                                  String bm25Text, String bm25VectorName, String bm25Model) {
+                                  String bm25Text, String bm25VectorName, String bm25Model,
+                                  String scopeValue) {
 
         // Deterministic UUID from tenantId + caseType + caseId
         String idInput = tenantId + "#" + caseType + "#" + caseId;
@@ -58,6 +59,7 @@ final class CbrPointBuilder {
         payload.put("caseType", ValueFactory.value(caseType));
         payload.put("entityId", ValueFactory.value(entityId));
         payload.put("domain", ValueFactory.value(domainName));
+        payload.put("scope", ValueFactory.value(scopeValue != null ? scopeValue : ""));
         if (caseId != null) {
             payload.put("caseId", ValueFactory.value(caseId));
         }

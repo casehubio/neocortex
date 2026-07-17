@@ -10,7 +10,7 @@ public interface ReactiveCbrCaseMemoryStore {
     Uni<Void> registerSchema(CbrFeatureSchema schema);
 
     Uni<String> store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-                      String tenantId, String caseId);
+                      String tenantId, String caseId, io.casehub.platform.api.path.Path scope);
 
     <C extends CbrCase> Uni<List<ScoredCbrCase<C>>> retrieveSimilar(CbrQuery query, Class<C> caseType);
 

@@ -11,8 +11,8 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -63,7 +63,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
     @Override
     @Transactional
     public String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-                        String tenantId, String caseId) {
+                        String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
         CbrFeatureSchema schema = schemas.get(caseType);
         if (schema != null) {
             CbrFeatureValidator.validateStoreFeatures(cbrCase.features(), schema);
@@ -83,6 +83,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         entity.confidence = cbrCase.confidence();
         entity.features   = serializeJson(FeatureValue.toRawMap(cbrCase.features()));
         entity.storedAt   = Instant.now();
+        entity.scope      = scope.value();
 
         if (cbrCase instanceof PlanCbrCase plan && !plan.planTrace().isEmpty()) {
             entity.planTraces = serializeJson(plan.planTrace());
@@ -116,13 +117,16 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
             CbrFeatureValidator.validateFilters(query.filters(), schema);
         }
 
+        String scopeVal = query.scope().value();
         String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct AND e.supersededAt IS NULL"
+                      + " AND (e.scope = '' OR e.scope = :scopeVal OR :scopeVal LIKE CONCAT(e.scope, '/%'))"
                       + (query.notBefore() != null ? " AND e.storedAt >= :nb" : "");
 
         var jpaQuery = em.createQuery(jpql, CbrCaseEntity.class)
                          .setParameter("t", query.tenantId())
                          .setParameter("d", query.domain().name())
-                         .setParameter("ct", query.caseType());
+                         .setParameter("ct", query.caseType())
+                         .setParameter("scopeVal", scopeVal);
         if (query.notBefore() != null) {
             jpaQuery.setParameter("nb", query.notBefore());
         }
@@ -141,8 +145,11 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
             double score = breakdown.score();
             if (score >= query.minSimilarity()) {
+                io.casehub.platform.api.path.Path entityScope = entity.scope.isEmpty()
+                        ? io.casehub.platform.api.path.Path.root()
+                        : io.casehub.platform.api.path.Path.parse(entity.scope);
                 candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId,
-                                                   score, false, breakdown.featureSimilarities(), entity.storedAt));
+                                                   score, false, breakdown.featureSimilarities(), entity.storedAt, entityScope));
             }
         }
 

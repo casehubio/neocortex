@@ -6,8 +6,8 @@ import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalRecorded;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTrace;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
@@ -57,8 +57,8 @@ public class TrackingCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     @Override
     public String store(CbrCase cbrCase, String caseType, String entityId,
-                        MemoryDomain domain, String tenantId, String caseId) {
-        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId);
+                        MemoryDomain domain, String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
+        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId, scope);
     }
 
     @Override

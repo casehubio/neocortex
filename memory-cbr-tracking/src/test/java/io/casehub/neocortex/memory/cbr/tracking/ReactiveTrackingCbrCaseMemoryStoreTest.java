@@ -40,7 +40,7 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         var delegate = stubDelegate(results);
         var decorator = new ReactiveTrackingCbrCaseMemoryStore(delegate, tracker, stubEvent(eventRef));
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class)
                 .await().indefinitely();
 
@@ -65,7 +65,7 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         var delegate = stubDelegate(results);
         var decorator = new ReactiveTrackingCbrCaseMemoryStore(delegate, failingTracker, stubEvent(new AtomicReference<>()));
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class)
                 .await().indefinitely();
         assertThat(returned).isEqualTo(results);
@@ -75,11 +75,11 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         var tracker = stubTracker();
         var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
-                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null));
+                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null, io.casehub.platform.api.path.Path.root()));
         var delegate = stubDelegate(results);
         var decorator = new ReactiveTrackingCbrCaseMemoryStore(delegate, tracker, stubEvent(new AtomicReference<>()));
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class)
                 .await().indefinitely();
         assertThat(returned.getFirst().score()).isEqualTo(0.85);
@@ -96,7 +96,7 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         var bridgedDelegate = stubBridgedDelegate(results);
         var decorator = new ReactiveTrackingCbrCaseMemoryStore(bridgedDelegate, tracker, stubEvent(eventRef));
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class)
                 .await().indefinitely();
 
@@ -118,7 +118,7 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
     private ReactiveCbrCaseMemoryStore stubDelegate(List<? extends ScoredCbrCase<?>> results) {
         return new ReactiveCbrCaseMemoryStore() {
             @Override public Uni<Void> registerSchema(CbrFeatureSchema s) { return Uni.createFrom().voidItem(); }
-            @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return Uni.createFrom().item("id"); }
+            @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return Uni.createFrom().item("id"); }
             @Override public <C extends CbrCase> Uni<List<ScoredCbrCase<C>>> retrieveSimilar(CbrQuery q, Class<C> cl) {
                 return Uni.createFrom().item((List<ScoredCbrCase<C>>) (List<?>) results);
             }
@@ -140,7 +140,7 @@ class ReactiveTrackingCbrCaseMemoryStoreTest {
         private final List<? extends ScoredCbrCase<?>> results;
         BridgedReactiveStub(List<? extends ScoredCbrCase<?>> results) { this.results = results; }
         @Override public Uni<Void> registerSchema(CbrFeatureSchema s) { return Uni.createFrom().voidItem(); }
-        @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return Uni.createFrom().item("id"); }
+        @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return Uni.createFrom().item("id"); }
         @Override @SuppressWarnings("unchecked") public <C extends CbrCase> Uni<List<ScoredCbrCase<C>>> retrieveSimilar(CbrQuery q, Class<C> cl) {
             return Uni.createFrom().item((List<ScoredCbrCase<C>>) (List<?>) results);
         }

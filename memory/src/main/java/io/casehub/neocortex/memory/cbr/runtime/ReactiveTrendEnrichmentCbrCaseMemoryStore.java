@@ -43,7 +43,7 @@ public class ReactiveTrendEnrichmentCbrCaseMemoryStore implements ReactiveCbrCas
 
     @Override
     public Uni<String> store(CbrCase cbrCase, String caseType, String entityId,
-                             MemoryDomain domain, String tenantId, String caseId) {
+                             MemoryDomain domain, String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
         CbrFeatureSchema schema = expandedSchemas.get(caseType);
         if (schema != null) {
             Map<String, FeatureValue> enriched = TrendAnalyzer.enrichFeatures(cbrCase.features(), schema);
@@ -51,7 +51,7 @@ public class ReactiveTrendEnrichmentCbrCaseMemoryStore implements ReactiveCbrCas
                 cbrCase = cbrCase.withFeatures(enriched);
             }
         }
-        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId);
+        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId, scope);
     }
 
     @Override

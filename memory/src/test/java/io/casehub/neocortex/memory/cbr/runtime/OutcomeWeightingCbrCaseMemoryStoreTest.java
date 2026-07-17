@@ -25,8 +25,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var highConf = testCase("high", 0.9);
         var lowConf = testCase("low", 0.5);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null),
-                new ScoredCbrCase<>(highConf, "c2", 0.8, false, Map.of(), null)));
+                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root()),
+                new ScoredCbrCase<>(highConf, "c2", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().cbrCase().confidence()).isEqualTo(0.9);
@@ -35,7 +35,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void nullConfidence_treatedAsOne() {
         var noOutcome = testCase("none", null);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(noOutcome, "c1", 0.8, false, Map.of(), null)));
+                new ScoredCbrCase<>(noOutcome, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().score()).isCloseTo(0.8, within(1e-9));
@@ -45,8 +45,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var a = testCase("a", 1.0);
         var b = testCase("b", 1.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(a, "c1", 0.9, false, Map.of(), null),
-                new ScoredCbrCase<>(b, "c2", 0.7, false, Map.of(), null)));
+                new ScoredCbrCase<>(a, "c1", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root()),
+                new ScoredCbrCase<>(b, "c2", 0.7, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.get(0).cbrCase().problem()).isEqualTo("a");
@@ -57,7 +57,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var lowConf = testCase("low", 0.1);
         var noEffect = new DefaultOutcomeWeightingFunction(0.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null)));
+                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, noEffect);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().score()).isCloseTo(0.8, within(1e-9));
@@ -66,7 +66,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void preservesCaseIdAndRerankedFlag() {
         var c = testCase("p", 0.8);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "case-42", 0.9, true, Map.of("f", 0.95), null)));
+                new ScoredCbrCase<>(c, "case-42", 0.9, true, Map.of("f", 0.95), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var result = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class).getFirst();
         assertThat(result.caseId()).isEqualTo("case-42");
@@ -84,7 +84,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void customWeightingFunction_applied() {
         var c = testCase("p", 0.8);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), null)));
+                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         OutcomeWeightingFunction custom = (sim, conf) -> sim * conf;
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, custom);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
@@ -95,8 +95,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var highSim = testCase("highSim", 0.3);
         var lowSim = testCase("lowSim", 1.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(highSim, "c1", 0.9, false, Map.of(), null),
-                new ScoredCbrCase<>(lowSim, "c2", 0.5, false, Map.of(), null)));
+                new ScoredCbrCase<>(highSim, "c1", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root()),
+                new ScoredCbrCase<>(lowSim, "c2", 0.5, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.get(0).score()).isGreaterThanOrEqualTo(results.get(1).score());
@@ -107,14 +107,14 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     }
 
     private CbrQuery testQuery() {
-        return CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 10);
+        return CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 10);
     }
 
     @SuppressWarnings("unchecked")
     private CbrCaseMemoryStore stubDelegate(List<ScoredCbrCase<FeatureVectorCbrCase>> results) {
         return new CbrCaseMemoryStore() {
             @Override public void registerSchema(CbrFeatureSchema schema) {}
-            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return "id"; }
+            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return "id"; }
             @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) {
                 return (List<ScoredCbrCase<C>>) (List<?>) results;
             }

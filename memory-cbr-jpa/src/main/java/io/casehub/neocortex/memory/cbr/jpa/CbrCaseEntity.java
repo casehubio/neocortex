@@ -67,4 +67,7 @@ public class CbrCaseEntity {
 
     @Column(name = "supersession_reason", columnDefinition = "TEXT")
     public String supersessionReason;
+    @jakarta.persistence.Column(name = "scope", nullable = false)
+    public String scope;
+
 }

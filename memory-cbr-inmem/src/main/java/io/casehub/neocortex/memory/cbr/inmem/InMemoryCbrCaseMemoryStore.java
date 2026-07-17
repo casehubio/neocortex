@@ -8,8 +8,8 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -46,13 +46,14 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     @Override
     public String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-                        String tenantId, String caseId) {
+                        String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
         CbrFeatureSchema schema = schemas.get(caseType);
         if (schema != null) {
             CbrFeatureValidator.validateStoreFeatures(cbrCase.features(), schema);
         }
+        java.util.Objects.requireNonNull(scope, "scope required");
         String id = UUID.randomUUID().toString();
-        cases.add(new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, Instant.now(), null, null, null, null));
+        cases.add(new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, Instant.now(), null, null, null, null, scope));
         return id;
     }
 
@@ -94,6 +95,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
             if (!stored.tenantId().equals(query.tenantId())) {continue;}
             if (!stored.domain().equals(query.domain())) {continue;}
             if (!stored.caseType().equals(query.caseType())) {continue;}
+            if (!isVisibleAtScope(stored.scope(), query.scope())) {continue;}
             if (query.notBefore() != null && stored.storedAt().isBefore(query.notBefore())) {continue;}
             if (stored.supersededAt() != null) {continue;}
             if (!caseClass.isInstance(stored.cbrCase())) {continue;}
@@ -131,7 +133,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
             double score = breakdown.score();
             if (score >= query.minSimilarity()) {
                 candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), stored.caseId(),
-                                                   score, false, breakdown.featureSimilarities(), stored.storedAt()));
+                                                   score, false, breakdown.featureSimilarities(), stored.storedAt(), stored.scope()));
                 candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
             }
         }
@@ -178,7 +180,8 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 cases.set(i, new StoredCase(stored.id(), updated, stored.caseType(),
                                             stored.entityId(), stored.domain(), stored.tenantId(),
                                             stored.caseId(), stored.storedAt(), outcome.observedAt(),
-                                            stored.supersededAt(), stored.supersedingCaseId(), stored.supersessionReason()));
+                                            stored.supersededAt(), stored.supersedingCaseId(), stored.supersessionReason(),
+                                            stored.scope()));
                 return;
             }
         }
@@ -311,14 +314,21 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return true;
     }
 
+
+    private static boolean isVisibleAtScope(io.casehub.platform.api.path.Path storedScope,
+                                            io.casehub.platform.api.path.Path queryScope) {
+        return storedScope.equals(queryScope) || storedScope.isAncestorOf(queryScope);
+    }
+
     private record StoredCase(
             String id, CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
             String tenantId, String caseId, Instant storedAt, Instant lastOutcomeAt,
-            Instant supersededAt, String supersedingCaseId, String supersessionReason
+            Instant supersededAt, String supersedingCaseId, String supersessionReason,
+            io.casehub.platform.api.path.Path scope
     ) {
         StoredCase withSupersession(Instant supersededAt, String supersedingCaseId, String supersessionReason) {
             return new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, storedAt, lastOutcomeAt,
-                                  supersededAt, supersedingCaseId, supersessionReason);
+                                  supersededAt, supersedingCaseId, supersessionReason, scope);
         }
     }
 }

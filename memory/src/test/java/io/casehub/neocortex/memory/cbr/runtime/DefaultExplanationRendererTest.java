@@ -18,7 +18,7 @@ class DefaultExplanationRendererTest {
 
     @Test void rendersTopMatchWithBreakdown() {
         var trace = new CbrRetrievalTrace("t1",
-                CbrQuery.of("tenant", new MemoryDomain("cbr"), "adverse-event", Map.of(), 5)
+                CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "adverse-event", Map.of(), 5)
                         .withRetrievalMode(RetrievalMode.HYBRID),
                 List.of(new CbrRetrievalTrace.TracedCase("ae-001", 0.92, false,
                         Map.of("grade", 1.0, "eventType", 0.95), 0.85)),
@@ -33,7 +33,7 @@ class DefaultExplanationRendererTest {
 
     @Test void emptyResults() {
         var trace = new CbrRetrievalTrace("t1",
-                CbrQuery.of("tenant", new MemoryDomain("cbr"), "default", Map.of(), 5),
+                CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
                 List.of(), Instant.now());
         String result = renderer.render(trace);
         assertThat(result).contains("Retrieved 0 cases");
@@ -41,7 +41,7 @@ class DefaultExplanationRendererTest {
 
     @Test void nullConfidence() {
         var trace = new CbrRetrievalTrace("t1",
-                CbrQuery.of("tenant", new MemoryDomain("cbr"), "default", Map.of(), 5),
+                CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
                 List.of(new CbrRetrievalTrace.TracedCase("c1", 0.75, false, Map.of(), null)),
                 Instant.now());
         String result = renderer.render(trace);
@@ -50,7 +50,7 @@ class DefaultExplanationRendererTest {
 
     @Test void nullCaseId() {
         var trace = new CbrRetrievalTrace("t1",
-                CbrQuery.of("tenant", new MemoryDomain("cbr"), "default", Map.of(), 5),
+                CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
                 List.of(new CbrRetrievalTrace.TracedCase(null, 0.75, false, Map.of(), 0.9)),
                 Instant.now());
         String result = renderer.render(trace);
@@ -59,7 +59,7 @@ class DefaultExplanationRendererTest {
 
     @Test void multipleResults() {
         var trace = new CbrRetrievalTrace("t1",
-                CbrQuery.of("tenant", new MemoryDomain("cbr"), "default", Map.of(), 5),
+                CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
                 List.of(
                     new CbrRetrievalTrace.TracedCase("c1", 0.92, false, Map.of(), 0.9),
                     new CbrRetrievalTrace.TracedCase("c2", 0.75, false, Map.of(), 0.8)),

@@ -184,10 +184,10 @@ public final class QuarkmindBattleDemo {
                 seed.problem(), seed.solution(), seed.outcome(), seed.confidence(),
                 seed.features(), seed.planTrace());
             store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(),
-                DOMAIN, TENANT, UUID.randomUUID().toString());
+                DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 
-        var query = CbrQuery.of(TENANT, DOMAIN, CASE_TYPE,
+        var query = CbrQuery.of(TENANT, DOMAIN, io.casehub.platform.api.path.Path.root(), CASE_TYPE,
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH")), 10);
 
         return store.retrieveSimilar(query, PlanCbrCase.class).stream()

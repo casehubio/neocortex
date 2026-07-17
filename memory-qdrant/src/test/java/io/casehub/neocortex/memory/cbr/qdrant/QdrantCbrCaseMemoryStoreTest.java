@@ -82,7 +82,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         store1.registerSchema(CbrFeatureSchema.of("dim-test",
             FeatureField.categorical("cat")));
         store1.store(new TextualCbrCase("p", "s", null, null),
-            "dim-test", ENTITY, CBR, TENANT, "case-1");
+            "dim-test", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Create a second store with a mock embedding model that reports dim=4
         // Use same collection prefix to trigger dimension mismatch
@@ -92,7 +92,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
 
         assertThatThrownBy(() ->
             store2.store(new TextualCbrCase("p2", "s2", null, null),
-                "dim-test", ENTITY, CBR, TENANT, "case-2"))
+                "dim-test", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root()))
             .isInstanceOf(CbrDimensionMismatchException.class);
     }
 
@@ -111,7 +111,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         store1.registerSchema(CbrFeatureSchema.of("dim-migrate",
             FeatureField.categorical("cat")));
         store1.store(new TextualCbrCase("p", "s", null, null),
-            "dim-migrate", ENTITY, CBR, TENANT, "case-1");
+            "dim-migrate", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Enabling migration allows recreation
         var config2 = testConfig(sharedTestId, true);
@@ -122,7 +122,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             FeatureField.categorical("cat")));
         assertThatCode(() ->
             store2.store(new TextualCbrCase("p2", "s2", null, null),
-                "dim-migrate", ENTITY, CBR, TENANT, "case-2"))
+                "dim-migrate", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root()))
             .doesNotThrowAnyException();
     }
 
@@ -143,9 +143,9 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             s.registerSchema(CbrFeatureSchema.of("log-test",
                 FeatureField.categorical("cat")));
             s.store(new FeatureVectorCbrCase("problem", "solution", null, null,
-                Map.of("cat", string("A"))), "log-test", ENTITY, CBR, TENANT, "case-log");
+                Map.of("cat", string("A"))), "log-test", ENTITY, CBR, TENANT, "case-log", io.casehub.platform.api.path.Path.root());
 
-            s.retrieveSimilar(CbrQuery.of(TENANT, CBR, "log-test",
+            s.retrieveSimilar(CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "log-test",
                 Map.of("cat", string("A")), 5).withProblem("query text"), FeatureVectorCbrCase.class);
 
             assertThat(handler.records).anyMatch(r ->
@@ -173,24 +173,24 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             "build bunkers early",
             null, null,
             Map.of("category", string("defense"), "notes", string("early game marine rush attack"))),
-            "semantic-text-test", ENTITY, CBR, TENANT, "case-1");
+            "semantic-text-test", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         semanticStore.store(new FeatureVectorCbrCase(
             "late game problem",
             "expand to third base",
             null, null,
             Map.of("category", string("economy"), "notes", string("late game economy management and expansion"))),
-            "semantic-text-test", ENTITY, CBR, TENANT, "case-2");
+            "semantic-text-test", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root());
 
         semanticStore.store(new FeatureVectorCbrCase(
             "early aggression problem",
             "scout and prepare defenses",
             null, null,
             Map.of("category", string("defense"), "notes", string("defending against early game aggression"))),
-            "semantic-text-test", ENTITY, CBR, TENANT, "case-3");
+            "semantic-text-test", ENTITY, CBR, TENANT, "case-3", io.casehub.platform.api.path.Path.root());
 
         // Query with text semantically similar to case-1 and case-3 (early game defense)
-        var query = CbrQuery.of(TENANT, CBR, "semantic-text-test",
+        var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "semantic-text-test",
             Map.of("category", string("defense"), "notes", string("how to stop early marine attacks")), 3);
 
         var results = semanticStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
@@ -226,7 +226,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         store1.registerSchema(CbrFeatureSchema.of("splade-evolve",
                                                   FeatureField.categorical("cat")));
         store1.store(new TextualCbrCase("p", "s", null, null),
-                     "splade-evolve", ENTITY, CBR, TENANT, "case-1");
+                     "splade-evolve", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Verify no sparse vectors exist yet
         String collection = config1.collectionPrefix() + "_splade-evolve";
@@ -295,7 +295,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         store1.registerSchema(CbrFeatureSchema.of("bm25-evolve",
                                                   FeatureField.categorical("cat")));
         store1.store(new TextualCbrCase("p", "s", null, null),
-                     "bm25-evolve", ENTITY, CBR, TENANT, "case-1");
+                     "bm25-evolve", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Phase 2: New manager with BM25 enabled, same collection prefix
         var config2 = new QdrantCbrConfig() {

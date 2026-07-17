@@ -6,8 +6,8 @@ import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,7 +23,7 @@ public class NoOpCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     @Override
     public String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-                        String tenantId, String caseId) {
+                        String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
         return "";
     }
 

@@ -5,8 +5,8 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.OutcomeWeightingFunction;
 import io.casehub.neocortex.memory.cbr.ReactiveCbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
@@ -43,9 +43,9 @@ public class ReactiveOutcomeWeightingCbrCaseMemoryStore implements ReactiveCbrCa
     }
 
     @Override
-    public Uni<String> store(CbrCase cbrCase, String caseType, String entityId,
-                             MemoryDomain domain, String tenantId, String caseId) {
-        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId);
+    public Uni<String> store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
+                             String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
+        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId, scope);
     }
 
     @Override

@@ -61,7 +61,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
                 Map.<String, FeatureValue>of("t", number(1), "hr", number(80)));
         var cbrCase = new FeatureVectorCbrCase("prob", "sol", null, null,
                 Map.of("drug", string("aspirin"), "vitals", FeatureValue.structList(obs)));
-        decorator.store(cbrCase, "clinical", "e1", CBR, "t1", null);
+        decorator.store(cbrCase, "clinical", "e1", CBR, "t1", null, io.casehub.platform.api.path.Path.root());
 
         var stored = capturedCase.get();
         assertThat(stored.features()).containsKey("vitals_slope_hr");
@@ -82,7 +82,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
         var obs = List.of(
                 Map.<String, FeatureValue>of("t", number(0), "hr", number(60)),
                 Map.<String, FeatureValue>of("t", number(2), "hr", number(100)));
-        var query = CbrQuery.of("t1", CBR, "clinical",
+        var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "clinical",
                 Map.of("vitals", FeatureValue.structList(obs)), 10);
         decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
 
@@ -103,7 +103,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
 
         var cbrCase = new FeatureVectorCbrCase("prob", "sol", null, null,
                 Map.of("drug", string("aspirin")));
-        decorator.store(cbrCase, "plain", "e1", CBR, "t1", null);
+        decorator.store(cbrCase, "plain", "e1", CBR, "t1", null, io.casehub.platform.api.path.Path.root());
 
         assertThat(capturedCase.get().features()).doesNotContainKey("vitals_slope_hr");
         assertThat(capturedCase.get().features()).containsKey("drug");
@@ -117,7 +117,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
 
         var cbrCase = new FeatureVectorCbrCase("prob", "sol", null, null,
                 Map.of("drug", string("aspirin")));
-        decorator.store(cbrCase, "unknown", "e1", CBR, "t1", null);
+        decorator.store(cbrCase, "unknown", "e1", CBR, "t1", null, io.casehub.platform.api.path.Path.root());
 
         assertThat(capturedCase.get()).isSameAs(cbrCase);
     }
@@ -140,7 +140,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
             }
 
             @Override
-            public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) {
+            public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) {
                 if (capturedCase != null) capturedCase.set(c);
                 return "id";
             }

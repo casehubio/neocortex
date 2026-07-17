@@ -139,7 +139,7 @@ class CbrPointBuilderTest {
         Map<Integer, Float> sparse  = Map.of(5, 0.8f, 12, 0.3f);
         PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
                                                        "e1", "d1", "t1", "c1", null, "dense",
-                                                       sparse, "sparse", null, null, null);
+                                                       sparse, "sparse", null, null, null, "");
 
         var vectors = point.getVectors().getVectors().getVectorsMap();
         assertThat(vectors).containsKey("sparse");
@@ -153,7 +153,7 @@ class CbrPointBuilderTest {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null);
         PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
                                                        "e1", "d1", "t1", "c1", null, "dense",
-                                                       null, null, "expanded bm25 text", "bm25", "Qdrant/bm25");
+                                                       null, null, "expanded bm25 text", "bm25", "Qdrant/bm25", "");
 
         var vectors = point.getVectors().getVectors().getVectorsMap();
         assertThat(vectors).containsKey("bm25");
@@ -170,7 +170,7 @@ class CbrPointBuilderTest {
         Map<Integer, Float> sparse = Map.of(5, 0.8f, 12, 0.3f);
         PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
                                                        "e1", "d1", "t1", "c1", embedding, "dense",
-                                                       sparse, "sparse", "expanded text", "bm25", "Qdrant/bm25");
+                                                       sparse, "sparse", "expanded text", "bm25", "Qdrant/bm25", "");
 
         var vectors = point.getVectors().getVectors().getVectorsMap();
         assertThat(vectors).containsKey("dense");
@@ -187,7 +187,7 @@ class CbrPointBuilderTest {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null);
         PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
                                                        "e1", "d1", "t1", "c1", null, "dense",
-                                                       null, null, null, null, null);
+                                                       null, null, null, null, null, "");
 
         var vectors = point.getVectors().getVectors().getVectorsMap();
         assertThat(vectors).containsKey("dense");

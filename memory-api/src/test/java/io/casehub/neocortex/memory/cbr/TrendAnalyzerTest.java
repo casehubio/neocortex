@@ -383,7 +383,7 @@ class TrendAnalyzerTest {
 
     @Test
     void cbrQuery_withFeatures() {
-        var query = CbrQuery.of("t", CBR, "ct",
+        var query = CbrQuery.of("t", CBR, io.casehub.platform.api.path.Path.root(), "ct",
                 Map.of("a", string("x")), 10);
         var updated = query.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");

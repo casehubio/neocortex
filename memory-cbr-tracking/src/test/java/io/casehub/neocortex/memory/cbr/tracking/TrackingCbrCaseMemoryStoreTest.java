@@ -33,7 +33,7 @@ class TrackingCbrCaseMemoryStoreTest {
         var delegate = stubDelegate(results);
         var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, eventRef::set);
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
 
         assertThat(returned).isEqualTo(results);
@@ -57,7 +57,7 @@ class TrackingCbrCaseMemoryStoreTest {
         var delegate = stubDelegate(results);
         var decorator = new TrackingCbrCaseMemoryStore(delegate, failingTracker, e -> {});
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
         assertThat(returned).isEqualTo(results);
     }
@@ -66,11 +66,11 @@ class TrackingCbrCaseMemoryStoreTest {
         var tracker = new InMemoryCbrRetrievalTracker();
         var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
-                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null));
+                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null, io.casehub.platform.api.path.Path.root()));
         var delegate = stubDelegate(results);
         var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, e -> {});
 
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
         assertThat(returned.getFirst().score()).isEqualTo(0.85);
         assertThat(returned.getFirst().reranked()).isTrue();
@@ -81,7 +81,7 @@ class TrackingCbrCaseMemoryStoreTest {
     private CbrCaseMemoryStore stubDelegate(List<? extends ScoredCbrCase<?>> results) {
         return new CbrCaseMemoryStore() {
             @Override public void registerSchema(CbrFeatureSchema s) {}
-            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return "id"; }
+            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return "id"; }
             @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) {
                 return (List<ScoredCbrCase<C>>) (List<?>) results;
             }

@@ -141,7 +141,7 @@ public class CbrReconciliationService {
                             cbrCase, caseType, memory.entityId(), memory.domain().name(),
                             memory.tenantId(), memory.caseId(), embedding, config.denseVectorName(),
                             sparseEmbedding, config.spladeVectorName(),
-                            bm25Text, config.bm25VectorName(), config.bm25Model());
+                            bm25Text, config.bm25VectorName(), config.bm25Model(), "");
                     batch.add(point);
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "Failed to reindex memory " + entry.getValue().memoryId(), e);

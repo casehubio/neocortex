@@ -32,7 +32,7 @@ final class CbrCollectionManager {
 
     /** Base payload fields that always get keyword indexes. */
     private static final String[] BASE_KEYWORD_FIELDS =
-        {"tenantId", "caseType", "entityId", "domain", "caseId"};
+        {"tenantId", "caseType", "entityId", "domain", "caseId", "scope"};
 
     private final QdrantClient client;
     private final QdrantCbrConfig config;

@@ -69,13 +69,13 @@ class QdrantCbrDenseSearchTest {
     void denseSearch_ranksResultsBySimilarity() {
         // "alpha" embeds to [1,0,0,0], "alpha-ish" to [0.9,0.436,0,0], "beta" to [0,1,0,0]
         store.store(new TextualCbrCase("alpha", "solution-a", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-alpha");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-alpha", io.casehub.platform.api.path.Path.root());
         store.store(new TextualCbrCase("beta", "solution-b", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-beta");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-beta", io.casehub.platform.api.path.Path.root());
         store.store(new TextualCbrCase("alpha-ish", "solution-c", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-alpha-ish");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-alpha-ish", io.casehub.platform.api.path.Path.root());
 
-        var query = CbrQuery.of(TENANT, CBR, "starcraft-game", Map.of(), 10)
+        var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10)
             .withProblem("alpha");
 
         var results = store.retrieveSimilar(query, CbrCase.class);
@@ -89,12 +89,12 @@ class QdrantCbrDenseSearchTest {
     @Test
     void denseSearch_minSimilarity_filtersLowScoreResults() {
         store.store(new TextualCbrCase("alpha", "solution-a", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-filter-alpha");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-filter-alpha", io.casehub.platform.api.path.Path.root());
         store.store(new TextualCbrCase("beta", "solution-b", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-filter-beta");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-filter-beta", io.casehub.platform.api.path.Path.root());
 
         // SEMANTIC_ONLY + high threshold — "beta" should be excluded (cos≈0.0)
-        var query = CbrQuery.of(TENANT, CBR, "starcraft-game", Map.of(), 10)
+        var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10)
             .withProblem("alpha")
             .withRetrievalMode(RetrievalMode.SEMANTIC_ONLY)
             .withMinSimilarity(0.5);
@@ -111,12 +111,12 @@ class QdrantCbrDenseSearchTest {
     @Test
     void denseSearch_fallsBackToFilterOnly_whenProblemNull() {
         store.store(new TextualCbrCase("alpha", "solution-a", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-alpha");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-alpha", io.casehub.platform.api.path.Path.root());
         store.store(new TextualCbrCase("beta", "solution-b", null, null),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-beta");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-beta", io.casehub.platform.api.path.Path.root());
 
         // problem=null → filter-only mode, all results score 1.0
-        var query = CbrQuery.of(TENANT, CBR, "starcraft-game", Map.of(), 10);
+        var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10);
 
         var results = store.retrieveSimilar(query, CbrCase.class);
 
@@ -128,15 +128,15 @@ class QdrantCbrDenseSearchTest {
     void denseSearch_withPayloadFilters_combinesVectorAndFeatureScoring() {
         store.store(new FeatureVectorCbrCase("alpha", "sol-a", null, null,
                 Map.of("opponent_race", string("Zerg"))),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-combo-zerg");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-combo-zerg", io.casehub.platform.api.path.Path.root());
         store.store(new FeatureVectorCbrCase("alpha", "sol-b", null, null,
                 Map.of("opponent_race", string("Protoss"))),
-            "starcraft-game", ENTITY, CBR, TENANT, "case-combo-protoss");
+            "starcraft-game", ENTITY, CBR, TENANT, "case-combo-protoss", io.casehub.platform.api.path.Path.root());
 
         // Dense search for "alpha" + graded scoring for Zerg
         // Zerg match: featureScore=1.0, vectorScore=1.0 → composite=1.0
         // Protoss mismatch: featureScore=0.0, vectorScore=1.0 → composite=0.5
-        var query = CbrQuery.of(TENANT, CBR, "starcraft-game",
+        var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game",
                 Map.of("opponent_race", string("Zerg")), 10)
             .withProblem("alpha");
 

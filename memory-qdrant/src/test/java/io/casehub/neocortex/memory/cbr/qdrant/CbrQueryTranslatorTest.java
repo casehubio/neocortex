@@ -70,12 +70,12 @@ class CbrQueryTranslatorTest {
 
     @Test
     void toIdentityFilter_excludesFeatures() {
-        var query = CbrQuery.of("tenant-1", CBR, "starcraft-game",
+        var query = CbrQuery.of("tenant-1", CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game",
             Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), 5);
         Filter filter = CbrQueryTranslator.toIdentityFilter(query);
 
-        // 3 identity must + 1 supersession must_not — no feature filters
-        assertThat(filter.getMustCount()).isEqualTo(3);
+        // 3 identity + 1 scope must + 1 supersession must_not — no feature filters
+        assertThat(filter.getMustCount()).isEqualTo(4);
         assertKeywordCondition(filter.getMust(0), "tenantId", "tenant-1");
         assertKeywordCondition(filter.getMust(1), "domain", "cbr");
         assertKeywordCondition(filter.getMust(2), "caseType", "starcraft-game");
@@ -88,12 +88,12 @@ class CbrQueryTranslatorTest {
         Instant notBefore = Instant.parse("2025-01-01T00:00:00Z");
         var query = new CbrQuery("tenant-1", CBR, "starcraft-game",
             Map.of("opponent_race", string("Zerg")), Map.of(), Map.of(), 5, 0.0, notBefore, null, 0.5,
-            RetrievalMode.HYBRID, FusionStrategy.RRF, null);
+            RetrievalMode.HYBRID, FusionStrategy.RRF, null, io.casehub.platform.api.path.Path.root(), null);
         Filter filter = CbrQueryTranslator.toIdentityFilter(query);
 
-        // 3 identity + 1 notBefore (supersession is must_not)
-        assertThat(filter.getMustCount()).isEqualTo(4);
-        Condition storedAtCondition = filter.getMust(3);
+        // 3 identity + 1 scope + 1 notBefore (supersession is must_not)
+        assertThat(filter.getMustCount()).isEqualTo(5);
+        Condition storedAtCondition = filter.getMust(4);
         assertThat(storedAtCondition.getField().getKey()).isEqualTo("_stored_at");
     }
 

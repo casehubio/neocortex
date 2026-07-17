@@ -7,8 +7,8 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.ReactiveCbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
@@ -53,8 +53,8 @@ public class ReactiveRerankingCbrCaseMemoryStore implements ReactiveCbrCaseMemor
 
     @Override
     public Uni<String> store(CbrCase cbrCase, String caseType, String entityId,
-                             MemoryDomain domain, String tenantId, String caseId) {
-        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId);
+                             MemoryDomain domain, String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
+        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId, scope);
     }
 
     @Override
@@ -69,7 +69,8 @@ public class ReactiveRerankingCbrCaseMemoryStore implements ReactiveCbrCaseMemor
                 query.tenantId(), query.domain(), query.caseType(),
                 query.features(), query.filters(), query.weights(), fetchSize,
                 query.minSimilarity(), query.notBefore(), query.problem(),
-                query.vectorWeight(), query.retrievalMode(), query.fusionStrategy(), query.temporalDecay());
+                query.vectorWeight(), query.retrievalMode(), query.fusionStrategy(), query.temporalDecay(),
+                query.scope(), query.scopeDecay());
 
         return delegate.retrieveSimilar(overfetchQuery, caseClass)
                        .onItem().transformToUni(candidates -> {

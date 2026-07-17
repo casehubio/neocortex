@@ -9,7 +9,7 @@ public interface CbrCaseMemoryStore {
     void registerSchema(CbrFeatureSchema schema);
 
     String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
-                 String tenantId, String caseId);
+                 String tenantId, String caseId, io.casehub.platform.api.path.Path scope);
 
     <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery query, Class<C> caseType);
 

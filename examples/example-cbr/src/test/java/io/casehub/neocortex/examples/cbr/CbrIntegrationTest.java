@@ -43,7 +43,7 @@ class CbrIntegrationTest {
     @Order(2)
     void denseVectorSearchRanksByProblemSimilarity() {
         // Query with problem text — Qdrant should rank by embedding similarity
-        var query = CbrQuery.of("demo", new MemoryDomain("aml"),
+        var query = CbrQuery.of("demo", new MemoryDomain("aml"), io.casehub.platform.api.path.Path.root(),
                 "aml-investigation", Map.of("transaction_pattern", string("STRUCTURING")), 10)
             .withProblem("cash deposits split across branches to avoid reporting threshold");
 
@@ -59,7 +59,7 @@ class CbrIntegrationTest {
     @Test
     @Order(2)
     void minSimilarityFiltersLowScores() {
-        var query = CbrQuery.of("demo", new MemoryDomain("aml"),
+        var query = CbrQuery.of("demo", new MemoryDomain("aml"), io.casehub.platform.api.path.Path.root(),
                 "aml-investigation", Map.of("transaction_pattern", string("STRUCTURING")), 10)
             .withProblem("cash deposits split across branches")
             .withMinSimilarity(0.99);
@@ -75,7 +75,7 @@ class CbrIntegrationTest {
     @Test
     @Order(2)
     void planTraceRoundTripsThroughQdrant() {
-        var query = CbrQuery.of("demo", new MemoryDomain("quarkmind"),
+        var query = CbrQuery.of("demo", new MemoryDomain("quarkmind"), io.casehub.platform.api.path.Path.root(),
                 "quarkmind-battle",
                 Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH")), 10);
 
@@ -91,7 +91,7 @@ class CbrIntegrationTest {
     @Order(2)
     void crossDomainIsolation() {
         // AML query should not return clinical cases
-        var query = CbrQuery.of("demo", new MemoryDomain("aml"),
+        var query = CbrQuery.of("demo", new MemoryDomain("aml"), io.casehub.platform.api.path.Path.root(),
                 "aml-investigation", Map.of("transaction_pattern", string("STRUCTURING")), 100);
 
         var results = store.retrieveSimilar(query, FeatureVectorCbrCase.class);
@@ -112,7 +112,7 @@ class CbrIntegrationTest {
     @Order(3)
     void notBeforeFiltersOldCases() {
         // All seed cases were just stored — notBefore set to future should return nothing
-        var query = CbrQuery.of("demo", new MemoryDomain("aml"),
+        var query = CbrQuery.of("demo", new MemoryDomain("aml"), io.casehub.platform.api.path.Path.root(),
                 "aml-investigation", Map.of("transaction_pattern", string("STRUCTURING")), 10)
             .withNotBefore(java.time.Instant.now().plusSeconds(3600));
 

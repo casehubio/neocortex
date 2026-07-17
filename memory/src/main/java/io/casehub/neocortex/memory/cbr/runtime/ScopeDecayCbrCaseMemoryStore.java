@@ -8,27 +8,27 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
+import io.casehub.neocortex.memory.cbr.ScopeDecay;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
-import io.casehub.neocortex.memory.cbr.TemporalDecay;
+import io.casehub.platform.api.path.Path;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
 import jakarta.decorator.Delegate;
 import jakarta.enterprise.inject.Any;
 import jakarta.inject.Inject;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Decorator
-@Priority(80)
-public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
+@Priority(85)
+public class ScopeDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private final CbrCaseMemoryStore delegate;
 
     @Inject
-    public TemporalDecayCbrCaseMemoryStore(@Delegate @Any CbrCaseMemoryStore delegate) {
+    public ScopeDecayCbrCaseMemoryStore(@Delegate @Any CbrCaseMemoryStore delegate) {
         this.delegate = delegate;
     }
 
@@ -36,15 +36,15 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
     public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(
             CbrQuery query, Class<C> caseType) {
         List<ScoredCbrCase<C>> results = delegate.retrieveSimilar(query, caseType);
-        if (query.temporalDecay() == null) {
+        if (query.scopeDecay() == null) {
             return results;
         }
-        Instant now = Instant.now();
-        TemporalDecay decay = query.temporalDecay();
+        ScopeDecay decay = query.scopeDecay();
+        int queryDepth = query.scope().depth();
         List<ScoredCbrCase<C>> decayed = new ArrayList<>(results.size());
         for (var scored : results) {
-            double factor = (scored.storedAt() != null)
-                    ? decay.factor(scored.storedAt(), now) : 1.0;
+            int depthDistance = queryDepth - scored.scope().depth();
+            double factor = decay.factor(depthDistance);
             double adjustedScore = scored.score() * factor;
             if (adjustedScore >= query.minSimilarity()) {
                 decayed.add(scored.withScore(adjustedScore));
@@ -55,7 +55,7 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override public void registerSchema(CbrFeatureSchema schema) { delegate.registerSchema(schema); }
-    @Override public String store(CbrCase c, String ct, String e, MemoryDomain d, String t, String ci, io.casehub.platform.api.path.Path scope) { return delegate.store(c, ct, e, d, t, ci, scope); }
+    @Override public String store(CbrCase c, String ct, String e, MemoryDomain d, String t, String ci, Path scope) { return delegate.store(c, ct, e, d, t, ci, scope); }
     @Override public Integer erase(EraseRequest r) { return delegate.erase(r); }
     @Override public Integer eraseEntity(String e, String t) { return delegate.eraseEntity(e, t); }
     @Override public void recordOutcome(String ci, String t, CbrOutcome o) { delegate.recordOutcome(ci, t, o); }

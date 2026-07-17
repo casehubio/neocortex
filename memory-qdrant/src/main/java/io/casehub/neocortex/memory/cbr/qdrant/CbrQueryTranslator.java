@@ -39,6 +39,15 @@ final class CbrQueryTranslator {
         builder.addMust(ConditionFactory.matchKeyword("domain", query.domain().name()));
         builder.addMust(ConditionFactory.matchKeyword("caseType", query.caseType()));
 
+        // Scope visibility: match cases whose scope is an ancestor of (or equal to) the query scope
+        java.util.List<String> ancestorScopes = new java.util.ArrayList<>();
+        ancestorScopes.add("");  // root is always visible
+        ancestorScopes.add(query.scope().value());  // exact match
+        for (int i = 1; i < query.scope().segments().size(); i++) {
+            ancestorScopes.add(String.join("/", query.scope().segments().subList(0, i)));
+        }
+        builder.addMust(ConditionFactory.matchKeywords("scope", ancestorScopes));
+
         builder.addMustNot(ConditionFactory.range("_superseded_at",
             Range.newBuilder().setGt(0).build()));
 

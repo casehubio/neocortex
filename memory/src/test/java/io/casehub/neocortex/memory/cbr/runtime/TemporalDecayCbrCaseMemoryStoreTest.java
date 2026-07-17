@@ -27,7 +27,7 @@ class TemporalDecayCbrCaseMemoryStoreTest {
         var c = testCase("p1");
         Instant oneHourAgo = Instant.now().minus(Duration.ofHours(1));
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), oneHourAgo)));
+                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), oneHourAgo, io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
         var query = testQuery();
 
@@ -42,7 +42,7 @@ class TemporalDecayCbrCaseMemoryStoreTest {
         Instant now = Instant.now();
         Instant oneHourAgo = now.minus(Duration.ofHours(1));
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "c1", 0.8, false, Map.of(), oneHourAgo)));
+                new ScoredCbrCase<>(c, "c1", 0.8, false, Map.of(), oneHourAgo, io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
         var query = testQuery().withTemporalDecay(new TemporalDecay.HalfLife(Duration.ofHours(1)));
 
@@ -57,7 +57,7 @@ class TemporalDecayCbrCaseMemoryStoreTest {
         Instant now = Instant.now();
         Instant thirtyDaysAgo = now.minus(Duration.ofDays(30));
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "c1", 0.8, false, Map.of(), thirtyDaysAgo)));
+                new ScoredCbrCase<>(c, "c1", 0.8, false, Map.of(), thirtyDaysAgo, io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
         var query = testQuery()
                 .withMinSimilarity(0.01)
@@ -73,8 +73,8 @@ class TemporalDecayCbrCaseMemoryStoreTest {
         var c2 = testCase("old");
         Instant now = Instant.now();
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c1, "c1", 0.8, false, Map.of(), now.minus(Duration.ofDays(3))),
-                new ScoredCbrCase<>(c2, "c2", 0.8, false, Map.of(), now.minus(Duration.ofDays(10)))));
+                new ScoredCbrCase<>(c1, "c1", 0.8, false, Map.of(), now.minus(Duration.ofDays(3)), io.casehub.platform.api.path.Path.root()),
+                new ScoredCbrCase<>(c2, "c2", 0.8, false, Map.of(), now.minus(Duration.ofDays(10)), io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
         var query = testQuery().withTemporalDecay(new TemporalDecay.Step(Duration.ofDays(7), 0.3));
 
@@ -90,10 +90,10 @@ class TemporalDecayCbrCaseMemoryStoreTest {
         var c2 = testCase("old");
         Instant now = Instant.now();
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c1, "c1", 0.6, false, Map.of(), now.minus(Duration.ofMinutes(5))),
-                new ScoredCbrCase<>(c2, "c2", 0.6, false, Map.of(), now.minus(Duration.ofDays(60)))));
+                new ScoredCbrCase<>(c1, "c1", 0.6, false, Map.of(), now.minus(Duration.ofMinutes(5)), io.casehub.platform.api.path.Path.root()),
+                new ScoredCbrCase<>(c2, "c2", 0.6, false, Map.of(), now.minus(Duration.ofDays(60)), io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
-        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 10)
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 10)
                 .withMinSimilarity(0.5)
                 .withTemporalDecay(new TemporalDecay.HalfLife(Duration.ofDays(7)));
 
@@ -108,8 +108,8 @@ class TemporalDecayCbrCaseMemoryStoreTest {
         var old = testCase("old");
         Instant now = Instant.now();
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(old, "c1", 0.9, false, Map.of(), now.minus(Duration.ofDays(60))),
-                new ScoredCbrCase<>(recent, "c2", 0.7, false, Map.of(), now.minus(Duration.ofMinutes(5)))));
+                new ScoredCbrCase<>(old, "c1", 0.9, false, Map.of(), now.minus(Duration.ofDays(60)), io.casehub.platform.api.path.Path.root()),
+                new ScoredCbrCase<>(recent, "c2", 0.7, false, Map.of(), now.minus(Duration.ofMinutes(5)), io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
         var query = testQuery().withTemporalDecay(new TemporalDecay.HalfLife(Duration.ofDays(7)));
 
@@ -121,7 +121,7 @@ class TemporalDecayCbrCaseMemoryStoreTest {
     @Test void nullStoredAt_factorIsOne() {
         var c = testCase("p1");
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "c1", 0.8, false, Map.of(), null)));
+                new ScoredCbrCase<>(c, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root())));
         var decorator = new TemporalDecayCbrCaseMemoryStore(delegate);
         var query = testQuery().withTemporalDecay(new TemporalDecay.HalfLife(Duration.ofHours(1)));
 
@@ -136,14 +136,14 @@ class TemporalDecayCbrCaseMemoryStoreTest {
     }
 
     private CbrQuery testQuery() {
-        return CbrQuery.of("t1", new MemoryDomain("cbr"), "default", Map.of(), 10);
+        return CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 10);
     }
 
     @SuppressWarnings("unchecked")
     private CbrCaseMemoryStore stubDelegate(List<ScoredCbrCase<FeatureVectorCbrCase>> results) {
         return new CbrCaseMemoryStore() {
             @Override public void registerSchema(CbrFeatureSchema schema) {}
-            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return "id"; }
+            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return "id"; }
             @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) {
                 return (List<ScoredCbrCase<C>>) (List<?>) results;
             }

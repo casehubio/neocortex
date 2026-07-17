@@ -49,7 +49,7 @@ class DecoratorChainIntegrationTest {
                 (score, confidence) -> score * (0.7 + 0.3 * confidence));
         var tracked = new TrackingCbrCaseMemoryStore(weighted, tracker, events::add);
 
-        var query = CbrQuery.of("t1", CBR, "default", Map.of(), 10);
+        var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "default", Map.of(), 10);
         var results = tracked.retrieveSimilar(query, FeatureVectorCbrCase.class);
 
         assertThat(results).hasSize(2);
@@ -69,14 +69,14 @@ class DecoratorChainIntegrationTest {
         Instant oneHourAgo = Instant.now().minusSeconds(3600);
         var c = new FeatureVectorCbrCase("p", "s", null, 0.8, Map.of());
         var baseResults = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
-                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), oneHourAgo));
+                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), oneHourAgo, io.casehub.platform.api.path.Path.root()));
 
         CbrCaseMemoryStore base = stubBlockingDelegate(baseResults);
         CbrCaseMemoryStore weighted = new WeightingWrapper(base,
                 (score, confidence) -> score * (0.7 + 0.3 * confidence));
         var decayed = new io.casehub.neocortex.memory.cbr.runtime.TemporalDecayCbrCaseMemoryStore(weighted);
 
-        var query = CbrQuery.of("t1", CBR, "default", Map.of(), 5)
+        var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5)
                 .withTemporalDecay(new io.casehub.neocortex.memory.cbr.TemporalDecay.HalfLife(java.time.Duration.ofHours(1)));
         var results = decayed.retrieveSimilar(query, FeatureVectorCbrCase.class);
 
@@ -102,7 +102,7 @@ class DecoratorChainIntegrationTest {
         ReactiveCbrCaseMemoryStore bridge = new BridgedReactiveTestStore(blockingTracked);
         var reactiveTracked = new ReactiveTrackingCbrCaseMemoryStore(bridge, reactiveTracker, stubEvent(reactiveEvents));
 
-        var query = CbrQuery.of("t1", CBR, "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = reactiveTracked.retrieveSimilar(query, FeatureVectorCbrCase.class)
                 .await().indefinitely();
 
@@ -121,7 +121,7 @@ class DecoratorChainIntegrationTest {
         ReactiveCbrCaseMemoryStore nativeReactive = stubReactiveDelegate(results);
         var reactiveTracked = new ReactiveTrackingCbrCaseMemoryStore(nativeReactive, reactiveTracker, stubEvent(reactiveEvents));
 
-        var query = CbrQuery.of("t1", CBR, "default", Map.of(), 5);
+        var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
         var returned = reactiveTracked.retrieveSimilar(query, FeatureVectorCbrCase.class)
                 .await().indefinitely();
 
@@ -134,7 +134,7 @@ class DecoratorChainIntegrationTest {
     private CbrCaseMemoryStore stubBlockingDelegate(List<? extends ScoredCbrCase<?>> results) {
         return new CbrCaseMemoryStore() {
             @Override public void registerSchema(CbrFeatureSchema s) {}
-            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return "id"; }
+            @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return "id"; }
             @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) { return (List<ScoredCbrCase<C>>) (List<?>) results; }
             @Override public Integer erase(EraseRequest r) { return 0; }
             @Override public Integer eraseEntity(String e, String t) { return 0; }
@@ -149,7 +149,7 @@ class DecoratorChainIntegrationTest {
     private ReactiveCbrCaseMemoryStore stubReactiveDelegate(List<? extends ScoredCbrCase<?>> results) {
         return new ReactiveCbrCaseMemoryStore() {
             @Override public Uni<Void> registerSchema(CbrFeatureSchema s) { return Uni.createFrom().voidItem(); }
-            @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return Uni.createFrom().item("id"); }
+            @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return Uni.createFrom().item("id"); }
             @Override public <C extends CbrCase> Uni<List<ScoredCbrCase<C>>> retrieveSimilar(CbrQuery q, Class<C> cl) { return Uni.createFrom().item((List<ScoredCbrCase<C>>) (List<?>) results); }
             @Override public Uni<Integer> erase(EraseRequest r) { return Uni.createFrom().item(0); }
             @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(0); }
@@ -195,7 +195,7 @@ class DecoratorChainIntegrationTest {
         private final OutcomeWeightingFunction fn;
         WeightingWrapper(CbrCaseMemoryStore delegate, OutcomeWeightingFunction fn) { this.delegate = delegate; this.fn = fn; }
         @Override public void registerSchema(CbrFeatureSchema s) { delegate.registerSchema(s); }
-        @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return delegate.store(c, t, e, d, tid, cid); }
+        @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return delegate.store(c, t, e, d, tid, cid, scope); }
         @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) {
             var results = delegate.retrieveSimilar(q, cl);
             var weighted = new java.util.ArrayList<ScoredCbrCase<C>>(results.size());
@@ -218,7 +218,7 @@ class DecoratorChainIntegrationTest {
         private final CbrCaseMemoryStore delegate;
         BridgedReactiveTestStore(CbrCaseMemoryStore delegate) { this.delegate = delegate; }
         @Override public Uni<Void> registerSchema(CbrFeatureSchema s) { return Uni.createFrom().voidItem().invoke(() -> delegate.registerSchema(s)); }
-        @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid) { return Uni.createFrom().item(() -> delegate.store(c, t, e, d, tid, cid)); }
+        @Override public Uni<String> store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return Uni.createFrom().item(() -> delegate.store(c, t, e, d, tid, cid, scope)); }
         @Override public <C extends CbrCase> Uni<List<ScoredCbrCase<C>>> retrieveSimilar(CbrQuery q, Class<C> cl) { return Uni.createFrom().item(() -> delegate.retrieveSimilar(q, cl)); }
         @Override public Uni<Integer> erase(EraseRequest r) { return Uni.createFrom().item(() -> delegate.erase(r)); }
         @Override public Uni<Integer> eraseEntity(String e, String t) { return Uni.createFrom().item(() -> delegate.eraseEntity(e, t)); }

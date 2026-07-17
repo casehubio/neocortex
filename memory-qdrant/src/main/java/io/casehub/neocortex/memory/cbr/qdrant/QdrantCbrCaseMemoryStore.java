@@ -136,6 +136,12 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return null;
     }
 
+    private static io.casehub.platform.api.path.Path extractScope(Map<String, Value> payload) {
+        String sv = extractString(payload, "scope");
+        return (sv == null || sv.isEmpty()) ? io.casehub.platform.api.path.Path.root()
+                                            : io.casehub.platform.api.path.Path.parse(sv);
+    }
+
 
     private static Double extractDouble(Map<String, Value> payload, String key) {
         Value v = payload.get(key);
@@ -153,7 +159,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     @Override
     public String store(CbrCase cbrCase, String caseType, String entityId,
-                        MemoryDomain domain, String tenantId, String caseId) {
+                        MemoryDomain domain, String tenantId, String caseId,
+                        io.casehub.platform.api.path.Path scope) {
         CbrFeatureSchema schema = schemas.get(caseType);
         if (schema != null) {
             CbrFeatureValidator.validateStoreFeatures(cbrCase.features(), schema);
@@ -190,7 +197,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 cbrCase, caseType, entityId, domain.name(), tenantId, caseId,
                 embedding, config.denseVectorName(),
                 sparseEmbedding, config.spladeVectorName(),
-                bm25Text, config.bm25VectorName(), config.bm25Model());
+                bm25Text, config.bm25VectorName(), config.bm25Model(), scope.value());
 
         String collection = collectionManager.collectionName(caseType);
 
@@ -311,7 +318,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             double score = CbrSimilarityScorer.score(
                     query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
             if (score >= query.minSimilarity()) {
-                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score, false, Map.of(), rc.storedAt()));
+                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score, false, Map.of(), rc.storedAt(), rc.scope()));
             }
         }
 
@@ -331,7 +338,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 if (cbrCase != null && point.getScore() >= query.minSimilarity()) {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
                     Instant storedAt = extractStoredAt(point.getPayloadMap());
-                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore(), false, Map.of(), storedAt));
+                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore(), false, Map.of(), storedAt, extractScope(point.getPayloadMap())));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -386,21 +393,21 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             textSim.precompute(collectSemanticTextValues(query, allCandidates, overrides.keySet()));
         }
 
-        record FusionEntry<C extends CbrCase>(String pointId, C cbrCase, double score, String caseId, Instant storedAt) {}
+        record FusionEntry<C extends CbrCase>(String pointId, C cbrCase, double score, String caseId, Instant storedAt, io.casehub.platform.api.path.Path scope) {}
 
         // Build feature leg (always present)
         List<FusionEntry<C>> featureLeg = new ArrayList<>();
         for (var rc : allCandidates) {
             double featureScore = CbrSimilarityScorer.score(
                     query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
-            featureLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), featureScore, rc.caseId(), rc.storedAt()));
+            featureLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), featureScore, rc.caseId(), rc.storedAt(), rc.scope()));
         }
 
         // Build semantic legs — dense is always present when embeddingModel exists
         List<FusionEntry<C>> denseLeg = new ArrayList<>();
         for (var rc : allCandidates) {
             if (rc.vectorScore() > 0) {
-                denseLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), rc.vectorScore(), rc.caseId(), rc.storedAt()));
+                denseLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), rc.vectorScore(), rc.caseId(), rc.storedAt(), rc.scope()));
             }
         }
 
@@ -413,7 +420,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var rc : allCandidates) {
             Float score = spladeScores.get(rc.pointId());
             if (score != null && score > 0) {
-                spladeLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId(), rc.storedAt()));
+                spladeLeg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId(), rc.storedAt(), rc.scope()));
             }
         }
 
@@ -425,7 +432,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var rc : allCandidates) {
             Float score = bm25Scores.get(rc.pointId());
             if (score != null && score > 0) {
-                bm25Leg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId(), rc.storedAt()));
+                bm25Leg.add(new FusionEntry<>(rc.pointId(), rc.cbrCase(), score, rc.caseId(), rc.storedAt(), rc.scope()));
             }
         }
 
@@ -466,7 +473,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var f : fused) {
             double score = Math.max(-1.0, Math.min(1.0, f.score()));
             if (query.fusionStrategy() == FusionStrategy.RRF || score >= query.minSimilarity()) {
-                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score, false, Map.of(), f.item().storedAt()));
+                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score, false, Map.of(), f.item().storedAt(), f.item().scope()));
             }
         }
         return Collections.unmodifiableList(results);
@@ -485,7 +492,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
                     Instant storedAt = extractStoredAt(point.getPayloadMap());
                     map.put(pointId, new ReconstructedCandidate<>(pointId, cbrCase,
-                                                                  useDenseScore ? point.getScore() : 0f, caseId, storedAt));
+                                                                  useDenseScore ? point.getScore() : 0f, caseId, storedAt, extractScope(point.getPayloadMap())));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -504,7 +511,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
                     Instant storedAt = extractStoredAt(point.getPayloadMap());
                     reconstructed.add(new ReconstructedCandidate<>(
-                            point.getId().getUuid(), cbrCase, point.getScore(), caseId, storedAt));
+                            point.getId().getUuid(), cbrCase, point.getScore(), caseId, storedAt, extractScope(point.getPayloadMap())));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -970,5 +977,5 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
     }
 
-    private record ReconstructedCandidate<C extends CbrCase>(String pointId, C cbrCase, float vectorScore, String caseId, Instant storedAt) {}
+    private record ReconstructedCandidate<C extends CbrCase>(String pointId, C cbrCase, float vectorScore, String caseId, Instant storedAt, io.casehub.platform.api.path.Path scope) {}
 }

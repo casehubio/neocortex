@@ -112,10 +112,10 @@ public final class ClinicalAdverseEventDemo {
         for (var seed : SEED_CASES) {
             var cbrCase = new FeatureVectorCbrCase(
                 seed.problem(), seed.solution(), seed.outcome(), seed.confidence(), seed.features());
-            store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString());
+            store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 
-        var query = CbrQuery.of(TENANT, DOMAIN, CASE_TYPE,
+        var query = CbrQuery.of(TENANT, DOMAIN, io.casehub.platform.api.path.Path.root(), CASE_TYPE,
             Map.of("adverse_event_type", string("Hepatotoxicity"), "trial_arm", string("TREATMENT")), 10);
 
         return store.retrieveSimilar(query, FeatureVectorCbrCase.class).stream()

@@ -42,9 +42,9 @@ public class OutcomeWeightingCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override
-    public String store(CbrCase cbrCase, String caseType, String entityId,
-                        MemoryDomain domain, String tenantId, String caseId) {
-        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId);
+    public String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
+                        String tenantId, String caseId, io.casehub.platform.api.path.Path scope) {
+        return delegate.store(cbrCase, caseType, entityId, domain, tenantId, caseId, scope);
     }
 
     @Override
