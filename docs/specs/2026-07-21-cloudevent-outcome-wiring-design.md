@@ -46,10 +46,10 @@ Stream processor (AMQP/Kafka/Poll)
 - `void onCloudEvent(@ObservesAsync @CloudEventType(CbrEventTypes.CBR_OUTCOME) CloudEvent event)` — deserializes `event.getData().toBytes()` to `CbrOutcomeData` via ObjectMapper, delegates to `onCbrOutcome()`
 
 **Error handling in `onCloudEvent`:**
-- Null `event.getData()` → log warning, return
-- `IOException` from deserialization → log error with event ID, return
-- `store.recordOutcome()` failure → caught by `CloudEventTypeDispatcher.exceptionally()` (platform), logged with event type and ID. Silent loss is acceptable: EMA is self-correcting (the next outcome event adjusts drift), and the idempotency guard makes re-delivery safe if the event infrastructure retries.
-- No exception propagation — one bad event must not kill the observer
+- Null `event.getData()` → log warning, return (caught locally)
+- `IOException` from deserialization → log error with event ID, return (caught locally)
+- `store.recordOutcome()` failure → propagates to `CloudEventTypeDispatcher.exceptionally()` (platform), which logs with full exception chain, event type, and ID. Silent loss is acceptable: EMA is self-correcting (the next outcome event adjusts drift), and the idempotency guard makes re-delivery safe if the event infrastructure retries.
+- CDI does not terminate `@ObservesAsync` observers on exception — subsequent events continue to dispatch normally
 
 **`@RequestScoped` constraint:** `@ObservesAsync` observers run on a managed
 thread pool where `@RequestScoped` context is not propagated (platform
@@ -68,6 +68,9 @@ method parameter, not resolved from `CurrentPrincipal`. Violation would cause
 - `onCloudEvent_deserializesAndDelegates` — build a CloudEvent with JSON-serialized `CbrOutcomeData` as data, call `onCloudEvent`, verify `recordOutcome` was invoked with correct values
 - `onCloudEvent_nullData_skips` — CloudEvent with null data, verify no store interaction
 - `onCloudEvent_invalidJson_skips` — CloudEvent with garbage data, verify no store interaction and no exception
+
+**New CDI wiring test in `CbrOutcomeConsumerCdiTest.java`** (`@QuarkusTest`):
+- `observer_receives_typed_event` — inject `Event<CloudEvent>`, fire with `@CloudEventType(CbrEventTypes.CBR_OUTCOME)` qualifier via `fireAsync()`, verify `recordOutcome` was invoked. Tests that CDI annotation-based dispatch reaches the observer — the failure mode is silent (wrong qualifier or `@Observes` instead of `@ObservesAsync` = no delivery, no error).
 
 Existing `onCbrOutcome` tests remain unchanged — they test the domain logic directly.
 
@@ -96,5 +99,5 @@ dispatch."
 ## Out of scope
 
 - Reactive parity for the observer — CDI `@ObservesAsync` is inherently async; no Mutiny wrapper needed
-- Integration test with real CloudEvent dispatch — unit test with constructed CloudEvent is sufficient
+- End-to-end integration test with stream infrastructure (Kafka/AMQP) — CDI wiring test with in-process `fireAsync()` is sufficient to verify dispatch
 - Changes to `CbrOutcomeData` or the event payload format — owned by `casehub-desiredstate-api`
