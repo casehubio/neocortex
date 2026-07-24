@@ -112,7 +112,7 @@ public final class IotSituationDemo {
 
         for (var seed : SEED_CASES) {
             var cbrCase = new FeatureVectorCbrCase(
-                seed.problem(), seed.solution(), seed.outcome(), seed.confidence(), seed.features());
+                    seed.problem(), seed.solution(), seed.outcome(), seed.confidence(), seed.features(), null, null);
             store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 

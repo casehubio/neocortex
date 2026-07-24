@@ -27,7 +27,7 @@ class TrackingCbrCaseMemoryStoreTest {
     @Test void recordsTraceAndFiresEvent() {
         var tracker = new InMemoryCbrRetrievalTracker();
         var eventRef = new AtomicReference<CbrRetrievalRecorded>();
-        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
+        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), null, null);
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
                 new ScoredCbrCase<>(c, "c1", 0.85));
         var delegate = stubDelegate(results);
@@ -51,7 +51,7 @@ class TrackingCbrCaseMemoryStoreTest {
             @Override public List<CbrRetrievalTrace> findTraces(String ct, String t, MemoryDomain d, Instant s, Instant u) { return List.of(); }
             @Override public int purgeOlderThan(Instant cutoff) { return 0; }
         };
-        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
+        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), null, null);
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
                 new ScoredCbrCase<>(c, "c1", 0.85));
         var delegate = stubDelegate(results);
@@ -64,9 +64,9 @@ class TrackingCbrCaseMemoryStoreTest {
 
     @Test void resultsUnchanged() {
         var tracker = new InMemoryCbrRetrievalTracker();
-        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of());
+        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), null, null);
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
-                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null, io.casehub.platform.api.path.Path.root()));
+                new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null, io.casehub.platform.api.path.Path.root(), null));
         var delegate = stubDelegate(results);
         var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, e -> {});
 

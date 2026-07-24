@@ -21,7 +21,7 @@ class NoOpPlanAdapterTest {
         var trace1 = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of());
         var trace2 = new PlanTrace("b2", "cap2", "w2", "FAILURE", 1, Map.of("p", "v"));
         var plan = new PlanCbrCase("problem", "solution", "WIN", 0.9,
-                                   Map.of("f", FeatureValue.string("v")), List.of(trace1, trace2));
+                                   Map.of("f", FeatureValue.string("v")), List.of(trace1, trace2), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.85);
 
         var result = adapter.adapt("typeA", scored, Map.of("f", FeatureValue.string("q")));
@@ -38,7 +38,7 @@ class NoOpPlanAdapterTest {
         var trace = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 3,
                                   Map.of("key", "val"));
         var plan = new PlanCbrCase("problem", "solution", null, null,
-                                   Map.of(), List.of(trace));
+                                   Map.of(), List.of(trace), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.5);
 
         var result = adapter.adapt("typeA", scored, Map.of());
@@ -55,7 +55,7 @@ class NoOpPlanAdapterTest {
     @Test
     void emptyTrace() {
         var plan = new PlanCbrCase("problem", "solution", null, null,
-                                   Map.of(), List.of());
+                                   Map.of(), List.of(), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.5);
 
         var result = adapter.adapt("typeA", scored, Map.of());

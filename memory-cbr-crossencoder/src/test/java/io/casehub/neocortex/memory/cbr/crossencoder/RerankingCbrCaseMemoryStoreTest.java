@@ -1,6 +1,5 @@
 package io.casehub.neocortex.memory.cbr.crossencoder;
 
-import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.inmem.InMemoryInferenceModel;
 import io.casehub.neocortex.inference.tasks.CrossEncoderReranker;
 import io.casehub.neocortex.memory.MemoryDomain;
@@ -47,10 +46,10 @@ class RerankingCbrCaseMemoryStoreTest {
     @Test
     void reranking_reordersResultsByCrossEncoderScore() {
         inner.store(new FeatureVectorCbrCase("low relevance", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
         inner.store(new FeatureVectorCbrCase("high relevance", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e2", CBR, "t1", "c2", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5)
@@ -65,7 +64,7 @@ class RerankingCbrCaseMemoryStoreTest {
     @Test
     void featureOnly_skipsReranking() {
         inner.store(new FeatureVectorCbrCase("problem", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5)
@@ -80,7 +79,7 @@ class RerankingCbrCaseMemoryStoreTest {
     @Test
     void nullProblem_skipsReranking() {
         inner.store(new FeatureVectorCbrCase("problem", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5);
@@ -98,7 +97,7 @@ class RerankingCbrCaseMemoryStoreTest {
             });
 
         inner.store(new FeatureVectorCbrCase("problem", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5)
@@ -112,7 +111,7 @@ class RerankingCbrCaseMemoryStoreTest {
     @Test
     void alreadyReranked_skipsDoubleReranking() {
         inner.store(new FeatureVectorCbrCase("problem", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5)
@@ -133,7 +132,7 @@ class RerankingCbrCaseMemoryStoreTest {
     @Test
     void sigmoidNormalization_scoresInZeroToOne() {
         inner.store(new FeatureVectorCbrCase("problem", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5)
@@ -149,7 +148,7 @@ class RerankingCbrCaseMemoryStoreTest {
     @Test
     void sigmoidNormalization_highRawScore() {
         inner.store(new FeatureVectorCbrCase("high relevance match", "solution",
-            "WIN", null, Map.of("race", string("Zerg"))),
+                                             "WIN", null, Map.of("race", string("Zerg")), null, null),
             "game", "e1", CBR, "t1", "c1", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of("t1", CBR, io.casehub.platform.api.path.Path.root(), "game", Map.of("race", string("Zerg")), 5)
@@ -164,7 +163,7 @@ class RerankingCbrCaseMemoryStoreTest {
     void overfetch_trimToTopK() {
         for (int i = 0; i < 5; i++) {
             inner.store(new FeatureVectorCbrCase("problem " + i, "solution",
-                "WIN", null, Map.of("race", string("Zerg"))),
+                                                 "WIN", null, Map.of("race", string("Zerg")), null, null),
                 "game", "e" + i, CBR, "t1", "c" + i, io.casehub.platform.api.path.Path.root());
         }
 

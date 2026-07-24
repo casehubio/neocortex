@@ -54,7 +54,7 @@ final class CbrMemoryDeserializer {
                 case FeatureVectorCbrCase.CBR_TYPE -> {
                     var rawFeatures = parseFeatures(attrs);
                     if (rawFeatures == null) yield null;
-                    yield new FeatureVectorCbrCase(problem, solution, outcome, confidence, CbrPointBuilder.fromRawMap(rawFeatures));
+                    yield new FeatureVectorCbrCase(problem, solution, outcome, confidence, CbrPointBuilder.fromRawMap(rawFeatures), null, null);
                 }
                 case PlanCbrCase.CBR_TYPE -> {
                     var rawFeatures = parseFeatures(attrs);
@@ -62,10 +62,10 @@ final class CbrMemoryDeserializer {
                     var features = CbrPointBuilder.fromRawMap(rawFeatures);
                     List<PlanTrace> planTrace = parsePlanTrace(attrs);
                     if (planTrace == null) yield null;
-                    yield new PlanCbrCase(problem, solution, outcome, confidence, features, planTrace);
+                    yield new PlanCbrCase(problem, solution, outcome, confidence, features, planTrace, null, null);
                 }
                 case TextualCbrCase.CBR_TYPE ->
-                    new TextualCbrCase(problem, solution, outcome, confidence);
+                    new TextualCbrCase(problem, solution, outcome, confidence, null, null);
                 default -> {
                     LOG.warning("Unknown cbr.type '" + cbrType + "' in memory " + memory.memoryId());
                     yield null;

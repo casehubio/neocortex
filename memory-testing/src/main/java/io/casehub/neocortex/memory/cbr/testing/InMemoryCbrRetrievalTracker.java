@@ -22,7 +22,10 @@ public class InMemoryCbrRetrievalTracker implements CbrRetrievalTracker {
                 .map(s -> new CbrRetrievalTrace.TracedCase(
                         s.caseId(), s.score(), s.reranked(),
                         s.featureSimilarities(),
-                        s.cbrCase().confidence()))
+                        s.cbrCase().confidence(),
+                        s.cbrCase().trustScore(),
+                        s.cbrCase().producerAgentId(),
+                        null))
                 .toList();
         traces.add(new CbrRetrievalTrace(traceId, query, traced, Instant.now()));
         return traceId;

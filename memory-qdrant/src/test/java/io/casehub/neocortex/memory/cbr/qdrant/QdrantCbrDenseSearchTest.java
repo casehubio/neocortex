@@ -75,11 +75,11 @@ class QdrantCbrDenseSearchTest {
     @Test
     void denseSearch_ranksResultsBySimilarity() {
         // "alpha" embeds to [1,0,0,0], "alpha-ish" to [0.9,0.436,0,0], "beta" to [0,1,0,0]
-        store.store(new TextualCbrCase("alpha", "solution-a", null, null),
+        store.store(new TextualCbrCase("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("beta", "solution-b", null, null),
+        store.store(new TextualCbrCase("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-beta", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("alpha-ish", "solution-c", null, null),
+        store.store(new TextualCbrCase("alpha-ish", "solution-c", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-alpha-ish", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10)
@@ -95,9 +95,9 @@ class QdrantCbrDenseSearchTest {
 
     @Test
     void denseSearch_minSimilarity_filtersLowScoreResults() {
-        store.store(new TextualCbrCase("alpha", "solution-a", null, null),
+        store.store(new TextualCbrCase("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("beta", "solution-b", null, null),
+        store.store(new TextualCbrCase("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-beta", io.casehub.platform.api.path.Path.root());
 
         // SEMANTIC_ONLY + high threshold — "beta" should be excluded (cos≈0.0)
@@ -117,9 +117,9 @@ class QdrantCbrDenseSearchTest {
 
     @Test
     void denseSearch_fallsBackToFilterOnly_whenProblemNull() {
-        store.store(new TextualCbrCase("alpha", "solution-a", null, null),
+        store.store(new TextualCbrCase("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("beta", "solution-b", null, null),
+        store.store(new TextualCbrCase("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-beta", io.casehub.platform.api.path.Path.root());
 
         // problem=null → filter-only mode, all results score 1.0
@@ -134,10 +134,10 @@ class QdrantCbrDenseSearchTest {
     @Test
     void denseSearch_withPayloadFilters_combinesVectorAndFeatureScoring() {
         store.store(new FeatureVectorCbrCase("alpha", "sol-a", null, null,
-                Map.of("opponent_race", string("Zerg"))),
+                Map.of("opponent_race", string("Zerg")), null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-combo-zerg", io.casehub.platform.api.path.Path.root());
         store.store(new FeatureVectorCbrCase("alpha", "sol-b", null, null,
-                Map.of("opponent_race", string("Protoss"))),
+                Map.of("opponent_race", string("Protoss")), null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-combo-protoss", io.casehub.platform.api.path.Path.root());
 
         // Dense search for "alpha" + graded scoring for Zerg

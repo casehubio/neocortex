@@ -71,7 +71,8 @@ public class TrackingCbrCaseMemoryStore implements CbrCaseMemoryStore {
             var traced = results.stream()
                     .map(s -> new CbrRetrievalTrace.TracedCase(
                             s.caseId(), s.score(), s.reranked(),
-                            s.featureSimilarities(), s.cbrCase().confidence()))
+                            s.featureSimilarities(), s.cbrCase().confidence(),
+                            s.cbrCase().trustScore(), s.cbrCase().producerAgentId(), null))
                     .toList();
             eventSink.accept(new CbrRetrievalRecorded(traceId, query, traced));
         } catch (Exception e) {

@@ -5,7 +5,8 @@ import java.util.Objects;
 
 public record FeatureVectorCbrCase(String problem, String solution,
                                    String outcome, Double confidence,
-                                   Map<String, FeatureValue> features) implements CbrCase {
+                                   Map<String, FeatureValue> features,
+                                   Double trustScore, String producerAgentId) implements CbrCase {
     public static final String CBR_TYPE = "feature-vector";
 
     @Override
@@ -19,18 +20,21 @@ public record FeatureVectorCbrCase(String problem, String solution,
         if (confidence != null && (confidence < 0.0 || confidence > 1.0)) {
             throw new IllegalArgumentException("confidence must be in [0,1], got: " + confidence);
         }
+        if (trustScore != null && (trustScore < 0.0 || trustScore > 1.0)) {
+            throw new IllegalArgumentException("trustScore must be in [0,1], got: " + trustScore);
+        }
         Objects.requireNonNull(features, "features required");
         features = Map.copyOf(features);
     }
 
     @Override
     public CbrCase withOutcome(String outcome, Double confidence) {
-        return new FeatureVectorCbrCase(problem(), solution(), outcome, confidence, features());
+        return new FeatureVectorCbrCase(problem(), solution(), outcome, confidence, features(), trustScore(), producerAgentId());
     }
 
     @Override
     public CbrCase withFeatures(Map<String, FeatureValue> features) {
-        return new FeatureVectorCbrCase(problem(), solution(), outcome(), confidence(), features);
+        return new FeatureVectorCbrCase(problem(), solution(), outcome(), confidence(), features, trustScore(), producerAgentId());
     }
 
 }

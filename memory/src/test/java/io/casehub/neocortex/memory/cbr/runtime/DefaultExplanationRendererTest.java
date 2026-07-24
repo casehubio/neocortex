@@ -21,7 +21,7 @@ class DefaultExplanationRendererTest {
                 CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "adverse-event", Map.of(), 5)
                         .withRetrievalMode(RetrievalMode.HYBRID),
                 List.of(new CbrRetrievalTrace.TracedCase("ae-001", 0.92, false,
-                        Map.of("grade", 1.0, "eventType", 0.95), 0.85)),
+                        Map.of("grade", 1.0, "eventType", 0.95), 0.85, null, null, null)),
                 Instant.now());
         String result = renderer.render(trace);
         assertThat(result).contains("Retrieved 1 case");
@@ -42,7 +42,7 @@ class DefaultExplanationRendererTest {
     @Test void nullConfidence() {
         var trace = new CbrRetrievalTrace("t1",
                 CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
-                List.of(new CbrRetrievalTrace.TracedCase("c1", 0.75, false, Map.of(), null)),
+                List.of(new CbrRetrievalTrace.TracedCase("c1", 0.75, false, Map.of(), null, null, null, null)),
                 Instant.now());
         String result = renderer.render(trace);
         assertThat(result).doesNotContain("null");
@@ -51,7 +51,7 @@ class DefaultExplanationRendererTest {
     @Test void nullCaseId() {
         var trace = new CbrRetrievalTrace("t1",
                 CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
-                List.of(new CbrRetrievalTrace.TracedCase(null, 0.75, false, Map.of(), 0.9)),
+                List.of(new CbrRetrievalTrace.TracedCase(null, 0.75, false, Map.of(), 0.9, null, null, null)),
                 Instant.now());
         String result = renderer.render(trace);
         assertThat(result).doesNotContain("null");
@@ -61,8 +61,8 @@ class DefaultExplanationRendererTest {
         var trace = new CbrRetrievalTrace("t1",
                 CbrQuery.of("tenant", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5),
                 List.of(
-                    new CbrRetrievalTrace.TracedCase("c1", 0.92, false, Map.of(), 0.9),
-                    new CbrRetrievalTrace.TracedCase("c2", 0.75, false, Map.of(), 0.8)),
+                    new CbrRetrievalTrace.TracedCase("c1", 0.92, false, Map.of(), 0.9, null, null, null),
+                    new CbrRetrievalTrace.TracedCase("c2", 0.75, false, Map.of(), 0.8, null, null, null)),
                 Instant.now());
         String result = renderer.render(trace);
         assertThat(result).contains("Retrieved 2 cases");

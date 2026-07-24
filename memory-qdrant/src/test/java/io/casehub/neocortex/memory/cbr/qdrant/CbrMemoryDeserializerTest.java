@@ -18,7 +18,7 @@ class CbrMemoryDeserializerTest {
     @Test
     void roundTrip_featureVectorCbrCase() {
         var original = new FeatureVectorCbrCase("Zerg rush detected", "wall-off and expand",
-            "WIN", 0.85, Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)));
+            "WIN", 0.85, Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
 
@@ -37,7 +37,7 @@ class CbrMemoryDeserializerTest {
         var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
             Map.of("duration", 30));
         var original = new PlanCbrCase("Zerg rush", "early pressure", "WIN", 0.9,
-            Map.of("opponent_race", string("Zerg")), List.of(trace));
+            Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
 
@@ -51,7 +51,7 @@ class CbrMemoryDeserializerTest {
 
     @Test
     void roundTrip_textualCbrCase() {
-        var original = new TextualCbrCase("simple problem", "simple solution", "OK", 0.5);
+        var original = new TextualCbrCase("simple problem", "simple solution", "OK", 0.5, null, null);
 
         var deserialized = roundTrip(original, "simple-type");
 
@@ -66,7 +66,7 @@ class CbrMemoryDeserializerTest {
 
     @Test
     void roundTrip_nullOptionalFields() {
-        var original = new TextualCbrCase("p", "s", null, null);
+        var original = new TextualCbrCase("p", "s", null, null, null, null);
 
         var deserialized = roundTrip(original, "minimal");
 

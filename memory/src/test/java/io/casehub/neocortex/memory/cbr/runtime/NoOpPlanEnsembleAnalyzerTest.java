@@ -27,7 +27,7 @@ class NoOpPlanEnsembleAnalyzerTest {
             traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of()));
         }
         var plan = new PlanCbrCase("problem", "solution", "COMPLETED", score,
-                                   Map.of("f", FeatureValue.string("v")), traces);
+                                   Map.of("f", FeatureValue.string("v")), traces, null, null);
         return new ScoredCbrCase<>(plan, caseId, score);
     }
 
@@ -93,7 +93,7 @@ class NoOpPlanEnsembleAnalyzerTest {
                                    Map.of("k", "v"), AdaptationAction.BOOSTED, "boosted");
         var adapted = new AdaptedPlan(List.of(step));
         var plan = new PlanCbrCase("problem", "solution", "COMPLETED", 0.8,
-                                   Map.of(), List.of(new PlanTrace("bind", "cap", "worker", "SUCCESS", 3, Map.of("k", "v"))));
+                                   Map.of(), List.of(new PlanTrace("bind", "cap", "worker", "SUCCESS", 3, Map.of("k", "v"))), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.8);
 
         var result = analyzer.analyze("type", List.of(scored), List.of(adapted), Map.of());
@@ -123,7 +123,7 @@ class NoOpPlanEnsembleAnalyzerTest {
     @Test
     void noOp_negative_score_clamped_to_zero() {
         var plan = new PlanCbrCase("problem", "solution", "COMPLETED", null,
-                                   Map.of(), List.of(new PlanTrace("a", "cap-a", "worker-a", "COMPLETED", 0, Map.of())));
+                                   Map.of(), List.of(new PlanTrace("a", "cap-a", "worker-a", "COMPLETED", 0, Map.of())), null, null);
         var scored  = new ScoredCbrCase<>(plan, "c1", -0.5);
         var adapted = adapted("a");
 
@@ -138,7 +138,7 @@ class NoOpPlanEnsembleAnalyzerTest {
                                    Map.of(), AdaptationAction.RETAINED, null);
         var adapted = new AdaptedPlan(List.of(step));
         var plan = new PlanCbrCase("problem", "solution", null, null,
-                                   Map.of(), List.of(new PlanTrace("b", "cap", "w", "SUCCESS", 5, Map.of())));
+                                   Map.of(), List.of(new PlanTrace("b", "cap", "w", "SUCCESS", 5, Map.of())), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.8);
 
         var result = analyzer.analyze("type", List.of(scored), List.of(adapted), Map.of());

@@ -22,7 +22,7 @@ class TrackingPlanAdapterTest {
     private ScoredCbrCase<PlanCbrCase> scored() {
         var trace = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of());
         var plan = new PlanCbrCase("problem", "solution", "WIN", 0.9,
-                Map.of("f", FeatureValue.string("v")), List.of(trace));
+                                   Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
         return new ScoredCbrCase<>(plan, "c1", 0.85);
     }
 
@@ -84,7 +84,7 @@ class TrackingPlanAdapterTest {
         var decorator = new TrackingPlanAdapter(noOpDelegate(), eventRef::set);
 
         var emptyPlan = new PlanCbrCase("problem", "solution", null, null,
-                                        Map.of(), List.of());
+                                        Map.of(), List.of(), null, null);
         var scored = new ScoredCbrCase<>(emptyPlan, "c2", 0.3);
         decorator.adapt("typeA", scored, Map.of());
 

@@ -75,6 +75,12 @@ final class CbrPointBuilder {
         if (cbrCase.confidence() != null) {
             payload.put("confidence", ValueFactory.value(cbrCase.confidence()));
         }
+        if (cbrCase.trustScore() != null) {
+            payload.put("trust_score", ValueFactory.value(cbrCase.trustScore()));
+        }
+        if (cbrCase.producerAgentId() != null) {
+            payload.put("producer_agent_id", ValueFactory.value(cbrCase.producerAgentId()));
+        }
 
         Map<String, Object> features = toRawMap(cbrCase.features());
         try {

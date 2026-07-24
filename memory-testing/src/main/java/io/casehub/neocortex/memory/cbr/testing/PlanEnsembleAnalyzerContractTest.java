@@ -27,7 +27,7 @@ public abstract class PlanEnsembleAnalyzerContractTest {
             traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of()));
         }
         var plan = new PlanCbrCase("problem", "solution", "COMPLETED", score,
-                Map.of("f", FeatureValue.string("v")), traces);
+                                   Map.of("f", FeatureValue.string("v")), traces, null, null);
         return new ScoredCbrCase<>(plan, caseId, score);
     }
 

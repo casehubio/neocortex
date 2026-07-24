@@ -108,7 +108,8 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
         List<CbrRetrievalTrace.TracedCase> traced = results.stream()
                 .map(s -> new CbrRetrievalTrace.TracedCase(
                         s.caseId(), s.score(), s.reranked(),
-                        s.featureSimilarities(), s.cbrCase().confidence()))
+                        s.featureSimilarities(), s.cbrCase().confidence(),
+                        s.cbrCase().trustScore(), s.cbrCase().producerAgentId(), null))
                 .toList();
 
         String resultsJson;

@@ -3,8 +3,6 @@ package io.casehub.neocortex.memory.cbr;
 import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -358,7 +356,7 @@ class TrendAnalyzerTest {
     @Test
     void featureVectorCbrCase_withFeatures() {
         var original = new FeatureVectorCbrCase("p", "s", null, null,
-                Map.of("a", string("x")));
+                                                Map.of("a", string("x")), null, null);
         var updated = original.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");
         assertThat(updated.problem()).isEqualTo("p");
@@ -367,7 +365,7 @@ class TrendAnalyzerTest {
     @Test
     void planCbrCase_withFeatures_preservesPlanTrace() {
         var trace = List.of(new PlanTrace("step1", "cap1", "worker1", "OK", 1, Map.of()));
-        var original = new PlanCbrCase("p", "s", null, null, Map.of("a", string("x")), trace);
+        var original = new PlanCbrCase("p", "s", null, null, Map.of("a", string("x")), trace, null, null);
         var updated = (PlanCbrCase) original.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");
         assertThat(updated.planTrace()).hasSize(1);
@@ -375,7 +373,7 @@ class TrendAnalyzerTest {
 
     @Test
     void textualCbrCase_withFeatures_throws() {
-        var tc = new TextualCbrCase("p", "s", null, null);
+        var tc = new TextualCbrCase("p", "s", null, null, null, null);
         org.assertj.core.api.Assertions.assertThatThrownBy(
                 () -> tc.withFeatures(Map.of("a", string("x"))))
                 .isInstanceOf(UnsupportedOperationException.class);

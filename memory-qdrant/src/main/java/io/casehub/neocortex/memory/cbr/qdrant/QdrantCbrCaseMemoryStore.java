@@ -281,7 +281,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             double score = CbrSimilarityScorer.score(
                 query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
             if (score >= query.minSimilarity()) {
-                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score, false, Map.of(), rc.storedAt(), rc.scope()));
+                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score, false, Map.of(), rc.storedAt(), rc.scope(), null));
             }
         }
         candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
@@ -310,7 +310,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 if (cbrCase != null && point.getScore() >= query.minSimilarity()) {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
                     Instant storedAt = extractStoredAt(point.getPayloadMap());
-                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore(), false, Map.of(), storedAt, extractScope(point.getPayloadMap())));
+                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore(), false, Map.of(), storedAt, extractScope(point.getPayloadMap()), null));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -454,7 +454,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var f : fused) {
             double score = Math.max(-1.0, Math.min(1.0, f.score()));
             if (query.fusionStrategy() == FusionStrategy.RRF || score >= query.minSimilarity()) {
-                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score, false, Map.of(), f.item().storedAt(), f.item().scope()));
+                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score, false, Map.of(), f.item().storedAt(), f.item().scope(), null));
             }
         }
         return Collections.unmodifiableList(results);
@@ -955,11 +955,13 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
         String outcome = extractString(payload, "outcome");
         Double confidence = extractDouble(payload, "confidence");
+        Double trustScore = extractDouble(payload, "trust_score");
+        String producerAgentId = extractString(payload, "producer_agent_id");
         String cbrType = extractString(payload, "_cbr_type");
         CbrCase reconstructed = switch (cbrType) {
-            case FeatureVectorCbrCase.CBR_TYPE -> reconstructFeatureVector(payload, problem, solution, outcome, confidence);
-            case PlanCbrCase.CBR_TYPE -> reconstructPlanCase(payload, problem, solution, outcome, confidence);
-            case TextualCbrCase.CBR_TYPE -> new TextualCbrCase(problem, solution, outcome, confidence);
+            case FeatureVectorCbrCase.CBR_TYPE -> reconstructFeatureVector(payload, problem, solution, outcome, confidence, trustScore, producerAgentId);
+            case PlanCbrCase.CBR_TYPE -> reconstructPlanCase(payload, problem, solution, outcome, confidence, trustScore, producerAgentId);
+            case TextualCbrCase.CBR_TYPE -> new TextualCbrCase(problem, solution, outcome, confidence, trustScore, producerAgentId);
             case null -> throw new IllegalStateException("Missing _cbr_type in CBR point");
             default -> throw new IllegalArgumentException("Unknown CBR type: " + cbrType);
         };
@@ -970,7 +972,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private CbrCase reconstructPlanCase(Map<String, Value> payload,
                                         String problem, String solution,
-                                        String outcome, Double confidence) {
+                                        String outcome, Double confidence,
+                                        Double trustScore, String producerAgentId) {
         Map<String, FeatureValue> features = Map.of();
         String featuresJson = extractString(payload, "_features_json");
         if (featuresJson != null) {
@@ -991,19 +994,20 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             }
         }
 
-        return new PlanCbrCase(problem, solution, outcome, confidence, features, planTrace);
+        return new PlanCbrCase(problem, solution, outcome, confidence, features, planTrace, trustScore, producerAgentId);
     }
 
     private CbrCase reconstructFeatureVector(Map<String, Value> payload,
                                              String problem, String solution,
-                                             String outcome, Double confidence) {
+                                             String outcome, Double confidence,
+                                             Double trustScore, String producerAgentId) {
         String featuresJson = extractString(payload, "_features_json");
         if (featuresJson == null) {
-            return new FeatureVectorCbrCase(problem, solution, outcome, confidence, Map.of());
+            return new FeatureVectorCbrCase(problem, solution, outcome, confidence, Map.of(), trustScore, producerAgentId);
         }
         try {
             var features = CbrPointBuilder.fromRawMap(MAPPER.readValue(featuresJson, MAP_TYPE));
-            return new FeatureVectorCbrCase(problem, solution, outcome, confidence, features);
+            return new FeatureVectorCbrCase(problem, solution, outcome, confidence, features, trustScore, producerAgentId);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Corrupted _features_json in CBR point", e);
         }

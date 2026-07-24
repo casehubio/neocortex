@@ -9,6 +9,11 @@ public interface CbrCase {
     String outcome();
     Double confidence();
 
+    default Double trustScore()      {return null;}
+
+    default String producerAgentId() {return null;}
+
+
     default Map<String, FeatureValue> features() { return Map.of(); }
 
     CbrCase withOutcome(String outcome, Double confidence);

@@ -57,9 +57,9 @@ class CdiDecoratorChainTest {
                 null));
 
         var c1 = new FeatureVectorCbrCase("problem-alpha", "summary1", null, 0.5,
-                Map.of("severity", FeatureValue.number(3.0)));
+                Map.of("severity", FeatureValue.number(3.0)), null, null);
         var c2 = new FeatureVectorCbrCase("problem-beta", "summary2", null, 1.0,
-                Map.of("severity", FeatureValue.number(7.0)));
+                Map.of("severity", FeatureValue.number(7.0)), null, null);
         store.store(c1, "default", "e1", CBR, "t1", "case1", Path.root());
         store.store(c2, "default", "e1", CBR, "t1", "case2", Path.root());
 

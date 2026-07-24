@@ -60,7 +60,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
                 Map.<String, FeatureValue>of("t", number(0), "hr", number(60)),
                 Map.<String, FeatureValue>of("t", number(1), "hr", number(80)));
         var cbrCase = new FeatureVectorCbrCase("prob", "sol", null, null,
-                Map.of("drug", string("aspirin"), "vitals", FeatureValue.structList(obs)));
+                                               Map.of("drug", string("aspirin"), "vitals", FeatureValue.structList(obs)), null, null);
         decorator.store(cbrCase, "clinical", "e1", CBR, "t1", null, io.casehub.platform.api.path.Path.root());
 
         var stored = capturedCase.get();
@@ -102,7 +102,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
         decorator.registerSchema(noTrendSchema);
 
         var cbrCase = new FeatureVectorCbrCase("prob", "sol", null, null,
-                Map.of("drug", string("aspirin")));
+                                               Map.of("drug", string("aspirin")), null, null);
         decorator.store(cbrCase, "plain", "e1", CBR, "t1", null, io.casehub.platform.api.path.Path.root());
 
         assertThat(capturedCase.get().features()).doesNotContainKey("vitals_slope_hr");
@@ -116,7 +116,7 @@ class TrendEnrichmentCbrCaseMemoryStoreTest {
         var decorator = new TrendEnrichmentCbrCaseMemoryStore(delegate);
 
         var cbrCase = new FeatureVectorCbrCase("prob", "sol", null, null,
-                Map.of("drug", string("aspirin")));
+                                               Map.of("drug", string("aspirin")), null, null);
         decorator.store(cbrCase, "unknown", "e1", CBR, "t1", null, io.casehub.platform.api.path.Path.root());
 
         assertThat(capturedCase.get()).isSameAs(cbrCase);

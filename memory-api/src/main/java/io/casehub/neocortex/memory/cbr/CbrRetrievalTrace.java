@@ -20,15 +20,18 @@ public record CbrRetrievalTrace(
     }
 
     public record TracedCase(
-        String caseId,
-        double score,
-        boolean reranked,
-        Map<String, Double> featureSimilarities,
-        Double confidence
+            String caseId,
+            double score,
+            boolean reranked,
+            Map<String, Double> featureSimilarities,
+            Double confidence,
+            Double trustScore,
+            String producerAgentId,
+            String trustTrajectory
     ) {
         public TracedCase {
             featureSimilarities = featureSimilarities != null
-                ? Map.copyOf(featureSimilarities) : Map.of();
+                                  ? Map.copyOf(featureSimilarities) : Map.of();
         }
     }
 }

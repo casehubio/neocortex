@@ -7,7 +7,8 @@ import java.util.Objects;
 public record PlanCbrCase(String problem, String solution,
                           String outcome, Double confidence,
                           Map<String, FeatureValue> features,
-                          List<PlanTrace> planTrace) implements CbrCase {
+                          List<PlanTrace> planTrace,
+                          Double trustScore, String producerAgentId) implements CbrCase {
     public static final String CBR_TYPE = "plan";
 
     @Override
@@ -21,6 +22,9 @@ public record PlanCbrCase(String problem, String solution,
         if (confidence != null && (confidence < 0.0 || confidence > 1.0)) {
             throw new IllegalArgumentException("confidence must be in [0,1], got: " + confidence);
         }
+        if (trustScore != null && (trustScore < 0.0 || trustScore > 1.0)) {
+            throw new IllegalArgumentException("trustScore must be in [0,1], got: " + trustScore);
+        }
         Objects.requireNonNull(features, "features required");
         features = Map.copyOf(features);
         Objects.requireNonNull(planTrace, "planTrace required");
@@ -29,12 +33,12 @@ public record PlanCbrCase(String problem, String solution,
 
     @Override
     public CbrCase withOutcome(String outcome, Double confidence) {
-        return new PlanCbrCase(problem(), solution(), outcome, confidence, features(), planTrace());
+        return new PlanCbrCase(problem(), solution(), outcome, confidence, features(), planTrace(), trustScore(), producerAgentId());
     }
 
     @Override
     public CbrCase withFeatures(Map<String, FeatureValue> features) {
-        return new PlanCbrCase(problem(), solution(), outcome(), confidence(), features, planTrace());
+        return new PlanCbrCase(problem(), solution(), outcome(), confidence(), features, planTrace(), trustScore(), producerAgentId());
     }
 
 }

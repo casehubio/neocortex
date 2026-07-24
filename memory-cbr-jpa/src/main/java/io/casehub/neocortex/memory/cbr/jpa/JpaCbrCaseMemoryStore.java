@@ -150,7 +150,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
                         ? io.casehub.platform.api.path.Path.root()
                         : io.casehub.platform.api.path.Path.parse(entity.scope);
                 candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId,
-                                                   score, false, breakdown.featureSimilarities(), entity.storedAt, entityScope));
+                                                   score, false, breakdown.featureSimilarities(), entity.storedAt, entityScope, null));
             }
         }
 
@@ -318,13 +318,13 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return switch (entity.cbrType) {
             case "plan" -> new PlanCbrCase(
                     entity.problem, entity.solution, entity.outcome, entity.confidence,
-                    features, deserializePlanTraces(entity.planTraces));
+                    features, deserializePlanTraces(entity.planTraces), null, null);
             case "feature-vector" -> new FeatureVectorCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, features);
+                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, null, null);
             case "textual" -> new TextualCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence);
+                    entity.problem, entity.solution, entity.outcome, entity.confidence, null, null);
             default -> new FeatureVectorCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, features);
+                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, null, null);
         };
     }
 
