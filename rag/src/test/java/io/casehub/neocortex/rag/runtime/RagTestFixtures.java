@@ -73,13 +73,16 @@ final class RagTestFixtures {
                     @Override public int rrfK() { return rrfK; }
                     @Override public boolean rerankEnabled() { return rerankEnabled; }
                     @Override public int rerankTopN() { return rerankTopN; }
-                    @Override public CcWeightsConfig ccWeights() {
-                        return new CcWeightsConfig() {
-                            @Override public double dense() { return 0.5; }
-                            @Override public double sparse() { return 0.3; }
-                            @Override public double bm25() { return 0.2; }
+                    @Override public FusionWeightsConfig weights() {
+                        return new FusionWeightsConfig() {
+                            @Override public double dense() { return 1.0; }
+                            @Override public double sparse() { return 1.0; }
+                            @Override public double bm25() { return 1.0; }
+                            @Override public double quality() { return 0.0; }
                         };
                     }
+                    @Override public Optional<String> qualityPayloadField() { return Optional.empty(); }
+                    @Override public double qualityMax() { return 10.0; }
                 };
             }
             @Override public int embeddingBatchSize() { return batchSize; }

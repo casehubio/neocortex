@@ -1,8 +1,11 @@
 package io.casehub.neocortex.fusion;
 
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 class ScoreFusionTest {
 
@@ -148,5 +151,50 @@ class ScoreFusionTest {
         var results = ScoreFusion.convexCombination(
             List.of(leg), Item::id, 2);
         assertThat(results).hasSize(2);
+    }
+
+    @Test
+    void rrf_weightedLegs_higherWeightIncreasesContribution() {
+        var legA    = leg(2.0, item("a", 0.9));
+        var legB    = leg(1.0, item("b", 0.8));
+        var results = ScoreFusion.rrf(List.of(legA, legB), Item::id, 10, 60);
+        assertThat(results.get(0).item().id()).isEqualTo("a");
+        assertThat(results.get(0).score()).isGreaterThan(results.get(1).score());
+    }
+
+    @Test
+    void rrf_equalWeights_matchesScaledWeights() {
+        var legA        = leg(1.0, item("a", 0.9), item("b", 0.8));
+        var legB        = leg(1.0, item("a", 0.7), item("c", 0.6));
+        var equalResult = ScoreFusion.rrf(List.of(legA, legB), Item::id, 3, 60);
+
+        var legA5        = leg(5.0, item("a", 0.9), item("b", 0.8));
+        var legB5        = leg(5.0, item("a", 0.7), item("c", 0.6));
+        var scaledResult = ScoreFusion.rrf(List.of(legA5, legB5), Item::id, 3, 60);
+
+        assertThat(equalResult.get(0).item().id()).isEqualTo(scaledResult.get(0).item().id());
+        assertThat(equalResult.get(0).score()).isCloseTo(scaledResult.get(0).score(), within(0.001));
+    }
+
+    @Test
+    void rrf_zeroWeightLeg_contributesNothing() {
+        var legA    = leg(1.0, item("a", 0.9), item("b", 0.8));
+        var legB    = leg(0.0, item("b", 0.7), item("c", 0.6));
+        var results = ScoreFusion.rrf(List.of(legA, legB), Item::id, 10, 60);
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).item().id()).isEqualTo("a");
+        for (var r : results) {
+            assertThat(r.item().id()).isNotEqualTo("c");
+        }
+    }
+
+    @Test
+    void rrf_weightedNormalization_outputInZeroToOne() {
+        var legA    = leg(3.0, item("a", 0.9));
+        var legB    = leg(1.0, item("a", 0.8));
+        var results = ScoreFusion.rrf(List.of(legA, legB), Item::id, 10, 60);
+        for (var r : results) {
+            assertThat(r.score()).isBetween(0.0, 1.0);
+        }
     }
 }

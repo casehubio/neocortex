@@ -142,6 +142,105 @@ public final class RetrievalAnalyzer {
         return result;
     }
 
+    public static List<QueryQualitySignal> lowRelevanceQueries(
+            RetrievalTracker tracker, CorpusRef corpus,
+            Instant since, Instant until, double scoreThreshold) {
+
+        List<RetrievalRecord> records = tracker.findRecords(corpus, since, until);
+        if (records.isEmpty()) {return List.of();}
+
+        Map<String, List<Double>> scoresByQuery   = new HashMap<>();
+        Map<String, Instant>      lastSeenByQuery = new HashMap<>();
+
+        for (RetrievalRecord r : records) {
+            String qt = r.query().text();
+            if (r.documents().isEmpty()) {continue;}
+            double avg = r.documents().stream()
+                          .mapToDouble(RetrievedDocumentRef::relevanceScore).average().orElse(0.0);
+            scoresByQuery.computeIfAbsent(qt, k -> new ArrayList<>()).add(avg);
+            lastSeenByQuery.merge(qt, r.timestamp(),
+                                  (a, b) -> a.isAfter(b) ? a : b);
+        }
+
+        List<QueryQualitySignal> result = new ArrayList<>();
+        for (var entry : scoresByQuery.entrySet()) {
+            List<Double> scores     = entry.getValue();
+            double       overallAvg = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            if (overallAvg < scoreThreshold) {
+                result.add(new QueryQualitySignal(
+                        entry.getKey(), overallAvg, scores.size(), lastSeenByQuery.get(entry.getKey())));
+            }
+        }
+        result.sort(Comparator.comparingDouble(QueryQualitySignal::averageRelevanceScore));
+        return result;
+    }
+
+    public static List<QueryQualitySignal> zeroHitQueries(
+            RetrievalTracker tracker, CorpusRef corpus,
+            Instant since, Instant until) {
+
+        List<RetrievalRecord> records = tracker.findRecords(corpus, since, until);
+        if (records.isEmpty()) {return List.of();}
+
+        Map<String, Integer> countByQuery    = new LinkedHashMap<>();
+        Map<String, Instant> lastSeenByQuery = new HashMap<>();
+
+        for (RetrievalRecord r : records) {
+            if (r.documents().isEmpty()) {
+                String qt = r.query().text();
+                countByQuery.merge(qt, 1, Integer::sum);
+                lastSeenByQuery.merge(qt, r.timestamp(),
+                                      (a, b) -> a.isAfter(b) ? a : b);
+            }
+        }
+
+        List<QueryQualitySignal> result = new ArrayList<>();
+        for (var entry : countByQuery.entrySet()) {
+            result.add(new QueryQualitySignal(
+                    entry.getKey(), 0.0, entry.getValue(), lastSeenByQuery.get(entry.getKey())));
+        }
+        return result;
+    }
+
+    public static Map<String, QueryFrequencyStats> queryFrequency(
+            RetrievalTracker tracker, CorpusRef corpus,
+            Instant since, Instant until) {
+
+        List<RetrievalRecord> records = tracker.findRecords(corpus, since, until);
+        if (records.isEmpty()) {return Map.of();}
+
+        Map<String, Integer>      countByQuery     = new LinkedHashMap<>();
+        Map<String, List<Double>> scoresByQuery    = new HashMap<>();
+        Map<String, Instant>      firstSeenByQuery = new HashMap<>();
+        Map<String, Instant>      lastSeenByQuery  = new HashMap<>();
+
+        for (RetrievalRecord r : records) {
+            String qt = r.query().text();
+            countByQuery.merge(qt, 1, Integer::sum);
+            double avg = r.documents().isEmpty() ? 0.0
+                                                 : r.documents().stream()
+                                                    .mapToDouble(RetrievedDocumentRef::relevanceScore).average().orElse(0.0);
+            scoresByQuery.computeIfAbsent(qt, k -> new ArrayList<>()).add(avg);
+            firstSeenByQuery.merge(qt, r.timestamp(),
+                                   (a, b) -> a.isBefore(b) ? a : b);
+            lastSeenByQuery.merge(qt, r.timestamp(),
+                                  (a, b) -> a.isAfter(b) ? a : b);
+        }
+
+        Map<String, QueryFrequencyStats> result = new LinkedHashMap<>();
+        countByQuery.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .forEachOrdered(entry -> {
+                        String qt = entry.getKey();
+                        double avgScore = scoresByQuery.get(qt).stream()
+                                                       .mapToDouble(Double::doubleValue).average().orElse(0.0);
+                        result.put(qt, new QueryFrequencyStats(
+                                entry.getValue(), avgScore,
+                                firstSeenByQuery.get(qt), lastSeenByQuery.get(qt)));
+                    });
+        return result;
+    }
+
 
     private record DocAppearance(Instant timestamp, double score) {}
 }

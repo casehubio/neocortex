@@ -424,24 +424,36 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
 
         java.util.function.Function<FusionEntry<C>, String> idExtractor = FusionEntry::pointId;
-        double featureWeight = 1.0 - query.vectorWeight();
+        boolean useEqualWeights = query.fusionStrategy() == FusionStrategy.RRF;
+
+        double featureWeight = useEqualWeights ? 1.0 : (1.0 - query.vectorWeight());
         var featureScoredLeg = new ScoreFusion.ScoredLeg<>(featureLeg, FusionEntry::score, featureWeight);
 
-        double rawDense = (!denseLeg.isEmpty()) ? config.ccWeights().dense() : 0.0;
-        double rawSparse = (!spladeLeg.isEmpty()) ? config.ccWeights().sparse() : 0.0;
-        double rawBm25 = (!bm25Leg.isEmpty()) ? config.ccWeights().bm25() : 0.0;
+        double rawDense, rawSparse, rawBm25;
+        if (useEqualWeights) {
+            rawDense = (!denseLeg.isEmpty()) ? 1.0 : 0.0;
+            rawSparse = (!spladeLeg.isEmpty()) ? 1.0 : 0.0;
+            rawBm25 = (!bm25Leg.isEmpty()) ? 1.0 : 0.0;
+        } else {
+            rawDense = (!denseLeg.isEmpty()) ? config.ccWeights().dense() : 0.0;
+            rawSparse = (!spladeLeg.isEmpty()) ? config.ccWeights().sparse() : 0.0;
+            rawBm25 = (!bm25Leg.isEmpty()) ? config.ccWeights().bm25() : 0.0;
+        }
         double semanticTotal = rawDense + rawSparse + rawBm25;
 
         List<ScoreFusion.ScoredLeg<FusionEntry<C>>> legs = new ArrayList<>();
         legs.add(featureScoredLeg);
         if (!denseLeg.isEmpty() && semanticTotal > 0) {
-            legs.add(new ScoreFusion.ScoredLeg<>(denseLeg, FusionEntry::score, query.vectorWeight() * rawDense / semanticTotal));
+            double denseWeight = useEqualWeights ? 1.0 : query.vectorWeight() * rawDense / semanticTotal;
+            legs.add(new ScoreFusion.ScoredLeg<>(denseLeg, FusionEntry::score, denseWeight));
         }
         if (!spladeLeg.isEmpty() && semanticTotal > 0) {
-            legs.add(new ScoreFusion.ScoredLeg<>(spladeLeg, FusionEntry::score, query.vectorWeight() * rawSparse / semanticTotal));
+            double sparseWeight = useEqualWeights ? 1.0 : query.vectorWeight() * rawSparse / semanticTotal;
+            legs.add(new ScoreFusion.ScoredLeg<>(spladeLeg, FusionEntry::score, sparseWeight));
         }
         if (!bm25Leg.isEmpty() && semanticTotal > 0) {
-            legs.add(new ScoreFusion.ScoredLeg<>(bm25Leg, FusionEntry::score, query.vectorWeight() * rawBm25 / semanticTotal));
+            double bm25Weight = useEqualWeights ? 1.0 : query.vectorWeight() * rawBm25 / semanticTotal;
+            legs.add(new ScoreFusion.ScoredLeg<>(bm25Leg, FusionEntry::score, bm25Weight));
         }
 
         List<ScoreFusion.FusedResult<FusionEntry<C>>> fused = switch (query.fusionStrategy()) {

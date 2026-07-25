@@ -107,17 +107,26 @@ public interface RagConfig {
         @WithDefault("10")
         int rerankTopN();
 
-        CcWeightsConfig ccWeights();
+        FusionWeightsConfig weights();
+
+        Optional<String> qualityPayloadField();
+
+        @WithDefault("10.0")
+        double qualityMax();
+
     }
 
-    interface CcWeightsConfig {
-        @WithDefault("0.5")
+    interface FusionWeightsConfig {
+        @WithDefault("1.0")
         double dense();
 
-        @WithDefault("0.3")
+        @WithDefault("1.0")
         double sparse();
 
-        @WithDefault("0.2")
+        @WithDefault("1.0")
         double bm25();
+
+        @WithDefault("0.0")
+        double quality();
     }
 }
