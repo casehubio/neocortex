@@ -1,6 +1,5 @@
 package io.casehub.neocortex.inference;
 
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,14 +49,13 @@ public interface MultiModalEmbedder {
         Objects.requireNonNull(denseText, "denseText must not be null");
         Objects.requireNonNull(nonDenseText, "nonDenseText must not be null");
         if (denseText.equals(nonDenseText)) {return embed(denseText);}
-        Map<EmbeddingMode, String> map = new EnumMap<>(EmbeddingMode.class);
-        map.put(EmbeddingMode.DENSE, denseText);
-        for (EmbeddingMode mode : supportedModes()) {
-            if (mode != EmbeddingMode.DENSE) {
-                map.put(mode, nonDenseText);
-            }
-        }
-        return embed(map);
+        List<MultiModalEmbedding> batch = embedBatch(List.of(denseText, nonDenseText));
+        MultiModalEmbedding denseResult    = batch.get(0);
+        MultiModalEmbedding nonDenseResult = batch.get(1);
+        return new MultiModalEmbedding(
+                denseResult.dense(),
+                nonDenseResult.sparse(),
+                nonDenseResult.colbert());
     }
 
 
