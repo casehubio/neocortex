@@ -8,7 +8,7 @@ import io.casehub.neocortex.rag.RelevanceGrade;
 import io.casehub.neocortex.rag.RetrievalQuality;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
-import io.casehub.neocortex.rag.crossencoder.ScoredGrade;
+import io.casehub.neocortex.rag.ScoredGrade;
 import io.casehub.neocortex.rag.crossencoder.reranking.RerankingLogic;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.Priority;
@@ -26,9 +26,9 @@ import java.util.List;
 @IfBuildProperty(name = "casehub.rag.crag.enabled", stringValue = "true")
 public class CorrectiveCaseRetriever implements CaseRetriever {
 
-    private final CaseRetriever delegate;
-    private final RelevanceEvaluator evaluator;
-    private final CragConfig config;
+    private final CaseRetriever           delegate;
+    private final RelevanceEvaluator      evaluator;
+    private final CragConfig              config;
     private final Event<RetrievalQuality> qualityEvent;
 
     @Inject
@@ -36,71 +36,58 @@ public class CorrectiveCaseRetriever implements CaseRetriever {
                             RelevanceEvaluator evaluator,
                             CragConfig config,
                             Event<RetrievalQuality> qualityEvent) {
-        this.delegate = delegate;
-        this.evaluator = evaluator;
-        this.config = config;
+        this.delegate     = delegate;
+        this.evaluator    = evaluator;
+        this.config       = config;
         this.qualityEvent = qualityEvent;
     }
 
     @Override
     public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus,
-                                          int maxResults, PayloadFilter filter) {
+                                         int maxResults, PayloadFilter filter) {
         List<RetrievedChunk> chunks = delegate.retrieve(query, corpus, maxResults, filter);
 
         if (CragEvaluationLogic.isAlreadyGraded(chunks)) {
             return chunks;
         }
 
-        List<String> contents = chunks.stream().map(RetrievedChunk::content).toList();
-        List<RelevanceGrade> grades;
+        var                  scored      = evaluator.evaluateChunks(query.text(), chunks);
+        List<RelevanceGrade> grades      = scored.stream().map(ScoredGrade::grade).toList();
         List<RetrievedChunk> gradedInput = chunks;
-
-        if (evaluator instanceof CrossEncoderRelevanceEvaluator ceEval) {
-            var scored = ceEval.evaluateBatchWithScores(query.text(), contents);
-            grades = scored.stream().map(ScoredGrade::grade).toList();
-            float[] scores = extractScores(scored);
-            gradedInput = RerankingLogic.attachScores(chunks, scores);
-        } else {
-            grades = evaluator.evaluateBatch(query.text(), contents);
+        if (hasUsableScores(scored)) {
+            gradedInput = RerankingLogic.attachScores(chunks, extractScores(scored));
         }
 
-        var initial = CragEvaluationLogic.gradeChunks(gradedInput, grades);
+        var initial        = CragEvaluationLogic.gradeChunks(gradedInput, grades);
         int totalRetrieved = chunks.size();
 
         List<RetrievedChunk> surviving = new ArrayList<>(
-            CragEvaluationLogic.filterIncorrect(initial.graded()));
+                CragEvaluationLogic.filterIncorrect(initial.graded()));
 
         boolean expanded = false;
         int correct = initial.correct(), ambiguous = initial.ambiguous(),
-            incorrect = initial.incorrect();
+                incorrect = initial.incorrect();
 
         if (CragEvaluationLogic.needsExpansion(
                 surviving.size(), maxResults, initial.incorrect())) {
             expanded = true;
             int expandedLimit = maxResults * config.expansionMultiplier();
             List<RetrievedChunk> expandedChunks = delegate.retrieve(
-                query, corpus, expandedLimit, filter);
+                    query, corpus, expandedLimit, filter);
 
             List<RetrievedChunk> newChunks =
-                CragEvaluationLogic.deduplicateExpanded(expandedChunks, initial.seen());
+                    CragEvaluationLogic.deduplicateExpanded(expandedChunks, initial.seen());
 
             if (!newChunks.isEmpty()) {
-                List<String> newContents = newChunks.stream()
-                    .map(RetrievedChunk::content).toList();
-                List<RelevanceGrade> newGrades;
+                var                  newScored      = evaluator.evaluateChunks(query.text(), newChunks);
+                List<RelevanceGrade> newGrades      = newScored.stream().map(ScoredGrade::grade).toList();
                 List<RetrievedChunk> newGradedInput = newChunks;
-
-                if (evaluator instanceof CrossEncoderRelevanceEvaluator ceEval) {
-                    var scored = ceEval.evaluateBatchWithScores(query.text(), newContents);
-                    newGrades = scored.stream().map(ScoredGrade::grade).toList();
-                    float[] newScores = extractScores(scored);
-                    newGradedInput = RerankingLogic.attachScores(newChunks, newScores);
-                } else {
-                    newGrades = evaluator.evaluateBatch(query.text(), newContents);
+                if (hasUsableScores(newScored)) {
+                    newGradedInput = RerankingLogic.attachScores(newChunks, extractScores(newScored));
                 }
 
                 var expansionResult = CragEvaluationLogic.gradeChunks(
-                    newGradedInput, newGrades);
+                        newGradedInput, newGrades);
 
                 totalRetrieved += newChunks.size();
                 correct += expansionResult.correct();
@@ -108,17 +95,21 @@ public class CorrectiveCaseRetriever implements CaseRetriever {
                 incorrect += expansionResult.incorrect();
 
                 surviving.addAll(
-                    CragEvaluationLogic.filterIncorrect(expansionResult.graded()));
+                        CragEvaluationLogic.filterIncorrect(expansionResult.graded()));
             }
         }
 
         List<RetrievedChunk> result =
-            CragEvaluationLogic.sortAndTruncate(surviving, maxResults);
+                CragEvaluationLogic.sortAndTruncate(surviving, maxResults);
 
         qualityEvent.fire(CragEvaluationLogic.buildQualityEvent(
-            totalRetrieved, correct, ambiguous, incorrect, expanded));
+                totalRetrieved, correct, ambiguous, incorrect, expanded));
 
         return result;
+    }
+
+    private static boolean hasUsableScores(List<ScoredGrade> scored) {
+        return !scored.isEmpty() && !Float.isNaN(scored.get(0).score());
     }
 
     private static float[] extractScores(List<ScoredGrade> scored) {

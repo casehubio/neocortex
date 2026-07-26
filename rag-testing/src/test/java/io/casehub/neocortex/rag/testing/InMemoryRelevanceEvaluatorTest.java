@@ -1,8 +1,10 @@
 package io.casehub.neocortex.rag.testing;
 
 import io.casehub.neocortex.rag.RelevanceGrade;
+import io.casehub.neocortex.rag.RetrievedChunk;
 import org.junit.jupiter.api.Test;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,28 +13,30 @@ class InMemoryRelevanceEvaluatorTest {
     @Test
     void defaultConstructorReturnsCorrect() {
         var evaluator = new InMemoryRelevanceEvaluator();
-        assertThat(evaluator.evaluate("query", "content")).isEqualTo(RelevanceGrade.CORRECT);
+        var chunks    = List.of(new RetrievedChunk("text", "doc1", 0.9, Map.of()));
+        var results   = evaluator.evaluateChunks("query", chunks);
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).grade()).isEqualTo(RelevanceGrade.CORRECT);
+        assertThat(results.get(0).score()).isNaN();
     }
 
     @Test
     void returningFactoryReturnsConfiguredGrade() {
         var evaluator = InMemoryRelevanceEvaluator.returning(RelevanceGrade.INCORRECT);
-        assertThat(evaluator.evaluate("query", "content")).isEqualTo(RelevanceGrade.INCORRECT);
+        var chunks    = List.of(new RetrievedChunk("text", "doc1", 0.5, Map.of()));
+        var results   = evaluator.evaluateChunks("query", chunks);
+        assertThat(results.get(0).grade()).isEqualTo(RelevanceGrade.INCORRECT);
     }
 
     @Test
-    void evaluateBatchReturnsConfiguredGradeForAll() {
+    void evaluateChunksReturnsConfiguredGradeForAll() {
         var evaluator = InMemoryRelevanceEvaluator.returning(RelevanceGrade.AMBIGUOUS);
-        List<RelevanceGrade> grades = evaluator.evaluateBatch("query",
-            List.of("chunk1", "chunk2", "chunk3"));
-        assertThat(grades).containsExactly(
-            RelevanceGrade.AMBIGUOUS, RelevanceGrade.AMBIGUOUS, RelevanceGrade.AMBIGUOUS);
-    }
-
-    @Test
-    void evaluateIgnoresQueryAndContent() {
-        var evaluator = InMemoryRelevanceEvaluator.returning(RelevanceGrade.CORRECT);
-        assertThat(evaluator.evaluate("any query", "any content")).isEqualTo(RelevanceGrade.CORRECT);
-        assertThat(evaluator.evaluate("different", "different")).isEqualTo(RelevanceGrade.CORRECT);
+        var chunks = List.of(
+                new RetrievedChunk("a", "d1", 0.9, Map.of()),
+                new RetrievedChunk("b", "d2", 0.5, Map.of()));
+        var results = evaluator.evaluateChunks("query", chunks);
+        assertThat(results).hasSize(2);
+        assertThat(results).allMatch(sg -> sg.grade() == RelevanceGrade.AMBIGUOUS);
+        assertThat(results).allMatch(sg -> Float.isNaN(sg.score()));
     }
 }

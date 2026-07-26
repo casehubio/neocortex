@@ -2,12 +2,12 @@ package io.casehub.neocortex.rag.crossencoder.corrective;
 
 import io.casehub.neocortex.rag.CaseRetriever;
 import io.casehub.neocortex.rag.CorpusRef;
-import io.casehub.neocortex.rag.PayloadFilter;
 import io.casehub.neocortex.rag.RelevanceEvaluator;
 import io.casehub.neocortex.rag.RelevanceGrade;
 import io.casehub.neocortex.rag.RetrievalQuality;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
+import io.casehub.neocortex.rag.ScoredGrade;
 import io.casehub.neocortex.rag.testing.InMemoryCaseRetriever;
 import io.casehub.neocortex.rag.testing.InMemoryRelevanceEvaluator;
 import jakarta.enterprise.event.Event;
@@ -16,7 +16,6 @@ import jakarta.enterprise.util.TypeLiteral;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -201,19 +200,21 @@ class CorrectiveCaseRetrieverTest {
     @Test
     void alreadyGradedChunksPassThrough() {
         var preGraded = List.of(
-            chunk("good", "doc1", 0.9).withGrade(RelevanceGrade.CORRECT),
-            chunk("maybe", "doc2", 0.8).withGrade(RelevanceGrade.AMBIGUOUS));
+                chunk("good", "doc1", 0.9).withGrade(RelevanceGrade.CORRECT),
+                chunk("maybe", "doc2", 0.8).withGrade(RelevanceGrade.AMBIGUOUS));
         var delegate = InMemoryCaseRetriever.returning(preGraded);
 
         var evaluatorCalled = new java.util.concurrent.atomic.AtomicBoolean(false);
-        RelevanceEvaluator evaluator = (query, content) -> {
+        RelevanceEvaluator evaluator = (query, chunks) -> {
             evaluatorCalled.set(true);
-            return RelevanceGrade.CORRECT;
+            return chunks.stream()
+                         .map(c -> new ScoredGrade(RelevanceGrade.CORRECT, Float.NaN))
+                         .toList();
         };
 
         var quality = new AtomicReference<RetrievalQuality>();
         var retriever = new CorrectiveCaseRetriever(
-            delegate, evaluator, stubConfig(3), capturingEvent(quality));
+                delegate, evaluator, stubConfig(3), capturingEvent(quality));
 
         var results = retriever.retrieve(RetrievalQuery.of("query"), CORPUS, 10, null);
 
@@ -225,15 +226,17 @@ class CorrectiveCaseRetrieverTest {
 
     @Test
     void evaluatesAgainstOriginalQueryNotExpansion() {
-        var delegate = fixedRetriever(chunk("content", "doc1", 0.9));
+        var delegate      = fixedRetriever(chunk("content", "doc1", 0.9));
         var capturedQuery = new AtomicReference<String>();
-        RelevanceEvaluator capturingEvaluator = (query, content) -> {
+        RelevanceEvaluator capturingEvaluator = (query, chunks) -> {
             capturedQuery.set(query);
-            return RelevanceGrade.CORRECT;
+            return chunks.stream()
+                         .map(c -> new ScoredGrade(RelevanceGrade.CORRECT, Float.NaN))
+                         .toList();
         };
         var quality = new AtomicReference<RetrievalQuality>();
         var retriever = new CorrectiveCaseRetriever(
-            delegate, capturingEvaluator, stubConfig(3), capturingEvent(quality));
+                delegate, capturingEvaluator, stubConfig(3), capturingEvent(quality));
 
         var expandedQuery = new RetrievalQuery("original question", "hypothetical document about original question");
         retriever.retrieve(expandedQuery, CORPUS, 10, null);
@@ -263,10 +266,28 @@ class CorrectiveCaseRetrieverTest {
 
     private static CragConfig stubConfig(int expansionMultiplier) {
         return new CragConfig() {
-            @Override public double correctThreshold() { return 0.7; }
-            @Override public double incorrectThreshold() { return 0.3; }
-            @Override public int expansionMultiplier() { return expansionMultiplier; }
-            @Override public boolean enabled() { return true; }
+            @Override
+            public double correctThreshold()   {return 0.7;}
+
+            @Override
+            public double incorrectThreshold() {return 0.3;}
+
+            @Override
+            public int expansionMultiplier()   {return expansionMultiplier;}
+
+            @Override
+            public boolean enabled()           {return true;}
+
+            @Override
+            public ColBertConfig colbert() {
+                return new ColBertConfig() {
+                    @Override
+                    public double correctThreshold()   {return 0.55;}
+
+                    @Override
+                    public double incorrectThreshold() {return 0.35;}
+                };
+            }
         };
     }
 
@@ -282,6 +303,10 @@ class CorrectiveCaseRetrieverTest {
     }
 
     private static RelevanceEvaluator gradeByContent(Map<String, RelevanceGrade> contentToGrade) {
-        return (query, chunkContent) -> contentToGrade.getOrDefault(chunkContent, RelevanceGrade.UNGRADED);
+        return (query, chunks) -> chunks.stream()
+                                        .map(c -> new ScoredGrade(
+                                                contentToGrade.getOrDefault(c.content(), RelevanceGrade.UNGRADED),
+                                                Float.NaN))
+                                        .toList();
     }
 }

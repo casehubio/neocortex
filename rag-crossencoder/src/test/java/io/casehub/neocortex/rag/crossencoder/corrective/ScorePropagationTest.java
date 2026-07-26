@@ -53,19 +53,24 @@ class ScorePropagationTest {
     }
 
     @Test
-    void correctiveCaseRetriever_noScoresWithNonCrossEncoderEvaluator() {
+    void correctiveCaseRetriever_noScoresWhenEvaluatorReturnsNaN() {
         var delegate = InMemoryCaseRetriever.returning(List.of(
-            chunk("good", "d1", 0.9)));
+                chunk("good", "d1", 0.9)));
 
         var quality = new AtomicReference<RetrievalQuality>();
+        io.casehub.neocortex.rag.RelevanceEvaluator nanEvaluator = (query, chunks) ->
+                                                                           chunks.stream()
+                                                                                 .map(c -> new io.casehub.neocortex.rag.ScoredGrade(
+                                                                                         io.casehub.neocortex.rag.RelevanceGrade.CORRECT, Float.NaN))
+                                                                                 .toList();
         var retriever = new CorrectiveCaseRetriever(
-            delegate,
-            (query, content) -> io.casehub.neocortex.rag.RelevanceGrade.CORRECT,
-            stubConfig(3),
-            capturingEvent(quality));
+                delegate,
+                nanEvaluator,
+                stubConfig(3),
+                capturingEvent(quality));
 
         List<RetrievedChunk> results = retriever.retrieve(
-            RetrievalQuery.of("test"), CORPUS, 10, null);
+                RetrievalQuery.of("test"), CORPUS, 10, null);
 
         assertThat(results).hasSize(1);
         assertThat(RerankingLogic.hasPrecomputedScores(results)).isFalse();
@@ -119,10 +124,28 @@ class ScorePropagationTest {
 
     private static CragConfig stubConfig(int expansionMultiplier) {
         return new CragConfig() {
-            @Override public double correctThreshold() { return 0.7; }
-            @Override public double incorrectThreshold() { return 0.3; }
-            @Override public int expansionMultiplier() { return expansionMultiplier; }
-            @Override public boolean enabled() { return true; }
+            @Override
+            public double correctThreshold()   {return 0.7;}
+
+            @Override
+            public double incorrectThreshold() {return 0.3;}
+
+            @Override
+            public int expansionMultiplier()   {return expansionMultiplier;}
+
+            @Override
+            public boolean enabled()           {return true;}
+
+            @Override
+            public ColBertConfig colbert() {
+                return new ColBertConfig() {
+                    @Override
+                    public double correctThreshold()   {return 0.55;}
+
+                    @Override
+                    public double incorrectThreshold() {return 0.35;}
+                };
+            }
         };
     }
 

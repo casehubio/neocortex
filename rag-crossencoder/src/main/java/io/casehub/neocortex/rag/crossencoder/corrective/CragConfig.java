@@ -17,4 +17,14 @@ public interface CragConfig {
 
     @WithDefault("false")
     boolean enabled();
+
+    ColBertConfig colbert();
+
+    interface ColBertConfig {
+        @WithDefault("0.55")
+        double correctThreshold();
+
+        @WithDefault("0.35")
+        double incorrectThreshold();
+    }
 }
