@@ -1,8 +1,10 @@
 package io.casehub.neocortex.rag;
 
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -239,6 +241,199 @@ public final class RetrievalAnalyzer {
                                 firstSeenByQuery.get(qt), lastSeenByQuery.get(qt)));
                     });
         return result;
+    }
+
+    public static CorrelationGraph correlationGraph(
+            RetrievalTracker tracker, CorpusRef corpus,
+            Instant since, Instant until) {
+
+        List<RetrievalRecord>   records     = tracker.findRecords(corpus, since, until);
+        List<RetrievalFeedback> allFeedback = tracker.findFeedback(corpus, since, until);
+
+        if (records.isEmpty()) {
+            return new CorrelationGraph(Map.of(), Map.of());
+        }
+
+        Set<String> inWindowRetrievalIds = new HashSet<>();
+        for (RetrievalRecord r : records) {
+            inWindowRetrievalIds.add(r.retrievalId());
+        }
+
+        Map<String, List<RetrievalOutcome>> feedbackIndex = new HashMap<>();
+        for (RetrievalFeedback fb : allFeedback) {
+            if (inWindowRetrievalIds.contains(fb.retrievalId())) {
+                feedbackIndex.computeIfAbsent(
+                        fb.retrievalId() + "\0" + fb.sourceDocumentId(),
+                        k -> new ArrayList<>()).add(fb.outcome());
+            }
+        }
+
+        Map<String, Integer>                                     queryRetrievalCount = new HashMap<>();
+        Map<String, Map<String, List<Double>>>                   queryDocScores      = new HashMap<>();
+        Map<String, Map<String, Map<RetrievalOutcome, Integer>>> queryDocOutcomes    = new HashMap<>();
+
+        for (RetrievalRecord r : records) {
+            String qKey = r.query().text().strip().toLowerCase();
+            queryRetrievalCount.merge(qKey, 1, Integer::sum);
+
+            for (RetrievedDocumentRef doc : r.documents()) {
+                queryDocScores
+                        .computeIfAbsent(qKey, k -> new HashMap<>())
+                        .computeIfAbsent(doc.sourceDocumentId(), k -> new ArrayList<>())
+                        .add(doc.relevanceScore());
+
+                String                 fbKey    = r.retrievalId() + "\0" + doc.sourceDocumentId();
+                List<RetrievalOutcome> outcomes = feedbackIndex.getOrDefault(fbKey, List.of());
+                for (RetrievalOutcome outcome : outcomes) {
+                    queryDocOutcomes
+                            .computeIfAbsent(qKey, k -> new HashMap<>())
+                            .computeIfAbsent(doc.sourceDocumentId(), k -> new EnumMap<>(RetrievalOutcome.class))
+                            .merge(outcome, 1, Integer::sum);
+                }
+            }
+        }
+
+        Map<String, Map<String, EdgeStats>> queryEdgeMap = new LinkedHashMap<>();
+        for (var qEntry : queryDocScores.entrySet()) {
+            String                 qKey  = qEntry.getKey();
+            Map<String, EdgeStats> edges = new LinkedHashMap<>();
+            for (var dEntry : qEntry.getValue().entrySet()) {
+                String       docId  = dEntry.getKey();
+                List<Double> scores = dEntry.getValue();
+                int          count  = scores.size();
+                double       avg    = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                Map<RetrievalOutcome, Integer> dist = queryDocOutcomes
+                                                              .getOrDefault(qKey, Map.of())
+                                                              .getOrDefault(docId, Map.of());
+                edges.put(docId, new EdgeStats(count, avg, dist));
+            }
+            queryEdgeMap.put(qKey, edges);
+        }
+
+        Map<String, QueryNode> queryNodes = new LinkedHashMap<>();
+        for (var entry : queryEdgeMap.entrySet()) {
+            String qKey = entry.getKey();
+            queryNodes.put(qKey, new QueryNode(
+                    qKey, queryRetrievalCount.get(qKey), entry.getValue()));
+        }
+
+        Map<String, Map<String, EdgeStats>> docEdgeMap        = new LinkedHashMap<>();
+        Map<String, Integer>                docRetrievalCount = new HashMap<>();
+        for (var qEntry : queryEdgeMap.entrySet()) {
+            String qKey = qEntry.getKey();
+            for (var dEntry : qEntry.getValue().entrySet()) {
+                String docId = dEntry.getKey();
+                docEdgeMap.computeIfAbsent(docId, k -> new LinkedHashMap<>())
+                          .put(qKey, dEntry.getValue());
+                docRetrievalCount.merge(docId,
+                                        dEntry.getValue().coOccurrenceCount(), Integer::sum);
+            }
+        }
+
+        Map<String, DocumentNode> documentNodes = new LinkedHashMap<>();
+        for (var entry : docEdgeMap.entrySet()) {
+            documentNodes.put(entry.getKey(), new DocumentNode(
+                    entry.getKey(), docRetrievalCount.get(entry.getKey()),
+                    entry.getValue()));
+        }
+
+        return new CorrelationGraph(queryNodes, documentNodes);
+    }
+
+    public static List<QueryCluster> queryClusters(
+            CorrelationGraph graph, double jaccardThreshold) {
+
+        List<String> queryKeys = new ArrayList<>(graph.queries().keySet());
+        int          n         = queryKeys.size();
+        if (n < 2) {return List.of();}
+
+        Map<String, Set<String>> docSets = new HashMap<>();
+        for (var entry : graph.queries().entrySet()) {
+            docSets.put(entry.getKey(), entry.getValue().documentEdges().keySet());
+        }
+
+        Map<String, Set<String>> adj = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                String qi  = queryKeys.get(i), qj = queryKeys.get(j);
+                double sim = jaccard(docSets.get(qi), docSets.get(qj));
+                if (sim >= jaccardThreshold) {
+                    adj.computeIfAbsent(qi, k -> new HashSet<>()).add(qj);
+                    adj.computeIfAbsent(qj, k -> new HashSet<>()).add(qi);
+                }
+            }
+        }
+
+        Set<String>        visited  = new HashSet<>();
+        List<QueryCluster> clusters = new ArrayList<>();
+        for (String q : queryKeys) {
+            if (visited.contains(q) || !adj.containsKey(q)) {continue;}
+            Set<String>   component = new LinkedHashSet<>();
+            Deque<String> queue     = new ArrayDeque<>();
+            queue.add(q);
+            while (!queue.isEmpty()) {
+                String cur = queue.poll();
+                if (!visited.add(cur)) {continue;}
+                component.add(cur);
+                Set<String> neighbors = adj.getOrDefault(cur, Set.of());
+                for (String nb : neighbors) {
+                    if (!visited.contains(nb)) {queue.add(nb);}
+                }
+            }
+            if (component.size() >= 2) {
+                double       minSim  = 1.0;
+                List<String> members = new ArrayList<>(component);
+                for (int i = 0; i < members.size(); i++) {
+                    for (int j = i + 1; j < members.size(); j++) {
+                        double sim = jaccard(docSets.get(members.get(i)),
+                                             docSets.get(members.get(j)));
+                        minSim = Math.min(minSim, sim);
+                    }
+                }
+                Set<String> shared = new HashSet<>(docSets.get(members.get(0)));
+                for (int i = 1; i < members.size(); i++) {
+                    shared.retainAll(docSets.get(members.get(i)));
+                }
+                clusters.add(new QueryCluster(component, minSim, shared));
+            }
+        }
+        clusters.sort(Comparator.comparingDouble(QueryCluster::jaccardSimilarity).reversed());
+        return clusters;
+    }
+
+    public static List<DocumentImpact> documentImpact(CorrelationGraph graph) {
+        List<DocumentImpact> result = new ArrayList<>();
+        for (var entry : graph.documents().entrySet()) {
+            DocumentNode node            = entry.getValue();
+            int          distinctQueries = node.queryEdges().size();
+            int totalRetrievals = node.queryEdges().values().stream()
+                                      .mapToInt(EdgeStats::coOccurrenceCount).sum();
+            double avgScore = node.queryEdges().values().stream()
+                                  .mapToDouble(e -> e.averageScore() * e.coOccurrenceCount())
+                                  .sum() / totalRetrievals;
+
+            Map<RetrievalOutcome, Integer> aggregated = new EnumMap<>(RetrievalOutcome.class);
+            for (EdgeStats edge : node.queryEdges().values()) {
+                for (var oe : edge.outcomeDistribution().entrySet()) {
+                    aggregated.merge(oe.getKey(), oe.getValue(), Integer::sum);
+                }
+            }
+
+            result.add(new DocumentImpact(
+                    entry.getKey(), distinctQueries, totalRetrievals,
+                    avgScore, aggregated));
+        }
+        result.sort(Comparator.comparingInt(DocumentImpact::distinctQueryCount).reversed());
+        return result;
+    }
+
+    private static double jaccard(Set<String> a, Set<String> b) {
+        if (a.isEmpty() && b.isEmpty()) {return 0.0;}
+        Set<String> intersection = new HashSet<>(a);
+        intersection.retainAll(b);
+        Set<String> union = new HashSet<>(a);
+        union.addAll(b);
+        return (double) intersection.size() / union.size();
     }
 
 
