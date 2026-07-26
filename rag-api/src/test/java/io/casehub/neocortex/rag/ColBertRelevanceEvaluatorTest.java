@@ -81,4 +81,54 @@ class ColBertRelevanceEvaluatorTest {
         assertThat(results.get(0).grade()).isEqualTo(RelevanceGrade.CORRECT);
         assertThat(results.get(1).grade()).isEqualTo(RelevanceGrade.INCORRECT);
     }
+
+    @Test
+    void calibrateFromSampleScores_setsThresholdsAtPercentiles() {
+        // 10 scores: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        // Default P75 = 0.8 (correct), P25 = 0.3 (incorrect)
+        var scores     = List.of(0.5, 0.1, 0.9, 0.3, 0.7, 0.2, 0.8, 0.4, 0.6, 1.0);
+        var calibrated = ColBertRelevanceEvaluator.calibrate(scores);
+
+        var chunks = List.of(
+                new RetrievedChunk("high", "d1", 0.85, Map.of()),
+                new RetrievedChunk("mid", "d2", 0.5, Map.of()),
+                new RetrievedChunk("low", "d3", 0.2, Map.of()));
+        var results = calibrated.evaluateChunks("query", chunks);
+        assertThat(results).extracting(ScoredGrade::grade)
+                           .containsExactly(RelevanceGrade.CORRECT, RelevanceGrade.AMBIGUOUS, RelevanceGrade.INCORRECT);
+    }
+
+    @Test
+    void calibrateFromEmptyScores_throwsIllegalArgument() {
+        assertThatThrownBy(() -> ColBertRelevanceEvaluator.calibrate(List.of()))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void calibrateWithCustomPercentiles() {
+        var scores = List.of(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
+        // P90 = 0.9, P10 = 0.1
+        var calibrated = ColBertRelevanceEvaluator.calibrate(scores, 90, 10);
+
+        var chunks = List.of(
+                new RetrievedChunk("high", "d1", 0.95, Map.of()),
+                new RetrievedChunk("mid", "d2", 0.5, Map.of()),
+                new RetrievedChunk("low", "d3", 0.05, Map.of()));
+        var results = calibrated.evaluateChunks("query", chunks);
+        assertThat(results).extracting(ScoredGrade::grade)
+                           .containsExactly(RelevanceGrade.CORRECT, RelevanceGrade.AMBIGUOUS, RelevanceGrade.INCORRECT);
+    }
+
+    @Test
+    void calibrateSingleScore_usesScoreAsBothThresholds() {
+        var calibrated = ColBertRelevanceEvaluator.calibrate(List.of(0.5));
+        var chunks = List.of(
+                new RetrievedChunk("at", "d1", 0.5, Map.of()),
+                new RetrievedChunk("above", "d2", 0.6, Map.of()),
+                new RetrievedChunk("below", "d3", 0.4, Map.of()));
+        var results = calibrated.evaluateChunks("query", chunks);
+        assertThat(results.get(0).grade()).isEqualTo(RelevanceGrade.CORRECT);
+        assertThat(results.get(1).grade()).isEqualTo(RelevanceGrade.CORRECT);
+        assertThat(results.get(2).grade()).isEqualTo(RelevanceGrade.INCORRECT);
+    }
 }

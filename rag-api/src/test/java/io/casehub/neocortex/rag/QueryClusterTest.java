@@ -69,6 +69,25 @@ class QueryClusterTest {
     }
 
     @Test
+    void minHashPathFindsClusterAboveThreshold() {
+        // Build a graph with > MINHASH_THRESHOLD queries to force the MinHash path
+        int         n     = RetrievalAnalyzer.MINHASH_THRESHOLD + 10;
+        QueryNode[] nodes = new QueryNode[n];
+        // First two queries share docs → should cluster
+        nodes[0] = qNode("cluster-a", "shared1", "shared2", "shared3", "unique-a");
+        nodes[1] = qNode("cluster-b", "shared1", "shared2", "shared3", "unique-b");
+        // Remaining queries are disjoint
+        for (int i = 2; i < n; i++) {
+            nodes[i] = qNode("q" + i, "iso-" + i + "-1", "iso-" + i + "-2");
+        }
+        var graph    = graphWith(nodes);
+        var clusters = RetrievalAnalyzer.queryClusters(graph, 0.5);
+        assertThat(clusters).anyMatch(c ->
+                                              c.queryTexts().contains("cluster-a") && c.queryTexts().contains("cluster-b"));
+    }
+
+
+    @Test
     void queryClusterValidation() {
         assertThatThrownBy(() -> new QueryCluster(Set.of("q1"), 0.5, Set.of("d1")))
             .isInstanceOf(IllegalArgumentException.class);

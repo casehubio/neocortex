@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 
 public final class RetrievalAnalyzer {
+    static final int MINHASH_THRESHOLD = 50;
+
 
     private RetrievalAnalyzer() {}
 
@@ -352,17 +354,9 @@ public final class RetrievalAnalyzer {
             docSets.put(entry.getKey(), entry.getValue().documentEdges().keySet());
         }
 
-        Map<String, Set<String>> adj = new HashMap<>();
-        for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                String qi  = queryKeys.get(i), qj = queryKeys.get(j);
-                double sim = jaccard(docSets.get(qi), docSets.get(qj));
-                if (sim >= jaccardThreshold) {
-                    adj.computeIfAbsent(qi, k -> new HashSet<>()).add(qj);
-                    adj.computeIfAbsent(qj, k -> new HashSet<>()).add(qi);
-                }
-            }
-        }
+        Map<String, Set<String>> adj = n > MINHASH_THRESHOLD
+                                       ? buildAdjacencyMinHash(queryKeys, docSets, jaccardThreshold)
+                                       : buildAdjacencyBruteForce(queryKeys, docSets, jaccardThreshold);
 
         Set<String>        visited  = new HashSet<>();
         List<QueryCluster> clusters = new ArrayList<>();
@@ -400,6 +394,40 @@ public final class RetrievalAnalyzer {
         clusters.sort(Comparator.comparingDouble(QueryCluster::jaccardSimilarity).reversed());
         return clusters;
     }
+
+
+    private static Map<String, Set<String>> buildAdjacencyBruteForce(
+            List<String> queryKeys, Map<String, Set<String>> docSets, double jaccardThreshold) {
+        Map<String, Set<String>> adj = new HashMap<>();
+        int                      n   = queryKeys.size();
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                String qi  = queryKeys.get(i), qj = queryKeys.get(j);
+                double sim = jaccard(docSets.get(qi), docSets.get(qj));
+                if (sim >= jaccardThreshold) {
+                    adj.computeIfAbsent(qi, k -> new HashSet<>()).add(qj);
+                    adj.computeIfAbsent(qj, k -> new HashSet<>()).add(qi);
+                }
+            }
+        }
+        return adj;
+    }
+
+    private static Map<String, Set<String>> buildAdjacencyMinHash(
+            List<String> queryKeys, Map<String, Set<String>> docSets, double jaccardThreshold) {
+        var                      index      = new MinHashIndex(128);
+        var                      candidates = index.candidatePairs(docSets, jaccardThreshold);
+        Map<String, Set<String>> adj        = new HashMap<>();
+        for (var pair : candidates) {
+            double sim = jaccard(docSets.get(pair.a()), docSets.get(pair.b()));
+            if (sim >= jaccardThreshold) {
+                adj.computeIfAbsent(pair.a(), k -> new HashSet<>()).add(pair.b());
+                adj.computeIfAbsent(pair.b(), k -> new HashSet<>()).add(pair.a());
+            }
+        }
+        return adj;
+    }
+
 
     public static List<DocumentImpact> documentImpact(CorrelationGraph graph) {
         List<DocumentImpact> result = new ArrayList<>();

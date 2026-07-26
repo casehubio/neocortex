@@ -52,20 +52,6 @@ public final class SeparateModelEmbedder implements MultiModalEmbedder {
         return new MultiModalEmbedding(dense, sparse, null);
     }
 
-    @Override
-    public MultiModalEmbedding embed(Map<EmbeddingMode, String> textsByMode) {
-        String denseText = Objects.requireNonNull(
-                textsByMode.get(EmbeddingMode.DENSE), "DENSE text is required");
-        float[] dense = denseModel.embed(denseText).content().vector();
-
-        Map<Integer, Float> sparse = null;
-        if (sparseEmbedder != null && textsByMode.containsKey(EmbeddingMode.SPARSE)) {
-            sparse = sparseEmbedder.embed(textsByMode.get(EmbeddingMode.SPARSE));
-        }
-
-        return new MultiModalEmbedding(dense, sparse, null);
-    }
-
 
     @Override
     public List<MultiModalEmbedding> embedBatch(List<String> texts) {

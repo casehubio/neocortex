@@ -2,7 +2,6 @@ package io.casehub.neocortex.inference;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -58,11 +57,6 @@ public final class MatryoshkaMultiModalEmbedder implements MultiModalEmbedder {
         return delegate.embedBatch(texts).stream()
                        .map(this::truncateAndRenormalize)
                        .toList();
-    }
-
-    @Override
-    public MultiModalEmbedding embed(Map<EmbeddingMode, String> textsByMode) {
-        return truncateAndRenormalize(delegate.embed(textsByMode));
     }
 
     @Override

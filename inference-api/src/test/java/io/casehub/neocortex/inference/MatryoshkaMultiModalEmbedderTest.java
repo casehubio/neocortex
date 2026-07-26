@@ -122,15 +122,4 @@ class MatryoshkaMultiModalEmbedderTest {
         for (var r : results) {assertEquals(2, r.dense().length);}
     }
 
-    @Test
-    void embedMapDelegatesToWrappedThenTruncates() {
-        MultiModalEmbedder delegate = stubEmbedder(
-                new float[]{1f, 2f, 3f, 4f}, null, null, 4);
-        var matryoshka = new MatryoshkaMultiModalEmbedder(delegate, 2);
-
-        Map<EmbeddingMode, String> textsByMode = Map.of(EmbeddingMode.DENSE, "test");
-        MultiModalEmbedding        result      = matryoshka.embed(textsByMode);
-
-        assertEquals(2, result.dense().length);
-    }
 }

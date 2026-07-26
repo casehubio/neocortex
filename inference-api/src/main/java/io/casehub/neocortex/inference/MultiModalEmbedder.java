@@ -1,8 +1,6 @@
 package io.casehub.neocortex.inference;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -30,34 +28,28 @@ public interface MultiModalEmbedder {
      */
     List<MultiModalEmbedding> embedBatch(List<String> texts);
 
-    default MultiModalEmbedding embed(Map<EmbeddingMode, String> textsByMode) {
-        Objects.requireNonNull(textsByMode.get(EmbeddingMode.DENSE), "DENSE text is required");
-        Map<String, MultiModalEmbedding> cache = new LinkedHashMap<>();
-        for (String text : textsByMode.values()) {
-            cache.computeIfAbsent(text, this::embed);
-        }
-        float[] dense       = cache.get(textsByMode.get(EmbeddingMode.DENSE)).dense();
-        var     sparseText  = textsByMode.get(EmbeddingMode.SPARSE);
-        var     colbertText = textsByMode.get(EmbeddingMode.COLBERT);
-        return new MultiModalEmbedding(
-                dense,
-                sparseText != null ? cache.get(sparseText).sparse() : null,
-                colbertText != null ? cache.get(colbertText).colbert() : null);
-    }
-
+    /**
+     * Embed two texts for per-leg separation: dense from {@code denseText}, sparse/ColBERT
+     * from {@code nonDenseText}. Preserves ONNX batch composition by delegating to
+     * {@link #embedBatch} — individual {@link #embed(String)} calls (batch=1) can produce
+     * different embeddings due to padding/attention mask differences in transformer models.
+     *
+     * @param denseText    text for the dense embedding leg
+     * @param nonDenseText text for sparse and ColBERT legs
+     * @return composite embedding with dense from denseText, sparse/colbert from nonDenseText
+     */
     default MultiModalEmbedding embedSeparate(String denseText, String nonDenseText) {
         Objects.requireNonNull(denseText, "denseText must not be null");
         Objects.requireNonNull(nonDenseText, "nonDenseText must not be null");
         if (denseText.equals(nonDenseText)) {return embed(denseText);}
-        List<MultiModalEmbedding> batch = embedBatch(List.of(denseText, nonDenseText));
-        MultiModalEmbedding denseResult    = batch.get(0);
-        MultiModalEmbedding nonDenseResult = batch.get(1);
+        List<MultiModalEmbedding> batch          = embedBatch(List.of(denseText, nonDenseText));
+        MultiModalEmbedding       denseResult    = batch.get(0);
+        MultiModalEmbedding       nonDenseResult = batch.get(1);
         return new MultiModalEmbedding(
                 denseResult.dense(),
                 nonDenseResult.sparse(),
                 nonDenseResult.colbert());
     }
-
 
     /**
      * @return Embedding modes produced by this embedder (always includes {@code DENSE})
