@@ -270,6 +270,179 @@ C4Container
 | L14 Memory Backends | `memory-qdrant`, `memory-jpa`, `memory-sqlite` | Backend-specific | casehub only |
 | L15 CBR Decorators | `memory-cbr-crossencoder`, `memory-cbr-tracking`, `memory-cbr-embedding` | CDI library, classpath + config activated | casehub only |
 
+### §5.1 CBR Memory Subsystem
+
+The CBR (Case-Based Reasoning) subsystem provides structured feature-vector similarity search over past cases. It spans four layers (L12–L15) with a clean SPI / backend / decorator separation.
+
+#### CbrCaseMemoryStore SPI and Backend Hierarchy
+
+```mermaid
+classDiagram
+    class CbrCaseMemoryStore {
+        <<interface>>
+        +registerSchema(CbrFeatureSchema)
+        +store(CbrCase, caseType, entityId, domain, tenantId, caseId, scope) String
+        +retrieveSimilar(CbrQuery, Class~C~) List~ScoredCbrCase~
+        +recordOutcome(caseId, tenantId, CbrOutcome)
+        +erase(EraseRequest) Integer
+        +supersede(caseId, tenantId, supersedingCaseId, reason)
+        +purge(CbrRetentionPolicy) Integer
+    }
+
+    class NoOpCbrCaseMemoryStore {
+        <<DefaultBean>>
+        fallback — all ops no-op
+    }
+    class InMemoryCbrCaseMemoryStore {
+        <<Alternative Priority 2>>
+        ConcurrentHashMap — tests
+    }
+    class JpaCbrCaseMemoryStore {
+        <<Alternative Priority 3>>
+        PostgreSQL + Flyway
+    }
+    class QdrantCbrCaseMemoryStore {
+        <<ApplicationScoped>>
+        payload filters + dense + sparse + BM25
+    }
+
+    CbrCaseMemoryStore <|.. NoOpCbrCaseMemoryStore
+    CbrCaseMemoryStore <|.. InMemoryCbrCaseMemoryStore
+    CbrCaseMemoryStore <|.. JpaCbrCaseMemoryStore
+    CbrCaseMemoryStore <|.. QdrantCbrCaseMemoryStore
+```
+
+**Backend selection:** CDI `@Alternative` + `@Priority` ladder. Only one backend is active per deployment — the highest-priority alternative on the classpath wins. `NoOpCbrCaseMemoryStore` is `@DefaultBean` (fallback when no backend module is on the classpath).
+
+**Decorator chain** wraps the active backend via CDI `@Decorator` + `@Priority` (highest fires outermost):
+
+| Priority | Decorator | Module | Gate |
+|----------|-----------|--------|------|
+| 90 | `TrendEnrichmentCbrCaseMemoryStore` | memory | always |
+| 85 | `ScopeDecayCbrCaseMemoryStore` | memory | `ScopeDecay` on query |
+| 80 | `TemporalDecayCbrCaseMemoryStore` | memory | `TemporalDecay` on query |
+| 75 | `RerankingCbrCaseMemoryStore` | memory-cbr-crossencoder | `casehub.cbr.reranking.enabled` |
+| 65 | `OutcomeWeightingCbrCaseMemoryStore` | memory | `casehub.cbr.outcome-weighting.enabled` |
+| 60 | `TrustWeightedCbrCaseMemoryStore` | memory | `casehub.cbr.trust-weighting.enabled` |
+| 50 | `TrackingCbrCaseMemoryStore` | memory-cbr-tracking | `casehub.cbr.tracking.enabled` |
+| 45 | `ErasureNotificationCbrCaseMemoryStore` | memory | always |
+
+Decorators are classpath + config activated — adding the module to the classpath enables the decorator; the config property gates whether it fires at runtime.
+
+#### FeatureField Schema Model
+
+`CbrFeatureSchema` defines the feature space for a case type. Each field is a `FeatureField` — a sealed interface with nine variants divided into flat and structured types.
+
+**Flat fields** carry a single value:
+
+| Variant | Value type | Default similarity | Optional SimilaritySpec |
+|---------|------------|-------------------|----------------------|
+| `Categorical` | String | Exact match (1.0 / 0.0) | `CategoricalTable` — pairwise lookup |
+| `Numeric(min, max)` | double | Linear decay: `1.0 - \|q-c\| / range` | `GaussianDecay`, `StepDecay`, `ExponentialDecay` |
+| `Text` | String | Exact match | — (use `semantic=true` for embedding similarity) |
+| `CategoricalList` | List\<String\> | Jaccard similarity on sets | — |
+| `NumericList(min, max)` | List\<Number\> | Average nearest-neighbor, linear decay | — |
+| `DiscreteSequence` | List\<String\> | Edit distance (Levenshtein) | `EditDistanceSpec` — weighted substitution + variable indel costs |
+
+**Structured fields** contain inner fields (constrained to flat Categorical/Numeric/Text, no nesting):
+
+| Variant | Structure | Default similarity |
+|---------|-----------|-------------------|
+| `NestedObject(innerFields)` | Single object with named sub-fields | Recursive scoring, uniform weights |
+| `ObjectList(innerFields)` | List of objects, each with same inner schema | Greedy best-match across list items |
+| `TimeSeries(innerFields, timestampField)` | Ordered observations with timestamp + ≥1 Numeric field | DTW (Dynamic Time Warping) |
+
+**SimilaritySpec compatibility** — each spec type is accepted only by its matching field type. Specs are schema-attached (stored with the field definition), not per-query. The `DtwSpec` carries a `WarpingConstraint` (sealed: `Unconstrained`, `SakoeChibaBand(windowSize)`, `ItakuraParallelogram(maxSlope)`).
+
+#### CbrFilter Query Predicates
+
+`CbrFilter` is a sealed interface defining pre-similarity hard filters. Filters eliminate cases before similarity scoring — they are structural predicates, not similarity functions.
+
+| Filter | Applies to | Semantics |
+|--------|-----------|-----------|
+| `Contains(value)` | Categorical, CategoricalList | Field contains exact value |
+| `ContainsAll(values)` | CategoricalList | Field contains every value (AND) |
+| `ContainsAny(values)` | Categorical, CategoricalList | Field contains at least one value (OR) |
+| `NotContains(value)` | CategoricalList | Field does not contain value |
+| `NotContainsAny(values)` | CategoricalList | Field contains none of the values |
+| `ContainsRange(min, max)` | NumericList | At least one element within range |
+| `HasMatch(subFields)` | NestedObject, ObjectList | At least one nested item matches all sub-field constraints |
+| `AllOf(filters)` | Any field | Conjunction of ≥2 filters on the same field (flat, no recursive nesting) |
+
+Filters are passed via `CbrQuery.filters` — a `Map<String, CbrFilter>` keyed by field name. In the Qdrant backend, `CbrQueryTranslator.applyStructuralFilters()` translates each filter to native Qdrant payload conditions.
+
+#### CbrSimilarityScorer — Three-Level Precedence
+
+`CbrSimilarityScorer` is a pure-Java utility (no CDI, no dependencies beyond `memory-api`) that computes weighted composite similarity between a query and a stored case. Similarity function resolution follows a strict three-level precedence:
+
+1. **Caller-provided override** — `Map<String, LocalSimilarityFunction>` passed at call time. If present for a field, used directly. Enables runtime customisation (e.g., `EmbeddingTextSimilarity` for semantic text fields).
+
+2. **Field-attached SimilaritySpec** — if the `FeatureField` in the schema carries a non-null `SimilaritySpec`, the scorer dispatches to the spec-driven formula (e.g., `GaussianDecay` on a Numeric field, `DtwSpec` on TimeSeries).
+
+3. **Type default** — hardcoded per `FeatureField` variant (exact match for Categorical, linear decay for Numeric, Jaccard for CategoricalList, etc.).
+
+The scorer returns a `SimilarityBreakdown` — `double score` (weighted average) plus `Map<String, Double> featureSimilarities` (per-feature weighted contributions). `ScoredCbrCase.featureSimilarities` carries this breakdown through to consumers.
+
+#### CbrQuery and Retrieval Modes
+
+`CbrQuery` (record) controls what to search for and how to rank results:
+
+- **`features`** — query feature values for similarity matching
+- **`filters`** — pre-similarity hard filters (see CbrFilter above)
+- **`weights`** — per-feature weight overrides (default 1.0 per field)
+- **`problem`** — free-text description for semantic (vector) retrieval
+- **`retrievalMode`** — `FEATURE_ONLY` (scorer only), `SEMANTIC_ONLY` (vector only), `HYBRID` (fused)
+- **`fusionStrategy`** — `RRF`, `DBSF`, or `CC` for combining retrieval legs
+- **`vectorWeight`** — balance between vector score and feature score in hybrid mode (0.0–1.0)
+- **`temporalDecay`** — optional time-based score decay (`HalfLife`, `Linear`, `Step`)
+- **`scopeDecay`** — optional scope-distance decay (`Exponential`, `Linear`, `Step`)
+
+#### Qdrant Payload Mapping and Indexing
+
+`QdrantCbrCaseMemoryStore` maps CBR concepts to Qdrant primitives:
+
+**Payload storage** (`CbrPointBuilder`):
+- Flat fields → native Qdrant payload values (string, double, list)
+- `CategoricalList` → `ListValue` (native Qdrant array)
+- `NestedObject` → `StructValue` (native Qdrant nested map, dot-notation indexed)
+- `ObjectList` → `ListValue` of `StructValue` entries (array-path indexed)
+- Metadata (`caseType`, `entityId`, `domain`, `tenantId`, `storedAt`, `scope`) → reserved payload keys
+
+**Vector legs** (dynamic 2–4 legs depending on configuration):
+
+| Leg | Vector name | Source | Condition |
+|-----|------------|--------|-----------|
+| Dense | `dense` | `problem()` via `EmbeddingModel` | Always (when `EmbeddingModel` available) |
+| Sparse | `sparse` | `problem()` via `SparseEmbedder` | SPLADE module on classpath |
+| BM25 | `bm25` | `problem()` via `CamelCaseExpander` | Qdrant server-side inference configured |
+| ColBERT | `colbert` | `problem()` via `ColBertEmbedder` | ColBERT module on classpath |
+
+Hybrid fusion uses CC (Convex Combination) with weight renormalisation among active semantic legs.
+
+**Filter translation** (`CbrQueryTranslator`):
+- `Contains` → `matchKeyword`
+- `ContainsAll` → multiple `must` conditions
+- `ContainsAny` → `matchKeywords` (OR)
+- `NotContains` / `NotContainsAny` → `must_not` conditions
+- `ContainsRange` → numeric range condition
+- `HasMatch` → `nested()` for NestedObject, dot-notation for ObjectList
+- `AllOf` → conjunction of translated sub-filters
+
+**Payload indexes** are created per-field at schema registration: keyword indexes for categorical fields, float indexes for numeric fields, and per-inner-field indexes (dot-notation paths) for structured fields.
+
+**Two-pass retrieval:** `retrieveSimilar()` first queries Qdrant (vector + payload filters), then runs `CbrSimilarityScorer` on the returned points with batch-precomputed semantic text similarities via `EmbeddingTextSimilarity`.
+
+#### ScoredCbrCase
+
+`ScoredCbrCase<C>` (record, generic over `CbrCase` subtype) carries the retrieval result through the decorator chain:
+
+- **`score`** — similarity score in [-1, 1], updated by each decorator
+- **`reranked`** — boolean guard set by `RerankingCbrCaseMemoryStore` after cross-encoder rescoring; prevents double-reranking if multiple decorators are stacked
+- **`featureSimilarities`** — per-feature weighted contributions from `CbrSimilarityScorer`
+- **`storedAt`** — timestamp for temporal-decay decorators
+- **`scope`** — hierarchical scope path for scope-decay decorators
+- **`trustTrajectory`** — trust delta attached by `TrustWeightedCbrCaseMemoryStore`
+
 ---
 
 ## §6 Runtime View
