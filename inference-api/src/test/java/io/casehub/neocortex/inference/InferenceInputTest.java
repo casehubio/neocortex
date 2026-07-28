@@ -4,12 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
 class InferenceInputTest {
 
-    // --- factory: of(String) ---
+    // --- Text factory: of(String) ---
 
     @Test
     void of_single_text() {
@@ -24,7 +25,7 @@ class InferenceInputTest {
             .withMessageContaining("null");
     }
 
-    // --- factory: pair(String, String) ---
+    // --- Text factory: pair(String, String) ---
 
     @Test
     void pair_two_texts() {
@@ -46,35 +47,33 @@ class InferenceInputTest {
             .withMessageContaining("second");
     }
 
-    // --- validation: empty and oversized ---
+    // --- Text validation ---
 
     @Test
     void null_list_throws() {
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> new InferenceInput(null))
+            .isThrownBy(() -> new InferenceInput.Text(null))
             .withMessageContaining("must not be empty");
     }
 
     @Test
     void empty_list_throws() {
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> new InferenceInput(List.of()))
+            .isThrownBy(() -> new InferenceInput.Text(List.of()))
             .withMessageContaining("must not be empty");
     }
 
     @Test
     void three_texts_throws() {
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> new InferenceInput(List.of("a", "b", "c")))
+            .isThrownBy(() -> new InferenceInput.Text(List.of("a", "b", "c")))
             .withMessageContaining("at most 2");
     }
 
-    // --- defensive copy ---
-
     @Test
-    void constructor_makes_defensive_copy() {
+    void text_constructor_makes_defensive_copy() {
         var mutable = new ArrayList<>(List.of("original"));
-        var input = new InferenceInput(mutable);
+        var input = new InferenceInput.Text(mutable);
         mutable.set(0, "mutated");
         assertThat(input.texts()).containsExactly("original");
     }
@@ -84,5 +83,55 @@ class InferenceInputTest {
         var input = InferenceInput.of("hello");
         assertThatExceptionOfType(UnsupportedOperationException.class)
             .isThrownBy(() -> input.texts().add("extra"));
+    }
+
+    // --- Tensor factory ---
+
+    @Test
+    void tensor_creates_valid_input() {
+        var input = InferenceInput.tensor(Map.of("features", new float[][]{{1f, 2f, 3f}}));
+        assertThat(input.inputs()).containsKey("features");
+        assertThat(input.inputs().get("features")[0]).containsExactly(1f, 2f, 3f);
+    }
+
+    @Test
+    void tensor_null_throws() {
+        assertThatNullPointerException()
+            .isThrownBy(() -> InferenceInput.tensor(null));
+    }
+
+    @Test
+    void tensor_empty_map_throws() {
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> InferenceInput.tensor(Map.of()))
+            .withMessageContaining("must not be empty");
+    }
+
+    @Test
+    void tensor_defensive_copy() {
+        float[][] original = {{1f, 2f}};
+        var input = InferenceInput.tensor(Map.of("x", original));
+        original[0][0] = 99f;
+        assertThat(input.inputs().get("x")[0][0]).isEqualTo(1f);
+    }
+
+    @Test
+    void tensor_inputs_unmodifiable() {
+        var input = InferenceInput.tensor(Map.of("x", new float[][]{{1f}}));
+        assertThatExceptionOfType(UnsupportedOperationException.class)
+            .isThrownBy(() -> input.inputs().put("y", new float[][]{{2f}}));
+    }
+
+    // --- Sealed type checks ---
+
+    @Test
+    void of_returns_text_variant() {
+        assertThat(InferenceInput.of("hello")).isInstanceOf(InferenceInput.Text.class);
+    }
+
+    @Test
+    void tensor_returns_tensor_variant() {
+        assertThat(InferenceInput.tensor(Map.of("x", new float[][]{{1f}})))
+            .isInstanceOf(InferenceInput.Tensor.class);
     }
 }

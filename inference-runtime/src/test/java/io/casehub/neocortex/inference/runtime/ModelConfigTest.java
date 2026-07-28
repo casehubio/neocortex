@@ -73,10 +73,10 @@ class ModelConfigTest {
         }
 
         @Test
-        void rejectsNullTokenizerPath() {
-            assertThatThrownBy(() -> new ModelConfig(MODEL, null))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("tokenizerPath");
+        void acceptsNullTokenizerPathForTensorModels() {
+            var config = new ModelConfig(MODEL);
+            assertThat(config.tokenizerPath()).isNull();
+            assertThat(config.modelPath()).isEqualTo(MODEL);
         }
 
         @Test

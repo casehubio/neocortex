@@ -82,13 +82,20 @@ public final class OnnxInferenceModel implements InferenceModel {
             }
             this.session = openedSession;
 
-            // Resolve input names via overrides, canonical names, or aliases
-            Set<String> inputNames = session.getInputNames();
-            this.inputIdsName = resolveInputName("input_ids", inputNames, config.inputNameOverrides());
-            this.attentionMaskName = resolveInputName("attention_mask", inputNames, config.inputNameOverrides());
-            String resolvedTokenTypeIds = resolveInputName("token_type_ids", inputNames, config.inputNameOverrides());
-            this.requiresTokenTypeIds = resolvedTokenTypeIds != null;
-            this.tokenTypeIdsName = resolvedTokenTypeIds;
+            // Resolve input names — only for text models (tokenizer present)
+            if (config.tokenizerPath() != null) {
+                Set<String> inputNames = session.getInputNames();
+                this.inputIdsName = resolveInputName("input_ids", inputNames, config.inputNameOverrides());
+                this.attentionMaskName = resolveInputName("attention_mask", inputNames, config.inputNameOverrides());
+                String resolvedTokenTypeIds = resolveInputName("token_type_ids", inputNames, config.inputNameOverrides());
+                this.requiresTokenTypeIds = resolvedTokenTypeIds != null;
+                this.tokenTypeIdsName = resolvedTokenTypeIds;
+            } else {
+                this.inputIdsName = null;
+                this.attentionMaskName = null;
+                this.requiresTokenTypeIds = false;
+                this.tokenTypeIdsName = null;
+            }
 
             // Validate outputs: at least one, each must be rank 2 or rank 3
             Map<String, NodeInfo> outputInfo = session.getOutputInfo();
@@ -121,14 +128,17 @@ public final class OnnxInferenceModel implements InferenceModel {
                 this.outputSize = OptionalInt.empty();
             }
 
-            // Create tokenizer with truncation, no padding
-            openedTokenizer = HuggingFaceTokenizer.newInstance(
-                config.tokenizerPath(),
-                Map.of("maxLength", String.valueOf(config.maxSequenceLength()),
-                       "modelMaxLength", String.valueOf(config.maxSequenceLength()),
-                       "truncation", "true",
-                       "padding", "false"));
-            this.tokenizer = openedTokenizer;
+            if (config.tokenizerPath() != null) {
+                openedTokenizer = HuggingFaceTokenizer.newInstance(
+                    config.tokenizerPath(),
+                    Map.of("maxLength", String.valueOf(config.maxSequenceLength()),
+                           "modelMaxLength", String.valueOf(config.maxSequenceLength()),
+                           "truncation", "true",
+                           "padding", "false"));
+                this.tokenizer = openedTokenizer;
+            } else {
+                this.tokenizer = null;
+            }
 
         } catch (ModelLoadException e) {
             // Clean up already-opened resources on failure
@@ -148,18 +158,26 @@ public final class OnnxInferenceModel implements InferenceModel {
 
     @Override
     public InferenceOutput run(InferenceInput input) {
-        if (closed) throw new InferenceException("Model is closed");
+        if (closed) {throw new InferenceException("Model is closed");}
         Objects.requireNonNull(input, "input must not be null");
 
+        return switch (input) {
+            case InferenceInput.Text textInput -> runText(textInput);
+            case InferenceInput.Tensor tensorInput -> runTensor(tensorInput);
+        };}
+
+    private InferenceOutput runText(InferenceInput.Text input) {
+        if (tokenizer == null) {
+            throw new InferenceException("Text input requires a tokenizer — this model was loaded without one");
+        }
         List<String> texts = input.texts();
         Encoding encoding = texts.size() == 1
-            ? tokenizer.encode(texts.get(0))
-            : tokenizer.encode(texts.get(0), texts.get(1));
+                            ? tokenizer.encode(texts.get(0))
+                            : tokenizer.encode(texts.get(0), texts.get(1));
 
-        long[] inputIds = encoding.getIds();
-        long[] attentionMask = encoding.getAttentionMask();
-
-        long[][] inputIds2d = {inputIds};
+        long[]   inputIds        = encoding.getIds();
+        long[]   attentionMask   = encoding.getAttentionMask();
+        long[][] inputIds2d      = {inputIds};
         long[][] attentionMask2d = {attentionMask};
 
         List<OnnxTensor> tensors = new ArrayList<>();
@@ -174,41 +192,61 @@ public final class OnnxInferenceModel implements InferenceModel {
             inputMap.put(attentionMaskName, maskTensor);
 
             if (requiresTokenTypeIds) {
-                long[][] typeIds2d = {encoding.getTypeIds()};
+                long[][]   typeIds2d     = {encoding.getTypeIds()};
                 OnnxTensor typeIdsTensor = OnnxTensor.createTensor(env, typeIds2d);
                 tensors.add(typeIdsTensor);
                 inputMap.put(tokenTypeIdsName, typeIdsTensor);
             }
 
-            try (OrtSession.Result result = session.run(inputMap)) {
-                Map<String, float[][]> outputs = new LinkedHashMap<>();
-                for (Map.Entry<String, OnnxValue> entry : result) {
-                    Object value = entry.getValue().getValue();
-                    if (value instanceof float[][] rank2) {
-                        outputs.put(entry.getKey(), new float[][] { rank2[0] });
-                    } else if (value instanceof float[][][] rank3) {
-                        outputs.put(entry.getKey(), rank3[0]);
-                    }
-                }
-                return new InferenceOutput(outputs);
-            }
+            return runSession(inputMap);
         } catch (OrtException e) {
             throw new InferenceException("Inference failed: " + e.getMessage(), e);
         } finally {
-            for (OnnxTensor t : tensors) {
-                t.close();
-            }
+            for (OnnxTensor t : tensors) {t.close();}
         }
     }
 
+    private InferenceOutput runTensor(InferenceInput.Tensor input) {
+        List<OnnxTensor> tensors = new ArrayList<>();
+        try {
+            Map<String, OnnxTensor> inputMap = new HashMap<>();
+            for (Map.Entry<String, float[][]> entry : input.inputs().entrySet()) {
+                OnnxTensor tensor = OnnxTensor.createTensor(env, entry.getValue());
+                tensors.add(tensor);
+                inputMap.put(entry.getKey(), tensor);
+            }
+            return runSession(inputMap);
+        } catch (OrtException e) {
+            throw new InferenceException("Inference failed: " + e.getMessage(), e);
+        } finally {
+            for (OnnxTensor t : tensors) {t.close();}
+        }
+    }
+
+    private InferenceOutput runSession(Map<String, OnnxTensor> inputMap) throws OrtException {
+        try (OrtSession.Result result = session.run(inputMap)) {
+            Map<String, float[][]> outputs = new LinkedHashMap<>();
+            for (Map.Entry<String, OnnxValue> entry : result) {
+                Object value = entry.getValue().getValue();
+                if (value instanceof float[][] rank2) {
+                    outputs.put(entry.getKey(), new float[][]{rank2[0]});
+                } else if (value instanceof float[][][] rank3) {
+                    outputs.put(entry.getKey(), rank3[0]);
+                }
+            }
+            return new InferenceOutput(outputs);
+        }
+    }
+
+
     @Override
     public List<InferenceOutput> runBatch(List<InferenceInput> inputs) {
-        if (closed) throw new InferenceException("Model is closed");
+        if (closed) {throw new InferenceException("Model is closed");}
 
         if (inputs == null) {
             throw new IllegalArgumentException("inputs must not be null");
         }
-        if (inputs.isEmpty()) return List.of();
+        if (inputs.isEmpty()) {return List.of();}
 
         for (int i = 0; i < inputs.size(); i++) {
             if (inputs.get(i) == null) {
@@ -216,27 +254,42 @@ public final class OnnxInferenceModel implements InferenceModel {
             }
         }
 
-        int batchSize = inputs.size();
-
-        // Tokenize all inputs
-        Encoding[] encodings = new Encoding[batchSize];
-        int maxLen = 0;
-        for (int i = 0; i < batchSize; i++) {
-            List<String> texts = inputs.get(i).texts();
-            encodings[i] = texts.size() == 1
-                ? tokenizer.encode(texts.get(0))
-                : tokenizer.encode(texts.get(0), texts.get(1));
-            maxLen = Math.max(maxLen, encodings[i].getIds().length);
+        InferenceInput first = inputs.get(0);
+        if (first instanceof InferenceInput.Tensor) {
+            List<InferenceOutput> results = new ArrayList<>(inputs.size());
+            for (InferenceInput input : inputs) {
+                if (!(input instanceof InferenceInput.Tensor)) {
+                    throw new IllegalArgumentException("Cannot mix Text and Tensor inputs in a batch");
+                }
+                results.add(runTensor((InferenceInput.Tensor) input));
+            }
+            return Collections.unmodifiableList(results);
         }
 
-        // Pad to batch-max length and stack into 2D arrays
-        // Zero-fill is correct: [PAD]=0 for BERT family, attention_mask=0 means "don't attend",
-        // token_type_ids=0 means segment A
-        long[][] batchIds = new long[batchSize][maxLen];
-        long[][] batchMask = new long[batchSize][maxLen];
+        int batchSize = inputs.size();
+
+        if (tokenizer == null) {
+            throw new InferenceException("Text input requires a tokenizer — this model was loaded without one");
+        }
+
+        Encoding[] encodings = new Encoding[batchSize];
+        int        maxLen    = 0;
+        for (int i = 0; i < batchSize; i++) {
+            if (!(inputs.get(i) instanceof InferenceInput.Text textInput)) {
+                throw new IllegalArgumentException("Cannot mix Text and Tensor inputs in a batch");
+            }
+            List<String> texts = textInput.texts();
+            encodings[i] = texts.size() == 1
+                           ? tokenizer.encode(texts.get(0))
+                           : tokenizer.encode(texts.get(0), texts.get(1));
+            maxLen       = Math.max(maxLen, encodings[i].getIds().length);
+        }
+
+        long[][] batchIds     = new long[batchSize][maxLen];
+        long[][] batchMask    = new long[batchSize][maxLen];
         long[][] batchTypeIds = requiresTokenTypeIds ? new long[batchSize][maxLen] : null;
         for (int i = 0; i < batchSize; i++) {
-            long[] ids = encodings[i].getIds();
+            long[] ids  = encodings[i].getIds();
             long[] mask = encodings[i].getAttentionMask();
             System.arraycopy(ids, 0, batchIds[i], 0, ids.length);
             System.arraycopy(mask, 0, batchMask[i], 0, mask.length);
@@ -264,24 +317,21 @@ public final class OnnxInferenceModel implements InferenceModel {
             }
 
             try (OrtSession.Result result = session.run(inputMap)) {
-                // Extract all named outputs from the session result
                 Map<String, Object> rawOutputs = new LinkedHashMap<>();
                 for (Map.Entry<String, OnnxValue> entry : result) {
                     rawOutputs.put(entry.getKey(), entry.getValue().getValue());
                 }
 
-                // Build per-sample InferenceOutput from all outputs
                 List<InferenceOutput> outputs = new ArrayList<>(batchSize);
                 for (int i = 0; i < batchSize; i++) {
                     Map<String, float[][]> sampleOutputs = new LinkedHashMap<>();
                     for (Map.Entry<String, Object> entry : rawOutputs.entrySet()) {
                         Object value = entry.getValue();
                         if (value instanceof float[][] rank2) {
-                            sampleOutputs.put(entry.getKey(), new float[][] { rank2[i] });
+                            sampleOutputs.put(entry.getKey(), new float[][]{rank2[i]});
                         } else if (value instanceof float[][][] rank3) {
-                            // Strip padding vectors using attention mask
                             int actualLen = 0;
-                            for (long v : batchMask[i]) actualLen += (int) v;
+                            for (long v : batchMask[i]) {actualLen += (int) v;}
                             float[][] stripped = Arrays.copyOf(rank3[i], actualLen);
                             sampleOutputs.put(entry.getKey(), stripped);
                         }
@@ -296,8 +346,7 @@ public final class OnnxInferenceModel implements InferenceModel {
             for (OnnxTensor t : tensors) {
                 t.close();
             }
-        }
-    }
+        }}
 
     @Override
     public OptionalInt outputSize() {

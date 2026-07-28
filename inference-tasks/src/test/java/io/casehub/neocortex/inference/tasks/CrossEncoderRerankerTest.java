@@ -38,7 +38,7 @@ class CrossEncoderRerankerTest {
         @Test
         void sortsByDescendingScore() {
             var model = InMemoryInferenceModel.withFunction(1, input -> {
-                String candidate = input.texts().get(1);
+                String candidate = ((InferenceInput.Text) input).texts().get(1);
                 return switch (candidate) {
                     case "low" -> new float[]{0.1f};
                     case "mid" -> new float[]{0.5f};
@@ -58,7 +58,7 @@ class CrossEncoderRerankerTest {
         @Test
         void preservesOriginalIndices() {
             var model = InMemoryInferenceModel.withFunction(1, input -> {
-                String candidate = input.texts().get(1);
+                String candidate = ((InferenceInput.Text) input).texts().get(1);
                 return switch (candidate) {
                     case "a" -> new float[]{0.3f};
                     case "b" -> new float[]{0.9f};

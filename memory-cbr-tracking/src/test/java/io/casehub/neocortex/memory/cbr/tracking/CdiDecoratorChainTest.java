@@ -24,7 +24,6 @@ import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -109,7 +108,7 @@ class CdiDecoratorChainTest {
         @ApplicationScoped
         CrossEncoderReranker crossEncoderReranker() {
             var model = InMemoryInferenceModel.withFunction(1, (InferenceInput input) -> {
-                String text = input.texts().isEmpty() ? "" : input.texts().getFirst();
+                String text = ((InferenceInput.Text) input).texts().isEmpty() ? "" : ((InferenceInput.Text) input).texts().getFirst();
                 float score = text.contains("alpha") ? 2.0f : 0.5f;
                 return new float[]{score};
             });

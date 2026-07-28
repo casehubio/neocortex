@@ -218,6 +218,36 @@ C4Container
   Rel(rag_crossencoder, inference_tasks, "uses CrossEncoderReranker")
   Rel(rag_expansion, rag_api, "decorates CaseRetriever")
   Rel(rag_expansion, fusion_api, "ScoreFusion for multi-query merge")
+
+  Container_Boundary(b_memory_spi, "Layer: Memory SPI") {
+    Container(memory_api, "memory-api", "Pure Java", "CaseMemoryStore, CbrCaseMemoryStore, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter SPIs")
+    Container(memory_testing, "memory-testing", "Pure Java", "CbrCaseMemoryStoreContractTest, InMemoryCbrRetrievalTracker")
+  }
+
+  Container_Boundary(b_memory_rt, "Layer: Memory Runtime") {
+    Container(memory, "memory", "CDI library", "CaseEnrichmentDecorator, OutcomeWeightingCbrCaseMemoryStore, TrustWeightedCbrCaseMemoryStore, ScopeDecayCbrCaseMemoryStore, TrendEnrichmentCbrCaseMemoryStore — decorator chain via @Priority")
+    Container(memory_cbr_inmem, "memory-cbr-inmem", "Pure Java", "InMemoryCbrCaseMemoryStore @Alternative — test stubs")
+  }
+
+  Container_Boundary(b_memory_backends, "Layer: Memory Backends") {
+    Container(memory_qdrant, "memory-qdrant", "Qdrant gRPC", "ReactiveQdrantCbrCaseMemoryStore — payload filters, dense vector, SPLADE, BM25, hybrid fusion")
+    Container(memory_jpa, "memory-jpa", "JPA + Flyway", "JpaMemoryStore — PostgreSQL + FTS")
+    Container(memory_sqlite, "memory-sqlite", "SQLite + HikariCP", "SqliteMemoryStore — FTS5 + WAL")
+  }
+
+  Container_Boundary(b_memory_decorators, "Layer: CBR Decorators") {
+    Container(memory_cbr_crossencoder, "memory-cbr-crossencoder", "CDI library", "Cross-encoder reranking @Decorator on CbrCaseMemoryStore")
+    Container(memory_cbr_tracking, "memory-cbr-tracking", "CDI library", "CbrRetrievalTracker, TrackingPlanAdapter, TrackingPlanEnsembleAnalyzer — retrieval traceability")
+    Container(memory_cbr_embedding, "memory-cbr-embedding", "CDI library", "EmbeddingTextSimilarity — semantic text field cosine similarity")
+  }
+
+  Rel(memory, memory_api, "implements + decorates CbrCaseMemoryStore")
+  Rel(memory_qdrant, memory_api, "implements CbrCaseMemoryStore")
+  Rel(memory_qdrant, fusion_api, "ScoreFusion for hybrid retrieval")
+  Rel(memory_cbr_crossencoder, memory_api, "decorates CbrCaseMemoryStore")
+  Rel(memory_cbr_crossencoder, inference_tasks, "uses CrossEncoderReranker")
+  Rel(memory_cbr_tracking, memory_api, "decorates CbrCaseMemoryStore")
+  Rel(memory_cbr_embedding, memory_api, "implements LocalSimilarityFunction")
 ```
 
 ### Layers
@@ -235,6 +265,10 @@ C4Container
 | L9 Corpus Runtime | `corpus` | Zip4j | ✅ yes |
 | L10 CRAG | `rag-crossencoder` | CDI library, classpath + config activated | ✅ yes |
 | L11 Query Expansion | `rag-expansion` | CDI library, classpath + config activated | ✅ yes |
+| L12 Memory SPI | `memory-api`, `memory-testing` | Pure Java, zero deps | casehub only |
+| L13 Memory Runtime | `memory`, `memory-cbr-inmem` | CDI library | casehub only |
+| L14 Memory Backends | `memory-qdrant`, `memory-jpa`, `memory-sqlite` | Backend-specific | casehub only |
+| L15 CBR Decorators | `memory-cbr-crossencoder`, `memory-cbr-tracking`, `memory-cbr-embedding` | CDI library, classpath + config activated | casehub only |
 
 ---
 
@@ -393,6 +427,9 @@ flowchart LR
   C4 --> C10
   C7 --> C11["C11: HyDE\n+ L11, L6, L7, L10"]
   C10 --> C11
+  C7 --> C12["C12: CBR Phase 4
++ L12, L13, L14, L15"]
+  C10 --> C12
 
   style C1 fill:#90EE90,color:#000
   style C2 fill:#90EE90,color:#000
@@ -405,6 +442,7 @@ flowchart LR
   style C9 fill:#90EE90,color:#000
   style C10 fill:#90EE90,color:#000
   style C11 fill:#90EE90,color:#000
+  style C12 fill:#90EE90,color:#000
 ```
 
 | # | Chapter | Journey | Layers touched | Delta summary | Status |
@@ -420,22 +458,27 @@ flowchart LR
 | 9 | Ingestion Bridge | J3 | L6, L7 | Low, Med | ✅ |
 | 10 | Corrective RAG (CRAG) | J4 | L6, L7, L10 | L6: Low, L7: Low, L10: High | ✅ (#33, #38, #41) |
 | 11 | Query Expansion | J4 | L6, L7, L10, L11 | L6: Med, L7: Med, L10: Low, L11: High | ✅ (#32, #42, #43) |
+| 12 | CBR Outcome Learning + Traceability | J5 | L12, L13, L14, L15 | L12: High, L13: High, L14: High, L15: High | ✅ (#84, #82, #83, #85, #88, #93) |
 
 **Layer × Chapter matrix**
 
-| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| L1 SPI Foundation | — | — | High | — | — | — | — | — | — | — | — |
-| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — | — | — |
-| L3 Task Adapters | — | — | — | High | — | — | — | — | — | — | — |
-| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — | — | — |
-| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — | — | — |
-| L6 RAG SPI | — | — | — | — | — | — | High | — | Low | Low | Med |
-| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med | Low | Med |
-| L8 Corpus SPI | — | — | — | — | — | — | — | High | — | — | — |
-| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — | — | — |
-| L10 CRAG | — | — | — | — | — | — | — | — | — | High | Low |
-| L11 Query Expansion | — | — | — | — | — | — | — | — | — | — | High |
+| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| L1 SPI Foundation | — | — | High | — | — | — | — | — | — | — | — | — |
+| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — | — | — | — |
+| L3 Task Adapters | — | — | — | High | — | — | — | — | — | — | — | — |
+| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — | — | — | — |
+| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — | — | — | — |
+| L6 RAG SPI | — | — | — | — | — | — | High | — | Low | Low | Med | — |
+| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med | Low | Med | — |
+| L8 Corpus SPI | — | — | — | — | — | — | — | High | — | — | — | — |
+| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — | — | — | — |
+| L10 CRAG | — | — | — | — | — | — | — | — | — | High | Low | — |
+| L11 Query Expansion | — | — | — | — | — | — | — | — | — | — | High | — |
+| L12 Memory SPI | — | — | — | — | — | — | — | — | — | — | — | High |
+| L13 Memory Runtime | — | — | — | — | — | — | — | — | — | — | — | High |
+| L14 Memory Backends | — | — | — | — | — | — | — | — | — | — | — | High |
+| L15 CBR Decorators | — | — | — | — | — | — | — | — | — | — | — | High |
 
 *C2 validates L2's JNI stack in native image; L2 itself is not built until C3.
 
@@ -676,6 +719,34 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 | L7 RAG Runtime | Med (dense/sparse split — dense uses searchText(), sparse uses text(), HybridCaseRetriever updated) |
 | L10 CRAG | Low (activation model retrofit — classpath-only → classpath + config) |
 | L11 Query Expansion | High (new module: QueryExpandingCaseRetriever decorator, ReactiveQueryExpandingCaseRetriever, LlmQueryExpander with multi-query, TemplateQueryExpander, StepBackQueryExpander, ExpansionConfig) |
+| L12 Memory SPI | High (new modules: memory-api CbrCaseMemoryStore SPI, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter, AgentTrustProvider SPIs; memory-testing contract tests) |
+| L13 Memory Runtime | High (new modules: memory CDI, OutcomeWeightingCbrCaseMemoryStore, TrustWeightedCbrCaseMemoryStore, ScopeDecayCbrCaseMemoryStore, TrendEnrichmentCbrCaseMemoryStore @Decorator chain; memory-cbr-inmem stubs) |
+| L14 Memory Backends | High (new modules: memory-qdrant Qdrant gRPC, memory-jpa PostgreSQL + FTS, memory-sqlite SQLite + FTS5) |
+| L15 CBR Decorators | High (new modules: memory-cbr-crossencoder reranking, memory-cbr-tracking retrieval traceability, memory-cbr-embedding semantic text similarity) |
+
+#### Chapter C12 — CBR Outcome Learning + Traceability
+
+**Journey:** J5 — CBR Platform Capability (Phases 2–7)
+
+**What:** Case-Based Reasoning memory with outcome learning (Revise step), confidence scoring, retrieval traceability, plan adaptation, and hierarchical scoping. Decorator-driven architecture: each concern (@Priority-ordered) composes independently via CDI `@Decorator` on `CbrCaseMemoryStore`.
+
+**Decorator chain (by @Priority, highest = outermost):**
+
+| Priority | Decorator | Concern |
+|----------|-----------|---------|
+| 90 | TrendEnrichmentCbrCaseMemoryStore | Derives trend features from TimeSeries fields |
+| 85 | ScopeDecayCbrCaseMemoryStore | Scope-distance score decay |
+| 75 | Cross-encoder reranking | Sigmoid-normalized CE re-scoring |
+| 65 | OutcomeWeightingCbrCaseMemoryStore | Modulates scores by case confidence |
+| 60 | TrustWeightedCbrCaseMemoryStore | Modulates scores by source trust authority |
+| 50 | CBR retrieval tracking | Records retrieval events, fires CDI events |
+| 45 | ErasureNotificationCbrCaseMemoryStore | Fires CbrCasesErased CDI events after erasure |
+
+**Outcome learning (CBR Revise):** `CbrOutcome` records success/failure against retrieved cases. `recordOutcome()` on `CbrCaseMemoryStore` updates per-case confidence via exponential moving average (EMA, configurable learning rate). `OutcomeWeightingCbrCaseMemoryStore` uses confidence at retrieval time: `score * (1 - α + α * confidence)`.
+
+**Retrieval traceability:** `CbrRetrievalTracker` SPI records every `retrieveSimilar()` as a `CbrRetrievalTrace` (traceId, query, scored cases, timestamp). `TrackingPlanAdapter` records plan adaptation events. `TrackingPlanEnsembleAnalyzer` records ensemble analysis events. SQLite-backed implementation with WAL + Flyway. Retention scheduler purges records older than configurable threshold.
+
+**Why decorator chain:** Each concern is independently deployable (classpath + config activation), testable in isolation, and composable without the core store knowing about any of them. The three-tier CDI priority ladder (`@Alternative` for backends, `@Decorator` for cross-cutting, `@DefaultBean` for fallbacks) avoids bean resolution ambiguity.
 
 ---
 

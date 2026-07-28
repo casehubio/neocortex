@@ -1,9 +1,15 @@
 package io.casehub.neocortex.memory.cbr.crossencoder;
 
+import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.inmem.InMemoryInferenceModel;
 import io.casehub.neocortex.inference.tasks.CrossEncoderReranker;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.*;
+import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.FeatureField;
+import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.RetrievalMode;
+import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +18,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.casehub.neocortex.memory.cbr.FeatureValue.string;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 class RerankingCbrCaseMemoryStoreTest {
 
@@ -28,7 +35,7 @@ class RerankingCbrCaseMemoryStoreTest {
 
         var model = InMemoryInferenceModel.withFunction(1, input -> {
             crossEncoderCalls.incrementAndGet();
-            String text = input.texts().get(1);
+            String text = ((InferenceInput.Text) input).texts().get(1);
             if (text.contains("high")) return new float[]{2.0f};
             if (text.contains("low")) return new float[]{-1.0f};
             return new float[]{0.0f};

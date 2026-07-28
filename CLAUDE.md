@@ -153,7 +153,7 @@ Tracks `casehubio/neocortex#20`, `casehubio/neocortex#56`, `casehubio/parent#227
 ## Module Structure
 
 ```
-inference-api/      — zero deps: InferenceModel SPI, InferenceInput, InferenceOutput, InferenceException
+inference-api/      — zero deps: InferenceModel SPI, InferenceInput (sealed: Text + Tensor), InferenceOutput, InferenceException
 inference-runtime/  — ONNX Runtime JVM + HuggingFace Tokenizers JNI; OnnxInferenceModel, ModelConfig
 inference-tasks/    — NliClassifier, TextClassifier, ScalarRegressor, CrossEncoderReranker
 inference-splade/   — sparse SPLADE embeddings (Map<Integer, Float>)

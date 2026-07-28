@@ -124,7 +124,7 @@ class InMemoryInferenceModelTest {
         @Test
         void functionReceivesCorrectInput() {
             var model = InMemoryInferenceModel.withFunction(1, input -> {
-                float val = input.texts().get(0).length();
+                float val = ((InferenceInput.Text) input).texts().get(0).length();
                 return new float[]{val};
             });
             InferenceOutput out = model.run(InferenceInput.of("hello"));
@@ -220,7 +220,7 @@ class InMemoryInferenceModelTest {
         @Test
         void consistentWithRun() {
             var model = InMemoryInferenceModel.withFunction(1, input -> {
-                float val = input.texts().get(0).length();
+                float val = ((InferenceInput.Text) input).texts().get(0).length();
                 return new float[]{val};
             });
             InferenceInput in1 = InferenceInput.of("hi");

@@ -1,5 +1,6 @@
 package io.casehub.neocortex.examples.analysis;
 
+import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.inmem.InMemoryInferenceModel;
 import io.casehub.neocortex.inference.tasks.NliClassifier;
 
@@ -16,7 +17,7 @@ class ZeroShotClassificationDemoTest {
     @Test
     void allTextsProduceRankedLabels() {
         var model = InMemoryInferenceModel.withFunction(3, input -> {
-            String hypothesis = input.texts().get(1);
+            String hypothesis = ((InferenceInput.Text) input).texts().get(1);
             if (hypothesis.contains("technology")) return new float[]{0.9f, 0.05f, 0.05f};
             if (hypothesis.contains("law")) return new float[]{0.7f, 0.1f, 0.2f};
             return new float[]{0.1f, 0.3f, 0.6f};

@@ -27,7 +27,7 @@ public final class BgeM3Embedder implements MultiModalEmbedder {
     @Override
     public List<MultiModalEmbedding> embedBatch(List<String> texts) {
         List<InferenceInput> inputs = texts.stream()
-            .map(InferenceInput::of).toList();
+            .<InferenceInput>map(InferenceInput::of).toList();
         List<InferenceOutput> outputs = model.runBatch(inputs);
         return outputs.stream().map(this::toEmbedding).toList();
     }

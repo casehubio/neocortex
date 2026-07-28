@@ -1,5 +1,6 @@
 package io.casehub.neocortex.examples.analysis;
 
+import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.inmem.InMemoryInferenceModel;
 import io.casehub.neocortex.inference.tasks.TextClassifier;
 
@@ -31,7 +32,7 @@ class ScoringDemoTest {
     @Test
     void scoresSpanRange() {
         var model = InMemoryInferenceModel.withFunction(2, input -> {
-            String text = input.texts().get(0);
+            String text = ((InferenceInput.Text) input).texts().get(0);
             if (text.contains("terrible")) return new float[]{2.0f, -1.0f};
             if (text.contains("excellent") || text.contains("Excellent")) return new float[]{-1.0f, 2.0f};
             return new float[]{0.1f, 0.1f};

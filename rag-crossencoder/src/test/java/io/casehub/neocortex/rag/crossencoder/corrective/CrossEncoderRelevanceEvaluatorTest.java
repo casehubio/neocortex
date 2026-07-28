@@ -1,5 +1,6 @@
 package io.casehub.neocortex.rag.crossencoder.corrective;
 
+import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.inmem.InMemoryInferenceModel;
 import io.casehub.neocortex.inference.tasks.CrossEncoderReranker;
 import io.casehub.neocortex.rag.RelevanceGrade;
@@ -118,7 +119,7 @@ class CrossEncoderRelevanceEvaluatorTest {
     private static InMemoryInferenceModel contentScoringModel(
             Map<String, Float> contentToScore) {
         return InMemoryInferenceModel.withFunction(1, input -> {
-            String candidate = input.texts().get(1);
+            String candidate = ((InferenceInput.Text) input).texts().get(1);
             Float  score     = contentToScore.get(candidate);
             return new float[]{score != null ? score : 0.0f};
         });
