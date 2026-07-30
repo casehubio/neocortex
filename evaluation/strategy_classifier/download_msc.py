@@ -5,15 +5,12 @@ for ~36k SC2 replays. Each replay has two players' features plus metadata.
 
 Usage: python3 -m evaluation.strategy_classifier.download_msc
 """
-import os
-import urllib.request
+import gdown
 import zipfile
 from pathlib import Path
 from evaluation.strategy_classifier.config import Paths
 
-MSC_URLS = {
-    "GlobalFeatures": "https://drive.google.com/uc?export=download&id=1y6oJSVjYdMFfHmNbRVh0vMzAxDeSQ-pE",
-}
+MSC_FILE_ID = "0Bybnpq8dvwudNUVOX1FCWnZoSGM"
 
 
 def download_msc(paths: Paths = Paths()) -> Path:
@@ -25,14 +22,14 @@ def download_msc(paths: Paths = Paths()) -> Path:
         print(f"MSC data already downloaded at {dest}")
         return dest
 
-    for name, url in MSC_URLS.items():
-        zip_path = dest / f"{name}.zip"
-        print(f"Downloading {name}...")
-        urllib.request.urlretrieve(url, zip_path)
-        print(f"Extracting {name}...")
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            zf.extractall(dest)
-        zip_path.unlink()
+    zip_path = dest / "GlobalFeatures.zip"
+    print("Downloading MSC GlobalFeatures from Google Drive...")
+    gdown.download(id=MSC_FILE_ID, output=str(zip_path), quiet=False)
+
+    print("Extracting...")
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extractall(dest)
+    zip_path.unlink()
 
     marker.touch()
     print(f"MSC data ready at {dest}")
