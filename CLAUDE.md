@@ -155,7 +155,7 @@ Tracks `casehubio/neocortex#20`, `casehubio/neocortex#56`, `casehubio/parent#227
 ```
 inference-api/      — zero deps: InferenceModel SPI, InferenceInput (sealed: Text + Tensor), InferenceOutput, InferenceException
 inference-runtime/  — ONNX Runtime JVM + HuggingFace Tokenizers JNI; OnnxInferenceModel, ModelConfig
-inference-tasks/    — NliClassifier, TextClassifier, ScalarRegressor, CrossEncoderReranker
+inference-tasks/    — NliClassifier, TextClassifier, TensorClassifier, ScalarRegressor, CrossEncoderReranker
 inference-splade/   — sparse SPLADE embeddings (Map<Integer, Float>)
 inference-inmem/    — deterministic stubs; no JNI; safe in all test contexts
 inference-quarkus/  — CDI wiring, @InferenceModel qualifier, Dev Services, @QuarkusTest
@@ -187,6 +187,7 @@ examples/
   example-rag-pipeline/   — Quarkus demos: corpus ingestion (flat + zip), hybrid search, CDI wiring — requires Qdrant
 evaluation/
   code_domain_embeddings/  — Python evaluation scripts for #49: tokenizer analysis, embedding discrimination, benchmark runner, deployment check. Requires own venv (not Maven). Run with `python3 -m evaluation.code_domain_embeddings.<script>`.
+  strategy_classifier/   — Python ML pipeline for #75/#76: MSC dataset download, fog-of-war simulation, hybrid labelling, CNN-Attention model training, ONNX export, evaluation. Requires own venv. Run with `python3 -m evaluation.strategy_classifier.<script>`.
 ```
 
 Examples are excluded from the default build. Activate with `-Pexamples-smoke` (in-memory stubs) or `-Pexamples` (real ONNX models + Testcontainers Qdrant).
