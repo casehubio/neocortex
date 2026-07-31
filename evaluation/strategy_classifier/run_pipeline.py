@@ -12,6 +12,7 @@ from evaluation.strategy_classifier.config import (
 from evaluation.strategy_classifier.model import StrategyClassifier
 from evaluation.strategy_classifier.train import (
     train_model, evaluate, find_optimal_temperature, bake_temperature,
+    compute_class_weights,
 )
 from evaluation.strategy_classifier.export_onnx import export_to_onnx, write_manifest
 from evaluation.strategy_classifier.evaluate import (
@@ -56,8 +57,17 @@ def run(data_source: str = "synthetic", hp: HyperParams = HyperParams(), paths: 
         n_params = sum(p.numel() for p in model.parameters())
         print(f"  Parameters: {n_params:,}")
 
+        train_labels = np.array([s[2] for s in train_samples])
+        weights = compute_class_weights(train_labels, num_classes)
+        use_weights = any(w > 2.0 for w in weights)
+        if use_weights:
+            print(f"  Class weights: {dict(zip(archetypes, weights.numpy().round(2)))}")
+        else:
+            print(f"  Class balance: OK (no weighting needed)")
+            weights = None
+
         print(f"\n  Training...")
-        history = train_model(model, train_loader, val_loader, hp)
+        history = train_model(model, train_loader, val_loader, hp, class_weights=weights)
 
         print(f"\n  Calibrating temperature...")
         _, _, val_logits, val_labels = evaluate(model, val_loader)

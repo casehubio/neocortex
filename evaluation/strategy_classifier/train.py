@@ -9,14 +9,23 @@ from evaluation.strategy_classifier.config import HyperParams
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, gamma: float = 2.0):
+    def __init__(self, gamma: float = 2.0, weight: torch.Tensor = None):
         super().__init__()
         self.gamma = gamma
+        self.register_buffer("weight", weight)
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        ce = F.cross_entropy(logits, targets, reduction="none")
+        ce = F.cross_entropy(logits, targets, weight=self.weight, reduction="none")
         pt = torch.exp(-ce)
         return ((1 - pt) ** self.gamma * ce).mean()
+
+
+def compute_class_weights(labels: np.ndarray, num_classes: int) -> torch.Tensor:
+    counts = np.bincount(labels, minlength=num_classes).astype(np.float32)
+    counts = np.maximum(counts, 1.0)
+    weights = np.sqrt(counts.max() / counts)
+    weights = np.clip(weights, 1.0, 5.0)
+    return torch.from_numpy(weights)
 
 
 def train_one_epoch(
@@ -78,11 +87,12 @@ def train_model(
     train_loader: DataLoader,
     val_loader: DataLoader,
     hp: HyperParams,
+    class_weights: torch.Tensor = None,
 ) -> dict:
     torch.manual_seed(hp.seed)
     optimizer = torch.optim.AdamW(model.parameters(), lr=hp.lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=hp.max_epochs)
-    criterion = FocalLoss(gamma=hp.focal_gamma)
+    criterion = FocalLoss(gamma=hp.focal_gamma, weight=class_weights)
 
     best_val_loss = float("inf")
     patience_counter = 0
