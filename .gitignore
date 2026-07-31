@@ -5,3 +5,7 @@ target/
 .idea/
 *.iml
 proj
+evaluation/strategy_classifier/data/
+evaluation/strategy_classifier/models/
+evaluation/strategy_classifier/output/
+evaluation/strategy_classifier/.venv/
