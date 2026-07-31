@@ -12,11 +12,19 @@ def per_replay_split(
     ids = np.array(replay_ids)
     lbls = np.array(labels)
 
-    sss1 = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=seed)
-    train_val_idx, test_idx = next(sss1.split(ids, lbls))
+    try:
+        sss1 = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=seed)
+        train_val_idx, test_idx = next(sss1.split(ids, lbls))
 
-    sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.125, random_state=seed)
-    train_idx, val_idx = next(sss2.split(ids[train_val_idx], lbls[train_val_idx]))
+        sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.125, random_state=seed)
+        train_idx, val_idx = next(sss2.split(ids[train_val_idx], lbls[train_val_idx]))
+    except ValueError:
+        from sklearn.model_selection import ShuffleSplit
+        ss1 = ShuffleSplit(n_splits=1, test_size=0.2, random_state=seed)
+        train_val_idx, test_idx = next(ss1.split(ids))
+
+        ss2 = ShuffleSplit(n_splits=1, test_size=0.125, random_state=seed)
+        train_idx, val_idx = next(ss2.split(ids[train_val_idx]))
 
     return (
         ids[train_val_idx[train_idx]].tolist(),

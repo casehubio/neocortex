@@ -30,6 +30,19 @@ CONFIDENCE: <0.0-1.0>
 """
 
 
+def create_client():
+    """Create an Anthropic client — Vertex AI if configured, direct API otherwise."""
+    import os
+    if os.environ.get("CLAUDE_CODE_USE_VERTEX") == "1":
+        from anthropic import AnthropicVertex
+        return AnthropicVertex(
+            project_id=os.environ.get("ANTHROPIC_VERTEX_PROJECT_ID"),
+            region=os.environ.get("CLOUD_ML_REGION", "us-east5"),
+        )
+    from anthropic import Anthropic
+    return Anthropic()
+
+
 def classify_with_llm(
     build_order: List[Dict], opponent_race: str, client
 ) -> Tuple[Optional[str], float]:
