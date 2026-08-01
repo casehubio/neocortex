@@ -1920,7 +1920,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                     "diagnosis", ENTITY, CBR, TENANT, "case-" + i, Path.root());
         }
 
-        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, 3);
+        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, 3, null);
         int deleted = store().purge(policy);
 
         assertThat(deleted).isEqualTo(2);
@@ -1939,7 +1939,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                          Map.of("severity", FeatureValue.string("HIGH")), null, null),
                 "diagnosis", ENTITY, CBR, TENANT, "case-1", Path.root());
 
-        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, 5);
+        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, 5, null);
         int deleted = store().purge(policy);
         assertThat(deleted).isEqualTo(0);
     }
@@ -1952,7 +1952,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                          Map.of("severity", FeatureValue.string("HIGH")), null, null),
                 "diagnosis", ENTITY, CBR, TENANT, "case-1", Path.root());
 
-        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", 365, null);
+        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", 365, null, null);
         int deleted = store().purge(policy);
         assertThat(deleted).isEqualTo(0);
     }
@@ -1969,7 +1969,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                          Map.of("severity", FeatureValue.string("LOW")), null, null),
                 "diagnosis", ENTITY, CBR, "other-tenant", "case-2", Path.root());
 
-        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, 0 + 1);
+        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, 0 + 1, null);
         int deleted = store().purge(policy);
 
         assertThat(deleted).isEqualTo(0);
@@ -1990,7 +1990,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                     "diagnosis", ENTITY, CBR, TENANT, "case-" + i, Path.root());
         }
 
-        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", 365, 2);
+        var policy  = new CbrRetentionPolicy(TENANT, CBR, "diagnosis", 365, 2, null);
         int deleted = store().purge(policy);
         assertThat(deleted).isEqualTo(2);
     }
@@ -2233,7 +2233,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c7");
         store().supersede("sup-c7", TENANT, null, null);
-        assertThatCode(() -> store().purge(new CbrRetentionPolicy(TENANT, CBR, "ss-type", null, 1)))
+        assertThatCode(() -> store().purge(new CbrRetentionPolicy(TENANT, CBR, "ss-type", null, 1, null)))
                 .doesNotThrowAnyException();
     }
 

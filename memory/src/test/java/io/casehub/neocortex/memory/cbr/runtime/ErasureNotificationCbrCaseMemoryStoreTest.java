@@ -120,7 +120,7 @@ class ErasureNotificationCbrCaseMemoryStoreTest {
     @Test
     void purge_doesNotFireEvent() {
         stub.purgeReturnValue = 10;
-        decorator.purge(new CbrRetentionPolicy("t-1", CBR, null, 30, null));
+        decorator.purge(new CbrRetentionPolicy("t-1", CBR, null, 30, null, null));
         assertThat(byRequestEvents).isEmpty();
         assertThat(byEntityEvents).isEmpty();
         assertThat(byScopeEvents).isEmpty();
