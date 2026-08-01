@@ -32,4 +32,14 @@ public interface CbrCaseMemoryStore {
 
     List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain);
 
+
+    default java.util.Set<String> discoverTenants(MemoryDomain domain) {
+        throw new UnsupportedOperationException(
+                "discoverTenants not supported by " + getClass().getSimpleName());
+    }
+
+    default java.util.List<CbrCaseSummary> scan(CbrScanRequest request) {
+        throw new UnsupportedOperationException(
+                "scan not supported by " + getClass().getSimpleName());
+    }
 }

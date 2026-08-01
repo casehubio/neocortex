@@ -4,6 +4,8 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
+import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
@@ -241,6 +243,34 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                                  && sc.cbrCase().trustScore() < policy.minTrustScore());
         }
         return before - cases.size();}
+
+    @Override
+    public java.util.Set<String> discoverTenants(io.casehub.neocortex.memory.MemoryDomain domain) {
+        return cases.stream()
+                    .filter(sc -> sc.domain().equals(domain))
+                    .map(StoredCase::tenantId)
+                    .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
+    @Override
+    public List<CbrCaseSummary> scan(CbrScanRequest request) {
+        boolean              pastCursor = request.afterCaseId() == null;
+        List<CbrCaseSummary> result     = new java.util.ArrayList<>();
+        for (StoredCase sc : cases) {
+            if (!sc.tenantId().equals(request.tenantId())) {continue;}
+            if (!sc.domain().equals(request.domain())) {continue;}
+            if (!sc.caseType().equals(request.caseType())) {continue;}
+            if (!pastCursor) {
+                if (sc.caseId().equals(request.afterCaseId())) {pastCursor = true;}
+                continue;
+            }
+            result.add(new CbrCaseSummary(
+                    sc.caseId(), sc.entityId(), sc.caseType(),
+                    sc.cbrCase().producerAgentId(), sc.cbrCase().trustScore(), sc.storedAt()));
+            if (result.size() >= request.limit()) {break;}
+        }
+        return List.copyOf(result);
+    }
 
 
     @Override

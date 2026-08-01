@@ -5,6 +5,8 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
+import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
@@ -2065,6 +2067,90 @@ public abstract class CbrCaseMemoryStoreContractTest {
                 CbrQuery.of("other-tenant", CBR, Path.root(), "diagnosis", Map.of(), 10),
                 FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
+    }
+
+    @Test
+    void scan_returnsCbrCaseSummary() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.8, "agent-1"),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        var results = store().scan(new CbrScanRequest(TENANT, CBR, "diagnosis", 10, null));
+        assertThat(results).hasSize(1);
+        var summary = results.get(0);
+        assertThat(summary.caseId()).isNotBlank();
+        assertThat(summary.entityId()).isEqualTo(ENTITY);
+        assertThat(summary.caseType()).isEqualTo("diagnosis");
+        assertThat(summary.producerAgentId()).isEqualTo("agent-1");
+        assertThat(summary.trustScore()).isEqualTo(0.8);
+        assertThat(summary.storedAt()).isNotNull();
+    }
+
+    @Test
+    void scan_pagination() {
+        registerDefaultSchema();
+        for (int i = 0; i < 5; i++) {
+            store().store(
+                    new FeatureVectorCbrCase("p" + i, "s", null, null, Map.of(), null, null),
+                    "diagnosis", ENTITY, CBR, TENANT, "c" + i, Path.root());
+        }
+        var page1 = store().scan(new CbrScanRequest(TENANT, CBR, "diagnosis", 3, null));
+        assertThat(page1).hasSize(3);
+        var page2 = store().scan(new CbrScanRequest(TENANT, CBR, "diagnosis", 3,
+                                                    page1.get(page1.size() - 1).caseId()));
+        assertThat(page2).hasSize(2);
+        var page3 = store().scan(new CbrScanRequest(TENANT, CBR, "diagnosis", 3,
+                                                    page2.get(page2.size() - 1).caseId()));
+        assertThat(page3).isEmpty();
+    }
+
+    @Test
+    void scan_scopedByTenant() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, "other", "c2", Path.root());
+        var results = store().scan(new CbrScanRequest(TENANT, CBR, "diagnosis", 10, null));
+        assertThat(results).hasSize(1);
+    }
+
+    @Test
+    void scan_scopedByDomainAndCaseType() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "starcraft-game", ENTITY, CBR, TENANT, "c2", Path.root());
+        var results = store().scan(new CbrScanRequest(TENANT, CBR, "diagnosis", 10, null));
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).caseType()).isEqualTo("diagnosis");
+    }
+
+    @Test
+    void discoverTenants_returnsDistinctTenants() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, "t1", "c1", Path.root());
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, "t2", "c2", Path.root());
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, "t1", "c3", Path.root());
+        var tenants = store().discoverTenants(CBR);
+        assertThat(tenants).containsExactlyInAnyOrder("t1", "t2");
+    }
+
+    @Test
+    void discoverTenants_emptyWhenNoCases() {
+        var tenants = store().discoverTenants(CBR);
+        assertThat(tenants).isEmpty();
     }
 
 
