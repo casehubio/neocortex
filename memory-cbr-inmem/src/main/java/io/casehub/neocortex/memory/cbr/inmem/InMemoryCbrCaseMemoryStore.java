@@ -16,8 +16,8 @@ import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.LbKeogh;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
-import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
+import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.neocortex.memory.cbr.WarpingConstraint;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -233,8 +233,14 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 }
             }
         }
-        return before - cases.size();
-    }
+        if (policy.minTrustScore() != null) {
+            cases.removeIf(sc -> sc.tenantId().equals(policy.tenantId())
+                                 && sc.domain().equals(policy.domain())
+                                 && (policy.caseType() == null || sc.caseType().equals(policy.caseType()))
+                                 && sc.cbrCase().trustScore() != null
+                                 && sc.cbrCase().trustScore() < policy.minTrustScore());
+        }
+        return before - cases.size();}
 
 
     @Override

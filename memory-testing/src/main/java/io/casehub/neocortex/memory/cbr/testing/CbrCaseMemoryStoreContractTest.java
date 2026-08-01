@@ -1996,6 +1996,79 @@ public abstract class CbrCaseMemoryStoreContractTest {
     }
 
     @Test
+    void purge_trustBased_purgesLowTrustCases() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.1, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.9, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c2", Path.root());
+        store().purge(new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, null, 0.5));
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "diagnosis", Map.of(), 10),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).cbrCase().trustScore()).isEqualTo(0.9);
+    }
+
+    @Test
+    void purge_trustBased_preservesNullTrustCases() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().purge(new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, null, 0.5));
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "diagnosis", Map.of(), 10),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+    }
+
+    @Test
+    void purge_trustBased_preservesHighTrustCases() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.5, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().purge(new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, null, 0.5));
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "diagnosis", Map.of(), 10),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+    }
+
+    @Test
+    void purge_trustAndAge_orSemantics() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.1, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().purge(new CbrRetentionPolicy(TENANT, CBR, "diagnosis", 365, null, 0.5));
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "diagnosis", Map.of(), 10),
+                FeatureVectorCbrCase.class);
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void purge_trustBased_scopedByTenant() {
+        registerDefaultSchema();
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.1, null),
+                "diagnosis", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(
+                new FeatureVectorCbrCase("p", "s", null, null, Map.of(), 0.1, null),
+                "diagnosis", ENTITY, CBR, "other-tenant", "c2", Path.root());
+        store().purge(new CbrRetentionPolicy(TENANT, CBR, "diagnosis", null, null, 0.5));
+        var results = store().retrieveSimilar(
+                CbrQuery.of("other-tenant", CBR, Path.root(), "diagnosis", Map.of(), 10),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+    }
+
+
+    @Test
     void temporalDecay_null_noEffect() {
         registerDefaultSchema();
         store().store(new FeatureVectorCbrCase("p1", "s1", null, null,
