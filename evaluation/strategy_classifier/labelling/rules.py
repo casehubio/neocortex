@@ -21,13 +21,14 @@ def _order_before(buildings: List[Dict], first_name: str, second_name: str) -> b
 
 def rule_based_label(build_order: List[Dict], opponent_race: str) -> Optional[str]:
     buildings = [e for e in build_order if e["type"] == "building"]
+    units = [e for e in build_order if e["type"] == "unit"]
 
     if opponent_race == "Zerg":
         return _label_zerg(buildings)
     elif opponent_race == "Protoss":
         return _label_protoss(buildings)
     elif opponent_race == "Terran":
-        return _label_terran(buildings)
+        return _label_terran(buildings, units)
     return None
 
 
@@ -87,7 +88,15 @@ def _label_zerg(buildings: List[Dict]) -> Optional[str]:
     return None
 
 
-def _label_terran(buildings: List[Dict]) -> Optional[str]:
+def _has_unit(units: List[Dict], name: str, before_min: float = 999.0) -> bool:
+    return any(u["name"] == name and u["minute"] < before_min for u in units)
+
+
+def _count_units(units: List[Dict], name: str) -> int:
+    return sum(1 for u in units if u["name"] == name)
+
+
+def _label_terran(buildings: List[Dict], units: List[Dict]) -> Optional[str]:
     rax_time = _first_time(buildings, "Barracks")
     factory_time = _first_time(buildings, "Factory")
     starport_time = _first_time(buildings, "Starport")
@@ -98,7 +107,16 @@ def _label_terran(buildings: List[Dict]) -> Optional[str]:
     n_rax = sum(1 for b in buildings if b["name"] == "Barracks")
     n_factory = sum(1 for b in buildings if b["name"] == "Factory")
     has_starport_tl = any(b["name"] == "StarportTechLab" for b in buildings)
-    has_rax_reactor = any(b["name"] == "BarracksReactor" for b in buildings)
+
+    has_banshee = _has_unit(units, "Banshee")
+    has_medivac = _has_unit(units, "Medivac")
+    has_viking = _has_unit(units, "VikingFighter")
+    has_liberator = _has_unit(units, "Liberator")
+    has_siege_tank = _has_unit(units, "SiegeTank")
+    has_thor = _has_unit(units, "Thor")
+    has_hellion = _has_unit(units, "Hellion") or _has_unit(units, "HellionTank")
+    n_marine = _count_units(units, "Marine")
+    n_marauder = _count_units(units, "Marauder")
 
     # RUSH: multiple barracks early, no expansion, no factory
     if n_rax >= 2 and _count_before(buildings, "Barracks", 3.0) >= 2 and factory_time > 4.0 and second_cc > 4.0:
@@ -108,35 +126,48 @@ def _label_terran(buildings: List[Dict]) -> Optional[str]:
     if second_cc < factory_time and second_cc < 3.0:
         return "MACRO_ECONOMY"
 
-    # BANSHEE_HARASS: Starport + TechLab, starport before 4 min
-    if starport_time < 4.0 and has_starport_tl and n_rax <= 2:
+    # BANSHEE_HARASS: Banshee unit produced, OR Starport+TechLab without bio army
+    if has_banshee:
         return "BANSHEE_HARASS"
 
-    # MECH_PUSH: Factory-heavy (2+ factories or armory before 10 min)
-    if n_factory >= 2 or (armory_time < 10.0 and factory_time < 3.0):
-        return "MECH_PUSH"
-
-    # BIO_TIMING: 3+ barracks with reactor support
-    if n_rax >= 3:
-        return "BIO_TIMING"
-
-    # AIR_SUPERIORITY: Starport-heavy without ground army
-    if starport_time < 4.0 and n_rax <= 1 and n_factory <= 1:
+    # AIR_SUPERIORITY: multiple air units, few ground
+    air_count = _count_units(units, "VikingFighter") + _count_units(units, "Liberator") + _count_units(units, "Banshee") + _count_units(units, "Raven")
+    ground_army = n_marine + n_marauder + _count_units(units, "SiegeTank") + _count_units(units, "Thor")
+    if air_count >= 3 and air_count > ground_army:
         return "AIR_SUPERIORITY"
 
-    # Standard 1-1-1: classify by what follows
-    if factory_time < 3.0 and starport_time < 5.0:
-        if has_starport_tl:
-            return "BANSHEE_HARASS"
-        if armory_time < 12.0:
-            return "MECH_PUSH"
+    # MECH_PUSH: tanks/thors/hellions dominate over bio
+    mech_count = _count_units(units, "SiegeTank") + _count_units(units, "Thor") + _count_units(units, "Hellion") + _count_units(units, "HellionTank") + _count_units(units, "Cyclone")
+    bio_count = n_marine + n_marauder
+    if n_factory >= 2 or (mech_count >= 3 and mech_count >= bio_count):
+        return "MECH_PUSH"
+    if armory_time < 10.0 and factory_time < 3.0:
+        return "MECH_PUSH"
+
+    # BIO_TIMING: marine/marauder/medivac composition
+    if n_rax >= 3 or (bio_count >= 8 and has_medivac):
         return "BIO_TIMING"
+
+    # Standard 1-1-1: classify by unit composition
+    if factory_time < 3.0 and starport_time < 5.0:
+        if has_starport_tl and not has_medivac and not (bio_count > mech_count):
+            return "BANSHEE_HARASS"
+        if has_siege_tank or has_thor or has_hellion:
+            return "MECH_PUSH"
+        if has_medivac or bio_count >= 5:
+            return "BIO_TIMING"
 
     # TECH_RUSH: fast factory without expansion
     if factory_time < 2.5 and second_cc > 5.0:
         return "TECH_RUSH"
 
-    # Default: bio if barracks exist
+    # Fallback: classify by dominant unit type
+    if mech_count > bio_count and mech_count >= 2:
+        return "MECH_PUSH"
+    if bio_count >= 3:
+        return "BIO_TIMING"
+
+    # Default
     if n_rax >= 1:
         return "BIO_TIMING"
 

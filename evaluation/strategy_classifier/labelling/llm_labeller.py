@@ -49,7 +49,7 @@ def classify_with_llm(
     prompt = build_classification_prompt(build_order, opponent_race)
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model="claude-haiku-4-5@20251001",
         max_tokens=50,
         messages=[{"role": "user", "content": prompt}],
     )
