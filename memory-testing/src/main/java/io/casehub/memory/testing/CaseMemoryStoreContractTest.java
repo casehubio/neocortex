@@ -2,7 +2,6 @@ package io.casehub.neocortex.memory.testing;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
-import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
@@ -37,15 +36,15 @@ public abstract class CaseMemoryStoreContractTest {
     protected abstract CaseMemoryStore store();
 
     protected MemoryInput input(String text) {
-        return new MemoryInput("entity-1", DOMAIN, TENANT, null, text, Map.of());
+        return new MemoryInput("entity-1", DOMAIN, TENANT, null, text, Map.of(), null);
     }
 
     protected MemoryInput input(String entityId, String text) {
-        return new MemoryInput(entityId, DOMAIN, TENANT, null, text, Map.of());
+        return new MemoryInput(entityId, DOMAIN, TENANT, null, text, Map.of(), null);
     }
 
     protected MemoryInput inputWithCase(String text, String caseId) {
-        return new MemoryInput("entity-1", DOMAIN, TENANT, caseId, text, Map.of());
+        return new MemoryInput("entity-1", DOMAIN, TENANT, caseId, text, Map.of(), null);
     }
 
     protected MemoryQuery query() {
@@ -70,7 +69,7 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void store_tenant_mismatch_throws() {
-        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of());
+        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
         assertThrows(SecurityException.class, () -> store().store(bad));
     }
 
@@ -190,7 +189,7 @@ public abstract class CaseMemoryStoreContractTest {
             MemoryAttributeKeys.OUTCOME,    "DONE",
             MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(0.87)
         );
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "reviewer completed task", attrs));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "reviewer completed task", attrs, null));
         var results = store().query(query());
         assertEquals(1, results.size());
         var stored = results.get(0).attributes();
@@ -265,7 +264,7 @@ public abstract class CaseMemoryStoreContractTest {
     void eraseById_does_not_erase_other_entity_memory_within_same_tenant() {
         // entity-2's memory stored within the same tenant
         String e2MemId = store().store(
-            new MemoryInput("entity-2", DOMAIN, TENANT, null, "other entity's data", Map.of()));
+            new MemoryInput("entity-2", DOMAIN, TENANT, null, "other entity's data", Map.of(), null));
         // entity-1 caller attempts to erase entity-2's memory — silent no-op
         store().eraseById(e2MemId, "entity-1", TENANT);
         // entity-2's memory must survive
@@ -277,8 +276,8 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_removes_all_domains_for_entity() {
-        store().store(new MemoryInput("entity-1", DOMAIN,       TENANT, null, "finance", Map.of()));
-        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "health",  Map.of()));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "finance", Map.of(), null));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "health", Map.of(), null));
         final int deleted = store().eraseEntity("entity-1", TENANT);
         assertTrue(deleted > 0, "eraseEntity must return positive count when records existed");
         assertTrue(store().query(query()).isEmpty());
@@ -292,8 +291,8 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_leaves_other_entities_intact() {
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "mine",  Map.of()));
-        store().store(new MemoryInput("entity-2", DOMAIN, TENANT, null, "other", Map.of()));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "mine", Map.of(), null));
+        store().store(new MemoryInput("entity-2", DOMAIN, TENANT, null, "other", Map.of(), null));
         final int deleted = store().eraseEntity("entity-1", TENANT);
         assertTrue(deleted >= 0, "eraseEntity must return non-negative count");
         var e2results = store().query(MemoryQuery.forEntity("entity-2", DOMAIN, TENANT));
@@ -303,9 +302,9 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_returns_count_of_deleted_records() {
-        store().store(new MemoryInput("entity-1", DOMAIN,       TENANT, null, "a", Map.of()));
-        store().store(new MemoryInput("entity-1", DOMAIN,       TENANT, null, "b", Map.of()));
-        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "c", Map.of()));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of(), null));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "c", Map.of(), null));
         assertEquals(3, store().eraseEntity("entity-1", TENANT));
     }
 
@@ -371,14 +370,14 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void storeAll_all_wrong_tenant_throws_security_exception() {
-        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of());
+        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
         assertThrows(SecurityException.class, () -> store().storeAll(List.of(bad)));
     }
 
     @Test
     void storeAll_second_item_tenant_mismatch_no_entries_stored() {
         var good = input("entity-1", "fact");
-        var bad  = new MemoryInput("entity-2", DOMAIN, OTHER_TENANT, null, "x", Map.of());
+        var bad  = new MemoryInput("entity-2", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
         assertThrows(SecurityException.class, () -> store().storeAll(List.of(good, bad)));
         assertTrue(store().query(query()).isEmpty(),
             "first item must not be persisted when second item fails tenant check");

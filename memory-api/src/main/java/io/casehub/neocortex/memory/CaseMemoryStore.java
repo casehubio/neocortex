@@ -171,6 +171,11 @@ public interface CaseMemoryStore {
         throw new MemoryCapabilityException(MemoryCapability.SCAN, getClass());
     }
 
+
+    default int purge(MemoryRetentionPolicy policy) {
+        throw new MemoryCapabilityException(MemoryCapability.PURGE, getClass());
+    }
+
     /**
      * Returns distinct tenantIds matching the given attribute filter.
      * Both null → all tenants. Both non-null → filtered. Mixed → IllegalArgumentException.

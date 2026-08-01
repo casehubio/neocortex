@@ -311,8 +311,8 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.caseId,
             e.text,
             deserializeAttributes(e.attributes),
-            e.createdAt
-        );
+            e.createdAt,
+            null);
     }
 
     private String serializeAttributes(Map<String, String> attrs) {

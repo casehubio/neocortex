@@ -13,7 +13,7 @@ class MemoryEmitterTest {
 
     private static final MemoryDomain DOMAIN = new MemoryDomain("test");
     private static final MemoryInput SAMPLE = new MemoryInput(
-        "entity-1", DOMAIN, "tenant-1", null, "sample text", Map.of());
+            "entity-1", DOMAIN, "tenant-1", null, "sample text", Map.of(), null);
 
     @Test
     void emit_delegates_to_store() {
@@ -27,7 +27,7 @@ class MemoryEmitterTest {
 
     @Test
     void emitAll_delegates_to_storeAll() {
-        var input2 = new MemoryInput("entity-2", DOMAIN, "tenant-1", null, "text 2", Map.of());
+        var input2 = new MemoryInput("entity-2", DOMAIN, "tenant-1", null, "text 2", Map.of(), null);
         var store = new RecordingStore();
         var emitter = new MemoryEmitter(store);
 

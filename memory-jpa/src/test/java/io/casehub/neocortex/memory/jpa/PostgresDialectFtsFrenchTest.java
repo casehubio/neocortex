@@ -39,7 +39,7 @@ class PostgresDialectFtsFrenchTest {
     }
 
     private MemoryInput input(String text) {
-        return new MemoryInput("entity-fr", DOMAIN, TENANT, null, text, Map.of());
+        return new MemoryInput("entity-fr", DOMAIN, TENANT, null, text, Map.of(), null);
     }
 
     private MemoryQuery ftsQuery(String question) {

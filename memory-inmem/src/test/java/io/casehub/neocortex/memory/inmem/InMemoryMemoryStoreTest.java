@@ -60,7 +60,7 @@ class InMemoryMemoryStoreTest extends CaseMemoryStoreContractTest {
             @Override public boolean isCrossTenantAdmin() { return true; }
         };
         var adminStore = new InMemoryMemoryStore(adminPrincipal);
-        adminStore.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "data", Map.of()));
+        adminStore.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "data", Map.of(), null));
         int count = adminStore.eraseEntityAcrossTenants("entity-1", Set.of(TENANT));
         assertEquals(1, count);
         assertTrue(adminStore.query(MemoryQuery.forEntity("entity-1", DOMAIN, TENANT)).isEmpty());

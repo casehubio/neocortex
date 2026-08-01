@@ -38,9 +38,9 @@ class SqliteMemoryStoreFtsDisabledTest {
     @Test
     void relevanceOrderWithQuestionFallsBackToChronologicalWhenFtsDisabled() {
         store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null,
-            "first stored — contains target word ibuprofen", Map.of()));
+                                    "first stored — contains target word ibuprofen", Map.of(), null));
         store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null,
-            "second stored — also mentions ibuprofen", Map.of()));
+                                    "second stored — also mentions ibuprofen", Map.of(), null));
 
         // With fts.enabled=false, RELEVANCE+question → chronological fallback (most-recent first)
         var results = store.query(

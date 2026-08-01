@@ -9,31 +9,33 @@ public record MemoryInput(
     String tenantId,
     String caseId,
     String text,
-    Map<String, String> attributes
-) {
+    Map<String, String> attributes,
+    Double importance) {
     public MemoryInput {
-        Objects.requireNonNull(entityId,  "entityId required");
-        Objects.requireNonNull(domain,    "domain required");
-        Objects.requireNonNull(tenantId,  "tenantId required");
-        Objects.requireNonNull(text,      "text required");
-        if (text.isBlank()) throw new IllegalArgumentException("text must not be blank");
+        Objects.requireNonNull(entityId, "entityId required");
+        Objects.requireNonNull(domain, "domain required");
+        Objects.requireNonNull(tenantId, "tenantId required");
+        Objects.requireNonNull(text, "text required");
+        if (text.isBlank()) {throw new IllegalArgumentException("text must not be blank");}
         Objects.requireNonNull(attributes, "attributes required");
         attributes = Map.copyOf(attributes);
-    }
+        if (importance != null && (importance < 0.0 || importance > 1.0)) {
+            throw new IllegalArgumentException("importance must be in [0, 1], got " + importance);
+        }}
 
     public MemoryInput withAttribute(String key, String value) {
         var merged = new java.util.HashMap<>(attributes);
         merged.put(key, value);
-        return new MemoryInput(entityId, domain, tenantId, caseId, text, merged);
+        return new MemoryInput(entityId, domain, tenantId, caseId, text, merged, importance);
     }
 
     public MemoryInput withAttributes(Map<String, String> additional) {
         var merged = new java.util.HashMap<>(attributes);
         merged.putAll(additional);
-        return new MemoryInput(entityId, domain, tenantId, caseId, text, merged);
+        return new MemoryInput(entityId, domain, tenantId, caseId, text, merged, importance);
     }
 
     public MemoryInput withText(String newText) {
-        return new MemoryInput(entityId, domain, tenantId, caseId, newText, attributes);
+        return new MemoryInput(entityId, domain, tenantId, caseId, newText, attributes, importance);
     }
 }

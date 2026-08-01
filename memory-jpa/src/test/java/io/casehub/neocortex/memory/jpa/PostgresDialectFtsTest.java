@@ -29,7 +29,7 @@ class PostgresDialectFtsTest {
     }
 
     private MemoryInput input(String text) {
-        return new MemoryInput("entity-fts", DOMAIN, TENANT, null, text, Map.of());
+        return new MemoryInput("entity-fts", DOMAIN, TENANT, null, text, Map.of(), null);
     }
 
     private MemoryQuery ftsQuery(String question) {
@@ -65,8 +65,8 @@ class PostgresDialectFtsTest {
 
     @Test @TestTransaction
     void fts_multi_entity_returns_results_from_all_entities() {
-        store.store(new MemoryInput("entity-a", DOMAIN, TENANT, null, "The cat sat on the mat", Map.of()));
-        store.store(new MemoryInput("entity-b", DOMAIN, TENANT, null, "The cat chased the mouse", Map.of()));
+        store.store(new MemoryInput("entity-a", DOMAIN, TENANT, null, "The cat sat on the mat", Map.of(), null));
+        store.store(new MemoryInput("entity-b", DOMAIN, TENANT, null, "The cat chased the mouse", Map.of(), null));
         var q = MemoryQuery.forEntities(List.of("entity-a", "entity-b"), DOMAIN, TENANT)
             .withQuestion("cat").withOrder(MemoryOrder.RELEVANCE);
         var results = store.query(q);

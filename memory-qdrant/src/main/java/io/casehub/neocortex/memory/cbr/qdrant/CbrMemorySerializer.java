@@ -51,6 +51,6 @@ final class CbrMemorySerializer {
         }
         attributes.put(CbrAttributeKeys.CBR_CASE_TYPE, caseType);
 
-        return new MemoryInput(entityId, domain, tenantId, caseId, cbrCase.problem(), attributes);
+        return new MemoryInput(entityId, domain, tenantId, caseId, cbrCase.problem(), attributes, null);
     }
 }

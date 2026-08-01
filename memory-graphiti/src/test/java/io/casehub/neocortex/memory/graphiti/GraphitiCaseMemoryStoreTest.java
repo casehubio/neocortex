@@ -51,7 +51,7 @@ class GraphitiCaseMemoryStoreTest {
     }
 
     private MemoryInput input(final String text) {
-        return new MemoryInput(ENTITY, DOMAIN, TENANT, null, text, Map.of());
+        return new MemoryInput(ENTITY, DOMAIN, TENANT, null, text, Map.of(), null);
     }
 
     // ── store ─────────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ class GraphitiCaseMemoryStoreTest {
         wireMock.stubFor(post(urlEqualTo("/messages"))
             .willReturn(aResponse().withStatus(202)));
 
-        final var withCase = new MemoryInput(ENTITY, DOMAIN, TENANT, "case-99", "text", Map.of());
+        final var withCase = new MemoryInput(ENTITY, DOMAIN, TENANT, "case-99", "text", Map.of(), null);
         store.store(withCase);
 
         wireMock.verify(postRequestedFor(urlEqualTo("/messages"))
@@ -131,7 +131,7 @@ class GraphitiCaseMemoryStoreTest {
 
     @Test
     void store_tenant_mismatch_throws_before_http_call() {
-        final var bad = new MemoryInput(ENTITY, DOMAIN, "wrong-tenant", null, "x", Map.of());
+        final var bad = new MemoryInput(ENTITY, DOMAIN, "wrong-tenant", null, "x", Map.of(), null);
         assertThrows(SecurityException.class, () -> store.store(bad));
         wireMock.verify(0, postRequestedFor(urlEqualTo("/messages")));
     }
@@ -152,7 +152,7 @@ class GraphitiCaseMemoryStoreTest {
             .willReturn(aResponse().withStatus(202)));
 
         final var a = input("fact a");
-        final var b = new MemoryInput("actor-2", DOMAIN, TENANT, null, "fact b", Map.of());
+        final var b = new MemoryInput("actor-2", DOMAIN, TENANT, null, "fact b", Map.of(), null);
         final var result = store.storeAll(List.of(a, b));
 
         assertTrue(result.allSucceeded());
@@ -165,7 +165,7 @@ class GraphitiCaseMemoryStoreTest {
 
     @Test
     void storeAll_preflight_all_bad_throws_before_any_http() {
-        final var bad = new MemoryInput(ENTITY, DOMAIN, "wrong-tenant", null, "x", Map.of());
+        final var bad = new MemoryInput(ENTITY, DOMAIN, "wrong-tenant", null, "x", Map.of(), null);
         assertThrows(SecurityException.class, () -> store.storeAll(List.of(bad)));
         wireMock.verify(0, postRequestedFor(anyUrl()));
     }
@@ -173,7 +173,7 @@ class GraphitiCaseMemoryStoreTest {
     @Test
     void storeAll_preflight_good_then_bad_throws_before_any_http() {
         final var good = input("ok");
-        final var bad  = new MemoryInput(ENTITY, DOMAIN, "wrong-tenant", null, "x", Map.of());
+        final var bad  = new MemoryInput(ENTITY, DOMAIN, "wrong-tenant", null, "x", Map.of(), null);
         assertThrows(SecurityException.class, () -> store.storeAll(List.of(good, bad)));
         // pre-flight checks ALL before starting any POST
         wireMock.verify(0, postRequestedFor(anyUrl()));

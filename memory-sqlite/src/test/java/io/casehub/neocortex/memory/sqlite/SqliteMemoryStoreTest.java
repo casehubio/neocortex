@@ -56,10 +56,10 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void eraseEntityAcrossTenants_deletes_across_tenants() {
         // Seed under TENANT
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "data-a", Map.of()));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "data-a", Map.of(), null));
         // Seed under OTHER_TENANT
         principal.setTenancyId(OTHER_TENANT);
-        store().store(new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "data-b", Map.of()));
+        store().store(new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "data-b", Map.of(), null));
         // Erase as cross-tenant admin
         principal.setTenancyId(TENANT);
         principal.setCrossTenantAdmin(true);
@@ -79,9 +79,9 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void queryWithRelevanceOrderUsesFts5() {
         store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null,
-            "the patient reported ibuprofen side effects including nausea", Map.of()));
+                                      "the patient reported ibuprofen side effects including nausea", Map.of(), null));
         store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null,
-            "appointment scheduled for next tuesday", Map.of()));
+                                      "appointment scheduled for next tuesday", Map.of(), null));
 
         var results = store().query(
             MemoryQuery.forEntity("entity-1", DOMAIN, TENANT)
@@ -95,8 +95,8 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
 
     @Test
     void queryWithRelevanceOrderNullQuestion() {
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "alpha", Map.of()));
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "beta", Map.of()));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "alpha", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "beta", Map.of(), null));
 
         var results = store().query(
             MemoryQuery.forEntity("entity-1", DOMAIN, TENANT)
@@ -111,9 +111,9 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void storeAllWrapsInSingleTransaction() {
         var inputs = List.of(
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "batch-a", Map.of()),
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "batch-b", Map.of()),
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "batch-c", Map.of())
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "batch-a", Map.of(), null),
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "batch-b", Map.of(), null),
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "batch-c", Map.of(), null)
         );
         var result = store().storeAll(inputs);
 
@@ -129,7 +129,7 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void ftsOperatorCharactersInQuestionAreStripped() {
         store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null,
-            "pre-trial hearing was held yesterday", Map.of()));
+                                      "pre-trial hearing was held yesterday", Map.of(), null));
 
         // "pre-trial" with '-' stripped becomes "pre trial" — both words ANDed, matches
         var results = store().query(
@@ -153,11 +153,11 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_returnsEntriesMatchingAttribute() {
         // Store two CBR entries and one non-CBR entry
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "problem 1",
-            Map.of("cbr.caseType", "aml", "solution", "sol1")));
+                                      Map.of("cbr.caseType", "aml", "solution", "sol1"), null));
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-2", "problem 2",
-            Map.of("cbr.caseType", "aml", "solution", "sol2")));
+                                      Map.of("cbr.caseType", "aml", "solution", "sol2"), null));
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-3", "problem 3",
-            Map.of("other", "value")));
+                                      Map.of("other", "value"), null));
 
         var request = new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 100, null);
         var results = sqliteStore.scan(request);
@@ -171,7 +171,7 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_respectsLimit() {
         for (int i = 0; i < 5; i++) {
             store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-" + i, "p" + i,
-                Map.of("cbr.caseType", "aml")));
+                                          Map.of("cbr.caseType", "aml"), null));
         }
         var request = new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 2, null);
         var results = sqliteStore.scan(request);
@@ -182,7 +182,7 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_paginatesWithCursor() {
         for (int i = 0; i < 5; i++) {
             store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-" + i, "p" + i,
-                Map.of("cbr.caseType", "aml")));
+                                          Map.of("cbr.caseType", "aml"), null));
         }
         // First page
         var page1 = sqliteStore.scan(new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 3, null));
@@ -202,10 +202,10 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void scan_filtersByTenant() {
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1",
-            Map.of("cbr.caseType", "aml")));
+                                      Map.of("cbr.caseType", "aml"), null));
         principal.setTenancyId(OTHER_TENANT);
         store().store(new MemoryInput("e1", DOMAIN, OTHER_TENANT, "case-2", "p2",
-            Map.of("cbr.caseType", "aml")));
+                                      Map.of("cbr.caseType", "aml"), null));
 
         principal.setTenancyId(TENANT);
         var results = sqliteStore.scan(new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 100, null));
@@ -215,9 +215,9 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void scan_filtersByDomain() {
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1",
-            Map.of("cbr.caseType", "aml")));
+                                      Map.of("cbr.caseType", "aml"), null));
         store().store(new MemoryInput("e1", new MemoryDomain("other"), TENANT, "case-2", "p2",
-            Map.of("cbr.caseType", "aml")));
+                                      Map.of("cbr.caseType", "aml"), null));
 
         var results = sqliteStore.scan(new MemoryScanRequest(TENANT, DOMAIN.name(), "cbr.caseType", "aml", 100, null));
         assertEquals(1, results.size());
@@ -225,10 +225,10 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
 
     @Test
     void scan_withoutAttributeFilter_returnsAllForTenant() {
-        store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1", Map.of("a", "1")));
-        store().store(new MemoryInput("e2", DOMAIN, TENANT, "case-2", "p2", Map.of("b", "2")));
+        store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1", Map.of("a", "1"), null));
+        store().store(new MemoryInput("e2", DOMAIN, TENANT, "case-2", "p2", Map.of("b", "2"), null));
         principal.setTenancyId(OTHER_TENANT);
-        store().store(new MemoryInput("e1", DOMAIN, OTHER_TENANT, "case-3", "p3", Map.of("c", "3")));
+        store().store(new MemoryInput("e1", DOMAIN, OTHER_TENANT, "case-3", "p3", Map.of("c", "3"), null));
 
         principal.setTenancyId(TENANT);
         var results = sqliteStore.scan(new MemoryScanRequest(TENANT, null, null, null, 100, null));
@@ -243,13 +243,13 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void discoverTenants_returnsDistinctTenantIds() {
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("cbr.caseType", "game")));
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("cbr.caseType", "game"), null));
         principal.setTenancyId("tenant-b");
-        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of("cbr.caseType", "game")));
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of("cbr.caseType", "game"), null));
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e3", DOMAIN, "tenant-a", null, "text3", Map.of("cbr.caseType", "game")));
+        store().store(new MemoryInput("e3", DOMAIN, "tenant-a", null, "text3", Map.of("cbr.caseType", "game"), null));
         principal.setTenancyId("tenant-c");
-        store().store(new MemoryInput("e4", DOMAIN, "tenant-c", null, "text4", Map.of("cbr.caseType", "other")));
+        store().store(new MemoryInput("e4", DOMAIN, "tenant-c", null, "text4", Map.of("cbr.caseType", "other"), null));
 
         principal.setCrossTenantAdmin(true);
         Set<String> tenants = sqliteStore.discoverTenants("cbr.caseType", "game");
@@ -259,9 +259,9 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void discoverTenants_allTenantsWhenNoFilter() {
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of()));
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of(), null));
         principal.setTenancyId("tenant-b");
-        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of()));
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of(), null));
 
         principal.setCrossTenantAdmin(true);
         Set<String> tenants = sqliteStore.discoverTenants(null, null);
@@ -271,7 +271,7 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void discoverTenants_emptyWhenNoMatch() {
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("k", "v")));
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("k", "v"), null));
 
         principal.setCrossTenantAdmin(true);
         Set<String> tenants = sqliteStore.discoverTenants("k", "nonexistent");

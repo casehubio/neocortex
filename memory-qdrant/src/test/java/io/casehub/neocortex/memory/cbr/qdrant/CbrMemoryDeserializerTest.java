@@ -78,32 +78,32 @@ class CbrMemoryDeserializerTest {
     @Test
     void deserialize_unknownCbrType_returnsEmpty() {
         var memory = new Memory("mem-1", ENTITY, CBR, TENANT, "case-1",
-            "problem", Map.of(CbrAttributeKeys.CBR_TYPE, "unknown",
-                              MemoryAttributeKeys.SOLUTION, "sol"), Instant.now());
+                                "problem", Map.of(CbrAttributeKeys.CBR_TYPE, "unknown",
+                              MemoryAttributeKeys.SOLUTION, "sol"), Instant.now(), null);
         assertThat(CbrMemoryDeserializer.deserialize(memory)).isEmpty();
     }
 
     @Test
     void deserialize_missingCbrType_returnsEmpty() {
         var memory = new Memory("mem-1", ENTITY, CBR, TENANT, "case-1",
-            "problem", Map.of(MemoryAttributeKeys.SOLUTION, "sol"), Instant.now());
+                                "problem", Map.of(MemoryAttributeKeys.SOLUTION, "sol"), Instant.now(), null);
         assertThat(CbrMemoryDeserializer.deserialize(memory)).isEmpty();
     }
 
     @Test
     void deserialize_missingSolution_returnsEmpty() {
         var memory = new Memory("mem-1", ENTITY, CBR, TENANT, "case-1",
-            "problem", Map.of(CbrAttributeKeys.CBR_TYPE, "textual"), Instant.now());
+                                "problem", Map.of(CbrAttributeKeys.CBR_TYPE, "textual"), Instant.now(), null);
         assertThat(CbrMemoryDeserializer.deserialize(memory)).isEmpty();
     }
 
     @Test
     void deserialize_malformedFeaturesJson_returnsEmpty() {
         var memory = new Memory("mem-1", ENTITY, CBR, TENANT, "case-1",
-            "problem", Map.of(CbrAttributeKeys.CBR_TYPE, FeatureVectorCbrCase.CBR_TYPE,
+                                "problem", Map.of(CbrAttributeKeys.CBR_TYPE, FeatureVectorCbrCase.CBR_TYPE,
                               MemoryAttributeKeys.SOLUTION, "sol",
                               CbrAttributeKeys.CBR_FEATURES, "not valid json"),
-            Instant.now());
+                                Instant.now(), null);
         assertThat(CbrMemoryDeserializer.deserialize(memory)).isEmpty();
     }
 
@@ -112,7 +112,7 @@ class CbrMemoryDeserializerTest {
         MemoryInput input = serializeToMemoryInput(original, ENTITY, CBR, TENANT, "case-1", caseType);
         // Convert to Memory (simulating what CaseMemoryStore.store() → query() returns)
         Memory memory = new Memory("mem-1", input.entityId(), input.domain(), input.tenantId(),
-            input.caseId(), input.text(), input.attributes(), Instant.now());
+                                   input.caseId(), input.text(), input.attributes(), Instant.now(), null);
         return CbrMemoryDeserializer.deserialize(memory);
     }
 

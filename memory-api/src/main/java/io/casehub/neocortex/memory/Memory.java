@@ -11,8 +11,8 @@ public record Memory(
     String caseId,
     String text,
     Map<String, String> attributes,
-    Instant createdAt
-) {
+    Instant createdAt,
+    Double importance) {
     public Memory {
         attributes = Map.copyOf(attributes);
     }

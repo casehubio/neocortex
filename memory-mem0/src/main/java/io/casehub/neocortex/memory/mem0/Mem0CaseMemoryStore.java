@@ -32,7 +32,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -264,8 +263,8 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
             m.runId(),
             m.memory() != null ? m.memory() : "",
             m.metadata() != null ? m.metadata() : Map.of(),
-            parseCreatedAt(m.createdAt())
-        );
+            parseCreatedAt(m.createdAt()),
+            null);
     }
 
     private Mem0StoreException toStoreException(WebApplicationException e) {

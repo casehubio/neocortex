@@ -59,8 +59,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
         String memoryId = UUID.randomUUID().toString();
         Memory memory = new Memory(
             memoryId, input.entityId(), input.domain(), input.tenantId(),
-            input.caseId(), input.text(), input.attributes(), Instant.now()
-        );
+            input.caseId(), input.text(), input.attributes(), Instant.now(),
+            null);
         store.computeIfAbsent(
             new BucketKey(input.tenantId(), input.entityId(), input.domain()),
             k -> new CopyOnWriteArrayList<>()

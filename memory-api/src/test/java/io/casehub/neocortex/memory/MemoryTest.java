@@ -13,7 +13,7 @@ class MemoryTest {
     @Test
     void valid_memory_constructs() {
         var now = Instant.now();
-        var m = new Memory("mem-1", "e1", DOMAIN, "t1", null, "text", Map.of(), now);
+        var m = new Memory("mem-1", "e1", DOMAIN, "t1", null, "text", Map.of(), now, null);
         assertEquals("mem-1", m.memoryId());
         assertEquals("e1", m.entityId());
         assertEquals(now, m.createdAt());
@@ -23,7 +23,7 @@ class MemoryTest {
     void attributes_are_defensively_copied() {
         var mutable = new HashMap<String, String>();
         mutable.put("k", "v");
-        var m = new Memory("id", "e1", DOMAIN, "t1", null, "text", mutable, Instant.now());
+        var m = new Memory("id", "e1", DOMAIN, "t1", null, "text", mutable, Instant.now(), null);
         mutable.put("k2", "v2");
         assertFalse(m.attributes().containsKey("k2"));
     }
@@ -31,7 +31,7 @@ class MemoryTest {
     @Test
     void attributes_map_is_unmodifiable() {
         var m = new Memory("id", "e1", DOMAIN, "t1", null, "text",
-            Map.of("k", "v"), Instant.now());
+                           Map.of("k", "v"), Instant.now(), null);
         assertThrows(UnsupportedOperationException.class,
             () -> m.attributes().put("x", "y"));
     }

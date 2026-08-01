@@ -332,8 +332,8 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
             f.uuid(), entityId, domain, tenantId, null,
             f.fact() != null ? f.fact() : "",
             Map.copyOf(attrs),
-            f.createdAt() != null ? f.createdAt() : Instant.EPOCH
-        );
+            f.createdAt() != null ? f.createdAt() : Instant.EPOCH,
+            null);
     }
 
     private static Memory episodeToMemory(GraphitiEpisodicNode ep, MemoryDomain domain,
@@ -345,8 +345,8 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
             ep.uuid(), entityId, domain, tenantId, null,
             ep.content() != null ? ep.content() : "",
             Map.copyOf(attrs),
-            ep.createdAt() != null ? ep.createdAt() : Instant.EPOCH
-        );
+            ep.createdAt() != null ? ep.createdAt() : Instant.EPOCH,
+            null);
     }
 
     static String compoundGroupId(String tenantId, String entityId, String domain) {

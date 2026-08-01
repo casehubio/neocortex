@@ -12,7 +12,7 @@ class MemoryInputTest {
 
     @Test
     void valid_input_constructs() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of());
+        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null);
         assertEquals("e1", input.entityId());
         assertEquals(DOMAIN, input.domain());
         assertEquals("t1", input.tenantId());
@@ -24,63 +24,63 @@ class MemoryInputTest {
     @Test
     void null_entityId_throws() {
         assertThrows(NullPointerException.class,
-            () -> new MemoryInput(null, DOMAIN, "t1", null, "text", Map.of()));
+            () -> new MemoryInput(null, DOMAIN, "t1", null, "text", Map.of(), null));
     }
 
     @Test
     void null_domain_throws() {
         assertThrows(NullPointerException.class,
-            () -> new MemoryInput("e1", null, "t1", null, "text", Map.of()));
+            () -> new MemoryInput("e1", null, "t1", null, "text", Map.of(), null));
     }
 
     @Test
     void null_tenantId_throws() {
         assertThrows(NullPointerException.class,
-            () -> new MemoryInput("e1", DOMAIN, null, null, "text", Map.of()));
+            () -> new MemoryInput("e1", DOMAIN, null, null, "text", Map.of(), null));
     }
 
     @Test
     void null_text_throws() {
         assertThrows(NullPointerException.class,
-            () -> new MemoryInput("e1", DOMAIN, "t1", null, null, Map.of()));
+            () -> new MemoryInput("e1", DOMAIN, "t1", null, null, Map.of(), null));
     }
 
     @Test
     void attributes_are_defensively_copied() {
         var mutable = new HashMap<String, String>();
         mutable.put("k", "v");
-        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", mutable);
+        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", mutable, null);
         mutable.put("k2", "v2");
         assertFalse(input.attributes().containsKey("k2"));
     }
 
     @Test
     void attributes_map_is_unmodifiable() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of("k", "v"));
+        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of("k", "v"), null);
         assertThrows(UnsupportedOperationException.class,
             () -> input.attributes().put("x", "y"));
     }
 
     @Test
     void caseId_is_nullable() {
-        assertDoesNotThrow(() -> new MemoryInput("e1", DOMAIN, "t1", "case-1", "text", Map.of()));
+        assertDoesNotThrow(() -> new MemoryInput("e1", DOMAIN, "t1", "case-1", "text", Map.of(), null));
     }
 
     @Test
     void blank_text_throws() {
         assertThrows(IllegalArgumentException.class,
-            () -> new MemoryInput("e1", DOMAIN, "t1", null, "   ", Map.of()));
+            () -> new MemoryInput("e1", DOMAIN, "t1", null, "   ", Map.of(), null));
     }
 
     @Test
     void empty_text_throws() {
         assertThrows(IllegalArgumentException.class,
-            () -> new MemoryInput("e1", DOMAIN, "t1", null, "", Map.of()));
+            () -> new MemoryInput("e1", DOMAIN, "t1", null, "", Map.of(), null));
     }
 
     @Test
     void withAttribute_addsToExistingAttributes() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"), null);
         var enriched = input.withAttribute("k2", "v2");
         assertThat(enriched.attributes()).containsEntry("k1", "v1").containsEntry("k2", "v2");
         assertThat(enriched.entityId()).isEqualTo("e1");
@@ -89,21 +89,21 @@ class MemoryInputTest {
 
     @Test
     void withAttribute_overwritesExistingKey() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"), null);
         var enriched = input.withAttribute("k1", "v2");
         assertThat(enriched.attributes()).containsEntry("k1", "v2");
     }
 
     @Test
     void withAttributes_mergesMultiple() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"), null);
         var enriched = input.withAttributes(Map.of("k2", "v2", "k3", "v3"));
         assertThat(enriched.attributes()).hasSize(3);
     }
 
     @Test
     void withAttribute_preservesImmutability() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"));
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "text", Map.of("k1", "v1"), null);
         var enriched = input.withAttribute("k2", "v2");
         assertThat(input.attributes()).hasSize(1);
         assertThat(enriched.attributes()).hasSize(2);
@@ -113,7 +113,7 @@ class MemoryInputTest {
 
     @Test
     void withText_replacesText() {
-        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "old", Map.of());
+        var input = new MemoryInput("e1", DOMAIN, "t1", "c1", "old", Map.of(), null);
         var enriched = input.withText("new");
         assertThat(enriched.text()).isEqualTo("new");
         assertThat(enriched.entityId()).isEqualTo("e1");

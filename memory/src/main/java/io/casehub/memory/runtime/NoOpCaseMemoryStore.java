@@ -62,4 +62,9 @@ public class NoOpCaseMemoryStore implements GraphCaseMemoryStore {
         }
         return Set.of();
     }
+
+    @Override
+    public int purge(io.casehub.neocortex.memory.MemoryRetentionPolicy policy) {
+        return 0;
+    }
 }

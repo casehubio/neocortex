@@ -13,8 +13,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,7 +98,7 @@ class Mem0CaseMemoryStoreTest {
     @Test
     void store_sends_infer_false_in_request_body() {
         stubAddOk("mem-001");
-        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of()));
+        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of(), null));
         wireMock().verify(postRequestedFor(urlEqualTo("/memories"))
             .withRequestBody(matchingJsonPath("$[?(@.infer == false)]")));
     }
@@ -108,7 +106,7 @@ class Mem0CaseMemoryStoreTest {
     @Test
     void store_compound_user_id_encodes_tenant_and_entity() {
         stubAddOk("mem-001");
-        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of()));
+        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of(), null));
         wireMock().verify(postRequestedFor(urlEqualTo("/memories"))
             .withRequestBody(matchingJsonPath("$.user_id", equalTo("tenant-1::entity-1"))));
     }
@@ -116,7 +114,7 @@ class Mem0CaseMemoryStoreTest {
     @Test
     void store_field_mapping_all_fields() {
         stubAddOk("mem-002");
-        store.store(new MemoryInput("entity-2", DOMAIN, TENANT, "case-99", "fact", Map.of("k", "v")));
+        store.store(new MemoryInput("entity-2", DOMAIN, TENANT, "case-99", "fact", Map.of("k", "v"), null));
         wireMock().verify(postRequestedFor(urlEqualTo("/memories"))
             .withRequestBody(matchingJsonPath("$.agent_id",            equalTo("d")))
             .withRequestBody(matchingJsonPath("$.run_id",              equalTo("case-99")))
@@ -128,7 +126,7 @@ class Mem0CaseMemoryStoreTest {
     @Test
     void store_absent_caseId_omits_run_id() {
         stubAddOk("mem-003");
-        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of()));
+        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of(), null));
         wireMock().verify(postRequestedFor(urlEqualTo("/memories"))
             .withRequestBody(matchingJsonPath("$[?(!(@.run_id))]")));
     }
@@ -136,14 +134,14 @@ class Mem0CaseMemoryStoreTest {
     @Test
     void store_returns_mem0_memory_id() {
         stubAddOk("returned-id-xyz");
-        final String id = store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hi", Map.of()));
+        final String id = store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hi", Map.of(), null));
         assertEquals("returned-id-xyz", id);
     }
 
     @Test
     void store_bearer_token_on_every_request() {
         stubAddOk("mem-004");
-        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of()));
+        store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of(), null));
         wireMock().verify(postRequestedFor(urlEqualTo("/memories"))
             .withHeader("Authorization", equalTo("Bearer test-key")));
     }
@@ -151,7 +149,7 @@ class Mem0CaseMemoryStoreTest {
     @Test
     void store_tenant_mismatch_throws_before_http() {
         assertThrows(SecurityException.class, () ->
-            store.store(new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "hello", Map.of())));
+            store.store(new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "hello", Map.of(), null)));
         wireMock().verify(0, postRequestedFor(urlEqualTo("/memories")));
     }
 
@@ -159,7 +157,7 @@ class Mem0CaseMemoryStoreTest {
     void store_non_2xx_throws_Mem0StoreException() {
         wireMock().stubFor(post(urlEqualTo("/memories")).willReturn(serverError()));
         assertThrows(Mem0StoreException.class, () ->
-            store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of())));
+            store.store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "hello", Map.of(), null)));
     }
 
     // ── query — chronological / mapping ──────────────────────────────────────
@@ -542,8 +540,8 @@ class Mem0CaseMemoryStoreTest {
             .willReturn(okJson("{\"results\": [{\"id\":\"mem-bbb\",\"memory\":\"b\",\"event\":\"ADD\"}]}")));
 
         final var result = store.storeAll(List.of(
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of()),
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of())
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of(), null),
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of(), null)
         ));
 
         assertTrue(result.allSucceeded());
@@ -561,8 +559,8 @@ class Mem0CaseMemoryStoreTest {
     void storeAll_any_tenant_mismatch_fires_zero_http_calls() {
         assertThrows(SecurityException.class, () ->
             store.storeAll(List.of(
-                new MemoryInput("entity-1", DOMAIN, TENANT,       null, "ok",  Map.of()),
-                new MemoryInput("entity-2", DOMAIN, OTHER_TENANT, null, "bad", Map.of())
+                new MemoryInput("entity-1", DOMAIN, TENANT, null, "ok", Map.of(), null),
+                new MemoryInput("entity-2", DOMAIN, OTHER_TENANT, null, "bad", Map.of(), null)
             )));
         wireMock().verify(0, postRequestedFor(urlEqualTo("/memories")));
     }
@@ -573,8 +571,8 @@ class Mem0CaseMemoryStoreTest {
         // All HTTP calls are still made; failures carry Mem0StoreException as cause.
         wireMock().stubFor(post(urlEqualTo("/memories")).willReturn(serverError()));
         var result = store.storeAll(List.of(
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of()),
-            new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of())
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of(), null),
+            new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of(), null)
         ));
         wireMock().verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/memories")));
         assertFalse(result.allSucceeded(), "all stores failed — result must not be all-succeeded");
@@ -593,9 +591,9 @@ class Mem0CaseMemoryStoreTest {
             .willReturn(okJson("{\"results\":[{\"id\":\"mem-x\",\"memory\":\"t\",\"event\":\"ADD\"}]}")));
         principal.setTenancyId(TENANT);
         var inputs = List.of(
-            new MemoryInput("e1", DOMAIN, TENANT, null, "a", Map.of()),
-            new MemoryInput("e2", DOMAIN, TENANT, null, "b", Map.of()),
-            new MemoryInput("e3", DOMAIN, TENANT, null, "c", Map.of())
+            new MemoryInput("e1", DOMAIN, TENANT, null, "a", Map.of(), null),
+            new MemoryInput("e2", DOMAIN, TENANT, null, "b", Map.of(), null),
+            new MemoryInput("e3", DOMAIN, TENANT, null, "c", Map.of(), null)
         );
         var result = store.storeAll(inputs);
         assertTrue(result.allSucceeded());
@@ -609,8 +607,8 @@ class Mem0CaseMemoryStoreTest {
             .willReturn(serverError().withBody("{\"detail\":\"server error\"}")));
         principal.setTenancyId(TENANT);
         var inputs = List.of(
-            new MemoryInput("e1", DOMAIN, TENANT, null, "a", Map.of()),
-            new MemoryInput("e2", DOMAIN, TENANT, null, "b", Map.of())
+            new MemoryInput("e1", DOMAIN, TENANT, null, "a", Map.of(), null),
+            new MemoryInput("e2", DOMAIN, TENANT, null, "b", Map.of(), null)
         );
         var result = store.storeAll(inputs);
         assertFalse(result.allSucceeded());
@@ -628,7 +626,7 @@ class Mem0CaseMemoryStoreTest {
         // With 1 input and config=4: Math.max(1, Math.min(4,1)) = 1. Semaphore(1) — no deadlock.
         stubAddOk("safe-id");
         principal.setTenancyId(TENANT);
-        var result = store.storeAll(List.of(new MemoryInput("e1", DOMAIN, TENANT, null, "x", Map.of())));
+        var result = store.storeAll(List.of(new MemoryInput("e1", DOMAIN, TENANT, null, "x", Map.of(), null)));
         assertTrue(result.allSucceeded());
         assertEquals(List.of("safe-id"), result.stored());
     }

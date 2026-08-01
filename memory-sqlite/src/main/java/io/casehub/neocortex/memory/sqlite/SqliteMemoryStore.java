@@ -431,8 +431,8 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             rs.getString("case_id"),
             rs.getString("text"),
             fromJson(rs.getString("attributes")),
-            Instant.parse(rs.getString("created_at"))
-        );
+            Instant.parse(rs.getString("created_at")),
+            null);
     }
 
     private String placeholders(int count) {
