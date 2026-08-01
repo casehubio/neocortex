@@ -5,8 +5,10 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -14,7 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Adapter-agnostic contract test suite for CaseMemoryStore implementations.
@@ -381,5 +387,71 @@ public abstract class CaseMemoryStoreContractTest {
         assertThrows(SecurityException.class, () -> store().storeAll(List.of(good, bad)));
         assertTrue(store().query(query()).isEmpty(),
             "first item must not be persisted when second item fails tenant check");
+    }
+
+    @Test
+    void importance_roundTrip() {
+        var input = new MemoryInput("entity-1", DOMAIN, TENANT, null, "important event", Map.of(), 0.8);
+        store().store(input);
+        var results = store().query(query());
+        assertEquals(1, results.size());
+        assertEquals(0.8, results.getFirst().importance());
+    }
+
+    @Test void importance_nullDefault() {
+        store().store(input("no importance set"));
+        var results = store().query(query());
+        assertEquals(1, results.size());
+        assertTrue(results.getFirst().importance() == null);
+    }
+
+    @Test void purge_ageBased_recentNotPurged() {
+        if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
+        store().store(input("recent memory"));
+        int purged = store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, null));
+        assertEquals(0, purged);
+        assertEquals(1, store().query(query()).size());
+    }
+
+    @Test void purge_importanceBased() {
+        if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "low importance", Map.of(), 0.1));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "high importance", Map.of(), 0.9));
+        store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
+        var results = store().query(query());
+        assertEquals(1, results.size());
+        assertEquals("high importance", results.getFirst().text());
+    }
+
+    @Test void purge_combined_importanceProtectsRecent() {
+        if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "important recent", Map.of(), 0.9));
+        store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, 0.5));
+        var results = store().query(query());
+        assertEquals(1, results.size());
+        assertEquals("important recent", results.getFirst().text());
+    }
+
+    @Test void purge_combined_recentLowImportance_notPurged() {
+        if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "recent but unimportant", Map.of(), 0.1));
+        store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, 0.5));
+        assertEquals(1, store().query(query()).size());
+    }
+
+    @Test void purge_nullImportance_notPurgedByImportance() {
+        if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
+        store().store(input("null importance memory"));
+        store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
+        assertEquals(1, store().query(query()).size());
+    }
+
+    @Test void purge_scopedByDomain() {
+        if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "target domain", Map.of(), 0.1));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "other domain", Map.of(), 0.1));
+        store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
+        assertEquals(0, store().query(query()).size());
+        assertEquals(1, store().query(MemoryQuery.forEntity("entity-1", OTHER_DOMAIN, TENANT)).size());
     }
 }

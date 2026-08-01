@@ -1,6 +1,14 @@
 package io.casehub.neocortex.memory.inmem;
 
-import io.casehub.neocortex.memory.*;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.EraseRequest;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryCapability;
+import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryPermissions;
+import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryRetentionPolicy;
+import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.arc.Arc;
@@ -10,7 +18,10 @@ import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,7 +44,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_ENTITY,
             MemoryCapability.ERASE_DOMAIN_CASE,
             MemoryCapability.CROSS_TENANT_ERASE,
-            MemoryCapability.DISCOVER_TENANTS
+            MemoryCapability.DISCOVER_TENANTS,
+            MemoryCapability.PURGE
         );
     }
 
@@ -60,7 +72,7 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
         Memory memory = new Memory(
             memoryId, input.entityId(), input.domain(), input.tenantId(),
             input.caseId(), input.text(), input.attributes(), Instant.now(),
-            null);
+            input.importance());
         store.computeIfAbsent(
             new BucketKey(input.tenantId(), input.entityId(), input.domain()),
             k -> new CopyOnWriteArrayList<>()
@@ -168,4 +180,29 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             .map(Memory::tenantId)
             .collect(Collectors.toUnmodifiableSet());
     }
+
+    @Override
+    public int purge(MemoryRetentionPolicy policy) {
+        int removed = 0;
+        Instant cutoff = policy.maxAgeDays() != null
+                         ? Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())) : null;
+        for (var entry : store.entrySet()) {
+            BucketKey key = entry.getKey();
+            if (!key.tenantId().equals(policy.tenantId())) {continue;}
+            if (!key.domain().equals(policy.domain())) {continue;}
+            CopyOnWriteArrayList<Memory> memories = entry.getValue();
+            int                          before   = memories.size();
+            memories.removeIf(m -> {
+                boolean ageEligible = cutoff != null && m.createdAt().isBefore(cutoff);
+                boolean importanceEligible = policy.minImportance() != null
+                                             && m.importance() != null
+                                             && m.importance() < policy.minImportance();
+                if (cutoff != null && policy.minImportance() != null) {
+                    return ageEligible && importanceEligible;
+                }
+                return ageEligible || importanceEligible;
+            });
+            removed += before - memories.size();
+        }
+        return removed;}
 }
