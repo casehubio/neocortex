@@ -24,7 +24,7 @@ public abstract class PlanEnsembleAnalyzerContractTest {
     private static ScoredCbrCase<PlanCbrCase> scored(String caseId, double score, String... bindings) {
         var traces = new java.util.ArrayList<PlanTrace>();
         for (String b : bindings) {
-            traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of()));
+            traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
         }
         var plan = new PlanCbrCase("problem", "solution", "COMPLETED", score,
                                    Map.of("f", FeatureValue.string("v")), traces, null, null);

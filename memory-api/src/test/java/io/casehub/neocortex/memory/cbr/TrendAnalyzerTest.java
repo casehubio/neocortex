@@ -364,7 +364,7 @@ class TrendAnalyzerTest {
 
     @Test
     void planCbrCase_withFeatures_preservesPlanTrace() {
-        var trace = List.of(new PlanTrace("step1", "cap1", "worker1", "OK", 1, Map.of()));
+        var trace = List.of(new PlanTrace("step1", "cap1", "worker1", "OK", 1, Map.of(), null));
         var original = new PlanCbrCase("p", "s", null, null, Map.of("a", string("x")), trace, null, null);
         var updated = (PlanCbrCase) original.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");

@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public record PlanTrace(String bindingName, String capabilityName,
                         String workerName, String stepOutcome,
-                        int priority, Map<String, Object> parameters) {
+                        int priority, Map<String, Object> parameters, String variantId) {
     public PlanTrace {
         Objects.requireNonNull(bindingName, "bindingName required");
                 if (priority < 0) throw new IllegalArgumentException("priority must be >= 0, got: " + priority);

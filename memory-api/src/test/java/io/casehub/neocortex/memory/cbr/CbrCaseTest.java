@@ -147,7 +147,7 @@ class CbrCaseTest {
 
     @Test
     void planCase_withOutcome_preservesPlanTrace() {
-        var trace = new PlanTrace("bind", "cap", "worker", "SUCCESS", 1, Map.of());
+        var trace = new PlanTrace("bind", "cap", "worker", "SUCCESS", 1, Map.of(), null);
         var original = new PlanCbrCase("prob", "sol", null, null,
                                        Map.of(), java.util.List.of(trace), null, null);
         CbrCase updated = original.withOutcome("FAILURE", 0.64);

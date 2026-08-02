@@ -35,7 +35,7 @@ class CbrMemoryDeserializerTest {
     @Test
     void roundTrip_planCbrCase() {
         var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
-            Map.of("duration", 30));
+                                  Map.of("duration", 30), null);
         var original = new PlanCbrCase("Zerg rush", "early pressure", "WIN", 0.9,
             Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
 

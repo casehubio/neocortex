@@ -5,7 +5,6 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
@@ -191,7 +190,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void planCbrCase_storeAndRetrieve() {
-        var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of());
+        var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
         var c = new PlanCbrCase("Zerg roach rush", "early pressure", "WIN", 0.85,
                                 Map.of("opponent_race", string("Zerg"), "detected_build", string("ROACH_RUSH")),
                                 List.of(trace), null, null);
@@ -207,7 +206,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void planCbrCase_featureMatchRanking() {
-        var trace = new PlanTrace("b", "c", "w", "OK", 1, Map.of());
+        var trace = new PlanTrace("b", "c", "w", "OK", 1, Map.of(), null);
         store().store(new PlanCbrCase("Zerg game", "rush", "WIN", null,
                                       Map.of("opponent_race", string("Zerg")), List.of(trace), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
@@ -227,9 +226,9 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void planCbrCase_planTraceRoundTrip() {
         var trace1 = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
-                                   Map.of("duration", 30));
+                                   Map.of("duration", 30), null);
         var trace2 = new PlanTrace("attack", "aggression", "roach-push", "SUCCESS", 2,
-                                   Map.of("supply", 44));
+                                   Map.of("supply", 44), null);
         var c = new PlanCbrCase("Zerg game", "rush", "WIN", 0.9,
                                 Map.of("opponent_race", string("Zerg")),
                                 List.of(trace1, trace2), null, null);
@@ -256,7 +255,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                       "starcraft-game", ENTITY, CBR, TENANT, "fv-1", Path.root());
         store().store(new PlanCbrCase("Plan game", "strat", "WIN", null,
                                       Map.of("opponent_race", string("Zerg")),
-                                      List.of(new PlanTrace("b", "c", "w", "OK", 1, Map.of())), null, null),
+                                      List.of(new PlanTrace("b", "c", "w", "OK", 1, Map.of(), null)), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
 
         var fvResults = store().retrieveSimilar(
