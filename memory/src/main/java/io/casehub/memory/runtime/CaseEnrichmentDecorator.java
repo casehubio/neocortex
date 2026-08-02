@@ -58,6 +58,7 @@ public class CaseEnrichmentDecorator implements CaseMemoryStore {
     @Override public void requireCapability(MemoryCapability cap) { delegate.requireCapability(cap); }
     @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }
     @Override public Set<String> discoverTenants(String attributeKey, String attributeValue) { return delegate.discoverTenants(attributeKey, attributeValue); }
+    @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }
 
     private MemoryInput applyEnrichment(MemoryInput input) {
         if (sortedSteps.isEmpty()) return input;

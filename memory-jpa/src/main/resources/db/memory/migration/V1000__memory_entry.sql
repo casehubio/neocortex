@@ -7,6 +7,7 @@ CREATE TABLE memory_entry (
     text       TEXT         NOT NULL,
     attributes TEXT         NOT NULL DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    importance DOUBLE PRECISION,
     CONSTRAINT memory_entry_pk PRIMARY KEY (memory_id)
 );
 

@@ -1,11 +1,11 @@
 package io.casehub.neocortex.memory.jpa;
 
-import io.casehub.neocortex.memory.*;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import java.time.Instant;
 
 /** JPA entity for a stored memory. domain stored as String (MemoryDomain.name()). */
@@ -38,4 +38,7 @@ public class MemoryEntry extends PanacheEntityBase {
 
     @Column(name = "created_at", nullable = false)
     public Instant createdAt;
+    @Column(name = "importance")
+    public Double  importance;
+
 }

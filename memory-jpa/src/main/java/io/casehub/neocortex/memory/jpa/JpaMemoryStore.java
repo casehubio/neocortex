@@ -1,8 +1,19 @@
 package io.casehub.neocortex.memory.jpa;
 
-import io.casehub.neocortex.memory.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.EraseRequest;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryCapability;
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryOrder;
+import io.casehub.neocortex.memory.MemoryPermissions;
+import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryRetentionPolicy;
+import io.casehub.neocortex.memory.MemoryScanRequest;
+import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.arc.Arc;
@@ -36,7 +47,8 @@ public class JpaMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_DOMAIN_CASE,
             MemoryCapability.CROSS_TENANT_ERASE,
             MemoryCapability.SCAN,
-            MemoryCapability.DISCOVER_TENANTS
+            MemoryCapability.DISCOVER_TENANTS,
+            MemoryCapability.PURGE
         );
     }
 
@@ -65,6 +77,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
         entry.text       = input.text();
         entry.attributes = serializeAttributes(input.attributes());
         entry.createdAt  = Instant.now();
+        entry.importance = input.importance();
 
         MemoryEntry.persist(entry);
         return entry.memoryId;
@@ -86,6 +99,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.text       = input.text();
             e.attributes = serializeAttributes(input.attributes());
             e.createdAt  = Instant.now();
+            e.importance = input.importance();
             return e;
         }).toList();
         MemoryEntry.persist(entries);
@@ -302,6 +316,33 @@ public class JpaMemoryStore implements CaseMemoryStore {
         return Set.copyOf(results);
     }
 
+
+    @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "purge"})
+    @Override
+    @Transactional(TxType.REQUIRED)
+    public int purge(MemoryRetentionPolicy policy) {
+        StringBuilder       jpql   = new StringBuilder("DELETE FROM MemoryEntry e WHERE e.tenantId = :t AND e.domain = :d");
+        Map<String, Object> params = new HashMap<>();
+        params.put("t", policy.tenantId());
+        params.put("d", policy.domain().name());
+
+        if (policy.maxAgeDays() != null && policy.minImportance() != null) {
+            jpql.append(" AND e.createdAt < :cutoff AND e.importance IS NOT NULL AND e.importance < :minImp");
+            params.put("cutoff", Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())));
+            params.put("minImp", policy.minImportance());
+        } else if (policy.maxAgeDays() != null) {
+            jpql.append(" AND e.createdAt < :cutoff");
+            params.put("cutoff", Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())));
+        } else if (policy.minImportance() != null) {
+            jpql.append(" AND e.importance IS NOT NULL AND e.importance < :minImp");
+            params.put("minImp", policy.minImportance());
+        }
+
+        var query = em.createQuery(jpql.toString());
+        params.forEach(query::setParameter);
+        return query.executeUpdate();
+    }
+
     private Memory toMemory(MemoryEntry e) {
         return new Memory(
             e.memoryId,
@@ -312,7 +353,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.text,
             deserializeAttributes(e.attributes),
             e.createdAt,
-            null);
+            e.importance);
     }
 
     private String serializeAttributes(Map<String, String> attrs) {

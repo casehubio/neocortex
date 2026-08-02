@@ -1,11 +1,22 @@
 package io.casehub.neocortex.memory.sqlite;
 
-import io.casehub.neocortex.memory.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.EraseRequest;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryCapability;
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryOrder;
+import io.casehub.neocortex.memory.MemoryPermissions;
+import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryRetentionPolicy;
+import io.casehub.neocortex.memory.MemoryScanRequest;
+import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.arc.Arc;
@@ -19,10 +30,18 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.flywaydb.core.Flyway;
 import org.sqlite.SQLiteConfig;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Alternative
@@ -44,7 +63,8 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_DOMAIN_CASE,
             MemoryCapability.CROSS_TENANT_ERASE,
             MemoryCapability.SCAN,
-            MemoryCapability.DISCOVER_TENANTS
+            MemoryCapability.DISCOVER_TENANTS,
+            MemoryCapability.PURGE
         );
     }
 
@@ -113,7 +133,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
         String memoryId = UUID.randomUUID().toString();
         String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at) VALUES (?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, importance) VALUES (?,?,?,?,?,?,?,?,?)";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, memoryId);
@@ -124,6 +144,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             ps.setString(6, input.text());
             ps.setString(7, toJson(input.attributes()));
             ps.setString(8, createdAt);
+            if (input.importance() != null) { ps.setDouble(9, input.importance()); } else { ps.setNull(9, java.sql.Types.REAL); }
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("store() failed", e);
@@ -136,13 +157,12 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     public StoreAllResult storeAll(List<MemoryInput> inputs) {
         if (inputs.isEmpty()) return StoreAllResult.empty();
         inputs.forEach(i -> MemoryPermissions.assertTenant(i.tenantId(), principal, requestContextActive()));
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at) VALUES (?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, importance) VALUES (?,?,?,?,?,?,?,?,?)";
         List<String> ids = new ArrayList<>(inputs.size());
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 for (MemoryInput input : inputs) {
-                    // guard each item — detects mixed-tenant batches where item 0 passes but a later item has a different tenantId
                     MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
                     String memoryId = UUID.randomUUID().toString();
                     String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
@@ -154,6 +174,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
                     ps.setString(6, input.text());
                     ps.setString(7, toJson(input.attributes()));
                     ps.setString(8, createdAt);
+                    if (input.importance() != null) { ps.setDouble(9, input.importance()); } else { ps.setNull(9, java.sql.Types.REAL); }
                     ps.executeUpdate();
                     ids.add(memoryId);
                 }
@@ -422,6 +443,41 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         }
     }
 
+
+    @Timed(value = "casehub.memory.sqlite", histogram = true, extraTags = {"operation", "purge"})
+    @Override
+    public int purge(MemoryRetentionPolicy policy) {
+        StringBuilder sql    = new StringBuilder("DELETE FROM memory_entry WHERE tenant_id = ? AND domain = ?");
+        List<Object>  params = new java.util.ArrayList<>();
+        params.add(policy.tenantId());
+        params.add(policy.domain().name());
+
+        if (policy.maxAgeDays() != null && policy.minImportance() != null) {
+            sql.append(" AND created_at < ? AND importance IS NOT NULL AND importance < ?");
+            params.add(Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())).truncatedTo(ChronoUnit.MILLIS).toString());
+            params.add(policy.minImportance());
+        } else if (policy.maxAgeDays() != null) {
+            sql.append(" AND created_at < ?");
+            params.add(Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())).truncatedTo(ChronoUnit.MILLIS).toString());
+        } else if (policy.minImportance() != null) {
+            sql.append(" AND importance IS NOT NULL AND importance < ?");
+            params.add(policy.minImportance());
+        }
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof String s) {ps.setString(i + 1, s);} else if (p instanceof Double d) {
+                    ps.setDouble(i + 1, d);
+                }
+            }
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("purge() failed", e);
+        }
+    }
+
     private Memory toMemory(ResultSet rs) throws SQLException {
         return new Memory(
             rs.getString("memory_id"),
@@ -432,7 +488,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             rs.getString("text"),
             fromJson(rs.getString("attributes")),
             Instant.parse(rs.getString("created_at")),
-            null);
+            rs.getObject("importance") != null ? rs.getDouble("importance") : null);
     }
 
     private String placeholders(int count) {
