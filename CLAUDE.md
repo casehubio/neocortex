@@ -84,28 +84,19 @@ Peer repos: platform, ledger, connectors, work, qhorus, eidos, engine, claudony,
 
 # CaseHub Neural-Text — Claude Code Project Guide
 
-## Platform Context
+## Platform Docs
+- [Platform Index](https://raw.githubusercontent.com/casehubio/parent/main/docs/INDEX.md) — discovery index (start here)
+- [Building Platform](https://raw.githubusercontent.com/casehubio/parent/main/docs/guides/building-platform.md) — platform contributor guide
 
-This repo is one component of the casehubio multi-repo platform. **Before implementing anything — any feature, SPI, data model, or abstraction — run the Platform Coherence Protocol.**
+## Repo Guide
 
-**Platform architecture:**
-```
-https://raw.githubusercontent.com/casehubio/parent/main/docs/PLATFORM.md
-```
+This repo owns its own documentation, synced to parent via CI:
+- `docs/consumer-guide.md` — for app builders: modules, APIs, quick start
+- `docs/contributor-guide.md` — for platform builders: architecture, SPIs, internals
 
-**This repo's deep-dive:**
-```
-https://raw.githubusercontent.com/casehubio/parent/main/docs/repos/casehub-neocortex.md
-```
+Update the relevant guide in the same session when implementation changes modules, SPIs, or public APIs. Do not defer — drift compounds.
 
-**Related specs:**
-- AI Fusion brief: `https://raw.githubusercontent.com/casehubio/parent/main/docs/specs/2026-06-03-ai-fusion-hybrid-fact-space.md`
-- ONNX inference brief: `https://raw.githubusercontent.com/casehubio/parent/main/docs/specs/2026-06-03-standalone-rag-retrieval-brief.md`
-
-**Upstream work in progress:**
-- quarkus-langchain4j #2572: `@RagPipeline`, `@HybridSearch`, `@DocumentIngestion` composition annotations — simplifies RAG wiring. Also `@RegisterAiService` supplier→bean migration. When shipped, adopt these in `rag/` module to replace manual CDI wiring. Track at `https://github.com/quarkiverse/quarkus-langchain4j/issues/2572`
-
----
+Read `consumer-guide.md` for app-level work. Only read `contributor-guide.md` when modifying this repo's internals or extension points.
 
 ## Reference Documents
 
