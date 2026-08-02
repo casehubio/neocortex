@@ -5,6 +5,7 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
@@ -92,8 +93,7 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
     @Override
     public List<Memory> query(MemoryQuery query) {
         MemoryPermissions.assertTenant(query.tenantId(), principal, requestContextActive());
-        // MemoryOrder is ignored — in-mem always sorts chronologically (createdAt DESC).
-        return query.entityIds().stream()
+        var filtered = query.entityIds().stream()
             .flatMap(entityId -> store.getOrDefault(
                     new BucketKey(query.tenantId(), entityId, query.domain()),
                     new CopyOnWriteArrayList<>()
@@ -102,7 +102,16 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             .filter(m -> query.caseId() == null || query.caseId().equals(m.caseId()))
             .filter(m -> query.since() == null || !m.createdAt().isBefore(query.since()))
             .filter(m -> query.question() == null
-                || m.text().toLowerCase().contains(query.question().toLowerCase()))
+                || m.text().toLowerCase().contains(query.question().toLowerCase()));
+
+        if (query.order() == MemoryOrder.SALIENCE) {
+            Instant now = Instant.now();
+            return filtered
+                .sorted((a, b) -> Double.compare(salience(b, now), salience(a, now)))
+                .limit(query.limit())
+                .toList();
+        }
+        return filtered
             .sorted(Comparator.comparing(Memory::createdAt).reversed())
             .limit(query.limit())
             .toList();
@@ -179,6 +188,14 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
                 || attributeValue.equals(m.attributes().get(attributeKey)))
             .map(Memory::tenantId)
             .collect(Collectors.toUnmodifiableSet());
+    }
+
+
+    private static double salience(Memory m, Instant now) {
+        double importance = m.importance() != null ? m.importance() : 1.0;
+        long   ageSeconds = java.time.Duration.between(m.createdAt(), now).toSeconds();
+        double recency    = 1.0 / (1.0 + ageSeconds / 3600.0);
+        return recency * importance;
     }
 
     @Override

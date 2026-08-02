@@ -22,5 +22,15 @@ public enum MemoryOrder {
      * If {@code question} is {@code null}, all adapters fall back to
      * {@link #CHRONOLOGICAL}.
      */
-    RELEVANCE
-}
+    RELEVANCE,
+
+    /**
+ * Results ordered by salience: recency × importance.
+ * Non-semantic adapters compute salience from {@link Memory#createdAt()} and
+ * {@link Memory#importance()} — null importance treated as 1.0.
+ * Semantic adapters that already handle relevance fall back to
+ * {@link #RELEVANCE} (salience is a non-semantic ranking strategy).
+ */
+    SALIENCE
+
+    }
