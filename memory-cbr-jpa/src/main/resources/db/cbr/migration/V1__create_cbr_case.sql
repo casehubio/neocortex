@@ -13,6 +13,8 @@ CREATE TABLE cbr_case (
     features    TEXT            NOT NULL DEFAULT '{}',
     plan_traces TEXT,
     stored_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    trust_score       DOUBLE PRECISION,
+    producer_agent_id VARCHAR(255),
     CONSTRAINT cbr_case_pk PRIMARY KEY (id)
 );
 

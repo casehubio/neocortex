@@ -4,13 +4,13 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.neocortex.memory.cbr.TrendAnalyzer;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
@@ -90,6 +90,13 @@ public class TrendEnrichmentCbrCaseMemoryStore implements CbrCaseMemoryStore {
     public Integer purge(CbrRetentionPolicy policy) {
         return delegate.purge(policy);
     }
+
+    @Override
+    public java.util.Set<String> discoverTenants(io.casehub.neocortex.memory.MemoryDomain domain) {return delegate.discoverTenants(domain);}
+
+    @Override
+    public java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request)                            {return delegate.scan(request);}
+
 
     @Override
     public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {

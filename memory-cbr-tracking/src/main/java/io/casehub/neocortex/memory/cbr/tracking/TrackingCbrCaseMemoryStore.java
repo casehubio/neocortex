@@ -106,6 +106,13 @@ public class TrackingCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override
+    public java.util.Set<String> discoverTenants(io.casehub.neocortex.memory.MemoryDomain domain)                                      {return delegate.discoverTenants(domain);}
+
+    @Override
+    public java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {return delegate.scan(request);}
+
+
+    @Override
     public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
         delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
     }

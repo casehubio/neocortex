@@ -110,7 +110,7 @@ public class HybridCaseRetriever implements CaseRetriever {
         }
 
         // Weighted RRF: when weights are non-equal, use client-side fusion
-        if (useFusion && fusionStrategy == FusionStrategy.RRF && !hasEqualActiveWeights()) {
+        if (useFusion && fusionStrategy == FusionStrategy.RRF && !hasEqualActiveWeights(query)) {
             return executeRrfFusion(collection, query, embedding,
                 mergedFilter, maxResults);
         }
@@ -260,11 +260,22 @@ public class HybridCaseRetriever implements CaseRetriever {
         };
     }
 
-    private boolean hasEqualActiveWeights() {
-        double dense = config.retrieval().weights().dense();
+
+    private double effectiveWeight(String leg, RetrievalQuery query) {
+        double base = switch (leg) {
+            case "dense" -> config.retrieval().weights().dense();
+            case "sparse" -> config.retrieval().weights().sparse();
+            case "bm25" -> config.retrieval().weights().bm25();
+            case "quality" -> config.retrieval().weights().quality();
+            default -> 1.0;
+        };
+        return base * query.weightMultipliers().getOrDefault(leg, 1.0);}
+
+    private boolean hasEqualActiveWeights(RetrievalQuery query) {
+        double dense = effectiveWeight("dense", query);
         double sparse = (embedder.supportedModes().contains(EmbeddingMode.SPARSE))
-                        ? config.retrieval().weights().sparse() : dense;
-        double bm25 = config.bm25Enabled() ? config.retrieval().weights().bm25() : dense;
+                        ? effectiveWeight("sparse", query) : dense;
+        double bm25 = config.bm25Enabled() ? effectiveWeight("bm25", query) : dense;
         return Double.compare(dense, sparse) == 0 && Double.compare(dense, bm25) == 0;
     }
 
@@ -289,7 +300,7 @@ public class HybridCaseRetriever implements CaseRetriever {
         List<ScoredPoint> densePoints = executeQuery(denseQuery.build());
         if (!densePoints.isEmpty()) {
             legs.add(new ScoreFusion.ScoredLeg<>(
-                    mapToChunks(densePoints), RetrievedChunk::relevanceScore, config.retrieval().weights().dense()));
+                    mapToChunks(densePoints), RetrievedChunk::relevanceScore, effectiveWeight("dense", query)));
         }
 
         if (embedding.sparse() != null) {
@@ -312,7 +323,7 @@ public class HybridCaseRetriever implements CaseRetriever {
             List<ScoredPoint> sparsePoints = executeQuery(sparseQuery.build());
             if (!sparsePoints.isEmpty()) {
                 legs.add(new ScoreFusion.ScoredLeg<>(
-                        mapToChunks(sparsePoints), RetrievedChunk::relevanceScore, config.retrieval().weights().sparse()));
+                        mapToChunks(sparsePoints), RetrievedChunk::relevanceScore, effectiveWeight("sparse", query)));
             }
         }
 
@@ -333,7 +344,7 @@ public class HybridCaseRetriever implements CaseRetriever {
             List<ScoredPoint> bm25Points = executeQuery(bm25Query.build());
             if (!bm25Points.isEmpty()) {
                 legs.add(new ScoreFusion.ScoredLeg<>(
-                        mapToChunks(bm25Points), RetrievedChunk::relevanceScore, config.retrieval().weights().bm25()));
+                        mapToChunks(bm25Points), RetrievedChunk::relevanceScore, effectiveWeight("bm25", query)));
             }
         }
 
@@ -364,7 +375,7 @@ public class HybridCaseRetriever implements CaseRetriever {
         List<ScoredPoint> densePoints = executeQuery(denseQuery.build());
         if (!densePoints.isEmpty()) {
             legs.add(new ScoreFusion.ScoredLeg<>(
-                mapToChunks(densePoints), RetrievedChunk::relevanceScore, config.retrieval().weights().dense()));
+                mapToChunks(densePoints), RetrievedChunk::relevanceScore, effectiveWeight("dense", query)));
         }
 
         // Sparse leg (if available)
@@ -388,7 +399,7 @@ public class HybridCaseRetriever implements CaseRetriever {
             List<ScoredPoint> sparsePoints = executeQuery(sparseQuery.build());
             if (!sparsePoints.isEmpty()) {
                 legs.add(new ScoreFusion.ScoredLeg<>(
-                    mapToChunks(sparsePoints), RetrievedChunk::relevanceScore, config.retrieval().weights().sparse()));
+                    mapToChunks(sparsePoints), RetrievedChunk::relevanceScore, effectiveWeight("sparse", query)));
             }
         }
 
@@ -410,11 +421,11 @@ public class HybridCaseRetriever implements CaseRetriever {
             List<ScoredPoint> bm25Points = executeQuery(bm25Query.build());
             if (!bm25Points.isEmpty()) {
                 legs.add(new ScoreFusion.ScoredLeg<>(
-                    mapToChunks(bm25Points), RetrievedChunk::relevanceScore, config.retrieval().weights().bm25()));
+                    mapToChunks(bm25Points), RetrievedChunk::relevanceScore, effectiveWeight("bm25", query)));
             }
         }
 
-        double qualityWeight = config.retrieval().weights().quality();
+        double qualityWeight = effectiveWeight("quality", query);
         Optional<String> qualityFieldOpt = config.retrieval().qualityPayloadField();
         if (qualityWeight > 0 && qualityFieldOpt.isPresent()) {
             String qualityField = qualityFieldOpt.get();

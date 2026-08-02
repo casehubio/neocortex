@@ -65,6 +65,8 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     @Override public void recordOutcome(String ci, String t, CbrOutcome o) { delegate.recordOutcome(ci, t, o); }
     @Override public Integer purge(CbrRetentionPolicy p) { return delegate.purge(p); }
+    @Override public java.util.Set<String> discoverTenants(MemoryDomain domain) { return delegate.discoverTenants(domain); }
+    @Override public java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) { return delegate.scan(request); }
     @Override public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) { delegate.supersede(caseId, tenantId, supersedingCaseId, reason); }
     @Override public void reinstate(String caseId, String tenantId) { delegate.reinstate(caseId, tenantId); }
 

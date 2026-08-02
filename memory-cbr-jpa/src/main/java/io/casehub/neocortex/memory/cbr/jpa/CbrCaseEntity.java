@@ -71,6 +71,11 @@ public class CbrCaseEntity {
     public String scope;
     @Column(name = "reinstated_at")
     public Instant reinstatedAt;
+    @Column(name = "trust_score")
+    public Double  trustScore;
+
+    @Column(name = "producer_agent_id")
+    public String producerAgentId;
 
 
 }

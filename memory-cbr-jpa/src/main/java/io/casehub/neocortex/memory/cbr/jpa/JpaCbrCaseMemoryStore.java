@@ -83,8 +83,10 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         entity.outcome    = cbrCase.outcome();
         entity.confidence = cbrCase.confidence();
         entity.features   = serializeJson(FeatureValue.toRawMap(cbrCase.features()));
-        entity.storedAt   = Instant.now();
-        entity.scope      = scope.value();
+        entity.storedAt        = Instant.now();
+        entity.scope           = scope.value();
+        entity.trustScore      = cbrCase.trustScore();
+        entity.producerAgentId = cbrCase.producerAgentId();
 
         if (cbrCase instanceof PlanCbrCase plan && !plan.planTrace().isEmpty()) {
             entity.planTraces = serializeJson(plan.planTrace());
@@ -235,46 +237,61 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
     @Override
     @Transactional
     public Integer purge(CbrRetentionPolicy policy) {
-        int deleted = 0;
+        int    deleted        = 0;
+        String caseTypeFilter = policy.caseType() != null ? " AND e.caseType = :ct" : "";
         if (policy.maxAgeDays() != null) {
             Instant cutoff = Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays()));
-            String jpql = "DELETE FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.storedAt < :cutoff"
-                          + (policy.caseType() != null ? " AND e.caseType = :ct" : "");
-            var q = em.createQuery(jpql)
-                      .setParameter("t", policy.tenantId())
-                      .setParameter("d", policy.domain().name())
-                      .setParameter("cutoff", cutoff);
-            if (policy.caseType() != null) {
-                q.setParameter("ct", policy.caseType());
-            }
+            String  jpql   = "DELETE FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.storedAt < :cutoff" + caseTypeFilter;
+            var     q      = em.createQuery(jpql).setParameter("t", policy.tenantId()).setParameter("d", policy.domain().name()).setParameter("cutoff", cutoff);
+            if (policy.caseType() != null) {q.setParameter("ct", policy.caseType());}
             deleted += q.executeUpdate();
         }
         if (policy.maxCasesPerType() != null) {
-            String typeJpql = "SELECT DISTINCT e.caseType FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d"
-                              + (policy.caseType() != null ? " AND e.caseType = :ct" : "");
-            var typeQuery = em.createQuery(typeJpql, String.class)
-                              .setParameter("t", policy.tenantId())
-                              .setParameter("d", policy.domain().name());
-            if (policy.caseType() != null) {
-                typeQuery.setParameter("ct", policy.caseType());
-            }
+            String typeJpql  = "SELECT DISTINCT e.caseType FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d" + caseTypeFilter;
+            var    typeQuery = em.createQuery(typeJpql, String.class).setParameter("t", policy.tenantId()).setParameter("d", policy.domain().name());
+            if (policy.caseType() != null) {typeQuery.setParameter("ct", policy.caseType());}
             for (String ct : typeQuery.getResultList()) {
-                var ids = em.createQuery(
-                                    "SELECT e.id FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct ORDER BY e.storedAt DESC",
-                                    String.class)
-                            .setParameter("t", policy.tenantId())
-                            .setParameter("d", policy.domain().name())
-                            .setParameter("ct", ct)
-                            .getResultList();
+                var ids = em.createQuery("SELECT e.id FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct ORDER BY e.storedAt DESC", String.class)
+                            .setParameter("t", policy.tenantId()).setParameter("d", policy.domain().name()).setParameter("ct", ct).getResultList();
                 if (ids.size() > policy.maxCasesPerType()) {
                     List<String> toDelete = ids.subList(policy.maxCasesPerType(), ids.size());
-                    deleted += em.createQuery("DELETE FROM CbrCaseEntity e WHERE e.id IN :ids")
-                                 .setParameter("ids", toDelete)
-                                 .executeUpdate();
+                    deleted += em.createQuery("DELETE FROM CbrCaseEntity e WHERE e.id IN :ids").setParameter("ids", toDelete).executeUpdate();
                 }
             }
         }
-        return deleted;
+        if (policy.minTrustScore() != null) {
+            String jpql = "DELETE FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.trustScore IS NOT NULL AND e.trustScore < :minTrust" + caseTypeFilter;
+            var    q    = em.createQuery(jpql).setParameter("t", policy.tenantId()).setParameter("d", policy.domain().name()).setParameter("minTrust", policy.minTrustScore());
+            if (policy.caseType() != null) {q.setParameter("ct", policy.caseType());}
+            deleted += q.executeUpdate();
+        }
+        return deleted;}
+
+    @Override
+    @Transactional
+    public java.util.Set<String> discoverTenants(io.casehub.neocortex.memory.MemoryDomain domain) {
+        return new java.util.LinkedHashSet<>(
+                em.createQuery("SELECT DISTINCT e.tenantId FROM CbrCaseEntity e WHERE e.domain = :d", String.class)
+                  .setParameter("d", domain.name())
+                  .getResultList());
+    }
+
+    @Override
+    @Transactional
+    public List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {
+        String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct"
+                      + (request.afterCaseId() != null ? " AND e.caseId > :afterId" : "")
+                      + " ORDER BY e.caseId";
+        var q = em.createQuery(jpql, CbrCaseEntity.class)
+                  .setParameter("t", request.tenantId())
+                  .setParameter("d", request.domain().name())
+                  .setParameter("ct", request.caseType())
+                  .setMaxResults(request.limit());
+        if (request.afterCaseId() != null) {q.setParameter("afterId", request.afterCaseId());}
+        return q.getResultList().stream()
+                .map(e -> new io.casehub.neocortex.memory.cbr.CbrCaseSummary(
+                        e.caseId, e.entityId, e.caseType, e.producerAgentId, e.trustScore, e.storedAt))
+                .toList();
     }
 
 
@@ -318,15 +335,14 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return switch (entity.cbrType) {
             case "plan" -> new PlanCbrCase(
                     entity.problem, entity.solution, entity.outcome, entity.confidence,
-                    features, deserializePlanTraces(entity.planTraces), null, null);
+                    features, deserializePlanTraces(entity.planTraces), entity.trustScore, entity.producerAgentId);
             case "feature-vector" -> new FeatureVectorCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, null, null);
+                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, entity.trustScore, entity.producerAgentId);
             case "textual" -> new TextualCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, null, null);
+                    entity.problem, entity.solution, entity.outcome, entity.confidence, entity.trustScore, entity.producerAgentId);
             default -> new FeatureVectorCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, null, null);
-        };
-    }
+                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, entity.trustScore, entity.producerAgentId);
+        };}
 
     @SuppressWarnings("unchecked")
     private boolean matchesFilters(CbrCase storedCase, Map<String, CbrFilter> filters,

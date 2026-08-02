@@ -92,6 +92,8 @@ public class ErasureNotificationCbrCaseMemoryStore implements CbrCaseMemoryStore
     @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> ct) { return delegate.retrieveSimilar(q, ct); }
     @Override public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) { delegate.recordOutcome(caseId, tenantId, outcome); }
     @Override public Integer purge(CbrRetentionPolicy policy) { return delegate.purge(policy); }
+    @Override public java.util.Set<String> discoverTenants(MemoryDomain domain) { return delegate.discoverTenants(domain); }
+    @Override public java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) { return delegate.scan(request); }
     @Override public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) { delegate.supersede(caseId, tenantId, supersedingCaseId, reason); }
     @Override public void reinstate(String caseId, String tenantId) { delegate.reinstate(caseId, tenantId); }
 
