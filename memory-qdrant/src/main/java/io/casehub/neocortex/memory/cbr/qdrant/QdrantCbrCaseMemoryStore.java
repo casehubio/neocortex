@@ -812,7 +812,18 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             }
         }
 
-        return ageCount + countCount;
+        int trustCount = 0;
+        if (policy.minTrustScore() != null) {
+            Filter trustFilter = Filter.newBuilder()
+                                       .addMust(ConditionFactory.matchKeyword("tenantId", policy.tenantId()))
+                                       .addMust(ConditionFactory.matchKeyword("domain", policy.domain().name()))
+                                       .addMust(ConditionFactory.range("trust_score",
+                                                                       io.qdrant.client.grpc.Common.Range.newBuilder().setLt(policy.minTrustScore()).build()))
+                                       .build();
+            trustCount = collectionManager.deleteByFilter(collection, trustFilter);
+        }
+
+        return ageCount + countCount + trustCount;
     }
 
     @Override
@@ -870,6 +881,77 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
         return allResults;
     }
+
+    @Override
+    public java.util.Set<String> discoverTenants(io.casehub.neocortex.memory.MemoryDomain domain) {
+        java.util.Set<String> tenants = new java.util.LinkedHashSet<>();
+        for (String caseType : schemas.keySet()) {
+            String collection = collectionManager.collectionName(caseType);
+            boolean exists = awaitFuture(
+                    collectionManager.client().collectionExistsAsync(collection), "collectionExists");
+            if (!exists) {continue;}
+
+            Filter domainFilter = Filter.newBuilder()
+                                        .addMust(ConditionFactory.matchKeyword("domain", domain.name()))
+                                        .build();
+            var scrollResult = awaitFuture(collectionManager.client().scrollAsync(
+                    io.qdrant.client.grpc.Points.ScrollPoints.newBuilder()
+                                                             .setCollectionName(collection)
+                                                             .setFilter(domainFilter)
+                                                             .setWithPayload(WithPayloadSelectorFactory.include(List.of("tenantId")))
+                                                             .setLimit(100000)
+                                                             .build()), "scrollForDiscoverTenants");
+            for (var point : scrollResult.getResultList()) {
+                var tenantVal = point.getPayloadOrDefault("tenantId", null);
+                if (tenantVal != null && tenantVal.hasStringValue()) {
+                    tenants.add(tenantVal.getStringValue());
+                }
+            }
+        }
+        return java.util.Collections.unmodifiableSet(tenants);
+    }
+
+    @Override
+    public List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {
+        String collection = collectionManager.collectionName(request.caseType());
+        boolean exists = awaitFuture(
+                collectionManager.client().collectionExistsAsync(collection), "collectionExists");
+        if (!exists) {return List.of();}
+
+        Filter scopeFilter = Filter.newBuilder()
+                                   .addMust(ConditionFactory.matchKeyword("tenantId", request.tenantId()))
+                                   .addMust(ConditionFactory.matchKeyword("domain", request.domain().name()))
+                                   .build();
+
+        var scrollBuilder = io.qdrant.client.grpc.Points.ScrollPoints.newBuilder()
+                                                                     .setCollectionName(collection)
+                                                                     .setFilter(scopeFilter)
+                                                                     .setWithPayload(WithPayloadSelectorFactory.include(
+                                                                             List.of("caseId", "entityId", "caseType", "producer_agent_id", "trust_score", "_stored_at")))
+                                                                     .setLimit(request.limit());
+        if (request.afterCaseId() != null) {
+            UUID afterUuid = CbrPointBuilder.pointId(request.tenantId(), request.caseType(), request.afterCaseId());
+            scrollBuilder.setOffset(PointIdFactory.id(afterUuid));
+        }
+
+        var scrollResult = awaitFuture(collectionManager.client().scrollAsync(scrollBuilder.build()), "scrollForScan");
+
+        List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> result = new java.util.ArrayList<>();
+        for (var point : scrollResult.getResultList()) {
+            var    payload         = point.getPayloadMap();
+            String caseId          = payload.containsKey("caseId") ? payload.get("caseId").getStringValue() : null;
+            String entityId        = payload.containsKey("entityId") ? payload.get("entityId").getStringValue() : null;
+            String caseType        = payload.containsKey("caseType") ? payload.get("caseType").getStringValue() : request.caseType();
+            String producerAgentId = payload.containsKey("producer_agent_id") ? payload.get("producer_agent_id").getStringValue() : null;
+            Double trustScore = payload.containsKey("trust_score") && payload.get("trust_score").hasDoubleValue()
+                                ? payload.get("trust_score").getDoubleValue() : null;
+            Instant storedAt = payload.containsKey("_stored_at") && payload.get("_stored_at").hasIntegerValue()
+                               ? Instant.ofEpochMilli(payload.get("_stored_at").getIntegerValue()) : null;
+            result.add(new io.casehub.neocortex.memory.cbr.CbrCaseSummary(caseId, entityId, caseType, producerAgentId, trustScore, storedAt));
+        }
+        return List.copyOf(result);
+    }
+
 
     private SupersessionStatus buildSupersessionStatus(String caseId, Map<String, Value> payload) {
         Value supersededAtVal = payload.get("_superseded_at");
