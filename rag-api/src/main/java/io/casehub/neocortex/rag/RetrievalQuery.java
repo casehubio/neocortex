@@ -1,22 +1,27 @@
 package io.casehub.neocortex.rag;
 
-/**
- * Carries both the original query and optional pre-retrieval expansion text.
- * {@code expandedText} covers any pre-retrieval query transformation —
- * HyDE hypothetical documents, step-back prompts, template expansions.
- * Not related to CRAG's result-set expansion (higher top-K).
- */
-public record RetrievalQuery(String text, String expandedText) {
+public record RetrievalQuery(String text, String expandedText, java.util.Map<String, Double> weightMultipliers) {
 
     public RetrievalQuery {
-        if (text == null || text.isBlank())
-            throw new IllegalArgumentException("text must not be null or blank");
-        if (expandedText != null && expandedText.isBlank())
+        if (text == null || text.isBlank()) {throw new IllegalArgumentException("text must not be null or blank");}
+        if (expandedText != null && expandedText.isBlank()) {
             throw new IllegalArgumentException("expandedText must not be blank when provided");
+        }
+        if (weightMultipliers == null) {
+            weightMultipliers = java.util.Map.of();
+        } else {
+            for (var entry : weightMultipliers.entrySet()) {
+                if (entry.getValue() <= 0) {
+                    throw new IllegalArgumentException("Multiplier must be positive, got "
+                                                       + entry.getValue() + " for " + entry.getKey());
+                }
+            }
+            weightMultipliers = java.util.Map.copyOf(weightMultipliers);
+        }
     }
 
     public static RetrievalQuery of(String text) {
-        return new RetrievalQuery(text, null);
+        return new RetrievalQuery(text, null, java.util.Map.of());
     }
 
     public String searchText() {
@@ -24,6 +29,18 @@ public record RetrievalQuery(String text, String expandedText) {
     }
 
     public RetrievalQuery withExpansion(String expandedText) {
-        return new RetrievalQuery(text, expandedText);
+        return new RetrievalQuery(text, expandedText, weightMultipliers);
+    }
+
+    public RetrievalQuery withBm25Boost(double multiplier) {
+        var m = new java.util.HashMap<>(weightMultipliers);
+        m.put("bm25", multiplier);
+        return new RetrievalQuery(text, expandedText, m);
+    }
+
+    public RetrievalQuery withWeightMultiplier(String leg, double multiplier) {
+        var m = new java.util.HashMap<>(weightMultipliers);
+        m.put(leg, multiplier);
+        return new RetrievalQuery(text, expandedText, m);
     }
 }

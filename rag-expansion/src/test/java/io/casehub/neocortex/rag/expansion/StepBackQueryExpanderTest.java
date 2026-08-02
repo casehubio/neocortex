@@ -56,7 +56,7 @@ class StepBackQueryExpanderTest {
     void expandPreservesOriginalExpansion() {
         ChatModel model = stubChatModel(prompt -> "abstract");
         var expander = new StepBackQueryExpander(model, stubConfig(Optional.empty()));
-        var query = new RetrievalQuery("original", "prior expansion");
+        var query = new RetrievalQuery("original", "prior expansion", java.util.Map.of());
         var result = expander.expand(query);
 
         assertThat(result.get(0).text()).isEqualTo("original");

@@ -20,7 +20,7 @@ class NoOpQueryExpanderTest {
     @Test
     void expandPreservesExistingExpansion() {
         var expander = new NoOpQueryExpander();
-        var query = new RetrievalQuery("original", "prior expansion");
+        var query = new RetrievalQuery("original", "prior expansion", java.util.Map.of());
         var result = expander.expand(query);
 
         assertThat(result).hasSize(1);

@@ -22,7 +22,7 @@ class RetrievalQueryTest {
 
     @Test
     void searchTextReturnsExpandedTextWhenPresent() {
-        var query = new RetrievalQuery("original", "hypothetical document about original");
+        var query = new RetrievalQuery("original", "hypothetical document about original", java.util.Map.of());
         assertThat(query.searchText()).isEqualTo("hypothetical document about original");
     }
 
@@ -56,21 +56,55 @@ class RetrievalQueryTest {
 
     @Test
     void nullExpandedTextIsAllowed() {
-        var query = new RetrievalQuery("question", null);
+        var query = new RetrievalQuery("question", null, java.util.Map.of());
         assertThat(query.expandedText()).isNull();
         assertThat(query.searchText()).isEqualTo("question");
     }
 
     @Test
     void blankExpandedTextThrows() {
-        assertThatThrownBy(() -> new RetrievalQuery("question", "  "))
+        assertThatThrownBy(() -> new RetrievalQuery("question", "  ", java.util.Map.of()))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void recordEquality() {
-        var a = new RetrievalQuery("q", "e");
-        var b = new RetrievalQuery("q", "e");
+        var a = new RetrievalQuery("q", "e", java.util.Map.of());
+        var b = new RetrievalQuery("q", "e", java.util.Map.of());
         assertThat(a).isEqualTo(b);
+    }
+
+    @Test
+    void weightMultipliers_emptyByDefault() {
+        assertThat(RetrievalQuery.of("q").weightMultipliers()).isEmpty();
+    }
+
+    @Test
+    void withBm25Boost_setsMultiplier() {
+        var q = RetrievalQuery.of("q").withBm25Boost(2.0);
+        assertThat(q.weightMultipliers()).containsEntry("bm25", 2.0);
+    }
+
+    @Test
+    void withWeightMultiplier_unknownLegAccepted() {
+        var q = RetrievalQuery.of("q").withWeightMultiplier("future-leg", 1.5);
+        assertThat(q.weightMultipliers()).containsEntry("future-leg", 1.5);
+    }
+
+    @Test
+    void withWeightMultiplier_validatesPositive() {
+        assertThatThrownBy(() -> RetrievalQuery.of("q").withWeightMultiplier("bm25", 0.0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("positive");
+        assertThatThrownBy(() -> RetrievalQuery.of("q").withWeightMultiplier("bm25", -1.0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("positive");
+    }
+
+    @Test
+    void withExpansion_preservesMultipliers() {
+        var q = RetrievalQuery.of("q").withBm25Boost(2.0).withExpansion("expanded");
+        assertThat(q.weightMultipliers()).containsEntry("bm25", 2.0);
+        assertThat(q.searchText()).isEqualTo("expanded");
     }
 }

@@ -238,7 +238,7 @@ class CorrectiveCaseRetrieverTest {
         var retriever = new CorrectiveCaseRetriever(
                 delegate, capturingEvaluator, stubConfig(3), capturingEvent(quality));
 
-        var expandedQuery = new RetrievalQuery("original question", "hypothetical document about original question");
+        var expandedQuery = new RetrievalQuery("original question", "hypothetical document about original question", java.util.Map.of());
         retriever.retrieve(expandedQuery, CORPUS, 10, null);
 
         assertThat(capturedQuery.get()).isEqualTo("original question");

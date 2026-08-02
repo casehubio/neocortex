@@ -38,7 +38,7 @@ class InMemoryQueryExpanderTest {
     @Test
     void expandPreservesExistingExpansion() {
         var expander = new InMemoryQueryExpander();
-        var alreadyExpanded = new RetrievalQuery("original", "prior expansion");
+        var alreadyExpanded = new RetrievalQuery("original", "prior expansion", java.util.Map.of());
         var result = expander.expand(alreadyExpanded);
         assertThat(result).hasSize(1);
         assertThat(result.get(0).text()).isEqualTo("original");

@@ -181,7 +181,7 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
                     Instant timestamp = fromIso(rs.getString("timestamp"));
 
                     RetrievalQuery query = expandedText != null
-                        ? new RetrievalQuery(queryText, expandedText)
+                        ? new RetrievalQuery(queryText, expandedText, java.util.Map.of())
                         : RetrievalQuery.of(queryText);
                     CorpusRef ref = new CorpusRef(tenantId, corpusName);
                     List<RetrievedDocumentRef> docs = findDocumentRefs(conn, retrievalId);
