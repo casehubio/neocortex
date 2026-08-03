@@ -1,6 +1,6 @@
 # Matryoshka Embeddings + Qdrant Quantization
 
-**Issue:** casehubio/neocortex#31
+**Issue:** casehubio/neural-text#31
 **Date:** 2026-06-26
 **Status:** Approved
 
