@@ -912,11 +912,11 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override
-    public List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {
+    public io.casehub.neocortex.memory.cbr.CbrScanResult scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {
         String collection = collectionManager.collectionName(request.caseType());
         boolean exists = awaitFuture(
                 collectionManager.client().collectionExistsAsync(collection), "collectionExists");
-        if (!exists) {return List.of();}
+        if (!exists) {return new io.casehub.neocortex.memory.cbr.CbrScanResult(List.of(), null);}
 
         Filter scopeFilter = Filter.newBuilder()
                                    .addMust(ConditionFactory.matchKeyword("tenantId", request.tenantId()))
@@ -929,9 +929,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                                                                      .setWithPayload(WithPayloadSelectorFactory.include(
                                                                              List.of("caseId", "entityId", "caseType", "producer_agent_id", "trust_score", "_stored_at")))
                                                                      .setLimit(request.limit());
-        if (request.afterCaseId() != null) {
-            UUID afterUuid = CbrPointBuilder.pointId(request.tenantId(), request.caseType(), request.afterCaseId());
-            scrollBuilder.setOffset(PointIdFactory.id(afterUuid));
+        if (request.cursor() != null) {
+            scrollBuilder.setOffset(PointIdFactory.id(UUID.fromString(request.cursor())));
         }
 
         var scrollResult = awaitFuture(collectionManager.client().scrollAsync(scrollBuilder.build()), "scrollForScan");
@@ -949,7 +948,10 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                                ? Instant.ofEpochMilli(payload.get("_stored_at").getIntegerValue()) : null;
             result.add(new io.casehub.neocortex.memory.cbr.CbrCaseSummary(caseId, entityId, caseType, producerAgentId, trustScore, storedAt));
         }
-        return List.copyOf(result);
+        String nextCursor = result.size() >= request.limit() && scrollResult.hasNextPageOffset()
+                            ? scrollResult.getNextPageOffset().getUuid()
+                            : null;
+        return new io.casehub.neocortex.memory.cbr.CbrScanResult(List.copyOf(result), nextCursor);
     }
 
 

@@ -95,7 +95,7 @@ public class TrendEnrichmentCbrCaseMemoryStore implements CbrCaseMemoryStore {
     public java.util.Set<String> discoverTenants(io.casehub.neocortex.memory.MemoryDomain domain) {return delegate.discoverTenants(domain);}
 
     @Override
-    public java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request)                            {return delegate.scan(request);}
+    public io.casehub.neocortex.memory.cbr.CbrScanResult scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request)                            {return delegate.scan(request);}
 
 
     @Override

@@ -277,21 +277,22 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override
-    @Transactional
-    public List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {
+    public io.casehub.neocortex.memory.cbr.CbrScanResult scan(io.casehub.neocortex.memory.cbr.CbrScanRequest request) {
         String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct"
-                      + (request.afterCaseId() != null ? " AND e.caseId > :afterId" : "")
+                      + (request.cursor() != null ? " AND e.caseId > :afterId" : "")
                       + " ORDER BY e.caseId";
         var q = em.createQuery(jpql, CbrCaseEntity.class)
                   .setParameter("t", request.tenantId())
                   .setParameter("d", request.domain().name())
                   .setParameter("ct", request.caseType())
                   .setMaxResults(request.limit());
-        if (request.afterCaseId() != null) {q.setParameter("afterId", request.afterCaseId());}
-        return q.getResultList().stream()
-                .map(e -> new io.casehub.neocortex.memory.cbr.CbrCaseSummary(
-                        e.caseId, e.entityId, e.caseType, e.producerAgentId, e.trustScore, e.storedAt))
-                .toList();
+        if (request.cursor() != null) {q.setParameter("afterId", request.cursor());}
+        var items = q.getResultList().stream()
+                     .map(e -> new io.casehub.neocortex.memory.cbr.CbrCaseSummary(
+                             e.caseId, e.entityId, e.caseType, e.producerAgentId, e.trustScore, e.storedAt))
+                     .toList();
+        String nextCursor = items.size() >= request.limit() ? items.get(items.size() - 1).caseId() : null;
+        return new io.casehub.neocortex.memory.cbr.CbrScanResult(items, nextCursor);
     }
 
 

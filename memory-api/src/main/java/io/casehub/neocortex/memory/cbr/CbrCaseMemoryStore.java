@@ -38,7 +38,7 @@ public interface CbrCaseMemoryStore {
                 "discoverTenants not supported by " + getClass().getSimpleName());
     }
 
-    default java.util.List<CbrCaseSummary> scan(CbrScanRequest request) {
+    default CbrScanResult scan(CbrScanRequest request) {
         throw new UnsupportedOperationException(
                 "scan not supported by " + getClass().getSimpleName());
     }

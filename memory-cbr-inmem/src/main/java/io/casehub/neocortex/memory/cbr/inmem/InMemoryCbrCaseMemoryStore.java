@@ -5,13 +5,14 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
-import io.casehub.neocortex.memory.cbr.CbrScanRequest;
+import io.casehub.neocortex.memory.cbr.CbrScanResult;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
+import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -253,15 +254,15 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override
-    public List<CbrCaseSummary> scan(CbrScanRequest request) {
-        boolean              pastCursor = request.afterCaseId() == null;
+    public CbrScanResult scan(CbrScanRequest request) {
+        boolean              pastCursor = request.cursor() == null;
         List<CbrCaseSummary> result     = new java.util.ArrayList<>();
         for (StoredCase sc : cases) {
             if (!sc.tenantId().equals(request.tenantId())) {continue;}
             if (!sc.domain().equals(request.domain())) {continue;}
             if (!sc.caseType().equals(request.caseType())) {continue;}
             if (!pastCursor) {
-                if (sc.caseId().equals(request.afterCaseId())) {pastCursor = true;}
+                if (sc.caseId().equals(request.cursor())) {pastCursor = true;}
                 continue;
             }
             result.add(new CbrCaseSummary(
@@ -269,7 +270,8 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                     sc.cbrCase().producerAgentId(), sc.cbrCase().trustScore(), sc.storedAt()));
             if (result.size() >= request.limit()) {break;}
         }
-        return List.copyOf(result);
+        String nextCursor = result.size() >= request.limit() ? result.get(result.size() - 1).caseId() : null;
+        return new CbrScanResult(result, nextCursor);
     }
 
 

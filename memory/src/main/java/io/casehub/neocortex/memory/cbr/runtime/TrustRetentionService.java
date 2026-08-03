@@ -4,7 +4,6 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.AgentTrustProvider;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -12,7 +11,6 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
@@ -75,9 +73,9 @@ public class TrustRetentionService {
             Map<String, Integer>        purgedByAgent = new HashMap<>();
             String                      cursor        = null;
             do {
-                var                  req  = new CbrScanRequest(tenantId, domain, caseType, 500, cursor);
-                List<CbrCaseSummary> page = store.scan(req);
-                for (var c : page) {
+                var req    = new CbrScanRequest(tenantId, domain, caseType, 500, cursor);
+                var result = store.scan(req);
+                for (var c : result.items()) {
                     if (c.producerAgentId() == null) {continue;}
                     OptionalDouble trust = trustCache.computeIfAbsent(
                             c.producerAgentId(),
@@ -88,15 +86,13 @@ public class TrustRetentionService {
                             c.entityId(), domain, tenantId, c.caseId()));
                     purgedByAgent.merge(c.producerAgentId(), 1, Integer::sum);
                 }
-                cursor = page.isEmpty() ? null
-                                        : page.get(page.size() - 1).caseId();
+                cursor = result.nextCursor();
             } while (cursor != null);
 
             for (var entry : purgedByAgent.entrySet()) {
-                LOG.infof("Purged %d cases from agent %s (trust=%.2f)",
-                          entry.getValue(), entry.getKey(),
-                          trustCache.get(entry.getKey()).getAsDouble());
+                LOG.info("Trust retention purged " + entry.getValue()
+                         + " cases from agent " + entry.getKey()
+                         + " (tenant=" + tenantId + ", caseType=" + caseType + ")");
             }
-        }
-    }
+        }}
 }

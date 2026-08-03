@@ -5,6 +5,7 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.AgentTrustProvider;
 import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
+import io.casehub.neocortex.memory.cbr.CbrScanResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -159,20 +160,21 @@ class TrustRetentionServiceTest {
         }
 
         @Override
-        public List<CbrCaseSummary> scan(CbrScanRequest request) {
+        public CbrScanResult scan(CbrScanRequest request) {
             scanCalled = true;
-            boolean              pastCursor = request.afterCaseId() == null;
+            boolean              pastCursor = request.cursor() == null;
             List<CbrCaseSummary> result     = new java.util.ArrayList<>();
             for (CbrCaseSummary c : cases) {
                 if (!c.caseType().equals(request.caseType())) {continue;}
                 if (!pastCursor) {
-                    if (c.caseId().equals(request.afterCaseId())) {pastCursor = true;}
+                    if (c.caseId().equals(request.cursor())) {pastCursor = true;}
                     continue;
                 }
                 result.add(c);
                 if (result.size() >= scanPageSize) {break;}
             }
-            return result;
+            String nextCursor = result.isEmpty() ? null : result.get(result.size() - 1).caseId();
+            return new CbrScanResult(result, nextCursor);
         }
 
         @Override
