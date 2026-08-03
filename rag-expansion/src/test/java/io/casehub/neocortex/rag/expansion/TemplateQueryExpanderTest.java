@@ -49,6 +49,7 @@ class TemplateQueryExpanderTest {
             @Override public Optional<String> promptTemplate() { return Optional.empty(); }
             @Override public Optional<String> template() { return template; }
             @Override public Optional<String> stepBackPromptTemplate() { return Optional.empty(); }
+            @Override public DriftConfig drift() { return new DriftConfig() { @Override public boolean enabled() { return false; } @Override public double threshold() { return 0.7; } @Override public DriftAction action() { return DriftAction.OBSERVE; } }; }
         };
     }
 }

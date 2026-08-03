@@ -21,4 +21,17 @@ public interface ExpansionConfig {
     Optional<String> template();
 
     Optional<String> stepBackPromptTemplate();
+
+    interface DriftConfig {
+        @WithDefault("false")
+        boolean enabled();
+
+        @WithDefault("0.7")
+        double threshold();
+
+        @WithDefault("observe")
+        DriftAction action();
+    }
+
+    DriftConfig drift();
 }
