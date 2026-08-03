@@ -1,5 +1,9 @@
 package io.casehub.neocortex.rag.expansion;
 
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.output.Response;
 import io.casehub.neocortex.rag.CaseRetriever;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.QueryExpander;
@@ -198,6 +202,190 @@ class QueryExpandingCaseRetrieverTest {
         assertThat(capturedQueries.get(0)).isEqualTo(original);
         assertThat(capturedQueries.get(1).text()).isEqualTo("reformulated");
     }
+
+    @Test
+    void driftObserveModeKeepsAllExpansions() {
+        var capturedQueries = new ArrayList<RetrievalQuery>();
+        CaseRetriever delegate = (query, corpus, maxResults, filter) -> {
+            capturedQueries.add(query);
+            return List.of(chunk(query.searchText(), "doc-" + capturedQueries.size(), 0.9));
+        };
+        QueryExpander driftingExpander = query -> List.of(query.withExpansion("completely unrelated text"));
+
+        var retriever = new QueryExpandingCaseRetriever(delegate, driftingExpander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(
+                new StubEmbeddingModel(Map.of(
+                        "original", new float[]{1.0f, 0.0f, 0.0f},
+                        "completely unrelated text", new float[]{0.0f, 1.0f, 0.0f})));
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(true, 0.7, DriftAction.OBSERVE);
+
+        var results = retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(capturedQueries).hasSize(2);
+        assertThat(results).hasSize(2);
+    }
+
+    @Test
+    void driftDropModeRemovesDriftedExpansions() {
+        var capturedQueries = new ArrayList<RetrievalQuery>();
+        CaseRetriever delegate = (query, corpus, maxResults, filter) -> {
+            capturedQueries.add(query);
+            return List.of(chunk(query.searchText(), "doc-" + capturedQueries.size(), 0.9));
+        };
+        QueryExpander driftingExpander = query -> List.of(query.withExpansion("completely unrelated text"));
+
+        var retriever = new QueryExpandingCaseRetriever(delegate, driftingExpander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(
+                new StubEmbeddingModel(Map.of(
+                        "original", new float[]{1.0f, 0.0f, 0.0f},
+                        "completely unrelated text", new float[]{0.0f, 1.0f, 0.0f})));
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(true, 0.7, DriftAction.DROP);
+
+        var results = retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(capturedQueries).hasSize(1);
+        assertThat(capturedQueries.get(0).expandedText()).isNull();
+    }
+
+    @Test
+    void originalQueryExcludedFromDriftComparison() {
+        var capturedQueries = new ArrayList<RetrievalQuery>();
+        CaseRetriever delegate = (query, corpus, maxResults, filter) -> {
+            capturedQueries.add(query);
+            return List.of(chunk(query.searchText(), "doc-" + capturedQueries.size(), 0.9));
+        };
+        QueryExpander expander = query -> List.of(query.withExpansion("similar enough text"));
+
+        var retriever = new QueryExpandingCaseRetriever(delegate, expander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(
+                new StubEmbeddingModel(Map.of(
+                        "original", new float[]{1.0f, 0.0f, 0.0f},
+                        "similar enough text", new float[]{0.9f, 0.44f, 0.0f})));
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(true, 0.7, DriftAction.DROP);
+
+        var results = retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(capturedQueries).hasSize(2);
+        assertThat(capturedQueries.get(0).expandedText()).isNull();
+        assertThat(capturedQueries.get(1).expandedText()).isEqualTo("similar enough text");
+    }
+
+    @Test
+    void embeddingFailureFallsBackToUnfilteredList() {
+        var capturedQueries = new ArrayList<RetrievalQuery>();
+        CaseRetriever delegate = (query, corpus, maxResults, filter) -> {
+            capturedQueries.add(query);
+            return List.of(chunk(query.searchText(), "doc-" + capturedQueries.size(), 0.9));
+        };
+        QueryExpander expander = query -> List.of(query.withExpansion("expanded text"));
+
+        EmbeddingModel failingModel = segments -> {throw new RuntimeException("ONNX error");};
+        var            retriever    = new QueryExpandingCaseRetriever(delegate, expander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(failingModel);
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(true, 0.7, DriftAction.DROP);
+
+        var results = retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(capturedQueries).hasSize(2);
+    }
+
+    @Test
+    void noEmbeddingModelSkipsDriftDetection() {
+        var capturedQueries = new ArrayList<RetrievalQuery>();
+        CaseRetriever delegate = (query, corpus, maxResults, filter) -> {
+            capturedQueries.add(query);
+            return List.of(chunk(query.searchText(), "doc-" + capturedQueries.size(), 0.9));
+        };
+        QueryExpander expander = query -> List.of(query.withExpansion("expanded text"));
+
+        var retriever = new QueryExpandingCaseRetriever(delegate, expander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(true, 0.7, DriftAction.DROP);
+
+        var results = retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(capturedQueries).hasSize(2);
+    }
+
+    @Test
+    void driftDisabledSkipsDriftDetection() {
+        var capturedQueries = new ArrayList<RetrievalQuery>();
+        CaseRetriever delegate = (query, corpus, maxResults, filter) -> {
+            capturedQueries.add(query);
+            return List.of(chunk(query.searchText(), "doc-" + capturedQueries.size(), 0.9));
+        };
+        QueryExpander driftingExpander = query -> List.of(query.withExpansion("completely unrelated"));
+
+        var retriever = new QueryExpandingCaseRetriever(delegate, driftingExpander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(
+                new StubEmbeddingModel(Map.of(
+                        "original", new float[]{1.0f, 0.0f, 0.0f},
+                        "completely unrelated", new float[]{0.0f, 1.0f, 0.0f})));
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(false, 0.7, DriftAction.DROP);
+
+        var results = retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(capturedQueries).hasSize(2);
+    }
+
+    @Test
+    void driftDetectionUsesSingleBatchEmbedCall() {
+        var embedCallCount = new int[]{0};
+        EmbeddingModel countingModel = segments -> {
+            embedCallCount[0]++;
+            List<Embedding> embeddings = segments.stream()
+                                                 .map(s -> Embedding.from(new float[]{1.0f, 0.0f, 0.0f}))
+                                                 .toList();
+            return Response.from(embeddings);
+        };
+        CaseRetriever delegate = (query, corpus, maxResults, filter) ->
+                                         List.of(chunk(query.searchText(), "doc", 0.9));
+        QueryExpander expander = query -> List.of(
+                query.withExpansion("exp1"), query.withExpansion("exp2"));
+
+        var retriever = new QueryExpandingCaseRetriever(delegate, expander);
+        retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(countingModel);
+        retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
+        retriever.config         = stubExpansionConfig(true, 0.7, DriftAction.OBSERVE);
+
+        retriever.retrieve(RetrievalQuery.of("original"), CORPUS, 10, null);
+        assertThat(embedCallCount[0]).isEqualTo(1);
+    }
+
+    private static ExpansionConfig stubExpansionConfig(boolean driftEnabled, double threshold, DriftAction action) {
+        return ExpansionConfigValidatorTest.stubConfig(
+                java.util.Optional.of("llm"),
+                new ExpansionConfig.DriftConfig() {
+                    @Override
+                    public boolean enabled()    {return driftEnabled;}
+
+                    @Override
+                    public double threshold()   {return threshold;}
+
+                    @Override
+                    public DriftAction action() {return action;}
+                });
+    }
+
+    private static class StubEmbeddingModel implements EmbeddingModel {
+        private final Map<String, float[]> vectors;
+
+        StubEmbeddingModel(Map<String, float[]> vectors) {
+            this.vectors = vectors;
+        }
+
+        @Override
+        public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
+            List<Embedding> embeddings = textSegments.stream()
+                                                     .map(s -> {
+                                                         float[] vec = vectors.getOrDefault(s.text(), new float[]{0.5f, 0.5f, 0.5f});
+                                                         return Embedding.from(vec);
+                                                     })
+                                                     .toList();
+            return Response.from(embeddings);
+        }
+    }
+
 
     private static RetrievedChunk chunk(String content, String docId, double score) {
         return new RetrievedChunk(content, docId, score, Map.of());

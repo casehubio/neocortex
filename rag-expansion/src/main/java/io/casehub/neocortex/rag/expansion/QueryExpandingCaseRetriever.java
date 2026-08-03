@@ -1,22 +1,30 @@
 package io.casehub.neocortex.rag.expansion;
 
+import io.casehub.neocortex.fusion.ScoreFusion;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.CosineSimilarity;
 import io.casehub.neocortex.rag.CaseRetriever;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.PayloadFilter;
 import io.casehub.neocortex.rag.QueryExpander;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
-import io.casehub.neocortex.fusion.ScoreFusion;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
 import jakarta.decorator.Delegate;
 import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +38,16 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
 
     private final CaseRetriever delegate;
     private final QueryExpander expander;
+    @Inject
+    @Any
+    Instance<EmbeddingModel> embeddingModel;
+
+    @Inject
+    Instance<MeterRegistry> meterRegistry;
+
+    @Inject
+    ExpansionConfig config;
+
 
     @Inject
     public QueryExpandingCaseRetriever(@Delegate @Any CaseRetriever delegate,
@@ -64,6 +82,8 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
             expanded = withOriginal;
         }
 
+        expanded = filterByDrift(query, expanded);
+
         // Single-query fast path: skip RRF fusion
         if (expanded.size() == 1) {
             return delegate.retrieve(expanded.get(0), corpus, maxResults, filter);
@@ -82,4 +102,76 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
         return ScoreFusion.rrf(legs, RetrievedChunk::fusionKey, maxResults, 60)
             .stream().map(f -> f.item().withRelevanceScore(f.score())).toList();
     }
+
+    private List<RetrievalQuery> filterByDrift(RetrievalQuery original, List<RetrievalQuery> expanded) {
+        if (config == null || !config.drift().enabled()
+            || embeddingModel == null || !embeddingModel.isResolvable()) {
+            return expanded;
+        }
+
+        try {
+            List<RetrievalQuery> expandedOnly = expanded.stream()
+                                                        .filter(q -> q.expandedText() != null)
+                                                        .toList();
+
+            if (expandedOnly.isEmpty()) {
+                return expanded;
+            }
+
+            List<TextSegment> segments = new ArrayList<>(expandedOnly.size() + 1);
+            segments.add(TextSegment.from(original.text()));
+            for (var q : expandedOnly) {
+                segments.add(TextSegment.from(q.searchText()));
+            }
+
+            List<Embedding> embeddings        = embeddingModel.get().embedAll(segments).content();
+            Embedding       originalEmbedding = embeddings.get(0);
+
+            String                      mode  = config.mode().orElse("unknown");
+            ExpansionConfig.DriftConfig drift = config.drift();
+
+            if (meterRegistry != null && meterRegistry.isResolvable()) {
+                meterRegistry.get().counter("casehub.rag.expansion.total", "mode", mode).increment();
+            }
+
+            Set<RetrievalQuery> toDrop = new HashSet<>();
+            for (int i = 0; i < expandedOnly.size(); i++) {
+                double    similarity = CosineSimilarity.between(originalEmbedding, embeddings.get(i + 1));
+                final int idx        = i;
+
+                LOG.fine(() -> String.format("Drift: similarity=%.4f threshold=%.4f query='%s'",
+                                             similarity, drift.threshold(), expandedOnly.get(idx).searchText()));
+
+                if (meterRegistry != null && meterRegistry.isResolvable()) {
+                    meterRegistry.get().summary("casehub.rag.expansion.drift", "mode", mode)
+                                 .record(similarity);
+                }
+
+                if (similarity < drift.threshold()) {
+                    LOG.warning(() -> String.format(
+                            "Expansion drift detected: similarity=%.4f below threshold=%.4f for query='%s'",
+                            similarity, drift.threshold(), expandedOnly.get(idx).searchText()));
+
+                    if (drift.action() == DriftAction.DROP) {
+                        toDrop.add(expandedOnly.get(idx));
+                        if (meterRegistry != null && meterRegistry.isResolvable()) {
+                            meterRegistry.get().counter("casehub.rag.expansion.drift.fallback", "mode", mode)
+                                         .increment();
+                        }
+                    }
+                }
+            }
+
+            if (toDrop.isEmpty()) {
+                return expanded;
+            }
+
+            return expanded.stream().filter(q -> !toDrop.contains(q)).toList();
+
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Drift detection failed, using unfiltered expansion list", e);
+            return expanded;
+        }
+    }
+
 }
