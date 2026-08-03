@@ -91,12 +91,12 @@ Peer repos: platform, ledger, connectors, work, qhorus, eidos, engine, claudony,
 ## Repo Guide
 
 This repo owns its own documentation, synced to parent via CI:
-- `docs/consumer-guide.md` — for app builders: modules, APIs, quick start
-- `docs/contributor-guide.md` — for platform builders: architecture, SPIs, internals
+- `docs/guides/consumer-guide.md` — for app builders: modules, APIs, quick start
+- `docs/guides/contributor-guide.md` — for platform builders: architecture, SPIs, internals
 
 Update the relevant guide in the same session when implementation changes modules, SPIs, or public APIs. Do not defer — drift compounds.
 
-Read `consumer-guide.md` for app-level work. Only read `contributor-guide.md` when modifying this repo's internals or extension points.
+Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/contributor-guide.md` when modifying this repo's internals or extension points.
 
 ## Reference Documents
 
