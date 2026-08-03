@@ -2,15 +2,16 @@ package io.casehub.neocortex.rag.runtime;
 
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import io.casehub.neocortex.corpus.ChangeListener;
-import io.casehub.neocortex.corpus.ChangedEntry;
 import io.casehub.neocortex.corpus.ChangeSet;
 import io.casehub.neocortex.corpus.ChangeSource;
 import io.casehub.neocortex.corpus.ChangeType;
+import io.casehub.neocortex.corpus.ChangedEntry;
 import io.casehub.neocortex.corpus.CorpusReader;
-import io.casehub.neocortex.corpus.WatchableChangeSource;
 import io.casehub.neocortex.corpus.VersionInfo;
+import io.casehub.neocortex.corpus.WatchableChangeSource;
 import io.casehub.neocortex.rag.ChunkInput;
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.neocortex.rag.EmbeddingIngestor;
 import io.casehub.neocortex.rag.ExtractionResult;
 import io.casehub.neocortex.rag.MetadataExtractor;
 import io.casehub.neocortex.rag.testing.InMemoryCursorStore;
@@ -325,6 +326,119 @@ class CorpusIngestionServiceTest {
         // cursor STILL advances (best-effort)
         assertThat(cursorStore.load("garden")).contains("cursor-best-effort");
     }
+
+    @Test
+    void reconcileBatchesChunksFromMultipleMissingDocuments() {
+        var fullScan = new ChangeSet(
+                List.of(
+                        new ChangedEntry("docs/a.md", ChangeType.ADDED),
+                        new ChangedEntry("docs/b.md", ChangeType.ADDED),
+                        new ChangedEntry("docs/c.md", ChangeType.ADDED)
+                       ),
+                "cursor-batch"
+        );
+        var binding = binding(
+                fixedSource(fullScan),
+                stubReader(Map.of(
+                        "docs/a.md", "Alpha content",
+                        "docs/b.md", "Beta content",
+                        "docs/c.md", "Gamma content"
+                                 ))
+                             );
+
+        service().reconcile("garden", binding);
+
+        assertThat(ingestor.listDocuments(CORPUS))
+                .containsExactlyInAnyOrder("docs/a.md", "docs/b.md", "docs/c.md");
+        assertThat(ingestor.getChunks(CORPUS))
+                .extracting(ChunkInput::content)
+                .containsExactlyInAnyOrder("Alpha content", "Beta content", "Gamma content");
+        assertThat(cursorStore.load("garden")).contains("cursor-batch");
+    }
+
+    @Test
+    void reconcileExtractionFailureDoesNotBlockOtherDocuments() {
+        var fullScan = new ChangeSet(
+                List.of(
+                        new ChangedEntry("docs/ok.md", ChangeType.ADDED),
+                        new ChangedEntry("docs/fail.md", ChangeType.ADDED),
+                        new ChangedEntry("docs/also-ok.md", ChangeType.ADDED)
+                       ),
+                "cursor-partial"
+        );
+        MetadataExtractor failOnSecond = (path, content) -> {
+            if (path.equals("docs/fail.md")) {
+                throw new RuntimeException("extraction failed");
+            }
+            return new ExtractionResult(new String(content), Map.of());
+        };
+        var binding = binding(
+                fixedSource(fullScan),
+                stubReader(Map.of(
+                        "docs/ok.md", "First doc",
+                        "docs/fail.md", "Bad doc",
+                        "docs/also-ok.md", "Third doc"
+                                 )),
+                failOnSecond
+                             );
+
+        service().reconcile("garden", binding);
+
+        assertThat(ingestor.listDocuments(CORPUS))
+                .containsExactlyInAnyOrder("docs/ok.md", "docs/also-ok.md");
+        assertThat(cursorStore.load("garden")).contains("cursor-partial");
+    }
+
+    @Test
+    void reconcileIngestFailureDoesNotPreventStaleDeletion() {
+        // Pre-populate Qdrant with a stale document
+        ingestor.ingest(CORPUS, List.of(new ChunkInput("stale content", "docs/stale.md", Map.of())));
+
+        // Corpus has a new document (will cause ingest) but NOT the stale one
+        var fullScan = new ChangeSet(
+                List.of(new ChangedEntry("docs/new.md", ChangeType.ADDED)),
+                "cursor-ingest-fail"
+        );
+
+        // Use a failing ingestor wrapper to simulate ingest failure
+        var failingIngestor = new EmbeddingIngestor() {
+            private final EmbeddingIngestor delegate = ingestor;
+
+            @Override
+            public void ingest(CorpusRef corpus, List<ChunkInput> chunks) {
+                throw new RuntimeException("Qdrant unavailable");
+            }
+
+            @Override
+            public void deleteDocument(CorpusRef corpus, String sourceDocumentId) {
+                delegate.deleteDocument(corpus, sourceDocumentId);
+            }
+
+            @Override
+            public void deleteCorpus(CorpusRef corpus) {
+                delegate.deleteCorpus(corpus);
+            }
+
+            @Override
+            public List<String> listDocuments(CorpusRef corpus) {
+                return delegate.listDocuments(corpus);
+            }
+        };
+
+        var service = new CorpusIngestionService(failingIngestor, cursorStore);
+        var binding = binding(
+                fixedSource(fullScan),
+                stubReader(Map.of("docs/new.md", "New content"))
+                             );
+
+        service.reconcile("garden", binding);
+
+        // Stale document should still be deleted despite ingest failure
+        assertThat(failingIngestor.listDocuments(CORPUS)).isEmpty();
+        // Cursor should still advance
+        assertThat(cursorStore.load("garden")).contains("cursor-ingest-fail");
+    }
+
 
     // --- Test 13: blankBodySkipsIngestion ---
 

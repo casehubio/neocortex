@@ -4,9 +4,9 @@ import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
-import io.casehub.neocortex.corpus.ChangedEntry;
 import io.casehub.neocortex.corpus.ChangeSet;
 import io.casehub.neocortex.corpus.ChangeType;
+import io.casehub.neocortex.corpus.ChangedEntry;
 import io.casehub.neocortex.corpus.WatchableChangeSource;
 import io.casehub.neocortex.rag.ChunkInput;
 import io.casehub.neocortex.rag.CorpusRef;
@@ -262,6 +262,7 @@ public class CorpusIngestionService {
         }
         Set<String> qdrantPaths = new HashSet<>(qdrantDocs);
 
+        List<ChunkInput> allChunks = new ArrayList<>();
         for (String path : corpusPaths) {
             if (!qdrantPaths.contains(path)) {
                 try {
@@ -273,12 +274,18 @@ public class CorpusIngestionService {
 
                     ExtractionResult result = binding.metadataExtractor().extract(path, content.get());
                     List<ChunkInput> chunks = chunkDocument(path, result, splitter);
-                    if (!chunks.isEmpty()) {
-                        ingestor.ingest(corpusRef, chunks);
-                    }
+                    allChunks.addAll(chunks);
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to reingest document '" + path + "' during reconciliation", e);
+                    LOG.log(Level.WARNING, "Failed to process document '" + path + "' during reconciliation", e);
                 }
+            }
+        }
+
+        if (!allChunks.isEmpty()) {
+            try {
+                ingestor.ingest(corpusRef, allChunks);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to batch ingest chunks for corpus '" + corpusName + "' during reconciliation", e);
             }
         }
 
