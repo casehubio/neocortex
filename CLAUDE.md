@@ -176,6 +176,11 @@ examples/
 evaluation/
   code_domain_embeddings/  — Python evaluation scripts for #49: tokenizer analysis, embedding discrimination, benchmark runner, deployment check. Requires own venv (not Maven). Run with `python3 -m evaluation.code_domain_embeddings.<script>`.
   strategy_classifier/   — Python ML pipeline for #75/#76: MSC dataset download, fog-of-war simulation, hybrid labelling, CNN-Attention model training, ONNX export, evaluation. Requires own venv. Run with `python3 -m evaluation.strategy_classifier.<script>`.
+scripts/
+  bgem3_model.py         — PyTorch nn.Module wrapper for BGE-M3 three-head ONNX export
+  export_bge_m3.py       — export entrypoint: download, export, optimize, validate
+  download-models.sh     — verify exported model exists and matches checksums
+  requirements-export.txt — Python deps for export (separate venv)
 ```
 
 Examples are excluded from the default build. Activate with `-Pexamples-smoke` (in-memory stubs) or `-Pexamples` (real ONNX models + Testcontainers Qdrant).
