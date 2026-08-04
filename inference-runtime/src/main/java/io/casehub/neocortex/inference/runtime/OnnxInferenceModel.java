@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * ONNX Runtime implementation of {@link InferenceModel}. Wraps ONNX Runtime JNI
@@ -50,6 +51,7 @@ public final class OnnxInferenceModel implements InferenceModel {
     private final String tokenTypeIdsName;
     private final OptionalInt outputSize;
     private final boolean hasRank3Output;
+    private final ReentrantLock sessionLock = new ReentrantLock();
     private volatile boolean closed;
 
     /**
@@ -224,6 +226,7 @@ public final class OnnxInferenceModel implements InferenceModel {
     }
 
     private InferenceOutput runSession(Map<String, OnnxTensor> inputMap) throws OrtException {
+        sessionLock.lock();
         try (OrtSession.Result result = session.run(inputMap)) {
             Map<String, float[][]> outputs = new LinkedHashMap<>();
             for (Map.Entry<String, OnnxValue> entry : result) {
@@ -235,6 +238,8 @@ public final class OnnxInferenceModel implements InferenceModel {
                 }
             }
             return new InferenceOutput(outputs);
+        } finally {
+            sessionLock.unlock();
         }
     }
 
@@ -316,6 +321,7 @@ public final class OnnxInferenceModel implements InferenceModel {
                 inputMap.put(tokenTypeIdsName, typeIdsTensor);
             }
 
+            sessionLock.lock();
             try (OrtSession.Result result = session.run(inputMap)) {
                 Map<String, Object> rawOutputs = new LinkedHashMap<>();
                 for (Map.Entry<String, OnnxValue> entry : result) {
@@ -339,6 +345,8 @@ public final class OnnxInferenceModel implements InferenceModel {
                     outputs.add(new InferenceOutput(sampleOutputs));
                 }
                 return Collections.unmodifiableList(outputs);
+            } finally {
+                sessionLock.unlock();
             }
         } catch (OrtException e) {
             throw new InferenceException("Batch inference failed: " + e.getMessage(), e);
