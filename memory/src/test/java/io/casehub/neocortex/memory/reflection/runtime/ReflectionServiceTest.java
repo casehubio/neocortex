@@ -43,7 +43,7 @@ class ReflectionServiceTest {
             new ReflectionEvent("a1", "t1", null, "pattern observed", 1, List.of("m1", "m2"), null, Map.of())
         );
 
-        List<String> ids = service.reflect("a1", "t1", null);
+        List<String> ids = service.reflect("a1", "t1", null, 100);
 
         assertEquals(1, ids.size());
         assertEquals("mem-0", ids.getFirst());
@@ -61,7 +61,7 @@ class ReflectionServiceTest {
             new ReflectionEvent("a1", "t1", null, "insight 2", 1, List.of("m1"), null, Map.of())
         );
 
-        service.reflect("a1", "t1", null);
+        service.reflect("a1", "t1", null, 100);
 
         assertEquals(2, eventSink.fired.size());
         assertEquals("insight 1", eventSink.fired.get(0).event().insight());
@@ -71,7 +71,7 @@ class ReflectionServiceTest {
     @Test
     void reflectReturnsEmptyWhenNoExperiences() {
         store.queryResults = List.of();
-        List<String> ids = service.reflect("a1", "t1", null);
+        List<String> ids = service.reflect("a1", "t1", null, 100);
         assertTrue(ids.isEmpty());
         assertFalse(synthesizer.wasCalled);
     }
@@ -83,7 +83,7 @@ class ReflectionServiceTest {
         );
         synthesizer.results = List.of();
 
-        List<String> ids = service.reflect("a1", "t1", null);
+        List<String> ids = service.reflect("a1", "t1", null, 100);
 
         assertTrue(ids.isEmpty());
         assertTrue(store.stored.isEmpty());
@@ -95,7 +95,7 @@ class ReflectionServiceTest {
         var since = Instant.parse("2026-08-01T00:00:00Z");
         store.queryResults = List.of();
 
-        service.reflect("a1", "t1", since);
+        service.reflect("a1", "t1", since, 100);
 
         assertNotNull(store.lastQuery);
         assertEquals(since, store.lastQuery.since());
@@ -111,7 +111,7 @@ class ReflectionServiceTest {
             new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), null, Map.of())
         );
 
-        assertThrows(SecurityException.class, () -> service.reflect("a1", "t1", null));
+        assertThrows(SecurityException.class, () -> service.reflect("a1", "t1", null, 100));
     }
 
     @Test
