@@ -349,6 +349,10 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
         checkIndexType(existingSchema, "domain", PayloadSchemaType.Keyword, collection);
         checkIndexType(existingSchema, "type", PayloadSchemaType.Keyword, collection);
         checkIndexType(existingSchema, "tags", PayloadSchemaType.Keyword, collection);
+        checkIndexType(existingSchema, "decay_tier", PayloadSchemaType.Keyword, collection);
+        checkIndexType(existingSchema, "verified_on", PayloadSchemaType.Keyword, collection);
+        checkIndexType(existingSchema, "author", PayloadSchemaType.Keyword, collection);
+        checkIndexType(existingSchema, "last_reviewed", PayloadSchemaType.Keyword, collection);
 
         if (!existingSchema.containsKey("content")) {
             PayloadIndexParams textParams = PayloadIndexParams.newBuilder()
