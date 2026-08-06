@@ -29,6 +29,7 @@
     <module>rag-crossencoder</module>
     <module>rag-expansion</module>
     <module>rag-tracking</module>
+    <module>rag-cache</module>
     <module>corpus-api</module>
     <module>corpus</module>
     <module>memory-api</module>
