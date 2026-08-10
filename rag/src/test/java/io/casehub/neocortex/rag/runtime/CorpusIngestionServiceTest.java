@@ -495,6 +495,64 @@ class CorpusIngestionServiceTest {
         assertThat(watchable.currentCursor()).isEqualTo("cursor-initial");
     }
 
+    // --- Test 16: listMetadataFlowsThroughChunkDocument ---
+
+    @Test
+    void listMetadataFlowsThroughChunkDocument() {
+        var changes = new ChangeSet(
+                List.of(new ChangedEntry("docs/tagged.md", ChangeType.ADDED)),
+                "cursor-list-meta"
+        );
+        MetadataExtractor listMetaExtractor = (path, content) ->
+                new ExtractionResult(
+                        new String(content, StandardCharsets.UTF_8),
+                        Map.of("author", "alice"),
+                        Map.of("tags", List.of("java", "quarkus"),
+                               "see_also", List.of("docs/other.md"))
+                );
+        var binding = binding(
+                fixedSource(changes),
+                stubReader(Map.of("docs/tagged.md", "Tagged content")),
+                listMetaExtractor
+        );
+
+        service().processBinding(binding);
+
+        assertThat(ingestor.getChunks(CORPUS)).hasSize(1);
+        ChunkInput chunk = ingestor.getChunks(CORPUS).getFirst();
+        assertThat(chunk.metadata()).containsEntry("author", "alice");
+        assertThat(chunk.listMetadata()).containsEntry("tags", List.of("java", "quarkus"));
+        assertThat(chunk.listMetadata()).containsEntry("see_also", List.of("docs/other.md"));
+    }
+
+    @Test
+    void listMetadataFlowsThroughChunkDocumentWithSplitter() {
+        String longBody = "A".repeat(500);
+        var changes = new ChangeSet(
+                List.of(new ChangedEntry("docs/tagged-long.md", ChangeType.ADDED)),
+                "cursor-list-meta-split"
+        );
+        MetadataExtractor listMetaExtractor = (path, content) ->
+                new ExtractionResult(
+                        longBody,
+                        Map.of("source", "test"),
+                        Map.of("tags", List.of("chunked", "split"))
+                );
+        var binding = binding(
+                fixedSource(changes),
+                stubReader(Map.of("docs/tagged-long.md", longBody)),
+                listMetaExtractor
+        );
+
+        service().processBinding(binding, DocumentSplitters.recursive(200, 20));
+
+        List<ChunkInput> chunks = ingestor.getChunks(CORPUS);
+        assertThat(chunks.size()).isGreaterThan(1);
+        for (ChunkInput chunk : chunks) {
+            assertThat(chunk.listMetadata()).containsEntry("tags", List.of("chunked", "split"));
+        }
+    }
+
     // --- Helper methods ---
 
     private CorpusIngestionBinding binding(ChangeSource changeSource, CorpusReader reader) {

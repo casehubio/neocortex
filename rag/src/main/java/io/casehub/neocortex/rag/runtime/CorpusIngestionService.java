@@ -307,14 +307,14 @@ public class CorpusIngestionService {
             return List.of();
         }
         if (splitter == null) {
-            return List.of(new ChunkInput(result.body(), path, result.metadata()));
+            return List.of(new ChunkInput(result.body(), path, result.metadata(), result.listMetadata()));
         }
         Document doc = Document.from(result.body());
         List<TextSegment> segments = splitter.split(doc);
         List<ChunkInput> chunks = new ArrayList<>(segments.size());
         for (TextSegment segment : segments) {
             if (!segment.text().isBlank()) {
-                chunks.add(new ChunkInput(segment.text(), path, result.metadata()));
+                chunks.add(new ChunkInput(segment.text(), path, result.metadata(), result.listMetadata()));
             }
         }
         return chunks;

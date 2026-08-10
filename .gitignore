@@ -13,3 +13,4 @@ evaluation/code_domain_embeddings/.venv/
 evaluation/code_domain_embeddings/results/
 evaluation/code_domain_embeddings/corpus-snapshot/
 .mvn/maven.config
+.mvn/slot-settings.xml
