@@ -60,7 +60,7 @@ Source code commits → project repo (`origin` = mdproctor/neocortex, `upstream`
 |------------|-------------|-------|
 | adr        | project     | lands in `docs/adr/` — promoted at epic close |
 | specs      | project     | lands in `docs/specs/` — promoted at epic close |
-| blog       | workspace   | staged here; published to mdproctor.github.io via publish-blog |
+| blog       | project     | lands in `docs/blog/` — promoted at work end |
 | plans      | workspace   | stay in workspace permanently |
 | design     | workspace   | epic journal stays in workspace |
 | design     | project     | journal in workspace `design/`; merge target is project `ARC42STORIES.MD` |
@@ -125,7 +125,7 @@ A standalone, general-purpose ONNX inference layer for JVM projects. Zero casehu
 **LangChain4j covers:** dense embeddings (`OnnxEmbeddingModel`), RAG pipeline, vector stores.
 **This covers:** everything else — NLI, classification, regression, SPLADE, cross-encoder.
 
-Tracks `casehubio/parent#158`. Authoritative design: `Hortora/spec: docs/superpowers/specs/2026-06-03-onnx-inference-module-design.md`
+Tracks `casehubio/parent#158`. Authoritative design: `Hortora/spec: docs/specs/2026-06-03-onnx-inference-module-design.md`
 
 ### 2. RAG Integration (`rag-*` modules)
 
