@@ -1,7 +1,7 @@
 package io.casehub.neocortex.memory.runtime;
 
-import io.casehub.neocortex.memory.*;
-import io.casehub.neocortex.memory.runtime.NoOpCaseMemoryStore;
+import io.casehub.neocortex.memory.MemoryCapability;
+import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -49,6 +49,20 @@ class MemoryRetentionSchedulerTest {
         scheduler.purgeExpired();
         assertThat(store.policies.stream().anyMatch(p -> p.tenantId().equals("t2"))).isTrue();
     }
+
+    @Test
+    void purgeExpired_enabledWithEmptyDomain_throws() {
+        var store = new CapturingStore();
+        var config = new StubConfig(true, Optional.of(30), Optional.empty()) {
+            @Override
+            public String domain() {return "";}
+        };
+        var scheduler = new MemoryRetentionScheduler(store, config);
+        org.assertj.core.api.Assertions.assertThatThrownBy(scheduler::purgeExpired)
+                                       .isInstanceOf(IllegalStateException.class)
+                                       .hasMessageContaining("domain");
+    }
+
 
     static class StubConfig implements MemoryRetentionConfig {
         final boolean enabled;

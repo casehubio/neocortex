@@ -25,7 +25,7 @@ public class MemoryRetentionScheduler {
     }
 
     void purgeExpired() {
-        if (!config.enabled()) return;
+        if (!config.enabled()) {return;}
         if (!store.capabilities().contains(MemoryCapability.DISCOVER_TENANTS)) {
             LOG.info("Memory retention skipped — store does not support DISCOVER_TENANTS");
             return;
@@ -35,8 +35,13 @@ public class MemoryRetentionScheduler {
             return;
         }
 
-        MemoryDomain domain = new MemoryDomain(config.domain());
-        Set<String> tenants = store.discoverTenants(null, null);
+        if (config.domain().isBlank()) {
+            throw new IllegalStateException(
+                    "casehub.memory.retention.domain must be set when casehub.memory.retention.enabled=true");
+        }
+
+        MemoryDomain domain  = new MemoryDomain(config.domain());
+        Set<String>  tenants = store.discoverTenants(null, null);
         for (String tenantId : tenants) {
             try {
                 MemoryRetentionPolicy policy = new MemoryRetentionPolicy(

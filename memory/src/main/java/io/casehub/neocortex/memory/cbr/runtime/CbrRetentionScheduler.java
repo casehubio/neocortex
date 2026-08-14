@@ -26,6 +26,15 @@ public class CbrRetentionScheduler {
     void purgeExpired() {
         if (!config.enabled()) {return;}
 
+        if (config.domain().isBlank()) {
+            throw new IllegalStateException(
+                    "casehub.cbr.retention.domain must be set when casehub.cbr.retention.enabled=true");
+        }
+        if (config.caseTypes().isEmpty()) {
+            throw new IllegalStateException(
+                    "casehub.cbr.retention.case-types must be set when casehub.cbr.retention.enabled=true");
+        }
+
         MemoryDomain domain = new MemoryDomain(config.domain());
         Set<String>  tenants;
         try {

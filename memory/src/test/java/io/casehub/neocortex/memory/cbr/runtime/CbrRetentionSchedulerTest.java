@@ -58,6 +58,33 @@ class CbrRetentionSchedulerTest {
         assertThat(store.policies.stream().anyMatch(p -> p.tenantId().equals("t2"))).isTrue();
     }
 
+    @Test
+    void purgeExpired_enabledWithEmptyDomain_throws() {
+        var store = new CapturingStore();
+        var config = new StubConfig(true, Optional.empty(), Optional.empty(), Optional.empty()) {
+            @Override
+            public String domain() {return "";}
+        };
+        var scheduler = new CbrRetentionScheduler(store, config);
+        org.assertj.core.api.Assertions.assertThatThrownBy(scheduler::purgeExpired)
+                                       .isInstanceOf(IllegalStateException.class)
+                                       .hasMessageContaining("domain");
+    }
+
+    @Test
+    void purgeExpired_enabledWithEmptyCaseTypes_throws() {
+        var store = new CapturingStore();
+        var config = new StubConfig(true, Optional.empty(), Optional.empty(), Optional.empty()) {
+            @Override
+            public java.util.List<String> caseTypes() {return java.util.List.of();}
+        };
+        var scheduler = new CbrRetentionScheduler(store, config);
+        org.assertj.core.api.Assertions.assertThatThrownBy(scheduler::purgeExpired)
+                                       .isInstanceOf(IllegalStateException.class)
+                                       .hasMessageContaining("case-types");
+    }
+
+
     // --- stubs ---
 
     static class StubConfig implements CbrRetentionConfig {

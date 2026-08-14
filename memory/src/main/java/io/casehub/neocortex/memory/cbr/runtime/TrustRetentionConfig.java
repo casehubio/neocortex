@@ -16,7 +16,9 @@ public interface TrustRetentionConfig {
     @WithDefault("0.3")
     double minCurrentTrust();
 
+    @WithDefault("")
     String domain();
 
+    @WithDefault("")
     List<String> caseTypes();
 }

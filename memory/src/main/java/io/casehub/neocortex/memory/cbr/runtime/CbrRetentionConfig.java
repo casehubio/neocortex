@@ -14,8 +14,10 @@ public interface CbrRetentionConfig {
     @WithDefault("24h")
     String interval();
 
+    @WithDefault("")
     String domain();
 
+    @WithDefault("")
     List<String> caseTypes();
 
     Optional<Integer> maxAgeDays();

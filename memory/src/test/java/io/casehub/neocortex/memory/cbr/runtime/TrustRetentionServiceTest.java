@@ -98,6 +98,31 @@ class TrustRetentionServiceTest {
         assertThat(store.scanCalled).isFalse();
     }
 
+    @Test
+    void evaluateTrajectories_enabledWithEmptyDomain_throws() {
+        var svc = new TrustRetentionService(store, trustProvider,
+                                            new StubConfig(true, 0.3) {
+                                                @Override
+                                                public String domain() {return "";}
+                                            });
+        org.assertj.core.api.Assertions.assertThatThrownBy(svc::evaluateTrajectories)
+                                       .isInstanceOf(IllegalStateException.class)
+                                       .hasMessageContaining("domain");
+    }
+
+    @Test
+    void evaluateTrajectories_enabledWithEmptyCaseTypes_throws() {
+        var svc = new TrustRetentionService(store, trustProvider,
+                                            new StubConfig(true, 0.3) {
+                                                @Override
+                                                public List<String> caseTypes() {return List.of();}
+                                            });
+        org.assertj.core.api.Assertions.assertThatThrownBy(svc::evaluateTrajectories)
+                                       .isInstanceOf(IllegalStateException.class)
+                                       .hasMessageContaining("case-types");
+    }
+
+
     // --- stubs ---
 
     static class StubConfig implements TrustRetentionConfig {

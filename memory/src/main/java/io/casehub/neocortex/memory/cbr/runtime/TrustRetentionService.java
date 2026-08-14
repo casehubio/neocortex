@@ -48,6 +48,15 @@ public class TrustRetentionService {
             return;
         }
 
+        if (config.domain().isBlank()) {
+            throw new IllegalStateException(
+                    "casehub.cbr.trust-retention.domain must be set when casehub.cbr.trust-retention.enabled=true");
+        }
+        if (config.caseTypes().isEmpty()) {
+            throw new IllegalStateException(
+                    "casehub.cbr.trust-retention.case-types must be set when casehub.cbr.trust-retention.enabled=true");
+        }
+
         MemoryDomain domain = new MemoryDomain(config.domain());
         Set<String>  tenants;
         try {
