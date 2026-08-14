@@ -35,12 +35,10 @@ public class MemoryRetentionScheduler {
             return;
         }
 
-        if (config.domain().isBlank()) {
-            throw new IllegalStateException(
-                    "casehub.memory.retention.domain must be set when casehub.memory.retention.enabled=true");
-        }
+        String domainName = config.domain().orElseThrow(() -> new IllegalStateException(
+                "casehub.memory.retention.domain must be set when casehub.memory.retention.enabled=true"));
 
-        MemoryDomain domain  = new MemoryDomain(config.domain());
+        MemoryDomain domain  = new MemoryDomain(domainName);
         Set<String>  tenants = store.discoverTenants(null, null);
         for (String tenantId : tenants) {
             try {
@@ -55,6 +53,5 @@ public class MemoryRetentionScheduler {
             } catch (Exception e) {
                 LOG.warnf("Memory retention failed for tenant %s: %s", tenantId, e.getMessage());
             }
-        }
-    }
+        }}
 }

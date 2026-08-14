@@ -11,8 +11,10 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.Set;
 import java.util.Set;
 
 @ApplicationScoped
@@ -48,16 +50,12 @@ public class TrustRetentionService {
             return;
         }
 
-        if (config.domain().isBlank()) {
-            throw new IllegalStateException(
-                    "casehub.cbr.trust-retention.domain must be set when casehub.cbr.trust-retention.enabled=true");
-        }
-        if (config.caseTypes().isEmpty()) {
-            throw new IllegalStateException(
-                    "casehub.cbr.trust-retention.case-types must be set when casehub.cbr.trust-retention.enabled=true");
-        }
+        String domainName = config.domain().orElseThrow(() -> new IllegalStateException(
+                "casehub.cbr.trust-retention.domain must be set when casehub.cbr.trust-retention.enabled=true"));
+        List<String> caseTypes = config.caseTypes().orElseThrow(() -> new IllegalStateException(
+                "casehub.cbr.trust-retention.case-types must be set when casehub.cbr.trust-retention.enabled=true"));
 
-        MemoryDomain domain = new MemoryDomain(config.domain());
+        MemoryDomain domain = new MemoryDomain(domainName);
         Set<String>  tenants;
         try {
             tenants = store.discoverTenants(domain);
@@ -68,16 +66,15 @@ public class TrustRetentionService {
 
         for (String tenantId : tenants) {
             try {
-                evaluateTenant(tenantId, domain);
+                evaluateTenant(tenantId, domain, caseTypes);
             } catch (Exception e) {
                 LOG.warnf("Trust retention failed for tenant %s: %s",
                           tenantId, e.getMessage());
             }
-        }
-    }
+        }}
 
-    private void evaluateTenant(String tenantId, MemoryDomain domain) {
-        for (String caseType : config.caseTypes()) {
+    private void evaluateTenant(String tenantId, MemoryDomain domain, List<String> caseTypes) {
+        for (String caseType : caseTypes) {
             Map<String, OptionalDouble> trustCache    = new HashMap<>();
             Map<String, Integer>        purgedByAgent = new HashMap<>();
             String                      cursor        = null;
@@ -103,5 +100,6 @@ public class TrustRetentionService {
                          + " cases from agent " + entry.getKey()
                          + " (tenant=" + tenantId + ", caseType=" + caseType + ")");
             }
-        }}
+        }
+    }
 }

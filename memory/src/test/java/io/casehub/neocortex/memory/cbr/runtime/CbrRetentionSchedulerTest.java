@@ -63,7 +63,7 @@ class CbrRetentionSchedulerTest {
         var store = new CapturingStore();
         var config = new StubConfig(true, Optional.empty(), Optional.empty(), Optional.empty()) {
             @Override
-            public String domain() {return "";}
+            public Optional<String> domain() {return Optional.empty();}
         };
         var scheduler = new CbrRetentionScheduler(store, config);
         org.assertj.core.api.Assertions.assertThatThrownBy(scheduler::purgeExpired)
@@ -76,7 +76,7 @@ class CbrRetentionSchedulerTest {
         var store = new CapturingStore();
         var config = new StubConfig(true, Optional.empty(), Optional.empty(), Optional.empty()) {
             @Override
-            public java.util.List<String> caseTypes() {return java.util.List.of();}
+            public Optional<java.util.List<String>> caseTypes() {return Optional.empty();}
         };
         var scheduler = new CbrRetentionScheduler(store, config);
         org.assertj.core.api.Assertions.assertThatThrownBy(scheduler::purgeExpired)
@@ -108,10 +108,10 @@ class CbrRetentionSchedulerTest {
         public String interval()                   {return "24h";}
 
         @Override
-        public String domain()                     {return "cbr";}
+        public Optional<String> domain() {return Optional.of("cbr");}
 
         @Override
-        public java.util.List<String> caseTypes()  {return java.util.List.of("diagnosis", "treatment");}
+        public Optional<java.util.List<String>> caseTypes() {return Optional.of(java.util.List.of("diagnosis", "treatment"));}
 
         @Override
         public Optional<Integer> maxAgeDays()      {return maxAgeDays;}

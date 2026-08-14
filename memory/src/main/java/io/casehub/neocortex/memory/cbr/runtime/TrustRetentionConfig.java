@@ -4,6 +4,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
 import java.util.List;
+import java.util.Optional;
 
 @ConfigMapping(prefix = "casehub.cbr.trust-retention")
 public interface TrustRetentionConfig {
@@ -16,9 +17,7 @@ public interface TrustRetentionConfig {
     @WithDefault("0.3")
     double minCurrentTrust();
 
-    @WithDefault("")
-    String domain();
+    Optional<String> domain();
 
-    @WithDefault("")
-    List<String> caseTypes();
+    Optional<List<String>> caseTypes();
 }

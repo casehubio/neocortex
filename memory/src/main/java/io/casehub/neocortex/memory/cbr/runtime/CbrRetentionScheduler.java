@@ -6,6 +6,7 @@ import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
@@ -26,16 +27,12 @@ public class CbrRetentionScheduler {
     void purgeExpired() {
         if (!config.enabled()) {return;}
 
-        if (config.domain().isBlank()) {
-            throw new IllegalStateException(
-                    "casehub.cbr.retention.domain must be set when casehub.cbr.retention.enabled=true");
-        }
-        if (config.caseTypes().isEmpty()) {
-            throw new IllegalStateException(
-                    "casehub.cbr.retention.case-types must be set when casehub.cbr.retention.enabled=true");
-        }
+        String domainName = config.domain().orElseThrow(() -> new IllegalStateException(
+                "casehub.cbr.retention.domain must be set when casehub.cbr.retention.enabled=true"));
+        List<String> caseTypes = config.caseTypes().orElseThrow(() -> new IllegalStateException(
+                "casehub.cbr.retention.case-types must be set when casehub.cbr.retention.enabled=true"));
 
-        MemoryDomain domain = new MemoryDomain(config.domain());
+        MemoryDomain domain = new MemoryDomain(domainName);
         Set<String>  tenants;
         try {
             tenants = store.discoverTenants(domain);
@@ -45,7 +42,7 @@ public class CbrRetentionScheduler {
         }
 
         for (String tenantId : tenants) {
-            for (String caseType : config.caseTypes()) {
+            for (String caseType : caseTypes) {
                 try {
                     CbrRetentionPolicy policy = new CbrRetentionPolicy(
                             tenantId, domain, caseType,
@@ -58,6 +55,5 @@ public class CbrRetentionScheduler {
                               tenantId, caseType, e.getMessage());
                 }
             }
-        }
-    }
+        }}
 }

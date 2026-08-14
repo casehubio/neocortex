@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalDouble;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,7 +104,7 @@ class TrustRetentionServiceTest {
         var svc = new TrustRetentionService(store, trustProvider,
                                             new StubConfig(true, 0.3) {
                                                 @Override
-                                                public String domain() {return "";}
+                                                public Optional<String> domain() {return Optional.empty();}
                                             });
         org.assertj.core.api.Assertions.assertThatThrownBy(svc::evaluateTrajectories)
                                        .isInstanceOf(IllegalStateException.class)
@@ -115,7 +116,7 @@ class TrustRetentionServiceTest {
         var svc = new TrustRetentionService(store, trustProvider,
                                             new StubConfig(true, 0.3) {
                                                 @Override
-                                                public List<String> caseTypes() {return List.of();}
+                                                public Optional<List<String>> caseTypes() {return Optional.empty();}
                                             });
         org.assertj.core.api.Assertions.assertThatThrownBy(svc::evaluateTrajectories)
                                        .isInstanceOf(IllegalStateException.class)
@@ -144,10 +145,10 @@ class TrustRetentionServiceTest {
         public double minCurrentTrust() {return minCurrentTrust;}
 
         @Override
-        public String domain()          {return "cbr";}
+        public Optional<String> domain() {return Optional.of("cbr");}
 
         @Override
-        public List<String> caseTypes() {return List.of("diagnosis");}
+        public Optional<List<String>> caseTypes() {return Optional.of(List.of("diagnosis"));}
     }
 
     static class StubTrustProvider implements AgentTrustProvider {

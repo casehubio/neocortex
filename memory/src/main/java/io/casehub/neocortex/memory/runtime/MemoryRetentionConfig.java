@@ -10,8 +10,7 @@ public interface MemoryRetentionConfig {
     @WithDefault("false")
     boolean enabled();
 
-    @WithDefault("")
-    String domain();
+    Optional<String> domain();
 
     Optional<Integer> maxAgeDays();
 

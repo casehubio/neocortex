@@ -55,7 +55,7 @@ class MemoryRetentionSchedulerTest {
         var store = new CapturingStore();
         var config = new StubConfig(true, Optional.of(30), Optional.empty()) {
             @Override
-            public String domain() {return "";}
+            public Optional<String> domain() {return Optional.empty();}
         };
         var scheduler = new MemoryRetentionScheduler(store, config);
         org.assertj.core.api.Assertions.assertThatThrownBy(scheduler::purgeExpired)
@@ -74,7 +74,9 @@ class MemoryRetentionSchedulerTest {
             this.minImportance = minImportance;
         }
         @Override public boolean enabled() { return enabled; }
-        @Override public String domain() { return "MEMORY"; }
+
+        @Override
+        public Optional<String> domain() {return Optional.of("MEMORY");}
         @Override public Optional<Integer> maxAgeDays() { return maxAgeDays; }
         @Override public Optional<Double> minImportance() { return minImportance; }
     }
