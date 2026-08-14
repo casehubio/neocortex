@@ -274,6 +274,36 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
         return new CbrScanResult(result, nextCursor);
     }
 
+    @Override
+    public SupersessionStatus getSupersessionStatus(String caseId, String tenantId) {
+        java.util.Objects.requireNonNull(caseId, "caseId required");
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        for (StoredCase stored : cases) {
+            if (caseId.equals(stored.caseId()) && tenantId.equals(stored.tenantId())) {
+                if (stored.supersededAt() != null) {
+                    return new SupersessionStatus(caseId, true, stored.supersededAt(),
+                            stored.supersedingCaseId(), stored.supersessionReason(), stored.reinstatedAt());
+                }
+                return new SupersessionStatus(caseId, false, null, null, null, stored.reinstatedAt());
+            }
+        }
+        return SupersessionStatus.NOT_SUPERSEDED;
+    }
+
+    @Override
+    public List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) {
+        java.util.Objects.requireNonNull(tenantId, "tenantId required");
+        java.util.Objects.requireNonNull(domain, "domain required");
+        List<SupersessionStatus> result = new ArrayList<>();
+        for (StoredCase stored : cases) {
+            if (stored.tenantId().equals(tenantId) && stored.domain().equals(domain)
+                    && stored.supersededAt() != null) {
+                result.add(new SupersessionStatus(stored.caseId(), true, stored.supersededAt(),
+                        stored.supersedingCaseId(), stored.supersessionReason(), stored.reinstatedAt()));
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
 
     @Override
     public void supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
@@ -305,38 +335,6 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 return;
             }
         }
-    }
-
-
-    @Override
-    public SupersessionStatus getSupersessionStatus(String caseId, String tenantId) {
-        java.util.Objects.requireNonNull(caseId, "caseId required");
-        java.util.Objects.requireNonNull(tenantId, "tenantId required");
-        for (StoredCase stored : cases) {
-            if (caseId.equals(stored.caseId()) && tenantId.equals(stored.tenantId())) {
-                if (stored.supersededAt() != null) {
-                    return new SupersessionStatus(caseId, true, stored.supersededAt(),
-                            stored.supersedingCaseId(), stored.supersessionReason(), stored.reinstatedAt());
-                }
-                return new SupersessionStatus(caseId, false, null, null, null, stored.reinstatedAt());
-            }
-        }
-        return SupersessionStatus.NOT_SUPERSEDED;
-    }
-
-    @Override
-    public List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) {
-        java.util.Objects.requireNonNull(tenantId, "tenantId required");
-        java.util.Objects.requireNonNull(domain, "domain required");
-        List<SupersessionStatus> result = new ArrayList<>();
-        for (StoredCase stored : cases) {
-            if (stored.tenantId().equals(tenantId) && stored.domain().equals(domain)
-                    && stored.supersededAt() != null) {
-                result.add(new SupersessionStatus(stored.caseId(), true, stored.supersededAt(),
-                        stored.supersedingCaseId(), stored.supersessionReason(), stored.reinstatedAt()));
-            }
-        }
-        return Collections.unmodifiableList(result);
     }
 
     @SuppressWarnings("unchecked")
