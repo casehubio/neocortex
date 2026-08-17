@@ -1,0 +1,51 @@
+package io.casehub.neocortex.memory.engagement;
+
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.MemoryInput;
+import java.util.HashMap;
+import java.util.HashSet;
+
+public final class EngagementEvents {
+
+    public static final MemoryDomain DOMAIN = new MemoryDomain("engagement");
+
+    private EngagementEvents() {}
+
+    public static MemoryInput toMemoryInput(EngagementEvent event) {
+        var reserved = new HashSet<String>();
+        var attrs = new HashMap<String, String>();
+
+        reserved.add(EngagementAttributeKeys.OTHER_AGENT);
+        attrs.put(EngagementAttributeKeys.OTHER_AGENT, event.otherAgentId());
+
+        reserved.add(EngagementAttributeKeys.TURN_ID);
+        attrs.put(EngagementAttributeKeys.TURN_ID, event.turnId());
+
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONDED, event.responded());
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONSE_TIME_MS, event.responseTimeMs());
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONSE_LENGTH, event.responseLength());
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.SENTIMENT_SHIFT, event.sentimentShift());
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.REACTION_COUNT, event.reactionCount());
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.CONTINUED, event.continued());
+
+        for (String key : event.metadata().keySet()) {
+            if (reserved.contains(key)) {
+                throw new IllegalArgumentException(
+                    "metadata key '" + key + "' collides with a reserved engagement attribute key");
+            }
+        }
+
+        attrs.putAll(event.metadata());
+
+        return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
+            event.caseId(), event.description(), attrs, event.importance());
+    }
+
+    private static void addIfPresent(HashSet<String> reserved, HashMap<String, String> attrs,
+            String key, Object value) {
+        if (value != null) {
+            reserved.add(key);
+            attrs.put(key, String.valueOf(value));
+        }
+    }
+}
