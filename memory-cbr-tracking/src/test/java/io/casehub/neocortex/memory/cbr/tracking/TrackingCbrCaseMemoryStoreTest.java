@@ -8,8 +8,8 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalRecorded;
-import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTrace;
+import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.testing.InMemoryCbrRetrievalTracker;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TrackingCbrCaseMemoryStoreTest {
 
@@ -76,6 +76,75 @@ class TrackingCbrCaseMemoryStoreTest {
         assertThat(returned.getFirst().reranked()).isTrue();
         assertThat(returned.getFirst().caseId()).isEqualTo("c1");
     }
+
+    @Test
+    void trustTrajectory_convertedToLabel() {
+        var tracker  = new InMemoryCbrRetrievalTracker();
+        var eventRef = new AtomicReference<CbrRetrievalRecorded>();
+        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.8, "agent-1");
+        var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
+                                         io.casehub.platform.api.path.Path.root(), -0.2);
+        var delegate  = stubDelegate(List.of(scored));
+        var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, eventRef::set);
+
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
+        decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
+
+        assertThat(eventRef.get().results()).hasSize(1);
+        var traced = eventRef.get().results().getFirst();
+        assertThat(traced.trustScore()).isEqualTo(0.8);
+        assertThat(traced.producerAgentId()).isEqualTo("agent-1");
+        assertThat(traced.trustTrajectory()).isEqualTo("declining");
+    }
+
+    @Test
+    void trustTrajectory_null_staysNull() {
+        var tracker  = new InMemoryCbrRetrievalTracker();
+        var eventRef = new AtomicReference<CbrRetrievalRecorded>();
+        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.8, "agent-1");
+        var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
+                                         io.casehub.platform.api.path.Path.root(), null);
+        var delegate  = stubDelegate(List.of(scored));
+        var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, eventRef::set);
+
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
+        decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
+
+        assertThat(eventRef.get().results().getFirst().trustTrajectory()).isNull();
+    }
+
+    @Test
+    void trustTrajectory_improving() {
+        var tracker  = new InMemoryCbrRetrievalTracker();
+        var eventRef = new AtomicReference<CbrRetrievalRecorded>();
+        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.5, "agent-1");
+        var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
+                                         io.casehub.platform.api.path.Path.root(), 0.3);
+        var delegate  = stubDelegate(List.of(scored));
+        var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, eventRef::set);
+
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
+        decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
+
+        assertThat(eventRef.get().results().getFirst().trustTrajectory()).isEqualTo("improving");
+    }
+
+    @Test
+    void trustTrajectory_stable() {
+        var tracker  = new InMemoryCbrRetrievalTracker();
+        var eventRef = new AtomicReference<CbrRetrievalRecorded>();
+        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.8, "agent-1");
+        var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
+                                         io.casehub.platform.api.path.Path.root(), 0.0);
+        var delegate  = stubDelegate(List.of(scored));
+        var decorator = new TrackingCbrCaseMemoryStore(delegate, tracker, eventRef::set);
+
+        var query = CbrQuery.of("t1", new MemoryDomain("cbr"), io.casehub.platform.api.path.Path.root(), "default", Map.of(), 5);
+        decorator.retrieveSimilar(query, FeatureVectorCbrCase.class);
+
+        assertThat(eventRef.get().results().getFirst().trustTrajectory()).isEqualTo("stable");
+    }
+
 
     @SuppressWarnings("unchecked")
     private CbrCaseMemoryStore stubDelegate(List<? extends ScoredCbrCase<?>> results) {

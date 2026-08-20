@@ -9,7 +9,6 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import io.casehub.neocortex.memory.cbr.FeatureField;
@@ -2068,6 +2067,133 @@ public abstract class CbrCaseMemoryStoreContractTest {
                 FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
     }
+// ── Trust field round-trip contract tests (#154) ──────────────────
+
+    @Test
+    void trustScore_roundTrip() {
+        registerDefaultSchema();
+        var c = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+                                         Map.of("opponent_race", string("Zerg")), 0.85, null);
+        store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-1", Path.root());
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                            Map.of("opponent_race", string("Zerg")), 5),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().trustScore()).isEqualTo(0.85);
+    }
+
+    @Test
+    void producerAgentId_roundTrip() {
+        registerDefaultSchema();
+        var c = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+                                         Map.of("opponent_race", string("Zerg")), null, "agent-1");
+        store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-2", Path.root());
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                            Map.of("opponent_race", string("Zerg")), 5),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().producerAgentId()).isEqualTo("agent-1");
+    }
+
+    @Test
+    void trustScore_nullPreserved() {
+        registerDefaultSchema();
+        var c = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+                                         Map.of("opponent_race", string("Zerg")), null, null);
+        store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-3", Path.root());
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                            Map.of("opponent_race", string("Zerg")), 5),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().trustScore()).isNull();
+    }
+
+    @Test
+    void trustScore_withOutcome_preserved() {
+        registerDefaultSchema();
+        store().store(new FeatureVectorCbrCase("p", "s", "WIN", 0.5,
+                                               Map.of("opponent_race", string("Zerg")), 0.85, "agent-1"),
+                      "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-4", Path.root());
+        store().recordOutcome("trust-rt-4", TENANT,
+                              CbrOutcome.of(1.0, "validated", java.time.Instant.now()));
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                            Map.of("opponent_race", string("Zerg")), 5),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().trustScore()).isEqualTo(0.85);
+    }
+
+    @Test
+    void trustScore_withFeatures_preserved() {
+        registerDefaultSchema();
+        var original = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+                                                Map.of("opponent_race", string("Zerg")), 0.85, "agent-1");
+        var enriched = original.withFeatures(Map.of("opponent_race", string("Zerg"),
+                                                    "detected_build", string("ROACH_RUSH")));
+        assertThat(enriched.trustScore()).isEqualTo(0.85);
+        assertThat(enriched.producerAgentId()).isEqualTo("agent-1");
+    }
+
+    @Test
+    void trustScore_validation_rejectsOutOfRange() {
+        assertThatThrownBy(() -> new FeatureVectorCbrCase("p", "s", null, null,
+                                                          Map.of(), 1.5, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new FeatureVectorCbrCase("p", "s", null, null,
+                                                          Map.of(), -0.1, null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void producerAgentId_withOutcome_preserved() {
+        registerDefaultSchema();
+        store().store(new FeatureVectorCbrCase("p", "s", "WIN", 0.5,
+                                               Map.of("opponent_race", string("Zerg")), 0.7, "agent-2"),
+                      "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-5", Path.root());
+        store().recordOutcome("trust-rt-5", TENANT,
+                              CbrOutcome.of(0.8, "good", java.time.Instant.now()));
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                            Map.of("opponent_race", string("Zerg")), 5),
+                FeatureVectorCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().producerAgentId()).isEqualTo("agent-2");
+    }
+
+    @Test
+    void planCbrCase_trustFields_roundTrip() {
+        registerDefaultSchema();
+        var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
+        var c = new PlanCbrCase("Zerg rush", "early pressure", "WIN", 0.85,
+                                Map.of("opponent_race", string("Zerg")),
+                                List.of(trace), 0.92, "agent-plan");
+        store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-6", Path.root());
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                            Map.of("opponent_race", string("Zerg")), 5),
+                PlanCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().trustScore()).isEqualTo(0.92);
+        assertThat(results.getFirst().cbrCase().producerAgentId()).isEqualTo("agent-plan");
+    }
+
+    @Test
+    void textualCbrCase_trustFields_roundTrip() {
+        registerDefaultSchema();
+        var c = new TextualCbrCase("Zerg rush", "early pressure", "WIN", 0.85, 0.88, "agent-text");
+        store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-7", Path.root());
+        var results = store().retrieveSimilar(
+                CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game", Map.of(), 5),
+                TextualCbrCase.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().cbrCase().trustScore()).isEqualTo(0.88);
+        assertThat(results.getFirst().cbrCase().producerAgentId()).isEqualTo("agent-text");
+    }
+
 
     @Test
     void scan_returnsCbrCaseSummary() {

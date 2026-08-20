@@ -72,7 +72,8 @@ public class TrackingCbrCaseMemoryStore implements CbrCaseMemoryStore {
                     .map(s -> new CbrRetrievalTrace.TracedCase(
                             s.caseId(), s.score(), s.reranked(),
                             s.featureSimilarities(), s.cbrCase().confidence(),
-                            s.cbrCase().trustScore(), s.cbrCase().producerAgentId(), null))
+                            s.cbrCase().trustScore(), s.cbrCase().producerAgentId(),
+                            toTrajectoryLabel(s.trustTrajectory())))
                     .toList();
             eventSink.accept(new CbrRetrievalRecorded(traceId, query, traced));
         } catch (Exception e) {
@@ -80,6 +81,14 @@ public class TrackingCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
         return results;
     }
+
+    private static String toTrajectoryLabel(Double delta) {
+        if (delta == null) {return null;}
+        if (delta < 0) {return "declining";}
+        if (delta > 0) {return "improving";}
+        return "stable";
+    }
+
 
     @Override
     public Integer erase(EraseRequest request) {
