@@ -1,15 +1,34 @@
 package io.casehub.neocortex.mindmap.runtime;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.ValidationTier;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 public final class MindMapAnalyzer {
 
     private MindMapAnalyzer() {}
+
+    private static void requireAnalysis(MindMapStore store) {
+        store.requireCapability(MindMapCapability.GRAPH_ANALYSIS);
+    }
+
 
     // --- Signal records ---
 
@@ -34,6 +53,7 @@ public final class MindMapAnalyzer {
     // --- Structural signals ---
 
     public static List<OrphanNode> orphanNodes(MindMapStore store, String subgraphId, String tenantId) {
+        requireAnalysis(store);
         List<OrphanNode> orphans = new ArrayList<>();
         for (MindMapNode node : store.nodesIn(subgraphId, tenantId)) {
             if (store.neighbors(node.id(), tenantId).isEmpty()) {
@@ -44,6 +64,7 @@ public final class MindMapAnalyzer {
     }
 
     public static List<NodeDegree> degreeCentrality(MindMapStore store, String subgraphId, String tenantId) {
+        requireAnalysis(store);
         List<NodeDegree> degrees = new ArrayList<>();
         for (MindMapNode node : store.nodesIn(subgraphId, tenantId)) {
             int degree = store.neighbors(node.id(), tenantId).size();
@@ -54,6 +75,7 @@ public final class MindMapAnalyzer {
     }
 
     public static SparseSubgraph subgraphDensity(MindMapStore store, String subgraphId, String tenantId) {
+        requireAnalysis(store);
         MindMapSubgraph sg = store.getSubgraph(subgraphId, tenantId);
         List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId);
         int nodeCount = nodes.size();
@@ -75,6 +97,7 @@ public final class MindMapAnalyzer {
     // --- Quality signals ---
 
     public static UnvalidatedEdgeRatio unvalidatedEdgeRatio(MindMapStore store, String subgraphId, String tenantId) {
+        requireAnalysis(store);
         MindMapSubgraph sg = store.getSubgraph(subgraphId, tenantId);
         Set<String> seen = new HashSet<>();
         int total = 0;
@@ -94,6 +117,7 @@ public final class MindMapAnalyzer {
     }
 
     public static List<ContradictionCluster> contradictions(MindMapStore store, String subgraphId, String tenantId) {
+        requireAnalysis(store);
         List<ContradictionCluster> results = new ArrayList<>();
         for (MindMapNode node : store.nodesIn(subgraphId, tenantId)) {
             Map<String, List<String>> targetsByType = new HashMap<>();
@@ -115,6 +139,7 @@ public final class MindMapAnalyzer {
 
     public static LowConfidenceCluster lowConfidenceCluster(MindMapStore store, String subgraphId,
                                                              String tenantId, double threshold) {
+        requireAnalysis(store);
         MindMapSubgraph sg = store.getSubgraph(subgraphId, tenantId);
         List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId);
         int total = nodes.size();
@@ -132,6 +157,7 @@ public final class MindMapAnalyzer {
 
     public static List<StaleNode> staleNodes(MindMapStore store, String subgraphId,
                                               String tenantId, Duration staleThreshold, Instant now) {
+        requireAnalysis(store);
         List<StaleNode> stale = new ArrayList<>();
         for (MindMapNode node : store.nodesIn(subgraphId, tenantId)) {
             Instant lastUpdated = node.confirmedAt() != null ? node.confirmedAt() : node.updatedAt();
@@ -148,6 +174,7 @@ public final class MindMapAnalyzer {
 
     public static List<BetweennessCentrality> betweennessCentrality(MindMapStore store,
                                                                      String subgraphId, String tenantId) {
+        requireAnalysis(store);
         List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId);
         if (nodes.size() <= 2) {
             return nodes.stream()
