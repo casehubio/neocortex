@@ -77,5 +77,11 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     }
 
     @Override public String store(MemoryInput input) { return delegate.store(input); }
+    @Override public StoreAllResult storeAll(List<MemoryInput> inputs) { return delegate.storeAll(inputs); }
     @Override public List<Memory> query(MemoryQuery query) { return delegate.query(query); }
+    @Override public void eraseById(String memoryId, String entityId, String tenantId) { delegate.eraseById(memoryId, entityId, tenantId); }
+    @Override public Set<MemoryCapability> capabilities() { return delegate.capabilities(); }
+    @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }
+    @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }
+    @Override public Set<String> discoverTenants(String attributeKey, String attributeValue) { return delegate.discoverTenants(attributeKey, attributeValue); }
 }
