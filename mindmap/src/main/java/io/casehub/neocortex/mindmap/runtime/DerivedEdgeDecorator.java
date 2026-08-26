@@ -8,7 +8,11 @@ import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Decorator
@@ -96,6 +100,13 @@ public class DerivedEdgeDecorator implements MindMapStore {
                 props);
     }
 
+    private void cleanMapForEdges(List<MindMapEdge> edges) {
+        for (MindMapEdge edge : edges) {
+            triggerToDerived.remove(edge.id());
+        }
+    }
+
+
     // --- Delegate all other methods ---
 
     @Override
@@ -159,10 +170,18 @@ public class DerivedEdgeDecorator implements MindMapStore {
     public SupersessionStatus getSupersessionStatus(String targetId, String tenantId)            {return delegate.getSupersessionStatus(targetId, tenantId);}
 
     @Override
-    public int eraseNode(String nodeId, String tenantId)                                         {return delegate.eraseNode(nodeId, tenantId);}
+    public int eraseNode(String nodeId, String tenantId) {
+        cleanMapForEdges(delegate.neighbors(nodeId, tenantId));
+        return delegate.eraseNode(nodeId, tenantId);
+    }
 
     @Override
-    public int eraseSubgraph(String subgraphId, String tenantId)                                 {return delegate.eraseSubgraph(subgraphId, tenantId);}
+    public int eraseSubgraph(String subgraphId, String tenantId) {
+        for (MindMapNode node : delegate.nodesIn(subgraphId, tenantId)) {
+            cleanMapForEdges(delegate.neighbors(node.id(), tenantId));
+        }
+        return delegate.eraseSubgraph(subgraphId, tenantId);
+    }
 
     @Override
     public int eraseEntity(String entityName, String tenantId)                                   {return delegate.eraseEntity(entityName, tenantId);}

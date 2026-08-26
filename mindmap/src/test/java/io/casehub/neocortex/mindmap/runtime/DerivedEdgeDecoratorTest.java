@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -172,6 +171,47 @@ class DerivedEdgeDecoratorTest {
         assertThat(derived).hasSize(1);
         assertThat(derived.get(0).confidenceOrigin()).isEqualTo(ConfidenceOrigin.INFERRED);
     }
+
+    @Test
+    void removeNonTriggerEdge_passesThrough() {
+        String alice = decorator.addNode(node("Alice"), "t1");
+        String bob   = decorator.addNode(node("Bob"), "t1");
+
+        String plainEdge = decorator.addEdge(edge(alice, bob, "knows"), "t1");
+        decorator.removeEdge(plainEdge, "t1");
+
+        assertThat(decorator.neighbors(alice, "t1")).isEmpty();
+    }
+
+    @Test
+    void emptyRuleList_purePassthrough() {
+        DerivedEdgeDecorator noRules = new DerivedEdgeDecorator(store, List.of());
+
+        String alice = noRules.addNode(node("Alice"), "t1");
+        String bob   = noRules.addNode(node("Bob"), "t1");
+
+        noRules.addEdge(edge(alice, bob, "has-child"), "t1");
+
+        List<MindMapEdge> allEdges = noRules.neighbors(alice, "t1");
+        assertThat(allEdges).hasSize(1);
+        assertThat(allEdges.get(0).edgeType()).isEqualTo("has-child");
+    }
+
+    @Test
+    void eraseNode_retractsDerivedEdgesFromMap() {
+        String alice = decorator.addNode(node("Alice"), "t1");
+        String bob   = decorator.addNode(node("Bob"), "t1");
+
+        decorator.addEdge(edge(alice, bob, "has-child"), "t1");
+        assertThat(decorator.neighbors(bob, "parent-of", "t1")).hasSize(1);
+
+        decorator.eraseNode(alice, "t1");
+
+        // eraseNode cascades edge deletion internally — derived edges
+        // should also be cleaned up from the trigger map
+        assertThat(decorator.neighbors(bob, "parent-of", "t1")).isEmpty();
+    }
+
 
     // --- Test rules ---
 
