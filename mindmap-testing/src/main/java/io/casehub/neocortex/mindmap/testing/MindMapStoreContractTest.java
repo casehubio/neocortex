@@ -1,10 +1,28 @@
 package io.casehub.neocortex.mindmap.testing;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MergeResult;
+import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.MindMapVocabulary;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SupersessionStatus;
+import io.casehub.neocortex.mindmap.ValidationTier;
+import io.casehub.neocortex.mindmap.VocabularyConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,6 +95,24 @@ public abstract class MindMapStoreContractTest {
         MindMapSubgraph sg = store.getSubgraph(sgId, TENANT);
         assertThat(sg.rootNodeId()).isEqualTo(nodeId);
     }
+
+    @Test
+    void listSubgraphs_returnsAllSubgraphsForTenant() {
+        String sg1 = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sg2 = store.createSubgraph(new SubgraphInput("Projects", SubgraphType.PROJECT, null), TENANT);
+        store.createSubgraph(new SubgraphInput("Other", SubgraphType.GENERAL, null), TENANT_2);
+
+        List<MindMapSubgraph> subgraphs = store.listSubgraphs(TENANT);
+
+        assertThat(subgraphs).hasSize(3);
+        assertThat(subgraphs).extracting(MindMapSubgraph::id).contains(sg1, sg2, defaultSubgraphId());
+    }
+
+    @Test
+    void listSubgraphs_emptyTenantReturnsEmpty() {
+        assertThat(store.listSubgraphs("no-such-tenant")).isEmpty();
+    }
+
 
     // --- Node CRUD tests ---
 

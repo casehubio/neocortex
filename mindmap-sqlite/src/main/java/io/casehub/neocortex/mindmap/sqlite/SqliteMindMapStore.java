@@ -202,6 +202,31 @@ public class SqliteMindMapStore implements MindMapStore {
         }
     }
 
+    @Override
+    public List<MindMapSubgraph> listSubgraphs(String tenantId) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT * FROM mindmap_subgraph WHERE tenant_id = ?")) {
+            ps.setString(1, tenantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<MindMapSubgraph> result = new ArrayList<>();
+                while (rs.next()) {
+                    result.add(new MindMapSubgraph(
+                            rs.getString("subgraph_id"),
+                            rs.getString("name"),
+                            SubgraphType.valueOf(rs.getString("type")),
+                            rs.getString("root_node_id"),
+                            rs.getString("tenant_id"),
+                            Instant.parse(rs.getString("created_at"))));
+                }
+                return result;
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("listSubgraphs() failed", e);
+        }
+    }
+
+
     // --- Node ---
 
     @Override

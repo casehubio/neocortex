@@ -1,10 +1,29 @@
 package io.casehub.neocortex.mindmap.runtime;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MergeResult;
+import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.MindMapVocabulary;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SupersessionStatus;
+import io.casehub.neocortex.mindmap.ValidationTier;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ConfidenceDecayDecorator implements MindMapStore {
@@ -99,6 +118,12 @@ public class ConfidenceDecayDecorator implements MindMapStore {
     @Override public String createSubgraph(SubgraphInput input, String tenantId) { return delegate.createSubgraph(input, tenantId); }
     @Override public MindMapSubgraph getSubgraph(String subgraphId, String tenantId) { return delegate.getSubgraph(subgraphId, tenantId); }
     @Override public void updateSubgraph(String subgraphId, String rootNodeId, String tenantId) { delegate.updateSubgraph(subgraphId, rootNodeId, tenantId); }
+
+    @Override
+    public List<MindMapSubgraph> listSubgraphs(String tenantId) {
+        return delegate.listSubgraphs(tenantId);
+    }
+
     @Override public void supersede(String targetId, String supersedingId, String reason, String tenantId) { delegate.supersede(targetId, supersedingId, reason, tenantId); }
     @Override public void reinstate(String targetId, String tenantId) { delegate.reinstate(targetId, tenantId); }
     @Override public SupersessionStatus getSupersessionStatus(String targetId, String tenantId) { return delegate.getSupersessionStatus(targetId, tenantId); }

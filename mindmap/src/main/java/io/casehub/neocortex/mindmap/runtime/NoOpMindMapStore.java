@@ -1,6 +1,18 @@
 package io.casehub.neocortex.mindmap.runtime;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MergeResult;
+import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.MindMapVocabulary;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SupersessionStatus;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -68,6 +80,12 @@ public class NoOpMindMapStore implements MindMapStore {
 
     @Override
     public void updateSubgraph(String subgraphId, String rootNodeId, String tenantId) {}
+
+    @Override
+    public List<MindMapSubgraph> listSubgraphs(String tenantId) {
+        return List.of();
+    }
+
 
     @Override
     public List<MindMapNode> nodesIn(String subgraphId, String tenantId) {

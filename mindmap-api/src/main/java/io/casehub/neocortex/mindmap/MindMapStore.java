@@ -33,6 +33,9 @@ public interface MindMapStore {
 
     void updateSubgraph(String subgraphId, String rootNodeId, String tenantId);
 
+    List<MindMapSubgraph> listSubgraphs(String tenantId);
+
+
     List<MindMapNode> nodesIn(String subgraphId, String tenantId);
 
     List<MindMapEdge> bridgeEdges(String subgraphId, String tenantId);

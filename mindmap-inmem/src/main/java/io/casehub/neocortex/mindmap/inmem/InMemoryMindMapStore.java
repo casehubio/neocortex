@@ -1,12 +1,38 @@
 package io.casehub.neocortex.mindmap.inmem;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
+import io.casehub.neocortex.mindmap.MergeConflict;
+import io.casehub.neocortex.mindmap.MergeResult;
+import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.MindMapVocabulary;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SupersessionStatus;
+import io.casehub.neocortex.mindmap.ValidationTier;
+import io.casehub.neocortex.mindmap.VocabularyConflictException;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Alternative
@@ -144,6 +170,14 @@ public class InMemoryMindMapStore implements MindMapStore {
         subgraphs.put(subgraphId, new MindMapSubgraph(sg.id(), sg.name(), sg.type(),
             rootNodeId, sg.tenantId(), sg.createdAt()));
     }
+
+    @Override
+    public List<MindMapSubgraph> listSubgraphs(String tenantId) {
+        return subgraphs.values().stream()
+                        .filter(sg -> sg.tenantId().equals(tenantId))
+                        .toList();
+    }
+
 
     @Override
     public List<MindMapNode> nodesIn(String subgraphId, String tenantId) {
