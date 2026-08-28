@@ -1,6 +1,6 @@
 # Neocortex Cognitive Coherence Audit
 
-An analysis of how well the 17 cognitive types compose, with specific gaps and recommendations across five dimensions: composability, temporal coherence, MindMap temporal design, affective tagging, and future-facing knowledge.
+An analysis of how well the 17 cognitive types compose, with specific gaps and recommendations across six dimensions: composability, temporal coherence, MindMap temporal design, affective tagging, future-facing knowledge, and prospection with affective forecasting.
 
 ---
 
@@ -169,6 +169,108 @@ This asymmetry means: a node created 2 years ago but never confirmed decays to n
 
 ---
 
+## Dimension 6: Prospection & Affective Forecasting
+
+### The concept
+
+**Prospection** (Gilbert & Wilson 2007) is the human capacity for mental time travel into the future — imagining specific upcoming episodes and experiencing emotions about them now. **Affective forecasting** (Wilson & Gilbert 2003) is the process of predicting how we'll feel about future events. **Anticipatory affect** (Baumgartner et al. 2008) is the emotion experienced NOW about a FUTURE event — distinct from the event's inherent emotional character.
+
+This is not "hope." Hope is one point on a rich spectrum:
+
+| Future event | Anticipatory affect | Affect trajectory over time |
+|---|---|---|
+| Starting new job | excitement + anxiety | anxiety fades as confidence builds |
+| Upcoming exam | dread + motivation | intensifies as date approaches |
+| Disciplinary meeting | fear + anger | may shift to resignation or defiance |
+| First skydive | thrill + terror | oscillates, spikes day-of |
+| Anticipated job loss | dread + helplessness | may shift to relief or determination |
+| Cash flow crisis ahead | anxiety + shame | compounds if unresolved |
+| Holiday next month | joy + anticipation | builds steadily |
+
+Each future event carries a **trajectory** of changing emotions, not a single static value. The trajectory itself is data — "is this person's anxiety about the exam increasing or decreasing?" is a meaningful cognitive question.
+
+### Current state
+
+| Feature | Status |
+|---------|--------|
+| Future-dated nodes via `validFrom` | Present — a node can represent a future event |
+| Confidence distinguishes fact from speculation | Present — STATED (accepted job) vs SPECULATED (hoping) |
+| PAD fields on nodes | Present — but a single mutable snapshot, not a log |
+| Proximity signals in curiosity engine | Present — future events intensify as they approach |
+
+### The gap: affect as snapshot vs trajectory
+
+PAD on a `MindMapNode` is a single overwritten value. When `updateNode()` sets new PAD values, the old ones are lost. A node for "disciplinary meeting Thursday" has `pleasure=-0.7, arousal=0.8` on Monday, but by Thursday it might be `pleasure=-0.3, arousal=0.4` (resigned acceptance). The system:
+
+- **Overwrites** old PAD values on `updateNode()` — no history preserved
+- **Cannot answer** "is anxiety about the exam increasing or decreasing?"
+- **Cannot detect** emotional escalation patterns (compounding dread, building excitement)
+- **Cannot distinguish** anticipatory affect (how I feel NOW about a future event) from inherent affect (the event's emotional character)
+- The curiosity engine **dampens by current affect**, blind to trajectory — a node with stable `pleasure=-0.5` and one with `pleasure` dropping from `-0.2` to `-0.8` get the same dampening, despite the second being far more cognitively urgent
+
+### Design sketch: what prospection needs
+
+**1. Affect log, not affect field**
+
+Each PAD annotation becomes a timestamped entry in a log. The current PAD values become the "most recent entry." The trajectory is queryable: slope of pleasure over time, volatility of arousal, trend direction.
+
+Implementation options:
+- **New `AffectEntry` record** — `AffectEntry(Instant timestamp, double pleasure, double arousal, double dominance)` stored per node/edge, queryable as a time series
+- **Reuse the Memory domain pattern** — each PAD update becomes a `domain="affect"` memory with the node ID as `entityId`. Leverages existing temporal query infrastructure (`MemoryQuery.since`)
+- **Edge properties with timestamped keys** — lighter-weight but less queryable
+
+The Memory domain approach is architecturally consistent: it reuses the existing store infrastructure, gets temporal querying for free, and follows the established pattern where every cognitive subsystem serialises into text memory via a domain-tagged converter.
+
+**2. Prospective event enrichment**
+
+Future-dated nodes should carry richer semantics:
+
+- **`anticipatoryAffect`** — how the agent feels about this future event NOW, distinct from the event's inherent PAD values. A funeral has inherent `pleasure=-0.8`, but anticipatory affect might be `pleasure=-0.4` (sadness tempered by acceptance). These are different signals.
+- **Event category via traits** — `Appointable` (calendar entry with a fixed time), `Aspirational` (hoped-for outcome), `Threatening` (anticipated negative), `Opportunistic` (anticipated positive). Traits compose with the existing trait system and fire automatically via `TraitApplicationDecorator`.
+- **Certainty** — orthogonal to `ConfidenceOrigin`. STATED/SPECULATED covers "how did I learn this?" but not "how certain am I it will happen?" A job offer is STATED (someone told me) but certainty varies (they might rescind). A `Double certainty` field on `NodeInput`/`MindMapNode` would complete the model.
+
+**3. Trajectory-aware curiosity**
+
+The curiosity engine's affect dampening (D40) currently uses the node's current pleasure value. With a trajectory:
+
+| Trajectory | Curiosity response | Rationale |
+|---|---|---|
+| Escalating negative affect | **INCREASE** curiosity | Something is festering — the agent should probe, not avoid |
+| Stable negative affect | Dampen as now | Known negative, no change — standard avoidance |
+| Improving affect | Moderate curiosity | Things are getting better — light monitoring |
+| Volatile affect (oscillating) | **INCREASE** curiosity | Instability signals unresolved ambivalence |
+
+This **inverts** the current logic for the escalating case. A worsening emotional trajectory is exactly when the agent SHOULD be curious, not avoidant. The current design suppresses curiosity about negative topics — but a negative topic that's getting WORSE is the most important thing to attend to.
+
+**4. Temporal-affective interplay**
+
+As a future event approaches (proximity score increases), its affect should intensify — humans experience this as anticipatory anxiety or building excitement. **Temporal construal theory** (Trope & Liberman 2003) predicts that psychological distance changes how we represent events: abstract when distant, concrete when near. The proximity score and affect trajectory should compound:
+
+| Proximity × Trajectory | Cognitive priority | Example |
+|---|---|---|
+| Approaching + worsening affect | **Highest** — urgent cognitive focus | Exam tomorrow, anxiety spiking |
+| Approaching + stable affect | Normal proximity signal | Dentist appointment tomorrow, mild anxiety |
+| Approaching + improving affect | Lower priority — coping is working | Job interview tomorrow, growing confidence |
+| Distant + worsening affect | Elevated — early warning | Debt crisis in 3 months, anxiety building |
+| Distant + stable affect | Background — no action needed | Holiday in 6 months, steady anticipation |
+
+### Cognitive science framing
+
+- **Prospection** (Gilbert & Wilson 2007) — mental simulation of future events
+- **Episodic future thinking** (Atance & O'Neill 2001) — imagining specific future episodes
+- **Affective forecasting** (Wilson & Gilbert 2003) — predicting future emotional states, including systematic biases (impact bias, focalism)
+- **Anticipatory affect** (Baumgartner et al. 2008) — emotions experienced NOW about FUTURE events
+- **Temporal construal theory** (Trope & Liberman 2003) — psychological distance changes event representation (abstract ↔ concrete)
+- **Mental time travel** (Suddendorf & Corballis 2007) — the capacity to project oneself into the future, sharing neural substrates with episodic memory
+
+**Research tags:** prospection, episodic future thinking, Atance & O'Neill 2001, affective forecasting, Wilson & Gilbert 2003, impact bias, anticipatory emotions, Baumgartner 2008, temporal construal theory, Trope & Liberman 2003, future-oriented cognition, mental time travel, Suddendorf & Corballis 2007, pre-experiencing, emotional trajectories, anticipatory anxiety
+
+### Key insight
+
+The deepest gap is not that the system can't represent future events — it can, via `validFrom`. The gap is that **emotions about future events are treated as static properties rather than evolving trajectories**. A human doesn't feel the same way about "exam next month" as "exam tomorrow" — the emotional relationship to the event changes as it approaches, as preparation progresses (or doesn't), as context shifts. The current PAD-as-snapshot model captures one frame of this trajectory. The affect-log model would capture the film.
+
+---
+
 ## Cross-Cutting Summary
 
 | Dimension | Verdict | Top Priority |
@@ -178,11 +280,28 @@ This asymmetry means: a node created 2 years ago but never confirmed decays to n
 | **MindMap temporal** | Rich fields, no query support; per-edge-type decay unwired | Add `validAfter`/`validBefore` to MindMapQuery; wire per-edge-type decay; add `confirmedAt` to edges |
 | **Affective tagging** | MindMap-only; text memories are affect-blind | Add PAD fields to MemoryInput; update MoodModulatedRetrieval |
 | **Future-facing** | Mechanically works; semantically thin | Property conventions for status + intent; event lifecycle; temporal query support |
+| **Prospection** | Not modelled — PAD is snapshot, not trajectory | Affect log on nodes; prospective event traits; trajectory-aware curiosity |
 
-**The single highest-impact change across all dimensions: add temporal filtering to MindMapQuery.** It's needed for upcoming-event queries (D5), curiosity signal efficiency (D3), and temporal coherence (D2). Every other recommendation is secondary to this.
+### Priority Improvements (all dimensions)
+
+| Priority | Change | Impact |
+|----------|--------|--------|
+| **High** | Add temporal predicates to `MindMapQuery` | Unlocks "what's coming up?" without O(n) scan (D2, D3, D5) |
+| **High** | Add PAD fields to `MemoryInput`/`Memory` | Every memory type gets typed affective tagging (D4) |
+| **High** | Add `with*()` builders to `MindMapQuery` | Composability parity with CbrQuery/MemoryQuery (D1) |
+| **Medium** | Affect trajectory log on MindMapNode | PAD becomes a time series — enables "is anxiety increasing?" (D6) |
+| **Medium** | Prospective event traits (Appointable, Aspirational, Threatening) | Distinguish calendar entries from hopes from threats (D5, D6) |
+| **Medium** | Add `confirmedAt` to `MindMapEdge` | Edge confidence decay can be reset without mutation (D3) |
+| **Medium** | Add `Instant timestamp()` to event types | Direct temporal queries without Memory conversion (D2) |
+| **Medium** | Wire per-edge-type decay rates | `EdgeTypeDefinition.defaultDecayHalfLifeDays` actually used (D3) |
+| **Low** | Trajectory-aware curiosity dampening | Escalating negative affect increases curiosity instead of suppressing (D6) |
+| **Low** | Cross-store `TemporalFocus` utility | "What's on my mind right now?" aggregation (D5) |
+| **Low** | Unified `Confidence` type across stores | Single model instead of three (D1) |
+
+**The single highest-impact change across all dimensions: add temporal filtering to MindMapQuery.** It's needed for upcoming-event queries (D5), curiosity signal efficiency (D3), temporal coherence (D2), and prospective event querying (D6). Every other recommendation is secondary to this.
 
 ## Design Observation
 
 The system was built layer by layer — text memory first, then CBR, then MindMap, then intelligence. Each layer is internally consistent and well-designed. The tensions arise at **cross-layer boundaries**: temporal queries that work in Memory but not MindMap, affective annotations that work in MindMap but not Memory, builder APIs in CBR but not MindMap. The architecture is sound — these are integration gaps, not design flaws. Filling them would make the 17 cognitive types feel like one system rather than 17 composable parts.
 
-The three highest-leverage improvements — temporal MindMapQuery, PAD on MemoryInput, and MindMapQuery builders — would close the majority of the cross-layer gaps. Each is independently valuable and none requires changes to existing consumers.
+The four highest-leverage improvements — temporal MindMapQuery, PAD on MemoryInput, MindMapQuery builders, and affect trajectory logging — would close the majority of the cross-layer gaps. The first three are integration fixes (bringing MindMap to parity with CBR/Memory). The fourth — affect trajectory — is a conceptual evolution: moving from "what does the agent know?" to "how does the agent feel about what it knows, and how is that feeling changing?" This is the difference between a knowledge system and a cognitive system.
