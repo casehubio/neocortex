@@ -325,6 +325,12 @@ This crosses MindMap + Memory + temporal + affective in one query. The DSL compi
 
 The platform has a dual-API strategy: Java as the canonical model (builders, DSLs, annotations for programmatic use) and YAML as the configuration/authoring frontend (for non-programmatic definition). If something is hard to express in YAML, that's a signal the Java API isn't orthogonal enough — fix the Java API first.
 
+**Eidos alignment:** Neocortex YAML must be consistent with eidos agent descriptor YAML conventions. The two compose into a single agent definition file — `descriptor:` (eidos, WHO) + `cognitive:` (neocortex, HOW). See [Identity-Memory Integration](identity-memory-integration.md) for the full design.
+
+**Schema generation:** The engine repo (`engine/generator`) uses `victools/jsonschema-generator` to reflect Java records into JSON/YAML schemas at runtime. The same pattern applies here — point the generator at neocortex records and get YAML schemas. Needs a `SealedHierarchyModule` for `FeatureValue`, `CbrFilter`, `TemporalMark`, `SimilaritySpec` (producing `oneOf` with type discriminators). Consider extracting the generator to a shared `casehub-schema-generator` module to avoid duplication.
+
+**Identity-cognition derivation:** Neocortex cognitive config derives defaults from eidos identity declarations. The `derive-from: descriptor` YAML directive bridges WHO and HOW — the YAML loader reads an `AgentDescriptor` and produces default `PersonalityWeights`, `MoodBaseline`, curiosity config, CBR parameters, and extraction biases. See Phase 5f.
+
 ### 5a: API-to-YAML Mapping Audit
 
 Before building any YAML layer, audit every builder/DSL/annotation API for YAML-friendliness:
@@ -441,6 +447,27 @@ This is a Quarkus build-time or startup-time loader, not a runtime interpreter. 
 
 **Scope:** L — Quarkus extension or `@Startup` loader, CDI bean production, validation.
 
+### 5f: Identity-Cognition Derivation Engine
+
+The bridge between WHO (eidos) and HOW (neocortex). A pure-function derivation engine that reads an `AgentDescriptor` and produces default cognitive configuration.
+
+**Derivation rules:**
+- `dispositionProfile` → `PersonalityWeights` (Ni-dominant → reflection=1.5, Fe-dominant → relationship=1.4)
+- Disposition axes → `MoodBaseline` (low riskAppetite → lower baseline pleasure, higher arousal)
+- Goals + disposition → curiosity category weights (autonomy → STRUCTURAL boost, ruleFollowing → QUALITY boost)
+- ruleFollowing + riskAppetite → CBR retrieval parameters (strict vs broad similarity)
+- Disposition profile → extraction biases (analytical → relationship-bias, empathetic → affect-sensitivity)
+
+**YAML directive:** `derive-from: descriptor` in the `cognitive:` block triggers derivation. Explicit overrides in the same block take precedence over derived defaults.
+
+**The derivation rules are themselves configurable** — different platforms may have different mappings from disposition to cognition. The default rules implement the personality-cognition research consensus; domain-specific deployments can override them via a `DerivationRuleSet` SPI.
+
+**Implementation:** Pure function `AgentDescriptor → CognitiveDefaults`. No CDI, no state, fully testable. Runs at YAML load time as part of the 5e loader.
+
+See [Identity-Memory Integration](identity-memory-integration.md) for the full design of all 8 integration points.
+
+**Scope:** M — derivation function, default rule set, integration with 5e loader.
+
 ---
 
 ## Phase Gates
@@ -496,6 +523,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 5c: Cognitive Profile YAML | 5b, 3a | M | Agent cognitive configuration in YAML |
 | 5d: Declarative Rule DSL | 5b | L | YAML trait rules + derived edge rules |
 | 5e: YAML-to-Java Compiler | 5c, 5d | L | Build-time/startup YAML → CDI bean loader |
+| 5f: Identity-Cognition Derivation | 5c, eidos | M | `derive-from: descriptor` → default cognitive config |
 
 **Phase 1** can start immediately — no external dependencies. Items 1a and 1b are parallelisable.
 
