@@ -17,6 +17,7 @@ Every phase is governed by these five constraints:
 | **Composability** | Any metadata dimension (affect, time, confidence, identity) can combine with any memory type without special-casing. Mood-weighted CBR retrieval should be as natural as mood-weighted text retrieval. |
 | **Consistency** | One naming convention, one confidence model, one temporal model, one affective model. Terms are pinned in the terminology table and enforced across repos. |
 | **Auditability** | At every phase gate, check for: duplication, overlap, conflicts, gaps, tensions, naming drift, broken composability. The checklist is a gate, not a guideline. |
+| **Dual-API contract** | Every composable API must be expressible in both Java (builders, DSLs, annotations) and YAML (configuration, authoring). If a Java API can't map to YAML, it's a composability smell — fix the Java API first, then build the YAML layer. YAML is a litmus test for API orthogonality. |
 
 ---
 
@@ -318,6 +319,130 @@ This crosses MindMap + Memory + temporal + affective in one query. The DSL compi
 
 ---
 
+## Phase 5: YAML Frontend Layer
+
+**Goal:** Every composable API maps cleanly to YAML. Agents, designers, and ops can define cognitive configuration, vocabulary, trait rules, and derived edge rules in YAML without writing Java. YAML is the authoring frontend; Java is the canonical model.
+
+The platform has a dual-API strategy: Java as the canonical model (builders, DSLs, annotations for programmatic use) and YAML as the configuration/authoring frontend (for non-programmatic definition). If something is hard to express in YAML, that's a signal the Java API isn't orthogonal enough — fix the Java API first.
+
+### 5a: API-to-YAML Mapping Audit
+
+Before building any YAML layer, audit every builder/DSL/annotation API for YAML-friendliness:
+
+| Java API | YAML shape | Mapping issues |
+|----------|-----------|----------------|
+| `CbrQuery.of().withFilter().withTemporalDecay()` | Nested map with typed fields | Clean — each `with*()` maps to a YAML key |
+| `MindMapQuery` (9-arg constructor) | Flat map | Clean once builders exist (Phase 1b prerequisite) |
+| `SimilaritySpec` sealed hierarchy | Discriminator tag | Needs `type:` field to select variant |
+| `CbrFilter` sealed hierarchy | Discriminator tag | Same — `type: contains` / `type: containsAll` etc. |
+| `TemporalMark` sealed hierarchy | Discriminator tag | `type: wall-clock` / `type: relative` / `type: ordinal` |
+| `DerivedEdgeRule` (functional interface) | Declarative rule DSL | Cannot express arbitrary Java logic — need a declarative rule format |
+| `TraitRule` (functional interface) | Declarative trait condition DSL | Same — need condition expressions, not code |
+| `PersonalityWeights` (Map<MemoryDomain, Double>) | Simple map | Clean |
+| `MoodBaseline` (PAD values) | 3 numeric fields | Clean |
+
+Key questions:
+- Can every builder chain be expressed as a flat or nested YAML structure?
+- Are there APIs that rely on method chaining ORDER (not just content)? These won't map to YAML.
+- Do any APIs use lambdas/functional interfaces with no YAML equivalent? These need declarative alternatives.
+
+**Scope:** S — audit only, no code changes. Produces a mapping table identifying all YAML gaps.
+
+### 5b: YAML Schema Design
+
+Design the YAML schema conventions used across all cognitive types:
+
+- **Type discriminators:** `type: gaussian-decay` for sealed variants (follow existing platform patterns)
+- **References:** `ref: memory://entityId` for NodeRef cross-references
+- **Temporal marks:** `at: 2026-12-25T15:00:00Z` (wall-clock), `in: P3D` (relative), `turn: 42` (ordinal)
+- **Affective annotations:** `affect: { pleasure: -0.7, arousal: 0.8, dominance: -0.3 }`
+- **Confidence:** `confidence: { origin: STATED, value: 0.95, decay: { half-life: P90D } }`
+
+Ensure consistency with existing platform YAML conventions (check DSL-STYLE-GUIDE.md).
+
+**Scope:** M — schema conventions document, YAML examples, validation rules.
+
+### 5c: Cognitive Profile YAML
+
+A single YAML file that defines an agent's cognitive configuration:
+
+```yaml
+cognitive:
+  personality:
+    weights:
+      experience: 1.2
+      relationship: 0.8
+      reflection: 1.5
+  mood:
+    baseline:
+      pleasure: 0.3
+      arousal: 0.4
+      dominance: 0.5
+  curiosity:
+    proximity-scale: 7.0
+    affect-dampening: true
+    proximity-bypass: true
+    topical-distance-max-depth: 4
+  memory:
+    decay:
+      default-half-life: P180D
+      per-subgraph-type:
+        PERSON: P365D
+        PROJECT: P90D
+  vocabulary:
+    edge-types:
+      - canonical: works-at
+        aliases: [employed-by, job-at]
+        decay-half-life: P365D
+      - canonical: parent-of
+        aliases: [father-of, mother-of]
+```
+
+**Scope:** M — YAML schema + parser + CDI producer for configuration beans.
+
+### 5d: Declarative Rule DSL
+
+`DerivedEdgeRule` and `TraitRule` are functional interfaces — pure Java, no YAML mapping. Design a declarative condition/action DSL that YAML can express:
+
+```yaml
+trait-rules:
+  - trait: Personable
+    when:
+      any:
+        - has-property: [birthday, role, email]
+        - has-edge-type: [parent-of, child-of, works-at]
+
+derived-edge-rules:
+  - name: inverse-parent
+    when:
+      edge-type: has-child
+    then:
+      create-edge:
+        type: parent-of
+        source: target    # flip direction
+        target: source
+        confidence: INFERRED
+```
+
+This is the hardest part — expressing rules declaratively without losing the power of programmatic rules. The YAML rules compile to the same `DerivedEdgeRule`/`TraitRule` interfaces, so programmatic and declarative rules coexist. Programmatic rules handle complex logic (graph traversal, multi-step inference); YAML rules handle the common structural patterns (inverses, property presence, edge type matching).
+
+**Scope:** L — DSL design, YAML parser, rule compiler, integration with CDI discovery.
+
+### 5e: YAML-to-Java Compiler/Loader
+
+Runtime component that reads YAML cognitive configuration and produces CDI beans:
+
+- Parses YAML cognitive profile → produces `PersonalityWeights`, `MoodBaseline`, `CuriositySignalGenerator` config
+- Parses YAML trait rules → produces `TraitRule` CDI beans
+- Parses YAML derived edge rules → produces `DerivedEdgeRule` CDI beans
+- Parses YAML vocabulary → calls `registerVocabulary()`
+
+This is a Quarkus build-time or startup-time loader, not a runtime interpreter. YAML files are read once at startup; changes require restart (hot-reload is a future concern).
+
+**Scope:** L — Quarkus extension or `@Startup` loader, CDI bean production, validation.
+
+---
+
 ## Phase Gates
 
 At each phase boundary, run the coherence checklist:
@@ -331,19 +456,20 @@ At each phase boundary, run the coherence checklist:
 - [ ] All public API types have `with*()` builders or equivalent composability
 - [ ] Terminology table updated with any new terms introduced
 - [ ] Cross-repo consistency: blocks and engine use the same terms for the same concepts
+- [ ] YAML-expressible: every new API can map to a flat or nested YAML structure without special-casing
 
 ---
 
 ## Sequencing & Dependencies
 
 ```
-Phase 1 (Structural)          Phase 2 (Temporal)           Phase 3 (Affective)         Phase 4 (Queries)
-─────────────────────          ─────────────────            ───────────────────          ─────────────────
-1a: Unified Confidence ──┐     2a: Temporal Taxonomy ──┐    3a: PAD on Memory ──┐       4a: Entity Resolution
-1b: Builder APIs         │     2b: Event Timestamps    │    3b: Affect Trajectory│       4b: TemporalFocus
-1c: Cross-Store Comp. ◄──┘     2c: Temporal MindMap Q  │    3c: Prospective Model       4c: Graph Reasoning
-1d: Naming Audit ─────────►    2d: Chronological Index◄┘    3d: Trajectory Curiosity    4d: Query DSL
-1e: Forwarding (DONE)
+Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       Phase 4 (Queries)        Phase 5 (YAML)
+─────────────────────       ─────────────────         ───────────────────       ─────────────────        ──────────────
+1a: Unified Confidence ─┐   2a: Temporal Taxonomy ─┐  3a: PAD on Memory ──┐    4a: Entity Resolution   5a: API-to-YAML Audit
+1b: Builder APIs ───────┤   2b: Event Timestamps   │  3b: Affect Trajectory   4b: TemporalFocus       5b: YAML Schema Design
+1c: Cross-Store Comp. ◄─┘   2c: Temporal MindMap Q │  3c: Prospective Model   4c: Graph Reasoning     5c: Cognitive Profile
+1d: Naming Audit ──────────► 2d: Chronological Idx◄─┘  3d: Trajectory Curiosity 4d: Query DSL          5d: Declarative Rule DSL
+1e: Forwarding (DONE)                                                                                   5e: YAML-to-Java Loader
 ```
 
 | Work item | Depends on | Scale | Key deliverable |
@@ -365,6 +491,11 @@ Phase 1 (Structural)          Phase 2 (Temporal)           Phase 3 (Affective)  
 | 4b: TemporalFocus | 2d, 3b | M | `AttentionList` — "what's on my mind?" |
 | 4c: Graph Reasoning | 4a | Exploration | DesiredState integration assessment |
 | 4d: Query DSL | 4a, 4b | XL | Unified cognitive query language |
+| 5a: API-to-YAML Mapping Audit | 1b, 1d | S | Mapping table identifying all YAML gaps |
+| 5b: YAML Schema Design | 5a | M | YAML schema conventions document |
+| 5c: Cognitive Profile YAML | 5b, 3a | M | Agent cognitive configuration in YAML |
+| 5d: Declarative Rule DSL | 5b | L | YAML trait rules + derived edge rules |
+| 5e: YAML-to-Java Compiler | 5c, 5d | L | Build-time/startup YAML → CDI bean loader |
 
 **Phase 1** can start immediately — no external dependencies. Items 1a and 1b are parallelisable.
 
@@ -373,6 +504,8 @@ Phase 1 (Structural)          Phase 2 (Temporal)           Phase 3 (Affective)  
 **Phase 3** depends on naming (1d) for affective terminology. 3a and 3b are sequential. 3c depends on both temporal (2a) and affect trajectory (3b).
 
 **Phase 4** is the integration phase — depends on everything before it. 4c and 4d are exploratory/long-term.
+
+**Phase 5** depends on builder APIs (1b) and naming audit (1d) — can start the audit (5a) as soon as Phase 1 completes. The cognitive profile YAML (5c) also needs PAD on Memory (3a). The rule DSL (5d) is the hardest item and can run in parallel with Phase 3/4 work. Phase 5 serves as a validation layer: if a Java API is hard to express in YAML, that signals an orthogonality problem in the Java API that should be fixed first.
 
 ---
 
