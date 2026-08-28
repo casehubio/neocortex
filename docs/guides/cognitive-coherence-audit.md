@@ -21,10 +21,10 @@ An analysis of how well the 17 cognitive types compose, with specific gaps and r
 | Issue | Detail | Impact |
 |-------|--------|--------|
 | **MindMapQuery has no composition API** | 9-arg constructor, no `with*()` methods, no factory helpers. Compare to CbrQuery's 13 `with*()` methods. | Building queries is error-prone — every field must be specified positionally including 5+ nulls. |
-| **Two confidence models, not unified** | `ConfidenceOrigin` (STATED/INFERRED/SPECULATED with initialConfidence) for MindMap; `CbrOutcome` (EMA-adjusted double) for CBR; `importance` (Double) for text memory. Same concept — "how sure are we?" — three different representations. | Cannot sort across subsystems by confidence. A MindMap node at confidence 0.7 and a CBR case at confidence 0.7 mean different things (origin-initial vs EMA-adjusted). |
-| **No cross-system query** | Cannot ask "everything about Alice" in one call. Must query CaseMemoryStore (by entityId), CbrCaseMemoryStore (by features), and MindMapStore (by resolveNode) separately, then merge results manually. | NodeRef provides the *reference* but no *resolution* utility. The guide describes cross-system entity understanding as an emergent capability, but no utility implements the traversal. |
+| **Three incompatible confidence models** | `ConfidenceOrigin` (STATED/INFERRED/SPECULATED with initialConfidence) for MindMap; `CbrOutcome` (EMA-adjusted double) for CBR; `importance` (Double) for text memory. Same concept — "how sure are we?" — three different representations. | Cannot sort across subsystems by confidence. A MindMap node at confidence 0.7 and a CBR case at confidence 0.7 mean different things (origin-initial vs EMA-adjusted). |
+| **No mood-weighted CBR or graph retrieval** | `MoodModulatedRetrieval` and `PersonalityWeightedRetrieval` work on `List<Memory>` only. CBR retrieval (`ScoredCbrCase`) and MindMap search have no mood/affect/personality hooks. | Mood and personality influence text memory retrieval but have zero effect on CBR similarity scoring or graph traversal. |
+| **No cross-system query** | Cannot ask "everything about Alice" in one call. Must query CaseMemoryStore (by entityId), CbrCaseMemoryStore (by features), and MindMapStore (by resolveNode) separately, then merge results manually. | NodeRef provides the *reference* but no *resolution* utility. |
 | **ExperienceEvent has no MindMap reference** | ExperienceEvent carries agentId, tenantId, caseId, turnId, description — but no nodeId or NodeRef. Cannot link an experience to a MindMap entity at creation time. | The link must be created separately via MindMapExtractor or manual NodeRef construction. |
-| **MemoryInput has no builder** | 7-arg constructor. Has `withAttribute()`, `withText()` but no factory methods or builder for common patterns. ExperienceEvents, MoodEvents, RelationshipEvents, EngagementEvents all have dedicated converter classes — but ad-hoc memory creation is verbose. | Minor — the converters handle 90% of cases. |
 
 ### Recommendations
 
@@ -44,11 +44,11 @@ An analysis of how well the 17 cognitive types compose, with specific gaps and r
 | **CbrCaseMemoryStore** / CbrCase | None on interface | `CbrQuery.notBefore` (Instant) | Via `TemporalDecay` | `TemporalDecay` (HalfLife, Linear, Step) |
 | **MindMapNode** | `createdAt`, `updatedAt`, `confirmedAt`, `validFrom`, `validUntil` | **None on MindMapQuery** | No | `ConfidenceDecayDecorator` (uses `confirmedAt`) |
 | **MindMapEdge** | `createdAt`, `updatedAt`, `validFrom`, `validUntil` | **None on MindMapQuery** | No | `ConfidenceDecayDecorator` (uses `updatedAt`) |
-| **ExperienceEvent** | `turnId` only (no Instant) | No (queries via MemoryQuery.since after conversion) | Via MemoryQuery | Via text memory recency |
-| **RelationshipEvent** | `turnId` only | No | Via MemoryQuery | Via text memory recency |
-| **ReflectionEvent** | `turnId` only | No | Via MemoryQuery | Via text memory recency |
-| **MoodState** | `turnId` only | No | Via text memory | Via text memory recency |
-| **EngagementEvent** | `turnId` only | No | Via MemoryQuery | Via text memory recency |
+| **ExperienceEvent** | `turnId` only (no Instant) | Via MemoryQuery.since after conversion | Via MemoryQuery | Via text memory recency |
+| **RelationshipEvent** | `turnId` only | Via MemoryQuery.since after conversion | Via MemoryQuery | Via text memory recency |
+| **ReflectionEvent** | `turnId` only | Via MemoryQuery.since after conversion | Via MemoryQuery | Via text memory recency |
+| **MoodState** | `turnId` only | Via MemoryQuery.since after conversion | Via MemoryQuery | Via text memory recency |
+| **EngagementEvent** | `turnId` only | Via MemoryQuery.since after conversion | Via MemoryQuery | Via text memory recency |
 
 ### Key findings
 
@@ -75,28 +75,31 @@ An analysis of how well the 17 cognitive types compose, with specific gaps and r
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
-| `validFrom` / `validUntil` on nodes | Present on `MindMapNode` interface | Nullable Instant fields |
-| `validFrom` / `validUntil` on edges | Present on `MindMapEdge` interface | Nullable Instant fields |
+| `validFrom` / `validUntil` on nodes | Present | Nullable Instant fields on `MindMapNode` |
+| `validFrom` / `validUntil` on edges | Present | Nullable Instant fields on `MindMapEdge` |
 | `createdAt` / `updatedAt` on both | Present | Set by backends at creation/mutation time |
 | `confirmedAt` on nodes | Present | Reset by `NodeUpdate.confirmedAt` — resets decay clock |
-| Confidence decay decorator | Implemented | `ConfidenceDecayDecorator.applyDecay()` — uses `confirmedAt` for nodes, `updatedAt` for edges |
-| Proximity signals in curiosity engine | Implemented | `CuriositySignalGenerator.collectProximitySignals()` — iterates `nodesIn()`, checks `validFrom.isAfter(now)` |
+| Confidence decay decorator | Implemented | `ConfidenceDecayDecorator.applyDecay()` |
+| Proximity signals in curiosity engine | Implemented | `CuriositySignalGenerator.collectProximitySignals()` — checks `validFrom.isAfter(now)` |
 | Past-event detection | Implemented | Checks `validUntil.isBefore(now)` — generates "did it happen?" signals |
 | Temporal query on MindMapQuery | **Missing** | No `validAfter`/`validBefore` fields |
-| Per-edge-type decay rates | **Missing** | `ConfidenceDecayDecorator` uses single `defaultHalfLifeDays` for everything. `EdgeTypeDefinition.defaultDecayHalfLifeDays` exists in the vocabulary definition but the decorator never reads it. |
+| `confirmedAt` on edges | **Missing** | Edges have no explicit confirmation mechanism |
+| Per-edge-type decay rates | **Missing** | `EdgeTypeDefinition.defaultDecayHalfLifeDays` exists in the vocabulary definition, but `ConfidenceDecayDecorator` takes a single `double defaultHalfLifeDays` and applies it uniformly. The per-type rates are never read. |
+| `getEdge()` decay interception | **Missing** | `ConfidenceDecayDecorator` intercepts `getNode`, `nodesIn`, `search`, `neighbors`, `bridgeEdges` — but NOT `getEdge()`. Single-edge lookups bypass decay entirely. |
 
-### Inconsistency: decay reference point
+### Decay reference asymmetry
 
 - **Nodes**: decay from `confirmedAt` (explicit confirmation resets clock). If `confirmedAt` is null, no decay applied (returns raw confidence).
-- **Edges**: decay from `updatedAt` (any mutation resets clock). No `confirmedAt` on edges.
+- **Edges**: decay from `updatedAt` (any mutation resets clock). No `confirmedAt` on edges — no way to say "I re-confirmed this relationship is still true" without modifying the edge.
 
-This asymmetry means: a node that was created 2 years ago but never confirmed decays to near-zero. An edge created 2 years ago but updated yesterday (even with a trivial property change) shows full confidence. The edge should also have `confirmedAt` — the spec review (R1-07) flagged this and the spec was updated to include `EdgeUpdate` with `confirmedAt`, but the code hasn't caught up.
+This asymmetry means: a node created 2 years ago but never confirmed decays to near-zero. An edge created 2 years ago but updated yesterday (even with a trivial property change) shows full confidence. Employment relationships and project assignments decay at the same rate, despite `EdgeTypeDefinition` carrying per-type half-life data that the decorator ignores.
 
 ### Recommendations
 
 1. **Add `confirmedAt` to MindMapEdge** and implement `updateEdge()` on MindMapStore (spec already specifies this — R1-07 from the spec review).
 2. **Add temporal filtering to MindMapQuery** — `validAfter` and `validBefore` fields.
-3. **Wire per-edge-type decay** — ConfidenceDecayDecorator should read `EdgeTypeDefinition.defaultDecayHalfLifeDays` from the registered vocabulary, falling back to the global default.
+3. **Wire per-edge-type decay** — `ConfidenceDecayDecorator` should read `EdgeTypeDefinition.defaultDecayHalfLifeDays` from the registered vocabulary for each edge type, falling back to the global default only when no type-specific rate is defined.
+4. **Intercept `getEdge()` in ConfidenceDecayDecorator** — single-edge lookups should return decayed confidence, consistent with all other query methods.
 
 ---
 
@@ -112,22 +115,22 @@ This asymmetry means: a node that was created 2 years ago but never confirmed de
 | **CaseMemoryStore / MemoryInput** | **None** | N/A | N/A |
 | **Memory** | **None** | N/A | N/A |
 | **ExperienceEvent** | **None** | N/A | N/A |
-| **RelationshipEvent** | `qualitySignal` (POSITIVE/NEGATIVE/NEUTRAL) | 3-value enum | Not PAD — coarser |
+| **RelationshipEvent** | `qualitySignal` (POSITIVE/NEGATIVE/NEUTRAL) | 3-value enum | Not PAD — much coarser |
 | **EngagementEvent** | `sentimentShift` (Double) | Scalar shift | Nullable, but not PAD |
 | **CbrCase** | **None** | N/A | N/A |
 | **ReflectionEvent** | **None** | N/A | N/A |
 
 ### Key findings
 
-**Affective tagging is MindMap-only.** Only MindMap nodes and edges carry full PAD annotations. Text memories (the largest store) have NO affective fields. You cannot tag a text memory with "this is a bad memory" — not even via the attributes map, since `MoodModulatedRetrieval` doesn't read attributes for PAD values on non-mood memories.
+**Affective tagging is MindMap-only.** Only MindMap nodes and edges carry full PAD annotations. Text memories (the largest store) have NO affective fields. You cannot tag a text memory with "this is a bad memory" — not even via the attributes map in a typed way.
 
-**MoodModulatedRetrieval works, but only on MindMap-annotated memories.** The `moodFactor()` method reads PAD values from the memory's attributes — specifically `MoodAttributeKeys.PLEASURE`, `AROUSAL`, `DOMINANCE`. But these are only set when MoodState is stored as a memory (domain="mood"). Regular text memories, experiences, relationships, and reflections have no PAD attributes. So mood-congruent retrieval only boosts mood-domain memories, not all memories by their emotional valence.
+**MoodModulatedRetrieval works, but only on mood-domain memories.** The `moodFactor()` method reads PAD values from the memory's attributes — specifically `MoodAttributeKeys.PLEASURE`, `AROUSAL`, `DOMINANCE`. But these are only set when MoodState is stored as a memory (domain="mood"). Regular text memories, experiences, relationships, and reflections have no PAD attributes. So mood-congruent retrieval only boosts mood-domain memories, not all memories by their emotional valence.
 
 **QualitySignal (3-value) and PAD (3-axis) are different models.** RelationshipEvent uses a coarse POSITIVE/NEGATIVE/NEUTRAL signal. This doesn't map cleanly to PAD — a NEGATIVE relationship could be high-arousal (conflict) or low-arousal (neglect). The two models don't compose.
 
 ### Recommendations
 
-1. **Add optional PAD fields to MemoryInput** — `Double pleasure`, `Double arousal`, `Double dominance`. Store them in the attributes map with standard keys. This allows any memory to carry emotional valence.
+1. **Add optional PAD fields to MemoryInput** — `Double pleasure`, `Double arousal`, `Double dominance`. Store them in the attributes map with standard keys. This allows any memory to carry emotional valence: "lost my job" with pleasure=-0.8, arousal=0.6.
 2. **Update MoodModulatedRetrieval to read PAD from any memory's attributes** — not just mood-domain memories. The attribute keys already exist (`MoodAttributeKeys`); the retrieval logic just needs to check them on all memories.
 3. **Add a `toAffect()` method on QualitySignal** that maps to approximate PAD values: POSITIVE → pleasure=0.5, NEGATIVE → pleasure=-0.5, NEUTRAL → pleasure=0. This bridges the two models without replacing either.
 
@@ -149,17 +152,20 @@ This asymmetry means: a node that was created 2 years ago but never confirmed de
 | Gap | Detail | Impact |
 |-----|--------|--------|
 | **No "upcoming events" query** | No way to ask MindMapStore "what's coming up in the next 7 days?" without scanning all nodes in all subgraphs. `MindMapQuery` has no temporal filter. | CuriositySignalGenerator does a full scan — works at agent scale but won't scale. |
-| **No event lifecycle** | No status field on nodes (PLANNED → HAPPENING → COMPLETED → REVIEWED). `validFrom`/`validUntil` define the temporal window but don't track whether the event was attended, cancelled, or rescheduled. | "Holiday Dec 25" after Dec 25 still shows as a past event — no distinction between "happened as planned" and "was cancelled." |
-| **No recurring events** | No recurrence model (weekly meeting, annual holiday). Each occurrence must be a separate node. | Manual node creation for every instance of a recurring event. |
-| **No priority/urgency model** | Future events carry confidence (STATED/SPECULATED) and proximity score, but no explicit priority. "Dentist appointment" and "job interview" tomorrow get the same proximity score. | All events are equal — the curiosity engine can't distinguish important from trivial. |
-| **Plans and aspirations are nodes, not a distinct type** | "Hope to start new job" is a MindMapNode with SPECULATED confidence. There's no semantic distinction between an aspiration, a plan, a prediction, and a fact — only the confidence level. | An agent can't query "what are my aspirations?" separately from "what are my facts?" without a trait or property convention. |
+| **No event lifecycle** | No status field on nodes (PLANNED → CONFIRMED → HAPPENING → COMPLETED → CANCELLED → REVIEWED). `validFrom`/`validUntil` define the temporal window but don't track whether the event was attended, cancelled, or rescheduled. | "Holiday Dec 25" after Dec 25 still shows as a past event — no distinction between "happened as planned" and "was cancelled." |
+| **No transition from hope to fact** | A "hoping to start a job" node (SPECULATED) that becomes real has no clean transition path. You'd manually change `ConfidenceOrigin` via an update, but there's no lifecycle event, no audit trail of the transition, and no automatic edge/property propagation. | The knowledge graph can't answer "what changed from speculation to reality?" |
+| **No recurring events** | No recurrence model (weekly team meeting, annual holiday, monthly review). Each occurrence must be a separate node. | Manual node creation for every instance of a recurring event. An agent with a "weekly standup" must create 52 nodes per year. |
+| **No priority/urgency beyond proximity** | Future events carry confidence and proximity score, but no explicit priority. "Dentist appointment" and "job interview" tomorrow get the same proximity score. | All events are equal — the curiosity engine can't distinguish important from trivial without additional property conventions. |
+| **Plans and aspirations are undifferentiated** | "Hope to start new job" is a MindMapNode with SPECULATED confidence. There's no semantic distinction between an aspiration, a plan, a prediction, and a fact — only the confidence level differs. | An agent can't query "what are my aspirations?" separately from "what are my facts?" without a trait or property convention. |
+| **No unified temporal focus** | There is no cross-store "what should I think about right now?" utility. MindMap has `validFrom`, text memory has `createdAt`, CBR has `notBefore` — but no aggregation across stores into a single ranked attention list. | The cognitive equivalent of "what's on my mind" requires manually querying three stores and merging results. |
 
 ### Recommendations
 
 1. **Add temporal filtering to MindMapQuery** (repeating from Dimension 3 — this is the single most impactful improvement). Fields: `Instant validAfter`, `Instant validBefore`.
-2. **Establish a `status` property convention** for event nodes — `status=planned|active|completed|cancelled|reviewed`. Not a core field — a property convention enforced by the trait system. A `TemporalEventTraitRule` could auto-apply a "TemporalEvent" trait when `validFrom` is set.
+2. **Establish a `status` property convention** for event nodes — `status=planned|confirmed|active|completed|cancelled|reviewed`. Not a core field — a property convention enforced by the trait system. A `TemporalEventTraitRule` could auto-apply a "TemporalEvent" trait when `validFrom` is set.
 3. **Add an `intent` property convention** — `intent=fact|plan|aspiration|prediction`. Combined with confidence, this distinguishes "I accepted a job" (fact, STATED) from "I hope to get a job" (aspiration, SPECULATED) from "I think I'll get the job" (prediction, INFERRED).
 4. **Priority can be modelled as importance** — add a `Double importance` field to NodeInput (parallel to MemoryInput.importance). High-importance future events generate stronger curiosity signals.
+5. **Consider a cross-store `TemporalFocus` utility** that aggregates upcoming MindMap events + recent memories + recent experiences into a single ranked "attention list" — the cognitive equivalent of "what's on my mind right now."
 
 ---
 
@@ -169,8 +175,14 @@ This asymmetry means: a node that was created 2 years ago but never confirmed de
 |-----------|---------|-------------|
 | **Composability** | Good for CBR/Memory; weak for MindMap queries | Add `with*()` methods to MindMapQuery |
 | **Temporal coherence** | Fragmented — 3 different temporal models | Add `Instant timestamp()` to all event types; unify query naming |
-| **MindMap temporal** | Rich fields, no query support | Add `validAfter`/`validBefore` to MindMapQuery; wire per-edge-type decay |
+| **MindMap temporal** | Rich fields, no query support; per-edge-type decay unwired | Add `validAfter`/`validBefore` to MindMapQuery; wire per-edge-type decay; add `confirmedAt` to edges |
 | **Affective tagging** | MindMap-only; text memories are affect-blind | Add PAD fields to MemoryInput; update MoodModulatedRetrieval |
-| **Future-facing** | Mechanically works; semantically thin | Property conventions for status + intent; temporal query support |
+| **Future-facing** | Mechanically works; semantically thin | Property conventions for status + intent; event lifecycle; temporal query support |
 
 **The single highest-impact change across all dimensions: add temporal filtering to MindMapQuery.** It's needed for upcoming-event queries (D5), curiosity signal efficiency (D3), and temporal coherence (D2). Every other recommendation is secondary to this.
+
+## Design Observation
+
+The system was built layer by layer — text memory first, then CBR, then MindMap, then intelligence. Each layer is internally consistent and well-designed. The tensions arise at **cross-layer boundaries**: temporal queries that work in Memory but not MindMap, affective annotations that work in MindMap but not Memory, builder APIs in CBR but not MindMap. The architecture is sound — these are integration gaps, not design flaws. Filling them would make the 17 cognitive types feel like one system rather than 17 composable parts.
+
+The three highest-leverage improvements — temporal MindMapQuery, PAD on MemoryInput, and MindMapQuery builders — would close the majority of the cross-layer gaps. Each is independently valuable and none requires changes to existing consumers.
