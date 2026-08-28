@@ -18,6 +18,7 @@ Every phase is governed by these five constraints:
 | **Consistency** | One naming convention, one confidence model, one temporal model, one affective model. Terms are pinned in the terminology table and enforced across repos. |
 | **Auditability** | At every phase gate, check for: duplication, overlap, conflicts, gaps, tensions, naming drift, broken composability. The checklist is a gate, not a guideline. |
 | **Dual-API contract** | Every composable API must be expressible in both Java (builders, DSLs, annotations) and YAML (configuration, authoring). If a Java API can't map to YAML, it's a composability smell — fix the Java API first, then build the YAML layer. YAML is a litmus test for API orthogonality. |
+| **Memory spaces are cross-cutting** | Every API, query model, and data type must account for private, shared, and selectively-shared memory from the start. If you can't explain how a feature works when the agent sees both private and shared spaces, the feature isn't designed yet. Memory spaces are an architectural property, not a feature. See [Shared Memory Design](shared-memory-design.md). |
 
 ---
 
@@ -107,6 +108,26 @@ Already implemented (#223). Verify all current and future decorators extend `Abs
 
 **Scope:** Done.
 
+### 1f: Memory Space Model
+
+Define the multi-agent memory space model as part of structural consolidation — not as a later phase. Every subsequent API design (confidence, builders, temporal, affective) must be space-aware from the start.
+
+**Core concepts:**
+- `MemorySpace` — PRIVATE (one agent), SHARED (group), SELECTIVE (named recipients)
+- Visibility layer above the store — each space IS a tenant; the layer unions results from all spaces an agent belongs to
+- `Visibility` sealed type: `Private(ownerId)`, `Shared(spaceId)`, `Selective(spaceId, Set<String> recipientIds)`
+- Space membership with temporal validity (access changes over time)
+
+**Impact on other Phase 1 items:**
+- 1a (Confidence): shared knowledge has collective confidence (multiple observers strengthen it); individual confidence is per-viewer
+- 1b (Builders): every query builder must accept space parameters — `MindMapQuery.builder().spaces(PRIVATE, SHARED).build()`
+- 1c (Cross-Store Composability): `RetrievalModulator<T>` must work across private + shared result sets
+- 1d (Naming): add space terminology to the naming table
+
+See [Shared Memory Design](shared-memory-design.md) for full design.
+
+**Scope:** M — `MemorySpace` type, `Visibility` sealed hierarchy, space membership model, visibility layer SPI. No store implementation changes — the abstraction sits above the stores.
+
 ---
 
 ## Phase 2: Temporal Unification
@@ -182,6 +203,8 @@ Answers: "what happened in the last hour?", "what's coming up this week?", "what
 
 Feeds the curiosity engine's proximity signals efficiently, replacing the current O(n) node scan in `CuriositySignalGenerator`.
 
+**Memory space impact:** The chronological index must span private + shared spaces. A family calendar is a shared temporal view — `TemporalIndex` must aggregate upcoming events from the agent's private space AND all shared spaces they belong to. Group temporal membership (when someone joins/leaves a space) is itself a temporal event that changes what the index contains.
+
 **Scope:** L — new cross-store utility, requires temporal query support from 2b and 2c.
 
 ---
@@ -235,7 +258,19 @@ A property `status=planned` on a future-dated node enables queries like "show co
 
 **Scope:** M — traits + rules + property conventions + recurring event generator.
 
-### 3d: Trajectory-Aware Curiosity
+### 3d: Perspectival Affect Overlays
+
+Per-agent PAD overlays on shared MindMap nodes. When multiple agents share a knowledge graph, the same node ("Grandma", "family holiday") carries different emotional meaning for each viewer.
+
+**Design:** Shared nodes carry NO PAD (affect is always perspectival). Each agent stores a lightweight overlay in their private tenant, linked by `NodeRef` to the shared node. The visibility layer merges shared node + private overlay at query time, returning a single `MindMapNode` with the viewer's perspective.
+
+**Overlay record:** `(sharedNodeId, pleasure, arousal, dominance, confidence, Map<String, String> properties)` — stored as a regular node in the private tenant. This means no changes to `MindMapStore` — the overlay is a convention, not a new SPI method.
+
+See [Shared Memory Design](shared-memory-design.md) § Perspectival Memory.
+
+**Scope:** M — overlay convention, visibility layer merge logic, query-time composition.
+
+### 3e: Trajectory-Aware Curiosity
 
 Update `CuriositySignalGenerator`'s affect dampening to use trajectory, not snapshot:
 
@@ -271,6 +306,8 @@ A `CognitiveProfile` utility that, given an entity name or ID:
 
 This is the "tell me everything about Alice" query.
 
+**Memory space impact:** Entity resolution must work across memory spaces. "Tell me everything about Alice" traverses the agent's private graph AND shared family graph, follows NodeRefs into private and shared memories, and merges perspectival affect overlays. The result carries provenance: which facts are private, which are shared, which are the viewer's perspective vs consensus.
+
 **Scope:** L — bridge module depending on all three SPIs.
 
 ### 4b: TemporalFocus Utility
@@ -284,6 +321,8 @@ This is the "tell me everything about Alice" query.
 Returns a ranked `AttentionList` — the cognitive equivalent of working memory contents. Each item has a source (which store), a salience score, and a reason ("approaching event", "recent experience", "worsening affect").
 
 This feeds the agent's executive function — deciding what to think about next.
+
+**Memory space impact:** `TemporalFocus` must aggregate across private + shared spaces. A family member's attention list includes both their private upcoming events AND shared family calendar entries. Items from shared spaces carry a `spaceId` so the agent knows the source.
 
 **Scope:** M — depends on temporal index (2d) and affect trajectory (3b).
 
@@ -468,6 +507,30 @@ See [Identity-Memory Integration](identity-memory-integration.md) for the full d
 
 **Scope:** M — derivation function, default rule set, integration with 5e loader.
 
+### 5g: Memory Space YAML Configuration
+
+YAML surface for defining memory spaces, membership, visibility rules, and scope-based access:
+
+```yaml
+memory-spaces:
+  - id: smiths-family
+    type: shared
+    members:
+      - { id: alice, roles: [admin, financial-authority], since: 2010-06-15 }
+      - { id: bob, roles: [admin, school-authority], since: 2010-06-15 }
+      - { id: emma, roles: [member], since: 2012-09-01 }
+    scopes:
+      calendar:  { visibility: all-members }
+      finances:  { visibility: [alice, bob] }
+      health:    { visibility: owner-only }
+```
+
+Composes with `descriptor:` (eidos) + `cognitive:` (neocortex) in the same agent YAML. Group identity (shared goals, collective values) lives here alongside individual cognitive profiles.
+
+See [Shared Memory Design](shared-memory-design.md) for the full model.
+
+**Scope:** M — YAML schema + parser + integration with visibility layer (1f).
+
 ---
 
 ## Phase Gates
@@ -484,6 +547,8 @@ At each phase boundary, run the coherence checklist:
 - [ ] Terminology table updated with any new terms introduced
 - [ ] Cross-repo consistency: blocks and engine use the same terms for the same concepts
 - [ ] YAML-expressible: every new API can map to a flat or nested YAML structure without special-casing
+- [ ] Shared memory litmus test: does this API/model/query work correctly when the agent sees both private and shared spaces?
+- [ ] Perspectival correctness: does affect/confidence on shared entities support per-viewer overlays?
 
 ---
 
@@ -506,6 +571,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 1c: Cross-Store Composability | 1a | M | Generic `RetrievalModulator<T>` for mood/personality/trust |
 | 1d: Naming Audit | 1a | S | Terminology table enforced; inconsistencies renamed |
 | 1e: Forwarding Store | Done (#223) | — | — |
+| 1f: Memory Space Model | — | M | `MemorySpace`, `Visibility`, space membership, visibility layer SPI |
 | 2a: Temporal Taxonomy | 1d | M | `TemporalMark` sealed hierarchy |
 | 2b: Event Timestamps | 2a | S | `Instant timestamp()` on all event types |
 | 2c: Temporal MindMapQuery | 2a | S | `validAfter`/`validBefore`/`updatedAfter` fields |
@@ -513,7 +579,8 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 3a: PAD on Memory | 1d | S | `pleasure`/`arousal`/`dominance` on MemoryInput |
 | 3b: Affect Trajectory | 3a | M | `AffectEntry` log per node/entity |
 | 3c: Prospective Events | 2a, 3b | M | Event lifecycle + traits + recurrence |
-| 3d: Trajectory Curiosity | 3b | S | Updated `CuriositySignalGenerator` |
+| 3d: Perspectival Overlays | 1f, 3a | M | Per-agent PAD overlays on shared nodes |
+| 3e: Trajectory Curiosity | 3b | S | Updated `CuriositySignalGenerator` |
 | 4a: Cross-Store Entity | 1c, 2d | L | `CognitiveProfile` utility |
 | 4b: TemporalFocus | 2d, 3b | M | `AttentionList` — "what's on my mind?" |
 | 4c: Graph Reasoning | 4a | Exploration | DesiredState integration assessment |
@@ -524,6 +591,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 5d: Declarative Rule DSL | 5b | L | YAML trait rules + derived edge rules |
 | 5e: YAML-to-Java Compiler | 5c, 5d | L | Build-time/startup YAML → CDI bean loader |
 | 5f: Identity-Cognition Derivation | 5c, eidos | M | `derive-from: descriptor` → default cognitive config |
+| 5g: Memory Space YAML | 5b, 1f | M | YAML memory space configuration + group identity |
 
 **Phase 1** can start immediately — no external dependencies. Items 1a and 1b are parallelisable.
 
@@ -543,3 +611,4 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 - **New backends** — no new storage engines (TinkerPop, PostgreSQL graph). The improvements work with existing InMemory + SQLite backends.
 - **LLM prompt evolution** — `MindMapExtractor`'s prompts may need updating as the temporal/affective model evolves, but prompt engineering is not a structural concern.
 - **Performance** — the chronological index (2d) has performance implications but this program focuses on capability, not optimisation.
+- **casehub-life wiring** — this program designs the memory space model and visibility layer. Wiring it to life's family model (household membership, decision authority, care coordination) is a life-side integration task that depends on Phases 1f and 3d being complete.
