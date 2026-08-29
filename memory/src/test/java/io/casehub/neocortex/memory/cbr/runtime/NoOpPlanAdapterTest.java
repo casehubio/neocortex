@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.PlanCbrCase;
@@ -20,7 +21,7 @@ class NoOpPlanAdapterTest {
     void retainsAllSteps() {
         var trace1 = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
         var trace2 = new PlanTrace("b2", "cap2", "w2", "FAILURE", 1, Map.of("p", "v"), null);
-        var plan = new PlanCbrCase("problem", "solution", "WIN", 0.9,
+        var plan = new PlanCbrCase("problem", "solution", "WIN", Confidence.unknown(0.9),
                                    Map.of("f", FeatureValue.string("v")), List.of(trace1, trace2), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.85);
 

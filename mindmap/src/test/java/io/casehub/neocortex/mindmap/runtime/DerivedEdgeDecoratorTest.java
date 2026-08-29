@@ -1,10 +1,13 @@
 package io.casehub.neocortex.mindmap.runtime;
 
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.*;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -169,7 +172,7 @@ class DerivedEdgeDecoratorTest {
 
         List<MindMapEdge> derived = decorator.neighbors(bob, "parent-of", "t1");
         assertThat(derived).hasSize(1);
-        assertThat(derived.get(0).confidenceOrigin()).isEqualTo(ConfidenceOrigin.INFERRED);
+        assertThat(derived.get(0).confidence().origin()).isEqualTo(ConfidenceOrigin.INFERRED);
     }
 
     @Test
@@ -224,7 +227,7 @@ class DerivedEdgeDecoratorTest {
             if ("has-child".equals(trigger.edgeType())) {
                 return List.of(new EdgeInput(
                     trigger.targetNodeId(), trigger.sourceNodeId(),
-                    "parent-of", ConfidenceOrigin.INFERRED, null,
+                    "parent-of", Confidence.inferred(0.7, Instant.now()),
                     "derived", null, null, null, null, null, null));
             }
             return List.of();
@@ -240,7 +243,7 @@ class DerivedEdgeDecoratorTest {
             if ("parent-of".equals(trigger.edgeType())) {
                 return List.of(new EdgeInput(
                     trigger.sourceNodeId(), trigger.targetNodeId(),
-                    "ancestor-of", ConfidenceOrigin.INFERRED, null,
+                    "ancestor-of", Confidence.inferred(0.7, Instant.now()),
                     "derived", null, null, null, null, null, null));
             }
             return List.of();
@@ -256,13 +259,13 @@ class DerivedEdgeDecoratorTest {
             if ("ping".equals(trigger.edgeType())) {
                 return List.of(new EdgeInput(
                     trigger.targetNodeId(), trigger.sourceNodeId(),
-                    "pong", ConfidenceOrigin.INFERRED, null,
+                    "pong", Confidence.inferred(0.7, Instant.now()),
                     "derived", null, null, null, null, null, null));
             }
             if ("pong".equals(trigger.edgeType())) {
                 return List.of(new EdgeInput(
                     trigger.targetNodeId(), trigger.sourceNodeId(),
-                    "ping", ConfidenceOrigin.INFERRED, null,
+                    "ping", Confidence.inferred(0.7, Instant.now()),
                     "derived", null, null, null, null, null, null));
             }
             return List.of();
@@ -270,12 +273,12 @@ class DerivedEdgeDecoratorTest {
     }
 
     private NodeInput node(String name) {
-        return new NodeInput(name, subgraphId, ConfidenceOrigin.STATED, null,
+        return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);
     }
 
     private EdgeInput edge(String source, String target, String type) {
-        return new EdgeInput(source, target, type, ConfidenceOrigin.STATED, null,
+        return new EdgeInput(source, target, type, null,
             "test", null, null, null, null, null, null);
     }
 }

@@ -23,10 +23,10 @@ public final class PersonalityWeightedRetrieval {
     }
 
     private static double score(Memory memory, PersonalityWeights weights, Instant now) {
-        double recency = recencyDecay(memory.createdAt(), now);
-        double importance = memory.importance() != null ? memory.importance() : 1.0;
-        double domainWeight = weights.getWeight(memory.domain());
-        return recency * importance * domainWeight;
+        double recency         = recencyDecay(memory.createdAt(), now);
+        double confidenceValue = memory.confidence() != null ? memory.confidence().value() : 1.0;
+        double domainWeight    = weights.getWeight(memory.domain());
+        return recency * confidenceValue * domainWeight;
     }
 
     private static double recencyDecay(Instant createdAt, Instant now) {

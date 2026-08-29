@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.personality;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import org.junit.jupiter.api.Test;
@@ -16,8 +18,8 @@ class PersonalityWeightedRetrievalTest {
     private static final MemoryDomain RELATIONSHIP = new MemoryDomain("relationship");
     private static final MemoryDomain REFLECTION = new MemoryDomain("reflection");
 
-    private Memory memory(String id, MemoryDomain domain, Instant createdAt, Double importance) {
-        return new Memory(id, "a1", domain, "t1", null, "text", Map.of(), createdAt, importance);
+    private Memory memory(String id, MemoryDomain domain, Instant createdAt, Double confidence) {
+        return new Memory(id, "a1", domain, "t1", null, "text", Map.of(), createdAt, confidence != null ? Confidence.unknown(confidence) : null);
     }
 
     @Test

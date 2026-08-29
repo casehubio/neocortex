@@ -17,7 +17,7 @@ Four related capabilities in one repo:
 
 **CBR Memory** — case-based reasoning with typed feature-vector similarity search over prior cases. `CbrCaseMemoryStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, Qdrant). Typed feature values (7 value types, 9 field types), weighted similarity scoring, plan adaptation, ensemble analysis, temporal decay, trust-weighted retrieval, hierarchical scoping, and outcome feedback loops.
 
-**Agent Memory** — queryable, permission-aware, persistent agent memory. `CaseMemoryStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, SQLite, Mem0, Graphiti). Salience-based ranking, importance-aware retention, fire-and-forget emission via `MemoryEmitter`.
+**Agent Memory** — queryable, permission-aware, persistent agent memory. `CaseMemoryStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, SQLite, Mem0, Graphiti). Salience-based ranking, confidence-aware retention, fire-and-forget emission via `MemoryEmitter`.
 
 ---
 
@@ -56,7 +56,7 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `memory-api` | `casehub-neocortex-memory-api` | `CaseMemoryStore`, `GraphCaseMemoryStore` SPIs, `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE), `MemoryInput` with importance, `MemoryRetentionPolicy`, `MemoryScanRequest` — pure Java |
+| `memory-api` | `casehub-neocortex-memory-api` | `CaseMemoryStore`, `GraphCaseMemoryStore` SPIs, `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE), `MemoryInput` with confidence, `MemoryRetentionPolicy`, `MemoryScanRequest` — pure Java |
 | `memory` | `casehub-neocortex-memory` | CDI wiring, `MemoryEmitter` fire-and-forget wrapper, `CaseEnrichmentDecorator`, `MemoryRetentionScheduler` |
 | `memory-inmem` | `casehub-neocortex-memory-inmem` | In-memory volatile backend — test + ephemeral |
 | `memory-jpa` | `casehub-neocortex-memory-jpa` | PostgreSQL + Flyway + FTS via `websearch_to_tsquery` |
@@ -159,16 +159,16 @@ Static utility for analytics over retrieval tracking data. Pure computation — 
 ### CaseMemoryStore (memory-api)
 
 Queryable, permission-aware, persistent memory. Key operations:
-- `store(MemoryInput)` — store with optional `importance` field (0.0-1.0)
+- `store(MemoryInput)` — store with optional `Confidence` field (origin + value [0.0-1.0])
 - `query(MemoryQuery)` — retrieve with `MemoryOrder` ranking (CHRONOLOGICAL, RELEVANCE, SALIENCE)
 - `erase(EraseRequest)`, `eraseEntity()`, `eraseById()`, `eraseEntityAcrossTenants()` — GDPR-compliant deletion
 - `scan(MemoryScanRequest)` — paginated admin scan
-- `purge(MemoryRetentionPolicy)` — importance-based retention purge
+- `purge(MemoryRetentionPolicy)` — confidence-based retention purge
 - `discoverTenants()` — cross-tenant admin operation
 
-`MemoryOrder.SALIENCE` — recency x importance query-time scoring. Non-semantic adapters compute salience from `createdAt` and `importance`; semantic adapters fall back to RELEVANCE.
+`MemoryOrder.SALIENCE` — recency x confidence query-time scoring. Non-semantic adapters compute salience from `createdAt` and `confidence`; semantic adapters fall back to RELEVANCE.
 
-`MemoryRetentionScheduler` — scheduled importance-based purge across discovered tenants. Config-driven: `casehub.memory.retention.enabled`, `casehub.memory.retention.min-importance`, `casehub.memory.retention.max-age-days`.
+`MemoryRetentionScheduler` — scheduled confidence-based purge across discovered tenants. Config-driven: `casehub.memory.retention.enabled`, `casehub.memory.retention.min-confidence`, `casehub.memory.retention.max-age-days`.
 
 ### CbrCaseMemoryStore (memory-api)
 
@@ -289,10 +289,10 @@ The C2 native image gate passed (ONNX Runtime JNI + HuggingFace Tokenizers JNI b
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `casehub.memory.retention.enabled` | — | Enable scheduled importance-based retention purge |
+| `casehub.memory.retention.enabled` | — | Enable scheduled confidence-based retention purge |
 | `casehub.memory.retention.domain` | — | Memory domain for retention scheduling |
 | `casehub.memory.retention.max-age-days` | — | Maximum age before purge eligibility |
-| `casehub.memory.retention.min-importance` | — | Minimum importance to retain |
+| `casehub.memory.retention.min-confidence` | — | Minimum confidence to retain |
 
 ### CBR Configuration
 

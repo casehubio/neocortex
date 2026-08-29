@@ -85,7 +85,7 @@ class RelationshipEventTest {
             "action", QualitySignal.NEUTRAL, "desc", null, Map.of());
         assertNull(event.caseId());
         assertNull(event.turnId());
-        assertNull(event.importance());
+        assertNull(event.confidence());
     }
 
     @Test
@@ -118,7 +118,7 @@ class RelationshipEventTest {
         assertEquals("observation", event.sourceEventType());
         assertEquals(QualitySignal.POSITIVE, event.qualitySignal());
         assertEquals("cooperated on review", event.description());
-        assertEquals(0.8, event.importance());
+        assertEquals(0.8, event.confidence());
         assertEquals("val", event.metadata().get("extra"));
     }
 }

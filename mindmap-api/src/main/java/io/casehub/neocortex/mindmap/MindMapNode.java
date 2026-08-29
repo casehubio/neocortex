@@ -1,5 +1,7 @@
 package io.casehub.neocortex.mindmap;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -13,17 +15,13 @@ public interface MindMapNode {
 
     String subgraphId();
 
-    ConfidenceOrigin confidenceOrigin();
-
-    double confidence();
+    Confidence confidence();
 
     String provenance();
 
     Instant createdAt();
 
     Instant updatedAt();
-
-    Instant confirmedAt();
 
     Instant validFrom();
 

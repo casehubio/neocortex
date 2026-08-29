@@ -45,7 +45,7 @@ public class MemoryRetentionScheduler {
                 MemoryRetentionPolicy policy = new MemoryRetentionPolicy(
                         tenantId, domain,
                         config.maxAgeDays().orElse(null),
-                        config.minImportance().orElse(null));
+                        config.minConfidence().orElse(null));
                 int purged = store.purge(policy);
                 if (purged > 0) {
                     LOG.infof("Memory retention: purged %d memories for tenant %s", purged, tenantId);

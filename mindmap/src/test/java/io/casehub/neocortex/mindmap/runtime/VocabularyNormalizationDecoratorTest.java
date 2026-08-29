@@ -32,7 +32,7 @@ class VocabularyNormalizationDecoratorTest {
         String b = decorator.addNode(node("Acme"), "t1");
 
         String edgeId = decorator.addEdge(new EdgeInput(a, b, "employed-by",
-            ConfidenceOrigin.STATED, null, "test",
+            null, "test",
             null, null, null, null, null, null), "t1");
 
         MindMapEdge edge = decorator.getEdge(edgeId, "t1");
@@ -46,7 +46,7 @@ class VocabularyNormalizationDecoratorTest {
         String b = decorator.addNode(node("Bob"), "t1");
 
         String edgeId = decorator.addEdge(new EdgeInput(a, b, "friend-of",
-            ConfidenceOrigin.STATED, null, "test",
+            null, "test",
             null, null, null, null, null, null), "t1");
 
         MindMapEdge edge = decorator.getEdge(edgeId, "t1");
@@ -60,7 +60,7 @@ class VocabularyNormalizationDecoratorTest {
         String b = decorator.addNode(node("Acme"), "t1");
 
         String edgeId = decorator.addEdge(new EdgeInput(a, b, "works-at",
-            ConfidenceOrigin.STATED, null, "test",
+            null, "test",
             null, null, null, null, null, null), "t1");
 
         MindMapEdge edge = decorator.getEdge(edgeId, "t1");
@@ -69,7 +69,7 @@ class VocabularyNormalizationDecoratorTest {
     }
 
     private NodeInput node(String name) {
-        return new NodeInput(name, subgraphId, ConfidenceOrigin.STATED, null,
+        return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);
     }
 }

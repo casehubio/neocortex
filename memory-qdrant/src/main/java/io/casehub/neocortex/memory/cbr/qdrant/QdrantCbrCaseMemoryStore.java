@@ -664,16 +664,17 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 if (!outcome.observedAt().isAfter(existingInstant)) continue;
             }
 
-            Double oldConfidence = extractDouble(payload, "confidence");
+            Double oldConfidenceVal = extractDouble(payload, "confidence");
             CbrFeatureSchema schema = schemas.get(caseType);
             double lr = (schema != null && schema.learningRate() != null)
                         ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
-            double newConfidence = CbrOutcome.adjustConfidence(
-                oldConfidence, outcome.successRate(), lr);
+            io.casehub.neocortex.cognitive.Confidence newConf = CbrOutcome.adjustConfidence(
+                oldConfidenceVal != null ? io.casehub.neocortex.cognitive.Confidence.unknown(oldConfidenceVal) : null,
+                outcome.successRate(), lr);
 
             Map<String, Value> updates = new HashMap<>();
             updates.put("outcome", ValueFactory.value(outcome.result().name()));
-            updates.put("confidence", ValueFactory.value(newConfidence));
+            updates.put("confidence", ValueFactory.value(newConf.value()));
             updates.put("last_outcome_at", ValueFactory.value(outcome.observedAt().toString()));
             if (outcome.detail() != null) {
                 updates.put("outcome_detail", ValueFactory.value(outcome.detail()));
@@ -1050,7 +1051,9 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         if (problem == null || solution == null) return null;
 
         String outcome = extractString(payload, "outcome");
-        Double confidence = extractDouble(payload, "confidence");
+        Double confidenceVal = extractDouble(payload, "confidence");
+        io.casehub.neocortex.cognitive.Confidence confidence = confidenceVal != null
+                ? io.casehub.neocortex.cognitive.Confidence.unknown(confidenceVal) : null;
         Double trustScore = extractDouble(payload, "trust_score");
         String producerAgentId = extractString(payload, "producer_agent_id");
         String cbrType = extractString(payload, "_cbr_type");
@@ -1068,7 +1071,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private CbrCase reconstructPlanCase(Map<String, Value> payload,
                                         String problem, String solution,
-                                        String outcome, Double confidence,
+                                        String outcome, io.casehub.neocortex.cognitive.Confidence confidence,
                                         Double trustScore, String producerAgentId) {
         Map<String, FeatureValue> features = Map.of();
         String featuresJson = extractString(payload, "_features_json");
@@ -1095,7 +1098,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private CbrCase reconstructFeatureVector(Map<String, Value> payload,
                                              String problem, String solution,
-                                             String outcome, Double confidence,
+                                             String outcome, io.casehub.neocortex.cognitive.Confidence confidence,
                                              Double trustScore, String producerAgentId) {
         String featuresJson = extractString(payload, "_features_json");
         if (featuresJson == null) {

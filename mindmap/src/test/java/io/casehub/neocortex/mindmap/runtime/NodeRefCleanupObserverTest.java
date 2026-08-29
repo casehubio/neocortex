@@ -32,7 +32,7 @@ class NodeRefCleanupObserverTest {
         NodeRef memRef = new NodeRef("memory", "mem-123", null);
         NodeRef otherRef = new NodeRef("external", "ext-1", null);
         String nodeId = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(memRef, otherRef), null, null, null, null, null, null), "t1");
 
         observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
@@ -46,7 +46,7 @@ class NodeRefCleanupObserverTest {
     void cbrCasesErased_removesMatchingNodeRefs() {
         NodeRef cbrRef = new NodeRef("cbr", "cbr-456", null);
         String nodeId = store.addNode(new NodeInput("Bob", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(cbrRef), null, null, null, null, null, null), "t1");
 
         observer.onCbrCasesErased(new CbrCasesErased.ByEntity(
@@ -60,7 +60,7 @@ class NodeRefCleanupObserverTest {
     void noMatchingRefs_noChanges() {
         NodeRef unrelated = new NodeRef("external", "ext-1", null);
         String nodeId = store.addNode(new NodeInput("Carol", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(unrelated), null, null, null, null, null, null), "t1");
 
         observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
@@ -76,10 +76,10 @@ class NodeRefCleanupObserverTest {
         NodeRef otherMemRef = new NodeRef("memory", "mem-999", null);
 
         String alice = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(memRef), null, null, null, null, null, null), "t1");
         String bob = store.addNode(new NodeInput("Bob", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(otherMemRef), null, null, null, null, null, null), "t1");
 
         observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
@@ -94,7 +94,7 @@ class NodeRefCleanupObserverTest {
         NodeRef ref1 = new NodeRef("memory", "mem-123", "domain-a");
         NodeRef ref2 = new NodeRef("memory", "mem-123", "domain-b");
         String nodeId = store.addNode(new NodeInput("Dave", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(ref1, ref2), null, null, null, null, null, null), "t1");
 
         observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(

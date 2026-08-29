@@ -133,7 +133,7 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
 
         if (!traitsToAdd.isEmpty() || !traitsToRemove.isEmpty()) {
             delegate().updateNode(nodeId,
-                                  new NodeUpdate(null, null, null, null,
+                                  new NodeUpdate(null, null,
                                                  traitsToAdd.isEmpty() ? null : traitsToAdd,
                                                  traitsToRemove.isEmpty() ? null : traitsToRemove,
                                                  null, null, null, null, null, null, null, null, null),

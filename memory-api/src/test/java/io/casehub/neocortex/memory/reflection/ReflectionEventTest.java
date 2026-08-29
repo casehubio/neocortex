@@ -67,7 +67,7 @@ class ReflectionEventTest {
     void acceptsNullOptionalFields() {
         var event = new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), null, Map.of());
         assertNull(event.caseId());
-        assertNull(event.importance());
+        assertNull(event.confidence());
     }
 
     @Test
@@ -96,7 +96,7 @@ class ReflectionEventTest {
         assertEquals("agents cooperate well", event.insight());
         assertEquals(2, event.level());
         assertEquals(List.of("m1", "m2", "m3"), event.sourceMemoryIds());
-        assertEquals(0.8, event.importance());
+        assertEquals(0.8, event.confidence());
         assertEquals("val", event.metadata().get("extra"));
     }
 

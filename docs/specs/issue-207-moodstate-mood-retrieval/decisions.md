@@ -69,7 +69,7 @@
 
 ## D7: EngagementEvent is per-interaction, not per-episode
 
-**Choice:** One EngagementEvent per agent message, recording how that specific message was received. Per-interaction fields: `responded`, `responseTimeMs`, `responseLength`, `sentimentShift`, `reactionCount`, `continued`. Aggregate metrics (response rate, trends) derived by TrendAnalyzer from fine-grained data.
+**Choice:** One EngagementEvent per agent message, recording how that specific message was received. Per-interaction fields: `responded`, `responseTimeMs`, `responseLength`, `affectShift`, `reactionCount`, `continued`. Aggregate metrics (response rate, trends) derived by TrendAnalyzer from fine-grained data.
 **Alternatives:**
 - Per-episode — one event per conversation episode with aggregate metrics; loses granularity, can't correlate engagement with specific actions, can't derive per-interaction patterns from aggregate data
 **Rationale:** Fine-grained data enables aggregate derivation but not vice versa. Per-interaction events correlate with the specific action via turnId, enabling StrategyLearning to learn "this type of message works better." TrendAnalyzer already handles aggregation over event history.

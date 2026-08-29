@@ -12,7 +12,7 @@
 
 ### `description` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 
@@ -34,7 +34,7 @@
 
 ### `description` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 
@@ -62,7 +62,7 @@
 - `sourceEventType` (`java.lang.String`)
 - `qualitySignal` (`io.casehub.neocortex.memory.relationship.QualitySignal`)
 - `description` (`java.lang.String`)
-- `importance` (`java.lang.Double`)
+- `confidence` (`java.lang.Double`)
 - `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 
 ## Methods

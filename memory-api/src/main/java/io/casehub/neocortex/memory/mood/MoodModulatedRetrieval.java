@@ -35,11 +35,11 @@ public final class MoodModulatedRetrieval {
 
     private static double score(Memory memory, PersonalityWeights weights,
             MoodState mood, double moodInfluence, Instant now) {
-        double recency = recencyDecay(memory.createdAt(), now);
-        double importance = memory.importance() != null ? memory.importance() : 1.0;
-        double domainWeight = weights.getWeight(memory.domain());
+        double recency         = recencyDecay(memory.createdAt(), now);
+        double confidenceValue = memory.confidence() != null ? memory.confidence().value() : 1.0;
+        double domainWeight    = weights.getWeight(memory.domain());
         double moodFactor = moodFactor(memory, mood, moodInfluence);
-        return recency * importance * domainWeight * moodFactor;
+        return recency * confidenceValue * domainWeight * moodFactor;
     }
 
     private static double moodFactor(Memory memory, MoodState mood, double moodInfluence) {

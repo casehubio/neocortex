@@ -154,7 +154,7 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 **How it works.** `TrendEnrichmentCbrCaseMemoryStore` (@Decorator @Priority(90)) intercepts schema registration to expand TimeSeries fields with derived trend features, enriches stored cases and queries with computed trend values, all transparently. `LbKeogh` provides O(n) lower-bound pruning to filter DTW candidates before the full O(n×m) DP computation.
 
-**Why it matters.** Cases evolve over time. A strategy that worked last month may be declining. Trend detection surfaces "this pattern is accelerating" or "this approach has plateauing outcomes" — temporal context that flat similarity misses.
+**Why it matters.** Cases evolvde over time. A strategy that worked last month may be declining. Trend detection surfaces "this pattern is accelerating" or "this approach has plateauing outcomes" — temporal context that flat similarity misses.
 
 **Composition.** Fed by: CBR (operates on TimeSeries and DiscreteSequence fields). Feeds into: CBR retrieval (trend-enriched features participate in similarity scoring), Curiosity (stale nodes in the MindMap trigger temporal curiosity signals).
 
@@ -397,7 +397,7 @@ Conversation Text
 
 **Pure Computation Utilities.** `PersonalityWeightedRetrieval`, `MoodModulatedRetrieval`, `MindMapAnalyzer`, `TrendAnalyzer`, `CbrSimilarityScorer`, `DtwSimilarity`, `ScoreFusion` — all pure static utilities with zero CDI dependencies. They can be used in tests, in non-Quarkus contexts, and in any combination without wiring overhead.
 
-**Confidence as a First-Class Dimension (cf. ACT-R's activation).** Every knowledge type carries confidence: `MindMapNode.confidence()` with `ConfidenceOrigin`, `CbrCase` with `CbrOutcome` EMA, `MoodState` with PAD values, `ReflectionEvent` with level-derived importance. Confidence decays over time (ConfidenceDecayDecorator, TemporalDecay), gets reinforced by confirmation (`confirmedAt`), and modulates retrieval (minConfidence filters, trust weighting). The system knows what it doesn't know.
+**Confidence as a First-Class Dimension (cf. ACT-R's activation).** Every knowledge type carries a unified `Confidence` record (`cognitive-api`): origin (STATED/INFERRED/SPECULATED/UNKNOWN) + value [0,1] + optional decay reference. `MindMapNode.confidence()`, `CbrCase.confidence()`, and `Memory.confidence()` all return the same type. `CbrOutcome` EMA preserves origin while updating value. Confidence decays over time (`ConfidenceDecayDecorator` reads `confidence().decayReference()`), gets reinforced by updating the decay reference with a fresh `Instant`, and modulates retrieval (minConfidence filters, trust weighting). The system knows what it doesn't know.
 
 ---
 

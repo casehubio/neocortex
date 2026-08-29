@@ -1,6 +1,7 @@
 package io.casehub.neocortex.mindmap.testing;
 
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MergeResult;
 import io.casehub.neocortex.mindmap.MindMapCapability;
@@ -57,12 +58,12 @@ public abstract class MindMapStoreContractTest {
     }
 
     protected NodeInput nodeInput(String name) {
-        return new NodeInput(name, subgraphId, ConfidenceOrigin.STATED, null,
+        return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);
     }
 
     protected NodeInput nodeInput(String name, String sgId) {
-        return new NodeInput(name, sgId, ConfidenceOrigin.STATED, null,
+        return new NodeInput(name, sgId, null,
             "test", null, null, null, null, null, null, null, null);
     }
 
@@ -125,7 +126,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void getNode_returnsStoredNode() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "conversation",
+            null, "conversation",
             Set.of("Personable"), Set.of(new NodeRef("memory", "m-1", null)),
             null, null, 0.5, 0.2, -0.1,
             Map.of("birthday", "1990-01-15")), TENANT);
@@ -133,8 +134,8 @@ public abstract class MindMapStoreContractTest {
         MindMapNode node = store.getNode(id, TENANT);
         assertThat(node.name()).isEqualTo("Alice");
         assertThat(node.subgraphId()).isEqualTo(subgraphId);
-        assertThat(node.confidenceOrigin()).isEqualTo(ConfidenceOrigin.STATED);
-        assertThat(node.confidence()).isEqualTo(1.0);
+        assertThat(node.confidence().origin()).isEqualTo(ConfidenceOrigin.STATED);
+        assertThat(node.confidence().value()).isEqualTo(1.0);
         assertThat(node.provenance()).isEqualTo("conversation");
         assertThat(node.traits()).containsExactly("Personable");
         assertThat(node.refs()).containsExactly(new NodeRef("memory", "m-1", null));
@@ -150,18 +151,20 @@ public abstract class MindMapStoreContractTest {
     }
 
     @Test
-    void addNode_defaultConfidence_fromOrigin() {
+    void addNode_explicitConfidence_stored() {
+        Instant now = Instant.now();
         String id = store.addNode(new NodeInput("Bob", subgraphId,
-            ConfidenceOrigin.INFERRED, null, "test",
+            Confidence.inferred(0.7, now), "test",
             null, null, null, null, null, null, null, null), TENANT);
         MindMapNode node = store.getNode(id, TENANT);
-        assertThat(node.confidence()).isEqualTo(0.7);
+        assertThat(node.confidence().value()).isEqualTo(0.7);
+        assertThat(node.confidence().origin()).isEqualTo(ConfidenceOrigin.INFERRED);
     }
 
     @Test
     void updateNode_changesName() {
         String id = store.addNode(nodeInput("Alice"), TENANT);
-        store.updateNode(id, new NodeUpdate("Alicia", null, null, null,
+        store.updateNode(id, new NodeUpdate("Alicia", null,
             null, null, null, null, null, null, null, null, null, null, null), TENANT);
         assertThat(store.getNode(id, TENANT).name()).isEqualTo("Alicia");
     }
@@ -169,7 +172,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void updateNode_addsTraits() {
         String id = store.addNode(nodeInput("Alice"), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, null, null,
+        store.updateNode(id, new NodeUpdate(null, null,
             Set.of("Personable", "TeamMember"), null, null, null,
             null, null, null, null, null, null, null), TENANT);
         assertThat(store.getNode(id, TENANT).traits())
@@ -179,10 +182,10 @@ public abstract class MindMapStoreContractTest {
     @Test
     void updateNode_removesTraits() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test",
+            null, "test",
             Set.of("Personable", "TeamMember"), null, null, null,
             null, null, null, null), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, null, null,
+        store.updateNode(id, new NodeUpdate(null, null,
             null, Set.of("TeamMember"), null, null,
             null, null, null, null, null, null, null), TENANT);
         assertThat(store.getNode(id, TENANT).traits()).containsExactly("Personable");
@@ -191,7 +194,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void updateNode_setsProperties() {
         String id = store.addNode(nodeInput("Alice"), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, null, null,
+        store.updateNode(id, new NodeUpdate(null, null,
             null, null, null, null, null, null, null, null, null,
             Map.of("role", "engineer", "team", "platform"), null), TENANT);
         MindMapNode node = store.getNode(id, TENANT);
@@ -202,10 +205,10 @@ public abstract class MindMapStoreContractTest {
     @Test
     void updateNode_removesProperties() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("role", "engineer", "team", "platform")), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, null, null,
+        store.updateNode(id, new NodeUpdate(null, null,
             null, null, null, null, null, null, null, null, null,
             null, Set.of("team")), TENANT);
         MindMapNode node = store.getNode(id, TENANT);
@@ -214,38 +217,39 @@ public abstract class MindMapStoreContractTest {
     }
 
     @Test
-    void updateNode_setsConfirmedAt() {
-        String id = store.addNode(nodeInput("Alice"), TENANT);
-        Instant confirmed = Instant.now();
-        store.updateNode(id, new NodeUpdate(null, null, null, confirmed,
-            null, null, null, null, null, null, null, null, null, null, null), TENANT);
-        assertThat(store.getNode(id, TENANT).confirmedAt()).isEqualTo(confirmed);
-    }
-
-    @Test
-    void updateNode_confirmedAtWithoutConfidence_resetsTo1() {
+    void updateNode_confidenceReplacesEntirely() {
+        Instant now = Instant.now();
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.SPECULATED, null, "test",
+            Confidence.speculated(0.3, now), "test",
             null, null, null, null, null, null, null, null), TENANT);
-        assertThat(store.getNode(id, TENANT).confidence()).isEqualTo(0.3);
+        assertThat(store.getNode(id, TENANT).confidence().value()).isEqualTo(0.3);
 
-        store.updateNode(id, new NodeUpdate(null, null, null, Instant.now(),
+        Instant later = now.plusSeconds(3600);
+        store.updateNode(id, new NodeUpdate(null, Confidence.speculated(0.3, later),
             null, null, null, null, null, null, null, null, null, null, null), TENANT);
-        assertThat(store.getNode(id, TENANT).confidence()).isEqualTo(1.0);
+        MindMapNode node = store.getNode(id, TENANT);
+        assertThat(node.confidence().value()).isEqualTo(0.3);
+        assertThat(node.confidence().origin()).isEqualTo(ConfidenceOrigin.SPECULATED);
+        assertThat(node.confidence().decayReference()).isEqualTo(later);
     }
 
     @Test
-    void updateNode_confirmedAtWithConfidence_usesProvidedValue() {
-        String id = store.addNode(nodeInput("Alice"), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, 0.8, Instant.now(),
+    void updateNode_nullConfidence_preservesExisting() {
+        Instant now = Instant.now();
+        String id = store.addNode(new NodeInput("Alice", subgraphId,
+            Confidence.stated(0.8, now), "test",
+            null, null, null, null, null, null, null, null), TENANT);
+        store.updateNode(id, new NodeUpdate("Alicia", null,
             null, null, null, null, null, null, null, null, null, null, null), TENANT);
-        assertThat(store.getNode(id, TENANT).confidence()).isEqualTo(0.8);
+        MindMapNode node = store.getNode(id, TENANT);
+        assertThat(node.confidence().value()).isEqualTo(0.8);
+        assertThat(node.confidence().origin()).isEqualTo(ConfidenceOrigin.STATED);
     }
 
     @Test
     void updateNode_setsAffect() {
         String id = store.addNode(nodeInput("Alice"), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, null, null,
+        store.updateNode(id, new NodeUpdate(null, null,
             null, null, null, null, null, null, 0.7, -0.3, 0.5, null, null), TENANT);
         MindMapNode node = store.getNode(id, TENANT);
         assertThat(node.pleasure()).isEqualTo(0.7);
@@ -368,7 +372,7 @@ public abstract class MindMapStoreContractTest {
     // ===== Batch 3: Edge + Vocabulary + Traversal + Search =====
 
     protected EdgeInput edgeInput(String src, String tgt, String type) {
-        return new EdgeInput(src, tgt, type, ConfidenceOrigin.STATED, null,
+        return new EdgeInput(src, tgt, type, null,
             "test", null, null, null, null, null, null);
     }
 
@@ -385,7 +389,7 @@ public abstract class MindMapStoreContractTest {
         String a = store.addNode(nodeInput("Alice"), TENANT);
         String b = store.addNode(nodeInput("Acme"), TENANT);
         String edgeId = store.addEdge(new EdgeInput(a, b, "works-at",
-            ConfidenceOrigin.STATED, null, "conversation",
+            null, "conversation",
             Instant.parse("2020-01-01T00:00:00Z"), null,
             -0.2, 0.5, 0.0, Map.of("role", "engineer")), TENANT);
 
@@ -528,7 +532,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void search_byTraits() {
         String id = store.addNode(nodeInput("Alice"), TENANT);
-        store.updateNode(id, new NodeUpdate(null, null, null, null,
+        store.updateNode(id, new NodeUpdate(null, null,
             Set.of("Personable"), null, null, null, null, null,
             null, null, null, null, null), TENANT);
         store.addNode(nodeInput("Acme"), TENANT);
@@ -553,10 +557,10 @@ public abstract class MindMapStoreContractTest {
 
     @Test
     void search_byMinConfidence() {
-        store.addNode(new NodeInput("Alice", subgraphId, ConfidenceOrigin.STATED,
-            0.9, "test", null, null, null, null, null, null, null, null), TENANT);
-        store.addNode(new NodeInput("Bob", subgraphId, ConfidenceOrigin.SPECULATED,
-            null, "test", null, null, null, null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("Alice", subgraphId,
+            Confidence.stated(0.9, Instant.now()), "test", null, null, null, null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("Bob", subgraphId,
+            Confidence.speculated(0.3, Instant.now()), "test", null, null, null, null, null, null, null, null), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
             null, null, 0.5, null, false, 10));
@@ -566,10 +570,10 @@ public abstract class MindMapStoreContractTest {
 
     @Test
     void search_byConfidenceOrigin() {
-        store.addNode(new NodeInput("Alice", subgraphId, ConfidenceOrigin.STATED,
+        store.addNode(new NodeInput("Alice", subgraphId,
             null, "test", null, null, null, null, null, null, null, null), TENANT);
-        store.addNode(new NodeInput("Bob", subgraphId, ConfidenceOrigin.INFERRED,
-            null, "test", null, null, null, null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("Bob", subgraphId,
+            Confidence.inferred(0.7, Instant.now()), "test", null, null, null, null, null, null, null, null), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
             null, null, null, ConfidenceOrigin.INFERRED, false, 10));
@@ -672,10 +676,10 @@ public abstract class MindMapStoreContractTest {
     @Test
     void mergeNodes_unionsTraits() {
         String keep = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test",
+            null, "test",
             Set.of("Personable"), null, null, null, null, null, null, null), TENANT);
         String remove = store.addNode(new NodeInput("Al", subgraphId,
-            ConfidenceOrigin.STATED, null, "test",
+            null, "test",
             Set.of("TeamMember"), null, null, null, null, null, null, null), TENANT);
 
         MergeResult result = store.mergeNodes(keep, remove, TENANT);
@@ -687,11 +691,11 @@ public abstract class MindMapStoreContractTest {
     @Test
     void mergeNodes_unionsNodeRefs() {
         String keep = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(new NodeRef("memory", "m-1", null)),
             null, null, null, null, null, null), TENANT);
         String remove = store.addNode(new NodeInput("Al", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(new NodeRef("cbr", "c-1", "clinical")),
             null, null, null, null, null, null), TENANT);
 
@@ -705,11 +709,11 @@ public abstract class MindMapStoreContractTest {
     @Test
     void mergeNodes_propertyConflict_newerWins() {
         String keep = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("role", "junior")), TENANT);
         String remove = store.addNode(new NodeInput("Al", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("role", "senior")), TENANT);
 
@@ -771,7 +775,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void eraseNode_removesNodeRefs() {
         String a = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null,
+            null, "test", null,
             Set.of(new NodeRef("memory", "m-1", null)),
             null, null, null, null, null, null), TENANT);
         store.eraseNode(a, TENANT);

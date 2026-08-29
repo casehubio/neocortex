@@ -47,7 +47,7 @@ class ExperienceEventTest {
         var obs = new Observation("a1", "t1", null, null, "desc", null, Map.of(), "subj");
         assertNull(obs.caseId());
         assertNull(obs.turnId());
-        assertNull(obs.importance());
+        assertNull(obs.confidence());
     }
 
     @Test
@@ -59,7 +59,7 @@ class ExperienceEventTest {
     }
 
     @Test
-    void observationRejectsInvalidImportance() {
+    void observationRejectsInvalidConfidence() {
         assertThrows(IllegalArgumentException.class, () ->
             new Observation("a1", "t1", null, null, "desc", 1.1, Map.of(), "subj"));
         assertThrows(IllegalArgumentException.class, () ->
@@ -74,7 +74,7 @@ class ExperienceEventTest {
         assertEquals("c1", event.caseId());
         assertEquals("turn-1", event.turnId());
         assertEquals("saw it", event.description());
-        assertEquals(0.5, event.importance());
+        assertEquals(0.5, event.confidence());
     }
 
     @Test

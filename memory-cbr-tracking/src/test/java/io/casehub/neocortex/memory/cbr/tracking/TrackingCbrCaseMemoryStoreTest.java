@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.tracking;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
@@ -27,7 +28,7 @@ class TrackingCbrCaseMemoryStoreTest {
     @Test void recordsTraceAndFiresEvent() {
         var tracker = new InMemoryCbrRetrievalTracker();
         var eventRef = new AtomicReference<CbrRetrievalRecorded>();
-        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), null, null);
+        var c = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), null, null);
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
                 new ScoredCbrCase<>(c, "c1", 0.85));
         var delegate = stubDelegate(results);
@@ -51,7 +52,7 @@ class TrackingCbrCaseMemoryStoreTest {
             @Override public List<CbrRetrievalTrace> findTraces(String ct, String t, MemoryDomain d, Instant s, Instant u) { return List.of(); }
             @Override public int purgeOlderThan(Instant cutoff) { return 0; }
         };
-        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), null, null);
+        var c = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), null, null);
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
                 new ScoredCbrCase<>(c, "c1", 0.85));
         var delegate = stubDelegate(results);
@@ -64,7 +65,7 @@ class TrackingCbrCaseMemoryStoreTest {
 
     @Test void resultsUnchanged() {
         var tracker = new InMemoryCbrRetrievalTracker();
-        var c = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), null, null);
+        var c = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), null, null);
         var results = List.<ScoredCbrCase<FeatureVectorCbrCase>>of(
                 new ScoredCbrCase<>(c, "c1", 0.85, true, Map.of("f", 0.9), null, io.casehub.platform.api.path.Path.root(), null));
         var delegate = stubDelegate(results);
@@ -81,7 +82,7 @@ class TrackingCbrCaseMemoryStoreTest {
     void trustTrajectory_convertedToLabel() {
         var tracker  = new InMemoryCbrRetrievalTracker();
         var eventRef = new AtomicReference<CbrRetrievalRecorded>();
-        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.8, "agent-1");
+        var c        = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), 0.8, "agent-1");
         var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
                                          io.casehub.platform.api.path.Path.root(), -0.2);
         var delegate  = stubDelegate(List.of(scored));
@@ -101,7 +102,7 @@ class TrackingCbrCaseMemoryStoreTest {
     void trustTrajectory_null_staysNull() {
         var tracker  = new InMemoryCbrRetrievalTracker();
         var eventRef = new AtomicReference<CbrRetrievalRecorded>();
-        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.8, "agent-1");
+        var c        = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), 0.8, "agent-1");
         var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
                                          io.casehub.platform.api.path.Path.root(), null);
         var delegate  = stubDelegate(List.of(scored));
@@ -117,7 +118,7 @@ class TrackingCbrCaseMemoryStoreTest {
     void trustTrajectory_improving() {
         var tracker  = new InMemoryCbrRetrievalTracker();
         var eventRef = new AtomicReference<CbrRetrievalRecorded>();
-        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.5, "agent-1");
+        var c        = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), 0.5, "agent-1");
         var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
                                          io.casehub.platform.api.path.Path.root(), 0.3);
         var delegate  = stubDelegate(List.of(scored));
@@ -133,7 +134,7 @@ class TrackingCbrCaseMemoryStoreTest {
     void trustTrajectory_stable() {
         var tracker  = new InMemoryCbrRetrievalTracker();
         var eventRef = new AtomicReference<CbrRetrievalRecorded>();
-        var c        = new FeatureVectorCbrCase("p", "s", null, 0.9, Map.of(), 0.8, "agent-1");
+        var c        = new FeatureVectorCbrCase("p", "s", null, Confidence.unknown(0.9), Map.of(), 0.8, "agent-1");
         var scored = new ScoredCbrCase<>(c, "c1", 0.85, false, Map.of(), null,
                                          io.casehub.platform.api.path.Path.root(), 0.0);
         var delegate  = stubDelegate(List.of(scored));

@@ -27,7 +27,7 @@ public class DefaultExplanationRenderer implements ExplanationRenderer {
             }
             sb.append(" score=").append(String.format("%.2f", top.score()));
             if (top.confidence() != null) {
-                sb.append(", confidence=").append(String.format("%.2f", top.confidence()));
+                sb.append(", confidence=").append(String.format("%.2f", top.confidence().value()));
             }
             sb.append(".");
             if (!top.featureSimilarities().isEmpty()) {

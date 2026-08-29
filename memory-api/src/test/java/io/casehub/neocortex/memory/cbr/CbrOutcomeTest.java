@@ -1,8 +1,15 @@
 package io.casehub.neocortex.memory.cbr;
 
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import org.junit.jupiter.api.Test;
+
 import java.time.Instant;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.assertj.core.api.Assertions.within;
 
 class CbrOutcomeTest {
 
@@ -55,36 +62,48 @@ class CbrOutcomeTest {
 
     @Test
     void adjustConfidence_emaFormula() {
-        double result = CbrOutcome.adjustConfidence(0.8, 1.0, 0.2);
-        assertThat(result).isCloseTo(0.84, within(0.001));
+        Confidence result = CbrOutcome.adjustConfidence(Confidence.unknown(0.8), 1.0, 0.2);
+        assertThat(result.value()).isCloseTo(0.84, within(0.001));
+        assertThat(result.origin()).isEqualTo(ConfidenceOrigin.UNKNOWN);
     }
 
     @Test
     void adjustConfidence_failure_decreases() {
-        double result = CbrOutcome.adjustConfidence(0.8, 0.0, 0.2);
-        assertThat(result).isCloseTo(0.64, within(0.001));
+        Confidence result = CbrOutcome.adjustConfidence(Confidence.unknown(0.8), 0.0, 0.2);
+        assertThat(result.value()).isCloseTo(0.64, within(0.001));
     }
 
     @Test
     void adjustConfidence_partial() {
-        double result = CbrOutcome.adjustConfidence(0.8, 0.5, 0.2);
-        assertThat(result).isCloseTo(0.74, within(0.001));
+        Confidence result = CbrOutcome.adjustConfidence(Confidence.unknown(0.8), 0.5, 0.2);
+        assertThat(result.value()).isCloseTo(0.74, within(0.001));
     }
 
     @Test
     void adjustConfidence_nullOldConfidence_treatsAsOne() {
-        double result = CbrOutcome.adjustConfidence(null, 0.0, 0.2);
-        assertThat(result).isCloseTo(0.8, within(0.001));
+        Confidence result = CbrOutcome.adjustConfidence(null, 0.0, 0.2);
+        assertThat(result.value()).isCloseTo(0.8, within(0.001));
+        assertThat(result.origin()).isEqualTo(ConfidenceOrigin.UNKNOWN);
     }
 
     @Test
     void adjustConfidence_convergesToObservedRate() {
-        double confidence = 0.5;
+        Confidence confidence = Confidence.unknown(0.5);
         for (int i = 0; i < 50; i++) {
             confidence = CbrOutcome.adjustConfidence(confidence, 1.0, 0.2);
         }
-        assertThat(confidence).isCloseTo(1.0, within(0.01));
+        assertThat(confidence.value()).isCloseTo(1.0, within(0.01));
     }
+
+    @Test
+    void adjustConfidence_preservesOrigin() {
+        Confidence stated = Confidence.stated(0.8, Instant.parse("2026-07-13T10:00:00Z"));
+        Confidence result = CbrOutcome.adjustConfidence(stated, 1.0, 0.2);
+        assertThat(result.origin()).isEqualTo(ConfidenceOrigin.STATED);
+        assertThat(result.value()).isCloseTo(0.84, within(0.001));
+        assertThat(result.decayReference()).isNull();
+    }
+
 
     @Test
     void defaultLearningRate() {

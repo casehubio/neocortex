@@ -40,9 +40,11 @@ final class CbrMemoryDeserializer {
             }
 
             String outcome = attrs.get(MemoryAttributeKeys.OUTCOME);
-            Double confidence = attrs.containsKey(MemoryAttributeKeys.CONFIDENCE)
+            Double confidenceVal = attrs.containsKey(MemoryAttributeKeys.CONFIDENCE)
                 ? MemoryAttributeKeys.parseConfidence(attrs.get(MemoryAttributeKeys.CONFIDENCE))
                 : null;
+            io.casehub.neocortex.cognitive.Confidence confidence = confidenceVal != null
+                ? io.casehub.neocortex.cognitive.Confidence.unknown(confidenceVal) : null;
 
             String cbrType = attrs.get(CbrAttributeKeys.CBR_TYPE);
             if (cbrType == null) {

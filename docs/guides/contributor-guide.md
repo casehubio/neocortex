@@ -49,8 +49,8 @@
 
 | Module | artifactId | Type | Purpose |
 |--------|-----------|------|---------|
-| `memory-api/` | `casehub-neocortex-memory-api` | Pure Java | `CaseMemoryStore` SPI (store, query, erase, eraseEntity, eraseById, eraseEntityAcrossTenants, scan, purge, discoverTenants, storeAll); `GraphCaseMemoryStore` SPI; `MemoryInput` (with `importance` field 0.0-1.0); `Memory`; `MemoryQuery`; `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE); `MemoryRetentionPolicy` (tenantId + domain + maxAgeDays + minImportance); `MemoryScanRequest`; `MemoryCapability` enum (incl. DISCOVER_TENANTS, SCAN, PURGE); `CaseEnrichmentStep` SPI; `MemoryDomain`; `MemoryAttributeKeys`; `EraseRequest`; `StoreAllResult`; `StoreFailure` |
-| `memory/` | `casehub-neocortex-memory` | CDI module | `MemoryEmitter` (@ApplicationScoped fire-and-forget wrapper — error isolation, SecurityException propagates); `NoOpCaseMemoryStore` @DefaultBean; `CaseEnrichmentDecorator` (@Decorator); `MemoryRetentionScheduler` (scheduled importance-based purge across discovered tenants) |
+| `memory-api/` | `casehub-neocortex-memory-api` | Pure Java | `CaseMemoryStore` SPI (store, query, erase, eraseEntity, eraseById, eraseEntityAcrossTenants, scan, purge, discoverTenants, storeAll); `GraphCaseMemoryStore` SPI; `MemoryInput` (with `Confidence` field — origin + value [0.0-1.0]); `Memory`; `MemoryQuery`; `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE); `MemoryRetentionPolicy` (tenantId + domain + maxAgeDays + minConfidence); `MemoryScanRequest`; `MemoryCapability` enum (incl. DISCOVER_TENANTS, SCAN, PURGE); `CaseEnrichmentStep` SPI; `MemoryDomain`; `MemoryAttributeKeys`; `EraseRequest`; `StoreAllResult`; `StoreFailure` |
+| `memory/` | `casehub-neocortex-memory` | CDI module | `MemoryEmitter` (@ApplicationScoped fire-and-forget wrapper — error isolation, SecurityException propagates); `NoOpCaseMemoryStore` @DefaultBean; `CaseEnrichmentDecorator` (@Decorator); `MemoryRetentionScheduler` (scheduled confidence-based purge across discovered tenants) |
 | `memory-inmem/` | `casehub-neocortex-memory-inmem` | Backend | @Alternative @Priority(10) volatile ConcurrentHashMap — test + ephemeral + discoverTenants + scan + purge |
 | `memory-jpa/` | `casehub-neocortex-memory-jpa` | Backend | @ApplicationScoped JPA/PostgreSQL + Flyway + FTS via websearch_to_tsquery + discoverTenants |
 | `memory-sqlite/` | `casehub-neocortex-memory-sqlite` | Backend | @Alternative @Priority(1) SQLite + HikariCP WAL + FTS5 + discoverTenants |
@@ -161,15 +161,15 @@ Static utility in `rag-api` — pure computation over `RetrievalTracker` data, n
 
 SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (Decorator Priority 50) stamps chunks with retrieval ID. `SqliteRetrievalTracker` with HikariCP + Flyway migrations. `RetentionScheduler` for trace purging (ScheduledExecutorService daemon thread, 24h interval). CDI events: `RetrievalRecorded`.
 
-### MemoryOrder.SALIENCE and Importance
+### MemoryOrder.SALIENCE and Confidence
 
-`MemoryOrder` enum with three values: `CHRONOLOGICAL` (all adapters), `RELEVANCE` (semantic adapters — JPA FTS, Mem0, Graphiti), `SALIENCE` (recency x importance). SALIENCE is a non-semantic ranking strategy: non-semantic adapters compute it from `Memory.createdAt()` and `Memory.importance()` (null treated as 1.0); semantic adapters fall back to RELEVANCE.
+`MemoryOrder` enum with three values: `CHRONOLOGICAL` (all adapters), `RELEVANCE` (semantic adapters — JPA FTS, Mem0, Graphiti), `SALIENCE` (recency x confidence). SALIENCE is a non-semantic ranking strategy: non-semantic adapters compute it from `Memory.createdAt()` and `Memory.confidence()` (null treated as value 1.0); semantic adapters fall back to RELEVANCE.
 
-`MemoryInput.importance` — optional Double [0.0, 1.0] field on store input. Enables salience-based ranking and importance-based retention purge.
+`MemoryInput.confidence` — optional `Confidence` record (origin + value [0.0, 1.0]) on store input. Enables salience-based ranking and confidence-based retention purge.
 
 ### Memory Retention
 
-`MemoryRetentionPolicy` — record with `tenantId`, `domain`, `maxAgeDays`, `minImportance` (at least one of the latter two required). `CaseMemoryStore.purge(MemoryRetentionPolicy)` deletes memories below importance or older than threshold.
+`MemoryRetentionPolicy` — record with `tenantId`, `domain`, `maxAgeDays`, `minConfidence` (at least one of the latter two required). `CaseMemoryStore.purge(MemoryRetentionPolicy)` deletes memories below confidence or older than threshold.
 
 `MemoryRetentionScheduler` — @ApplicationScoped scheduled purge. Iterates `discoverTenants()`, creates per-tenant `MemoryRetentionPolicy`, calls `purge()`. Capability-gated: requires both DISCOVER_TENANTS and PURGE. Config-driven.
 
@@ -349,7 +349,7 @@ All inference, RAG, CBR, and agent memory modules shipped. Active development on
 | Inference Foundation | `InferenceModel` SPI with sealed `InferenceInput` (Text + Tensor), ONNX runtime, task adapters (NLI, classification, tensor classification, regression, reranking), SPLADE sparse embeddings, BGE-M3 multi-modal embeddings, Quarkus CDI extension |
 | RAG Pipeline | Three-leg hybrid search (dense + sparse + BM25) with configurable fusion (RRF/DBSF/CC); `FusionWeightsConfig` with per-leg weights; per-query weight multipliers + effectiveWeight(); `PayloadBoostCaseRetriever` quality rescore; `MatryoshkaEmbeddingModel`; `DenseQuantization`; ColBERT multi-vector scalar quantization; per-leg embedding separation; corrective RAG + cross-encoder reranking; query expansion (HyDE, template, step-back); retrieval tracking; pre-ingestion dedup gate; `RetrievalAnalyzer` (document stats, query clusters with MinHash, correlation graph, document impact) |
 | CBR | Typed feature values (9 field types, 7 value types); `SimilaritySpec` sealed (6 similarity functions incl. DTW + edit distance); weighted per-field scoring; plan adaptation SPI (caseType-aware, variantId tracking); plan ensemble analysis SPI; temporal decay (3 strategies); hierarchical scoping with ScopeDecay; supersession + reinstate + audit; trend detection + enrichment; cross-encoder reranking; embedding-based text similarity; trust-weighted retrieval; outcome-weighted retrieval + CloudEvent feedback; CBR retention (age + count + trust purge); trust trajectory purge; reconciliation with Qdrant; JPA/PostgreSQL backend; retrieval tracking (retrieval + adaptation + ensemble); erasure notification; personality transition schema; scan/discoverTenants admin operations; CbrSuggestions/FeatureStatistics |
-| Agent Memory | Five backends (in-memory, JPA, SQLite, Mem0, Graphiti — all blocking, reactive tier removed); `MemoryEmitter` fire-and-forget wrapper; `MemoryOrder.SALIENCE` (recency x importance); importance field; importance-based retention purge with MemoryRetentionScheduler; permission-aware queries; paginated scan; cross-tenant erasure |
+| Agent Memory | Five backends (in-memory, JPA, SQLite, Mem0, Graphiti — all blocking, reactive tier removed); `MemoryEmitter` fire-and-forget wrapper; `MemoryOrder.SALIENCE` (recency x confidence); unified `Confidence` record (origin + value); confidence-based retention purge with MemoryRetentionScheduler; permission-aware queries; paginated scan; cross-tenant erasure |
 | Corpus | Append-only zip archives, flat filesystem, composite multi-backend; change tracking; compaction; integrity checks |
 | Score Fusion | `fusion-api` tier-1 module — weighted RRF + CC algorithms, `CamelCaseExpander` for BM25 preprocessing. Shared by RAG and CBR |
 | Evaluation | Python ML pipelines: code-domain embedding evaluation (#49), strategy classifier with CNN-Attention + ONNX export (#75, #76) |

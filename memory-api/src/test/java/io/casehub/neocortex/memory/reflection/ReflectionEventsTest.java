@@ -25,33 +25,33 @@ class ReflectionEventsTest {
         assertEquals("t1", input.tenantId());
         assertEquals("c1", input.caseId());
         assertEquals("agents cooperate well", input.text());
-        assertEquals(0.8, input.importance());
+        assertEquals(0.8, input.confidence().value());
         assertEquals("2", input.attributes().get(ReflectionAttributeKeys.LEVEL));
         assertEquals("m1,m2,m3", input.attributes().get(ReflectionAttributeKeys.SOURCE_MEMORY_IDS));
     }
 
     @Test
-    void importanceDefaultsFromLevelWhenNull() {
+    void confidenceDefaultsFromLevelWhenNull() {
         var level1 = new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), null, Map.of());
-        assertEquals(0.5, ReflectionEvents.toMemoryInput(level1).importance(), 1e-9);
+        assertEquals(0.5, ReflectionEvents.toMemoryInput(level1).confidence().value(), 1e-9);
 
         var level2 = new ReflectionEvent("a1", "t1", null, "insight", 2, List.of("m1"), null, Map.of());
-        assertEquals(0.7, ReflectionEvents.toMemoryInput(level2).importance(), 1e-9);
+        assertEquals(0.7, ReflectionEvents.toMemoryInput(level2).confidence().value(), 1e-9);
 
         var level3 = new ReflectionEvent("a1", "t1", null, "insight", 3, List.of("m1"), null, Map.of());
-        assertEquals(0.9, ReflectionEvents.toMemoryInput(level3).importance(), 1e-9);
+        assertEquals(0.9, ReflectionEvents.toMemoryInput(level3).confidence().value(), 1e-9);
     }
 
     @Test
-    void importanceCapsAtOneForHighLevels() {
+    void confidenceCapsAtOneForHighLevels() {
         var level5 = new ReflectionEvent("a1", "t1", null, "insight", 5, List.of("m1"), null, Map.of());
-        assertEquals(1.0, ReflectionEvents.toMemoryInput(level5).importance());
+        assertEquals(1.0, ReflectionEvents.toMemoryInput(level5).confidence().value());
     }
 
     @Test
     void explicitImportanceOverridesDefault() {
         var event = new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), 0.9, Map.of());
-        assertEquals(0.9, ReflectionEvents.toMemoryInput(event).importance());
+        assertEquals(0.9, ReflectionEvents.toMemoryInput(event).confidence().value());
     }
 
     @Test

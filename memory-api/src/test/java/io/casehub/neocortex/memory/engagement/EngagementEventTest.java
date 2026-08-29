@@ -89,7 +89,7 @@ class EngagementEventTest {
         assertNull(event.responded());
         assertNull(event.responseTimeMs());
         assertNull(event.responseLength());
-        assertNull(event.sentimentShift());
+        assertNull(event.affectShift());
         assertNull(event.reactionCount());
         assertNull(event.continued());
     }
@@ -114,11 +114,11 @@ class EngagementEventTest {
         assertEquals("c1", event.caseId());
         assertEquals("turn-1", event.turnId());
         assertEquals("user responded enthusiastically", event.description());
-        assertEquals(0.8, event.importance());
+        assertEquals(0.8, event.confidence());
         assertTrue(event.responded());
         assertEquals(1500L, event.responseTimeMs());
         assertEquals(142, event.responseLength());
-        assertEquals(0.3, event.sentimentShift());
+        assertEquals(0.3, event.affectShift());
         assertEquals(2, event.reactionCount());
         assertTrue(event.continued());
         assertEquals("val", event.metadata().get("extra"));

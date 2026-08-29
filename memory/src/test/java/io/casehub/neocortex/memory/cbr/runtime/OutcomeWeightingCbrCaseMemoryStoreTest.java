@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
@@ -29,7 +30,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
                 new ScoredCbrCase<>(highConf, "c2", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
-        assertThat(results.getFirst().cbrCase().confidence()).isEqualTo(0.9);
+        assertThat(results.getFirst().cbrCase().confidence().value()).isEqualTo(0.9);
     }
 
     @Test void nullConfidence_treatedAsOne() {
@@ -103,7 +104,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     }
 
     private FeatureVectorCbrCase testCase(String problem, Double confidence) {
-        return new FeatureVectorCbrCase(problem, "sol", null, confidence, Map.of(), null, null);
+        return new FeatureVectorCbrCase(problem, "sol", null,
+                confidence != null ? Confidence.unknown(confidence) : null, Map.of(), null, null);
     }
 
     private CbrQuery testQuery() {

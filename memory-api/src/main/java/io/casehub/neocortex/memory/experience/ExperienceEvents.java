@@ -1,11 +1,12 @@
 package io.casehub.neocortex.memory.experience;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 public final class ExperienceEvents {
 
@@ -56,7 +57,7 @@ public final class ExperienceEvents {
         attrs.putAll(event.metadata());
 
         return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-            event.caseId(), event.description(), attrs, event.importance());
+            event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null);
     }
 
     private static String eventTypeName(ExperienceEvent event) {

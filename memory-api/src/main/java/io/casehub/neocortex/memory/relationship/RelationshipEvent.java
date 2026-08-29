@@ -12,7 +12,7 @@ public record RelationshipEvent(
     String sourceEventType,
     QualitySignal qualitySignal,
     String description,
-    Double importance,
+    Double confidence,
     Map<String, String> metadata
 ) {
     public RelationshipEvent {
@@ -28,7 +28,7 @@ public record RelationshipEvent(
             throw new IllegalArgumentException("agentId and otherAgentId must differ — self-referential relationships are not tracked");
         Objects.requireNonNull(metadata, "metadata required");
         metadata = Map.copyOf(metadata);
-        if (importance != null && (importance < 0.0 || importance > 1.0))
-            throw new IllegalArgumentException("importance must be in [0, 1], got " + importance);
+        if (confidence != null && (confidence < 0.0 || confidence > 1.0))
+            throw new IllegalArgumentException("confidence must be in [0, 1], got " + confidence);
     }
 }

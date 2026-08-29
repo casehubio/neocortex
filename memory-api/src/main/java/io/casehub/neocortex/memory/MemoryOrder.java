@@ -25,9 +25,9 @@ public enum MemoryOrder {
     RELEVANCE,
 
     /**
- * Results ordered by salience: recency × importance.
+ * Results ordered by salience: recency × confidence.
  * Non-semantic adapters compute salience from {@link Memory#createdAt()} and
- * {@link Memory#importance()} — null importance treated as 1.0.
+ * {@link Memory#confidence()} — null confidence treated as value 1.0.
  * Semantic adapters that already handle relevance fall back to
  * {@link #RELEVANCE} (salience is a non-semantic ranking strategy).
  */

@@ -10,7 +10,7 @@
 
 ### `caseId` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `insight` (`java.lang.String`)
 
@@ -28,7 +28,7 @@
 
 ### `caseId` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `insight` (`java.lang.String`)
 
@@ -52,7 +52,7 @@
 - `insight` (`java.lang.String`)
 - `level` (`int`)
 - `sourceMemoryIds` (`java.util.List<java.lang.String>`)
-- `importance` (`java.lang.Double`)
+- `confidence` (`java.lang.Double`)
 - `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 
 ## Methods

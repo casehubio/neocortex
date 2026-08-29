@@ -13,6 +13,10 @@
   <description>MindMapStore SPI — typed knowledge graph with nodes, edges, vocabulary, aliases, subgraphs. Tier 1 pure Java.</description>
   <dependencies>
     <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-cognitive-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>

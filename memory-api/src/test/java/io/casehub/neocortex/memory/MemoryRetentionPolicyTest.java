@@ -12,18 +12,18 @@ class MemoryRetentionPolicyTest {
     @Test void validPolicy_ageBased() {
         var policy = new MemoryRetentionPolicy("t1", CBR, 30, null);
         assertThat(policy.maxAgeDays()).isEqualTo(30);
-        assertThat(policy.minImportance()).isNull();
+        assertThat(policy.minConfidence()).isNull();
     }
 
-    @Test void validPolicy_importanceBased() {
+    @Test void validPolicy_confidenceBased() {
         var policy = new MemoryRetentionPolicy("t1", CBR, null, 0.3);
-        assertThat(policy.minImportance()).isEqualTo(0.3);
+        assertThat(policy.minConfidence()).isEqualTo(0.3);
     }
 
     @Test void validPolicy_combined() {
         var policy = new MemoryRetentionPolicy("t1", CBR, 180, 0.2);
         assertThat(policy.maxAgeDays()).isEqualTo(180);
-        assertThat(policy.minImportance()).isEqualTo(0.2);
+        assertThat(policy.minConfidence()).isEqualTo(0.2);
     }
 
     @Test void rejectsBothNull() {
@@ -42,7 +42,7 @@ class MemoryRetentionPolicyTest {
             .isInstanceOf(NullPointerException.class);
     }
 
-    @Test void minImportance_outOfRange_throws() {
+    @Test void minConfidence_outOfRange_throws() {
         assertThatThrownBy(() -> new MemoryRetentionPolicy("t1", CBR, null, 1.5))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("[0, 1]");

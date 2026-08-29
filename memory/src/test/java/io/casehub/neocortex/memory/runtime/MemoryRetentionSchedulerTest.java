@@ -22,7 +22,7 @@ class MemoryRetentionSchedulerTest {
         assertThat(store.policies.stream().anyMatch(p -> p.tenantId().equals("t1"))).isTrue();
         assertThat(store.policies.stream().anyMatch(p -> p.tenantId().equals("t2"))).isTrue();
         assertThat(store.policies.getFirst().maxAgeDays()).isEqualTo(180);
-        assertThat(store.policies.getFirst().minImportance()).isEqualTo(0.2);
+        assertThat(store.policies.getFirst().minConfidence()).isEqualTo(0.2);
     }
 
     @Test void purgeExpired_disabledSkipsExecution() {
@@ -67,18 +67,18 @@ class MemoryRetentionSchedulerTest {
     static class StubConfig implements MemoryRetentionConfig {
         final boolean enabled;
         final Optional<Integer> maxAgeDays;
-        final Optional<Double> minImportance;
-        StubConfig(boolean enabled, Optional<Integer> maxAgeDays, Optional<Double> minImportance) {
+        final Optional<Double> minConfidence;
+        StubConfig(boolean enabled, Optional<Integer> maxAgeDays, Optional<Double> minConfidence) {
             this.enabled = enabled;
             this.maxAgeDays = maxAgeDays;
-            this.minImportance = minImportance;
+            this.minConfidence = minConfidence;
         }
         @Override public boolean enabled() { return enabled; }
 
         @Override
         public Optional<String> domain() {return Optional.of("MEMORY");}
         @Override public Optional<Integer> maxAgeDays() { return maxAgeDays; }
-        @Override public Optional<Double> minImportance() { return minImportance; }
+        @Override public Optional<Double> minConfidence() { return minConfidence; }
     }
 
     static class CapturingStore extends NoOpCaseMemoryStore {

@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.testing;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
@@ -71,7 +72,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void store_returnsNonBlankId() {
-        var    c  = new TextualCbrCase("Zerg roach rush", "early pressure", "WIN", 0.9, null, null);
+        var    c  = new TextualCbrCase("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.9), null, null);
         String id = store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "case-1", Path.root());
         assertThat(id).isNotBlank();
     }
@@ -85,7 +86,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void retrieveSimilar_findsStoredCase() {
-        var c = new FeatureVectorCbrCase("Zerg roach rush", "early pressure", "WIN", 0.9,
+        var c = new FeatureVectorCbrCase("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.9),
                                          Map.of("opponent_race", string("Zerg"), "detected_build", string("ROACH_RUSH"), "army_size_ratio", number(0.7)), null, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "case-1", Path.root());
 
@@ -101,7 +102,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     void retrieveSimilar_returnsCaseId() {
         registerDefaultSchema();
         store().store(
-                new FeatureVectorCbrCase("Zerg rush", "early pressure", "WIN", 0.9,
+                new FeatureVectorCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.9),
                                          Map.of("opponent_race", string("Zerg"), "detected_build", string("ROACH_RUSH"), "army_size_ratio", number(0.7)), null, null),
                 "starcraft-game", ENTITY, CBR, TENANT, "my-case-id", Path.root());
         var results = store().retrieveSimilar(
@@ -191,7 +192,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void planCbrCase_storeAndRetrieve() {
         var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
-        var c = new PlanCbrCase("Zerg roach rush", "early pressure", "WIN", 0.85,
+        var c = new PlanCbrCase("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.85),
                                 Map.of("opponent_race", string("Zerg"), "detected_build", string("ROACH_RUSH")),
                                 List.of(trace), null, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
@@ -229,7 +230,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                    Map.of("duration", 30), null);
         var trace2 = new PlanTrace("attack", "aggression", "roach-push", "SUCCESS", 2,
                                    Map.of("supply", 44), null);
-        var c = new PlanCbrCase("Zerg game", "rush", "WIN", 0.9,
+        var c = new PlanCbrCase("Zerg game", "rush", "WIN", Confidence.unknown(0.9),
                                 Map.of("opponent_race", string("Zerg")),
                                 List.of(trace1, trace2), null, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
@@ -1746,7 +1747,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void recordOutcome_updatesOutcomeAndConfidence() {
-        store().store(new FeatureVectorCbrCase("prob", "sol", null, 0.8,
+        store().store(new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.8),
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-1", Path.root());
         store().recordOutcome("case-ro-1", TENANT,
@@ -1758,12 +1759,12 @@ public abstract class CbrCaseMemoryStoreContractTest {
                 FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().cbrCase().outcome()).isEqualTo("SUCCESS");
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.84, within(0.001));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.84, within(0.001));
     }
 
     @Test
     void recordOutcome_partialResult() {
-        store().store(new FeatureVectorCbrCase("prob", "sol", null, 0.8,
+        store().store(new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.8),
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-2", Path.root());
         store().recordOutcome("case-ro-2", TENANT,
@@ -1774,12 +1775,12 @@ public abstract class CbrCaseMemoryStoreContractTest {
                         .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
                 FeatureVectorCbrCase.class);
         assertThat(results.getFirst().cbrCase().outcome()).isEqualTo("PARTIAL");
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.74, within(0.001));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.74, within(0.001));
     }
 
     @Test
     void recordOutcome_failure_decreasesConfidence() {
-        store().store(new FeatureVectorCbrCase("prob", "sol", null, 0.8,
+        store().store(new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.8),
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-3", Path.root());
         store().recordOutcome("case-ro-3", TENANT,
@@ -1789,12 +1790,12 @@ public abstract class CbrCaseMemoryStoreContractTest {
                             Map.of("opponent_race", string("Zerg")), 10)
                         .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
                 FeatureVectorCbrCase.class);
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.64, within(0.001));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.64, within(0.001));
     }
 
     @Test
     void recordOutcome_multipleOutcomes_emaConverges() {
-        store().store(new FeatureVectorCbrCase("prob", "sol", null, 0.5,
+        store().store(new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.5),
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-4", Path.root());
         Instant base = Instant.parse("2026-07-13T10:00:00Z");
@@ -1807,7 +1808,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                             Map.of("opponent_race", string("Zerg")), 10)
                         .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
                 FeatureVectorCbrCase.class);
-        assertThat(results.getFirst().cbrCase().confidence()).isGreaterThan(0.8);
+        assertThat(results.getFirst().cbrCase().confidence().value()).isGreaterThan(0.8);
     }
 
     @Test
@@ -1817,7 +1818,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                               0.8);
         store().registerSchema(fastSchema);
 
-        store().store(new FeatureVectorCbrCase("p", "s", "o", 1.0,
+        store().store(new FeatureVectorCbrCase("p", "s", "o", Confidence.unknown(1.0),
                                                Map.of("cat", string("a"), "val", number(50)), null, null),
                       "fast-learn", ENTITY, CBR, TENANT, "c-lr-1", Path.root());
 
@@ -1831,7 +1832,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                 FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
         // With learning rate 0.8: confidence = (1-0.8)*1.0 + 0.8*0.0 = 0.2
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.2, within(0.01));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.2, within(0.01));
     }
 
 
@@ -1847,7 +1848,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                             Map.of("opponent_race", string("Zerg")), 10)
                         .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
                 FeatureVectorCbrCase.class);
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.8, within(0.001));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.8, within(0.001));
     }
 
     @Test
@@ -1861,7 +1862,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     void recordOutcome_preservesOtherFields() {
         Map<String, FeatureValue> features = Map.of("opponent_race", string("Zerg"),
                                                     "army_size_ratio", number(0.7));
-        store().store(new FeatureVectorCbrCase("my problem", "my solution", null, 0.8,
+        store().store(new FeatureVectorCbrCase("my problem", "my solution", null, Confidence.unknown(0.8),
                                                features, null, null), "starcraft-game", ENTITY, CBR, TENANT, "case-ro-7", Path.root());
         store().recordOutcome("case-ro-7", TENANT,
                               CbrOutcome.of(1.0, "ok", Instant.now()));
@@ -1879,7 +1880,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void recordOutcome_withDetail_doesNotCorruptCase() {
-        store().store(new FeatureVectorCbrCase("prob", "sol", null, 0.8,
+        store().store(new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.8),
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-8", Path.root());
         store().recordOutcome("case-ro-8", TENANT,
@@ -1890,12 +1891,12 @@ public abstract class CbrCaseMemoryStoreContractTest {
                         .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
                 FeatureVectorCbrCase.class);
         assertThat(results.getFirst().cbrCase().outcome()).isEqualTo("PARTIAL");
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.79, within(0.001));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.79, within(0.001));
     }
 
     @Test
     void recordOutcome_duplicateObservedAt_idempotent() {
-        store().store(new FeatureVectorCbrCase("prob", "sol", null, 0.8,
+        store().store(new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.8),
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-9", Path.root());
         Instant observed = Instant.parse("2026-07-13T10:00:00Z");
@@ -1908,7 +1909,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
                             Map.of("opponent_race", string("Zerg")), 10)
                         .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
                 FeatureVectorCbrCase.class);
-        assertThat(results.getFirst().cbrCase().confidence()).isCloseTo(0.84, within(0.001));
+        assertThat(results.getFirst().cbrCase().confidence().value()).isCloseTo(0.84, within(0.001));
     }
 
     @Test
@@ -2072,7 +2073,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void trustScore_roundTrip() {
         registerDefaultSchema();
-        var c = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+        var c = new FeatureVectorCbrCase("p", "s", "WIN", Confidence.unknown(0.9),
                                          Map.of("opponent_race", string("Zerg")), 0.85, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-1", Path.root());
         var results = store().retrieveSimilar(
@@ -2086,7 +2087,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void producerAgentId_roundTrip() {
         registerDefaultSchema();
-        var c = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+        var c = new FeatureVectorCbrCase("p", "s", "WIN", Confidence.unknown(0.9),
                                          Map.of("opponent_race", string("Zerg")), null, "agent-1");
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-2", Path.root());
         var results = store().retrieveSimilar(
@@ -2100,7 +2101,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void trustScore_nullPreserved() {
         registerDefaultSchema();
-        var c = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+        var c = new FeatureVectorCbrCase("p", "s", "WIN", Confidence.unknown(0.9),
                                          Map.of("opponent_race", string("Zerg")), null, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-3", Path.root());
         var results = store().retrieveSimilar(
@@ -2114,7 +2115,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void trustScore_withOutcome_preserved() {
         registerDefaultSchema();
-        store().store(new FeatureVectorCbrCase("p", "s", "WIN", 0.5,
+        store().store(new FeatureVectorCbrCase("p", "s", "WIN", Confidence.unknown(0.5),
                                                Map.of("opponent_race", string("Zerg")), 0.85, "agent-1"),
                       "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-4", Path.root());
         store().recordOutcome("trust-rt-4", TENANT,
@@ -2130,7 +2131,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void trustScore_withFeatures_preserved() {
         registerDefaultSchema();
-        var original = new FeatureVectorCbrCase("p", "s", "WIN", 0.9,
+        var original = new FeatureVectorCbrCase("p", "s", "WIN", Confidence.unknown(0.9),
                                                 Map.of("opponent_race", string("Zerg")), 0.85, "agent-1");
         var enriched = original.withFeatures(Map.of("opponent_race", string("Zerg"),
                                                     "detected_build", string("ROACH_RUSH")));
@@ -2151,7 +2152,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void producerAgentId_withOutcome_preserved() {
         registerDefaultSchema();
-        store().store(new FeatureVectorCbrCase("p", "s", "WIN", 0.5,
+        store().store(new FeatureVectorCbrCase("p", "s", "WIN", Confidence.unknown(0.5),
                                                Map.of("opponent_race", string("Zerg")), 0.7, "agent-2"),
                       "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-5", Path.root());
         store().recordOutcome("trust-rt-5", TENANT,
@@ -2168,7 +2169,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     void planCbrCase_trustFields_roundTrip() {
         registerDefaultSchema();
         var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
-        var c = new PlanCbrCase("Zerg rush", "early pressure", "WIN", 0.85,
+        var c = new PlanCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.85),
                                 Map.of("opponent_race", string("Zerg")),
                                 List.of(trace), 0.92, "agent-plan");
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-6", Path.root());
@@ -2184,7 +2185,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void textualCbrCase_trustFields_roundTrip() {
         registerDefaultSchema();
-        var c = new TextualCbrCase("Zerg rush", "early pressure", "WIN", 0.85, 0.88, "agent-text");
+        var c = new TextualCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.85), 0.88, "agent-text");
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-7", Path.root());
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game", Map.of(), 5),

@@ -46,7 +46,7 @@ public class NodeRefCleanupObserver {
                     .collect(Collectors.toSet());
                 if (!toRemove.isEmpty()) {
                     store.updateNode(node.id(),
-                        new NodeUpdate(null, null, null, null,
+                        new NodeUpdate(null, null,
                             null, null, null, toRemove,
                             null, null, null, null, null, null, null),
                         tenantId);

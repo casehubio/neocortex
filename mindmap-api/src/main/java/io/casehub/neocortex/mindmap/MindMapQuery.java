@@ -1,5 +1,7 @@
 package io.casehub.neocortex.mindmap;
 
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
+
 import java.util.Objects;
 import java.util.Set;
 

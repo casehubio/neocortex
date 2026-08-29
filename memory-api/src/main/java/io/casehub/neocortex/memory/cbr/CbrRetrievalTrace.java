@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.cbr;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +26,7 @@ public record CbrRetrievalTrace(
             double score,
             boolean reranked,
             Map<String, Double> featureSimilarities,
-            Double confidence,
+            Confidence confidence,
             Double trustScore,
             String producerAgentId,
             String trustTrajectory

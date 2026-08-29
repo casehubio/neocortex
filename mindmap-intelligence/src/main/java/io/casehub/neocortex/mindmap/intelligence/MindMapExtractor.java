@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -19,6 +19,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -157,7 +158,7 @@ public class MindMapExtractor {
                 MindMapNode node = store.getNode(entry.getKey(), tenantId);
                 if (node == null) continue;
                 sb.append("- ").append(node.name());
-                sb.append(" (confidence: ").append(String.format("%.2f", node.confidence()));
+                sb.append(" (confidence: ").append(String.format("%.2f", node.confidence().value()));
                 if (!node.traits().isEmpty()) {
                     sb.append(", traits: ").append(String.join(", ", node.traits()));
                 }
@@ -173,7 +174,7 @@ public class MindMapExtractor {
                         MindMapNode source = store.getNode(edge.sourceNodeId(), tenantId);
                         sb.append(source != null ? source.name() : edge.sourceNodeId());
                     }
-                    sb.append(" [").append(edge.confidenceOrigin()).append("]\n");
+                    sb.append(" [").append(edge.confidence().origin()).append("]\n");
                 }
             }
             sb.append('\n');
@@ -205,14 +206,15 @@ public class MindMapExtractor {
                 created = false;
                 if (pe.properties() != null && !pe.properties().isEmpty()) {
                     store.updateNode(nodeId,
-                        new NodeUpdate(null, null, null, null,
+                        new NodeUpdate(null, null,
                             null, null, null, null, null, null,
                             null, null, null,
                             pe.properties(), null), tenantId);
                 }
             } else {
                 nodeId = store.addNode(new NodeInput(
-                    pe.name(), sgId, pe.confidence(), null,
+                    pe.name(), sgId,
+                    MindMapConfidenceDefaults.forOrigin(pe.origin(), Instant.now()),
                     "llm-extraction", null, null, null, null,
                     null, null, null,
                     pe.properties() != null ? pe.properties() : Map.of()), tenantId);
@@ -231,10 +233,11 @@ public class MindMapExtractor {
             String targetId = resolveNodeId(pr.target(), nameToNodeId, tenantId);
             if (sourceId != null && targetId != null) {
                 String edgeId = store.addEdge(new EdgeInput(
-                    sourceId, targetId, pr.type(), pr.confidence(), null,
+                    sourceId, targetId, pr.type(),
+                    MindMapConfidenceDefaults.forOrigin(pr.origin(), Instant.now()),
                     "llm-extraction", null, null, null, null, null, Map.of()), tenantId);
                 relationships.add(new ExtractedRelationship(
-                    edgeId, pr.source(), pr.target(), pr.type(), pr.confidence()));
+                    edgeId, pr.source(), pr.target(), pr.type(), pr.origin()));
             }
         }
 

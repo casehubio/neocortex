@@ -122,7 +122,7 @@ public final class AmlInvestigationDemo {
 
         for (var seed : SEED_CASES) {
             var cbrCase = new FeatureVectorCbrCase(
-                    seed.problem(), seed.solution(), seed.outcome(), seed.confidence(), seed.features(), null, null);
+                    seed.problem(), seed.solution(), seed.outcome(), io.casehub.neocortex.cognitive.Confidence.unknown(seed.confidence()), seed.features(), null, null);
             store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 

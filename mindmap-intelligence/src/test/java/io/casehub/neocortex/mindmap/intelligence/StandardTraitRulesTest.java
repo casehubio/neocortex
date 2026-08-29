@@ -25,7 +25,7 @@ class StandardTraitRulesTest {
     @Test
     void personableRule_matchesBirthday() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("birthday", "1990-01-15")), "t1");
         MindMapNode node = store.getNode(id, "t1");
@@ -56,7 +56,7 @@ class StandardTraitRulesTest {
     @Test
     void projectlikeRule_matchesStatus() {
         String id = store.addNode(new NodeInput("Neocortex", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("status", "active")), "t1");
         MindMapNode node = store.getNode(id, "t1");
@@ -69,7 +69,7 @@ class StandardTraitRulesTest {
     @Test
     void organisationalRule_matchesIndustry() {
         String id = store.addNode(new NodeInput("Acme", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("industry", "tech")), "t1");
         MindMapNode node = store.getNode(id, "t1");
@@ -80,12 +80,12 @@ class StandardTraitRulesTest {
     }
 
     private NodeInput node(String name) {
-        return new NodeInput(name, subgraphId, ConfidenceOrigin.STATED, null,
+        return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);
     }
 
     private EdgeInput edge(String source, String target, String type) {
-        return new EdgeInput(source, target, type, ConfidenceOrigin.STATED, null,
+        return new EdgeInput(source, target, type, null,
             "test", null, null, null, null, null, null);
     }
 }

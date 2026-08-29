@@ -1,5 +1,6 @@
 package io.casehub.neocortex.mindmap.runtime;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.mindmap.*;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -160,12 +161,12 @@ class MindMapAnalyzerTest {
 
     @Test
     void lowConfidenceCluster_countsNodesBelowThreshold() {
-        store.addNode(new NodeInput("High", subgraphId, ConfidenceOrigin.STATED, 0.9,
-            "test", null, null, null, null, null, null, null, null), "t1");
-        store.addNode(new NodeInput("Low", subgraphId, ConfidenceOrigin.SPECULATED, 0.2,
-            "test", null, null, null, null, null, null, null, null), "t1");
-        store.addNode(new NodeInput("Medium", subgraphId, ConfidenceOrigin.INFERRED, 0.5,
-            "test", null, null, null, null, null, null, null, null), "t1");
+        store.addNode(new NodeInput("High", subgraphId,
+            Confidence.stated(0.9, Instant.now()), "test", null, null, null, null, null, null, null, null), "t1");
+        store.addNode(new NodeInput("Low", subgraphId,
+            Confidence.speculated(0.2, Instant.now()), "test", null, null, null, null, null, null, null, null), "t1");
+        store.addNode(new NodeInput("Medium", subgraphId,
+            Confidence.inferred(0.5, Instant.now()), "test", null, null, null, null, null, null, null, null), "t1");
 
         MindMapAnalyzer.LowConfidenceCluster result =
             MindMapAnalyzer.lowConfidenceCluster(store, subgraphId, "t1", 0.5);
@@ -246,12 +247,12 @@ class MindMapAnalyzerTest {
     // --- Helpers ---
 
     private NodeInput node(String name) {
-        return new NodeInput(name, subgraphId, ConfidenceOrigin.STATED, null,
+        return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);
     }
 
     private EdgeInput edge(String source, String target, String type) {
-        return new EdgeInput(source, target, type, ConfidenceOrigin.STATED, null,
+        return new EdgeInput(source, target, type, null,
             "test", null, null, null, null, null, null);
     }
 }

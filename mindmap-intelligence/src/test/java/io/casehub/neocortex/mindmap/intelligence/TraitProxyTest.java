@@ -26,7 +26,7 @@ class TraitProxyTest {
     @Test
     void as_returnsProxyImplementingInterface() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("birthday", "1990-01-15", "role", "engineer")), "t1");
         MindMapNode node = store.getNode(id, "t1");
@@ -40,7 +40,7 @@ class TraitProxyTest {
     @Test
     void as_missingProperty_returnsEmpty() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null, null), "t1");
         MindMapNode node = store.getNode(id, "t1");
 
@@ -52,7 +52,7 @@ class TraitProxyTest {
     @Test
     void as_nonInterface_throwsIllegalArgument() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null, null), "t1");
         MindMapNode node = store.getNode(id, "t1");
 
@@ -64,7 +64,7 @@ class TraitProxyTest {
     @Test
     void as_projectlike_readsProperties() {
         String id = store.addNode(new NodeInput("Neocortex", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null,
             Map.of("status", "active", "startDate", "2026-01-01")), "t1");
         MindMapNode node = store.getNode(id, "t1");
@@ -78,7 +78,7 @@ class TraitProxyTest {
     @Test
     void as_toString_includesNodeName() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null, null), "t1");
         MindMapNode node = store.getNode(id, "t1");
 
@@ -89,7 +89,7 @@ class TraitProxyTest {
     @Test
     void as_equals_sameNodeSameInterface_areEqual() {
         String id = store.addNode(new NodeInput("Alice", subgraphId,
-            ConfidenceOrigin.STATED, null, "test", null, null,
+            null, "test", null, null,
             null, null, null, null, null, null), "t1");
         MindMapNode node = store.getNode(id, "t1");
 

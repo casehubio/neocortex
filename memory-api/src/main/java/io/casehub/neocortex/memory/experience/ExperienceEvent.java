@@ -8,6 +8,6 @@ public sealed interface ExperienceEvent permits Observation, Action, Outcome {
     String caseId();
     String turnId();
     String description();
-    Double importance();
+    Double confidence();
     Map<String, String> metadata();
 }

@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.jpa;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.memory.CaseMemoryStore;
@@ -77,7 +79,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
         entry.text       = input.text();
         entry.attributes = serializeAttributes(input.attributes());
         entry.createdAt  = Instant.now();
-        entry.importance = input.importance();
+        entry.confidence = input.confidence() != null ? input.confidence().value() : null;
 
         MemoryEntry.persist(entry);
         return entry.memoryId;
@@ -99,7 +101,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.text       = input.text();
             e.attributes = serializeAttributes(input.attributes());
             e.createdAt  = Instant.now();
-            e.importance = input.importance();
+            e.confidence = input.confidence() != null ? input.confidence().value() : null;
             return e;
         }).toList();
         MemoryEntry.persist(entries);
@@ -326,16 +328,16 @@ public class JpaMemoryStore implements CaseMemoryStore {
         params.put("t", policy.tenantId());
         params.put("d", policy.domain().name());
 
-        if (policy.maxAgeDays() != null && policy.minImportance() != null) {
-            jpql.append(" AND e.createdAt < :cutoff AND e.importance IS NOT NULL AND e.importance < :minImp");
+        if (policy.maxAgeDays() != null && policy.minConfidence() != null) {
+            jpql.append(" AND e.createdAt < :cutoff AND e.confidence IS NOT NULL AND e.confidence < :minImp");
             params.put("cutoff", Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())));
-            params.put("minImp", policy.minImportance());
+            params.put("minImp", policy.minConfidence());
         } else if (policy.maxAgeDays() != null) {
             jpql.append(" AND e.createdAt < :cutoff");
             params.put("cutoff", Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())));
-        } else if (policy.minImportance() != null) {
-            jpql.append(" AND e.importance IS NOT NULL AND e.importance < :minImp");
-            params.put("minImp", policy.minImportance());
+        } else if (policy.minConfidence() != null) {
+            jpql.append(" AND e.confidence IS NOT NULL AND e.confidence < :minImp");
+            params.put("minImp", policy.minConfidence());
         }
 
         var query = em.createQuery(jpql.toString());
@@ -353,7 +355,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.text,
             deserializeAttributes(e.attributes),
             e.createdAt,
-            e.importance);
+            e.confidence != null ? Confidence.unknown(e.confidence) : null);
     }
 
     private String serializeAttributes(Map<String, String> attrs) {

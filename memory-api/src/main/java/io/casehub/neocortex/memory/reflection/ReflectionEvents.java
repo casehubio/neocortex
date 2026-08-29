@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.reflection;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import java.util.HashMap;
@@ -31,12 +33,11 @@ public final class ReflectionEvents {
 
         attrs.putAll(event.metadata());
 
-        Double importance = event.importance();
-        if (importance == null) {
-            importance = Math.min(0.3 + (event.level() * 0.2), 1.0);
-        }
+        double confidenceValue = event.confidence() != null
+            ? event.confidence()
+            : Math.min(0.3 + (event.level() * 0.2), 1.0);
 
         return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-            event.caseId(), event.insight(), attrs, importance);
+            event.caseId(), event.insight(), attrs, Confidence.unknown(confidenceValue));
     }
 }

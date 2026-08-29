@@ -145,7 +145,7 @@ public final class MindMapAnalyzer {
         int total = nodes.size();
         int low = 0;
         for (MindMapNode node : nodes) {
-            if (node.confidence() < threshold) {
+            if (node.confidence().value() < threshold) {
                 low++;
             }
         }
@@ -160,7 +160,7 @@ public final class MindMapAnalyzer {
         requireAnalysis(store);
         List<StaleNode> stale = new ArrayList<>();
         for (MindMapNode node : store.nodesIn(subgraphId, tenantId)) {
-            Instant lastUpdated = node.confirmedAt() != null ? node.confirmedAt() : node.updatedAt();
+            Instant lastUpdated = node.confidence().decayReference() != null ? node.confidence().decayReference() : node.updatedAt();
             Duration age = Duration.between(lastUpdated, now);
             if (age.compareTo(staleThreshold) > 0) {
                 stale.add(new StaleNode(node.id(), node.name(), lastUpdated, age));

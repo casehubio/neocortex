@@ -30,7 +30,7 @@ final class CbrMemorySerializer {
         }
         if (cbrCase.confidence() != null) {
             attributes.put(MemoryAttributeKeys.CONFIDENCE,
-                MemoryAttributeKeys.formatConfidence(cbrCase.confidence()));
+                MemoryAttributeKeys.formatConfidence(cbrCase.confidence().value()));
         }
 
         attributes.put(CbrAttributeKeys.CBR_TYPE, cbrCase.cbrType());

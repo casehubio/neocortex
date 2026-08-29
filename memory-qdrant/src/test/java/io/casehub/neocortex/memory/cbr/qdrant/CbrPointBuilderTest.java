@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import dev.langchain4j.data.embedding.Embedding;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.TextualCbrCase;
@@ -34,7 +35,7 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_textualCase_payloadFields() {
-        var cbrCase = new TextualCbrCase("problem text", "solution text", "WIN", 0.9, null, null);
+        var cbrCase = new TextualCbrCase("problem text", "solution text", "WIN", Confidence.unknown(0.9), null, null);
         PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "game",
             "entity-1", "cbr", "tenant-1", "case-1", null, "dense");
 

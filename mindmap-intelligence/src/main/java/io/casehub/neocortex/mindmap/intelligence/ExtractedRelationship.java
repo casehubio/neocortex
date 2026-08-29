@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 
 public record ExtractedRelationship(
     String edgeId,

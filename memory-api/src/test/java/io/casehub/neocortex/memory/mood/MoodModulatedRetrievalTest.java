@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.mood;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
@@ -18,7 +20,7 @@ class MoodModulatedRetrievalTest {
     private static final PersonalityWeights EQUAL_WEIGHTS = new PersonalityWeights(Map.of());
 
     private Memory memory(String id, Instant createdAt, Map<String, String> attrs) {
-        return new Memory(id, "a1", EXP, "t1", null, "text", attrs, createdAt, 0.5);
+        return new Memory(id, "a1", EXP, "t1", null, "text", attrs, createdAt, Confidence.unknown(0.5));
     }
 
     private MoodState mood(double p, double a, double d) {

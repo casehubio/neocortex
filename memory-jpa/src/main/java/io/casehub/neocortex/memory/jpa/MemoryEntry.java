@@ -38,7 +38,7 @@ public class MemoryEntry extends PanacheEntityBase {
 
     @Column(name = "created_at", nullable = false)
     public Instant createdAt;
-    @Column(name = "importance")
-    public Double  importance;
+    @Column(name = "confidence")
+    public Double  confidence;
 
 }

@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
@@ -60,7 +60,7 @@ class MindMapExtractorTest {
     @Test
     void resolveExistingEntity() {
         String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
-        store.addNode(new NodeInput("Alice", sgId, ConfidenceOrigin.STATED, null, "test",
+        store.addNode(new NodeInput("Alice", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of("role", "manager")), TENANT);
 
         String response = """
@@ -83,12 +83,12 @@ class MindMapExtractorTest {
     @Test
     void detectContradiction() {
         String sgPerson = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
-        String aliceId = store.addNode(new NodeInput("Alice", sgPerson, ConfidenceOrigin.STATED, null, "test",
+        String aliceId = store.addNode(new NodeInput("Alice", sgPerson, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
         String sgOrg = store.createSubgraph(new SubgraphInput("Orgs", SubgraphType.ORGANISATION, null), TENANT);
-        String acmeId = store.addNode(new NodeInput("Acme", sgOrg, ConfidenceOrigin.STATED, null, "test",
+        String acmeId = store.addNode(new NodeInput("Acme", sgOrg, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
-        store.addEdge(new EdgeInput(aliceId, acmeId, "works-at", ConfidenceOrigin.STATED, null, "test",
+        store.addEdge(new EdgeInput(aliceId, acmeId, "works-at", null, "test",
             null, null, null, null, null, Map.of()), TENANT);
 
         String response = """
@@ -213,12 +213,12 @@ class MindMapExtractorTest {
     @Test
     void contextSerializationIncludesExistingNodes() {
         String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
-        String aliceId = store.addNode(new NodeInput("Alice", sgId, ConfidenceOrigin.STATED, null, "test",
+        String aliceId = store.addNode(new NodeInput("Alice", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of("role", "engineer")), TENANT);
         String sgOrg = store.createSubgraph(new SubgraphInput("Orgs", SubgraphType.ORGANISATION, null), TENANT);
-        String acmeId = store.addNode(new NodeInput("Acme", sgOrg, ConfidenceOrigin.STATED, null, "test",
+        String acmeId = store.addNode(new NodeInput("Acme", sgOrg, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
-        store.addEdge(new EdgeInput(aliceId, acmeId, "works-at", ConfidenceOrigin.STATED, null, "test",
+        store.addEdge(new EdgeInput(aliceId, acmeId, "works-at", null, "test",
             null, null, null, null, null, Map.of()), TENANT);
 
         String response = """

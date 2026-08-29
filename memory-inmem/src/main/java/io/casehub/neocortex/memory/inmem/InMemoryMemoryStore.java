@@ -73,7 +73,7 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
         Memory memory = new Memory(
             memoryId, input.entityId(), input.domain(), input.tenantId(),
             input.caseId(), input.text(), input.attributes(), Instant.now(),
-            input.importance());
+            input.confidence());
         store.computeIfAbsent(
             new BucketKey(input.tenantId(), input.entityId(), input.domain()),
             k -> new CopyOnWriteArrayList<>()
@@ -192,10 +192,10 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
 
 
     private static double salience(Memory m, Instant now) {
-        double importance = m.importance() != null ? m.importance() : 1.0;
-        long   ageSeconds = java.time.Duration.between(m.createdAt(), now).toSeconds();
+        double confidenceValue = m.confidence() != null ? m.confidence().value() : 1.0;
+        long   ageSeconds      = java.time.Duration.between(m.createdAt(), now).toSeconds();
         double recency    = 1.0 / (1.0 + ageSeconds / 3600.0);
-        return recency * importance;
+        return recency * confidenceValue;
     }
 
     @Override
@@ -211,13 +211,13 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             int                          before   = memories.size();
             memories.removeIf(m -> {
                 boolean ageEligible = cutoff != null && m.createdAt().isBefore(cutoff);
-                boolean importanceEligible = policy.minImportance() != null
-                                             && m.importance() != null
-                                             && m.importance() < policy.minImportance();
-                if (cutoff != null && policy.minImportance() != null) {
-                    return ageEligible && importanceEligible;
+                boolean confidenceEligible = policy.minConfidence() != null
+                                             && m.confidence() != null
+                                             && m.confidence().value() < policy.minConfidence();
+                if (cutoff != null && policy.minConfidence() != null) {
+                    return ageEligible && confidenceEligible;
                 }
-                return ageEligible || importanceEligible;
+                return ageEligible || confidenceEligible;
             });
             removed += before - memories.size();
         }

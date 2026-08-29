@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
@@ -26,7 +27,7 @@ class NoOpPlanEnsembleAnalyzerTest {
         for (String b : bindings) {
             traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
         }
-        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", score,
+        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", Confidence.unknown(score),
                                    Map.of("f", FeatureValue.string("v")), traces, null, null);
         return new ScoredCbrCase<>(plan, caseId, score);
     }
@@ -92,7 +93,7 @@ class NoOpPlanEnsembleAnalyzerTest {
         var step = new AdaptedStep("bind", "cap", "worker", "SUCCESS", 3,
                                    Map.of("k", "v"), AdaptationAction.BOOSTED, "boosted");
         var adapted = new AdaptedPlan(List.of(step));
-        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", 0.8,
+        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", Confidence.unknown(0.8),
                                    Map.of(), List.of(new PlanTrace("bind", "cap", "worker", "SUCCESS", 3, Map.of("k", "v"), null)), null, null);
         var scored = new ScoredCbrCase<>(plan, "c1", 0.8);
 

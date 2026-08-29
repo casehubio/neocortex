@@ -58,7 +58,7 @@ public class OutcomeWeightingCbrCaseMemoryStore implements CbrCaseMemoryStore {
         List<ScoredCbrCase<C>> weighted = new ArrayList<>(results.size());
         for (ScoredCbrCase<C> scored : results) {
             double confidence = scored.cbrCase().confidence() != null
-                                ? scored.cbrCase().confidence() : 1.0;
+                                ? scored.cbrCase().confidence().value() : 1.0;
             double newScore = weightingFunction.apply(scored.score(), confidence);
             weighted.add(scored.withScore(newScore));
         }

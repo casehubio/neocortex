@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.*;
 import io.casehub.neocortex.memory.cbr.*;
 import static io.casehub.neocortex.memory.cbr.FeatureValue.*;
@@ -18,7 +19,7 @@ class CbrMemoryDeserializerTest {
     @Test
     void roundTrip_featureVectorCbrCase() {
         var original = new FeatureVectorCbrCase("Zerg rush detected", "wall-off and expand",
-            "WIN", 0.85, Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
+            "WIN", Confidence.unknown(0.85), Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
 
@@ -28,7 +29,7 @@ class CbrMemoryDeserializerTest {
         assertThat(fv.problem()).isEqualTo("Zerg rush detected");
         assertThat(fv.solution()).isEqualTo("wall-off and expand");
         assertThat(fv.outcome()).isEqualTo("WIN");
-        assertThat(fv.confidence()).isEqualTo(0.85);
+        assertThat(fv.confidence().value()).isEqualTo(0.85);
         assertThat(fv.features()).containsEntry("opponent_race", string("Zerg"));
     }
 
@@ -36,7 +37,7 @@ class CbrMemoryDeserializerTest {
     void roundTrip_planCbrCase() {
         var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
                                   Map.of("duration", 30), null);
-        var original = new PlanCbrCase("Zerg rush", "early pressure", "WIN", 0.9,
+        var original = new PlanCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.9),
             Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
@@ -51,7 +52,7 @@ class CbrMemoryDeserializerTest {
 
     @Test
     void roundTrip_textualCbrCase() {
-        var original = new TextualCbrCase("simple problem", "simple solution", "OK", 0.5, null, null);
+        var original = new TextualCbrCase("simple problem", "simple solution", "OK", Confidence.unknown(0.5), null, null);
 
         var deserialized = roundTrip(original, "simple-type");
 
@@ -61,7 +62,7 @@ class CbrMemoryDeserializerTest {
         assertThat(t.problem()).isEqualTo("simple problem");
         assertThat(t.solution()).isEqualTo("simple solution");
         assertThat(t.outcome()).isEqualTo("OK");
-        assertThat(t.confidence()).isEqualTo(0.5);
+        assertThat(t.confidence().value()).isEqualTo(0.5);
     }
 
     @Test

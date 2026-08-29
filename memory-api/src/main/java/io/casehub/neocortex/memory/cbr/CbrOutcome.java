@@ -1,5 +1,8 @@
 package io.casehub.neocortex.memory.cbr;
 
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
+
 import java.time.Instant;
 import java.util.Objects;
 
@@ -27,9 +30,11 @@ public record CbrOutcome(
         return new CbrOutcome(result, successRate, detail, observedAt);
     }
 
-    public static double adjustConfidence(Double oldConfidence, double successRate,
-                                          double learningRate) {
-        double old = oldConfidence != null ? oldConfidence : 1.0;
-        return (1.0 - learningRate) * old + learningRate * successRate;
+    public static Confidence adjustConfidence(Confidence old, double successRate,
+                                              double learningRate) {
+        double           oldValue = old != null ? old.value() : 1.0;
+        double           newValue = (1.0 - learningRate) * oldValue + learningRate * successRate;
+        ConfidenceOrigin origin   = old != null ? old.origin() : ConfidenceOrigin.UNKNOWN;
+        return new Confidence(origin, newValue, null);
     }
 }

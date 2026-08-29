@@ -25,7 +25,7 @@ class RelationshipEventsTest {
         assertEquals("t1", input.tenantId());
         assertEquals("c1", input.caseId());
         assertEquals("cooperated on review", input.text());
-        assertEquals(0.7, input.importance());
+        assertEquals(0.7, input.confidence().value());
         assertEquals("b1", input.attributes().get(RelationshipAttributeKeys.OTHER_AGENT));
         assertEquals("action", input.attributes().get(RelationshipAttributeKeys.SOURCE_EVENT_TYPE));
         assertEquals("positive", input.attributes().get(RelationshipAttributeKeys.QUALITY_SIGNAL));

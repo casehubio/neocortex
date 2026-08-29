@@ -181,7 +181,7 @@ public final class QuarkmindBattleDemo {
 
         for (var seed : SEED_CASES) {
             var cbrCase = new PlanCbrCase(
-                    seed.problem(), seed.solution(), seed.outcome(), seed.confidence(),
+                    seed.problem(), seed.solution(), seed.outcome(), io.casehub.neocortex.cognitive.Confidence.unknown(seed.confidence()),
                     seed.features(), seed.planTrace(), null, null);
             store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(),
                 DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());

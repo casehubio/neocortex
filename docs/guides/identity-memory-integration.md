@@ -381,4 +381,4 @@ When identity and memory are properly integrated:
 4. **Quarkmind personality generation** — the derivation engine IS the
    personality generator. Given an `AgentDescriptor`, it produces a
    complete cognitive profile. This closes the quarkmind issue for
-   generating personalities from identity declarations.
+   generating personalities from identity declarations

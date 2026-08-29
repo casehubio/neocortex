@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +28,7 @@ class ExtractionJsonParserTest {
         assertThat(result.entities().get(0).name()).isEqualTo("Alice");
         assertThat(result.entities().get(0).type()).isEqualTo("PERSON");
         assertThat(result.entities().get(0).properties()).containsEntry("role", "engineer");
-        assertThat(result.entities().get(0).confidence()).isEqualTo(ConfidenceOrigin.STATED);
+        assertThat(result.entities().get(0).origin()).isEqualTo(ConfidenceOrigin.STATED);
         assertThat(result.relationships()).hasSize(1);
         assertThat(result.relationships().get(0).source()).isEqualTo("Alice");
         assertThat(result.relationships().get(0).type()).isEqualTo("works-at");
@@ -90,7 +90,7 @@ class ExtractionJsonParserTest {
             """;
         ParsedExtraction result = ExtractionJsonParser.parse(json);
         assertThat(result).isNotNull();
-        assertThat(result.entities().get(0).confidence()).isEqualTo(ConfidenceOrigin.INFERRED);
+        assertThat(result.entities().get(0).origin()).isEqualTo(ConfidenceOrigin.INFERRED);
     }
 
     @Test

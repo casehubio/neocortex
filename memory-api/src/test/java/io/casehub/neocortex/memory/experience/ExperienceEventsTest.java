@@ -24,7 +24,7 @@ class ExperienceEventsTest {
         assertEquals("tenant-1", input.tenantId());
         assertEquals("case-1", input.caseId());
         assertEquals("PR #123 has merge conflicts", input.text());
-        assertEquals(0.7, input.importance());
+        assertEquals(0.7, input.confidence().value());
         assertEquals("observation", input.attributes().get(ExperienceAttributeKeys.EVENT_TYPE));
         assertEquals("turn-42", input.attributes().get(ExperienceAttributeKeys.TURN_ID));
         assertEquals("PR #123", input.attributes().get(ExperienceAttributeKeys.SUBJECT));

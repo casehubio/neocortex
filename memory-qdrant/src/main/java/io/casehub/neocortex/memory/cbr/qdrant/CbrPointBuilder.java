@@ -73,7 +73,7 @@ final class CbrPointBuilder {
             payload.put("outcome", ValueFactory.value(cbrCase.outcome()));
         }
         if (cbrCase.confidence() != null) {
-            payload.put("confidence", ValueFactory.value(cbrCase.confidence()));
+            payload.put("confidence", ValueFactory.value(cbrCase.confidence().value()));
         }
         if (cbrCase.trustScore() != null) {
             payload.put("trust_score", ValueFactory.value(cbrCase.trustScore()));

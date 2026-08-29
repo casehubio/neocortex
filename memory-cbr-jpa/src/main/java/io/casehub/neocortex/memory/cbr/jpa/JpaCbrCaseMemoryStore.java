@@ -81,7 +81,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         entity.problem    = cbrCase.problem();
         entity.solution   = cbrCase.solution();
         entity.outcome    = cbrCase.outcome();
-        entity.confidence = cbrCase.confidence();
+        entity.confidence = cbrCase.confidence() != null ? cbrCase.confidence().value() : null;
         entity.features   = serializeJson(FeatureValue.toRawMap(cbrCase.features()));
         entity.storedAt        = Instant.now();
         entity.scope           = scope.value();
@@ -225,10 +225,11 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         CbrFeatureSchema schema = schemas.get(entity.caseType);
         double lr = (schema != null && schema.learningRate() != null)
                     ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
-        double newConfidence = CbrOutcome.adjustConfidence(
-                entity.confidence, outcome.successRate(), lr);
+        io.casehub.neocortex.cognitive.Confidence newConf = CbrOutcome.adjustConfidence(
+                entity.confidence != null ? io.casehub.neocortex.cognitive.Confidence.unknown(entity.confidence) : null,
+                outcome.successRate(), lr);
         entity.outcome       = outcome.result().name();
-        entity.confidence    = newConfidence;
+        entity.confidence    = newConf.value();
         entity.outcomeDetail = outcome.detail();
         entity.lastOutcomeAt = outcome.observedAt();
         em.merge(entity);
@@ -333,16 +334,18 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private CbrCase reconstruct(CbrCaseEntity entity) {
         Map<String, FeatureValue> features = deserializeFeatures(entity.features);
+        io.casehub.neocortex.cognitive.Confidence confidence = entity.confidence != null
+                ? io.casehub.neocortex.cognitive.Confidence.unknown(entity.confidence) : null;
         return switch (entity.cbrType) {
             case "plan" -> new PlanCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence,
+                    entity.problem, entity.solution, entity.outcome, confidence,
                     features, deserializePlanTraces(entity.planTraces), entity.trustScore, entity.producerAgentId);
             case "feature-vector" -> new FeatureVectorCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, entity.trustScore, entity.producerAgentId);
+                    entity.problem, entity.solution, entity.outcome, confidence, features, entity.trustScore, entity.producerAgentId);
             case "textual" -> new TextualCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, entity.trustScore, entity.producerAgentId);
+                    entity.problem, entity.solution, entity.outcome, confidence, entity.trustScore, entity.producerAgentId);
             default -> new FeatureVectorCbrCase(
-                    entity.problem, entity.solution, entity.outcome, entity.confidence, features, entity.trustScore, entity.producerAgentId);
+                    entity.problem, entity.solution, entity.outcome, confidence, features, entity.trustScore, entity.producerAgentId);
         };}
 
     @SuppressWarnings("unchecked")

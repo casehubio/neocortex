@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.relationship;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import java.util.HashMap;
@@ -41,6 +43,6 @@ public final class RelationshipEvents {
         attrs.putAll(event.metadata());
 
         return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-            event.caseId(), event.description(), attrs, event.importance());
+            event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null);
     }
 }

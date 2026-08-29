@@ -40,9 +40,9 @@ public class RelationshipObserver {
         if (otherAgent.equals(exp.agentId())) return;
 
         var relEvent = new RelationshipEvent(
-            exp.agentId(), otherAgent, exp.tenantId(), exp.caseId(),
-            exp.turnId(), sourceEventType(exp), QualitySignal.NEUTRAL,
-            exp.description(), exp.importance(), Map.of());
+                exp.agentId(), otherAgent, exp.tenantId(), exp.caseId(),
+                exp.turnId(), sourceEventType(exp), QualitySignal.NEUTRAL,
+                exp.description(), exp.confidence(), Map.of());
 
         try {
             var input = RelationshipEvents.toMemoryInput(relEvent);

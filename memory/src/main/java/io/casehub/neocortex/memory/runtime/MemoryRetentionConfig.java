@@ -14,5 +14,5 @@ public interface MemoryRetentionConfig {
 
     Optional<Integer> maxAgeDays();
 
-    Optional<Double> minImportance();
+    Optional<Double> minConfidence();
 }

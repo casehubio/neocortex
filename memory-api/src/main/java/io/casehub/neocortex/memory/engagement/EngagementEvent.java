@@ -10,12 +10,12 @@ public record EngagementEvent(
     String caseId,
     String turnId,
     String description,
-    Double importance,
+    Double confidence,
     Map<String, String> metadata,
     Boolean responded,
     Long responseTimeMs,
     Integer responseLength,
-    Double sentimentShift,
+    Double affectShift,
     Integer reactionCount,
     Boolean continued
 ) {
@@ -29,10 +29,10 @@ public record EngagementEvent(
         if (description.isBlank()) throw new IllegalArgumentException("description must not be blank");
         if (agentId.equals(otherAgentId))
             throw new IllegalArgumentException("agentId and otherAgentId must differ");
-        if (sentimentShift != null && (sentimentShift < -1.0 || sentimentShift > 1.0))
-            throw new IllegalArgumentException("sentimentShift must be in [-1, 1], got " + sentimentShift);
-        if (importance != null && (importance < 0.0 || importance > 1.0))
-            throw new IllegalArgumentException("importance must be in [0, 1], got " + importance);
+        if (affectShift != null && (affectShift < -1.0 || affectShift > 1.0))
+            throw new IllegalArgumentException("affectShift must be in [-1, 1], got " + affectShift);
+        if (confidence != null && (confidence < 0.0 || confidence > 1.0))
+            throw new IllegalArgumentException("confidence must be in [0, 1], got " + confidence);
         Objects.requireNonNull(metadata, "metadata required");
         metadata = Map.copyOf(metadata);
     }

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS memory_entry (
     -- Instant.toString() emits 0/3/6/9 fractional digits; mixed widths sort incorrectly
     -- because '.' (ASCII 46) < 'Z' (ASCII 90). Truncation to millis guarantees uniform width.
     created_at TEXT NOT NULL,
-    importance REAL,
+    confidence REAL,
     PRIMARY KEY (memory_id)
 );
 

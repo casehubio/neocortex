@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -14,11 +15,11 @@ class CbrCaseTest {
 
     @Test
     void textualCbrCase_valid() {
-        var c = new TextualCbrCase("problem", "solution", "WIN", 0.9, null, null);
+        var c = new TextualCbrCase("problem", "solution", "WIN", Confidence.unknown(0.9), null, null);
         assertThat(c.problem()).isEqualTo("problem");
         assertThat(c.solution()).isEqualTo("solution");
         assertThat(c.outcome()).isEqualTo("WIN");
-        assertThat(c.confidence()).isEqualTo(0.9);
+        assertThat(c.confidence().value()).isEqualTo(0.9);
     }
 
     @Test
@@ -42,7 +43,7 @@ class CbrCaseTest {
 
     @Test
     void textualCbrCase_confidenceOutOfRange() {
-        assertThatThrownBy(() -> new TextualCbrCase("p", "s", null, 1.1, null, null))
+        assertThatThrownBy(() -> new TextualCbrCase("p", "s", null, Confidence.unknown(1.1), null, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -55,7 +56,7 @@ class CbrCaseTest {
     @Test
     void featureVectorCbrCase_valid() {
         var features = Map.<String, FeatureValue>of("race", string("Zerg"), "ratio", number(0.7));
-        var c = new FeatureVectorCbrCase("problem", "solution", "WIN", 0.8, features, null, null);
+        var c = new FeatureVectorCbrCase("problem", "solution", "WIN", Confidence.unknown(0.8), features, null, null);
         assertThat(c.features()).containsEntry("race", string("Zerg"));
     }
 
@@ -135,11 +136,11 @@ class CbrCaseTest {
 
     @Test
     void featureVectorCase_withOutcome_preservesFields() {
-        var original = new FeatureVectorCbrCase("prob", "sol", null, 0.8,
+        var original = new FeatureVectorCbrCase("prob", "sol", null, Confidence.unknown(0.8),
                                                 Map.of("race", string("Zerg")), null, null);
-        CbrCase updated = original.withOutcome("SUCCESS", 0.84);
+        CbrCase updated = original.withOutcome("SUCCESS", Confidence.unknown(0.84));
         assertThat(updated.outcome()).isEqualTo("SUCCESS");
-        assertThat(updated.confidence()).isEqualTo(0.84);
+        assertThat(updated.confidence().value()).isEqualTo(0.84);
         assertThat(updated.problem()).isEqualTo("prob");
         assertThat(updated.solution()).isEqualTo("sol");
         assertThat(updated.features()).isEqualTo(original.features());
@@ -150,9 +151,9 @@ class CbrCaseTest {
         var trace = new PlanTrace("bind", "cap", "worker", "SUCCESS", 1, Map.of(), null);
         var original = new PlanCbrCase("prob", "sol", null, null,
                                        Map.of(), java.util.List.of(trace), null, null);
-        CbrCase updated = original.withOutcome("FAILURE", 0.64);
+        CbrCase updated = original.withOutcome("FAILURE", Confidence.unknown(0.64));
         assertThat(updated.outcome()).isEqualTo("FAILURE");
-        assertThat(updated.confidence()).isEqualTo(0.64);
+        assertThat(updated.confidence().value()).isEqualTo(0.64);
         assertThat(updated).isInstanceOf(PlanCbrCase.class);
         assertThat(((PlanCbrCase) updated).planTrace()).containsExactly(trace);
     }
@@ -160,9 +161,9 @@ class CbrCaseTest {
     @Test
     void textualCase_withOutcome() {
         var     original = new TextualCbrCase("prob", "sol", null, null, null, null);
-        CbrCase updated  = original.withOutcome("PARTIAL", 0.74);
+        CbrCase updated  = original.withOutcome("PARTIAL", Confidence.unknown(0.74));
         assertThat(updated.outcome()).isEqualTo("PARTIAL");
-        assertThat(updated.confidence()).isEqualTo(0.74);
+        assertThat(updated.confidence().value()).isEqualTo(0.74);
         assertThat(updated.problem()).isEqualTo("prob");
     }
 }

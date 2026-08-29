@@ -14,7 +14,7 @@
 
 ### `entityId` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `tenantId` (`java.lang.String`)
 
@@ -30,7 +30,7 @@
 
 ### `entityId` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `tenantId` (`java.lang.String`)
 
@@ -48,7 +48,7 @@
 - `caseId` (`java.lang.String`)
 - `text` (`java.lang.String`)
 - `attributes` (`java.util.Map<java.lang.String,java.lang.String>`)
-- `importance` (`java.lang.Double`)
+- `confidence` (`java.lang.Double`)
 
 ## Methods
 

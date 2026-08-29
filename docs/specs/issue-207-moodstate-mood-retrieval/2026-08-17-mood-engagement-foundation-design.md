@@ -189,8 +189,8 @@ Constructor validates:
 - `agentId`, `otherAgentId`, `tenantId`, `description` required (non-null, non-blank)
 - `turnId` required (non-null, non-blank) — must link to the action being evaluated
 - `agentId != otherAgentId` (same pattern as `RelationshipEvent`)
-- `sentimentShift` in [-1.0, 1.0] if present
-- `importance` in [0.0, 1.0] if present
+- `affectShift` in [-1.0, 1.0] if present
+- `confidence` in [0.0, 1.0] if present
 - `metadata` required, defensively copied
 
 All signal fields are nullable — not every platform supports every signal. An event with only `responded=true` and everything else null is valid.

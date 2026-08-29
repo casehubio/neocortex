@@ -14,7 +14,7 @@
 
 ### `description` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 
@@ -34,7 +34,7 @@
 
 ### `description` (`java.lang.String`)
 
-### `importance` (`java.lang.Double`)
+### `confidence` (`java.lang.Double`)
 
 ### `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 
@@ -55,7 +55,7 @@
 - `caseId` (`java.lang.String`)
 - `turnId` (`java.lang.String`)
 - `description` (`java.lang.String`)
-- `importance` (`java.lang.Double`)
+- `confidence` (`java.lang.Double`)
 - `metadata` (`java.util.Map<java.lang.String,java.lang.String>`)
 - `result` (`java.lang.String`)
 - `capability` (`java.lang.String`)

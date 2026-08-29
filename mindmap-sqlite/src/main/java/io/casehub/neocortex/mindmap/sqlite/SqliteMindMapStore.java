@@ -5,8 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
 import io.casehub.neocortex.mindmap.MergeConflict;
 import io.casehub.neocortex.mindmap.MergeResult;
@@ -233,24 +235,24 @@ public class SqliteMindMapStore implements MindMapStore {
     public String addNode(NodeInput input, String tenantId) {
         String id = UUID.randomUUID().toString();
         Instant now = Instant.now();
-        double confidence = input.confidence() != null
+        Confidence confidence = input.confidence() != null
             ? input.confidence()
-            : input.confidenceOrigin().initialConfidence();
+            : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "INSERT INTO mindmap_node (node_id, tenant_id, name, subgraph_id, confidence_origin, confidence, provenance, created_at, updated_at, confirmed_at, valid_from, valid_until, traits, refs, pleasure, arousal, dominance, properties) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                 "INSERT INTO mindmap_node (node_id, tenant_id, name, subgraph_id, confidence_origin, confidence_value, provenance, created_at, updated_at, decay_reference, valid_from, valid_until, traits, refs, pleasure, arousal, dominance, properties) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
             String nowTs = ts(now);
             ps.setString(1, id);
             ps.setString(2, tenantId);
             ps.setString(3, input.name());
             ps.setString(4, input.subgraphId());
-            ps.setString(5, input.confidenceOrigin().name());
-            ps.setDouble(6, confidence);
+            ps.setString(5, confidence.origin().name());
+            ps.setDouble(6, confidence.value());
             ps.setString(7, input.provenance());
             ps.setString(8, nowTs);
             ps.setString(9, nowTs);
-            ps.setString(10, nowTs);
+            ps.setString(10, confidence.decayReference() != null ? ts(confidence.decayReference()) : null);
             ps.setString(11, input.validFrom() != null ? ts(input.validFrom()) : null);
             ps.setString(12, input.validUntil() != null ? ts(input.validUntil()) : null);
             ps.setString(13, toJson(input.traits()));
@@ -293,15 +295,17 @@ public class SqliteMindMapStore implements MindMapStore {
             if (!rs.next()) throw new IllegalArgumentException("Node not found: " + nodeId);
 
             String name = update.name() != null ? update.name() : rs.getString("name");
-            String coStr = update.confidenceOrigin() != null ? update.confidenceOrigin().name() : rs.getString("confidence_origin");
-            double confidence = rs.getDouble("confidence");
-            String confirmedAt = rs.getString("confirmed_at");
-
-            if (update.confirmedAt() != null) {
-                confirmedAt = ts(update.confirmedAt());
-                confidence = update.confidence() != null ? update.confidence() : 1.0;
-            } else if (update.confidence() != null) {
-                confidence = update.confidence();
+            String coStr;
+            double confidenceValue;
+            String decayRef;
+            if (update.confidence() != null) {
+                coStr = update.confidence().origin().name();
+                confidenceValue = update.confidence().value();
+                decayRef = update.confidence().decayReference() != null ? ts(update.confidence().decayReference()) : null;
+            } else {
+                coStr = rs.getString("confidence_origin");
+                confidenceValue = rs.getDouble("confidence_value");
+                decayRef = rs.getString("decay_reference");
             }
 
             String validFrom = update.validFrom() != null ? ts(update.validFrom()) : rs.getString("valid_from");
@@ -326,11 +330,11 @@ public class SqliteMindMapStore implements MindMapStore {
             selectPs.close();
 
             PreparedStatement updatePs = conn.prepareStatement(
-                "UPDATE mindmap_node SET name=?, confidence_origin=?, confidence=?, confirmed_at=?, valid_from=?, valid_until=?, pleasure=?, arousal=?, dominance=?, traits=?, refs=?, properties=?, updated_at=? WHERE node_id=? AND tenant_id=?");
+                "UPDATE mindmap_node SET name=?, confidence_origin=?, confidence_value=?, decay_reference=?, valid_from=?, valid_until=?, pleasure=?, arousal=?, dominance=?, traits=?, refs=?, properties=?, updated_at=? WHERE node_id=? AND tenant_id=?");
             updatePs.setString(1, name);
             updatePs.setString(2, coStr);
-            updatePs.setDouble(3, confidence);
-            updatePs.setString(4, confirmedAt);
+            updatePs.setDouble(3, confidenceValue);
+            updatePs.setString(4, decayRef);
             updatePs.setString(5, validFrom);
             updatePs.setString(6, validUntil);
             setNullableDouble(updatePs, 7, pleasure);
@@ -448,13 +452,13 @@ public class SqliteMindMapStore implements MindMapStore {
         String resolvedType = canonicalEdgeTypes.getOrDefault(input.edgeType(), input.edgeType());
         ValidationTier tier = edgeTypeDefinitions.containsKey(resolvedType)
             ? ValidationTier.REGISTERED : ValidationTier.UNVALIDATED;
-        double confidence = input.confidence() != null
+        Confidence confidence = input.confidence() != null
             ? input.confidence()
-            : input.confidenceOrigin().initialConfidence();
+            : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "INSERT INTO mindmap_edge (edge_id, tenant_id, source_node_id, target_node_id, edge_type, tier, confidence_origin, confidence, provenance, created_at, updated_at, valid_from, valid_until, pleasure, arousal, dominance, properties) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                 "INSERT INTO mindmap_edge (edge_id, tenant_id, source_node_id, target_node_id, edge_type, tier, confidence_origin, confidence_value, provenance, created_at, updated_at, decay_reference, valid_from, valid_until, pleasure, arousal, dominance, properties) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
             String nowTs = ts(now);
             ps.setString(1, id);
             ps.setString(2, tenantId);
@@ -462,17 +466,18 @@ public class SqliteMindMapStore implements MindMapStore {
             ps.setString(4, input.targetNodeId());
             ps.setString(5, resolvedType);
             ps.setString(6, tier.name());
-            ps.setString(7, input.confidenceOrigin().name());
-            ps.setDouble(8, confidence);
+            ps.setString(7, confidence.origin().name());
+            ps.setDouble(8, confidence.value());
             ps.setString(9, input.provenance());
             ps.setString(10, nowTs);
             ps.setString(11, nowTs);
-            ps.setString(12, input.validFrom() != null ? ts(input.validFrom()) : null);
-            ps.setString(13, input.validUntil() != null ? ts(input.validUntil()) : null);
-            setNullableDouble(ps, 14, input.pleasure());
-            setNullableDouble(ps, 15, input.arousal());
-            setNullableDouble(ps, 16, input.dominance());
-            ps.setString(17, mapToJson(input.properties()));
+            ps.setString(12, confidence.decayReference() != null ? ts(confidence.decayReference()) : null);
+            ps.setString(13, input.validFrom() != null ? ts(input.validFrom()) : null);
+            ps.setString(14, input.validUntil() != null ? ts(input.validUntil()) : null);
+            setNullableDouble(ps, 15, input.pleasure());
+            setNullableDouble(ps, 16, input.arousal());
+            setNullableDouble(ps, 17, input.dominance());
+            ps.setString(18, mapToJson(input.properties()));
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("addEdge() failed", e);
@@ -580,7 +585,7 @@ public class SqliteMindMapStore implements MindMapStore {
             params.add(query.subgraphId());
         }
         if (query.minConfidence() != null) {
-            sql.append(" AND n.confidence >= ?");
+            sql.append(" AND n.confidence_value >= ?");
             params.add(query.minConfidence());
         }
         if (query.confidenceOrigin() != null) {
@@ -982,16 +987,18 @@ public class SqliteMindMapStore implements MindMapStore {
     }
 
     private MindMapNode toNode(ResultSet rs) throws SQLException {
+        ConfidenceOrigin origin = ConfidenceOrigin.valueOf(rs.getString("confidence_origin"));
+        double value = rs.getDouble("confidence_value");
+        String decayRefStr = rs.getString("decay_reference");
+        Instant decayReference = decayRefStr != null ? Instant.parse(decayRefStr) : null;
         return new SqliteNode(
             rs.getString("node_id"),
             rs.getString("name"),
             rs.getString("subgraph_id"),
-            ConfidenceOrigin.valueOf(rs.getString("confidence_origin")),
-            rs.getDouble("confidence"),
+            new Confidence(origin, value, decayReference),
             rs.getString("provenance"),
             Instant.parse(rs.getString("created_at")),
             Instant.parse(rs.getString("updated_at")),
-            Instant.parse(rs.getString("confirmed_at")),
             rs.getString("valid_from") != null ? Instant.parse(rs.getString("valid_from")) : null,
             rs.getString("valid_until") != null ? Instant.parse(rs.getString("valid_until")) : null,
             fromJsonStringSet(rs.getString("traits")),
@@ -1003,14 +1010,17 @@ public class SqliteMindMapStore implements MindMapStore {
     }
 
     private MindMapEdge toEdge(ResultSet rs) throws SQLException {
+        ConfidenceOrigin origin = ConfidenceOrigin.valueOf(rs.getString("confidence_origin"));
+        double value = rs.getDouble("confidence_value");
+        String decayRefStr = rs.getString("decay_reference");
+        Instant decayReference = decayRefStr != null ? Instant.parse(decayRefStr) : null;
         return new SqliteEdge(
             rs.getString("edge_id"),
             rs.getString("source_node_id"),
             rs.getString("target_node_id"),
             rs.getString("edge_type"),
             ValidationTier.valueOf(rs.getString("tier")),
-            ConfidenceOrigin.valueOf(rs.getString("confidence_origin")),
-            rs.getDouble("confidence"),
+            new Confidence(origin, value, decayReference),
             rs.getString("provenance"),
             Instant.parse(rs.getString("created_at")),
             Instant.parse(rs.getString("updated_at")),
@@ -1058,8 +1068,8 @@ public class SqliteMindMapStore implements MindMapStore {
 
     private record SqliteNode(
         String id, String name, String subgraphId,
-        ConfidenceOrigin confidenceOrigin, double confidence, String provenance,
-        Instant createdAt, Instant updatedAt, Instant confirmedAt,
+        Confidence confidence, String provenance,
+        Instant createdAt, Instant updatedAt,
         Instant validFrom, Instant validUntil,
         Set<String> traits, Set<NodeRef> refs,
         Double pleasure, Double arousal, Double dominance,
@@ -1074,7 +1084,7 @@ public class SqliteMindMapStore implements MindMapStore {
     private record SqliteEdge(
         String id, String sourceNodeId, String targetNodeId,
         String edgeType, ValidationTier tier,
-        ConfidenceOrigin confidenceOrigin, double confidence, String provenance,
+        Confidence confidence, String provenance,
         Instant createdAt, Instant updatedAt,
         Instant validFrom, Instant validUntil,
         Double pleasure, Double arousal, Double dominance,

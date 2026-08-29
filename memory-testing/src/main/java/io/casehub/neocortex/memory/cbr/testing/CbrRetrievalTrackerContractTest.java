@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.testing;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.platform.api.path.Path;
@@ -31,7 +32,7 @@ public abstract class CbrRetrievalTrackerContractTest {
     }
 
     private List<ScoredCbrCase<?>> results() {
-        var c = new FeatureVectorCbrCase("problem", "solution", null, 0.9, Map.of(), null, null);
+        var c = new FeatureVectorCbrCase("problem", "solution", null, Confidence.unknown(0.9), Map.of(), null, null);
         return List.of(new ScoredCbrCase<>(c, "case-1", 0.85));
     }
 

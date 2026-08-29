@@ -5,7 +5,6 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
-import io.casehub.neocortex.memory.cbr.CbrScanResult;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
@@ -13,6 +12,7 @@ import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
+import io.casehub.neocortex.memory.cbr.CbrScanResult;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -195,7 +195,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 CbrFeatureSchema schema = schemas.get(stored.caseType());
                 double lr = (schema != null && schema.learningRate() != null)
                             ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
-                double newConfidence = CbrOutcome.adjustConfidence(
+                io.casehub.neocortex.cognitive.Confidence newConfidence = CbrOutcome.adjustConfidence(
                         stored.cbrCase().confidence(), outcome.successRate(), lr);
                 CbrCase updated = stored.cbrCase().withOutcome(
                         outcome.result().name(), newConfidence);
@@ -206,8 +206,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                                             stored.scope(), stored.reinstatedAt()));
                 return;
             }
-        }
-    }
+        }}
 
     @Override
     public Integer purge(CbrRetentionPolicy policy) {

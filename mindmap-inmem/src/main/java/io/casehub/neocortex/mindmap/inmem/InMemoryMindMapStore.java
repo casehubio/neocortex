@@ -1,11 +1,13 @@
 package io.casehub.neocortex.mindmap.inmem;
 
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
 import io.casehub.neocortex.mindmap.MergeConflict;
 import io.casehub.neocortex.mindmap.MergeResult;
 import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -88,23 +90,22 @@ public class InMemoryMindMapStore implements MindMapStore {
 
     @Override
     public String addNode(NodeInput input, String tenantId) {
-        String id = UUID.randomUUID().toString();
+        String  id  = UUID.randomUUID().toString();
         Instant now = Instant.now();
-        double confidence = input.confidence() != null
-            ? input.confidence()
-            : input.confidenceOrigin().initialConfidence();
+        Confidence confidence = input.confidence() != null
+                                ? input.confidence()
+                                : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
 
         StoredNode node = new StoredNode(id, input.name(), input.subgraphId(),
-            input.confidenceOrigin(), confidence, input.provenance(),
-            now, now, now,
-            input.validFrom(), input.validUntil(),
-            new HashSet<>(input.traits()), new HashSet<>(input.refs()),
-            input.pleasure(), input.arousal(), input.dominance(),
-            new HashMap<>(input.properties()), tenantId,
-            null, null, null, null);
+                                         confidence, input.provenance(),
+                                         now, now,
+                                         input.validFrom(), input.validUntil(),
+                                         new HashSet<>(input.traits()), new HashSet<>(input.refs()),
+                                         input.pleasure(), input.arousal(), input.dominance(),
+                                         new HashMap<>(input.properties()), tenantId,
+                                         null, null, null, null);
         nodes.put(id, node);
-        return id;
-    }
+        return id;}
 
     @Override
     public MindMapNode getNode(String nodeId, String tenantId) {
@@ -116,26 +117,17 @@ public class InMemoryMindMapStore implements MindMapStore {
     @Override
     public void updateNode(String nodeId, NodeUpdate update, String tenantId) {
         StoredNode node = nodes.get(nodeId);
-        if (node == null || !node.tenantId.equals(tenantId))
+        if (node == null || !node.tenantId.equals(tenantId)) {
             throw new IllegalArgumentException("Node not found: " + nodeId);
-
-        if (update.name() != null) node.name = update.name();
-        if (update.confidenceOrigin() != null) node.confidenceOrigin = update.confidenceOrigin();
-        if (update.confirmedAt() != null) {
-            node.confirmedAt = update.confirmedAt();
-            if (update.confidence() != null) {
-                node.confidence = update.confidence();
-            } else {
-                node.confidence = 1.0;
-            }
-        } else if (update.confidence() != null) {
-            node.confidence = update.confidence();
         }
-        if (update.validFrom() != null) node.validFrom = update.validFrom();
-        if (update.validUntil() != null) node.validUntil = update.validUntil();
-        if (update.pleasure() != null) node.pleasure = update.pleasure();
-        if (update.arousal() != null) node.arousal = update.arousal();
-        if (update.dominance() != null) node.dominance = update.dominance();
+
+        if (update.name() != null) {node.name = update.name();}
+        if (update.confidence() != null) {node.confidence = update.confidence();}
+        if (update.validFrom() != null) {node.validFrom = update.validFrom();}
+        if (update.validUntil() != null) {node.validUntil = update.validUntil();}
+        if (update.pleasure() != null) {node.pleasure = update.pleasure();}
+        if (update.arousal() != null) {node.arousal = update.arousal();}
+        if (update.dominance() != null) {node.dominance = update.dominance();}
 
         node.traits.addAll(update.traitsToAdd());
         node.traits.removeAll(update.traitsToRemove());
@@ -144,8 +136,7 @@ public class InMemoryMindMapStore implements MindMapStore {
         update.propertiesToSet().forEach((k, v) -> node.properties.put(k, v));
         update.propertiesToRemove().forEach(k -> node.properties.remove(k));
 
-        node.updatedAt = Instant.now();
-    }
+        node.updatedAt = Instant.now();}
 
     @Override
     public String createSubgraph(SubgraphInput input, String tenantId) {
@@ -233,24 +224,23 @@ public class InMemoryMindMapStore implements MindMapStore {
 
     @Override
     public String addEdge(EdgeInput input, String tenantId) {
-        String id = UUID.randomUUID().toString();
-        Instant now = Instant.now();
-        String resolvedType = canonicalEdgeTypes.getOrDefault(input.edgeType(), input.edgeType());
+        String  id           = UUID.randomUUID().toString();
+        Instant now          = Instant.now();
+        String  resolvedType = canonicalEdgeTypes.getOrDefault(input.edgeType(), input.edgeType());
         ValidationTier tier = edgeTypeDefinitions.containsKey(resolvedType)
-            ? ValidationTier.REGISTERED : ValidationTier.UNVALIDATED;
-        double confidence = input.confidence() != null
-            ? input.confidence()
-            : input.confidenceOrigin().initialConfidence();
+                              ? ValidationTier.REGISTERED : ValidationTier.UNVALIDATED;
+        Confidence confidence = input.confidence() != null
+                                ? input.confidence()
+                                : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
 
         StoredEdge edge = new StoredEdge(id, input.sourceNodeId(), input.targetNodeId(),
-            resolvedType, tier, input.confidenceOrigin(), confidence,
-            input.provenance(), now, now,
-            input.validFrom(), input.validUntil(),
-            input.pleasure(), input.arousal(), input.dominance(),
-            new HashMap<>(input.properties()), tenantId);
+                                         resolvedType, tier, confidence,
+                                         input.provenance(), now, now,
+                                         input.validFrom(), input.validUntil(),
+                                         input.pleasure(), input.arousal(), input.dominance(),
+                                         new HashMap<>(input.properties()), tenantId);
         edges.put(id, edge);
-        return id;
-    }
+        return id;}
 
     @Override
     public MindMapEdge getEdge(String edgeId, String tenantId) {
@@ -328,8 +318,8 @@ public class InMemoryMindMapStore implements MindMapStore {
             .filter(n -> query.subgraphId() == null || n.subgraphId.equals(query.subgraphId()))
             .filter(n -> query.text() == null || matchesText(n, query.text()))
             .filter(n -> query.traits() == null || n.traits.containsAll(query.traits()))
-            .filter(n -> query.minConfidence() == null || n.confidence >= query.minConfidence())
-            .filter(n -> query.confidenceOrigin() == null || n.confidenceOrigin == query.confidenceOrigin())
+            .filter(n -> query.minConfidence() == null || n.confidence.value() >= query.minConfidence())
+            .filter(n -> query.confidenceOrigin() == null || n.confidence.origin() == query.confidenceOrigin())
             .filter(n -> edgeTypeNodes == null || edgeTypeNodes.contains(n.id))
             .limit(query.limit())
             .map(n -> (MindMapNode) n)
@@ -564,79 +554,100 @@ public class InMemoryMindMapStore implements MindMapStore {
         final String id;
         String name;
         final String subgraphId;
-        ConfidenceOrigin confidenceOrigin;
-        double confidence;
-        final String provenance;
+        Confidence confidence;
+        final String  provenance;
         final Instant createdAt;
         Instant updatedAt;
-        Instant confirmedAt;
         Instant validFrom;
         Instant validUntil;
-        final Set<String> traits;
+        final Set<String>  traits;
         final Set<NodeRef> refs;
         Double pleasure;
         Double arousal;
         Double dominance;
         final Map<String, String> properties;
-        final String tenantId;
+        final String              tenantId;
         Instant supersededAt;
-        String supersedingId;
-        String supersessionReason;
+        String  supersedingId;
+        String  supersessionReason;
         Instant reinstatedAt;
 
         StoredNode(String id, String name, String subgraphId,
-                   ConfidenceOrigin confidenceOrigin, double confidence, String provenance,
-                   Instant createdAt, Instant updatedAt, Instant confirmedAt,
+                   Confidence confidence, String provenance,
+                   Instant createdAt, Instant updatedAt,
                    Instant validFrom, Instant validUntil,
                    Set<String> traits, Set<NodeRef> refs,
                    Double pleasure, Double arousal, Double dominance,
                    Map<String, String> properties, String tenantId,
                    Instant supersededAt, String supersedingId,
                    String supersessionReason, Instant reinstatedAt) {
-            this.id = id;
-            this.name = name;
-            this.subgraphId = subgraphId;
-            this.confidenceOrigin = confidenceOrigin;
-            this.confidence = confidence;
-            this.provenance = provenance;
-            this.createdAt = createdAt;
-            this.updatedAt = updatedAt;
-            this.confirmedAt = confirmedAt;
-            this.validFrom = validFrom;
-            this.validUntil = validUntil;
-            this.traits = traits;
-            this.refs = refs;
-            this.pleasure = pleasure;
-            this.arousal = arousal;
-            this.dominance = dominance;
-            this.properties = properties;
-            this.tenantId = tenantId;
-            this.supersededAt = supersededAt;
-            this.supersedingId = supersedingId;
+            this.id                 = id;
+            this.name               = name;
+            this.subgraphId         = subgraphId;
+            this.confidence         = confidence;
+            this.provenance         = provenance;
+            this.createdAt          = createdAt;
+            this.updatedAt          = updatedAt;
+            this.validFrom          = validFrom;
+            this.validUntil         = validUntil;
+            this.traits             = traits;
+            this.refs               = refs;
+            this.pleasure           = pleasure;
+            this.arousal            = arousal;
+            this.dominance          = dominance;
+            this.properties         = properties;
+            this.tenantId           = tenantId;
+            this.supersededAt       = supersededAt;
+            this.supersedingId      = supersedingId;
             this.supersessionReason = supersessionReason;
-            this.reinstatedAt = reinstatedAt;
+            this.reinstatedAt       = reinstatedAt;
         }
 
         boolean isSuperseded() {
             return supersededAt != null && reinstatedAt == null;
         }
 
-        @Override public String id() { return id; }
-        @Override public String name() { return name; }
-        @Override public String subgraphId() { return subgraphId; }
-        @Override public ConfidenceOrigin confidenceOrigin() { return confidenceOrigin; }
-        @Override public double confidence() { return confidence; }
-        @Override public String provenance() { return provenance; }
-        @Override public Instant createdAt() { return createdAt; }
-        @Override public Instant updatedAt() { return updatedAt; }
-        @Override public Instant confirmedAt() { return confirmedAt; }
-        @Override public Instant validFrom() { return validFrom; }
-        @Override public Instant validUntil() { return validUntil; }
-        @Override public Set<String> traits() { return Set.copyOf(traits); }
-        @Override public Set<NodeRef> refs() { return Set.copyOf(refs); }
-        @Override public Double pleasure() { return pleasure; }
-        @Override public Double arousal() { return arousal; }
-        @Override public Double dominance() { return dominance; }
+        @Override
+        public String id()             {return id;}
+
+        @Override
+        public String name()           {return name;}
+
+        @Override
+        public String subgraphId()     {return subgraphId;}
+
+        @Override
+        public Confidence confidence() {return confidence;}
+
+        @Override
+        public String provenance()     {return provenance;}
+
+        @Override
+        public Instant createdAt()     {return createdAt;}
+
+        @Override
+        public Instant updatedAt()     {return updatedAt;}
+
+        @Override
+        public Instant validFrom()     {return validFrom;}
+
+        @Override
+        public Instant validUntil()    {return validUntil;}
+
+        @Override
+        public Set<String> traits()    {return Set.copyOf(traits);}
+
+        @Override
+        public Set<NodeRef> refs()     {return Set.copyOf(refs);}
+
+        @Override
+        public Double pleasure()       {return pleasure;}
+
+        @Override
+        public Double arousal()        {return arousal;}
+
+        @Override
+        public Double dominance()      {return dominance;}
 
         @Override
         public Optional<String> property(String key) {
@@ -653,62 +664,86 @@ public class InMemoryMindMapStore implements MindMapStore {
         final String id;
         String sourceNodeId;
         String targetNodeId;
-        final String edgeType;
+        final String         edgeType;
         final ValidationTier tier;
-        final ConfidenceOrigin confidenceOrigin;
-        final double confidence;
-        final String provenance;
+        Confidence confidence;
+        final String  provenance;
         final Instant createdAt;
         Instant updatedAt;
-        final Instant validFrom;
-        final Instant validUntil;
-        final Double pleasure;
-        final Double arousal;
-        final Double dominance;
+        final Instant             validFrom;
+        final Instant             validUntil;
+        final Double              pleasure;
+        final Double              arousal;
+        final Double              dominance;
         final Map<String, String> properties;
-        final String tenantId;
+        final String              tenantId;
 
         StoredEdge(String id, String sourceNodeId, String targetNodeId,
                    String edgeType, ValidationTier tier,
-                   ConfidenceOrigin confidenceOrigin, double confidence,
+                   Confidence confidence,
                    String provenance, Instant createdAt, Instant updatedAt,
                    Instant validFrom, Instant validUntil,
                    Double pleasure, Double arousal, Double dominance,
                    Map<String, String> properties, String tenantId) {
-            this.id = id;
+            this.id           = id;
             this.sourceNodeId = sourceNodeId;
             this.targetNodeId = targetNodeId;
-            this.edgeType = edgeType;
-            this.tier = tier;
-            this.confidenceOrigin = confidenceOrigin;
-            this.confidence = confidence;
-            this.provenance = provenance;
-            this.createdAt = createdAt;
-            this.updatedAt = updatedAt;
-            this.validFrom = validFrom;
-            this.validUntil = validUntil;
-            this.pleasure = pleasure;
-            this.arousal = arousal;
-            this.dominance = dominance;
-            this.properties = properties;
-            this.tenantId = tenantId;
+            this.edgeType     = edgeType;
+            this.tier         = tier;
+            this.confidence   = confidence;
+            this.provenance   = provenance;
+            this.createdAt    = createdAt;
+            this.updatedAt    = updatedAt;
+            this.validFrom    = validFrom;
+            this.validUntil   = validUntil;
+            this.pleasure     = pleasure;
+            this.arousal      = arousal;
+            this.dominance    = dominance;
+            this.properties   = properties;
+            this.tenantId     = tenantId;
         }
 
-        @Override public String id() { return id; }
-        @Override public String sourceNodeId() { return sourceNodeId; }
-        @Override public String targetNodeId() { return targetNodeId; }
-        @Override public String edgeType() { return edgeType; }
-        @Override public ValidationTier tier() { return tier; }
-        @Override public ConfidenceOrigin confidenceOrigin() { return confidenceOrigin; }
-        @Override public double confidence() { return confidence; }
-        @Override public String provenance() { return provenance; }
-        @Override public Instant createdAt() { return createdAt; }
-        @Override public Instant updatedAt() { return updatedAt; }
-        @Override public Instant validFrom() { return validFrom; }
-        @Override public Instant validUntil() { return validUntil; }
-        @Override public Double pleasure() { return pleasure; }
-        @Override public Double arousal() { return arousal; }
-        @Override public Double dominance() { return dominance; }
+        @Override
+        public String id()             {return id;}
+
+        @Override
+        public String sourceNodeId()   {return sourceNodeId;}
+
+        @Override
+        public String targetNodeId()   {return targetNodeId;}
+
+        @Override
+        public String edgeType()       {return edgeType;}
+
+        @Override
+        public ValidationTier tier()   {return tier;}
+
+        @Override
+        public Confidence confidence() {return confidence;}
+
+        @Override
+        public String provenance()     {return provenance;}
+
+        @Override
+        public Instant createdAt()     {return createdAt;}
+
+        @Override
+        public Instant updatedAt()     {return updatedAt;}
+
+        @Override
+        public Instant validFrom()     {return validFrom;}
+
+        @Override
+        public Instant validUntil()    {return validUntil;}
+
+        @Override
+        public Double pleasure()       {return pleasure;}
+
+        @Override
+        public Double arousal()        {return arousal;}
+
+        @Override
+        public Double dominance()      {return dominance;}
 
         @Override
         public Optional<String> property(String key) {

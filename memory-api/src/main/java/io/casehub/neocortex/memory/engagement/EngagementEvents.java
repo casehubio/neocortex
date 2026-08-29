@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.engagement;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import java.util.HashMap;
@@ -24,7 +26,7 @@ public final class EngagementEvents {
         addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONDED, event.responded());
         addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONSE_TIME_MS, event.responseTimeMs());
         addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONSE_LENGTH, event.responseLength());
-        addIfPresent(reserved, attrs, EngagementAttributeKeys.SENTIMENT_SHIFT, event.sentimentShift());
+        addIfPresent(reserved, attrs, EngagementAttributeKeys.AFFECT_SHIFT, event.affectShift());
         addIfPresent(reserved, attrs, EngagementAttributeKeys.REACTION_COUNT, event.reactionCount());
         addIfPresent(reserved, attrs, EngagementAttributeKeys.CONTINUED, event.continued());
 
@@ -38,7 +40,7 @@ public final class EngagementEvents {
         attrs.putAll(event.metadata());
 
         return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-            event.caseId(), event.description(), attrs, event.importance());
+            event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null);
     }
 
     private static void addIfPresent(HashSet<String> reserved, HashMap<String, String> attrs,

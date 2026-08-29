@@ -24,13 +24,13 @@ class EngagementEventsTest {
         assertEquals("t1", input.tenantId());
         assertEquals("c1", input.caseId());
         assertEquals("user responded", input.text());
-        assertEquals(0.7, input.importance());
+        assertEquals(0.7, input.confidence().value());
         assertEquals("b1", input.attributes().get(EngagementAttributeKeys.OTHER_AGENT));
         assertEquals("turn-1", input.attributes().get(EngagementAttributeKeys.TURN_ID));
         assertEquals("true", input.attributes().get(EngagementAttributeKeys.RESPONDED));
         assertEquals("1500", input.attributes().get(EngagementAttributeKeys.RESPONSE_TIME_MS));
         assertEquals("142", input.attributes().get(EngagementAttributeKeys.RESPONSE_LENGTH));
-        assertEquals("0.3", input.attributes().get(EngagementAttributeKeys.SENTIMENT_SHIFT));
+        assertEquals("0.3", input.attributes().get(EngagementAttributeKeys.AFFECT_SHIFT));
         assertEquals("2", input.attributes().get(EngagementAttributeKeys.REACTION_COUNT));
         assertEquals("true", input.attributes().get(EngagementAttributeKeys.CONTINUED));
         assertEquals("val", input.attributes().get("extra"));
@@ -47,7 +47,7 @@ class EngagementEventsTest {
         assertFalse(input.attributes().containsKey(EngagementAttributeKeys.RESPONDED));
         assertFalse(input.attributes().containsKey(EngagementAttributeKeys.RESPONSE_TIME_MS));
         assertFalse(input.attributes().containsKey(EngagementAttributeKeys.RESPONSE_LENGTH));
-        assertFalse(input.attributes().containsKey(EngagementAttributeKeys.SENTIMENT_SHIFT));
+        assertFalse(input.attributes().containsKey(EngagementAttributeKeys.AFFECT_SHIFT));
         assertFalse(input.attributes().containsKey(EngagementAttributeKeys.REACTION_COUNT));
         assertFalse(input.attributes().containsKey(EngagementAttributeKeys.CONTINUED));
     }

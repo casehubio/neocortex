@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.testing;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
@@ -390,19 +391,19 @@ public abstract class CaseMemoryStoreContractTest {
     }
 
     @Test
-    void importance_roundTrip() {
-        var input = new MemoryInput("entity-1", DOMAIN, TENANT, null, "important event", Map.of(), 0.8);
+    void confidence_roundTrip() {
+        var input = new MemoryInput("entity-1", DOMAIN, TENANT, null, "important event", Map.of(), Confidence.unknown(0.8));
         store().store(input);
         var results = store().query(query());
         assertEquals(1, results.size());
-        assertEquals(0.8, results.getFirst().importance());
+        assertEquals(0.8, results.getFirst().confidence().value());
     }
 
-    @Test void importance_nullDefault() {
-        store().store(input("no importance set"));
+    @Test void confidence_nullDefault() {
+        store().store(input("no confidence set"));
         var results = store().query(query());
         assertEquals(1, results.size());
-        assertTrue(results.getFirst().importance() == null);
+        assertTrue(results.getFirst().confidence() == null);
     }
 
     @Test void purge_ageBased_recentNotPurged() {
@@ -413,43 +414,43 @@ public abstract class CaseMemoryStoreContractTest {
         assertEquals(1, store().query(query()).size());
     }
 
-    @Test void purge_importanceBased() {
+    @Test void purge_confidenceBased() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "low importance", Map.of(), 0.1));
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "high importance", Map.of(), 0.9));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "low confidence", Map.of(), Confidence.unknown(0.1)));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "high confidence", Map.of(), Confidence.unknown(0.9)));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
         var results = store().query(query());
         assertEquals(1, results.size());
-        assertEquals("high importance", results.getFirst().text());
+        assertEquals("high confidence", results.getFirst().text());
     }
 
-    @Test void purge_combined_importanceProtectsRecent() {
+    @Test void purge_combined_confidenceProtectsRecent() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "important recent", Map.of(), 0.9));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "confident recent", Map.of(), Confidence.unknown(0.9)));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, 0.5));
         var results = store().query(query());
         assertEquals(1, results.size());
-        assertEquals("important recent", results.getFirst().text());
+        assertEquals("confident recent", results.getFirst().text());
     }
 
-    @Test void purge_combined_recentLowImportance_notPurged() {
+    @Test void purge_combined_recentLowConfidence_notPurged() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "recent but unimportant", Map.of(), 0.1));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "recent but low confidence", Map.of(), Confidence.unknown(0.1)));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, 0.5));
         assertEquals(1, store().query(query()).size());
     }
 
-    @Test void purge_nullImportance_notPurgedByImportance() {
+    @Test void purge_nullConfidence_notPurgedByConfidence() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(input("null importance memory"));
+        store().store(input("null confidence memory"));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
         assertEquals(1, store().query(query()).size());
     }
 
     @Test void purge_scopedByDomain() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "target domain", Map.of(), 0.1));
-        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "other domain", Map.of(), 0.1));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "target domain", Map.of(), Confidence.unknown(0.1)));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "other domain", Map.of(), Confidence.unknown(0.1)));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
         assertEquals(0, store().query(query()).size());
         assertEquals(1, store().query(MemoryQuery.forEntity("entity-1", OTHER_DOMAIN, TENANT)).size());

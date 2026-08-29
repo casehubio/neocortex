@@ -107,7 +107,7 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
         props.put(DerivedEdgeRule.PROPERTY_RULE_NAME, ruleName);
         return new EdgeInput(
                 input.sourceNodeId(), input.targetNodeId(), input.edgeType(),
-                input.confidenceOrigin(), input.confidence(), input.provenance(),
+                input.confidence(), input.provenance(),
                 input.validFrom(), input.validUntil(),
                 input.pleasure(), input.arousal(), input.dominance(),
                 props);

@@ -30,6 +30,7 @@ class DependencyConstraintTest {
                                                 (JavaClass cls) -> cls.getPackageName().startsWith("io.casehub.")
                                                                    && !cls.getPackageName().startsWith("io.casehub.neocortex.memory.cbr")
                                                                    && !cls.getPackageName().startsWith("io.casehub.neocortex.memory")
+                                                                   && !cls.getPackageName().startsWith("io.casehub.neocortex.cognitive")
                                                                    && !cls.getPackageName().startsWith("io.casehub.neocortex.fusion")
                                                                    && !cls.getPackageName().startsWith("io.casehub.platform.api")));
 }

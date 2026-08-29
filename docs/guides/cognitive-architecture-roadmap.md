@@ -28,7 +28,7 @@ Before any code changes, pin the canonical vocabulary. The system borrows from c
 
 | Platform term | Definition | Cognitive science equivalent | Currently used in |
 |---|---|---|---|
-| **confidence** | How certain the system is about a piece of knowledge. Numeric [0,1], decays over time, reinforced by confirmation. | Activation level (ACT-R), belief strength (BDI) | MindMap (`confidence`), CBR (`CbrOutcome`), Memory (`importance`) — three implementations, should be ONE |
+| **confidence** | How certain the system is about a piece of knowledge. Numeric [0,1], decays over time, reinforced by confirmation. | Activation level (ACT-R), belief strength (BDI) | Unified: `Confidence` record in `cognitive-api`, used by MindMap, CBR, and Memory (#229). Event types use `Double confidence` (#232). |
 | **origin** | How the knowledge was established: directly told (STATED), derived by rules (INFERRED), LLM-suggested (SPECULATED). | Source monitoring (Johnson et al. 1993) | MindMap (`ConfidenceOrigin`) — not used in Memory or CBR |
 | **affect** | The emotional valence of knowledge or experience, modelled as PAD (pleasure, arousal, dominance). Property of the knowledge, not the agent's current mood. | Dimensional affect (Mehrabian 1996), core affect (Russell 2003) | MindMap (PAD on nodes/edges), MoodState (PAD on agent) — not on Memory or CBR |
 | **mood** | The agent's current emotional state. Decays toward a baseline. Influences retrieval (mood-congruent recall). | Core affect, mood-congruent memory (Bower 1981) | `MoodState`, `MoodBaseline`, `MoodDecay`, `MoodModulatedRetrieval` |
@@ -40,6 +40,7 @@ Before any code changes, pin the canonical vocabulary. The system borrows from c
 
 **Naming rules:**
 - Use `confidence` everywhere — retire `importance` (Memory) and `CbrOutcome` as a name (keep the EMA mechanics, rename the concept)
+- Use `affectShift` for engagement emotional change — retire `sentimentShift`
 - Use `affect` for knowledge emotions — reserve `mood` for agent state, `emotion` for the general concept
 - Use `validFrom`/`validUntil` for temporal bounds — do not introduce `effectiveFrom` or `startDate`
 - Use `timestamp` for when-it-happened — add `Instant timestamp()` to all event types
@@ -50,19 +51,17 @@ Before any code changes, pin the canonical vocabulary. The system borrows from c
 
 **Goal:** Make the 17 cognitive types feel like one system. Fix APIs, naming, and confidence model so that a developer moving between MindMap, CBR, and Memory encounters the same patterns and terminology.
 
-### 1a: Unified Confidence Model
+### 1a: Unified Confidence Model — **DONE** (#229)
 
-| | Current | Target |
+Implemented in `cognitive-api` module. `Confidence(ConfidenceOrigin origin, double value, Instant decayReference)` record used by all three subsystems:
+
+| Subsystem | Before | After |
 |---|---|---|
-| MindMap | `ConfidenceOrigin` (enum) + `double confidence` + decay via decorator | Unified `Confidence` record |
-| CBR | `CbrOutcome` (EMA-adjusted double) | Same unified record |
-| Memory | `Double importance` (nullable, no decay) | Same unified record |
+| MindMap | `ConfidenceOrigin` enum + `double confidence` + `confirmedAt` | `Confidence` record (confirmedAt removed — subsumed by `decayReference`) |
+| CBR | `CbrOutcome` EMA-adjusted `Double` | `Confidence` record (EMA preserves origin) |
+| Memory | `Double importance` | `Confidence` record (origin=UNKNOWN for legacy) |
 
-**Design:** A shared `Confidence` record with `origin` (how we know), `value` (how sure, [0,1]), and `decayReference` (Instant from which decay is computed). Lives in a shared module (or `memory-api` which all stores already depend on conceptually).
-
-**Migration:** Each store maps its current model to the unified record. `ConfidenceOrigin` becomes the `origin` field. `CbrOutcome`'s EMA value becomes the `value` field. `importance` becomes `value` with `origin=null` (source unknown). Breaking changes are fine — pre-release platform.
-
-**Scope:** M — touches all three SPI modules but the change per module is mechanical.
+Module: `cognitive-api` (tier-0, zero deps). `ConfidenceOrigin` moved from `mindmap-api` with `UNKNOWN` added. Factory methods enforce non-null `decayReference` for MindMap contexts; `Confidence.unknown()` for Memory/CBR. `MindMapConfidenceDefaults` provides origin-based default values.
 
 ### 1b: Builder APIs
 
@@ -93,14 +92,22 @@ Where `ModulationContext` carries the agent's current mood, personality weights,
 
 **Scope:** M — new abstraction, three implementations, replaces two existing utilities.
 
-### 1d: Naming & Terminology Audit
+### 1d: Naming & Terminology Audit — **DONE** (#232)
 
-- Walk every public type in `memory-api`, `mindmap-api`, `fusion-api`, `rag-api`
-- Check each name against the terminology table
-- Rename inconsistencies (pre-release — breaking changes are free)
-- Produce a checklist of cross-repo terms that blocks must also adopt
+Audited all public types in `memory-api`, `mindmap-api`, `fusion-api`, `rag-api` against the terminology table. Findings and renames:
 
-**Scope:** S — renames only, no behavioural changes. But must coordinate with blocks and engine if types cross repo boundaries.
+| Module | Before | After |
+|---|---|---|
+| memory-api (7 event types) | `Double importance` | `Double confidence` |
+| memory-api | `sentimentShift` / `SENTIMENT_SHIFT` | `affectShift` / `AFFECT_SHIFT` |
+| memory-jpa, memory-sqlite | DB column `importance` | DB column `confidence` (V1 migration updated) |
+| memory-inmem, retrieval utils | local vars `importance` | `confidenceValue` |
+
+Clean areas: mindmap-api, fusion-api, rag-api — no terminology violations found. No `effectiveFrom`, `emotion`, or `valence` misuse. `startDate` in mindmap-intelligence is a domain term (project start date), not a temporal bound.
+
+Cross-repo adoption checklist filed as casehubio/blocks#218.
+
+**Scope:** S — renames only, no behavioural changes.
 
 ### 1e: ForwardingMindMapStore Adoption
 
@@ -566,7 +573,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 
 | Work item | Depends on | Scale | Key deliverable |
 |---|---|---|---|
-| 1a: Unified Confidence | — | M | Single `Confidence` type across MindMap, CBR, Memory |
+| 1a: Unified Confidence | Done (#229) | — | `cognitive-api` module: `Confidence` record + `ConfidenceOrigin` enum |
 | 1b: Builder APIs | — | S | `MindMapQuery.builder()`, `NodeInput.builder()`, `MemoryInput.withX()` |
 | 1c: Cross-Store Composability | 1a | M | Generic `RetrievalModulator<T>` for mood/personality/trust |
 | 1d: Naming Audit | 1a | S | Terminology table enforced; inconsistencies renamed |

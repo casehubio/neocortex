@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.testing;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
@@ -26,7 +27,7 @@ public abstract class PlanEnsembleAnalyzerContractTest {
         for (String b : bindings) {
             traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
         }
-        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", score,
+        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", Confidence.unknown(score),
                                    Map.of("f", FeatureValue.string("v")), traces, null, null);
         return new ScoredCbrCase<>(plan, caseId, score);
     }

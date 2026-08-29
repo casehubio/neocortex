@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.sqlite;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -133,7 +135,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
         String memoryId = UUID.randomUUID().toString();
         String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, importance) VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence) VALUES (?,?,?,?,?,?,?,?,?)";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, memoryId);
@@ -144,7 +146,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             ps.setString(6, input.text());
             ps.setString(7, toJson(input.attributes()));
             ps.setString(8, createdAt);
-            if (input.importance() != null) { ps.setDouble(9, input.importance()); } else { ps.setNull(9, java.sql.Types.REAL); }
+            if (input.confidence() != null) { ps.setDouble(9, input.confidence().value()); } else { ps.setNull(9, java.sql.Types.REAL); }
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("store() failed", e);
@@ -157,7 +159,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     public StoreAllResult storeAll(List<MemoryInput> inputs) {
         if (inputs.isEmpty()) return StoreAllResult.empty();
         inputs.forEach(i -> MemoryPermissions.assertTenant(i.tenantId(), principal, requestContextActive()));
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, importance) VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence) VALUES (?,?,?,?,?,?,?,?,?)";
         List<String> ids = new ArrayList<>(inputs.size());
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
@@ -174,7 +176,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
                     ps.setString(6, input.text());
                     ps.setString(7, toJson(input.attributes()));
                     ps.setString(8, createdAt);
-                    if (input.importance() != null) { ps.setDouble(9, input.importance()); } else { ps.setNull(9, java.sql.Types.REAL); }
+                    if (input.confidence() != null) { ps.setDouble(9, input.confidence().value()); } else { ps.setNull(9, java.sql.Types.REAL); }
                     ps.executeUpdate();
                     ids.add(memoryId);
                 }
@@ -452,16 +454,16 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         params.add(policy.tenantId());
         params.add(policy.domain().name());
 
-        if (policy.maxAgeDays() != null && policy.minImportance() != null) {
-            sql.append(" AND created_at < ? AND importance IS NOT NULL AND importance < ?");
+        if (policy.maxAgeDays() != null && policy.minConfidence() != null) {
+            sql.append(" AND created_at < ? AND confidence IS NOT NULL AND confidence < ?");
             params.add(Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())).truncatedTo(ChronoUnit.MILLIS).toString());
-            params.add(policy.minImportance());
+            params.add(policy.minConfidence());
         } else if (policy.maxAgeDays() != null) {
             sql.append(" AND created_at < ?");
             params.add(Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays())).truncatedTo(ChronoUnit.MILLIS).toString());
-        } else if (policy.minImportance() != null) {
-            sql.append(" AND importance IS NOT NULL AND importance < ?");
-            params.add(policy.minImportance());
+        } else if (policy.minConfidence() != null) {
+            sql.append(" AND confidence IS NOT NULL AND confidence < ?");
+            params.add(policy.minConfidence());
         }
 
         try (Connection conn = dataSource.getConnection();
@@ -488,7 +490,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             rs.getString("text"),
             fromJson(rs.getString("attributes")),
             Instant.parse(rs.getString("created_at")),
-            rs.getObject("importance") != null ? rs.getDouble("importance") : null);
+            rs.getObject("confidence") != null ? Confidence.unknown(rs.getDouble("confidence")) : null);
     }
 
     private String placeholders(int count) {

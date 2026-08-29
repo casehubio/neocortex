@@ -1,5 +1,7 @@
 package io.casehub.neocortex.mindmap;
 
+import io.casehub.neocortex.cognitive.Confidence;
+
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -16,9 +18,7 @@ public interface MindMapEdge {
 
     ValidationTier tier();
 
-    ConfidenceOrigin confidenceOrigin();
-
-    double confidence();
+    Confidence confidence();
 
     String provenance();
 

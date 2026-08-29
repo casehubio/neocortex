@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.runtime;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
-import io.casehub.neocortex.mindmap.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -48,7 +48,7 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
                                               .collect(Collectors.toCollection(ArrayList::new));
 
         if (query.minConfidence() != null) {
-            results.removeIf(n -> n.confidence() < query.minConfidence());
+            results.removeIf(n -> n.confidence().value() < query.minConfidence());
         }
         return results;
     }
@@ -75,15 +75,17 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
     }
 
     private MindMapNode withDecayedConfidence(MindMapNode node) {
-        double decayed = applyDecay(node.confidence(), node.confirmedAt(), defaultHalfLifeDays);
-        if (decayed == node.confidence()) {return node;}
-        return new DecayedNode(node, decayed);
+        Confidence c = node.confidence();
+        double decayed = applyDecay(c.value(), c.decayReference(), defaultHalfLifeDays);
+        if (decayed == c.value()) {return node;}
+        return new DecayedNode(node, c.withValue(decayed));
     }
 
     private MindMapEdge withDecayedConfidence(MindMapEdge edge) {
-        double decayed = applyDecay(edge.confidence(), edge.updatedAt(), defaultHalfLifeDays);
-        if (decayed == edge.confidence()) {return edge;}
-        return new DecayedEdge(edge, decayed);
+        Confidence c = edge.confidence();
+        double decayed = applyDecay(c.value(), c.decayReference(), defaultHalfLifeDays);
+        if (decayed == c.value()) {return edge;}
+        return new DecayedEdge(edge, c.withValue(decayed));
     }
 
     static double applyDecay(double confidence, Instant since, double halfLifeDays) {
@@ -94,7 +96,7 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
         return confidence * Math.pow(2.0, -hoursSince / halfLifeHours);
     }
 
-    private record DecayedNode(MindMapNode delegate, double decayedConfidence) implements MindMapNode {
+    private record DecayedNode(MindMapNode delegate, Confidence decayedConfidence) implements MindMapNode {
         @Override
         public String id()                           {return delegate.id();}
 
@@ -105,10 +107,7 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
         public String subgraphId()                   {return delegate.subgraphId();}
 
         @Override
-        public ConfidenceOrigin confidenceOrigin()   {return delegate.confidenceOrigin();}
-
-        @Override
-        public double confidence()                   {return decayedConfidence;}
+        public Confidence confidence()               {return decayedConfidence;}
 
         @Override
         public String provenance()                   {return delegate.provenance();}
@@ -118,9 +117,6 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
 
         @Override
         public Instant updatedAt()                   {return delegate.updatedAt();}
-
-        @Override
-        public Instant confirmedAt()                 {return delegate.confirmedAt();}
 
         @Override
         public Instant validFrom()                   {return delegate.validFrom();}
@@ -150,7 +146,7 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
         public Map<String, String> properties()      {return delegate.properties();}
     }
 
-    private record DecayedEdge(MindMapEdge delegate, double decayedConfidence) implements MindMapEdge {
+    private record DecayedEdge(MindMapEdge delegate, Confidence decayedConfidence) implements MindMapEdge {
         @Override
         public String id()                           {return delegate.id();}
 
@@ -167,10 +163,7 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
         public ValidationTier tier()                 {return delegate.tier();}
 
         @Override
-        public ConfidenceOrigin confidenceOrigin()   {return delegate.confidenceOrigin();}
-
-        @Override
-        public double confidence()                   {return decayedConfidence;}
+        public Confidence confidence()               {return decayedConfidence;}
 
         @Override
         public String provenance()                   {return delegate.provenance();}

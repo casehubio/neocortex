@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.cbr.tracking;
 
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
@@ -24,7 +25,7 @@ class TrackingPlanEnsembleAnalyzerTest {
 
     private ScoredCbrCase<PlanCbrCase> scored() {
         var trace = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
-        var plan = new PlanCbrCase("problem", "solution", "WIN", 0.9,
+        var plan = new PlanCbrCase("problem", "solution", "WIN", Confidence.unknown(0.9),
                                    Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
         return new ScoredCbrCase<>(plan, "c1", 0.85);
     }
