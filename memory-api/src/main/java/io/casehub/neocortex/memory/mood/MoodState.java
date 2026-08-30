@@ -1,19 +1,21 @@
 package io.casehub.neocortex.memory.mood;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
 public record MoodState(
-    String agentId,
-    String tenantId,
-    double pleasure,
-    double arousal,
-    double dominance,
-    String cause,
-    String turnId,
-    Map<String, String> metadata
+        String agentId,
+        String tenantId,
+        Instant timestamp, double pleasure,
+        double arousal,
+        double dominance,
+        String cause,
+        String turnId,
+        Map<String, String> metadata
 ) {
     public MoodState {
+        if (timestamp == null) timestamp = Instant.now();
         Objects.requireNonNull(agentId, "agentId required");
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(cause, "cause required");

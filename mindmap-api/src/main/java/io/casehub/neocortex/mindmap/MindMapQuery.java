@@ -2,19 +2,20 @@ package io.casehub.neocortex.mindmap;
 
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
 
 public record MindMapQuery(
-    String tenantId,
-    String subgraphId,
-    String text,
-    String edgeType,
-    Set<String> traits,
-    Double minConfidence,
-    ConfidenceOrigin confidenceOrigin,
-    boolean includeSuperseded,
-    int limit
+        String tenantId,
+        String subgraphId,
+        String text,
+        String edgeType,
+        Set<String> traits,
+        Double minConfidence,
+        ConfidenceOrigin confidenceOrigin,
+        boolean includeSuperseded,
+        Instant validAfter, Instant validBefore, Instant updatedAfter, int limit
 ) {
 
     public MindMapQuery {

@@ -14,8 +14,8 @@ class MoodEventsTest {
 
     @Test
     void convertsToMemoryInput() {
-        var state = new MoodState("a1", "t1", 0.7, -0.3, 0.5, "good news",
-            "turn-1", Map.of("extra", "val"));
+        var state = new MoodState("a1", "t1", null, 0.7, -0.3, 0.5, "good news",
+                                  "turn-1", Map.of("extra", "val"));
         var input = MoodEvents.toMemoryInput(state);
 
         assertEquals("a1", input.entityId());
@@ -31,15 +31,15 @@ class MoodEventsTest {
 
     @Test
     void omitsTurnIdWhenNull() {
-        var state = new MoodState("a1", "t1", 0.0, 0.0, 0.0, "init", null, Map.of());
+        var state = new MoodState("a1", "t1", null, 0.0, 0.0, 0.0, "init", null, Map.of());
         var input = MoodEvents.toMemoryInput(state);
         assertFalse(input.attributes().containsKey(MoodAttributeKeys.TURN_ID));
     }
 
     @Test
     void rejectsMetadataCollidingWithReservedKeys() {
-        var state = new MoodState("a1", "t1", 0.0, 0.0, 0.0, "init", null,
-            Map.of(MoodAttributeKeys.PLEASURE, "hijack"));
+        var state = new MoodState("a1", "t1", null, 0.0, 0.0, 0.0, "init", null,
+                                  Map.of(MoodAttributeKeys.PLEASURE, "hijack"));
         assertThrows(IllegalArgumentException.class, () -> MoodEvents.toMemoryInput(state));
     }
 }

@@ -26,6 +26,9 @@ public final class ExperienceEvents {
             attrs.put(ExperienceAttributeKeys.TURN_ID, event.turnId());
         }
 
+        reserved.add(ExperienceAttributeKeys.TIMESTAMP);
+        attrs.put(ExperienceAttributeKeys.TIMESTAMP, event.timestamp().toString());
+
         switch (event) {
             case Observation o -> {
                 reserved.add(ExperienceAttributeKeys.SUBJECT);

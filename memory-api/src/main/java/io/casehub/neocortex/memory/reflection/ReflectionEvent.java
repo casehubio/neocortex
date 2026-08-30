@@ -1,20 +1,22 @@
 package io.casehub.neocortex.memory.reflection;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public record ReflectionEvent(
-    String agentId,
-    String tenantId,
-    String caseId,
-    String insight,
-    int level,
-    List<String> sourceMemoryIds,
-    Double confidence,
-    Map<String, String> metadata
+        String agentId,
+        String tenantId,
+        String caseId,
+        Instant timestamp, String insight,
+        int level,
+        List<String> sourceMemoryIds,
+        Double confidence,
+        Map<String, String> metadata
 ) {
     public ReflectionEvent {
+        if (timestamp == null) timestamp = Instant.now();
         Objects.requireNonNull(agentId, "agentId required");
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(insight, "insight required");

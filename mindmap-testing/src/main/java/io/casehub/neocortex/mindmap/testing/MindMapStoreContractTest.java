@@ -512,7 +512,7 @@ public abstract class MindMapStoreContractTest {
         store.addNode(nodeInput("Alice"), TENANT);
         store.addNode(nodeInput("Bob"), TENANT);
         var results = store.search(new MindMapQuery(TENANT, null, "Ali",
-            null, null, null, null, false, 10));
+                                                    null, null, null, null, false, null, null, null, 10));
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().name()).isEqualTo("Alice");
     }
@@ -525,7 +525,7 @@ public abstract class MindMapStoreContractTest {
         store.addNode(nodeInput("Bob"), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, sg1, null,
-            null, null, null, null, false, 10));
+                                                    null, null, null, null, false, null, null, null, 10));
         assertThat(results).hasSize(1);
     }
 
@@ -538,7 +538,7 @@ public abstract class MindMapStoreContractTest {
         store.addNode(nodeInput("Acme"), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            null, Set.of("Personable"), null, null, false, 10));
+                                                    null, Set.of("Personable"), null, null, false, null, null, null, 10));
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().name()).isEqualTo("Alice");
     }
@@ -551,7 +551,7 @@ public abstract class MindMapStoreContractTest {
         store.addEdge(edgeInput(alice, acme, "works-at"), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            "works-at", null, null, null, false, 10));
+                                                    "works-at", null, null, null, false, null, null, null, 10));
         assertThat(results).hasSize(2);
     }
 
@@ -563,7 +563,7 @@ public abstract class MindMapStoreContractTest {
             Confidence.speculated(0.3, Instant.now()), "test", null, null, null, null, null, null, null, null), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            null, null, 0.5, null, false, 10));
+                                                    null, null, 0.5, null, false, null, null, null, 10));
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().name()).isEqualTo("Alice");
     }
@@ -576,7 +576,7 @@ public abstract class MindMapStoreContractTest {
             Confidence.inferred(0.7, Instant.now()), "test", null, null, null, null, null, null, null, null), TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            null, null, null, ConfidenceOrigin.INFERRED, false, 10));
+                                                    null, null, null, ConfidenceOrigin.INFERRED, false, null, null, null, 10));
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().name()).isEqualTo("Bob");
     }
@@ -588,7 +588,7 @@ public abstract class MindMapStoreContractTest {
         store.supersede(alice, bob, "merged", TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            null, null, null, null, false, 10));
+                                                    null, null, null, null, false, null, null, null, 10));
         assertThat(results).noneMatch(n -> n.id().equals(alice));
     }
 
@@ -599,7 +599,7 @@ public abstract class MindMapStoreContractTest {
         store.supersede(alice, bob, "merged", TENANT);
 
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            null, null, null, null, true, 10));
+                                                    null, null, null, null, true, null, null, null, 10));
         assertThat(results).anyMatch(n -> n.id().equals(alice));
     }
 
@@ -607,9 +607,86 @@ public abstract class MindMapStoreContractTest {
     void search_respectsLimit() {
         for (int i = 0; i < 5; i++) store.addNode(nodeInput("Node" + i), TENANT);
         var results = store.search(new MindMapQuery(TENANT, null, null,
-            null, null, null, null, false, 3));
+                                                    null, null, null, null, false, null, null, null, 3));
         assertThat(results).hasSize(3);
     }
+
+    @Test
+    void search_validAfter_filtersNodesByValidFrom() {
+        Instant past   = Instant.parse("2025-01-01T00:00:00Z");
+        Instant future = Instant.parse("2027-06-15T00:00:00Z");
+        store.addNode(new NodeInput("PastNode", subgraphId,
+                                    null, "test", null, null, past, null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("FutureNode", subgraphId,
+                                    null, "test", null, null, future, null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("NoDate", subgraphId,
+                                    null, "test", null, null, null, null, null, null, null, null), TENANT);
+
+        var results = store.search(new MindMapQuery(TENANT, null, null,
+                                                    null, null, null, null, false,
+                                                    Instant.parse("2026-01-01T00:00:00Z"), null, null, 10));
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().name()).isEqualTo("FutureNode");
+    }
+
+    @Test
+    void search_validBefore_filtersNodesByValidFrom() {
+        Instant past   = Instant.parse("2025-01-01T00:00:00Z");
+        Instant future = Instant.parse("2027-06-15T00:00:00Z");
+        store.addNode(new NodeInput("PastNode", subgraphId,
+                                    null, "test", null, null, past, null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("FutureNode", subgraphId,
+                                    null, "test", null, null, future, null, null, null, null, null), TENANT);
+
+        var results = store.search(new MindMapQuery(TENANT, null, null,
+                                                    null, null, null, null, false,
+                                                    null, Instant.parse("2026-01-01T00:00:00Z"), null, 10));
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().name()).isEqualTo("PastNode");
+    }
+
+    @Test
+    void search_updatedAfter_filtersNodesByUpdatedAt() {
+        store.addNode(nodeInput("OldNode"), TENANT);
+        Instant cutoff = Instant.now();
+        store.addNode(nodeInput("NewNode"), TENANT);
+
+        var results = store.search(new MindMapQuery(TENANT, null, null,
+                                                    null, null, null, null, false,
+                                                    null, null, cutoff, 10));
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().name()).isEqualTo("NewNode");
+    }
+
+    @Test
+    void search_validAfterAndBefore_combinesFilters() {
+        store.addNode(new NodeInput("Early", subgraphId,
+                                    null, "test", null, null, Instant.parse("2025-01-01T00:00:00Z"), null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("Middle", subgraphId,
+                                    null, "test", null, null, Instant.parse("2026-06-01T00:00:00Z"), null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("Late", subgraphId,
+                                    null, "test", null, null, Instant.parse("2027-12-01T00:00:00Z"), null, null, null, null, null), TENANT);
+
+        var results = store.search(new MindMapQuery(TENANT, null, null,
+                                                    null, null, null, null, false,
+                                                    Instant.parse("2026-01-01T00:00:00Z"),
+                                                    Instant.parse("2027-01-01T00:00:00Z"), null, 10));
+        assertThat(results).hasSize(1);
+        assertThat(results.getFirst().name()).isEqualTo("Middle");
+    }
+
+    @Test
+    void search_nullTemporalPredicates_returnsAll() {
+        store.addNode(new NodeInput("WithDate", subgraphId,
+                                    null, "test", null, null, Instant.parse("2026-06-01T00:00:00Z"), null, null, null, null, null), TENANT);
+        store.addNode(new NodeInput("NoDate", subgraphId,
+                                    null, "test", null, null, null, null, null, null, null, null), TENANT);
+
+        var results = store.search(new MindMapQuery(TENANT, null, null,
+                                                    null, null, null, null, false, null, null, null, 10));
+        assertThat(results).hasSize(2);
+    }
+
 
     @Test
     void tenantIsolation_edgeInvisibleAcrossTenants() {

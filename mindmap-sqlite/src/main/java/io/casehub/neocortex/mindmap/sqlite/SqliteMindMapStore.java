@@ -606,6 +606,18 @@ public class SqliteMindMapStore implements MindMapStore {
             params.add(pattern);
             params.add(pattern);
         }
+        if (query.validAfter() != null) {
+            sql.append(" AND n.valid_from IS NOT NULL AND n.valid_from > ?");
+            params.add(query.validAfter().toString());
+        }
+        if (query.validBefore() != null) {
+            sql.append(" AND n.valid_from IS NOT NULL AND n.valid_from < ?");
+            params.add(query.validBefore().toString());
+        }
+        if (query.updatedAfter() != null) {
+            sql.append(" AND n.updated_at IS NOT NULL AND n.updated_at > ?");
+            params.add(query.updatedAfter().toString());
+        }
 
         sql.append(" LIMIT ?");
         params.add(query.limit());

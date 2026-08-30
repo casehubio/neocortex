@@ -30,8 +30,8 @@ class RelationshipObserverTest {
 
     @Test
     void storesRelationshipWhenTargetAgentPresent() {
-        var action = new Action("a1", "t1", "c1", "turn-1", "reviewed code", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), "code-review");
+        var action = new Action("a1", "t1", "c1", "turn-1", null, "reviewed code", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), "code-review");
         observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1"));
 
         assertEquals(1, store.stored.size());
@@ -43,8 +43,8 @@ class RelationshipObserverTest {
 
     @Test
     void firesRelationshipRecordedEvent() {
-        var action = new Action("a1", "t1", null, null, "did work", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
+        var action = new Action("a1", "t1", null, null, null, "did work", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
         observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1"));
 
         assertEquals(1, eventSink.fired.size());
@@ -54,7 +54,7 @@ class RelationshipObserverTest {
 
     @Test
     void skipsWhenNoTargetAgent() {
-        var obs = new Observation("a1", "t1", null, null, "saw something", null, Map.of(), "subj");
+        var obs = new Observation("a1", "t1", null, null, null, "saw something", null, Map.of(), "subj");
         observer.onExperienceRecorded(new ExperienceRecorded(obs, "exp-1"));
 
         assertTrue(store.stored.isEmpty());
@@ -63,8 +63,8 @@ class RelationshipObserverTest {
 
     @Test
     void skipsWhenTargetAgentBlank() {
-        var action = new Action("a1", "t1", null, null, "desc", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "  "), null);
+        var action = new Action("a1", "t1", null, null, null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "  "), null);
         observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1"));
 
         assertTrue(store.stored.isEmpty());
@@ -72,8 +72,8 @@ class RelationshipObserverTest {
 
     @Test
     void skipsSelfReferential() {
-        var action = new Action("a1", "t1", null, null, "desc", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "a1"), null);
+        var action = new Action("a1", "t1", null, null, null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "a1"), null);
         observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1"));
 
         assertTrue(store.stored.isEmpty());
@@ -81,8 +81,8 @@ class RelationshipObserverTest {
 
     @Test
     void mapsObservationToObservationEventType() {
-        var obs = new Observation("a1", "t1", null, null, "saw agent b1", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), "b1 status");
+        var obs = new Observation("a1", "t1", null, null, null, "saw agent b1", null,
+                                  Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), "b1 status");
         observer.onExperienceRecorded(new ExperienceRecorded(obs, "exp-1"));
 
         assertEquals("observation", store.stored.getFirst().attributes().get(RelationshipAttributeKeys.SOURCE_EVENT_TYPE));
@@ -90,8 +90,8 @@ class RelationshipObserverTest {
 
     @Test
     void mapsOutcomeToOutcomeEventType() {
-        var outcome = new Outcome("a1", "t1", null, null, "review done", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), "completed", "code-review");
+        var outcome = new Outcome("a1", "t1", null, null, null, "review done", null,
+                                  Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), "completed", "code-review");
         observer.onExperienceRecorded(new ExperienceRecorded(outcome, "exp-1"));
 
         assertEquals("outcome", store.stored.getFirst().attributes().get(RelationshipAttributeKeys.SOURCE_EVENT_TYPE));
@@ -100,8 +100,8 @@ class RelationshipObserverTest {
     @Test
     void propagatesSecurityException() {
         store.throwOnStore = new SecurityException("forbidden");
-        var action = new Action("a1", "t1", null, null, "desc", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
+        var action = new Action("a1", "t1", null, null, null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
         assertThrows(SecurityException.class, () ->
             observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1")));
     }
@@ -109,16 +109,16 @@ class RelationshipObserverTest {
     @Test
     void catchesNonSecurityStoreFailure() {
         store.throwOnStore = new RuntimeException("db down");
-        var action = new Action("a1", "t1", null, null, "desc", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
+        var action = new Action("a1", "t1", null, null, null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
         observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1"));
         assertTrue(eventSink.fired.isEmpty());
     }
 
     @Test
     void preservesTurnIdFromExperience() {
-        var action = new Action("a1", "t1", null, "turn-99", "desc", null,
-            Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
+        var action = new Action("a1", "t1", null, "turn-99", null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
         observer.onExperienceRecorded(new ExperienceRecorded(action, "exp-1"));
 
         assertEquals("turn-99", store.stored.getFirst().attributes().get(RelationshipAttributeKeys.TURN_ID));

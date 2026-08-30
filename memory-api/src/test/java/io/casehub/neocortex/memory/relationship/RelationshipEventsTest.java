@@ -16,8 +16,8 @@ class RelationshipEventsTest {
     @Test
     void toMemoryInputMapsAllFields() {
         var event = new RelationshipEvent("a1", "b1", "t1", "c1", "turn-42",
-            "action", QualitySignal.POSITIVE, "cooperated on review", 0.7,
-            Map.of());
+                                          null, "action", QualitySignal.POSITIVE, "cooperated on review", 0.7,
+                                          Map.of());
         MemoryInput input = RelationshipEvents.toMemoryInput(event);
 
         assertEquals("a1", input.entityId());
@@ -35,7 +35,7 @@ class RelationshipEventsTest {
     @Test
     void omitsTurnIdWhenNull() {
         var event = new RelationshipEvent("a1", "b1", "t1", null, null,
-            "observation", QualitySignal.NEUTRAL, "desc", null, Map.of());
+                                          null, "observation", QualitySignal.NEUTRAL, "desc", null, Map.of());
         MemoryInput input = RelationshipEvents.toMemoryInput(event);
         assertFalse(input.attributes().containsKey(RelationshipAttributeKeys.TURN_ID));
     }
@@ -44,7 +44,7 @@ class RelationshipEventsTest {
     void allQualitySignalsMappedToLowercase() {
         for (QualitySignal sig : QualitySignal.values()) {
             var event = new RelationshipEvent("a1", "b1", "t1", null, null,
-                "action", sig, "desc", null, Map.of());
+                                              null, "action", sig, "desc", null, Map.of());
             MemoryInput input = RelationshipEvents.toMemoryInput(event);
             assertEquals(sig.name().toLowerCase(), input.attributes().get(RelationshipAttributeKeys.QUALITY_SIGNAL));
         }
@@ -53,8 +53,8 @@ class RelationshipEventsTest {
     @Test
     void callerMetadataIsMerged() {
         var event = new RelationshipEvent("a1", "b1", "t1", null, null,
-            "action", QualitySignal.NEUTRAL, "desc", null,
-            Map.of("custom-key", "custom-value"));
+                                          null, "action", QualitySignal.NEUTRAL, "desc", null,
+                                          Map.of("custom-key", "custom-value"));
         MemoryInput input = RelationshipEvents.toMemoryInput(event);
         assertEquals("custom-value", input.attributes().get("custom-key"));
         assertEquals("b1", input.attributes().get(RelationshipAttributeKeys.OTHER_AGENT));
@@ -63,8 +63,8 @@ class RelationshipEventsTest {
     @Test
     void metadataKeyCollisionThrows() {
         var event = new RelationshipEvent("a1", "b1", "t1", null, null,
-            "action", QualitySignal.NEUTRAL, "desc", null,
-            Map.of(RelationshipAttributeKeys.OTHER_AGENT, "override"));
+                                          null, "action", QualitySignal.NEUTRAL, "desc", null,
+                                          Map.of(RelationshipAttributeKeys.OTHER_AGENT, "override"));
         assertThrows(IllegalArgumentException.class, () ->
             RelationshipEvents.toMemoryInput(event));
     }
@@ -72,8 +72,8 @@ class RelationshipEventsTest {
     @Test
     void metadataCollisionOnQualitySignalThrows() {
         var event = new RelationshipEvent("a1", "b1", "t1", null, null,
-            "action", QualitySignal.NEUTRAL, "desc", null,
-            Map.of(RelationshipAttributeKeys.QUALITY_SIGNAL, "override"));
+                                          null, "action", QualitySignal.NEUTRAL, "desc", null,
+                                          Map.of(RelationshipAttributeKeys.QUALITY_SIGNAL, "override"));
         assertThrows(IllegalArgumentException.class, () ->
             RelationshipEvents.toMemoryInput(event));
     }
@@ -81,7 +81,7 @@ class RelationshipEventsTest {
     @Test
     void relationshipRecordedCarriesEventAndId() {
         var event = new RelationshipEvent("a1", "b1", "t1", null, null,
-            "action", QualitySignal.NEUTRAL, "desc", null, Map.of());
+                                          null, "action", QualitySignal.NEUTRAL, "desc", null, Map.of());
         var recorded = new RelationshipRecorded(event, "mem-1");
         assertSame(event, recorded.event());
         assertEquals("mem-1", recorded.memoryId());

@@ -141,7 +141,7 @@ See [Shared Memory Design](shared-memory-design.md) for full design.
 
 **Goal:** One temporal model that handles wall-clock time, relative time, and ordinal (turn-based) time. Every store supports temporal queries. A unified temporal index enables cross-store "what happened when?" and "what's coming up?" queries.
 
-### 2a: Temporal Taxonomy
+### 2a: Temporal Taxonomy — **DONE** (#234)
 
 The system has three kinds of time, currently handled ad-hoc:
 
@@ -172,7 +172,7 @@ Not every use site needs `TemporalMark` — most will continue using `Instant` d
 
 **Scope:** M — new type + integration into MindMapExtractor's temporal parsing.
 
-### 2b: Timestamps on Event Types
+### 2b: Timestamps on Event Types — **DONE** (#235)
 
 Add `Instant timestamp()` to: `ExperienceEvent`, `RelationshipEvent`, `ReflectionEvent`, `MoodState`, `EngagementEvent`.
 
@@ -182,7 +182,7 @@ Default to `Instant.now()` at construction. The converter should propagate the e
 
 **Scope:** S — field addition to 5 record types + converter updates.
 
-### 2c: Temporal Query on MindMapQuery
+### 2c: Temporal Query on MindMapQuery — **DONE** (#236)
 
 Add three fields to `MindMapQuery`:
 - `Instant validAfter` — nodes whose `validFrom` is after this instant ("what's coming up?")
@@ -198,7 +198,7 @@ This is the **single highest-impact change** across all dimensions. It unlocks:
 
 **Scope:** S — 3 fields on a record, 2 backend implementations, contract tests.
 
-### 2d: Chronological Index
+### 2d: Chronological Index — **DONE** (#237)
 
 A cross-store `TemporalIndex` that maintains a sorted view of all temporal events:
 - Upcoming MindMap events (by `validFrom`)
@@ -582,7 +582,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 2a: Temporal Taxonomy | 1d | M | `TemporalMark` sealed hierarchy |
 | 2b: Event Timestamps | 2a | S | `Instant timestamp()` on all event types |
 | 2c: Temporal MindMapQuery | 2a | S | `validAfter`/`validBefore`/`updatedAfter` fields |
-| 2d: Chronological Index | 2a, 2b, 2c | L | Cross-store `TemporalIndex` |
+| 2d: Chronological Index | 2a, 2b, 2c | M | Cross-store `TemporalIndex` — **DONE** (#237) |
 | 3a: PAD on Memory | 1d | S | `pleasure`/`arousal`/`dominance` on MemoryInput |
 | 3b: Affect Trajectory | 3a | M | `AffectEntry` log per node/entity |
 | 3c: Prospective Events | 2a, 3b | M | Event lifecycle + traits + recurrence |

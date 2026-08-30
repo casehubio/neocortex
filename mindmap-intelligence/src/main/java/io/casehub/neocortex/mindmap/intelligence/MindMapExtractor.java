@@ -116,7 +116,7 @@ public class MindMapExtractor {
         for (String term : extractCandidateTerms(conversationText)) {
             if (context.size() >= MAX_CONTEXT_NODES) break;
             List<MindMapNode> hits = store.search(
-                new MindMapQuery(tenantId, null, term, null, null, null, null, false, 5));
+                new MindMapQuery(tenantId, null, term, null, null, null, null, false, null, null, null, 5));
             for (MindMapNode node : hits) {
                 context.computeIfAbsent(node.id(), id -> store.neighbors(id, tenantId));
             }

@@ -22,14 +22,14 @@ public final class MoodDecay {
         double factor = 1.0 - Math.exp(-elapsedMs / tauMs);
 
         return new MoodState(
-            current.agentId(),
-            current.tenantId(),
-            decayAxis(current.pleasure(), baseline.pleasure(), factor),
-            decayAxis(current.arousal(), baseline.arousal(), factor),
-            decayAxis(current.dominance(), baseline.dominance(), factor),
-            "decay",
-            null,
-            Map.of()
+                current.agentId(),
+                current.tenantId(),
+                null, decayAxis(current.pleasure(), baseline.pleasure(), factor),
+                decayAxis(current.arousal(), baseline.arousal(), factor),
+                decayAxis(current.dominance(), baseline.dominance(), factor),
+                "decay",
+                null,
+                Map.of()
         );
     }
 

@@ -24,6 +24,9 @@ public final class ReflectionEvents {
         attrs.put(ReflectionAttributeKeys.SOURCE_MEMORY_IDS,
             String.join(",", event.sourceMemoryIds()));
 
+        reserved.add(ReflectionAttributeKeys.TIMESTAMP);
+        attrs.put(ReflectionAttributeKeys.TIMESTAMP, event.timestamp().toString());
+
         for (String key : event.metadata().keySet()) {
             if (reserved.contains(key)) {
                 throw new IllegalArgumentException(

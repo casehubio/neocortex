@@ -15,8 +15,8 @@ class EngagementEventsTest {
     @Test
     void convertsFullEventToMemoryInput() {
         var event = new EngagementEvent("a1", "b1", "t1", "c1", "turn-1",
-            "user responded", 0.7, Map.of("extra", "val"),
-            true, 1500L, 142, 0.3, 2, true);
+                                        null, "user responded", 0.7, Map.of("extra", "val"),
+                                        true, 1500L, 142, 0.3, 2, true);
         var input = EngagementEvents.toMemoryInput(event);
 
         assertEquals("a1", input.entityId());
@@ -39,7 +39,7 @@ class EngagementEventsTest {
     @Test
     void omitsNullSignals() {
         var event = new EngagementEvent("a1", "b1", "t1", null, "turn-1",
-            "no response", null, Map.of(), null, null, null, null, null, null);
+                                        null, "no response", null, Map.of(), null, null, null, null, null, null);
         var input = EngagementEvents.toMemoryInput(event);
 
         assertTrue(input.attributes().containsKey(EngagementAttributeKeys.OTHER_AGENT));
@@ -55,8 +55,8 @@ class EngagementEventsTest {
     @Test
     void rejectsMetadataCollidingWithReservedKeys() {
         var event = new EngagementEvent("a1", "b1", "t1", null, "turn-1",
-            "desc", null, Map.of(EngagementAttributeKeys.OTHER_AGENT, "hijack"),
-            null, null, null, null, null, null);
+                                        null, "desc", null, Map.of(EngagementAttributeKeys.OTHER_AGENT, "hijack"),
+                                        null, null, null, null, null, null);
         assertThrows(IllegalArgumentException.class, () -> EngagementEvents.toMemoryInput(event));
     }
 }

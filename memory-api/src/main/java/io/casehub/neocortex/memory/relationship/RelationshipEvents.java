@@ -33,6 +33,9 @@ public final class RelationshipEvents {
             attrs.put(RelationshipAttributeKeys.TURN_ID, event.turnId());
         }
 
+        reserved.add(RelationshipAttributeKeys.TIMESTAMP);
+        attrs.put(RelationshipAttributeKeys.TIMESTAMP, event.timestamp().toString());
+
         for (String key : event.metadata().keySet()) {
             if (reserved.contains(key)) {
                 throw new IllegalArgumentException(

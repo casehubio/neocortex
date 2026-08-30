@@ -31,7 +31,7 @@ class ExperienceStreamTest {
 
     @Test
     void recordStoresAndReturnsMemoryId() {
-        var obs = new Observation("a1", "t1", null, null, "saw it", null, Map.of(), "subj");
+        var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
         String id = stream.record(obs);
         assertEquals("mem-0", id);
         assertEquals(1, store.stored.size());
@@ -40,7 +40,7 @@ class ExperienceStreamTest {
 
     @Test
     void recordFiresCdiEvent() {
-        var obs = new Observation("a1", "t1", null, null, "saw it", null, Map.of(), "subj");
+        var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
         stream.record(obs);
         assertEquals(1, eventSink.fired.size());
         assertEquals("mem-0", eventSink.fired.getFirst().memoryId());
@@ -50,15 +50,15 @@ class ExperienceStreamTest {
     @Test
     void recordPropagatesSecurityException() {
         store.throwOnStore = new SecurityException("forbidden");
-        var obs = new Observation("a1", "t1", null, null, "saw it", null, Map.of(), "subj");
+        var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
         assertThrows(SecurityException.class, () -> stream.record(obs));
         assertTrue(eventSink.fired.isEmpty());
     }
 
     @Test
     void recordAllReturnsResult() {
-        var obs = new Observation("a1", "t1", null, null, "saw it", null, Map.of(), "subj");
-        var act = new Action("a1", "t1", null, null, "did it", null, Map.of(), null);
+        var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
+        var act = new Action("a1", "t1", null, null, null, "did it", null, Map.of(), null);
         ExperienceStoreResult result = stream.recordAll(List.of(obs, act));
         assertTrue(result.allSucceeded());
         assertEquals(2, result.stored().size());
@@ -66,8 +66,8 @@ class ExperienceStreamTest {
 
     @Test
     void recordAllFiresEventPerStoredItem() {
-        var obs = new Observation("a1", "t1", null, null, "saw it", null, Map.of(), "subj");
-        var act = new Action("a1", "t1", null, null, "did it", null, Map.of(), null);
+        var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
+        var act = new Action("a1", "t1", null, null, null, "did it", null, Map.of(), null);
         stream.recordAll(List.of(obs, act));
         assertEquals(2, eventSink.fired.size());
     }
@@ -75,9 +75,9 @@ class ExperienceStreamTest {
     @Test
     void recordAllHandlesPartialFailure() {
         store.failAtIndex = 1;
-        var obs = new Observation("a1", "t1", null, null, "saw it", null, Map.of(), "subj");
-        var act = new Action("a1", "t1", null, null, "did it", null, Map.of(), null);
-        var out = new Outcome("a1", "t1", null, null, "done", null, Map.of(), "ok", null);
+        var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
+        var act = new Action("a1", "t1", null, null, null, "did it", null, Map.of(), null);
+        var out = new Outcome("a1", "t1", null, null, null, "done", null, Map.of(), "ok", null);
         ExperienceStoreResult result = stream.recordAll(List.of(obs, act, out));
 
         assertFalse(result.allSucceeded());

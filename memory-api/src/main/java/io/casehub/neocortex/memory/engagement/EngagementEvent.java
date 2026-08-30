@@ -1,25 +1,27 @@
 package io.casehub.neocortex.memory.engagement;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
 public record EngagementEvent(
-    String agentId,
-    String otherAgentId,
-    String tenantId,
-    String caseId,
-    String turnId,
-    String description,
-    Double confidence,
-    Map<String, String> metadata,
-    Boolean responded,
-    Long responseTimeMs,
-    Integer responseLength,
-    Double affectShift,
-    Integer reactionCount,
-    Boolean continued
+        String agentId,
+        String otherAgentId,
+        String tenantId,
+        String caseId,
+        String turnId,
+        Instant timestamp, String description,
+        Double confidence,
+        Map<String, String> metadata,
+        Boolean responded,
+        Long responseTimeMs,
+        Integer responseLength,
+        Double affectShift,
+        Integer reactionCount,
+        Boolean continued
 ) {
     public EngagementEvent {
+        if (timestamp == null) timestamp = Instant.now();
         Objects.requireNonNull(agentId, "agentId required");
         Objects.requireNonNull(otherAgentId, "otherAgentId required");
         Objects.requireNonNull(tenantId, "tenantId required");

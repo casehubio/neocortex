@@ -1,21 +1,23 @@
 package io.casehub.neocortex.memory.relationship;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
 public record RelationshipEvent(
-    String agentId,
-    String otherAgentId,
-    String tenantId,
-    String caseId,
-    String turnId,
-    String sourceEventType,
-    QualitySignal qualitySignal,
-    String description,
-    Double confidence,
-    Map<String, String> metadata
+        String agentId,
+        String otherAgentId,
+        String tenantId,
+        String caseId,
+        String turnId,
+        Instant timestamp, String sourceEventType,
+        QualitySignal qualitySignal,
+        String description,
+        Double confidence,
+        Map<String, String> metadata
 ) {
     public RelationshipEvent {
+        if (timestamp == null) timestamp = Instant.now();
         Objects.requireNonNull(agentId, "agentId required");
         Objects.requireNonNull(otherAgentId, "otherAgentId required");
         Objects.requireNonNull(tenantId, "tenantId required");

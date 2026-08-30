@@ -11,7 +11,7 @@ class MoodDecayTest {
     private static final Duration TAU = Duration.ofHours(6);
 
     private MoodState mood(double p, double a, double d) {
-        return new MoodState("a1", "t1", p, a, d, "test", null, Map.of());
+        return new MoodState("a1", "t1", null, p, a, d, "test", null, Map.of());
     }
 
     @Test
@@ -80,8 +80,8 @@ class MoodDecayTest {
 
     @Test
     void preservesAgentAndTenantId() {
-        var current = new MoodState("agent-x", "tenant-y", 0.8, 0.0, 0.0,
-            "event", "turn-1", Map.of("k", "v"));
+        var current = new MoodState("agent-x", "tenant-y", null, 0.8, 0.0, 0.0,
+                                    "event", "turn-1", Map.of("k", "v"));
         var decayed = MoodDecay.decay(current, NEUTRAL, Duration.ofHours(1), TAU);
         assertEquals("agent-x", decayed.agentId());
         assertEquals("tenant-y", decayed.tenantId());

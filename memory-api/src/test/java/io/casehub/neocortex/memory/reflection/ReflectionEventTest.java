@@ -10,62 +10,62 @@ class ReflectionEventTest {
     @Test
     void requiresAgentId() {
         assertThrows(NullPointerException.class, () ->
-            new ReflectionEvent(null, "t1", null, "insight", 1, List.of("m1"), null, Map.of()));
+            new ReflectionEvent(null, "t1", null, null, "insight", 1, List.of("m1"), null, Map.of()));
     }
 
     @Test
     void requiresTenantId() {
         assertThrows(NullPointerException.class, () ->
-            new ReflectionEvent("a1", null, null, "insight", 1, List.of("m1"), null, Map.of()));
+            new ReflectionEvent("a1", null, null, null, "insight", 1, List.of("m1"), null, Map.of()));
     }
 
     @Test
     void requiresInsight() {
         assertThrows(NullPointerException.class, () ->
-            new ReflectionEvent("a1", "t1", null, null, 1, List.of("m1"), null, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, null, 1, List.of("m1"), null, Map.of()));
     }
 
     @Test
     void rejectsBlankInsight() {
         assertThrows(IllegalArgumentException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "  ", 1, List.of("m1"), null, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "  ", 1, List.of("m1"), null, Map.of()));
     }
 
     @Test
     void rejectsLevelZero() {
         assertThrows(IllegalArgumentException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "insight", 0, List.of("m1"), null, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "insight", 0, List.of("m1"), null, Map.of()));
     }
 
     @Test
     void rejectsNegativeLevel() {
         assertThrows(IllegalArgumentException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "insight", -1, List.of("m1"), null, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "insight", -1, List.of("m1"), null, Map.of()));
     }
 
     @Test
     void requiresSourceMemoryIds() {
         assertThrows(NullPointerException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "insight", 1, null, null, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "insight", 1, null, null, Map.of()));
     }
 
     @Test
     void rejectsEmptySourceMemoryIds() {
         assertThrows(IllegalArgumentException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "insight", 1, List.of(), null, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of(), null, Map.of()));
     }
 
     @Test
     void rejectsInvalidImportance() {
         assertThrows(IllegalArgumentException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), 1.1, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of("m1"), 1.1, Map.of()));
         assertThrows(IllegalArgumentException.class, () ->
-            new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), -0.1, Map.of()));
+            new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of("m1"), -0.1, Map.of()));
     }
 
     @Test
     void acceptsNullOptionalFields() {
-        var event = new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), null, Map.of());
+        var event = new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of("m1"), null, Map.of());
         assertNull(event.caseId());
         assertNull(event.confidence());
     }
@@ -73,7 +73,7 @@ class ReflectionEventTest {
     @Test
     void copiesSourceMemoryIds() {
         var mutable = new java.util.ArrayList<>(List.of("m1", "m2"));
-        var event = new ReflectionEvent("a1", "t1", null, "insight", 1, mutable, null, Map.of());
+        var event = new ReflectionEvent("a1", "t1", null, null, "insight", 1, mutable, null, Map.of());
         mutable.add("m3");
         assertEquals(2, event.sourceMemoryIds().size());
     }
@@ -81,15 +81,15 @@ class ReflectionEventTest {
     @Test
     void copiesMetadata() {
         var mutable = new java.util.HashMap<>(Map.of("k", "v"));
-        var event = new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), null, mutable);
+        var event = new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of("m1"), null, mutable);
         mutable.put("k2", "v2");
         assertFalse(event.metadata().containsKey("k2"));
     }
 
     @Test
     void validEventStoresAllFields() {
-        var event = new ReflectionEvent("a1", "t1", "c1", "agents cooperate well", 2,
-            List.of("m1", "m2", "m3"), 0.8, Map.of("extra", "val"));
+        var event = new ReflectionEvent("a1", "t1", "c1", null, "agents cooperate well", 2,
+                                        List.of("m1", "m2", "m3"), 0.8, Map.of("extra", "val"));
         assertEquals("a1", event.agentId());
         assertEquals("t1", event.tenantId());
         assertEquals("c1", event.caseId());
@@ -102,7 +102,7 @@ class ReflectionEventTest {
 
     @Test
     void acceptsHighLevels() {
-        var event = new ReflectionEvent("a1", "t1", null, "deep insight", 5, List.of("m1"), null, Map.of());
+        var event = new ReflectionEvent("a1", "t1", null, null, "deep insight", 5, List.of("m1"), null, Map.of());
         assertEquals(5, event.level());
     }
 }

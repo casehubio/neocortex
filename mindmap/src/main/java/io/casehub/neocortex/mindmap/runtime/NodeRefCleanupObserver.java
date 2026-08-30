@@ -39,7 +39,7 @@ public class NodeRefCleanupObserver {
     private void removeRefs(String scheme, String refId, String tenantId) {
         try {
             var query = new MindMapQuery(tenantId, null, null, null, null,
-                null, null, false, 10_000);
+                                         null, null, false, null, null, null, 10_000);
             for (MindMapNode node : store.search(query)) {
                 Set<NodeRef> toRemove = node.refs().stream()
                     .filter(r -> r.scheme().equals(scheme) && r.id().equals(refId))

@@ -40,7 +40,7 @@ class ReflectionServiceTest {
             new Memory("m2", "a1", new MemoryDomain("experience"), "t1", null, "did something", Map.of(), Instant.now(), null)
         );
         synthesizer.results = List.of(
-            new ReflectionEvent("a1", "t1", null, "pattern observed", 1, List.of("m1", "m2"), null, Map.of())
+            new ReflectionEvent("a1", "t1", null, null, "pattern observed", 1, List.of("m1", "m2"), null, Map.of())
         );
 
         List<String> ids = service.reflect("a1", "t1", null, 100);
@@ -57,8 +57,8 @@ class ReflectionServiceTest {
             new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null)
         );
         synthesizer.results = List.of(
-            new ReflectionEvent("a1", "t1", null, "insight 1", 1, List.of("m1"), null, Map.of()),
-            new ReflectionEvent("a1", "t1", null, "insight 2", 1, List.of("m1"), null, Map.of())
+            new ReflectionEvent("a1", "t1", null, null, "insight 1", 1, List.of("m1"), null, Map.of()),
+            new ReflectionEvent("a1", "t1", null, null, "insight 2", 1, List.of("m1"), null, Map.of())
         );
 
         service.reflect("a1", "t1", null, 100);
@@ -108,7 +108,7 @@ class ReflectionServiceTest {
             new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null)
         );
         synthesizer.results = List.of(
-            new ReflectionEvent("a1", "t1", null, "insight", 1, List.of("m1"), null, Map.of())
+            new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of("m1"), null, Map.of())
         );
 
         assertThrows(SecurityException.class, () -> service.reflect("a1", "t1", null, 100));

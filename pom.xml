@@ -23,6 +23,7 @@
     <module>inference-quarkus</module>
     <module>fusion-api</module>
     <module>cognitive-api</module>
+    <module>cognitive-index</module>
     <module>rag-api</module>
     <module>rag</module>
     <module>rag-tika</module>
@@ -195,6 +196,11 @@
       </dependency>
       <dependency>
         <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cognitive-index</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-rag-api</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -246,6 +252,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-memory-testing</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-memory-inmem</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

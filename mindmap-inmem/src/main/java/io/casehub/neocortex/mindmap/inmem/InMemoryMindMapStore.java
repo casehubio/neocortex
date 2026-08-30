@@ -321,6 +321,9 @@ public class InMemoryMindMapStore implements MindMapStore {
             .filter(n -> query.minConfidence() == null || n.confidence.value() >= query.minConfidence())
             .filter(n -> query.confidenceOrigin() == null || n.confidence.origin() == query.confidenceOrigin())
             .filter(n -> edgeTypeNodes == null || edgeTypeNodes.contains(n.id))
+            .filter(n -> query.validAfter() == null || (n.validFrom != null && n.validFrom.isAfter(query.validAfter())))
+            .filter(n -> query.validBefore() == null || (n.validFrom != null && n.validFrom.isBefore(query.validBefore())))
+            .filter(n -> query.updatedAfter() == null || (n.updatedAt != null && n.updatedAt.isAfter(query.updatedAfter())))
             .limit(query.limit())
             .map(n -> (MindMapNode) n)
             .toList();

@@ -29,6 +29,9 @@ public final class MoodEvents {
             attrs.put(MoodAttributeKeys.TURN_ID, state.turnId());
         }
 
+        reserved.add(MoodAttributeKeys.TIMESTAMP);
+        attrs.put(MoodAttributeKeys.TIMESTAMP, state.timestamp().toString());
+
         for (String key : state.metadata().keySet()) {
             if (reserved.contains(key)) {
                 throw new IllegalArgumentException(

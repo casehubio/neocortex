@@ -1,19 +1,21 @@
 package io.casehub.neocortex.memory.experience;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
 public record Action(
-    String agentId,
-    String tenantId,
-    String caseId,
-    String turnId,
-    String description,
-    Double confidence,
-    Map<String, String> metadata,
-    String capability
+        String agentId,
+        String tenantId,
+        String caseId,
+        String turnId,
+        Instant timestamp, String description,
+        Double confidence,
+        Map<String, String> metadata,
+        String capability
 ) implements ExperienceEvent {
     public Action {
+        if (timestamp == null) timestamp = Instant.now();
         Objects.requireNonNull(agentId, "agentId required");
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(description, "description required");

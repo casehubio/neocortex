@@ -31,7 +31,7 @@ class EngagementStreamTest {
 
     private EngagementEvent engagement() {
         return new EngagementEvent("a1", "b1", "t1", null, "turn-1",
-            "user responded", null, Map.of(), true, null, null, null, null, null);
+                                   null, "user responded", null, Map.of(), true, null, null, null, null, null);
     }
 
     @Test

@@ -23,6 +23,9 @@ public final class EngagementEvents {
         reserved.add(EngagementAttributeKeys.TURN_ID);
         attrs.put(EngagementAttributeKeys.TURN_ID, event.turnId());
 
+        reserved.add(EngagementAttributeKeys.TIMESTAMP);
+        attrs.put(EngagementAttributeKeys.TIMESTAMP, event.timestamp().toString());
+
         addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONDED, event.responded());
         addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONSE_TIME_MS, event.responseTimeMs());
         addIfPresent(reserved, attrs, EngagementAttributeKeys.RESPONSE_LENGTH, event.responseLength());

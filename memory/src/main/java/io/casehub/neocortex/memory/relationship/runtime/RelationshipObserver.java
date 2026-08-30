@@ -41,7 +41,7 @@ public class RelationshipObserver {
 
         var relEvent = new RelationshipEvent(
                 exp.agentId(), otherAgent, exp.tenantId(), exp.caseId(),
-                exp.turnId(), sourceEventType(exp), QualitySignal.NEUTRAL,
+                exp.turnId(), null, sourceEventType(exp), QualitySignal.NEUTRAL,
                 exp.description(), exp.confidence(), Map.of());
 
         try {

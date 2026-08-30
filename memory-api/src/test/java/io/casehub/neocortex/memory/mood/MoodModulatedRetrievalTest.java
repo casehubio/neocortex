@@ -24,7 +24,7 @@ class MoodModulatedRetrievalTest {
     }
 
     private MoodState mood(double p, double a, double d) {
-        return new MoodState("a1", "t1", p, a, d, "test", null, Map.of());
+        return new MoodState("a1", "t1", null, p, a, d, "test", null, Map.of());
     }
 
     @Test

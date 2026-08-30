@@ -26,7 +26,7 @@ class SqliteMindMapStoreTest extends MindMapStoreContractTest {
         store.addNode(nodeInput("Machine Learning"), TENANT);
 
         var results = store.search(new io.casehub.neocortex.mindmap.MindMapQuery(
-            TENANT, null, "Artificial", null, null, null, null, false, 10));
+                TENANT, null, "Artificial", null, null, null, null, false, null, null, null, 10));
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().name()).isEqualTo("Artificial Intelligence");
     }
