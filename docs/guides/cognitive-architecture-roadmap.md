@@ -304,22 +304,23 @@ Update `CuriositySignalGenerator`'s affect dampening to use trajectory, not snap
 
 **Goal:** Unified querying across all cognitive stores. "Tell me everything about Alice" in one call. "What's on my mind right now?" as a single ranked list. Graph reasoning over the unified knowledge structure.
 
-### 4a: Cross-Store Entity Resolution
+### 4a: Cross-Store Entity Resolution — **DONE** (#243)
 
-A `CognitiveProfile` utility that, given an entity name or ID:
-1. Resolves the MindMap node (via `resolveNode`)
-2. Follows `NodeRef`s to text memories (`scheme="memory"`) and CBR cases (`scheme="cbr"`)
-3. Queries engagement events, relationship quality, experience history
-4. Reads the affect trajectory
-5. Returns a unified `EntityKnowledge` record aggregating everything the system knows
+Implemented in `cognitive-index` module. `CognitiveProfile` CDI bean (`@ApplicationScoped`, `Instance<T>` graceful degradation) resolves everything the system knows about an entity:
 
-This is the "tell me everything about Alice" query.
+1. Resolves MindMap node (by ID via `getNode` or by name/alias via `resolveNode`)
+2. Follows `NodeRef(scheme="memory")` to linked memories; records `scheme="cbr"` as unresolved (CbrCaseMemoryStore has no get-by-ID)
+3. Queries memories across 6 cognitive domains (experience, relationship, reflection, mood, engagement, affect) using dual entity ID resolution (nodeId + nodeName)
+4. Computes affect trajectory via `AffectTrajectoryAnalyzer` composition
+5. Returns unified `EntityKnowledge` record (node, edges, memories-by-domain, trajectory, unresolved refs)
+
+Query configuration via `CognitiveProfileQuery` record: `byId`/`byName` factories, `withDomains()` for selective domain querying, `withIncludeEdges()`, `withMemoryLimit()`. Single `tenantId` — designed for future multi-tenant extension when memory spaces (#230) land.
 
 **Memory space impact:** Entity resolution must work across memory spaces. "Tell me everything about Alice" traverses the agent's private graph AND shared family graph, follows NodeRefs into private and shared memories, and merges perspectival affect overlays. The result carries provenance: which facts are private, which are shared, which are the viewer's perspective vs consensus.
 
 **Scope:** L — bridge module depending on all three SPIs.
 
-### 4b: TemporalFocus Utility
+### 4b: TemporalFocus Utility — **DONE** (#244)
 
 "What's on my mind right now?" — aggregates:
 - Upcoming MindMap events (by proximity score)
@@ -335,16 +336,18 @@ This feeds the agent's executive function — deciding what to think about next.
 
 **Scope:** M — depends on temporal index (2d) and affect trajectory (3b).
 
-### 4c: Graph Reasoning Integration
+### 4c: Graph Reasoning Integration — **DONE** (#245)
 
-DesiredState has developed graph reasoning capabilities (directed acyclic graph traversal, dependency resolution, convergence analysis). Future exploration:
+Exploration complete. **DesiredStateGraph DAG data model does not apply** — acyclic enforcement, `Dependency` provisioning semantics, and `NodeSpec` are incompatible with MindMap's cyclic semantic graph.
 
-- Can DesiredState's graph query engine traverse MindMap structure?
-- "Find all paths between Alice and Project X"
-- "What entities are transitively connected to this upcoming event?"
-- Convergence analysis: "which knowledge areas are well-connected vs isolated?"
+**Three algorithmic patterns ARE transferable:**
+1. `GraphRuleEngine` — iterative pattern-match → mutate → convergence-check loop. Graph-type-agnostic. Reference for evolving `DerivedEdgeDecorator` when multi-hop inference is needed.
+2. `PatternEvaluator` — structural graph pattern matching with variable bindings. Reference for MindMap inference rules beyond property-based `TraitRule`.
+3. Declarative rule model (`@GraphRule`) — working reference for roadmap §5d (Declarative Rule DSL).
 
-This is an exploration item — assess feasibility, don't commit to implementation.
+**Platform extraction opportunity:** Pure graph reasoning (rule engine, pattern evaluator, traversal) could be extracted to platform behind a generic graph interface. Both desiredstate (DAG) and MindMap (general graph) would be consumers — constraint enforcement lives in the graph implementation, not the reasoning layer.
+
+**Short-term:** Extend MindMapAnalyzer with `findPaths`, `reachableFrom`, `connectedComponents` (~S effort each, pure Java on `neighbors()`).
 
 **Scope:** Exploration — assessment only.
 
@@ -590,9 +593,9 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 3c: Prospective Events | 2a, 3b | M | Event lifecycle + traits + recurrence |
 | 3d: Perspectival Overlays | 1f, 3a | M | Per-agent PAD overlays on shared nodes |
 | 3e: Trajectory Curiosity | 3b | S | Updated `CuriositySignalGenerator` |
-| 4a: Cross-Store Entity | 1c, 2d | L | `CognitiveProfile` utility |
+| 4a: Cross-Store Entity | 1c, 2d | L | `CognitiveProfile` utility — **DONE** (#243) |
 | 4b: TemporalFocus | 2d, 3b | M | `AttentionList` — "what's on my mind?" |
-| 4c: Graph Reasoning | 4a | Exploration | DesiredState integration assessment |
+| 4c: Graph Reasoning | 4a | Exploration | DesiredState integration assessment — **DONE** (#245) |
 | 4d: Query DSL | 4a, 4b | XL | Unified cognitive query language |
 | 5a: API-to-YAML Mapping Audit | 1b, 1d | S | Mapping table identifying all YAML gaps |
 | 5b: YAML Schema Design | 5a | M | YAML schema conventions document |
