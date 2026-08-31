@@ -230,7 +230,7 @@ Update `MoodModulatedRetrieval` to read PAD from any memory's fields, not just m
 
 **Scope:** S — field additions + retrieval update.
 
-### 3b: Affect Trajectory Log
+### 3b: Affect Trajectory Log — **DONE** (#239)
 
 PAD becomes a timestamped log, not a mutable field. Each `updateNode()` that changes PAD creates an `AffectEntry(Instant timestamp, double pleasure, double arousal, double dominance)`. The "current" PAD is the most recent entry. The trajectory is queryable:
 
@@ -584,7 +584,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 2c: Temporal MindMapQuery | 2a | S | `validAfter`/`validBefore`/`updatedAfter` fields |
 | 2d: Chronological Index | 2a, 2b, 2c | M | Cross-store `TemporalIndex` — **DONE** (#237) |
 | 3a: PAD on Memory | 1d | S | `pleasure`/`arousal`/`dominance` on MemoryInput |
-| 3b: Affect Trajectory | 3a | M | `AffectEntry` log per node/entity |
+| 3b: Affect Trajectory | 3a | M | `AffectEntry` log per node/entity — **DONE** (#239) |
 | 3c: Prospective Events | 2a, 3b | M | Event lifecycle + traits + recurrence |
 | 3d: Perspectival Overlays | 1f, 3a | M | Per-agent PAD overlays on shared nodes |
 | 3e: Trajectory Curiosity | 3b | S | Updated `CuriositySignalGenerator` |
