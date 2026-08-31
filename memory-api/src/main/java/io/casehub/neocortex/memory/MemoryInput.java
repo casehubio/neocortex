@@ -42,4 +42,20 @@ public record MemoryInput(
     public MemoryInput withPad(Double pleasure, Double arousal, Double dominance) {
         return new MemoryInput(entityId, domain, tenantId, caseId, text, attributes, confidence, pleasure, arousal, dominance);
     }
+
+    public static MemoryInput of(String entityId, MemoryDomain domain,
+                                  String tenantId, String text) {
+        return new MemoryInput(entityId, domain, tenantId, null, text,
+                               Map.of(), null, null, null, null);
+    }
+
+    public MemoryInput withCaseId(String caseId) {
+        return new MemoryInput(entityId, domain, tenantId, caseId, text,
+                               attributes, confidence, pleasure, arousal, dominance);
+    }
+
+    public MemoryInput withConfidence(Confidence confidence) {
+        return new MemoryInput(entityId, domain, tenantId, caseId, text,
+                               attributes, confidence, pleasure, arousal, dominance);
+    }
 }

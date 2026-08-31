@@ -118,4 +118,61 @@ class MemoryInputTest {
         assertThat(enriched.text()).isEqualTo("new");
         assertThat(enriched.entityId()).isEqualTo("e1");
     }
+
+    @Test
+    void of_createsWithDefaults() {
+        var input = MemoryInput.of("e1", DOMAIN, "t1", "hello");
+        assertThat(input.entityId()).isEqualTo("e1");
+        assertThat(input.domain()).isEqualTo(DOMAIN);
+        assertThat(input.tenantId()).isEqualTo("t1");
+        assertThat(input.text()).isEqualTo("hello");
+        assertThat(input.caseId()).isNull();
+        assertThat(input.attributes()).isEmpty();
+        assertThat(input.confidence()).isNull();
+        assertThat(input.pleasure()).isNull();
+        assertThat(input.arousal()).isNull();
+        assertThat(input.dominance()).isNull();
+    }
+
+    @Test
+    void of_nullEntityId_throws() {
+        assertThatThrownBy(() -> MemoryInput.of(null, DOMAIN, "t1", "text"))
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void of_blankText_throws() {
+        assertThatThrownBy(() -> MemoryInput.of("e1", DOMAIN, "t1", ""))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void withCaseId_returnsNewInstance() {
+        var input = MemoryInput.of("e1", DOMAIN, "t1", "text");
+        var enriched = input.withCaseId("case-1");
+        assertThat(enriched.caseId()).isEqualTo("case-1");
+        assertThat(enriched.entityId()).isEqualTo("e1");
+        assertThat(input.caseId()).isNull();
+    }
+
+    @Test
+    void withConfidence_returnsNewInstance() {
+        var conf = new io.casehub.neocortex.cognitive.Confidence(
+            io.casehub.neocortex.cognitive.ConfidenceOrigin.STATED, 0.9, null);
+        var input = MemoryInput.of("e1", DOMAIN, "t1", "text");
+        var enriched = input.withConfidence(conf);
+        assertThat(enriched.confidence()).isEqualTo(conf);
+        assertThat(input.confidence()).isNull();
+    }
+
+    @Test
+    void of_chainingWithExistingWithers() {
+        var input = MemoryInput.of("e1", DOMAIN, "t1", "text")
+            .withCaseId("case-1")
+            .withAttribute("k", "v")
+            .withPad(0.5, 0.3, 0.7);
+        assertThat(input.caseId()).isEqualTo("case-1");
+        assertThat(input.attributes()).containsEntry("k", "v");
+        assertThat(input.pleasure()).isEqualTo(0.5);
+    }
 }

@@ -54,6 +54,7 @@
     <module>mindmap-inmem</module>
     <module>mindmap-sqlite</module>
     <module>mindmap-intelligence</module>
+
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
     <module>examples/example-cbr</module>

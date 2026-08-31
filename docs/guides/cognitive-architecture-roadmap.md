@@ -115,25 +115,11 @@ Already implemented (#223). Verify all current and future decorators extend `Abs
 
 **Scope:** Done.
 
-### 1f: Memory Space Model
+### 1f: Memory Space Model — REMOVED (#255)
 
-Define the multi-agent memory space model as part of structural consolidation — not as a later phase. Every subsequent API design (confidence, builders, temporal, affective) must be space-aware from the start.
+The space-as-tenant model was a design mistake. Tenant is the hard isolation boundary (organisation). Individual vs common memory is a property of the memory itself (`entityId`), not a partitioning system. The 5 `memory-space-*` modules were deleted in #255. Per-agent cognitive state (e.g. perspectival overlays) uses `agentId` properties within the shared tenant instead.
 
-**Core concepts:**
-- `MemorySpace` — PRIVATE (one agent), SHARED (group), SELECTIVE (named recipients)
-- Visibility layer above the store — each space IS a tenant; the layer unions results from all spaces an agent belongs to
-- `Visibility` sealed type: `Private(ownerId)`, `Shared(spaceId)`, `Selective(spaceId, Set<String> recipientIds)`
-- Space membership with temporal validity (access changes over time)
-
-**Impact on other Phase 1 items:**
-- 1a (Confidence): shared knowledge has collective confidence (multiple observers strengthen it); individual confidence is per-viewer
-- 1b (Builders): every query builder must accept space parameters — `MindMapQuery.builder().spaces(PRIVATE, SHARED).build()`
-- 1c (Cross-Store Composability): `RetrievalModulator<T>` must work across private + shared result sets
-- 1d (Naming): add space terminology to the naming table
-
-See [Shared Memory Design](shared-memory-design.md) for full design.
-
-**Scope:** M — `MemorySpace` type, `Visibility` sealed hierarchy, space membership model, visibility layer SPI. No store implementation changes — the abstraction sits above the stores.
+See #255 for the rationale and removal scope.
 
 ---
 
@@ -519,29 +505,9 @@ See [Identity-Memory Integration](identity-memory-integration.md) for the full d
 
 **Scope:** M — derivation function, default rule set, integration with 5e loader.
 
-### 5g: Memory Space YAML Configuration
+### ~~5g: Memory Space YAML Configuration~~ — REMOVED (#255)
 
-YAML surface for defining memory spaces, membership, visibility rules, and scope-based access:
-
-```yaml
-memory-spaces:
-  - id: smiths-family
-    type: shared
-    members:
-      - { id: alice, roles: [admin, financial-authority], since: 2010-06-15 }
-      - { id: bob, roles: [admin, school-authority], since: 2010-06-15 }
-      - { id: emma, roles: [member], since: 2012-09-01 }
-    scopes:
-      calendar:  { visibility: all-members }
-      finances:  { visibility: [alice, bob] }
-      health:    { visibility: owner-only }
-```
-
-Composes with `descriptor:` (eidos) + `cognitive:` (neocortex) in the same agent YAML. Group identity (shared goals, collective values) lives here alongside individual cognitive profiles.
-
-See [Shared Memory Design](shared-memory-design.md) for the full model.
-
-**Scope:** M — YAML schema + parser + integration with visibility layer (1f).
+The space-as-tenant model was deleted in #255. The YAML configuration for memory spaces is no longer applicable. Multi-agent memory sharing within a tenant will require a different design if the use case materialises.
 
 ---
 
@@ -583,7 +549,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 1c: Cross-Store Composability | 1a | M | Generic `RetrievalModulator<T>` for mood/personality/trust |
 | 1d: Naming Audit | 1a | S | Terminology table enforced; inconsistencies renamed |
 | 1e: Forwarding Store | Done (#223) | — | — |
-| 1f: Memory Space Model | — | M | `MemorySpace`, `Visibility`, space membership, visibility layer SPI |
+| ~~1f: Memory Space Model~~ | — | — | REMOVED — space-as-tenant model deleted (#255) |
 | 2a: Temporal Taxonomy | 1d | M | `TemporalMark` sealed hierarchy |
 | 2b: Event Timestamps | 2a | S | `Instant timestamp()` on all event types |
 | 2c: Temporal MindMapQuery | 2a | S | `validAfter`/`validBefore`/`updatedAfter` fields |
@@ -591,7 +557,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 3a: PAD on Memory | 1d | S | `pleasure`/`arousal`/`dominance` on MemoryInput |
 | 3b: Affect Trajectory | 3a | M | `AffectEntry` log per node/entity — **DONE** (#239) |
 | 3c: Prospective Events | 2a, 3b | M | Event lifecycle + traits + recurrence |
-| 3d: Perspectival Overlays | 1f, 3a | M | Per-agent PAD overlays on shared nodes |
+| 3d: Perspectival Overlays | 3a | M | Per-agent PAD overlays on shared nodes — **DONE** (#240) |
 | 3e: Trajectory Curiosity | 3b | S | Updated `CuriositySignalGenerator` |
 | 4a: Cross-Store Entity | 1c, 2d | L | `CognitiveProfile` utility — **DONE** (#243) |
 | 4b: TemporalFocus | 2d, 3b | M | `AttentionList` — "what's on my mind?" |
@@ -603,7 +569,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 5d: Declarative Rule DSL | 5b | L | YAML trait rules + derived edge rules |
 | 5e: YAML-to-Java Compiler | 5c, 5d | L | Build-time/startup YAML → CDI bean loader |
 | 5f: Identity-Cognition Derivation | 5c, eidos | M | `derive-from: descriptor` → default cognitive config |
-| 5g: Memory Space YAML | 5b, 1f | M | YAML memory space configuration + group identity |
+| ~~5g: Memory Space YAML~~ | ~~5b, 1f~~ | — | REMOVED — space-as-tenant model deleted (#255) |
 
 **Phase 1** can start immediately — no external dependencies. Items 1a and 1b are parallelisable.
 
@@ -623,4 +589,4 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 - **New backends** — no new storage engines (TinkerPop, PostgreSQL graph). The improvements work with existing InMemory + SQLite backends.
 - **LLM prompt evolution** — `MindMapExtractor`'s prompts may need updating as the temporal/affective model evolves, but prompt engineering is not a structural concern.
 - **Performance** — the chronological index (2d) has performance implications but this program focuses on capability, not optimisation.
-- **casehub-life wiring** — this program designs the memory space model and visibility layer. Wiring it to life's family model (household membership, decision authority, care coordination) is a life-side integration task that depends on Phases 1f and 3d being complete.
+- **casehub-life wiring** — multi-agent memory sharing within a tenant will need a separate design if the use case materialises. The space-as-tenant model (1f) was removed in #255. Per-agent cognitive state (e.g. perspectival overlays, 3d) uses agentId properties within the shared tenant.
