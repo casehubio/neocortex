@@ -46,6 +46,6 @@ public final class RelationshipEvents {
         attrs.putAll(event.metadata());
 
         return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-            event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null);
+                               event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null, null, null, null);
     }
 }

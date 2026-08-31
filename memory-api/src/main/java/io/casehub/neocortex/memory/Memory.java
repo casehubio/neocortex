@@ -14,7 +14,7 @@ public record Memory(
         String text,
         Map<String, String> attributes,
         Instant createdAt,
-        Confidence confidence) {
+        Confidence confidence, Double pleasure, Double arousal, Double dominance) {
     public Memory {
         attributes = Map.copyOf(attributes);
     }

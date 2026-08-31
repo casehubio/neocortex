@@ -71,9 +71,9 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
         String memoryId = UUID.randomUUID().toString();
         Memory memory = new Memory(
-            memoryId, input.entityId(), input.domain(), input.tenantId(),
-            input.caseId(), input.text(), input.attributes(), Instant.now(),
-            input.confidence());
+                memoryId, input.entityId(), input.domain(), input.tenantId(),
+                input.caseId(), input.text(), input.attributes(), Instant.now(),
+                input.confidence(), input.pleasure(), input.arousal(), input.dominance());
         store.computeIfAbsent(
             new BucketKey(input.tenantId(), input.entityId(), input.domain()),
             k -> new CopyOnWriteArrayList<>()

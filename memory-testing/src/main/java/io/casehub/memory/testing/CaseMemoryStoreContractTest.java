@@ -43,15 +43,15 @@ public abstract class CaseMemoryStoreContractTest {
     protected abstract CaseMemoryStore store();
 
     protected MemoryInput input(String text) {
-        return new MemoryInput("entity-1", DOMAIN, TENANT, null, text, Map.of(), null);
+        return new MemoryInput("entity-1", DOMAIN, TENANT, null, text, Map.of(), null, null, null, null);
     }
 
     protected MemoryInput input(String entityId, String text) {
-        return new MemoryInput(entityId, DOMAIN, TENANT, null, text, Map.of(), null);
+        return new MemoryInput(entityId, DOMAIN, TENANT, null, text, Map.of(), null, null, null, null);
     }
 
     protected MemoryInput inputWithCase(String text, String caseId) {
-        return new MemoryInput("entity-1", DOMAIN, TENANT, caseId, text, Map.of(), null);
+        return new MemoryInput("entity-1", DOMAIN, TENANT, caseId, text, Map.of(), null, null, null, null);
     }
 
     protected MemoryQuery query() {
@@ -76,7 +76,7 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void store_tenant_mismatch_throws() {
-        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
+        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null, null, null, null);
         assertThrows(SecurityException.class, () -> store().store(bad));
     }
 
@@ -196,7 +196,7 @@ public abstract class CaseMemoryStoreContractTest {
             MemoryAttributeKeys.OUTCOME,    "DONE",
             MemoryAttributeKeys.CONFIDENCE, MemoryAttributeKeys.formatConfidence(0.87)
         );
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "reviewer completed task", attrs, null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "reviewer completed task", attrs, null, null, null, null));
         var results = store().query(query());
         assertEquals(1, results.size());
         var stored = results.get(0).attributes();
@@ -271,7 +271,7 @@ public abstract class CaseMemoryStoreContractTest {
     void eraseById_does_not_erase_other_entity_memory_within_same_tenant() {
         // entity-2's memory stored within the same tenant
         String e2MemId = store().store(
-            new MemoryInput("entity-2", DOMAIN, TENANT, null, "other entity's data", Map.of(), null));
+            new MemoryInput("entity-2", DOMAIN, TENANT, null, "other entity's data", Map.of(), null, null, null, null));
         // entity-1 caller attempts to erase entity-2's memory — silent no-op
         store().eraseById(e2MemId, "entity-1", TENANT);
         // entity-2's memory must survive
@@ -283,8 +283,8 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_removes_all_domains_for_entity() {
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "finance", Map.of(), null));
-        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "health", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "finance", Map.of(), null, null, null, null));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "health", Map.of(), null, null, null, null));
         final int deleted = store().eraseEntity("entity-1", TENANT);
         assertTrue(deleted > 0, "eraseEntity must return positive count when records existed");
         assertTrue(store().query(query()).isEmpty());
@@ -298,8 +298,8 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_leaves_other_entities_intact() {
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "mine", Map.of(), null));
-        store().store(new MemoryInput("entity-2", DOMAIN, TENANT, null, "other", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "mine", Map.of(), null, null, null, null));
+        store().store(new MemoryInput("entity-2", DOMAIN, TENANT, null, "other", Map.of(), null, null, null, null));
         final int deleted = store().eraseEntity("entity-1", TENANT);
         assertTrue(deleted >= 0, "eraseEntity must return non-negative count");
         var e2results = store().query(MemoryQuery.forEntity("entity-2", DOMAIN, TENANT));
@@ -309,9 +309,9 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_returns_count_of_deleted_records() {
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of(), null));
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of(), null));
-        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "c", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "a", Map.of(), null, null, null, null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "b", Map.of(), null, null, null, null));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "c", Map.of(), null, null, null, null));
         assertEquals(3, store().eraseEntity("entity-1", TENANT));
     }
 
@@ -377,14 +377,14 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void storeAll_all_wrong_tenant_throws_security_exception() {
-        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
+        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null, null, null, null);
         assertThrows(SecurityException.class, () -> store().storeAll(List.of(bad)));
     }
 
     @Test
     void storeAll_second_item_tenant_mismatch_no_entries_stored() {
         var good = input("entity-1", "fact");
-        var bad  = new MemoryInput("entity-2", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
+        var bad  = new MemoryInput("entity-2", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null, null, null, null);
         assertThrows(SecurityException.class, () -> store().storeAll(List.of(good, bad)));
         assertTrue(store().query(query()).isEmpty(),
             "first item must not be persisted when second item fails tenant check");
@@ -392,7 +392,7 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test
     void confidence_roundTrip() {
-        var input = new MemoryInput("entity-1", DOMAIN, TENANT, null, "important event", Map.of(), Confidence.unknown(0.8));
+        var input = new MemoryInput("entity-1", DOMAIN, TENANT, null, "important event", Map.of(), Confidence.unknown(0.8), null, null, null);
         store().store(input);
         var results = store().query(query());
         assertEquals(1, results.size());
@@ -416,8 +416,8 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test void purge_confidenceBased() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "low confidence", Map.of(), Confidence.unknown(0.1)));
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "high confidence", Map.of(), Confidence.unknown(0.9)));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "low confidence", Map.of(), Confidence.unknown(0.1), null, null, null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "high confidence", Map.of(), Confidence.unknown(0.9), null, null, null));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
         var results = store().query(query());
         assertEquals(1, results.size());
@@ -426,7 +426,7 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test void purge_combined_confidenceProtectsRecent() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "confident recent", Map.of(), Confidence.unknown(0.9)));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "confident recent", Map.of(), Confidence.unknown(0.9), null, null, null));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, 0.5));
         var results = store().query(query());
         assertEquals(1, results.size());
@@ -435,7 +435,7 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test void purge_combined_recentLowConfidence_notPurged() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "recent but low confidence", Map.of(), Confidence.unknown(0.1)));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "recent but low confidence", Map.of(), Confidence.unknown(0.1), null, null, null));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, 365, 0.5));
         assertEquals(1, store().query(query()).size());
     }
@@ -449,8 +449,8 @@ public abstract class CaseMemoryStoreContractTest {
 
     @Test void purge_scopedByDomain() {
         if (!store().capabilities().contains(MemoryCapability.PURGE)) return;
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "target domain", Map.of(), Confidence.unknown(0.1)));
-        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "other domain", Map.of(), Confidence.unknown(0.1)));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "target domain", Map.of(), Confidence.unknown(0.1), null, null, null));
+        store().store(new MemoryInput("entity-1", OTHER_DOMAIN, TENANT, null, "other domain", Map.of(), Confidence.unknown(0.1), null, null, null));
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
         assertEquals(0, store().query(query()).size());
         assertEquals(1, store().query(MemoryQuery.forEntity("entity-1", OTHER_DOMAIN, TENANT)).size());

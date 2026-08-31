@@ -256,15 +256,15 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
 
     private Memory toMemory(Mem0Memory m, String tenantId) {
         return new Memory(
-            m.id(),
-            extractEntityId(m.userId()),
-            new MemoryDomain(m.agentId() != null ? m.agentId() : ""),
-            tenantId,
-            m.runId(),
+                m.id(),
+                extractEntityId(m.userId()),
+                new MemoryDomain(m.agentId() != null ? m.agentId() : ""),
+                tenantId,
+                m.runId(),
             m.memory() != null ? m.memory() : "",
             m.metadata() != null ? m.metadata() : Map.of(),
-            parseCreatedAt(m.createdAt()),
-            null);
+                parseCreatedAt(m.createdAt()),
+                null, null, null, null);
     }
 
     private Mem0StoreException toStoreException(WebApplicationException e) {

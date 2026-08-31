@@ -23,8 +23,8 @@ class CaseMemoryStoreSpiTest {
 
     @Test
     void storeAll_delegates_to_store() {
-        var a = new MemoryInput("e1", DOMAIN, "t1", null, "a", Map.of(), null);
-        var b = new MemoryInput("e1", DOMAIN, "t1", null, "b", Map.of(), null);
+        var a = new MemoryInput("e1", DOMAIN, "t1", null, "a", Map.of(), null, null, null, null);
+        var b = new MemoryInput("e1", DOMAIN, "t1", null, "b", Map.of(), null, null, null, null);
         var result = sut.storeAll(List.of(a, b));
         assertEquals(List.of("mem-1", "mem-1"), result.stored());
         assertTrue(result.allSucceeded());
@@ -42,9 +42,9 @@ class CaseMemoryStoreSpiTest {
             @Override public int erase(EraseRequest r) { return 0; }
         };
         var inputs = List.of(
-            new MemoryInput("e1", DOMAIN, "t1", null, "a", Map.of(), null),
-            new MemoryInput("e1", DOMAIN, "t1", null, "b", Map.of(), null),
-            new MemoryInput("e1", DOMAIN, "t1", null, "c", Map.of(), null)
+            new MemoryInput("e1", DOMAIN, "t1", null, "a", Map.of(), null, null, null, null),
+            new MemoryInput("e1", DOMAIN, "t1", null, "b", Map.of(), null, null, null, null),
+            new MemoryInput("e1", DOMAIN, "t1", null, "c", Map.of(), null, null, null, null)
         );
         var result = failingStore.storeAll(inputs);
         assertEquals(List.of("mem-ok", "mem-ok"), result.stored());
@@ -63,8 +63,8 @@ class CaseMemoryStoreSpiTest {
             @Override public int erase(EraseRequest r) { return 0; }
         };
         var inputs = List.of(
-            new MemoryInput("e1", DOMAIN, "t1", null, "a", Map.of(), null),
-            new MemoryInput("e1", DOMAIN, "bad", null, "b", Map.of(), null)
+            new MemoryInput("e1", DOMAIN, "t1", null, "a", Map.of(), null, null, null, null),
+            new MemoryInput("e1", DOMAIN, "bad", null, "b", Map.of(), null, null, null, null)
         );
         assertThrows(SecurityException.class, () -> tenantCheckStore.storeAll(inputs));
     }

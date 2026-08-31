@@ -41,4 +41,13 @@ public class MemoryEntry extends PanacheEntityBase {
     @Column(name = "confidence")
     public Double  confidence;
 
+    @Column(name = "pleasure")
+    public Double pleasure;
+
+    @Column(name = "arousal")
+    public Double arousal;
+
+    @Column(name = "dominance")
+    public Double dominance;
+
 }

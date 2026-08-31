@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.*;
 
 class StoreAllResultTest {
 
-    static final MemoryInput INPUT = new MemoryInput("e1", new MemoryDomain("d"), "t1", null, "text", Map.of(), null);
+    static final MemoryInput INPUT = new MemoryInput("e1", new MemoryDomain("d"), "t1", null, "text", Map.of(), null, null, null, null);
 
     // ── StoreAllResult construction ───────────────────────────────────────────
 

@@ -42,6 +42,7 @@ public final class MoodEvents {
         attrs.putAll(state.metadata());
 
         return new MemoryInput(state.agentId(), DOMAIN, state.tenantId(),
-            null, state.cause(), attrs, null);
+                               null, state.cause(), attrs, null,
+                               state.pleasure(), state.arousal(), state.dominance());
     }
 }

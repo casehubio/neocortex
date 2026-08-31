@@ -62,17 +62,17 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     // JPA-specific: assertTenant guard fires before any backend call
     @Test
     void assertTenant_mismatch_throws_before_backend_call() {
-        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null);
+        var bad = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "x", Map.of(), null, null, null, null);
         assertThrows(SecurityException.class, () -> store().store(bad));
     }
 
     @Test
     void eraseEntityAcrossTenants_deletes_across_tenants() {
         // Seed under TENANT (principal already set to TENANT in @BeforeEach)
-        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "data-a", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, TENANT, null, "data-a", Map.of(), null, null, null, null));
         // Seed under OTHER_TENANT
         principal.setTenancyId(OTHER_TENANT);
-        store().store(new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "data-b", Map.of(), null));
+        store().store(new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "data-b", Map.of(), null, null, null, null));
         // Erase as cross-tenant admin
         principal.setTenancyId(TENANT);
         principal.setCrossTenantAdmin(true);
@@ -89,8 +89,8 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
 
     @Test
     void storeAll_mixed_tenant_does_not_persist_any_entry() {
-        var good = new MemoryInput("entity-1", DOMAIN, TENANT, null, "good", Map.of(), null);
-        var bad  = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "bad", Map.of(), null);
+        var good = new MemoryInput("entity-1", DOMAIN, TENANT, null, "good", Map.of(), null, null, null, null);
+        var bad  = new MemoryInput("entity-1", DOMAIN, OTHER_TENANT, null, "bad", Map.of(), null, null, null, null);
 
         assertThrows(SecurityException.class,
             () -> store().storeAll(List.of(good, bad)));
@@ -106,11 +106,11 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_returnsEntriesMatchingAttribute() {
         // Store two CBR entries and one non-CBR entry
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "problem 1",
-                                      Map.of("cbr.caseType", "aml", "solution", "sol1"), null));
+                                      Map.of("cbr.caseType", "aml", "solution", "sol1"), null, null, null, null));
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-2", "problem 2",
-                                      Map.of("cbr.caseType", "aml", "solution", "sol2"), null));
+                                      Map.of("cbr.caseType", "aml", "solution", "sol2"), null, null, null, null));
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-3", "problem 3",
-                                      Map.of("other", "value"), null));
+                                      Map.of("other", "value"), null, null, null, null));
 
         var request = new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 100, null);
         var results = jpaStore.scan(request);
@@ -125,7 +125,7 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_respectsLimit() {
         for (int i = 0; i < 5; i++) {
             store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-" + i, "p" + i,
-                                          Map.of("cbr.caseType", "aml"), null));
+                                          Map.of("cbr.caseType", "aml"), null, null, null, null));
         }
         var request = new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 2, null);
         var results = jpaStore.scan(request);
@@ -136,7 +136,7 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     void scan_paginatesWithCursor() {
         for (int i = 0; i < 5; i++) {
             store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-" + i, "p" + i,
-                                          Map.of("cbr.caseType", "aml"), null));
+                                          Map.of("cbr.caseType", "aml"), null, null, null, null));
         }
         // First page
         var page1 = jpaStore.scan(new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 3, null));
@@ -156,10 +156,10 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void scan_filtersByTenant() {
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1",
-                                      Map.of("cbr.caseType", "aml"), null));
+                                      Map.of("cbr.caseType", "aml"), null, null, null, null));
         principal.setTenancyId(OTHER_TENANT);
         store().store(new MemoryInput("e1", DOMAIN, OTHER_TENANT, "case-2", "p2",
-                                      Map.of("cbr.caseType", "aml"), null));
+                                      Map.of("cbr.caseType", "aml"), null, null, null, null));
 
         principal.setTenancyId(TENANT);
         var results = jpaStore.scan(new MemoryScanRequest(TENANT, null, "cbr.caseType", "aml", 100, null));
@@ -169,9 +169,9 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void scan_filtersByDomain() {
         store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1",
-                                      Map.of("cbr.caseType", "aml"), null));
+                                      Map.of("cbr.caseType", "aml"), null, null, null, null));
         store().store(new MemoryInput("e1", new MemoryDomain("other"), TENANT, "case-2", "p2",
-                                      Map.of("cbr.caseType", "aml"), null));
+                                      Map.of("cbr.caseType", "aml"), null, null, null, null));
 
         var results = jpaStore.scan(new MemoryScanRequest(TENANT, DOMAIN.name(), "cbr.caseType", "aml", 100, null));
         assertThat(results).hasSize(1);
@@ -179,10 +179,10 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
 
     @Test
     void scan_withoutAttributeFilter_returnsAllForTenant() {
-        store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1", Map.of("a", "1"), null));
-        store().store(new MemoryInput("e2", DOMAIN, TENANT, "case-2", "p2", Map.of("b", "2"), null));
+        store().store(new MemoryInput("e1", DOMAIN, TENANT, "case-1", "p1", Map.of("a", "1"), null, null, null, null));
+        store().store(new MemoryInput("e2", DOMAIN, TENANT, "case-2", "p2", Map.of("b", "2"), null, null, null, null));
         principal.setTenancyId(OTHER_TENANT);
-        store().store(new MemoryInput("e1", DOMAIN, OTHER_TENANT, "case-3", "p3", Map.of("c", "3"), null));
+        store().store(new MemoryInput("e1", DOMAIN, OTHER_TENANT, "case-3", "p3", Map.of("c", "3"), null, null, null, null));
 
         principal.setTenancyId(TENANT);
         var results = jpaStore.scan(new MemoryScanRequest(TENANT, null, null, null, 100, null));
@@ -197,13 +197,13 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void discoverTenants_returnsDistinctTenantIds() {
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("cbr.caseType", "game"), null));
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("cbr.caseType", "game"), null, null, null, null));
         principal.setTenancyId("tenant-b");
-        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of("cbr.caseType", "game"), null));
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of("cbr.caseType", "game"), null, null, null, null));
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e3", DOMAIN, "tenant-a", null, "text3", Map.of("cbr.caseType", "game"), null));
+        store().store(new MemoryInput("e3", DOMAIN, "tenant-a", null, "text3", Map.of("cbr.caseType", "game"), null, null, null, null));
         principal.setTenancyId("tenant-c");
-        store().store(new MemoryInput("e4", DOMAIN, "tenant-c", null, "text4", Map.of("cbr.caseType", "other"), null));
+        store().store(new MemoryInput("e4", DOMAIN, "tenant-c", null, "text4", Map.of("cbr.caseType", "other"), null, null, null, null));
 
         principal.setCrossTenantAdmin(true);
         Set<String> tenants = jpaStore.discoverTenants("cbr.caseType", "game");
@@ -213,9 +213,9 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void discoverTenants_allTenantsWhenNoFilter() {
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of(), null));
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of(), null, null, null, null));
         principal.setTenancyId("tenant-b");
-        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of(), null));
+        store().store(new MemoryInput("e2", DOMAIN, "tenant-b", null, "text2", Map.of(), null, null, null, null));
 
         principal.setCrossTenantAdmin(true);
         Set<String> tenants = jpaStore.discoverTenants(null, null);
@@ -225,7 +225,7 @@ class JpaMemoryStoreTest extends CaseMemoryStoreContractTest {
     @Test
     void discoverTenants_emptyWhenNoMatch() {
         principal.setTenancyId("tenant-a");
-        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("k", "v"), null));
+        store().store(new MemoryInput("e1", DOMAIN, "tenant-a", null, "text1", Map.of("k", "v"), null, null, null, null));
 
         principal.setCrossTenantAdmin(true);
         Set<String> tenants = jpaStore.discoverTenants("k", "nonexistent");

@@ -80,6 +80,9 @@ public class JpaMemoryStore implements CaseMemoryStore {
         entry.attributes = serializeAttributes(input.attributes());
         entry.createdAt  = Instant.now();
         entry.confidence = input.confidence() != null ? input.confidence().value() : null;
+        entry.pleasure   = input.pleasure();
+        entry.arousal    = input.arousal();
+        entry.dominance  = input.dominance();
 
         MemoryEntry.persist(entry);
         return entry.memoryId;
@@ -102,6 +105,9 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.attributes = serializeAttributes(input.attributes());
             e.createdAt  = Instant.now();
             e.confidence = input.confidence() != null ? input.confidence().value() : null;
+            e.pleasure   = input.pleasure();
+            e.arousal    = input.arousal();
+            e.dominance  = input.dominance();
             return e;
         }).toList();
         MemoryEntry.persist(entries);
@@ -347,15 +353,15 @@ public class JpaMemoryStore implements CaseMemoryStore {
 
     private Memory toMemory(MemoryEntry e) {
         return new Memory(
-            e.memoryId,
-            e.entityId,
-            new MemoryDomain(e.domain),
-            e.tenantId,
-            e.caseId,
-            e.text,
-            deserializeAttributes(e.attributes),
-            e.createdAt,
-            e.confidence != null ? Confidence.unknown(e.confidence) : null);
+                e.memoryId,
+                e.entityId,
+                new MemoryDomain(e.domain),
+                e.tenantId,
+                e.caseId,
+                e.text,
+                deserializeAttributes(e.attributes),
+                e.createdAt,
+            e.confidence != null ? Confidence.unknown(e.confidence) : null, e.pleasure, e.arousal, e.dominance);
     }
 
     private String serializeAttributes(Map<String, String> attrs) {

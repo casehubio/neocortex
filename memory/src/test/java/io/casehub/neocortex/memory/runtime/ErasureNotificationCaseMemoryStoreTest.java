@@ -110,7 +110,7 @@ class ErasureNotificationCaseMemoryStoreTest {
 
     @Test
     void store_doesNotFireEvent() {
-        decorator.store(new MemoryInput("e-1", DOMAIN, "t-1", null, "hello", java.util.Map.of(), null));
+        decorator.store(new MemoryInput("e-1", DOMAIN, "t-1", null, "hello", java.util.Map.of(), null, null, null, null));
         assertThat(byRequestEvents).isEmpty();
         assertThat(byEntityEvents).isEmpty();
         assertThat(crossTenantEvents).isEmpty();

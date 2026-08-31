@@ -8,14 +8,12 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
-import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +57,7 @@ class TemporalIndexTest {
 
     @Test
     void since_returnsMemoriesWithEntityIds() {
-        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "test fact", Map.of(), CONF));
+        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "test fact", Map.of(), CONF, null, null, null));
 
         var query = TemporalQuery.since(List.of(TENANT), HOUR_AGO, 50)
             .withEntityIds(List.of(AGENT));
@@ -71,7 +69,7 @@ class TemporalIndexTest {
 
     @Test
     void since_skipsMemoryWhenNoEntityIds() {
-        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "test fact", Map.of(), CONF));
+        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "test fact", Map.of(), CONF, null, null, null));
 
         var query = TemporalQuery.since(List.of(TENANT), HOUR_AGO, 50);
         var results = index.query(query);
@@ -106,8 +104,8 @@ class TemporalIndexTest {
 
     @Test
     void resultsSortedChronologically() {
-        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "first", Map.of(), CONF));
-        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "second", Map.of(), CONF));
+        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "first", Map.of(), CONF, null, null, null));
+        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "second", Map.of(), CONF, null, null, null));
         mindMapStore.addNode(node("node"), TENANT);
 
         var query = TemporalQuery.since(List.of(TENANT), HOUR_AGO, 50)
@@ -120,7 +118,7 @@ class TemporalIndexTest {
     @Test
     void limit_trimsMergedResults() {
         for (int i = 0; i < 5; i++) {
-            memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "fact-" + i, Map.of(), CONF));
+            memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "fact-" + i, Map.of(), CONF, null, null, null));
         }
         var query = TemporalQuery.since(List.of(TENANT), HOUR_AGO, 3)
             .withEntityIds(List.of(AGENT));
@@ -142,7 +140,7 @@ class TemporalIndexTest {
 
     @Test
     void withSources_onlyQueriesRequestedStores() {
-        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "fact", Map.of(), CONF));
+        memoryStore.store(new MemoryInput(AGENT, EXPERIENCE, TENANT, null, "fact", Map.of(), CONF, null, null, null));
         mindMapStore.addNode(node("node"), TENANT);
 
         var query = TemporalQuery.since(List.of(TENANT), HOUR_AGO, 50)
@@ -187,7 +185,7 @@ class TemporalIndexTest {
         public String store(MemoryInput input) {
             String id = UUID.randomUUID().toString();
             memories.add(new Memory(id, input.entityId(), input.domain(), input.tenantId(),
-                input.caseId(), input.text(), input.attributes(), Instant.now(), input.confidence()));
+                                    input.caseId(), input.text(), input.attributes(), Instant.now(), input.confidence(), null, null, null));
             return id;
         }
 

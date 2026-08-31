@@ -15,7 +15,7 @@ class CaseEnrichmentDecoratorTest {
         var step = new TestStep("enriched", "value");
         var decorator = new CaseEnrichmentDecorator(delegate, List.of(step));
 
-        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null);
+        var input = new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null, null, null, null);
         decorator.store(input);
 
         assertThat(delegate.lastInput.attributes()).containsEntry("enriched", "value");
@@ -28,7 +28,7 @@ class CaseEnrichmentDecoratorTest {
         var stepA = new TestStep("order", "A") { @Override public int priority() { return 1; } };
         var decorator = new CaseEnrichmentDecorator(delegate, List.of(stepB, stepA));
 
-        decorator.store(new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null));
+        decorator.store(new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null, null, null, null));
 
         assertThat(delegate.lastInput.attributes().get("order")).isEqualTo("B");
     }
@@ -42,7 +42,7 @@ class CaseEnrichmentDecoratorTest {
         };
         var decorator = new CaseEnrichmentDecorator(delegate, List.of(failingStep));
 
-        decorator.store(new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null));
+        decorator.store(new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null, null, null, null));
         assertThat(delegate.lastInput).isNotNull();
     }
 
@@ -57,7 +57,7 @@ class CaseEnrichmentDecoratorTest {
         var decorator = new CaseEnrichmentDecorator(delegate, List.of(requiredStep));
 
         assertThatThrownBy(() -> decorator.store(
-            new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null)))
+            new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null, null, null, null)))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("required failure");
         assertThat(delegate.lastInput).isNull();
@@ -72,7 +72,7 @@ class CaseEnrichmentDecoratorTest {
         };
         var decorator = new CaseEnrichmentDecorator(delegate, List.of(step));
 
-        decorator.store(new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null));
+        decorator.store(new MemoryInput("e1", DOMAIN, "t1", null, "text", Map.of(), null, null, null, null));
         assertThat(delegate.lastInput.attributes()).doesNotContainKey("applied");
     }
 

@@ -19,7 +19,7 @@ class PersonalityWeightedRetrievalTest {
     private static final MemoryDomain REFLECTION = new MemoryDomain("reflection");
 
     private Memory memory(String id, MemoryDomain domain, Instant createdAt, Double confidence) {
-        return new Memory(id, "a1", domain, "t1", null, "text", Map.of(), createdAt, confidence != null ? Confidence.unknown(confidence) : null);
+        return new Memory(id, "a1", domain, "t1", null, "text", Map.of(), createdAt, confidence != null ? Confidence.unknown(confidence) : null, null, null, null);
     }
 
     @Test

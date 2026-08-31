@@ -329,11 +329,11 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
         if (f.validAt() != null)   attrs.put(MemoryAttributeKeys.VALID_FROM, f.validAt().toString());
         if (f.invalidAt() != null) attrs.put(MemoryAttributeKeys.VALID_UNTIL, f.invalidAt().toString());
         return new Memory(
-            f.uuid(), entityId, domain, tenantId, null,
+                f.uuid(), entityId, domain, tenantId, null,
             f.fact() != null ? f.fact() : "",
-            Map.copyOf(attrs),
+                Map.copyOf(attrs),
             f.createdAt() != null ? f.createdAt() : Instant.EPOCH,
-            null);
+                null, null, null, null);
     }
 
     private static Memory episodeToMemory(GraphitiEpisodicNode ep, MemoryDomain domain,
@@ -342,11 +342,11 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
         var attrs = new HashMap<String, String>();
         if (ep.validAt() != null) attrs.put(MemoryAttributeKeys.VALID_FROM, ep.validAt().toString());
         return new Memory(
-            ep.uuid(), entityId, domain, tenantId, null,
+                ep.uuid(), entityId, domain, tenantId, null,
             ep.content() != null ? ep.content() : "",
-            Map.copyOf(attrs),
+                Map.copyOf(attrs),
             ep.createdAt() != null ? ep.createdAt() : Instant.EPOCH,
-            null);
+                null, null, null, null);
     }
 
     static String compoundGroupId(String tenantId, String entityId, String domain) {

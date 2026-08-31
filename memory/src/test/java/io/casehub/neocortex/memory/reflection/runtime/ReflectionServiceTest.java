@@ -36,8 +36,8 @@ class ReflectionServiceTest {
     @Test
     void reflectQueriesSynthesizesStoresAndReturnsIds() {
         store.queryResults = List.of(
-            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "saw something", Map.of(), Instant.now(), null),
-            new Memory("m2", "a1", new MemoryDomain("experience"), "t1", null, "did something", Map.of(), Instant.now(), null)
+            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "saw something", Map.of(), Instant.now(), null, null, null, null),
+            new Memory("m2", "a1", new MemoryDomain("experience"), "t1", null, "did something", Map.of(), Instant.now(), null, null, null, null)
         );
         synthesizer.results = List.of(
             new ReflectionEvent("a1", "t1", null, null, "pattern observed", 1, List.of("m1", "m2"), null, Map.of())
@@ -54,7 +54,7 @@ class ReflectionServiceTest {
     @Test
     void reflectFiresCdiEventPerReflection() {
         store.queryResults = List.of(
-            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null)
+            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null, null, null, null)
         );
         synthesizer.results = List.of(
             new ReflectionEvent("a1", "t1", null, null, "insight 1", 1, List.of("m1"), null, Map.of()),
@@ -79,7 +79,7 @@ class ReflectionServiceTest {
     @Test
     void reflectReturnsEmptyWhenSynthesizerReturnsEmpty() {
         store.queryResults = List.of(
-            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null)
+            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null, null, null, null)
         );
         synthesizer.results = List.of();
 
@@ -105,7 +105,7 @@ class ReflectionServiceTest {
     void reflectPropagatesSecurityException() {
         store.throwOnStore = new SecurityException("forbidden");
         store.queryResults = List.of(
-            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null)
+            new Memory("m1", "a1", new MemoryDomain("experience"), "t1", null, "text", Map.of(), Instant.now(), null, null, null, null)
         );
         synthesizer.results = List.of(
             new ReflectionEvent("a1", "t1", null, null, "insight", 1, List.of("m1"), null, Map.of())

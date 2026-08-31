@@ -296,7 +296,7 @@ class CbrReconciliationServiceTest {
         @Override public String store(MemoryInput input) {
             String id = UUID.randomUUID().toString();
             entries.add(new Memory(id, input.entityId(), input.domain(), input.tenantId(),
-                                   input.caseId(), input.text(), input.attributes(), Instant.now(), null));
+                                   input.caseId(), input.text(), input.attributes(), Instant.now(), null, null, null, null));
             return id;
         }
         @Override public List<Memory> query(MemoryQuery q) { return List.of(); }
@@ -341,7 +341,7 @@ class CbrReconciliationServiceTest {
                       String tenantId, String text, Map<String, String> attributes) {
             String id = UUID.randomUUID().toString();
             entries.add(new Memory(id, entityId, domain, tenantId, caseId,
-                                   text, attributes, Instant.now(), null));
+                                   text, attributes, Instant.now(), null, null, null, null));
         }
 
         void eraseAll() { entries.clear(); }

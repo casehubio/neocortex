@@ -220,7 +220,7 @@ Feeds the curiosity engine's proximity signals efficiently, replacing the curren
 
 **Goal:** Every memory type can carry emotional metadata. Affect is a trajectory (evolving over time), not a snapshot (overwritten on each update). Prospective events carry anticipatory affect distinct from inherent affect.
 
-### 3a: PAD on MemoryInput/Memory
+### 3a: PAD on MemoryInput/Memory — **DONE** (#238)
 
 Add nullable `Double pleasure, Double arousal, Double dominance` to `MemoryInput` and `Memory`.
 

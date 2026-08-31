@@ -45,16 +45,24 @@ public final class MoodModulatedRetrieval {
     private static double moodFactor(Memory memory, MoodState mood, double moodInfluence) {
         if (moodInfluence == 0.0) return 1.0;
 
-        var attrs = memory.attributes();
-        String pStr = attrs.get(MoodAttributeKeys.PLEASURE);
-        String aStr = attrs.get(MoodAttributeKeys.AROUSAL);
-        String dStr = attrs.get(MoodAttributeKeys.DOMINANCE);
+        Double p = memory.pleasure();
+        Double a = memory.arousal();
+        Double d = memory.dominance();
 
-        if (pStr == null && aStr == null && dStr == null) return 1.0;
+        if (p == null && a == null && d == null) {
+            var attrs = memory.attributes();
+            String pStr = attrs.get(MoodAttributeKeys.PLEASURE);
+            String aStr = attrs.get(MoodAttributeKeys.AROUSAL);
+            String dStr = attrs.get(MoodAttributeKeys.DOMINANCE);
+            if (pStr == null && aStr == null && dStr == null) return 1.0;
+            p = pStr != null ? Double.parseDouble(pStr) : 0.0;
+            a = aStr != null ? Double.parseDouble(aStr) : 0.0;
+            d = dStr != null ? Double.parseDouble(dStr) : 0.0;
+        }
 
-        double mp = pStr != null ? Double.parseDouble(pStr) : 0.0;
-        double ma = aStr != null ? Double.parseDouble(aStr) : 0.0;
-        double md = dStr != null ? Double.parseDouble(dStr) : 0.0;
+        double mp = p != null ? p : 0.0;
+        double ma = a != null ? a : 0.0;
+        double md = d != null ? d : 0.0;
 
         double dp = mood.pleasure() - mp;
         double da = mood.arousal() - ma;

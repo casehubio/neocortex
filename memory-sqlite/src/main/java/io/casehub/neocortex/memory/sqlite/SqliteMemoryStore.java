@@ -135,7 +135,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
         String memoryId = UUID.randomUUID().toString();
         String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence) VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, memoryId);
@@ -147,6 +147,9 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             ps.setString(7, toJson(input.attributes()));
             ps.setString(8, createdAt);
             if (input.confidence() != null) { ps.setDouble(9, input.confidence().value()); } else { ps.setNull(9, java.sql.Types.REAL); }
+            if (input.pleasure() != null) { ps.setDouble(10, input.pleasure()); } else { ps.setNull(10, java.sql.Types.REAL); }
+            if (input.arousal() != null) { ps.setDouble(11, input.arousal()); } else { ps.setNull(11, java.sql.Types.REAL); }
+            if (input.dominance() != null) { ps.setDouble(12, input.dominance()); } else { ps.setNull(12, java.sql.Types.REAL); }
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("store() failed", e);
@@ -159,7 +162,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     public StoreAllResult storeAll(List<MemoryInput> inputs) {
         if (inputs.isEmpty()) return StoreAllResult.empty();
         inputs.forEach(i -> MemoryPermissions.assertTenant(i.tenantId(), principal, requestContextActive()));
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence) VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         List<String> ids = new ArrayList<>(inputs.size());
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
@@ -177,6 +180,9 @@ public class SqliteMemoryStore implements CaseMemoryStore {
                     ps.setString(7, toJson(input.attributes()));
                     ps.setString(8, createdAt);
                     if (input.confidence() != null) { ps.setDouble(9, input.confidence().value()); } else { ps.setNull(9, java.sql.Types.REAL); }
+                    if (input.pleasure() != null) { ps.setDouble(10, input.pleasure()); } else { ps.setNull(10, java.sql.Types.REAL); }
+                    if (input.arousal() != null) { ps.setDouble(11, input.arousal()); } else { ps.setNull(11, java.sql.Types.REAL); }
+                    if (input.dominance() != null) { ps.setDouble(12, input.dominance()); } else { ps.setNull(12, java.sql.Types.REAL); }
                     ps.executeUpdate();
                     ids.add(memoryId);
                 }
@@ -482,15 +488,18 @@ public class SqliteMemoryStore implements CaseMemoryStore {
 
     private Memory toMemory(ResultSet rs) throws SQLException {
         return new Memory(
-            rs.getString("memory_id"),
-            rs.getString("entity_id"),
-            new MemoryDomain(rs.getString("domain")),
-            rs.getString("tenant_id"),
-            rs.getString("case_id"),
-            rs.getString("text"),
-            fromJson(rs.getString("attributes")),
-            Instant.parse(rs.getString("created_at")),
-            rs.getObject("confidence") != null ? Confidence.unknown(rs.getDouble("confidence")) : null);
+                rs.getString("memory_id"),
+                rs.getString("entity_id"),
+                new MemoryDomain(rs.getString("domain")),
+                rs.getString("tenant_id"),
+                rs.getString("case_id"),
+                rs.getString("text"),
+                fromJson(rs.getString("attributes")),
+                Instant.parse(rs.getString("created_at")),
+            rs.getObject("confidence") != null ? Confidence.unknown(rs.getDouble("confidence")) : null,
+            rs.getObject("pleasure") != null ? rs.getDouble("pleasure") : null,
+            rs.getObject("arousal") != null ? rs.getDouble("arousal") : null,
+            rs.getObject("dominance") != null ? rs.getDouble("dominance") : null);
     }
 
     private String placeholders(int count) {

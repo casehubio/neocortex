@@ -41,6 +41,6 @@ public final class ReflectionEvents {
             : Math.min(0.3 + (event.level() * 0.2), 1.0);
 
         return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-            event.caseId(), event.insight(), attrs, Confidence.unknown(confidenceValue));
+                               event.caseId(), event.insight(), attrs, Confidence.unknown(confidenceValue), null, null, null);
     }
 }
