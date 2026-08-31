@@ -242,7 +242,9 @@ PAD becomes a timestamped log, not a mutable field. Each `updateNode()` that cha
 
 **Scope:** M — new converter, decorator intercept on `updateNode`, trajectory utility.
 
-### 3c: Prospective Event Model
+### 3c: Prospective Event Model — **DONE** (#241)
+
+Implemented in `mindmap-intelligence` (rules, interface, generator), `mindmap-api` (RecurrenceRule), `cognitive-api` (AffectType), `memory-api` (AffectEvents overload).
 
 Future-dated nodes need richer semantics:
 
@@ -277,7 +279,7 @@ See [Shared Memory Design](shared-memory-design.md) § Perspectival Memory.
 
 **Scope:** M — overlay convention, visibility layer merge logic, query-time composition.
 
-### 3e: Trajectory-Aware Curiosity
+### 3e: Trajectory-Aware Curiosity — **DONE** (#242)
 
 Update `CuriositySignalGenerator`'s affect dampening to use trajectory, not snapshot:
 

@@ -1,11 +1,18 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
+import io.casehub.neocortex.cognitive.index.AffectTrajectory;
+import io.casehub.neocortex.cognitive.index.AffectTrajectoryAnalyzer;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.mood.AffectEvents;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.runtime.MindMapAnalyzer;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.time.Duration;
@@ -23,16 +30,23 @@ import java.util.Set;
 @ApplicationScoped
 public class CuriositySignalGenerator implements CuriositySignalProvider {
 
-    private static final double PROXIMITY_SCALE = 7.0;
-    private static final Duration STALE_THRESHOLD = Duration.ofDays(90);
-    private static final int MAX_BFS_DEPTH = 4;
-    private static final int TOP_CENTRALITY = 3;
-
     private final MindMapStore store;
+    final CaseMemoryStore memoryStore;
+    final CuriosityConfig config;
 
     @Inject
-    public CuriositySignalGenerator(MindMapStore store) {
+    public CuriositySignalGenerator(MindMapStore store,
+                                     Instance<CaseMemoryStore> memoryStore,
+                                     Instance<CuriosityConfig> config) {
         this.store = store;
+        this.memoryStore = memoryStore.isResolvable() ? memoryStore.get() : null;
+        this.config = config.isResolvable() ? config.get() : CuriosityConfig.defaults();
+    }
+
+    CuriositySignalGenerator(MindMapStore store, CaseMemoryStore memoryStore, CuriosityConfig config) {
+        this.store = store;
+        this.memoryStore = memoryStore;
+        this.config = config != null ? config : CuriosityConfig.defaults();
     }
 
     @Override
@@ -116,7 +130,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
     private void collectTemporalSignals(MindMapSubgraph sg, String tenantId,
                                          List<CuriositySignal> signals) {
         Instant now = Instant.now();
-        for (var stale : MindMapAnalyzer.staleNodes(store, sg.id(), tenantId, STALE_THRESHOLD, now)) {
+        for (var stale : MindMapAnalyzer.staleNodes(store, sg.id(), tenantId, Duration.ofDays(config.staleDaysThreshold()), now)) {
             double staleDays = stale.age().toDays();
             double score = Math.min(1.0, staleDays / 180.0);
             signals.add(new CuriositySignal(
@@ -133,7 +147,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         var betweenness = MindMapAnalyzer.betweennessCentrality(store, sg.id(), tenantId);
         int count = 0;
         for (var bc : betweenness) {
-            if (count >= TOP_CENTRALITY || bc.score() <= 0) break;
+            if (count >= config.topCentrality() || bc.score() <= 0) break;
             signals.add(new CuriositySignal(
                 SignalCategory.CENTRALITY, Math.min(1.0, bc.score()),
                 bc.nodeId(), sg.id(),
@@ -145,7 +159,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         var degrees = MindMapAnalyzer.degreeCentrality(store, sg.id(), tenantId);
         count = 0;
         for (var deg : degrees) {
-            if (count >= TOP_CENTRALITY || deg.degree() <= 1) break;
+            if (count >= config.topCentrality() || deg.degree() <= 1) break;
             signals.add(new CuriositySignal(
                 SignalCategory.CENTRALITY, Math.min(1.0, deg.degree() / 10.0),
                 deg.nodeId(), sg.id(),
@@ -161,7 +175,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         for (MindMapNode node : store.nodesIn(sg.id(), tenantId)) {
             if (node.validFrom() != null && node.validFrom().isAfter(now)) {
                 double daysUntil = Duration.between(now, node.validFrom()).toHours() / 24.0;
-                double score = 1.0 / (1.0 + daysUntil / PROXIMITY_SCALE);
+                double score = 1.0 / (1.0 + daysUntil / config.proximityScale());
                 signals.add(new CuriositySignal(
                     SignalCategory.PROXIMITY, score,
                     node.id(), sg.id(),
@@ -180,21 +194,65 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
     }
 
     private void applyAffectDampening(List<CuriositySignal> signals, String tenantId) {
+        Map<String, AffectTrajectory> trajectoryCache = new HashMap<>();
+
         for (int i = 0; i < signals.size(); i++) {
             CuriositySignal signal = signals.get(i);
-            if (signal.category() == SignalCategory.PROXIMITY) continue;
-            if (signal.targetNodeId() == null) continue;
+            if (signal.targetNodeId() == null) {continue;}
 
             MindMapNode node = store.getNode(signal.targetNodeId(), tenantId);
-            if (node != null && node.pleasure() != null && node.pleasure() < 0) {
-                double factor = Math.max(0.1, 1.0 + node.pleasure());
+            if (node == null) {continue;}
+
+            double factor = computeTrajectoryFactor(signal.targetNodeId(), node, tenantId, trajectoryCache);
+            if (factor != 1.0) {
                 signals.set(i, new CuriositySignal(
-                    signal.category(), signal.score() * factor,
-                    signal.targetNodeId(), signal.targetSubgraphId(),
-                    signal.question(), signal.description()));
+                        signal.category(), signal.score() * factor,
+                        signal.targetNodeId(), signal.targetSubgraphId(),
+                        signal.question(), signal.description()));
             }
+        }}
+
+    private double computeTrajectoryFactor(String nodeId, MindMapNode node,
+                                           String tenantId,
+                                           Map<String, AffectTrajectory> cache) {
+        if (memoryStore == null) {return snapshotFactor(node);}
+
+        AffectTrajectory trajectory = cache.computeIfAbsent(nodeId,
+                                                            id -> computeTrajectory(id, tenantId));
+
+        if (trajectory.sampleCount() < 2) {return snapshotFactor(node);}
+
+        double factor = switch (trajectory.trend()) {
+            case WORSENING -> 1.0 + Math.min(config.maxBoostFactor(), Math.abs(trajectory.pleasureSlope()));
+            case IMPROVING -> Math.max(config.minDampenFactor(),
+                                       1.0 - Math.min(config.improvingDampenCap(), Math.abs(trajectory.pleasureSlope())));
+            case STABLE -> {
+                double p = node.pleasure() != null ? node.pleasure() : 0.0;
+                yield p < 0 ? Math.max(config.minDampenFactor(), 1.0 + p) : 1.0;
+            }
+        };
+
+        if (trajectory.arousalVolatility() > config.volatilityThreshold()) {
+            factor *= 1.0 + Math.min(config.volatilityBoostCap(), trajectory.arousalVolatility());
         }
+
+        return factor;
     }
+
+    private double snapshotFactor(MindMapNode node) {
+        if (node.pleasure() != null && node.pleasure() < 0) {
+            return Math.max(config.minDampenFactor(), 1.0 + node.pleasure());
+        }
+        return 1.0;
+    }
+
+    private AffectTrajectory computeTrajectory(String nodeId, String tenantId) {
+        var query = MemoryQuery.forEntity(nodeId, AffectEvents.DOMAIN, tenantId)
+                               .withLimit(config.trajectoryLimit());
+        List<Memory> memories = memoryStore.query(query);
+        return AffectTrajectoryAnalyzer.analyze(memories);
+    }
+
 
     private void applyTopicalDistanceDampening(List<CuriositySignal> signals,
                                                 Set<String> recentEntityIds,
@@ -209,7 +267,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
 
             int distance = distanceCache.computeIfAbsent(signal.targetNodeId(),
                 nodeId -> bfsDistance(nodeId, recentEntityIds, tenantId));
-            if (distance > 0 && distance <= MAX_BFS_DEPTH) {
+            if (distance > 0 && distance <= config.maxBfsDepth()) {
                 double factor = 1.0 / (1.0 + distance);
                 signals.set(i, new CuriositySignal(
                     signal.category(), signal.score() * factor,
@@ -232,7 +290,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             int depth = depths.poll();
 
             if (targetIds.contains(current)) return depth;
-            if (depth >= MAX_BFS_DEPTH) continue;
+            if (depth >= config.maxBfsDepth()) continue;
 
             for (MindMapEdge edge : store.neighbors(current, tenantId)) {
                 String neighbor = edge.sourceNodeId().equals(current)
@@ -243,6 +301,6 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
                 }
             }
         }
-        return MAX_BFS_DEPTH + 1;
+        return config.maxBfsDepth() + 1;
     }
 }

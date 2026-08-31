@@ -1,6 +1,11 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphType;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,5 +92,95 @@ class StandardTraitRulesTest {
     private EdgeInput edge(String source, String target, String type) {
         return new EdgeInput(source, target, type, null,
             "test", null, null, null, null, null, null);
+    }
+
+    @Test
+    void appointableRule_matchesScheduled() {
+        String id = store.addNode(new NodeInput("Team Meeting", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "scheduled")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new AppointableTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Appointable");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void appointableRule_noMatchWithoutEventKind() {
+        String      id   = store.addNode(node("Future Thing"), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new AppointableTraitRule().matches(node, List.of())).isFalse();
+    }
+
+    @Test
+    void appointableRule_noMatchAnticipated() {
+        String id = store.addNode(new NodeInput("Maybe Promotion", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "anticipated")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new AppointableTraitRule().matches(node, List.of())).isFalse();
+    }
+
+    @Test
+    void aspirationalRule_matchesAnticipatedAspirations() {
+        String id = store.addNode(new NodeInput("New Job", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "anticipated", "eventValence", "aspirational")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new AspirationalTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Aspirational");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void aspirationalRule_noMatchScheduled() {
+        String id = store.addNode(new NodeInput("Meeting", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "scheduled", "eventValence", "aspirational")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new AspirationalTraitRule().matches(node, List.of())).isFalse();
+    }
+
+    @Test
+    void threateningRule_matchesAnticipatedNegative() {
+        String id = store.addNode(new NodeInput("Exam", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "anticipated", "eventValence", "negative")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new ThreateningTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Threatening");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void opportunisticRule_matchesAnticipatedPositive() {
+        String id = store.addNode(new NodeInput("Bonus", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "anticipated", "eventValence", "positive")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new OpportunisticTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Opportunistic");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void composability_scheduledAndNegative_isAppointableNotThreatening() {
+        String id = store.addNode(new NodeInput("Funeral", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "scheduled", "eventValence", "negative")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new AppointableTraitRule().matches(node, List.of())).isTrue();
+        assertThat(new ThreateningTraitRule().matches(node, List.of())).isFalse();
     }
 }

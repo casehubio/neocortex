@@ -1,6 +1,11 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.cognitive.ConfidenceOrigin;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.EraseRequest;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.mood.AffectEvents;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
@@ -26,7 +31,7 @@ class CuriositySignalGeneratorTest {
     @BeforeEach
     void setUp() {
         store = new InMemoryMindMapStore();
-        generator = new CuriositySignalGenerator(store);
+        generator = new CuriositySignalGenerator(store, null, CuriosityConfig.defaults());
     }
 
     @Test
@@ -116,21 +121,21 @@ class CuriositySignalGeneratorTest {
     }
 
     @Test
-    void proximitySignalBypassesAffectDampening() {
-        String sgId = store.createSubgraph(new SubgraphInput("Events", SubgraphType.GENERAL, null), TENANT);
+    void proximitySignalParticipatesInAffectDampening() {
+        String  sgId           = store.createSubgraph(new SubgraphInput("Events", SubgraphType.GENERAL, null), TENANT);
         Instant twoDaysFromNow = Instant.now().plus(2, ChronoUnit.DAYS);
         store.addNode(new NodeInput("Funeral", sgId, null, "test",
-            null, null, twoDaysFromNow, null, -0.9, null, null, Map.of()), TENANT);
+                                    null, null, twoDaysFromNow, null, -0.9, null, null, Map.of()), TENANT);
 
         List<CuriositySignal> signals = generator.computeSignals(TENANT, Set.of());
 
         CuriositySignal proximitySignal = signals.stream()
-            .filter(s -> s.category() == SignalCategory.PROXIMITY
-                && s.description().contains("Funeral"))
-            .findFirst().orElse(null);
+                                                 .filter(s -> s.category() == SignalCategory.PROXIMITY
+                                                              && s.description().contains("Funeral"))
+                                                 .findFirst().orElse(null);
         assertThat(proximitySignal).isNotNull();
-        assertThat(proximitySignal.score()).isGreaterThan(0.5);
-    }
+        // PROXIMITY now participates in affect dampening — score is dampened for negative pleasure
+        assertThat(proximitySignal.score()).isLessThan(0.5);}
 
     @Test
     void topicalDistanceDampeningReducesDistantSignals() {
@@ -213,5 +218,119 @@ class CuriositySignalGeneratorTest {
             s.category() == SignalCategory.TEMPORAL
             && s.description().contains("stale")
             && s.description().contains("FreshNode"));
+    }
+
+    @Test
+    void worseningTrajectory_boostsCuriosity() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String nodeId = store.addNode(new NodeInput("Worsening Topic", sgId, null, "test",
+                                                    null, null, null, null, -0.5, null, null, Map.of()), TENANT);
+
+        Instant now = Instant.now();
+        List<Memory> worseningMemories = List.of(
+                new Memory("m1", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(3, ChronoUnit.HOURS), null, -0.2, 0.0, 0.0),
+                new Memory("m2", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(2, ChronoUnit.HOURS), null, -0.4, 0.0, 0.0),
+                new Memory("m3", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(1, ChronoUnit.HOURS), null, -0.6, 0.0, 0.0)
+                                                );
+
+        var gen = new CuriositySignalGenerator(store, stubMemoryStore(worseningMemories), CuriosityConfig.defaults());
+        List<CuriositySignal> signals   = gen.computeSignals(TENANT, Set.of());
+
+        CuriositySignal signal = signals.stream()
+                                        .filter(s -> s.description().contains("Worsening Topic"))
+                                        .findFirst().orElse(null);
+        assertThat(signal).isNotNull();
+        // Worsening trajectory should boost — score higher than raw structural signal (1.0)
+        assertThat(signal.score()).isGreaterThan(1.0);
+    }
+
+    @Test
+    void improvingTrajectory_dampensCuriosity() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String nodeId = store.addNode(new NodeInput("Improving Topic", sgId, null, "test",
+                                                    null, null, null, null, 0.3, null, null, Map.of()), TENANT);
+
+        Instant now = Instant.now();
+        List<Memory> improvingMemories = List.of(
+                new Memory("m1", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(3, ChronoUnit.HOURS), null, -0.6, 0.0, 0.0),
+                new Memory("m2", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(2, ChronoUnit.HOURS), null, -0.3, 0.0, 0.0),
+                new Memory("m3", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(1, ChronoUnit.HOURS), null, 0.1, 0.0, 0.0)
+                                                );
+
+        var gen = new CuriositySignalGenerator(store, stubMemoryStore(improvingMemories), CuriosityConfig.defaults());
+        List<CuriositySignal> signals   = gen.computeSignals(TENANT, Set.of());
+
+        CuriositySignal signal = signals.stream()
+                                        .filter(s -> s.description().contains("Improving Topic"))
+                                        .findFirst().orElse(null);
+        assertThat(signal).isNotNull();
+        assertThat(signal.score()).isLessThan(1.0);
+    }
+
+    @Test
+    void noMemoryStore_fallsBackToSnapshot() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        store.addNode(new NodeInput("Negative Node", sgId, null, "test",
+                                    null, null, null, null, -0.8, null, null, Map.of()), TENANT);
+
+        var                   genNoMemory = new CuriositySignalGenerator(store, null, CuriosityConfig.defaults());
+        List<CuriositySignal> signals     = genNoMemory.computeSignals(TENANT, Set.of());
+
+        CuriositySignal signal = signals.stream()
+                                        .filter(s -> s.description().contains("Negative Node"))
+                                        .findFirst().orElse(null);
+        if (signal != null) {
+            // Snapshot dampening: factor = max(0.1, 1.0 + (-0.8)) = 0.2
+            assertThat(signal.score()).isLessThanOrEqualTo(0.3);
+        }
+    }
+
+    @Test
+    void highVolatility_boostsCuriosity() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String nodeId = store.addNode(new NodeInput("Volatile Topic", sgId, null, "test",
+                                                    null, null, null, null, 0.0, null, null, Map.of()), TENANT);
+
+        Instant now = Instant.now();
+        // Oscillating arousal values produce high volatility
+        List<Memory> volatileMemories = List.of(
+                new Memory("m1", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(4, ChronoUnit.HOURS), null, 0.0, 0.8, 0.0),
+                new Memory("m2", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(3, ChronoUnit.HOURS), null, 0.0, -0.5, 0.0),
+                new Memory("m3", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(2, ChronoUnit.HOURS), null, 0.0, 0.7, 0.0),
+                new Memory("m4", nodeId, AffectEvents.DOMAIN, TENANT, null, "PAD update", Map.of(),
+                           now.minus(1, ChronoUnit.HOURS), null, 0.0, -0.4, 0.0)
+                                               );
+
+        var gen = new CuriositySignalGenerator(store, stubMemoryStore(volatileMemories), CuriosityConfig.defaults());
+        List<CuriositySignal> signals = gen.computeSignals(TENANT, Set.of());
+
+        CuriositySignal signal = signals.stream()
+                                        .filter(s -> s.description().contains("Volatile Topic"))
+                                        .findFirst().orElse(null);
+        assertThat(signal).isNotNull();
+        // Volatility boost should increase score above base (1.0 for orphan)
+        assertThat(signal.score()).isGreaterThan(1.0);
+    }
+
+    private static CaseMemoryStore stubMemoryStore(List<Memory> memories) {
+        return new CaseMemoryStore() {
+            @Override
+            public String store(MemoryInput input)       {return "stub";}
+
+            @Override
+            public List<Memory> query(MemoryQuery query) {return memories;}
+
+            @Override
+            public int erase(EraseRequest request)       {return 0;}
+        };
     }
 }

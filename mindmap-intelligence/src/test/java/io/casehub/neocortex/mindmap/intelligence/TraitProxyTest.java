@@ -1,6 +1,9 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphType;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,5 +100,34 @@ class TraitProxyTest {
         Personable p2 = TraitProxy.as(node, Personable.class);
         assertThat(p1).isEqualTo(p2);
         assertThat(p1.hashCode()).isEqualTo(p2.hashCode());
+    }
+
+    @Test
+    void as_eventlike_readsProperties() {
+        String id = store.addNode(new NodeInput("Team Meeting", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("eventKind", "scheduled", "eventValence", "positive",
+                                                       "status", "confirmed", "rrule", "FREQ=WEEKLY;BYDAY=MO")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        Eventlike e = TraitProxy.as(node, Eventlike.class);
+        assertThat(e.eventKind()).isEqualTo(Optional.of("scheduled"));
+        assertThat(e.eventValence()).isEqualTo(Optional.of("positive"));
+        assertThat(e.status()).isEqualTo(Optional.of("confirmed"));
+        assertThat(e.rrule()).isEqualTo(Optional.of("FREQ=WEEKLY;BYDAY=MO"));
+    }
+
+    @Test
+    void as_eventlike_missingProperties_returnsEmpty() {
+        String id = store.addNode(new NodeInput("Plain Node", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null, null), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        Eventlike e = TraitProxy.as(node, Eventlike.class);
+        assertThat(e.eventKind()).isEmpty();
+        assertThat(e.status()).isEmpty();
+        assertThat(e.rrule()).isEmpty();
     }
 }
