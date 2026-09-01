@@ -46,7 +46,7 @@ default MultiModalEmbedding embedSeparate(String denseText, String nonDenseText)
     Objects.requireNonNull(denseText, "denseText must not be null");
     Objects.requireNonNull(nonDenseText, "nonDenseText must not be null");
     if (denseText.equals(nonDenseText)) return embed(denseText);
-    Map<EmbeddingMode, String> map = new EnumMap<>(EmbeddingMode.class);
+    var map = new EnumMap<>(EmbeddingMode.class);
     map.put(EmbeddingMode.DENSE, denseText);
     for (EmbeddingMode mode : supportedModes()) {
         if (mode != EmbeddingMode.DENSE) {
