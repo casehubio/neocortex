@@ -1,7 +1,19 @@
 package io.casehub.neocortex.mindmap.runtime;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
+import io.casehub.neocortex.mindmap.DeclarativeTraitRule;
+import io.casehub.neocortex.mindmap.DerivedEdgeRule;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.RuleCondition;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.TraitRule;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -237,5 +249,20 @@ class TraitApplicationDecoratorTest {
     private EdgeInput edge(String source, String target, String type) {
         return new EdgeInput(source, target, type, null,
             "test", null, null, null, null, null, null);
+    }
+
+    @Test
+    void declarativeTraitRules_fromRegistryApplied() {
+        var traitRule = new DeclarativeTraitRule("TestTrait",
+                                                 new RuleCondition.HasProperty("marker"));
+        var registry = DeclarativeRuleRegistry.of(List.of(traitRule), List.of());
+
+        var withRegistry = new TraitApplicationDecorator(store, List.of(), registry);
+
+        String nodeId = withRegistry.addNode(
+                NodeInput.of("Node", subgraphId).withProperty("marker", "yes"), "t1");
+
+        MindMapNode node = store.getNode(nodeId, "t1");
+        assertThat(node.traits()).contains("TestTrait");
     }
 }

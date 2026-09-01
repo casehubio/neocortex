@@ -1,5 +1,6 @@
 package io.casehub.neocortex.mindmap.runtime;
 
+import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
 import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
 import io.casehub.neocortex.mindmap.DerivedEdgeRule;
 import io.casehub.neocortex.mindmap.EdgeInput;
@@ -28,8 +29,15 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
 
     @Inject
     public DerivedEdgeDecorator(@Delegate @Any MindMapStore delegate,
-                                Instance<DerivedEdgeRule> rules) {
-        this(delegate, rules.stream().toList(), DEFAULT_MAX_DEPTH);
+                                Instance<DerivedEdgeRule> rules,
+                                Instance<DeclarativeRuleRegistry> registry) {
+        super(delegate);
+        List<DerivedEdgeRule> allRules = new ArrayList<>(rules.stream().toList());
+        if (registry.isResolvable()) {
+            allRules.addAll(registry.get().allDerivedEdgeRules());
+        }
+        this.rules    = List.copyOf(allRules);
+        this.maxDepth = DEFAULT_MAX_DEPTH;
     }
 
     DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules) {

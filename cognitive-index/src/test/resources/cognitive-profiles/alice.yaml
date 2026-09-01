@@ -1,0 +1,57 @@
+agentId: alice
+tenantId: family-1
+
+personality:
+  experience: 1.5
+  relationship: 0.8
+  mood: 1.2
+
+moodBaseline:
+  pleasure: 0.0
+  arousal: -0.2
+  dominance: 0.3
+
+curiosity:
+  proximityScale: 7.0
+  staleDaysThreshold: 90
+  maxBfsDepth: 4
+  topCentrality: 3
+  volatilityThreshold: 0.3
+  maxBoostFactor: 1.0
+  minDampenFactor: 0.1
+  improvingDampenCap: 0.7
+  volatilityBoostCap: 0.5
+  trajectoryLimit: 20
+
+temporalFocus:
+  proximityScale: 7.0
+  worseningBoostCap: 1.0
+  improvingDampenFactor: 0.5
+  volatilityBoostCap: 0.5
+
+vocabulary:
+  edgeTypes:
+    - canonical: knows
+      aliases: [knows-about, familiar-with]
+      defaultDecayHalfLifeDays: 365
+    - canonical: child-of
+
+services:
+  reflectionSynthesizer: llm
+  explanationRenderer: detailed
+
+traitRules:
+  - trait: FamilyMember
+    when:
+      hasEdgeTypes: [child-of, parent-of, sibling-of]
+
+derivedEdgeRules:
+  - name: inverse-knows
+    on:
+      edgeType: knows
+    derive:
+      - edgeType: known-by
+        source: trigger.target
+        target: trigger.source
+        properties:
+          perspective: alice

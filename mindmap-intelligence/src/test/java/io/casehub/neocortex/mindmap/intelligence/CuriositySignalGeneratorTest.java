@@ -6,6 +6,7 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.mood.AffectEvents;
+import io.casehub.neocortex.mindmap.CuriosityConfig;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;

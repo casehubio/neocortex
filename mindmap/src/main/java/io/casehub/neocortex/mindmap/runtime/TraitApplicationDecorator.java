@@ -1,5 +1,6 @@
 package io.casehub.neocortex.mindmap.runtime;
 
+import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
 import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapEdge;
@@ -15,6 +16,7 @@ import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,14 +34,31 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
 
     @Inject
     public TraitApplicationDecorator(@Delegate @Any MindMapStore delegate,
-                                     Instance<TraitRule> rules) {
-        this(delegate, rules.stream().toList());
+                                     Instance<TraitRule> rules,
+                                     Instance<DeclarativeRuleRegistry> registry) {
+        super(delegate);
+        List<TraitRule> allRules = new ArrayList<>(rules.stream().toList());
+        if (registry.isResolvable()) {
+            allRules.addAll(registry.get().allTraitRules());
+        }
+        this.rules = List.copyOf(allRules);
     }
 
     TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules) {
         super(delegate);
         this.rules = List.copyOf(rules);
     }
+
+    TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules,
+                              DeclarativeRuleRegistry registry) {
+        super(delegate);
+        List<TraitRule> allRules = new ArrayList<>(rules);
+        if (registry != null) {
+            allRules.addAll(registry.allTraitRules());
+        }
+        this.rules = List.copyOf(allRules);
+    }
+
 
     @Override
     public String addNode(NodeInput input, String tenantId) {

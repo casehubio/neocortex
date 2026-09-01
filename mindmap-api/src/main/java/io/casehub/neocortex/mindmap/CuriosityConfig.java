@@ -1,4 +1,4 @@
-package io.casehub.neocortex.mindmap.intelligence;
+package io.casehub.neocortex.mindmap;
 
 public record CuriosityConfig(
     double proximityScale,

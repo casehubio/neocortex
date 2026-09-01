@@ -1,0 +1,34 @@
+traitRules:
+  - trait: Personable
+    when:
+      anyOf:
+        - hasProperty: birthday
+        - hasProperty: role
+        - hasEdgeTypes: [parent-of, child-of]
+
+  - trait: Appointable
+    when:
+      propertyEquals:
+        eventKind: scheduled
+
+derivedEdgeRules:
+  - name: inverse-knows
+    on:
+      edgeType: knows
+    derive:
+      - edgeType: known-by
+        source: trigger.target
+        target: trigger.source
+
+  - name: descendant-chain
+    on:
+      edgeType: child-of
+    traverse:
+      follow: child-of
+      from: trigger.target
+      direction: outbound
+      maxDepth: 3
+    derive:
+      - edgeType: descendant-of
+        source: trigger.source
+        target: traversal.node
