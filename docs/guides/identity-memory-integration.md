@@ -297,6 +297,20 @@ cognitive:                       # neocortex layer — HOW
     min-similarity: 0.6          # auto: calculated risk
     temporal-decay:
       half-life: P120D
+    retrieval-mode: HYBRID        # auto: moderate ruleFollowing
+
+  social:
+    trust-formation-rate: 0.3     # auto: independent socialOrient
+    conflict-interpretation: NEUTRAL  # auto: analytical conflictMode
+
+  temporal-focus:
+    subgraph-proximity-weights:
+      PROJECT: 1.3                # auto: career goals
+      RESEARCH_AREA: 1.3          # auto: strategic goals
+
+  graph:
+    inference-style: CONNECTIVE   # auto: Ni/Fi-dominant (holistic)
+    connective-bias: 0.55         # 55% holistic functions by weight
 
   memory:
     decay:
@@ -310,26 +324,29 @@ cognitive:                       # neocortex layer — HOW
 
 ## The Derivation Engine
 
-The `derive-from: descriptor` directive triggers a derivation engine:
+The `derive-from: descriptor` directive triggers `CognitiveDerivationEngine`:
 
-1. Reads the eidos `AgentDescriptor`
-2. Applies derivation rules:
-   - `dispositionProfile` → `PersonalityWeights` (weighted function mapping)
-   - Disposition axes → `MoodBaseline` (personality-affect mapping)
-   - Goals + disposition → curiosity category weights
-   - ruleFollowing + riskAppetite → CBR retrieval parameters
-   - Disposition profile → extraction biases
-3. Produces default cognitive config
-4. Explicit overrides in the `cognitive:` block take precedence
+1. Reads the `DescriptorView` (agentId, disposition axes, disposition profile, goals)
+2. Applies all 8 derivation rules:
+   - `dispositionProfile` → `PersonalityWeights` (Jungian function → MemoryDomain weighted average)
+   - Disposition axes → `MoodBaseline` (riskAppetite→pleasure, socialOrient→arousal, autonomy→dominance)
+   - Disposition + goals → `CuriosityConfig.categoryWeights` (autonomy→STRUCTURAL, ruleFollowing→QUALITY, socialOrient→CENTRALITY)
+   - Goals → `TemporalFocusConfig.subgraphProximityWeights` (career→PROJECT, family→PERSON, research→RESEARCH_AREA)
+   - ruleFollowing + riskAppetite → `CbrStrategyDefaults` (minSimilarity, temporalDecayDays, retrievalMode)
+   - socialOrient + conflictMode → `SocialCognitionDefaults` (trustFormationRate, conflictInterpretation)
+   - Disposition profile → `GraphStructureDefaults` (holistic→CONNECTIVE, systematic→CATEGORICAL)
+   - Disposition profile → `ExtractionBiasDefaults` (analytical→relationshipBias, empathetic→affectSensitivity)
+3. Produces default `CognitiveDefaults`
+4. `deriveAndMerge()` overlays explicit YAML overrides — explicit values win, derived fills gaps
 
 The derivation rules themselves are configurable — different platforms
 may have different mappings from disposition to cognition. The default
 rules implement the personality-cognition research consensus; domain-specific
 deployments can override them.
 
-**Implementation note:** The derivation engine is a pure function:
-`AgentDescriptor → CognitiveDefaults`. No side effects, no state, fully
-testable. It runs at YAML load time, not at runtime.
+**Implementation note:** `CognitiveDerivationEngine` is a pure static utility:
+`DescriptorView → CognitiveDefaults`. No CDI, no state, fully testable.
+It runs at YAML load time, not at runtime.
 
 ---
 

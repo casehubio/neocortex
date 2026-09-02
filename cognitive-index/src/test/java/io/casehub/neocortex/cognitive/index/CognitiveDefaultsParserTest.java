@@ -79,8 +79,7 @@ class CognitiveDefaultsParserTest {
 
     @Test
     void missingAgentId_throwsNullPointer() {
-        assertThatThrownBy(() -> new CognitiveDefaults(
-            null, null, null, null, null, null, null, null, null, null))
+        assertThatThrownBy(() -> CognitiveDefaults.empty(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("agentId");
     }

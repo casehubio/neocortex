@@ -139,8 +139,8 @@ class TemporalFocusTest {
         TemporalEntry entry = new TemporalEntry(
             node.validFrom(), new TemporalSource.FromMindMap(node), TENANT, null);
 
-        TemporalFocusConfig wideScale = new TemporalFocusConfig(30.0, 1.0, 0.5, 0.5);
-        TemporalFocusConfig narrowScale = new TemporalFocusConfig(1.0, 1.0, 0.5, 0.5);
+        TemporalFocusConfig wideScale = new TemporalFocusConfig(30.0, 1.0, 0.5, 0.5, Map.of());
+        TemporalFocusConfig narrowScale = new TemporalFocusConfig(1.0, 1.0, 0.5, 0.5, Map.of());
 
         List<AttentionItem> wide = TemporalFocus.focus(List.of(entry), NOW, Map.of(), wideScale);
         List<AttentionItem> narrow = TemporalFocus.focus(List.of(entry), NOW, Map.of(), narrowScale);

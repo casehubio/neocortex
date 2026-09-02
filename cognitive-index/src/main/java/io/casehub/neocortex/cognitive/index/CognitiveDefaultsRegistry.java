@@ -63,8 +63,7 @@ public class CognitiveDefaultsRegistry {
     }
 
     public CognitiveDefaults forAgentOrDefaults(String agentId) {
-        return profiles.getOrDefault(agentId,
-                                     new CognitiveDefaults(agentId, null, null, null, null, null, null, null, null, null));
+        return profiles.getOrDefault(agentId, CognitiveDefaults.empty(agentId));
     }
 
     public Collection<CognitiveDefaults> allProfiles() {

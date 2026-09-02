@@ -6,6 +6,7 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.mood.AffectEvents;
+import io.casehub.neocortex.cognitive.index.TemporalFocusConfig;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -320,6 +321,63 @@ class CuriositySignalGeneratorTest {
         assertThat(signal).isNotNull();
         // Volatility boost should increase score above base (1.0 for orphan)
         assertThat(signal.score()).isGreaterThan(1.0);
+    }
+
+    @Test
+    void categoryWeights_scaleSignalScores() {
+        var config = CuriosityConfig.defaults().withCategoryWeights(Map.of("STRUCTURAL", 1.5, "QUALITY", 0.5));
+        var gen    = new CuriositySignalGenerator(store, null, config);
+
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        store.addNode(new NodeInput("Alice", sgId, null, "test",
+                                    null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        List<CuriositySignal> signals = gen.computeSignals(TENANT, Set.of());
+
+        var structural = signals.stream()
+                                .filter(s -> s.category() == SignalCategory.STRUCTURAL)
+                                .findFirst().orElseThrow();
+        assertThat(structural.score()).isEqualTo(1.5);
+    }
+
+    @Test
+    void emptyCategoryWeights_noScaling() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        store.addNode(new NodeInput("Bob", sgId, null, "test",
+                                    null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        List<CuriositySignal> signals = generator.computeSignals(TENANT, Set.of());
+
+        var structural = signals.stream()
+                                .filter(s -> s.category() == SignalCategory.STRUCTURAL)
+                                .findFirst().orElseThrow();
+        assertThat(structural.score()).isEqualTo(1.0);
+    }
+
+    @Test
+    void subgraphProximityWeights_scaleProximitySignals() {
+        var tfConfig = TemporalFocusConfig.defaults().withSubgraphProximityWeights(Map.of("PERSON", 1.5));
+        var gen = new CuriositySignalGenerator(store, null, CuriosityConfig.defaults(), tfConfig);
+
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        Instant tomorrow = Instant.now().plus(1, ChronoUnit.DAYS);
+        store.addNode(new NodeInput("Meeting", sgId, null, "test",
+            null, null, tomorrow, null, null, null, null, Map.of()), TENANT);
+
+        List<CuriositySignal> signals = gen.computeSignals(TENANT, Set.of());
+
+        var proximityWithWeight = signals.stream()
+                .filter(s -> s.category() == SignalCategory.PROXIMITY)
+                .findFirst().orElseThrow();
+
+        var genNoWeight = new CuriositySignalGenerator(store, null, CuriosityConfig.defaults());
+        List<CuriositySignal> baseSignals = genNoWeight.computeSignals(TENANT, Set.of());
+        var proximityNoWeight = baseSignals.stream()
+                .filter(s -> s.category() == SignalCategory.PROXIMITY)
+                .findFirst().orElseThrow();
+
+        assertThat(proximityWithWeight.score()).isGreaterThan(proximityNoWeight.score());
+        assertThat(proximityWithWeight.score() / proximityNoWeight.score()).isCloseTo(1.5, org.assertj.core.data.Offset.offset(0.01));
     }
 
     private static CaseMemoryStore stubMemoryStore(List<Memory> memories) {

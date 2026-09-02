@@ -34,8 +34,7 @@ class CognitiveLoaderTest {
     void registersVocabularyFromProfiles() {
         var vocab = new MindMapVocabulary(List.of(
                 new EdgeTypeDefinition("knows", Set.of("knows-about"), null)));
-        var defaults = new CognitiveDefaults(
-                "alice", null, null, null, null, null, vocab, Map.of(), null, null);
+        var defaults = CognitiveDefaults.empty("alice").withVocabulary(vocab);
         var store = new InMemoryMindMapStore();
 
         var loader = new CognitiveLoader(store, List.of(defaults));
@@ -50,8 +49,7 @@ class CognitiveLoaderTest {
 
     @Test
     void nullVocabulary_skippedGracefully() {
-        var defaults = new CognitiveDefaults(
-                "bob", null, null, null, null, null, null, Map.of(), null, null);
+        var defaults = CognitiveDefaults.empty("bob");
         var store = new InMemoryMindMapStore();
 
         var loader = new CognitiveLoader(store, List.of(defaults));
@@ -75,10 +73,8 @@ class CognitiveLoaderTest {
                 new EdgeTypeDefinition("knows", Set.of("knows-about"), null)));
         var vocab2 = new MindMapVocabulary(List.of(
                 new EdgeTypeDefinition("works-at", Set.of("employed-by"), null)));
-        var alice = new CognitiveDefaults(
-                "alice", null, null, null, null, null, vocab1, Map.of(), null, null);
-        var carol = new CognitiveDefaults(
-                "carol", null, null, null, null, null, vocab2, Map.of(), null, null);
+        var alice = CognitiveDefaults.empty("alice").withVocabulary(vocab1);
+        var carol = CognitiveDefaults.empty("carol").withVocabulary(vocab2);
         var store = new InMemoryMindMapStore();
 
         var loader = new CognitiveLoader(store, List.of(alice, carol));

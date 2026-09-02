@@ -6,6 +6,7 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.mood.AffectEvents;
+import io.casehub.neocortex.cognitive.index.TemporalFocusConfig;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -34,26 +35,35 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
     private final MindMapStore store;
     final CaseMemoryStore memoryStore;
     final CuriosityConfig config;
+    final TemporalFocusConfig temporalFocusConfig;
 
     @Inject
     public CuriositySignalGenerator(MindMapStore store,
                                      Instance<CaseMemoryStore> memoryStore,
-                                     Instance<CuriosityConfig> config) {
+                                     Instance<CuriosityConfig> config,
+                                     Instance<TemporalFocusConfig> temporalFocusConfig) {
         this.store = store;
         this.memoryStore = memoryStore.isResolvable() ? memoryStore.get() : null;
         this.config = config.isResolvable() ? config.get() : CuriosityConfig.defaults();
+        this.temporalFocusConfig = temporalFocusConfig.isResolvable() ? temporalFocusConfig.get() : null;
     }
 
     CuriositySignalGenerator(MindMapStore store, CaseMemoryStore memoryStore, CuriosityConfig config) {
+        this(store, memoryStore, config, null);
+    }
+
+    CuriositySignalGenerator(MindMapStore store, CaseMemoryStore memoryStore, CuriosityConfig config,
+                              TemporalFocusConfig temporalFocusConfig) {
         this.store = store;
         this.memoryStore = memoryStore;
         this.config = config != null ? config : CuriosityConfig.defaults();
+        this.temporalFocusConfig = temporalFocusConfig;
     }
 
     @Override
     public List<CuriositySignal> computeSignals(String tenantId, Set<String> recentEntityIds) {
         List<MindMapSubgraph> subgraphs = store.listSubgraphs(tenantId);
-        if (subgraphs.isEmpty()) return List.of();
+        if (subgraphs.isEmpty()) {return List.of();}
 
         List<CuriositySignal> signals = new ArrayList<>();
 
@@ -65,6 +75,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             collectProximitySignals(sg, tenantId, signals);
         }
 
+        applyCategoryWeights(signals);
         applyAffectDampening(signals, tenantId);
         applyTopicalDistanceDampening(signals, recentEntityIds, tenantId);
 
@@ -172,11 +183,12 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
 
     private void collectProximitySignals(MindMapSubgraph sg, String tenantId,
                                           List<CuriositySignal> signals) {
+        double sgWeight = temporalFocusConfig != null ? temporalFocusConfig.subgraphProximityWeight(sg.type().name()) : 1.0;
         Instant now = Instant.now();
         for (MindMapNode node : store.nodesIn(sg.id(), tenantId)) {
             if (node.validFrom() != null && node.validFrom().isAfter(now)) {
                 double daysUntil = Duration.between(now, node.validFrom()).toHours() / 24.0;
-                double score = 1.0 / (1.0 + daysUntil / config.proximityScale());
+                double score = (1.0 / (1.0 + daysUntil / config.proximityScale())) * sgWeight;
                 signals.add(new CuriositySignal(
                     SignalCategory.PROXIMITY, score,
                     node.id(), sg.id(),
@@ -190,6 +202,21 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
                     node.id(), sg.id(),
                     "Did " + node.name() + " happen? What was the outcome?",
                     "Past event: " + node.name()));
+            }
+        }
+    }
+
+
+    private void applyCategoryWeights(List<CuriositySignal> signals) {
+        if (config.categoryWeights().isEmpty()) {return;}
+        for (int i = 0; i < signals.size(); i++) {
+            CuriositySignal signal = signals.get(i);
+            double          weight = config.categoryWeight(signal.category().name());
+            if (weight != 1.0) {
+                signals.set(i, new CuriositySignal(
+                        signal.category(), signal.score() * weight,
+                        signal.targetNodeId(), signal.targetSubgraphId(),
+                        signal.question(), signal.description()));
             }
         }
     }

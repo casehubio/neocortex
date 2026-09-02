@@ -484,26 +484,27 @@ This is a Quarkus build-time or startup-time loader, not a runtime interpreter. 
 
 **Scope:** L — Quarkus extension or `@Startup` loader, CDI bean production, validation.
 
-### 5f: Identity-Cognition Derivation Engine
+### 5f: Identity-Cognition Derivation Engine — **DONE** (#251, #256–#261)
 
-The bridge between WHO (eidos) and HOW (neocortex). A pure-function derivation engine that reads an `AgentDescriptor` and produces default cognitive configuration.
+The bridge between WHO (eidos) and HOW (neocortex). `CognitiveDerivationEngine` is a pure static utility that reads a `DescriptorView` and produces default cognitive configuration. `deriveAndMerge()` overlays explicit YAML overrides on derived defaults.
 
-**Derivation rules:**
-- `dispositionProfile` → `PersonalityWeights` (Ni-dominant → reflection=1.5, Fe-dominant → relationship=1.4)
-- Disposition axes → `MoodBaseline` (low riskAppetite → lower baseline pleasure, higher arousal)
-- Goals + disposition → curiosity category weights (autonomy → STRUCTURAL boost, ruleFollowing → QUALITY boost)
-- ruleFollowing + riskAppetite → CBR retrieval parameters (strict vs broad similarity)
-- Disposition profile → extraction biases (analytical → relationship-bias, empathetic → affect-sensitivity)
+**All 8 derivation rules implemented:**
+1. `dispositionProfile` → `PersonalityWeights` — Jungian function weights via weighted average (#251)
+2. Disposition axes → `MoodBaseline` — riskAppetite→pleasure, socialOrient→arousal, autonomy→dominance (#251)
+3. Disposition + goals → `CuriosityConfig.categoryWeights` — autonomy→STRUCTURAL, ruleFollowing→QUALITY, socialOrient→CENTRALITY, strategic goals→CENTRALITY+STRUCTURAL boost (#256)
+4. Goals → `TemporalFocusConfig.subgraphProximityWeights` — career→PROJECT, family→PERSON, research→RESEARCH_AREA (#257)
+5. ruleFollowing + riskAppetite → `CbrStrategyDefaults` — strict→FEATURE_ONLY/0.65, flexible→SEMANTIC_ONLY/0.35, bold→180d decay (#258)
+6. socialOrient + conflictMode → `SocialCognitionDefaults` — cooperative→fast trust+repair, competitive→slow trust+information (#259)
+7. Disposition profile → `GraphStructureDefaults` — holistic (Ni/Fe/Ne/Fi)→CONNECTIVE, systematic (Te/Si/Ti/Se)→CATEGORICAL (#260)
+8. Disposition profile → `ExtractionBiasDefaults` — analytical→higher relationshipBias, empathetic→higher affectSensitivity (#261)
 
-**YAML directive:** `derive-from: descriptor` in the `cognitive:` block triggers derivation. Explicit overrides in the same block take precedence over derived defaults.
+**YAML directive:** `derive-from: descriptor` in the `cognitive:` block triggers derivation. Explicit overrides in the same block take precedence over derived defaults via `deriveAndMerge()`.
 
-**The derivation rules are themselves configurable** — different platforms may have different mappings from disposition to cognition. The default rules implement the personality-cognition research consensus; domain-specific deployments can override them via a `DerivationRuleSet` SPI.
-
-**Implementation:** Pure function `AgentDescriptor → CognitiveDefaults`. No CDI, no state, fully testable. Runs at YAML load time as part of the 5e loader.
+**Implementation:** Pure static utility `DescriptorView → CognitiveDefaults`. No CDI, no state, fully testable. 33 unit tests.
 
 See [Identity-Memory Integration](identity-memory-integration.md) for the full design of all 8 integration points.
 
-**Scope:** M — derivation function, default rule set, integration with 5e loader.
+**Scope:** M — derivation function, default rule set. Consumer wiring (applying derived configs to runtime behaviour) is tracked separately per subsystem.
 
 ### ~~5g: Memory Space YAML Configuration~~ — REMOVED (#255)
 
@@ -568,7 +569,7 @@ Phase 1 (Structural)       Phase 2 (Temporal)        Phase 3 (Affective)       P
 | 5c: Cognitive Profile YAML | 5b, 3a | M | Agent cognitive configuration in YAML |
 | 5d: Declarative Rule DSL | 5b | L | YAML trait rules + derived edge rules |
 | 5e: YAML-to-Java Compiler | 5c, 5d | L | Build-time/startup YAML → CDI bean loader |
-| 5f: Identity-Cognition Derivation | 5c, eidos | M | `derive-from: descriptor` → default cognitive config |
+| 5f: Identity-Cognition Derivation | 5c, eidos | M | `derive-from: descriptor` → default cognitive config — **DONE** (#251, #256–#261) |
 | ~~5g: Memory Space YAML~~ | ~~5b, 1f~~ | — | REMOVED — space-as-tenant model deleted (#255) |
 
 **Phase 1** can start immediately — no external dependencies. Items 1a and 1b are parallelisable.
