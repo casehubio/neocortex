@@ -2,13 +2,28 @@ package io.casehub.neocortex.mindmap.runtime;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.DeclarativeDerivedEdgeRule;
+import io.casehub.neocortex.mindmap.DerivedEdgeRule;
+import io.casehub.neocortex.mindmap.EdgeDerivation;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapEdge;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.EdgeRef;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -275,6 +290,72 @@ class DerivedEdgeDecoratorTest {
     private NodeInput node(String name) {
         return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);
+    }
+
+
+    @Test
+    void addEdge_withPrincipalId_usesPerPrincipalRules() {
+        var inverseRule = new DeclarativeDerivedEdgeRule("agent-inverse",
+                                                         Set.of("has-child"), null,
+                                                         List.of(new EdgeDerivation("parent-of", EdgeRef.TRIGGER_TARGET, EdgeRef.TRIGGER_SOURCE, null, Map.of())));
+
+        var cogDefaults  = CognitiveDefaults.empty("agent-1").withDerivedEdgeRules(List.of(inverseRule));
+        var cogRegistry  = CognitiveDefaultsRegistry.forTesting(cogDefaults);
+        var ruleRegistry = DeclarativeRuleRegistry.of(List.of(), List.of(), cogRegistry);
+
+        var scopedDecorator = new DerivedEdgeDecorator(store, List.of(), 3, ruleRegistry);
+
+        String alice = scopedDecorator.addNode(node("Alice"), "t1");
+        String bob   = scopedDecorator.addNode(node("Bob"), "t1");
+
+        scopedDecorator.addEdge(edge(alice, bob, "has-child").withPrincipalId("agent-1"), "t1");
+
+        List<MindMapEdge> derived = scopedDecorator.neighbors(bob, "parent-of", "t1");
+        assertThat(derived).hasSize(1);
+        assertThat(derived.get(0).sourceNodeId()).isEqualTo(bob);
+        assertThat(derived.get(0).targetNodeId()).isEqualTo(alice);
+    }
+
+    @Test
+    void addEdge_withDifferentPrincipalId_doesNotFireOtherPrincipalRules() {
+        var inverseRule = new DeclarativeDerivedEdgeRule("agent-inverse",
+                                                         Set.of("has-child"), null,
+                                                         List.of(new EdgeDerivation("parent-of", EdgeRef.TRIGGER_TARGET, EdgeRef.TRIGGER_SOURCE, null, Map.of())));
+
+        var cogDefaults  = CognitiveDefaults.empty("agent-1").withDerivedEdgeRules(List.of(inverseRule));
+        var cogRegistry  = CognitiveDefaultsRegistry.forTesting(cogDefaults);
+        var ruleRegistry = DeclarativeRuleRegistry.of(List.of(), List.of(), cogRegistry);
+
+        var scopedDecorator = new DerivedEdgeDecorator(store, List.of(), 3, ruleRegistry);
+
+        String alice = scopedDecorator.addNode(node("Alice"), "t1");
+        String bob   = scopedDecorator.addNode(node("Bob"), "t1");
+
+        scopedDecorator.addEdge(edge(alice, bob, "has-child").withPrincipalId("agent-2"), "t1");
+
+        List<MindMapEdge> derived = scopedDecorator.neighbors(bob, "parent-of", "t1");
+        assertThat(derived).isEmpty();
+    }
+
+    @Test
+    void addEdge_withNullPrincipalId_firesAllRules() {
+        var inverseRule = new DeclarativeDerivedEdgeRule("agent-inverse",
+                                                         Set.of("has-child"), null,
+                                                         List.of(new EdgeDerivation("parent-of", EdgeRef.TRIGGER_TARGET, EdgeRef.TRIGGER_SOURCE, null, Map.of())));
+
+        var cogDefaults  = CognitiveDefaults.empty("agent-1").withDerivedEdgeRules(List.of(inverseRule));
+        var cogRegistry  = CognitiveDefaultsRegistry.forTesting(cogDefaults);
+        var ruleRegistry = DeclarativeRuleRegistry.of(List.of(), List.of(), cogRegistry);
+
+        var scopedDecorator = new DerivedEdgeDecorator(store, List.of(), 3, ruleRegistry);
+
+        String alice = scopedDecorator.addNode(node("Alice"), "t1");
+        String bob   = scopedDecorator.addNode(node("Bob"), "t1");
+
+        scopedDecorator.addEdge(edge(alice, bob, "has-child"), "t1");
+
+        List<MindMapEdge> derived = scopedDecorator.neighbors(bob, "parent-of", "t1");
+        assertThat(derived).hasSize(1);
     }
 
     private EdgeInput edge(String source, String target, String type) {

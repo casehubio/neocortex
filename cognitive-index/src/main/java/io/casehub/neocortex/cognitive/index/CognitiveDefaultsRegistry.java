@@ -19,11 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
 import io.casehub.neocortex.mindmap.DeclarativeDerivedEdgeRule;
 import io.casehub.neocortex.mindmap.DeclarativeTraitRule;
 import io.casehub.neocortex.mindmap.RuleCondition;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -69,6 +70,15 @@ public class CognitiveDefaultsRegistry {
     public Collection<CognitiveDefaults> allProfiles() {
         return profiles.values();
     }
+
+    public static CognitiveDefaultsRegistry forTesting(CognitiveDefaults... profiles) {
+        var r   = new CognitiveDefaultsRegistry();
+        var map = new java.util.LinkedHashMap<String, CognitiveDefaults>();
+        for (var p : profiles) {map.put(p.agentId(), p);}
+        r.profiles = Map.copyOf(map);
+        return r;
+    }
+
 
     static CognitiveDefaultsRegistry loadFromClasspath(String path, ClassLoader classLoader)
             throws IOException {

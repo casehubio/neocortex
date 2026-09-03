@@ -77,6 +77,12 @@ public class DeclarativeRuleRegistry {
         return new DeclarativeRuleRegistry(traitRules, derivedEdgeRules, null);
     }
 
+    public static DeclarativeRuleRegistry of(List<DeclarativeTraitRule> traitRules,
+                                             List<DeclarativeDerivedEdgeRule> derivedEdgeRules,
+                                             CognitiveDefaultsRegistry cognitiveDefaults) {
+        return new DeclarativeRuleRegistry(traitRules, derivedEdgeRules, cognitiveDefaults);
+    }
+
 
     public List<TraitRule> traitRules(String agentId) {
         var merged = new LinkedHashMap<String, TraitRule>();
