@@ -30,35 +30,39 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
     private static final ThreadLocal<Boolean> evaluating =
             ThreadLocal.withInitial(() -> false);
 
-    private final List<TraitRule> rules;
+    private final List<TraitRule>         programmaticRules;
+    private final DeclarativeRuleRegistry registry;
 
     @Inject
     public TraitApplicationDecorator(@Delegate @Any MindMapStore delegate,
                                      Instance<TraitRule> rules,
                                      Instance<DeclarativeRuleRegistry> registry) {
         super(delegate);
-        List<TraitRule> allRules = new ArrayList<>(rules.stream().toList());
-        if (registry.isResolvable()) {
-            allRules.addAll(registry.get().allTraitRules());
-        }
-        this.rules = List.copyOf(allRules);
+        this.programmaticRules = List.copyOf(rules.stream().toList());
+        this.registry          = registry.isResolvable() ? registry.get() : null;
     }
 
     TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules) {
-        super(delegate);
-        this.rules = List.copyOf(rules);
+        this(delegate, rules, null);
     }
 
     TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules,
                               DeclarativeRuleRegistry registry) {
         super(delegate);
-        List<TraitRule> allRules = new ArrayList<>(rules);
-        if (registry != null) {
-            allRules.addAll(registry.allTraitRules());
-        }
-        this.rules = List.copyOf(allRules);
+        this.programmaticRules = List.copyOf(rules);
+        this.registry          = registry;
     }
 
+    private List<TraitRule> resolveRules(String principalId) {
+        if (registry == null) {return programmaticRules;}
+        List<TraitRule> resolved = new ArrayList<>(programmaticRules);
+        if (principalId != null) {
+            resolved.addAll(registry.traitRules(principalId));
+        } else {
+            resolved.addAll(registry.allTraitRules());
+        }
+        return resolved;
+    }
 
     @Override
     public String addNode(NodeInput input, String tenantId) {
@@ -66,7 +70,7 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
         if (!evaluating.get()) {
             evaluating.set(true);
             try {
-                evaluateTraitsForNode(nodeId, tenantId);
+                evaluateTraitsForNode(nodeId, tenantId, input.principalId());
             } finally {
                 evaluating.set(false);
             }
@@ -80,7 +84,7 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
         if (!evaluating.get()) {
             evaluating.set(true);
             try {
-                evaluateTraitsForNode(nodeId, tenantId);
+                evaluateTraitsForNode(nodeId, tenantId, null);
             } finally {
                 evaluating.set(false);
             }
@@ -93,8 +97,8 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
         if (!evaluating.get()) {
             evaluating.set(true);
             try {
-                evaluateTraitsForNode(input.sourceNodeId(), tenantId);
-                evaluateTraitsForNode(input.targetNodeId(), tenantId);
+                evaluateTraitsForNode(input.sourceNodeId(), tenantId, input.principalId());
+                evaluateTraitsForNode(input.targetNodeId(), tenantId, input.principalId());
             } finally {
                 evaluating.set(false);
             }
@@ -113,15 +117,16 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
         if (!evaluating.get() && edge != null) {
             evaluating.set(true);
             try {
-                evaluateTraitsForNode(sourceId, tenantId);
-                evaluateTraitsForNode(targetId, tenantId);
+                evaluateTraitsForNode(sourceId, tenantId, null);
+                evaluateTraitsForNode(targetId, tenantId, null);
             } finally {
                 evaluating.set(false);
             }
         }
     }
 
-    private void evaluateTraitsForNode(String nodeId, String tenantId) {
+    private void evaluateTraitsForNode(String nodeId, String tenantId, String principalId) {
+        List<TraitRule> rules = resolveRules(principalId);
         if (rules.isEmpty()) {return;}
 
         MindMapNode node = delegate().getNode(nodeId, tenantId);

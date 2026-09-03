@@ -23,7 +23,8 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
     private static final int                  DEFAULT_MAX_DEPTH = 3;
     private static final ThreadLocal<Integer> derivationDepth   = ThreadLocal.withInitial(() -> 0);
 
-    private final List<DerivedEdgeRule>     rules;
+    private final List<DerivedEdgeRule>     programmaticRules;
+    private final DeclarativeRuleRegistry   registry;
     private final int                       maxDepth;
     private final Map<String, List<String>> triggerToDerived = new ConcurrentHashMap<>();
 
@@ -32,22 +33,36 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
                                 Instance<DerivedEdgeRule> rules,
                                 Instance<DeclarativeRuleRegistry> registry) {
         super(delegate);
-        List<DerivedEdgeRule> allRules = new ArrayList<>(rules.stream().toList());
-        if (registry.isResolvable()) {
-            allRules.addAll(registry.get().allDerivedEdgeRules());
-        }
-        this.rules    = List.copyOf(allRules);
-        this.maxDepth = DEFAULT_MAX_DEPTH;
+        this.programmaticRules = List.copyOf(rules.stream().toList());
+        this.registry          = registry.isResolvable() ? registry.get() : null;
+        this.maxDepth          = DEFAULT_MAX_DEPTH;
     }
 
     DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules) {
-        this(delegate, rules, DEFAULT_MAX_DEPTH);
+        this(delegate, rules, DEFAULT_MAX_DEPTH, null);
     }
 
     DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth) {
+        this(delegate, rules, maxDepth, null);
+    }
+
+    DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth,
+                         DeclarativeRuleRegistry registry) {
         super(delegate);
-        this.rules    = List.copyOf(rules);
-        this.maxDepth = maxDepth;
+        this.programmaticRules = List.copyOf(rules);
+        this.maxDepth          = maxDepth;
+        this.registry          = registry;
+    }
+
+    private List<DerivedEdgeRule> resolveRules(String principalId) {
+        if (registry == null) {return programmaticRules;}
+        List<DerivedEdgeRule> resolved = new ArrayList<>(programmaticRules);
+        if (principalId != null) {
+            resolved.addAll(registry.derivedEdgeRules(principalId));
+        } else {
+            resolved.addAll(registry.allDerivedEdgeRules());
+        }
+        return resolved;
     }
 
     @Override
@@ -67,7 +82,7 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
                 return edgeId;
             }
 
-            for (DerivedEdgeRule rule : rules) {
+            for (DerivedEdgeRule rule : resolveRules(input.principalId())) {
                 List<EdgeInput> derived = rule.derive(sourceNode, trigger, delegate());
                 if (derived == null) {continue;}
                 for (EdgeInput d : derived) {
