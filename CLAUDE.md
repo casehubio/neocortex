@@ -1,88 +1,27 @@
-# neocortex Workspace
+# CLAUDE.md
+
 **Name:** casehub-neocortex
 
-**Physical path:** `/Users/mdproctor/claude/casehub/neocortex/CLAUDE.md`
-**Project repo:** `/Users/mdproctor/claude/casehub/neocortex`
-**Workspace:** `/Users/mdproctor/claude/public/casehub/neocortex`
-**Workspace type:** public
+## Project Type
 
-## Session Start
+**Type:** java
 
-Run `add-dir /Users/mdproctor/claude/casehub/neocortex` before any other work.
-
-## Artifact Locations
-
-| Skill | Writes to |
-|-------|-----------|
-| brainstorming (specs) | `specs/` (workspace staging) |
-| writing-plans (plans) | `plans/` |
-| handover | `HANDOFF.md` |
-| idea-log | `IDEAS.md` |
-| design-snapshot | `snapshots/` |
-| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic`) |
-| adr | `adr/` (workspace staging) |
-| write-blog | `blog/` |
-
-## Structure
-
-- `HANDOFF.md` — session handover (single file, overwritten each session)
-- `IDEAS.md` — idea log (single file)
-- `specs/` — brainstorming / design specs (staging; promoted to project `docs/specs/` at epic close)
-- `plans/` — implementation plans (ephemeral; stay in workspace only)
-- `snapshots/` — design snapshots with INDEX.md (auto-pruned, max 10)
-- `adr/` — architecture decision records (staging; promoted to project `docs/adr/` at epic close)
-- `blog/` — project diary entries with INDEX.md
-- `design/` — epic journal (created by `epic` at branch start)
-
-## Git Discipline
-
-Two git repositories are active in every session:
-- **Workspace** (`/Users/mdproctor/claude/public/casehub/neocortex`) — staging for specs/ADRs; permanent home for blog, handover, plans, snapshots
-- **Project repo** (`/Users/mdproctor/claude/casehub/neocortex`) — source code + promoted specs (`docs/specs/`) + promoted ADRs (`docs/adr/`)
-
-Never rely on CWD for git operations. Always use explicit paths:
-```bash
-git -C /Users/mdproctor/claude/public/casehub/neocortex ...  # workspace artifacts
-git -C /Users/mdproctor/claude/casehub/neocortex ...         # project artifacts
-```
-
-Source code commits → project repo (`origin` = mdproctor/neocortex, `upstream` = casehubio/neocortex)
-
-## Rules
-
-- All methodology artifacts go to workspace first
-- Promotion to project repo is always explicit — never automatic
-- Workspace branches mirror project branches — switch both together
-
-## Routing
-
-| Artifact   | Destination | Notes |
-|------------|-------------|-------|
-| adr        | project     | lands in `docs/adr/` — promoted at epic close |
-| specs      | project     | lands in `docs/specs/` — promoted at epic close |
-| blog       | project     | lands in `docs/blog/` — promoted at work end |
-| plans      | workspace   | stay in workspace permanently |
-| design     | workspace   | epic journal stays in workspace |
-| design     | project     | journal in workspace `design/`; merge target is project `ARC42STORIES.MD` |
-| snapshots  | workspace   | stay in workspace permanently |
-| handover   | workspace   | |
-
-Living docs — check for drift after significant changes:
-- `ARC42STORIES.MD` — primary architecture record; check §9–10 after module, SPI, or structural changes
-
-## Writing Style Guide
-
-**The writing style guide at `~/claude-workspace/writing-styles/blog-technical.md` is mandatory for all blog and diary entries.** Load it in full before drafting. Complete the pre-draft voice classification (I / we / Claude-named) before generating any prose. Do not show a draft without verifying it against the style guide.
-
-## Peer Repos — Hard Boundary
-
-**Never commit to these repos from a neocortex session.** Each has its own Claude session. For cross-repo fixes, create a GitHub issue on the target repo instead.
-
-Peer repos: platform, ledger, connectors, work, qhorus, eidos, engine, claudony, openclaw, devtown, aml, clinical, life, drafthouse, quarkmind, flow
+**Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2, LangChain4j 1.14.1, ONNX Runtime JVM
 
 ---
 
-# CaseHub Neural-Text — Claude Code Project Guide
+## Work Tracking
+
+**Issue tracking:** enabled
+**GitHub repo:** casehubio/neocortex
+**Changelog:** GitHub Releases
+
+All implementation work must be linked to a GitHub issue:
+- Before starting implementation, create an epic + child issues (or confirm an existing issue)
+- All commits reference an issue: `Refs #N` (work in progress) or `Closes #N` (completes the issue)
+- When staged changes span multiple concerns, split into separate commits with separate issue references
+
+---
 
 ## Platform Docs
 - [Platform Index](https://raw.githubusercontent.com/casehubio/parent/main/docs/INDEX.md) — discovery index (start here)
@@ -103,14 +42,6 @@ Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/
 | Document | What it covers |
 |----------|---------------|
 | `../garden/docs/protocols/universal/INDEX.md` | Universal Java/Quarkus protocols |
-
----
-
-## Project Type
-
-type: java
-
-**Stack:** Java 21 (on Java 26 JVM), Quarkus 3.32.2, LangChain4j 1.14.1, ONNX Runtime JVM
 
 ---
 
@@ -303,11 +234,3 @@ JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn clean test -Pexamples
 The inference service is long-running — native image's fast startup provides no benefit, and HotSpot's JIT optimisation outperforms AOT for sustained workloads. `inference-*` modules operate in JVM mode.
 
 The C2 native image gate passed (ONNX Runtime JNI + HuggingFace Tokenizers JNI both work in Quarkus native image on macOS ARM). Reachability metadata ships in `inference-quarkus/src/main/resources/META-INF/native-image/` for downstream consumers that distribute as native binaries (e.g. Hortora CLI).
-
----
-
-## Work Tracking
-
-**Issue tracking:** enabled
-**GitHub repo:** casehubio/neocortex
-**Changelog:** GitHub Releases
