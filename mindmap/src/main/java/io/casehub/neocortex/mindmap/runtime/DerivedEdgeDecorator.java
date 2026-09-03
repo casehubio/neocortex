@@ -118,7 +118,7 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
                 input.confidence(), input.provenance(),
                 input.validFrom(), input.validUntil(),
                 input.pleasure(), input.arousal(), input.dominance(),
-                props);
+                props, input.principalId());
     }
 
     private void cleanMapForEdges(List<MindMapEdge> edges) {

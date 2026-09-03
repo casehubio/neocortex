@@ -55,7 +55,7 @@ public record DeclarativeDerivedEdgeRule(
             String src = resolveRef(d.source(), trigger, null);
             String tgt = resolveRef(d.target(), trigger, null);
             result.add(new EdgeInput(src, tgt, d.edgeType(),
-                d.confidence(), null, null, null, null, null, null, d.properties()));
+                d.confidence(), null, null, null, null, null, null, d.properties(), null));
         }
         return result;
     }
@@ -91,7 +91,7 @@ public record DeclarativeDerivedEdgeRule(
                 String src = resolveRef(d.source(), trigger, nextNodeId);
                 String tgt = resolveRef(d.target(), trigger, nextNodeId);
                 result.add(new EdgeInput(src, tgt, d.edgeType(),
-                    d.confidence(), null, null, null, null, null, null, d.properties()));
+                    d.confidence(), null, null, null, null, null, null, d.properties(), null));
             }
 
             walkGraph(store, nextNodeId, trigger, remainingDepth - 1, result, visited);
