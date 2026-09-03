@@ -2260,16 +2260,15 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void discoverTenants_returnsDistinctTenants() {
-        registerDefaultSchema();
         store().store(
                 new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
-                "diagnosis", ENTITY, CBR, "t1", "c1", Path.root());
+                "starcraft-game", ENTITY, CBR, "t1", "c1", Path.root());
         store().store(
                 new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
-                "diagnosis", ENTITY, CBR, "t2", "c2", Path.root());
+                "starcraft-game", ENTITY, CBR, "t2", "c2", Path.root());
         store().store(
                 new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null),
-                "diagnosis", ENTITY, CBR, "t1", "c3", Path.root());
+                "starcraft-game", ENTITY, CBR, "t1", "c3", Path.root());
         var tenants = store().discoverTenants(CBR);
         assertThat(tenants).containsExactlyInAnyOrder("t1", "t2");
     }
