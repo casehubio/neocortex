@@ -104,7 +104,7 @@ public class TemporalIndex {
         List<TemporalEntry> entries = new ArrayList<>();
 
         for (String tenantId : query.tenantIds()) {
-            MemoryQuery mq = MemoryQuery.forEntities(List.copyOf(query.entityIds()), EXPERIENCE_DOMAIN, tenantId)
+            MemoryQuery mq = MemoryQuery.forSubjects(query.entityIds().stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(), EXPERIENCE_DOMAIN, tenantId)
                 .withLimit(query.limit())
                 .withOrder(MemoryOrder.CHRONOLOGICAL);
             if (query.from() != null) {

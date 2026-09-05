@@ -102,7 +102,7 @@ public final class TemporalFocus {
     private static String extractEntityId(TemporalSource source) {
         return switch (source) {
             case TemporalSource.FromMindMap(MindMapNode node) -> node.id();
-            case TemporalSource.FromMemory(Memory memory) -> memory.entityId();
+            case TemporalSource.FromMemory(Memory memory) -> memory.subject().id();
             case TemporalSource.FromCbr(ScoredCbrCase<?> cbrCase) -> cbrCase.caseId();
         };
     }

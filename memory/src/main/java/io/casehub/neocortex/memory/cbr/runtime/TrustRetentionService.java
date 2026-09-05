@@ -89,7 +89,7 @@ public class TrustRetentionService {
                     if (trust.isEmpty()) {continue;}
                     if (trust.getAsDouble() >= config.minCurrentTrust()) {continue;}
                     store.erase(new EraseRequest(
-                            c.entityId(), domain, tenantId, c.caseId()));
+                            io.casehub.neocortex.memory.Subject.of("unknown", c.entityId()), domain, tenantId, c.caseId()));
                     purgedByAgent.merge(c.producerAgentId(), 1, Integer::sum);
                 }
                 cursor = result.nextCursor();

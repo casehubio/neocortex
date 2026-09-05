@@ -29,11 +29,11 @@ public class NodeRefCleanupObserver {
     }
 
     public void onMemoryEntityErased(@Observes MemoryEntityErased.ByEntity event) {
-        removeRefs("memory", event.entityId(), event.tenantId());
+        removeRefs("memory", event.subject().id(), event.tenantId());
     }
 
     public void onCbrCasesErased(@Observes CbrCasesErased.ByEntity event) {
-        removeRefs("cbr", event.entityId(), event.tenantId());
+        removeRefs("cbr", event.subject().id(), event.tenantId());
     }
 
     private void removeRefs(String scheme, String refId, String tenantId) {

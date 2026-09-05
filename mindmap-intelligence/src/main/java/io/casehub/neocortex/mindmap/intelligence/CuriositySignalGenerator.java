@@ -275,7 +275,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
     }
 
     private AffectTrajectory computeTrajectory(String nodeId, String tenantId) {
-        var query = MemoryQuery.forEntity(nodeId, AffectEvents.DOMAIN, tenantId)
+        var query = MemoryQuery.forSubject(io.casehub.neocortex.memory.Subject.of("node", nodeId), AffectEvents.DOMAIN, tenantId)
                                .withLimit(config.trajectoryLimit());
         List<Memory> memories = memoryStore.query(query);
         return AffectTrajectoryAnalyzer.analyze(memories);

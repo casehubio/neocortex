@@ -128,7 +128,7 @@ public class CognitiveProfile {
         Map<MemoryDomain, List<Memory>> result = new LinkedHashMap<>();
         for (MemoryDomain domain : domains) {
             List<Memory> memories = memoryStore.query(
-                MemoryQuery.forEntities(entityIds, domain, query.tenantId())
+                MemoryQuery.forSubjects(entityIds.stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(), domain, query.tenantId())
                     .withLimit(query.memoryLimit())
                     .withOrder(MemoryOrder.CHRONOLOGICAL));
             if (!memories.isEmpty()) {
@@ -149,7 +149,7 @@ public class CognitiveProfile {
         List<Memory> affectMemories = memories.get(AffectEvents.DOMAIN);
         if (affectMemories == null) {
             affectMemories = memoryStore.query(
-                MemoryQuery.forEntities(entityIds, AffectEvents.DOMAIN, query.tenantId())
+                MemoryQuery.forSubjects(entityIds.stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(), AffectEvents.DOMAIN, query.tenantId())
                     .withLimit(query.memoryLimit())
                     .withOrder(MemoryOrder.CHRONOLOGICAL));
         }
