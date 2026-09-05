@@ -13,6 +13,7 @@ import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.Subject;
+import io.casehub.neocortex.memory.MemoryVisibility;
 import io.casehub.neocortex.memory.graphiti.dto.AddMessage;
 import io.casehub.neocortex.memory.graphiti.dto.AddMessagesRequest;
 import io.casehub.neocortex.memory.graphiti.dto.FactResult;
@@ -147,7 +148,9 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
         if (!relevanceWithQuestion) {
             stream = stream.sorted(Comparator.<Memory, Instant>comparing(Memory::createdAt).reversed());
         }
-        return stream.limit(query.limit()).collect(Collectors.toList());
+        return stream
+            .filter(m -> MemoryVisibility.isVisible(query.callerPrincipalId(), m))
+            .limit(query.limit()).collect(Collectors.toList());
     }
 
     private List<Memory> searchForEntity(MemoryQuery query, String entityId) {
@@ -218,7 +221,9 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
             Instant at = query.validAt();
             stream = stream.filter(m -> isValidAt(m, at));
         }
-        return stream.limit(query.limit()).collect(Collectors.toList());
+        return stream
+            .filter(m -> MemoryVisibility.isVisible(query.callerPrincipalId(), m))
+            .limit(query.limit()).collect(Collectors.toList());
     }
 
     private static boolean isValidAt(Memory m, Instant at) {

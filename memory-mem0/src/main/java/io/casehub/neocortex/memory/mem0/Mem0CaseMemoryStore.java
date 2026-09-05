@@ -9,6 +9,7 @@ import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.MemoryVisibility;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.StoreFailure;
 import io.casehub.neocortex.memory.Subject;
@@ -102,7 +103,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
             input.domain().name(),
             input.caseId(),
             config.infer(),
-            new HashMap<>(input.attributes())
+            visibilityMetadata(input)
         );
         try {
             var response = client.add(request);
@@ -140,6 +141,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
         return stream
             .limit(query.limit())
             .map(m -> toMemory(m, query.tenantId()))
+            .filter(m -> MemoryVisibility.isVisible(query.callerPrincipalId(), m))
             .collect(Collectors.toList());
     }
 
@@ -281,9 +283,38 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
                 tenantId,
                 m.runId(),
                 m.memory() != null ? m.memory() : "",
-                m.metadata() != null ? m.metadata() : Map.of(),
+                sanitizeMetadata(m.metadata()),
                 parseCreatedAt(m.createdAt()),
-                null, null, null, null, null, null);
+                null, null, null, null,
+                extractPrincipalId(m.metadata()),
+                extractSharedWith(m.metadata()));
+    }
+
+
+    private static Map<String, String> visibilityMetadata(MemoryInput input) {
+        var meta = new HashMap<>(input.attributes());
+        if (input.principalId() != null) {meta.put("_principalId", input.principalId());}
+        if (!input.sharedWith().isEmpty()) {meta.put("_sharedWith", String.join(",", input.sharedWith()));}
+        return meta;
+    }
+
+    private static String extractPrincipalId(Map<String, String> metadata) {
+        return metadata != null ? metadata.get("_principalId") : null;
+    }
+
+    private static Set<String> extractSharedWith(Map<String, String> metadata) {
+        if (metadata == null) {return Set.of();}
+        String val = metadata.get("_sharedWith");
+        if (val == null || val.isEmpty()) {return Set.of();}
+        return Set.of(val.split(","));
+    }
+
+    private static Map<String, String> sanitizeMetadata(Map<String, String> metadata) {
+        if (metadata == null) {return Map.of();}
+        var clean = new HashMap<>(metadata);
+        clean.remove("_principalId");
+        clean.remove("_sharedWith");
+        return Map.copyOf(clean);
     }
 
     private Mem0StoreException toStoreException(WebApplicationException e) {
