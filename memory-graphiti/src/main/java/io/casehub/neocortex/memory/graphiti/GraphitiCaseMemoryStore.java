@@ -12,6 +12,7 @@ import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.StoreAllResult;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.graphiti.dto.AddMessage;
 import io.casehub.neocortex.memory.graphiti.dto.AddMessagesRequest;
 import io.casehub.neocortex.memory.graphiti.dto.FactResult;
@@ -104,14 +105,14 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
         var message = new AddMessage(
             input.text(),
             episodeUuid,
-            input.entityId(),
+            input.subject().id(),
             "user",
             null,
             Instant.now(),
             sourceDescription(input)
         );
         var request = new AddMessagesRequest(
-            compoundGroupId(input.tenantId(), input.entityId(), input.domain().name()),
+            compoundGroupId(input.tenantId(), input.subject().id(), input.domain().name()),
             List.of(message)
         );
         try {
@@ -130,7 +131,7 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
             query.order() == MemoryOrder.RELEVANCE && query.question() != null;
 
         List<Memory> all = new ArrayList<>();
-        for (String entityId : query.entityIds()) {
+        for (String entityId : query.subjects().stream().map(Subject::id).toList()) {
             if (relevanceWithQuestion) {
                 all.addAll(searchForEntity(query, entityId));
             } else {
@@ -167,7 +168,7 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
     }
 
     private List<Memory> episodesForEntity(MemoryQuery query, String entityId) {
-        int lastN = query.limit() * query.entityIds().size();
+        int lastN = query.limit() * query.subjects().size();
         String groupId = compoundGroupId(query.tenantId(), entityId, query.domain().name());
         try {
             var episodes = client.getEpisodes(groupId, lastN);
@@ -187,10 +188,10 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
 
         requireCapability(MemoryCapability.FACT_SEARCH);
         if (query.validAt() != null)      requireCapability(MemoryCapability.TEMPORAL_GRAPH);
-        if (query.entityTypes() != null)  requireCapability(MemoryCapability.ENTITY_TYPE_FILTER);
+        if (query.subjectTypes() != null)  requireCapability(MemoryCapability.ENTITY_TYPE_FILTER);
 
         List<Memory> all = new ArrayList<>();
-        for (String entityId : query.entityIds()) {
+        for (String entityId : query.subjects().stream().map(Subject::id).toList()) {
             var req = new GraphitiSearchRequest(
                 List.of(compoundGroupId(query.tenantId(), entityId, query.domain().name())),
                 query.question(),
@@ -260,7 +261,7 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
     public int erase(EraseRequest request) {
         MemoryPermissions.assertTenant(request.tenantId(), principal, requestContextActive());
         String groupId = compoundGroupId(
-            request.tenantId(), request.entityId(), request.domain().name());
+            request.tenantId(), request.subject().id(), request.domain().name());
 
         if (request.caseId() == null) {
             return eraseGroup(groupId);
@@ -284,19 +285,31 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
     }
 
     @Override
+    public void eraseById(String memoryId, Subject subject, String tenantId) {
+        eraseById(memoryId, subject.id(), tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
+    @Override
     public void eraseById(String memoryId, String entityId, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
         requireCapability(MemoryCapability.ERASE_BY_ID);
     }
 
-    @Timed(value = "casehub.memory.graphiti", histogram = true, extraTags = {"operation", "eraseEntity"})
+    @Timed(value = "casehub.memory.graphiti", histogram = true, extraTags = {"operation", "eraseSubject"})
+    @Override
+    public int eraseSubject(Subject subject, String tenantId) {
+        return eraseEntity(subject.id(), tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
     @Override
     public int eraseEntity(String entityId, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
         List<String> domains = config.knownDomains().orElse(List.of());
         if (domains.isEmpty()) {
             throw new io.casehub.neocortex.memory.MemoryCapabilityException(
-                MemoryCapability.ERASE_ENTITY, getClass());
+                    MemoryCapability.ERASE_ENTITY, getClass());
         }
         int total = 0;
         for (String domain : domains) {
@@ -305,14 +318,20 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
         return total;
     }
 
-    @Timed(value = "casehub.memory.graphiti", histogram = true, extraTags = {"operation", "eraseEntityAcrossTenants"})
+    @Timed(value = "casehub.memory.graphiti", histogram = true, extraTags = {"operation", "eraseSubjectAcrossTenants"})
+    @Override
+    public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
+        return eraseEntityAcrossTenants(subject.id(), tenantIds);
+    }
+
+    @Deprecated(forRemoval = true)
     @Override
     public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         MemoryPermissions.assertCrossTenantAdmin(principal);
         List<String> domains = config.knownDomains().orElse(List.of());
         if (domains.isEmpty()) {
             throw new io.casehub.neocortex.memory.MemoryCapabilityException(
-                MemoryCapability.CROSS_TENANT_ERASE, getClass());
+                    MemoryCapability.CROSS_TENANT_ERASE, getClass());
         }
         int total = 0;
         for (String tenantId : tenantIds) {
@@ -326,27 +345,27 @@ public class GraphitiCaseMemoryStore implements GraphCaseMemoryStore {
     private static Memory factToMemory(FactResult f, String entityId,
                                        MemoryDomain domain, String tenantId) {
         var attrs = new HashMap<String, String>();
-        if (f.validAt() != null)   attrs.put(MemoryAttributeKeys.VALID_FROM, f.validAt().toString());
-        if (f.invalidAt() != null) attrs.put(MemoryAttributeKeys.VALID_UNTIL, f.invalidAt().toString());
+        if (f.validAt() != null) {attrs.put(MemoryAttributeKeys.VALID_FROM, f.validAt().toString());}
+        if (f.invalidAt() != null) {attrs.put(MemoryAttributeKeys.VALID_UNTIL, f.invalidAt().toString());}
         return new Memory(
-                f.uuid(), entityId, domain, tenantId, null,
-            f.fact() != null ? f.fact() : "",
+                f.uuid(), Subject.of("unknown", entityId), domain, tenantId, null,
+                f.fact() != null ? f.fact() : "",
                 Map.copyOf(attrs),
-            f.createdAt() != null ? f.createdAt() : Instant.EPOCH,
-                null, null, null, null);
+                f.createdAt() != null ? f.createdAt() : Instant.EPOCH,
+                null, null, null, null, null, null);
     }
 
     private static Memory episodeToMemory(GraphitiEpisodicNode ep, MemoryDomain domain,
                                           String tenantId) {
         String entityId = extractEntityId(ep.groupId(), tenantId);
-        var attrs = new HashMap<String, String>();
-        if (ep.validAt() != null) attrs.put(MemoryAttributeKeys.VALID_FROM, ep.validAt().toString());
+        var    attrs    = new HashMap<String, String>();
+        if (ep.validAt() != null) {attrs.put(MemoryAttributeKeys.VALID_FROM, ep.validAt().toString());}
         return new Memory(
-                ep.uuid(), entityId, domain, tenantId, null,
-            ep.content() != null ? ep.content() : "",
+                ep.uuid(), Subject.of("unknown", entityId), domain, tenantId, null,
+                ep.content() != null ? ep.content() : "",
                 Map.copyOf(attrs),
-            ep.createdAt() != null ? ep.createdAt() : Instant.EPOCH,
-                null, null, null, null);
+                ep.createdAt() != null ? ep.createdAt() : Instant.EPOCH,
+                null, null, null, null, null, null);
     }
 
     static String compoundGroupId(String tenantId, String entityId, String domain) {

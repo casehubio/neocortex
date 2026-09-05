@@ -51,9 +51,12 @@ public class CaseEnrichmentDecorator implements CaseMemoryStore {
 
     @Override public List<Memory> query(MemoryQuery q) { return delegate.query(q); }
     @Override public int erase(EraseRequest r) { return delegate.erase(r); }
-    @Override public int eraseEntity(String entityId, String tenantId) { return delegate.eraseEntity(entityId, tenantId); }
-    @Override public void eraseById(String memoryId, String entityId, String tenantId) { delegate.eraseById(memoryId, entityId, tenantId); }
-    @Override public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) { return delegate.eraseEntityAcrossTenants(entityId, tenantIds); }
+    @Override public int eraseSubject(Subject subject, String tenantId) { return delegate.eraseSubject(subject, tenantId); }
+    @Deprecated(forRemoval = true) @Override public int eraseEntity(String entityId, String tenantId) { return delegate.eraseEntity(entityId, tenantId); }
+    @Override public void eraseById(String memoryId, Subject subject, String tenantId) { delegate.eraseById(memoryId, subject, tenantId); }
+    @Deprecated(forRemoval = true) @Override public void eraseById(String memoryId, String entityId, String tenantId) { delegate.eraseById(memoryId, entityId, tenantId); }
+    @Override public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) { return delegate.eraseSubjectAcrossTenants(subject, tenantIds); }
+    @Deprecated(forRemoval = true) @Override public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) { return delegate.eraseEntityAcrossTenants(entityId, tenantIds); }
     @Override public Set<MemoryCapability> capabilities() { return delegate.capabilities(); }
     @Override public void requireCapability(MemoryCapability cap) { delegate.requireCapability(cap); }
     @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }

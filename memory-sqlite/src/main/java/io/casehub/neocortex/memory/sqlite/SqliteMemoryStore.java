@@ -1,12 +1,11 @@
 package io.casehub.neocortex.memory.sqlite;
 
-import io.casehub.neocortex.cognitive.Confidence;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.Memory;
@@ -19,6 +18,7 @@ import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.StoreAllResult;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.arc.Arc;
@@ -140,7 +140,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, memoryId);
             ps.setString(2, input.tenantId());
-            ps.setString(3, input.entityId());
+            ps.setString(3, input.subject().id());
             ps.setString(4, input.domain().name());
             ps.setString(5, input.caseId());
             ps.setString(6, input.text());
@@ -173,7 +173,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
                     String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
                     ps.setString(1, memoryId);
                     ps.setString(2, input.tenantId());
-                    ps.setString(3, input.entityId());
+                    ps.setString(3, input.subject().id());
                     ps.setString(4, input.domain().name());
                     ps.setString(5, input.caseId());
                     ps.setString(6, input.text());
@@ -220,7 +220,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int idx = 1;
             ps.setString(idx++, request.tenantId());
-            ps.setString(idx++, request.entityId());
+            ps.setString(idx++, request.subject().id());
             ps.setString(idx++, request.domain().name());
             if (request.caseId() != null) ps.setString(idx, request.caseId());
             return ps.executeUpdate();
@@ -229,14 +229,19 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         }
     }
 
+    @Override
+    public void eraseById(String memoryId, Subject subject, String tenantId) {
+        eraseById(memoryId, subject.id(), tenantId);
+    }
+
     @Timed(value = "casehub.memory.sqlite", histogram = true, extraTags = {"operation", "eraseById"})
+    @Deprecated(forRemoval = true)
     @Override
     public void eraseById(String memoryId, String entityId, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
-        // entity_id in WHERE: mismatch → 0 rows deleted, silent no-op.
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "DELETE FROM memory_entry WHERE memory_id = ? AND entity_id = ? AND tenant_id = ?")) {
+                     "DELETE FROM memory_entry WHERE memory_id = ? AND entity_id = ? AND tenant_id = ?")) {
             ps.setString(1, memoryId);
             ps.setString(2, entityId);
             ps.setString(3, tenantId);
@@ -246,13 +251,19 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         }
     }
 
+    @Override
+    public int eraseSubject(Subject subject, String tenantId) {
+        return eraseEntity(subject.id(), tenantId);
+    }
+
     @Timed(value = "casehub.memory.sqlite", histogram = true, extraTags = {"operation", "eraseEntity"})
+    @Deprecated(forRemoval = true)
     @Override
     public int eraseEntity(String entityId, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "DELETE FROM memory_entry WHERE tenant_id = ? AND entity_id = ?")) {
+                     "DELETE FROM memory_entry WHERE tenant_id = ? AND entity_id = ?")) {
             ps.setString(1, tenantId);
             ps.setString(2, entityId);
             return ps.executeUpdate();
@@ -263,14 +274,19 @@ public class SqliteMemoryStore implements CaseMemoryStore {
 
     private static final int SQLITE_IN_CHUNK = 500;
 
+    @Override
+    public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
+        return eraseEntityAcrossTenants(subject.id(), tenantIds);
+    }
+
     @Timed(value = "casehub.memory.sqlite", histogram = true, extraTags = {"operation", "eraseEntityAcrossTenants"})
+    @Deprecated(forRemoval = true)
     @Override
     public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         MemoryPermissions.assertCrossTenantAdmin(principal);
-        if (tenantIds.isEmpty()) return 0;
-        // ArrayList needed for subList() chunking
+        if (tenantIds.isEmpty()) {return 0;}
         var tenantList = new ArrayList<>(tenantIds);
-        int total = 0;
+        int total      = 0;
         for (int offset = 0; offset < tenantList.size(); offset += SQLITE_IN_CHUNK) {
             var chunk = tenantList.subList(offset, Math.min(offset + SQLITE_IN_CHUNK, tenantList.size()));
             total += deleteChunk(entityId, chunk);
@@ -368,7 +384,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     private List<Memory> queryChronological(MemoryQuery query) {
         StringBuilder sql = new StringBuilder(
             "SELECT * FROM memory_entry WHERE tenant_id = ? AND entity_id IN (")
-            .append(placeholders(query.entityIds().size()))
+            .append(placeholders(query.subjects().size()))
             .append(") AND domain = ?");
         if (query.caseId() != null) sql.append(" AND case_id = ?");
         if (query.since()  != null) sql.append(" AND created_at >= ?");
@@ -378,7 +394,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int idx = 1;
             ps.setString(idx++, query.tenantId());
-            for (String entityId : query.entityIds()) ps.setString(idx++, entityId);
+            for (Subject s : query.subjects()) ps.setString(idx++, s.id());
             ps.setString(idx++, query.domain().name());
             if (query.caseId() != null) ps.setString(idx++, query.caseId());
             if (query.since()  != null) ps.setString(idx++, query.since().truncatedTo(ChronoUnit.MILLIS).toString());
@@ -408,7 +424,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
 
         StringBuilder sql = new StringBuilder(
             "SELECT m.* FROM memory_entry m JOIN memory_fts ON memory_fts.rowid = m.rowid WHERE m.tenant_id = ? AND m.entity_id IN (")
-            .append(placeholders(query.entityIds().size()))
+            .append(placeholders(query.subjects().size()))
             .append(") AND m.domain = ? AND memory_fts MATCH ?");
         if (query.caseId() != null) sql.append(" AND m.case_id = ?");
         if (query.since()  != null) sql.append(" AND m.created_at >= ?");
@@ -418,7 +434,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int idx = 1;
             ps.setString(idx++, query.tenantId());
-            for (String entityId : query.entityIds()) ps.setString(idx++, entityId);
+            for (Subject s : query.subjects()) ps.setString(idx++, s.id());
             ps.setString(idx++, query.domain().name());
             ps.setString(idx++, sanitised);
             if (query.caseId() != null) ps.setString(idx++, query.caseId());
@@ -489,7 +505,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     private Memory toMemory(ResultSet rs) throws SQLException {
         return new Memory(
                 rs.getString("memory_id"),
-                rs.getString("entity_id"),
+                Subject.of("unknown", rs.getString("entity_id")),
                 new MemoryDomain(rs.getString("domain")),
                 rs.getString("tenant_id"),
                 rs.getString("case_id"),
@@ -499,7 +515,8 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             rs.getObject("confidence") != null ? Confidence.unknown(rs.getDouble("confidence")) : null,
             rs.getObject("pleasure") != null ? rs.getDouble("pleasure") : null,
             rs.getObject("arousal") != null ? rs.getDouble("arousal") : null,
-            rs.getObject("dominance") != null ? rs.getDouble("dominance") : null);
+            rs.getObject("dominance") != null ? rs.getDouble("dominance") : null,
+            null, null);
     }
 
     private String placeholders(int count) {

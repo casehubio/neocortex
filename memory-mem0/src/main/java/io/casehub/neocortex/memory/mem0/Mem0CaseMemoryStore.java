@@ -11,6 +11,7 @@ import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.StoreFailure;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.mem0.dto.Mem0AddRequest;
 import io.casehub.neocortex.memory.mem0.dto.Mem0Memory;
 import io.casehub.neocortex.memory.mem0.dto.Mem0SearchRequest;
@@ -97,7 +98,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
     private String sendAdd(MemoryInput input) {
         var request = new Mem0AddRequest(
             List.of(new Mem0AddRequest.Mem0Message("user", input.text())),
-            compoundUserId(input.tenantId(), input.entityId()),
+            compoundUserId(input.tenantId(), input.subject().id()),
             input.domain().name(),
             input.caseId(),
             config.infer(),
@@ -106,7 +107,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
         try {
             var response = client.add(request);
             if (response.results() == null || response.results().isEmpty()) {
-                throw new Mem0StoreException("store produced no result for: " + input.entityId());
+                throw new Mem0StoreException("store produced no result for: " + input.subject().id());
             }
             return response.results().get(0).id();
         } catch (WebApplicationException e) {
@@ -123,7 +124,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
             query.order() == MemoryOrder.RELEVANCE && query.question() != null;
 
         List<Mem0Memory> all = new ArrayList<>();
-        for (String entityId : query.entityIds()) {
+        for (String entityId : query.subjects().stream().map(Subject::id).toList()) {
             all.addAll(fetchForEntity(query, entityId, relevanceWithQuestion));
         }
 
@@ -166,7 +167,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
     @Override
     public int erase(EraseRequest request) {
         MemoryPermissions.assertTenant(request.tenantId(), principal, requestContextActive());
-        String userId = compoundUserId(request.tenantId(), request.entityId());
+        String userId = compoundUserId(request.tenantId(), request.subject().id());
         try {
             var listed = client.list(userId, request.domain().name(), request.caseId());
             int count = listed.results() != null ? listed.results().size() : 0;
@@ -179,27 +180,39 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
 
     @Timed(value = "casehub.memory.mem0", histogram = true, extraTags = {"operation", "eraseById"})
     @Override
+    public void eraseById(String memoryId, Subject subject, String tenantId) {
+        eraseById(memoryId, subject.id(), tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
+    @Override
     public void eraseById(String memoryId, String entityId, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
         String expectedUserId = compoundUserId(tenantId, entityId);
         try {
             var existing = client.getById(memoryId);
-            if (!expectedUserId.equals(existing.userId())) return;
+            if (!expectedUserId.equals(existing.userId())) {return;}
             client.deleteById(memoryId);
         } catch (WebApplicationException e) {
-            if (e.getResponse() != null && e.getResponse().getStatus() == 404) return;
+            if (e.getResponse() != null && e.getResponse().getStatus() == 404) {return;}
             throw toStoreException(e);
         }
     }
 
-    @Timed(value = "casehub.memory.mem0", histogram = true, extraTags = {"operation", "eraseEntity"})
+    @Timed(value = "casehub.memory.mem0", histogram = true, extraTags = {"operation", "eraseSubject"})
+    @Override
+    public int eraseSubject(Subject subject, String tenantId) {
+        return eraseEntity(subject.id(), tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
     @Override
     public int eraseEntity(String entityId, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
         String userId = compoundUserId(tenantId, entityId);
         try {
             var listed = client.list(userId, null, null);
-            int count = listed.results() != null ? listed.results().size() : 0;
+            int count  = listed.results() != null ? listed.results().size() : 0;
             client.deleteAll(userId, null, null);
             return count;
         } catch (WebApplicationException e) {
@@ -207,7 +220,13 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
         }
     }
 
-    @Timed(value = "casehub.memory.mem0", histogram = true, extraTags = {"operation", "eraseEntityAcrossTenants"})
+    @Timed(value = "casehub.memory.mem0", histogram = true, extraTags = {"operation", "eraseSubjectAcrossTenants"})
+    @Override
+    public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
+        return eraseEntityAcrossTenants(subject.id(), tenantIds);
+    }
+
+    @Deprecated(forRemoval = true)
     @Override
     public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         MemoryPermissions.assertCrossTenantAdmin(principal);
@@ -216,7 +235,7 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
             String userId = compoundUserId(tenantId, entityId);
             try {
                 var listed = client.list(userId, null, null);
-                int count = listed.results() != null ? listed.results().size() : 0;
+                int count  = listed.results() != null ? listed.results().size() : 0;
                 client.deleteAll(userId, null, null);
                 total += count;
             } catch (WebApplicationException e) {
@@ -257,14 +276,14 @@ public class Mem0CaseMemoryStore implements CaseMemoryStore {
     private Memory toMemory(Mem0Memory m, String tenantId) {
         return new Memory(
                 m.id(),
-                extractEntityId(m.userId()),
+                Subject.of("unknown", extractEntityId(m.userId())),
                 new MemoryDomain(m.agentId() != null ? m.agentId() : ""),
                 tenantId,
                 m.runId(),
-            m.memory() != null ? m.memory() : "",
-            m.metadata() != null ? m.metadata() : Map.of(),
+                m.memory() != null ? m.memory() : "",
+                m.metadata() != null ? m.metadata() : Map.of(),
                 parseCreatedAt(m.createdAt()),
-                null, null, null, null);
+                null, null, null, null, null, null);
     }
 
     private Mem0StoreException toStoreException(WebApplicationException e) {

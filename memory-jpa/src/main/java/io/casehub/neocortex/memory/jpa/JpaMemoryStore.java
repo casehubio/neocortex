@@ -1,9 +1,8 @@
 package io.casehub.neocortex.memory.jpa;
 
-import io.casehub.neocortex.cognitive.Confidence;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.Memory;
@@ -16,6 +15,7 @@ import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.StoreAllResult;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.arc.Arc;
@@ -73,7 +73,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
         MemoryEntry entry = new MemoryEntry();
         entry.memoryId   = UUID.randomUUID().toString();
         entry.tenantId   = input.tenantId();
-        entry.entityId   = input.entityId();
+        entry.entityId   = input.subject().id();
         entry.domain     = input.domain().name();
         entry.caseId     = input.caseId();
         entry.text       = input.text();
@@ -98,7 +98,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             MemoryEntry e = new MemoryEntry();
             e.memoryId   = UUID.randomUUID().toString();
             e.tenantId   = input.tenantId();
-            e.entityId   = input.entityId();
+            e.entityId   = input.subject().id();
             e.domain     = input.domain().name();
             e.caseId     = input.caseId();
             e.text       = input.text();
@@ -137,7 +137,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
 
         var jq = em.createQuery(jpql.toString(), MemoryEntry.class)
             .setParameter("tenantId",  query.tenantId())
-            .setParameter("entityIds", query.entityIds())
+            .setParameter("entityIds", query.subjects().stream().map(Subject::id).toList())
             .setParameter("domain",    query.domain().name())
             .setMaxResults(query.limit());
 
@@ -166,7 +166,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
 
         var nq = em.createNativeQuery(sql.toString(), MemoryEntry.class)
             .setParameter("tenantId",  query.tenantId())
-            .setParameter("entityIds", query.entityIds())
+            .setParameter("entityIds", query.subjects().stream().map(Subject::id).toList())
             .setParameter("domain",    query.domain().name())
             .setParameter("lang",      config.fts().language())
             .setParameter("question",  query.question())
@@ -190,7 +190,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
 
         var q = em.createQuery(jpql.toString())
             .setParameter("tenantId", request.tenantId())
-            .setParameter("entityId", request.entityId())
+            .setParameter("entityId", request.subject().id())
             .setParameter("domain",   request.domain().name());
         if (request.caseId() != null) q.setParameter("caseId", request.caseId());
 
@@ -202,45 +202,65 @@ public class JpaMemoryStore implements CaseMemoryStore {
     @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "eraseById"})
     @Override
     @Transactional(TxType.REQUIRED)
-    public void eraseById(String memoryId, String entityId, String tenantId) {
+    public void eraseById(String memoryId, Subject subject, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
-        // entityId in WHERE: mismatch → 0 rows deleted, silent no-op.
         em.createQuery(
-                "DELETE FROM MemoryEntry WHERE memoryId = :id AND entityId = :entityId AND tenantId = :tenantId")
-            .setParameter("id",       memoryId)
-            .setParameter("entityId", entityId)
-            .setParameter("tenantId", tenantId)
-            .executeUpdate();
+                  "DELETE FROM MemoryEntry WHERE memoryId = :id AND entityId = :entityId AND tenantId = :tenantId")
+          .setParameter("id", memoryId)
+          .setParameter("entityId", subject.id())
+          .setParameter("tenantId", tenantId)
+          .executeUpdate();
         em.clear();
     }
 
-    @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "eraseEntity"})
+    @Deprecated(forRemoval = true)
+    @Override
+    @Transactional(TxType.REQUIRED)
+    public void eraseById(String memoryId, String entityId, String tenantId) {
+        eraseById(memoryId, Subject.of("unknown", entityId), tenantId);
+    }
+
+    @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "eraseSubject"})
+    @Override
+    @Transactional(TxType.REQUIRED)
+    public int eraseSubject(Subject subject, String tenantId) {
+        MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
+        final int count = em.createQuery(
+                                    "DELETE FROM MemoryEntry WHERE tenantId = :tenantId AND entityId = :entityId")
+                            .setParameter("tenantId", tenantId)
+                            .setParameter("entityId", subject.id())
+                            .executeUpdate();
+        em.clear();
+        return count;
+    }
+
+    @Deprecated(forRemoval = true)
     @Override
     @Transactional(TxType.REQUIRED)
     public int eraseEntity(String entityId, String tenantId) {
-        MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
-        final int count = em.createQuery(
-                "DELETE FROM MemoryEntry WHERE tenantId = :tenantId AND entityId = :entityId")
-            .setParameter("tenantId", tenantId)
-            .setParameter("entityId", entityId)
-            .executeUpdate();
+        return eraseSubject(Subject.of("unknown", entityId), tenantId);
+    }
+
+    @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "eraseSubjectAcrossTenants"})
+    @Override
+    @Transactional(TxType.REQUIRED)
+    public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
+        MemoryPermissions.assertCrossTenantAdmin(principal);
+        if (tenantIds.isEmpty()) {return 0;}
+        int count = em.createQuery(
+                              "DELETE FROM MemoryEntry WHERE entityId = :entityId AND tenantId IN :tenantIds")
+                      .setParameter("entityId", subject.id())
+                      .setParameter("tenantIds", List.copyOf(tenantIds))
+                      .executeUpdate();
         em.clear();
         return count;
     }
 
-    @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "eraseEntityAcrossTenants"})
+    @Deprecated(forRemoval = true)
     @Override
     @Transactional(TxType.REQUIRED)
     public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
-        MemoryPermissions.assertCrossTenantAdmin(principal);
-        if (tenantIds.isEmpty()) return 0;
-        int count = em.createQuery(
-                "DELETE FROM MemoryEntry WHERE entityId = :entityId AND tenantId IN :tenantIds")
-            .setParameter("entityId", entityId)
-            .setParameter("tenantIds", List.copyOf(tenantIds))
-            .executeUpdate();
-        em.clear();
-        return count;
+        return eraseSubjectAcrossTenants(Subject.of("unknown", entityId), tenantIds);
     }
 
     @Timed(value = "casehub.memory.jpa", histogram = true, extraTags = {"operation", "scan"})
@@ -354,14 +374,14 @@ public class JpaMemoryStore implements CaseMemoryStore {
     private Memory toMemory(MemoryEntry e) {
         return new Memory(
                 e.memoryId,
-                e.entityId,
+                Subject.of("unknown", e.entityId),
                 new MemoryDomain(e.domain),
                 e.tenantId,
                 e.caseId,
                 e.text,
                 deserializeAttributes(e.attributes),
                 e.createdAt,
-            e.confidence != null ? Confidence.unknown(e.confidence) : null, e.pleasure, e.arousal, e.dominance);
+            e.confidence != null ? Confidence.unknown(e.confidence) : null, e.pleasure, e.arousal, e.dominance, null, null);
     }
 
     private String serializeAttributes(Map<String, String> attrs) {

@@ -10,6 +10,7 @@ import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import io.casehub.neocortex.memory.StoreAllResult;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.arc.Arc;
@@ -71,13 +72,14 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
         String memoryId = UUID.randomUUID().toString();
         Memory memory = new Memory(
-                memoryId, input.entityId(), input.domain(), input.tenantId(),
+                memoryId, input.subject(), input.domain(), input.tenantId(),
                 input.caseId(), input.text(), input.attributes(), Instant.now(),
-                input.confidence(), input.pleasure(), input.arousal(), input.dominance());
+                input.confidence(), input.pleasure(), input.arousal(), input.dominance(),
+                input.principalId(), input.sharedWith());
         store.computeIfAbsent(
-            new BucketKey(input.tenantId(), input.entityId(), input.domain()),
-            k -> new CopyOnWriteArrayList<>()
-        ).add(memory);
+                new BucketKey(input.tenantId(), input.subject().id(), input.domain()),
+                k -> new CopyOnWriteArrayList<>()
+                             ).add(memory);
         return memoryId;
     }
 
@@ -93,40 +95,40 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
     @Override
     public List<Memory> query(MemoryQuery query) {
         MemoryPermissions.assertTenant(query.tenantId(), principal, requestContextActive());
-        var filtered = query.entityIds().stream()
-            .flatMap(entityId -> store.getOrDefault(
-                    new BucketKey(query.tenantId(), entityId, query.domain()),
-                    new CopyOnWriteArrayList<>()
-                ).stream()
-            )
-            .filter(m -> query.caseId() == null || query.caseId().equals(m.caseId()))
-            .filter(m -> query.since() == null || !m.createdAt().isBefore(query.since()))
-            .filter(m -> query.question() == null
-                || m.text().toLowerCase().contains(query.question().toLowerCase()));
+        var filtered = query.subjects().stream()
+                            .flatMap(subject -> store.getOrDefault(
+                                             new BucketKey(query.tenantId(), subject.id(), query.domain()),
+                                             new CopyOnWriteArrayList<>()
+                                                                  ).stream()
+                                    )
+                            .filter(m -> query.caseId() == null || query.caseId().equals(m.caseId()))
+                            .filter(m -> query.since() == null || !m.createdAt().isBefore(query.since()))
+                            .filter(m -> query.question() == null
+                                         || m.text().toLowerCase().contains(query.question().toLowerCase()));
 
         if (query.order() == MemoryOrder.SALIENCE) {
             Instant now = Instant.now();
             return filtered
-                .sorted((a, b) -> Double.compare(salience(b, now), salience(a, now)))
-                .limit(query.limit())
-                .toList();
+                           .sorted((a, b) -> Double.compare(salience(b, now), salience(a, now)))
+                           .limit(query.limit())
+                           .toList();
         }
         return filtered
-            .sorted(Comparator.comparing(Memory::createdAt).reversed())
-            .limit(query.limit())
-            .toList();
+                       .sorted(Comparator.comparing(Memory::createdAt).reversed())
+                       .limit(query.limit())
+                       .toList();
     }
 
     @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "erase"})
     @Override
     public int erase(EraseRequest request) {
         MemoryPermissions.assertTenant(request.tenantId(), principal, requestContextActive());
-        final var key = new BucketKey(request.tenantId(), request.entityId(), request.domain());
+        final var key     = new BucketKey(request.tenantId(), request.subject().id(), request.domain());
         final var removed = new AtomicInteger();
         store.computeIfPresent(key, (k, memories) -> {
             final var remaining = new CopyOnWriteArrayList<>(memories.stream()
-                .filter(m -> request.caseId() != null && !request.caseId().equals(m.caseId()))
-                .toList());
+                                                                     .filter(m -> request.caseId() != null && !request.caseId().equals(m.caseId()))
+                                                                     .toList());
             removed.set(memories.size() - remaining.size());
             return remaining;
         });
@@ -135,22 +137,27 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
 
     @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "eraseById"})
     @Override
-    public void eraseById(String memoryId, String entityId, String tenantId) {
+    public void eraseById(String memoryId, Subject subject, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
-        // Scope to entity buckets — mismatch means no-op (no information leak).
         store.entrySet().stream()
-            .filter(e -> e.getKey().tenantId().equals(tenantId)
-                      && e.getKey().entityId().equals(entityId))
-            .forEach(e -> e.getValue().removeIf(m -> m.memoryId().equals(memoryId)));
+             .filter(e -> e.getKey().tenantId().equals(tenantId)
+                          && e.getKey().subjectId().equals(subject.id()))
+             .forEach(e -> e.getValue().removeIf(m -> m.memoryId().equals(memoryId)));
     }
 
-    @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "eraseEntity"})
+    @Deprecated(forRemoval = true)
     @Override
-    public int eraseEntity(String entityId, String tenantId) {
+    public void eraseById(String memoryId, String entityId, String tenantId) {
+        eraseById(memoryId, Subject.of("unknown", entityId), tenantId);
+    }
+
+    @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "eraseSubject"})
+    @Override
+    public int eraseSubject(Subject subject, String tenantId) {
         MemoryPermissions.assertTenant(tenantId, principal, requestContextActive());
         final var count = new AtomicInteger();
         store.entrySet().removeIf(e -> {
-            if (e.getKey().tenantId().equals(tenantId) && e.getKey().entityId().equals(entityId)) {
+            if (e.getKey().tenantId().equals(tenantId) && e.getKey().subjectId().equals(subject.id())) {
                 count.addAndGet(e.getValue().size());
                 return true;
             }
@@ -159,19 +166,31 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
         return count.get();
     }
 
-    @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "eraseEntityAcrossTenants"})
+    @Deprecated(forRemoval = true)
     @Override
-    public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
+    public int eraseEntity(String entityId, String tenantId) {
+        return eraseSubject(Subject.of("unknown", entityId), tenantId);
+    }
+
+    @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "eraseSubjectAcrossTenants"})
+    @Override
+    public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
         MemoryPermissions.assertCrossTenantAdmin(principal);
         var count = new AtomicInteger();
         store.entrySet().removeIf(e -> {
-            if (tenantIds.contains(e.getKey().tenantId()) && e.getKey().entityId().equals(entityId)) {
+            if (tenantIds.contains(e.getKey().tenantId()) && e.getKey().subjectId().equals(subject.id())) {
                 count.addAndGet(e.getValue().size());
                 return true;
             }
             return false;
         });
         return count.get();
+    }
+
+    @Deprecated(forRemoval = true)
+    @Override
+    public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
+        return eraseSubjectAcrossTenants(Subject.of("unknown", entityId), tenantIds);
     }
 
     @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "discoverTenants"})
