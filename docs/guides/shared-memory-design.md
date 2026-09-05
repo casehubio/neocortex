@@ -33,7 +33,7 @@ For casehub-life (personal life automation for families), we need:
 | `NodeRef(scheme, id, qualifier)` | MindMapStore | Cross-store references — but not cross-tenant |
 | `SubgraphType` | MindMapStore | Partitions knowledge by category, not by visibility |
 
-**The gap:** There is no concept of a memory space that spans multiple tenants, no visibility model, no per-viewer annotations, and no way to query "my private + my shared" in one call.
+**The gap:** There is no concept of a memory space that spans multiple tenants, no per-viewer annotations, and no cross-tenant query path. Within a tenant, #277 delivered principal-scoped visibility (principalId, sharedWith, callerPrincipalId) — queries can now return "my private + shared with me" in one call. The cross-tenant concern remains open.
 
 ---
 
