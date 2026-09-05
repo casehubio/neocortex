@@ -74,64 +74,32 @@ public interface CaseMemoryStore {
      */
     int erase(EraseRequest request);
 
-    /**
-     * GDPR Art.17 full-entity wipe across ALL domains for this entity within the tenant.
-     *
-     * <p>Adapters MUST perform hard deletion across every domain.
-     * Adapters MUST call {@link MemoryPermissions#assertTenant} before delegating to the backend.
-     *
-     * <p>Default throws {@link MemoryCapabilityException} with {@link MemoryCapability#ERASE_ENTITY}.
-     * {@code NoOpCaseMemoryStore} overrides with {@code return 0} (nothing stored → erasure
-     * trivially satisfied). Real adapters must override with actual cross-domain deletion
-     * and return the count of records deleted.
-     *
-     * <p>For REST-backed adapters (Mem0, Graphiti) where a precise count requires a pre-fetch,
-     * the count is a best-effort estimate — document the race or cap in the adapter's Javadoc.
-     *
-     * @return count of memory records erased (for GDPR Art.5(2) audit logging)
-     */
+
+    default int eraseSubject(Subject subject, String tenantId) {
+        return eraseEntity(subject.id(), tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
     default int eraseEntity(String entityId, String tenantId) {
         throw new MemoryCapabilityException(MemoryCapability.ERASE_ENTITY, getClass());
     }
 
-    /**
-     * Erase a specific memory by its assigned memoryId.
-     *
-     * <p>The memory must belong to {@code entityId} within {@code tenantId}. If the memory
-     * does not exist, or belongs to a different entity within the same tenant, the method
-     * returns silently — no information is revealed about whether the memory exists
-     * under a different entity (silent no-op, GDPR satisfied).
-     *
-     * <p>Default throws {@link MemoryCapabilityException} with {@link MemoryCapability#ERASE_BY_ID}.
-     * {@code NoOpCaseMemoryStore} overrides with a true no-op (nothing stored). Real adapters
-     * override with actual deletion.
-     * Adapters MUST call {@link MemoryPermissions#assertTenant} before delegating to the backend.
-     *
-     * @param memoryId the ID assigned by the store at write time
-     * @param entityId the entity the memory must belong to; mismatch = silent no-op
-     * @param tenantId the tenant the caller is authenticated for
-     */
+
+    default void eraseById(String memoryId, Subject subject, String tenantId) {
+        eraseById(memoryId, subject.id(), tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
     default void eraseById(String memoryId, String entityId, String tenantId) {
         throw new MemoryCapabilityException(MemoryCapability.ERASE_BY_ID, getClass());
     }
 
-    /**
-     * GDPR Art.17 full-entity wipe across all supplied tenantIds.
-     * Caller must be a cross-tenant admin. Supply the complete set of tenantIds
-     * for the data subject from the tenant management system.
-     *
-     * <p>Adapters MUST call {@link MemoryPermissions#assertCrossTenantAdmin} before
-     * delegating to the backend. Do NOT call eraseEntity() internally — assertTenant()
-     * rejects cross-tenant access. Implement deletion directly against the backend.
-     *
-     * <p>Default throws {@link MemoryCapabilityException}. {@code NoOpCaseMemoryStore}
-     * overrides with {@code return 0} but does NOT declare
-     * {@link MemoryCapability#CROSS_TENANT_ERASE} in capabilities().
-     *
-     * @param tenantIds the set of tenantIds to erase from; caller supplies from tenant management.
-     *                  Set semantics enforced at the type level — duplicates are impossible.
-     * @return total count of records erased across all tenantIds (best-effort for REST adapters)
-     */
+
+    default int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
+        return eraseEntityAcrossTenants(subject.id(), tenantIds);
+    }
+
+    @Deprecated(forRemoval = true)
     default int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         throw new MemoryCapabilityException(MemoryCapability.CROSS_TENANT_ERASE, getClass());
     }

@@ -6,38 +6,73 @@ import java.util.Set;
 
 public sealed interface MemoryEntityErased {
     String tenantId();
+
     int erasedCount();
+
     Instant erasedAt();
 
     record ByRequest(String tenantId, int erasedCount,
-                     String entityId, MemoryDomain domain,
+                     Subject subject, MemoryDomain domain,
                      Instant erasedAt) implements MemoryEntityErased {
         public ByRequest {
             Objects.requireNonNull(tenantId, "tenantId");
-            Objects.requireNonNull(entityId, "entityId");
+            Objects.requireNonNull(subject, "subject");
             Objects.requireNonNull(domain, "domain");
             Objects.requireNonNull(erasedAt, "erasedAt");
+        }
+
+        @Deprecated(forRemoval = true)
+        public ByRequest(String tenantId, int erasedCount,
+                         String entityId, MemoryDomain domain, Instant erasedAt) {
+            this(tenantId, erasedCount, Subject.of("unknown", entityId), domain, erasedAt);
+        }
+
+        @Deprecated(forRemoval = true)
+        public String entityId() {
+            return subject.id();
         }
     }
 
     record ByEntity(String tenantId, int erasedCount,
-                    String entityId,
+                    Subject subject,
                     Instant erasedAt) implements MemoryEntityErased {
         public ByEntity {
             Objects.requireNonNull(tenantId, "tenantId");
-            Objects.requireNonNull(entityId, "entityId");
+            Objects.requireNonNull(subject, "subject");
             Objects.requireNonNull(erasedAt, "erasedAt");
+        }
+
+        @Deprecated(forRemoval = true)
+        public ByEntity(String tenantId, int erasedCount,
+                        String entityId, Instant erasedAt) {
+            this(tenantId, erasedCount, Subject.of("unknown", entityId), erasedAt);
+        }
+
+        @Deprecated(forRemoval = true)
+        public String entityId() {
+            return subject.id();
         }
     }
 
     record CrossTenant(int erasedCount,
-                       String entityId, Set<String> tenantIds,
+                       Subject subject, Set<String> tenantIds,
                        Instant erasedAt) implements MemoryEntityErased {
         public CrossTenant {
-            Objects.requireNonNull(entityId, "entityId");
+            Objects.requireNonNull(subject, "subject");
             Objects.requireNonNull(tenantIds, "tenantIds");
             Objects.requireNonNull(erasedAt, "erasedAt");
             tenantIds = Set.copyOf(tenantIds);
+        }
+
+        @Deprecated(forRemoval = true)
+        public CrossTenant(int erasedCount, String entityId,
+                           Set<String> tenantIds, Instant erasedAt) {
+            this(erasedCount, Subject.of("unknown", entityId), tenantIds, erasedAt);
+        }
+
+        @Deprecated(forRemoval = true)
+        public String entityId() {
+            return subject.id();
         }
 
         @Override

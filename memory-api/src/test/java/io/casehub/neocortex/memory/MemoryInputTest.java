@@ -136,7 +136,7 @@ class MemoryInputTest {
 
     @Test
     void of_nullEntityId_throws() {
-        assertThatThrownBy(() -> MemoryInput.of(null, DOMAIN, "t1", "text"))
+        assertThatThrownBy(() -> MemoryInput.of((String) null, DOMAIN, "t1", "text"))
             .isInstanceOf(NullPointerException.class);
     }
 

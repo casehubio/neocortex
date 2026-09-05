@@ -5,70 +5,85 @@ import java.util.List;
 import java.util.Objects;
 
 public record MemoryQuery(
-    List<String> entityIds,
-    MemoryDomain domain,
-    String tenantId,
-    String caseId,
-    String question,
-    int limit,
-    Instant since,
-    MemoryOrder order
+        List<Subject> subjects,
+        MemoryDomain domain,
+        String tenantId,
+        String caseId,
+        String question,
+        int limit,
+        Instant since,
+        MemoryOrder order,
+        String callerPrincipalId
 ) {
-    /** Maximum entities per query. Covers realistic case party counts (2–15) with headroom. */
-    public static final int MAX_ENTITY_IDS = 25;
+    public static final int MAX_SUBJECTS = 25;
+
+    @Deprecated(forRemoval = true)
+    public static final int MAX_ENTITY_IDS = MAX_SUBJECTS;
 
     public MemoryQuery {
-        Objects.requireNonNull(entityIds, "entityIds required");
-        Objects.requireNonNull(domain,    "domain required");
-        Objects.requireNonNull(tenantId,  "tenantId required");
-        Objects.requireNonNull(order,     "order required");
-        if (entityIds.isEmpty())
-            throw new IllegalArgumentException("entityIds must not be empty");
-        if (entityIds.size() > MAX_ENTITY_IDS)
-            throw new IllegalArgumentException("entityIds must not exceed " + MAX_ENTITY_IDS + ", got: " + entityIds.size());
-        if (limit < 1)
-            throw new IllegalArgumentException("limit must be >= 1, got: " + limit);
-        entityIds = List.copyOf(entityIds);
+        Objects.requireNonNull(subjects, "subjects required");
+        Objects.requireNonNull(domain, "domain required");
+        Objects.requireNonNull(tenantId, "tenantId required");
+        Objects.requireNonNull(order, "order required");
+        if (subjects.isEmpty()) {throw new IllegalArgumentException("subjects must not be empty");}
+        if (subjects.size() > MAX_SUBJECTS) {
+            throw new IllegalArgumentException("subjects must not exceed " + MAX_SUBJECTS + ", got: " + subjects.size());
+        }
+        if (limit < 1) {throw new IllegalArgumentException("limit must be >= 1, got: " + limit);}
+        subjects = List.copyOf(subjects);
     }
 
-    /**
-     * Construct a query for a single entity.
-     *
-     * <p>Defaults: {@code limit=20}, {@code order=}{@link MemoryOrder#CHRONOLOGICAL}.
-     * Use {@code with*} methods to override optional fields.
-     */
+    @Deprecated(forRemoval = true)
+    public MemoryQuery(List<String> entityIds, MemoryDomain domain, String tenantId,
+                       String caseId, String question, int limit, Instant since, MemoryOrder order) {
+        this(entityIds.stream().map(id -> Subject.of("unknown", id)).toList(),
+             domain, tenantId, caseId, question, limit, since, order, null);
+    }
+
+    public static MemoryQuery forSubject(Subject subject, MemoryDomain domain, String tenantId) {
+        return new MemoryQuery(List.of(subject), domain, tenantId, null, null, 20, null, MemoryOrder.CHRONOLOGICAL, null);
+    }
+
+    public static MemoryQuery forSubjects(List<Subject> subjects, MemoryDomain domain, String tenantId) {
+        return new MemoryQuery(subjects, domain, tenantId, null, null, 20, null, MemoryOrder.CHRONOLOGICAL, null);
+    }
+
+    @Deprecated(forRemoval = true)
     public static MemoryQuery forEntity(String entityId, MemoryDomain domain, String tenantId) {
-        return new MemoryQuery(List.of(entityId), domain, tenantId, null, null, 20, null, MemoryOrder.CHRONOLOGICAL);
+        return forSubject(Subject.of("unknown", entityId), domain, tenantId);
     }
 
-    /**
-     * Construct a query for multiple entities (max {@value #MAX_ENTITY_IDS}).
-     *
-     * <p>Defaults: {@code limit=20}, {@code order=}{@link MemoryOrder#CHRONOLOGICAL}.
-     * {@code limit} applies to the combined result set, not per-entity.
-     * Use {@code with*} methods to override optional fields.
-     */
+    @Deprecated(forRemoval = true)
     public static MemoryQuery forEntities(List<String> entityIds, MemoryDomain domain, String tenantId) {
-        return new MemoryQuery(entityIds, domain, tenantId, null, null, 20, null, MemoryOrder.CHRONOLOGICAL);
+        return forSubjects(entityIds.stream().map(id -> Subject.of("unknown", id)).toList(), domain, tenantId);
+    }
+
+    @Deprecated(forRemoval = true)
+    public List<String> entityIds() {
+        return subjects.stream().map(Subject::id).toList();
     }
 
     public MemoryQuery withCaseId(String caseId) {
-        return new MemoryQuery(entityIds, domain, tenantId, caseId, question, limit, since, order);
+        return new MemoryQuery(subjects, domain, tenantId, caseId, question, limit, since, order, callerPrincipalId);
     }
 
     public MemoryQuery withQuestion(String question) {
-        return new MemoryQuery(entityIds, domain, tenantId, caseId, question, limit, since, order);
+        return new MemoryQuery(subjects, domain, tenantId, caseId, question, limit, since, order, callerPrincipalId);
     }
 
     public MemoryQuery withLimit(int limit) {
-        return new MemoryQuery(entityIds, domain, tenantId, caseId, question, limit, since, order);
+        return new MemoryQuery(subjects, domain, tenantId, caseId, question, limit, since, order, callerPrincipalId);
     }
 
     public MemoryQuery withSince(Instant since) {
-        return new MemoryQuery(entityIds, domain, tenantId, caseId, question, limit, since, order);
+        return new MemoryQuery(subjects, domain, tenantId, caseId, question, limit, since, order, callerPrincipalId);
     }
 
     public MemoryQuery withOrder(MemoryOrder order) {
-        return new MemoryQuery(entityIds, domain, tenantId, caseId, question, limit, since, order);
+        return new MemoryQuery(subjects, domain, tenantId, caseId, question, limit, since, order, callerPrincipalId);
+    }
+
+    public MemoryQuery withCallerPrincipalId(String callerPrincipalId) {
+        return new MemoryQuery(subjects, domain, tenantId, caseId, question, limit, since, order, callerPrincipalId);
     }
 }

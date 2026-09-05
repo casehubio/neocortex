@@ -19,7 +19,7 @@ class EraseRequestTest {
     @Test
     void null_entityId_throws() {
         assertThrows(NullPointerException.class,
-            () -> new EraseRequest(null, DOMAIN, "t1", null));
+            () -> new EraseRequest((String) null, DOMAIN, "t1", null));
     }
 
     @Test
