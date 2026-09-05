@@ -49,5 +49,14 @@ public class MemoryEntry extends PanacheEntityBase {
 
     @Column(name = "dominance")
     public Double dominance;
+    @Column(name = "subject_type", nullable = false)
+    public String subjectType;
+
+    @Column(name = "principal_id")
+    public String principalId;
+
+    @Column(name = "shared_with", columnDefinition = "TEXT")
+    public String sharedWith;
+
 
 }

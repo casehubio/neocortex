@@ -83,6 +83,9 @@ public class JpaMemoryStore implements CaseMemoryStore {
         entry.pleasure   = input.pleasure();
         entry.arousal    = input.arousal();
         entry.dominance  = input.dominance();
+        entry.subjectType = input.subject().type();
+        entry.principalId = input.principalId();
+        entry.sharedWith  = serializeSharedWith(input.sharedWith());
 
         MemoryEntry.persist(entry);
         return entry.memoryId;
@@ -108,6 +111,9 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.pleasure   = input.pleasure();
             e.arousal    = input.arousal();
             e.dominance  = input.dominance();
+            e.subjectType = input.subject().type();
+            e.principalId = input.principalId();
+            e.sharedWith  = serializeSharedWith(input.sharedWith());
             return e;
         }).toList();
         MemoryEntry.persist(entries);
@@ -133,6 +139,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             "FROM MemoryEntry WHERE tenantId = :tenantId AND entityId IN (:entityIds) AND domain = :domain");
         if (query.caseId() != null) jpql.append(" AND caseId = :caseId");
         if (query.since()  != null) jpql.append(" AND createdAt >= :since");
+        if (query.callerPrincipalId() != null) jpql.append(" AND (principalId IS NULL OR principalId = :callerPid OR sharedWith LIKE :sharedPattern)");
         jpql.append(" ORDER BY createdAt DESC");
 
         var jq = em.createQuery(jpql.toString(), MemoryEntry.class)
@@ -143,6 +150,10 @@ public class JpaMemoryStore implements CaseMemoryStore {
 
         if (query.caseId() != null) jq.setParameter("caseId", query.caseId());
         if (query.since()  != null) jq.setParameter("since",  query.since());
+        if (query.callerPrincipalId() != null) {
+            jq.setParameter("callerPid", query.callerPrincipalId());
+            jq.setParameter("sharedPattern", "%\"" + query.callerPrincipalId() + "\"%");
+        }
 
         return jq.getResultList().stream().map(this::toMemory).toList();
     }
@@ -157,6 +168,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             """);
         if (query.caseId() != null) sql.append("  AND case_id = :caseId\n");
         if (query.since()  != null) sql.append("  AND created_at >= :since\n");
+        if (query.callerPrincipalId() != null) sql.append("  AND (principal_id IS NULL OR principal_id = :callerPid OR shared_with LIKE :sharedPattern)\n");
         sql.append("""
             ORDER BY ts_rank(
                 to_tsvector(CAST(:lang AS regconfig), text),
@@ -174,6 +186,10 @@ public class JpaMemoryStore implements CaseMemoryStore {
 
         if (query.caseId() != null) nq.setParameter("caseId", query.caseId());
         if (query.since()  != null) nq.setParameter("since",  query.since());
+        if (query.callerPrincipalId() != null) {
+            nq.setParameter("callerPid", query.callerPrincipalId());
+            nq.setParameter("sharedPattern", "%\"" + query.callerPrincipalId() + "\"%");
+        }
 
         return ((List<MemoryEntry>) nq.getResultList()).stream().map(this::toMemory).toList();
     }
@@ -374,14 +390,15 @@ public class JpaMemoryStore implements CaseMemoryStore {
     private Memory toMemory(MemoryEntry e) {
         return new Memory(
                 e.memoryId,
-                Subject.of("unknown", e.entityId),
+                Subject.of(e.subjectType != null ? e.subjectType : "unknown", e.entityId),
                 new MemoryDomain(e.domain),
                 e.tenantId,
                 e.caseId,
                 e.text,
                 deserializeAttributes(e.attributes),
                 e.createdAt,
-            e.confidence != null ? Confidence.unknown(e.confidence) : null, e.pleasure, e.arousal, e.dominance, null, null);
+            e.confidence != null ? Confidence.unknown(e.confidence) : null, e.pleasure, e.arousal, e.dominance,
+                e.principalId, deserializeSharedWith(e.sharedWith));
     }
 
     private String serializeAttributes(Map<String, String> attrs) {
@@ -400,4 +417,25 @@ public class JpaMemoryStore implements CaseMemoryStore {
             throw new IllegalStateException("Failed to deserialize attributes: " + json, e);
         }
     }
+
+    private String serializeSharedWith(Set<String> sharedWith) {
+        if (sharedWith == null || sharedWith.isEmpty()) {return null;}
+        try {
+            return objectMapper.writeValueAsString(sharedWith);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize sharedWith", e);
+        }
+    }
+
+    private Set<String> deserializeSharedWith(String json) {
+        if (json == null || json.isBlank()) {return Set.of();}
+        try {
+            @SuppressWarnings("unchecked")
+            var list = objectMapper.readValue(json, java.util.List.class);
+            return Set.copyOf(list);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to deserialize sharedWith: " + json, e);
+        }
+    }
+
 }
