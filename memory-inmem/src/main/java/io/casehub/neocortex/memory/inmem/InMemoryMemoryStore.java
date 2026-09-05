@@ -7,6 +7,7 @@ import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryPermissions;
+import io.casehub.neocortex.memory.MemoryVisibility;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import io.casehub.neocortex.memory.StoreAllResult;
@@ -104,7 +105,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
                             .filter(m -> query.caseId() == null || query.caseId().equals(m.caseId()))
                             .filter(m -> query.since() == null || !m.createdAt().isBefore(query.since()))
                             .filter(m -> query.question() == null
-                                         || m.text().toLowerCase().contains(query.question().toLowerCase()));
+                                         || m.text().toLowerCase().contains(query.question().toLowerCase()))
+                            .filter(m -> MemoryVisibility.isVisible(query.callerPrincipalId(), m));
 
         if (query.order() == MemoryOrder.SALIENCE) {
             Instant now = Instant.now();

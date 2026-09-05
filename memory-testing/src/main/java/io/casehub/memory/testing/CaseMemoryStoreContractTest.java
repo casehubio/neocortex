@@ -4,9 +4,9 @@ import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
+import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
-import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
@@ -454,5 +454,82 @@ public abstract class CaseMemoryStoreContractTest {
         store().purge(new MemoryRetentionPolicy(TENANT, DOMAIN, null, 0.5));
         assertEquals(0, store().query(query()).size());
         assertEquals(1, store().query(MemoryQuery.forEntity("entity-1", OTHER_DOMAIN, TENANT)).size());
+    }
+
+// --- visibility filtering ---
+
+    @Test
+    void visibility_trulyShared_visibleToAnyCaller() {
+        var subject = io.casehub.neocortex.memory.Subject.of("person", "alice");
+        store().store(io.casehub.neocortex.memory.MemoryInput.of(subject, DOMAIN, TENANT, "shared note"));
+        var results = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("bob"));
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    void visibility_private_visibleOnlyToOwner() {
+        var subject = io.casehub.neocortex.memory.Subject.of("person", "alice");
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "private note", "alice"));
+        var ownerResults = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("alice"));
+        assertEquals(1, ownerResults.size());
+        var otherResults = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("bob"));
+        assertEquals(0, otherResults.size());
+    }
+
+    @Test
+    void visibility_ownedShared_visibleToOwnerAndSharedWith() {
+        var subject = io.casehub.neocortex.memory.Subject.of("person", "alice");
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "shared with bob", "alice")
+                                                             .withSharedWith(Set.of("bob")));
+        assertEquals(1, store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("alice")).size());
+        assertEquals(1, store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("bob")).size());
+        assertEquals(0, store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("charlie")).size());
+    }
+
+    @Test
+    void visibility_nullCaller_seesEverything() {
+        var subject = io.casehub.neocortex.memory.Subject.of("person", "alice");
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "private", "alice"));
+        store().store(io.casehub.neocortex.memory.MemoryInput.of(subject, DOMAIN, TENANT, "shared"));
+        var results = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT));
+        assertEquals(2, results.size());
+    }
+
+    @Test
+    void visibility_mixedVisibility_correctFiltering() {
+        var subject = io.casehub.neocortex.memory.Subject.of("person", "alice");
+        store().store(io.casehub.neocortex.memory.MemoryInput.of(subject, DOMAIN, TENANT, "truly shared"));
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "alice private", "alice"));
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "bob private", "bob"));
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "alice shared with bob", "alice")
+                                                             .withSharedWith(Set.of("bob")));
+        var aliceResults = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("alice"));
+        assertEquals(3, aliceResults.size());
+        var bobResults = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("bob"));
+        assertEquals(3, bobResults.size());
+        var charlieResults = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("charlie"));
+        assertEquals(1, charlieResults.size());
+    }
+
+    @Test
+    void visibility_subjectRoundTrip_preservesType() {
+        var subject = io.casehub.neocortex.memory.Subject.of("person", "alice");
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "typed note", "alice"));
+        var results = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("alice"));
+        assertEquals(1, results.size());
+        assertEquals("person", results.getFirst().subject().type());
+        assertEquals("alice", results.getFirst().subject().id());
+    }
+
+    @Test
+    void visibility_principalIdAndSharedWithRoundTrip() {
+        var subject = io.casehub.neocortex.memory.Subject.of("agent", "a1");
+        store().store(io.casehub.neocortex.memory.MemoryInput.ownedBy(subject, DOMAIN, TENANT, "owned and shared", "alice")
+                                                             .withSharedWith(Set.of("bob", "charlie")));
+        var results = store().query(MemoryQuery.forSubject(subject, DOMAIN, TENANT).withCallerPrincipalId("alice"));
+        assertEquals(1, results.size());
+        assertEquals("alice", results.getFirst().principalId());
+        assertTrue(results.getFirst().sharedWith().contains("bob"));
+        assertTrue(results.getFirst().sharedWith().contains("charlie"));
     }
 }
