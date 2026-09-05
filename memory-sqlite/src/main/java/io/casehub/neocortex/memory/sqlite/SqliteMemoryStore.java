@@ -135,7 +135,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
         String memoryId = UUID.randomUUID().toString();
         String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance, subject_type, principal_id, shared_with) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, memoryId);
@@ -150,6 +150,9 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             if (input.pleasure() != null) { ps.setDouble(10, input.pleasure()); } else { ps.setNull(10, java.sql.Types.REAL); }
             if (input.arousal() != null) { ps.setDouble(11, input.arousal()); } else { ps.setNull(11, java.sql.Types.REAL); }
             if (input.dominance() != null) { ps.setDouble(12, input.dominance()); } else { ps.setNull(12, java.sql.Types.REAL); }
+            ps.setString(13, input.subject().type());
+            ps.setString(14, input.principalId());
+            ps.setString(15, input.sharedWith().isEmpty() ? null : toJsonArray(input.sharedWith()));
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("store() failed", e);
@@ -162,7 +165,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     public StoreAllResult storeAll(List<MemoryInput> inputs) {
         if (inputs.isEmpty()) return StoreAllResult.empty();
         inputs.forEach(i -> MemoryPermissions.assertTenant(i.tenantId(), principal, requestContextActive()));
-        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance, subject_type, principal_id, shared_with) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         List<String> ids = new ArrayList<>(inputs.size());
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
@@ -183,6 +186,9 @@ public class SqliteMemoryStore implements CaseMemoryStore {
                     if (input.pleasure() != null) { ps.setDouble(10, input.pleasure()); } else { ps.setNull(10, java.sql.Types.REAL); }
                     if (input.arousal() != null) { ps.setDouble(11, input.arousal()); } else { ps.setNull(11, java.sql.Types.REAL); }
                     if (input.dominance() != null) { ps.setDouble(12, input.dominance()); } else { ps.setNull(12, java.sql.Types.REAL); }
+                    ps.setString(13, input.subject().type());
+                    ps.setString(14, input.principalId());
+                    ps.setString(15, input.sharedWith().isEmpty() ? null : toJsonArray(input.sharedWith()));
                     ps.executeUpdate();
                     ids.add(memoryId);
                 }
@@ -388,6 +394,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             .append(") AND domain = ?");
         if (query.caseId() != null) sql.append(" AND case_id = ?");
         if (query.since()  != null) sql.append(" AND created_at >= ?");
+        if (query.callerPrincipalId() != null) sql.append(" AND (principal_id IS NULL OR principal_id = ? OR EXISTS (SELECT 1 FROM json_each(shared_with) WHERE value = ?))");
         sql.append(" ORDER BY created_at DESC, rowid DESC LIMIT ?");
 
         try (Connection conn = dataSource.getConnection();
@@ -398,6 +405,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             ps.setString(idx++, query.domain().name());
             if (query.caseId() != null) ps.setString(idx++, query.caseId());
             if (query.since()  != null) ps.setString(idx++, query.since().truncatedTo(ChronoUnit.MILLIS).toString());
+            if (query.callerPrincipalId() != null) { ps.setString(idx++, query.callerPrincipalId()); ps.setString(idx++, query.callerPrincipalId()); }
             ps.setInt(idx, query.limit());
 
             List<Memory> results = new ArrayList<>();
@@ -428,6 +436,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             .append(") AND m.domain = ? AND memory_fts MATCH ?");
         if (query.caseId() != null) sql.append(" AND m.case_id = ?");
         if (query.since()  != null) sql.append(" AND m.created_at >= ?");
+        if (query.callerPrincipalId() != null) sql.append(" AND (m.principal_id IS NULL OR m.principal_id = ? OR EXISTS (SELECT 1 FROM json_each(m.shared_with) WHERE value = ?))");
         sql.append(" ORDER BY rank LIMIT ?");
 
         try (Connection conn = dataSource.getConnection();
@@ -439,6 +448,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             ps.setString(idx++, sanitised);
             if (query.caseId() != null) ps.setString(idx++, query.caseId());
             if (query.since()  != null) ps.setString(idx++, query.since().truncatedTo(ChronoUnit.MILLIS).toString());
+            if (query.callerPrincipalId() != null) { ps.setString(idx++, query.callerPrincipalId()); ps.setString(idx++, query.callerPrincipalId()); }
             ps.setInt(idx, query.limit());
 
             List<Memory> results = new ArrayList<>();
@@ -505,7 +515,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     private Memory toMemory(ResultSet rs) throws SQLException {
         return new Memory(
                 rs.getString("memory_id"),
-                Subject.of("unknown", rs.getString("entity_id")),
+                Subject.of(rs.getString("subject_type"), rs.getString("entity_id")),
                 new MemoryDomain(rs.getString("domain")),
                 rs.getString("tenant_id"),
                 rs.getString("case_id"),
@@ -516,7 +526,26 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             rs.getObject("pleasure") != null ? rs.getDouble("pleasure") : null,
             rs.getObject("arousal") != null ? rs.getDouble("arousal") : null,
             rs.getObject("dominance") != null ? rs.getDouble("dominance") : null,
-            null, null);
+            rs.getString("principal_id"),
+            parseSharedWith(rs.getString("shared_with")));
+    }
+
+    private String toJsonArray(Set<String> values) {
+        try {
+            return objectMapper.writeValueAsString(values);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize set", e);
+        }
+    }
+
+    private Set<String> parseSharedWith(String json) {
+        if (json == null || json.isBlank()) return Set.of();
+        try {
+            List<String> list = objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            return Set.copyOf(list);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to deserialize shared_with: " + json, e);
+        }
     }
 
     private String placeholders(int count) {

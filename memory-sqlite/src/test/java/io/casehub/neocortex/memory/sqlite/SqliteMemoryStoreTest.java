@@ -30,7 +30,7 @@ class SqliteMemoryStoreTest extends CaseMemoryStoreContractTest {
         principal.setCrossTenantAdmin(true);
         principal.setTenancyId(TENANT);
         // Erase all possible test entities across all test tenants
-        for (String entityId : List.of("entity-1", "entity-2", "e1", "e2", "e3", "e4")) {
+        for (String entityId : List.of("entity-1", "entity-2", "e1", "e2", "e3", "e4", "alice", "a1")) {
             try {
                 sqliteStore.eraseEntityAcrossTenants(entityId, Set.of(TENANT, OTHER_TENANT, "tenant-a", "tenant-b", "tenant-c"));
             } catch (Exception e) {
