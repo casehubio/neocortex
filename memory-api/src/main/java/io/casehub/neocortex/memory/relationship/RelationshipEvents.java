@@ -4,6 +4,7 @@ import io.casehub.neocortex.cognitive.Confidence;
 
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.Subject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -45,7 +46,7 @@ public final class RelationshipEvents {
 
         attrs.putAll(event.metadata());
 
-        return new MemoryInput(event.agentId(), DOMAIN, event.tenantId(),
-                               event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null, null, null, null);
+        return new MemoryInput(Subject.of("agent", event.agentId()), DOMAIN, event.tenantId(),
+                               event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null, null, null, null, event.agentId(), null);
     }
 }

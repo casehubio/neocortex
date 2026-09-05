@@ -3,6 +3,7 @@ package io.casehub.neocortex.memory.mood;
 import io.casehub.neocortex.cognitive.AffectType;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.Subject;
 
 import java.util.Map;
 
@@ -26,9 +27,9 @@ public final class AffectEvents {
     public static MemoryInput toMemoryInput(String nodeId, String tenantId,
                                             double pleasure, double arousal, double dominance,
                                             AffectType affectType) {
-        return new MemoryInput(nodeId, DOMAIN, tenantId, null, "PAD update",
+        return new MemoryInput(Subject.of("node", nodeId), DOMAIN, tenantId, null, "PAD update",
                                Map.of("affect-type", affectType.name().toLowerCase()),
-                               null, pleasure, arousal, dominance);
+                               null, pleasure, arousal, dominance, null, null);
     }
 
 }

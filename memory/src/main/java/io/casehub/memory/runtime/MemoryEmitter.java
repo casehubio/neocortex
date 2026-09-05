@@ -27,7 +27,7 @@ public class MemoryEmitter {
             throw e;
         } catch (Exception e) {
             LOG.warnf(e, "Memory emission failed for entity=%s domain=%s tenant=%s",
-                input.entityId(), input.domain().name(), input.tenantId());
+                input.subject().id(), input.domain().name(), input.tenantId());
         }
     }
 
@@ -38,13 +38,13 @@ public class MemoryEmitter {
             if (!result.allSucceeded()) {
                 LOG.warnf("Memory batch partial failure: %d/%d inputs failed (first entity=%s domain=%s)",
                     result.failures().size(), inputs.size(),
-                    inputs.getFirst().entityId(), inputs.getFirst().domain().name());
+                    inputs.getFirst().subject().id(), inputs.getFirst().domain().name());
             }
         } catch (SecurityException e) {
             throw e;
         } catch (Exception e) {
             LOG.warnf(e, "Memory batch emission failed (%d inputs, first entity=%s domain=%s)",
-                inputs.size(), inputs.getFirst().entityId(), inputs.getFirst().domain().name());
+                inputs.size(), inputs.getFirst().subject().id(), inputs.getFirst().domain().name());
         }
     }
 }

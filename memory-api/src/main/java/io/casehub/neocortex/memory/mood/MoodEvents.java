@@ -2,6 +2,7 @@ package io.casehub.neocortex.memory.mood;
 
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.Subject;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -41,8 +42,8 @@ public final class MoodEvents {
 
         attrs.putAll(state.metadata());
 
-        return new MemoryInput(state.agentId(), DOMAIN, state.tenantId(),
+        return new MemoryInput(Subject.of("agent", state.agentId()), DOMAIN, state.tenantId(),
                                null, state.cause(), attrs, null,
-                               state.pleasure(), state.arousal(), state.dominance());
+                               state.pleasure(), state.arousal(), state.dominance(), state.agentId(), null);
     }
 }
