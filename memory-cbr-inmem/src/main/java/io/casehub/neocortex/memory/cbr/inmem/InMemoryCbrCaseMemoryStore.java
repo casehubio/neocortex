@@ -67,6 +67,13 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     @Override
+    public String store(CbrCase cbrCase, String caseType, io.casehub.neocortex.memory.Subject subject, MemoryDomain domain,
+                        String tenantId, String caseId, io.casehub.platform.api.path.Path scope,
+                        String principalId, java.util.Set<String> sharedWith) {
+        return store(cbrCase, caseType, subject.id(), domain, tenantId, caseId, scope);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery query, Class<C> caseClass) {
         if (query.retrievalMode() == RetrievalMode.SEMANTIC_ONLY) {
@@ -157,7 +164,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
     public Integer erase(EraseRequest request) {
         int before = cases.size();
         cases.removeIf(sc ->
-                               sc.entityId().equals(request.entityId())
+                               sc.subjectId().equals(request.subject().id())
                                && sc.domain().equals(request.domain())
                                && sc.tenantId().equals(request.tenantId())
                                && (request.caseId() == null || sc.caseId().equals(request.caseId())));
@@ -168,9 +175,15 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
     public Integer eraseEntity(String entityId, String tenantId) {
         int before = cases.size();
         cases.removeIf(sc ->
-                               sc.entityId().equals(entityId) && sc.tenantId().equals(tenantId));
+                               sc.subjectId().equals(entityId) && sc.tenantId().equals(tenantId));
         return before - cases.size();
     }
+
+    @Override
+    public Integer eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
+        return eraseEntity(subject.id(), tenantId);
+    }
+
 
     @Override
     public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
@@ -200,7 +213,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 CbrCase updated = stored.cbrCase().withOutcome(
                         outcome.result().name(), newConfidence);
                 cases.set(i, new StoredCase(stored.id(), updated, stored.caseType(),
-                                            stored.entityId(), stored.domain(), stored.tenantId(),
+                                            stored.subjectId(), stored.domain(), stored.tenantId(),
                                             stored.caseId(), stored.storedAt(), outcome.observedAt(),
                                             stored.supersededAt(), stored.supersedingCaseId(), stored.supersessionReason(),
                                             stored.scope(), stored.reinstatedAt()));
@@ -265,7 +278,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 continue;
             }
             result.add(new CbrCaseSummary(
-                    sc.caseId(), sc.entityId(), sc.caseType(),
+                    sc.caseId(), sc.subjectId(), sc.caseType(),
                     sc.cbrCase().producerAgentId(), sc.cbrCase().trustScore(), sc.storedAt()));
             if (result.size() >= request.limit()) {break;}
         }
@@ -407,17 +420,17 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     private record StoredCase(
-            String id, CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
+            String id, CbrCase cbrCase, String caseType, String subjectId, MemoryDomain domain,
             String tenantId, String caseId, Instant storedAt, Instant lastOutcomeAt,
             Instant supersededAt, String supersedingCaseId, String supersessionReason,
             io.casehub.platform.api.path.Path scope, Instant reinstatedAt
     ) {
         StoredCase withSupersession(Instant supersededAt, String supersedingCaseId, String supersessionReason) {
-            return new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, storedAt, lastOutcomeAt,
+            return new StoredCase(id, cbrCase, caseType, subjectId, domain, tenantId, caseId, storedAt, lastOutcomeAt,
                                   supersededAt, supersedingCaseId, supersessionReason, scope, null);
         }
         StoredCase withReinstatement(Instant reinstatedAt) {
-            return new StoredCase(id, cbrCase, caseType, entityId, domain, tenantId, caseId, storedAt, lastOutcomeAt,
+            return new StoredCase(id, cbrCase, caseType, subjectId, domain, tenantId, caseId, storedAt, lastOutcomeAt,
                                   null, null, null, scope, reinstatedAt);
         }
     }

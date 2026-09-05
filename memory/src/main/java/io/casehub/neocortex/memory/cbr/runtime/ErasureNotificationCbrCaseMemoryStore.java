@@ -4,13 +4,13 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.neocortex.memory.cbr.CbrCasesErased;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.platform.api.path.Path;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
@@ -60,7 +60,7 @@ public class ErasureNotificationCbrCaseMemoryStore implements CbrCaseMemoryStore
         int count = delegate.erase(request);
         if (count > 0) {
             byRequestEvent.fire(new CbrCasesErased.ByRequest(
-                    request.tenantId(), count, request.entityId(),
+                    request.tenantId(), count, request.subject(),
                     request.domain(), request.caseId(),
                     Instant.now(clock)));
         }
@@ -76,6 +76,17 @@ public class ErasureNotificationCbrCaseMemoryStore implements CbrCaseMemoryStore
         }
         return count;
     }
+
+    @Override
+    public Integer eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
+        int count = delegate.eraseSubject(subject, tenantId);
+        if (count > 0) {
+            byEntityEvent.fire(new CbrCasesErased.ByEntity(
+                    tenantId, count, subject, Instant.now(clock)));
+        }
+        return count;
+    }
+
 
     @Override
     public Integer eraseByScope(Path scope, String tenantId) {

@@ -11,11 +11,23 @@ public interface CbrCaseMemoryStore {
     String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
                  String tenantId, String caseId, io.casehub.platform.api.path.Path scope);
 
+    default String store(CbrCase cbrCase, String caseType, io.casehub.neocortex.memory.Subject subject, MemoryDomain domain,
+                         String tenantId, String caseId, io.casehub.platform.api.path.Path scope,
+                         String principalId, java.util.Set<String> sharedWith) {
+        return store(cbrCase, caseType, subject.id(), domain, tenantId, caseId, scope);
+    }
+
+
     <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery query, Class<C> caseType);
 
     Integer erase(EraseRequest request);
 
     Integer eraseEntity(String entityId, String tenantId);
+
+    default Integer eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
+        return eraseEntity(subject.id(), tenantId);
+    }
+
 
     Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId);
 
