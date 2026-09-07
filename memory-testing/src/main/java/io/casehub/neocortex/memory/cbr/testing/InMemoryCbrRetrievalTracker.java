@@ -36,7 +36,7 @@ public class InMemoryCbrRetrievalTracker implements CbrRetrievalTracker {
                                                MemoryDomain domain,
                                                Instant since, Instant until) {
         return traces.stream()
-                .filter(t -> t.query().caseType().equals(caseType))
+                .filter(t -> caseType == null || (t.query().caseTypeScope() instanceof io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific s && s.caseType().equals(caseType)))
                 .filter(t -> t.query().tenantId().equals(tenantId))
                 .filter(t -> t.query().domain().equals(domain))
                 .filter(t -> !t.timestamp().isBefore(since) && t.timestamp().isBefore(until))

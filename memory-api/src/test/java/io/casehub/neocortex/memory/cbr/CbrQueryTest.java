@@ -287,4 +287,47 @@ class CbrQueryTest {
         assertThat(decayed.scopeDecay()).isNotNull();
         assertThat(q.scopeDecay()).isNull();
     }
+
+// --- CaseTypeScope tests ---
+
+    @Test
+    void crossType_createsAllInDomainScope() {
+        var q = CbrQuery.crossType("t", CBR, Path.root(), Map.of(), 5);
+        assertThat(q.caseTypeScope()).isInstanceOf(CaseTypeScope.AllInDomain.class);
+    }
+
+    @Test
+    void of_createsSpecificScope() {
+        var q = CbrQuery.of("t", CBR, Path.root(), "my-type", Map.of(), 5);
+        assertThat(q.caseTypeScope()).isInstanceOf(CaseTypeScope.Specific.class);
+        assertThat(q.caseType()).isEqualTo("my-type");
+    }
+
+    @Test
+    void caseType_throwsForAllInDomain() {
+        var q = CbrQuery.crossType("t", CBR, Path.root(), Map.of(), 5);
+        assertThatThrownBy(q::caseType)
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void caseTypeScope_neverNull() {
+        var specific  = CbrQuery.of("t", CBR, Path.root(), "type", Map.of(), 5);
+        var crossType = CbrQuery.crossType("t", CBR, Path.root(), Map.of(), 5);
+        assertThat(specific.caseTypeScope()).isNotNull();
+        assertThat(crossType.caseTypeScope()).isNotNull();
+    }
+
+    @Test
+    void specific_nullCaseTypeRejected() {
+        assertThatThrownBy(() -> new CaseTypeScope.Specific(null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void withCaseType_producesSpecificScope() {
+        var q = CbrQuery.crossType("t", CBR, Path.root(), Map.of(), 5).withCaseType("new-type");
+        assertThat(q.caseTypeScope()).isInstanceOf(CaseTypeScope.Specific.class);
+        assertThat(q.caseType()).isEqualTo("new-type");
+    }
 }

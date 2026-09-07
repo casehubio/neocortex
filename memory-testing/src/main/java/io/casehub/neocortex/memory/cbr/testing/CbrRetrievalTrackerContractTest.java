@@ -33,7 +33,7 @@ public abstract class CbrRetrievalTrackerContractTest {
 
     private List<ScoredCbrCase<?>> results() {
         var c = new FeatureVectorCbrCase("problem", "solution", null, Confidence.unknown(0.9), Map.of(), null, null);
-        return List.of(new ScoredCbrCase<>(c, "case-1", 0.85));
+        return List.of(new ScoredCbrCase<>(c, "case-1", "test-type", 0.85));
     }
 
     @Test void record_returnsNonBlankTraceId() {

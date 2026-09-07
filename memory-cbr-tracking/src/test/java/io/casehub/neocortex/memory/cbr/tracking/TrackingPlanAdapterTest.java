@@ -24,7 +24,7 @@ class TrackingPlanAdapterTest {
         var trace = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
         var plan = new PlanCbrCase("problem", "solution", "WIN", Confidence.unknown(0.9),
                                    Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
-        return new ScoredCbrCase<>(plan, "c1", 0.85);
+        return new ScoredCbrCase<>(plan, "c1", "test-type", 0.85);
     }
 
     private PlanAdapter noOpDelegate() {
@@ -86,7 +86,7 @@ class TrackingPlanAdapterTest {
 
         var emptyPlan = new PlanCbrCase("problem", "solution", null, null,
                                         Map.of(), List.of(), null, null);
-        var scored = new ScoredCbrCase<>(emptyPlan, "c2", 0.3);
+        var scored = new ScoredCbrCase<>(emptyPlan, "c2", "test-type", 0.3);
         decorator.adapt("typeA", scored, Map.of());
 
         assertThat(eventRef.get()).isNotNull();

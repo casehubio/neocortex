@@ -15,6 +15,7 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.cbr.CaseTypeScope;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
@@ -207,28 +208,37 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
     @SuppressWarnings("unchecked")
     public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(
             CbrQuery query, Class<C> caseClass) {
-        CbrFeatureSchema schema = schemas.get(query.caseType());
+        return switch (query.caseTypeScope()) {
+            case CaseTypeScope.Specific s -> retrieveSimilarSpecific(query, caseClass, s.caseType());
+            case CaseTypeScope.AllInDomain a -> retrieveSimilarCrossType(query, caseClass);
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilarSpecific(
+            CbrQuery query, Class<C> caseClass, String caseType) {
+        CbrFeatureSchema schema = schemas.get(caseType);
         if (schema != null) {
             CbrQueryTranslator.validateQueryFeatures(query.features(), schema);
         }
         if (!query.filters().isEmpty() && schema == null) {
             throw new IllegalStateException(
-                "Cannot apply structural filters: no schema registered for caseType '"
-                + query.caseType() + "'");
+                    "Cannot apply structural filters: no schema registered for caseType '"
+                    + caseType + "'");
         }
 
-        String collection = collectionManager.collectionName(query.caseType());
+        String collection = collectionManager.collectionName(caseType);
 
         boolean exists = awaitFuture(
-            collectionManager.client().collectionExistsAsync(collection), "collectionExists");
-        if (!exists) return List.of();
+                collectionManager.client().collectionExistsAsync(collection), "collectionExists");
+        if (!exists) {return List.of();}
 
         Filter filter = CbrQueryTranslator.toIdentityFilter(query);
         if (!query.filters().isEmpty()) {
             filter = CbrQueryTranslator.applyStructuralFilters(filter, query.filters(), schema);
         }
         RetrievalMode effectiveMode = resolveEffectiveMode(query);
-        if (effectiveMode == null) return List.of();
+        if (effectiveMode == null) {return List.of();}
 
         return switch (effectiveMode) {
             case FEATURE_ONLY -> retrieveFeatureOnly(query, caseClass, collection, filter, schema);
@@ -236,6 +246,31 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             case HYBRID -> retrieveHybrid(query, caseClass, collection, filter, schema);
         };
     }
+
+    @SuppressWarnings("unchecked")
+    private <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilarCrossType(
+            CbrQuery query, Class<C> caseClass) {
+        List<String> caseTypes = collectionManager.discoverCaseTypes();
+        if (caseTypes.isEmpty()) {return List.of();}
+
+        List<ScoredCbrCase<C>> allResults = new ArrayList<>();
+        for (String ct : caseTypes) {
+            try {
+                CbrQuery               perTypeQuery = query.withCaseType(ct);
+                List<ScoredCbrCase<C>> results      = retrieveSimilarSpecific(perTypeQuery, caseClass, ct);
+                allResults.addAll(results);
+            } catch (Exception e) {
+                LOG.log(java.util.logging.Level.WARNING,
+                        "Cross-type retrieval failed for caseType '" + ct + "' — continuing with partial results", e);
+            }
+        }
+
+        allResults.sort((a, b) -> Double.compare(b.score(), a.score()));
+        return Collections.unmodifiableList(allResults.size() <= query.topK()
+                                            ? allResults
+                                            : new ArrayList<>(allResults.subList(0, query.topK())));
+    }
+
 
     private RetrievalMode resolveEffectiveMode(CbrQuery query) {
         return switch (query.retrievalMode()) {
@@ -282,7 +317,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             double score = CbrSimilarityScorer.score(
                 query.features(), rc.cbrCase().features(), query.weights(), schema, overrides);
             if (score >= query.minSimilarity()) {
-                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), score, false, Map.of(), rc.storedAt(), rc.scope(), null));
+                candidates.add(new ScoredCbrCase<>(rc.cbrCase(), rc.caseId(), query.caseType(), score, false, Map.of(), rc.storedAt(), rc.scope(), null));
             }
         }
         candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
@@ -311,7 +346,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
                 if (cbrCase != null && point.getScore() >= query.minSimilarity()) {
                     String caseId = extractString(point.getPayloadMap(), "caseId");
                     Instant storedAt = extractStoredAt(point.getPayloadMap());
-                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, point.getScore(), false, Map.of(), storedAt, extractScope(point.getPayloadMap()), null));
+                    candidates.add(new ScoredCbrCase<>(cbrCase, caseId, query.caseType(), point.getScore(), false, Map.of(), storedAt, extractScope(point.getPayloadMap()), null));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to reconstruct case from point", e);
@@ -467,7 +502,7 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         for (var f : fused) {
             double score = Math.max(-1.0, Math.min(1.0, f.score()));
             if (query.fusionStrategy() == FusionStrategy.RRF || score >= query.minSimilarity()) {
-                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), score, false, Map.of(), f.item().storedAt(), f.item().scope(), null));
+                results.add(new ScoredCbrCase<>(f.item().cbrCase(), f.item().caseId(), query.caseType(), score, false, Map.of(), f.item().storedAt(), f.item().scope(), null));
             }
         }
         return Collections.unmodifiableList(results);

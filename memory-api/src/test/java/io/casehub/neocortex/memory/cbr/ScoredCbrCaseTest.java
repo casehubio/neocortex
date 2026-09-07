@@ -7,77 +7,79 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ScoredCbrCaseTest {
 
+    private static final String TYPE = "test-type";
+
     @Test
     void constructor_validScoreRange_succeeds() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThat(new ScoredCbrCase<>(cbrCase, 1.0).score()).isEqualTo(1.0);
-        assertThat(new ScoredCbrCase<>(cbrCase, 0.0).score()).isEqualTo(0.0);
-        assertThat(new ScoredCbrCase<>(cbrCase, -1.0).score()).isEqualTo(-1.0);
+        assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 1.0).score()).isEqualTo(1.0);
+        assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 0.0).score()).isEqualTo(0.0);
+        assertThat(new ScoredCbrCase<>(cbrCase, TYPE, -1.0).score()).isEqualTo(-1.0);
     }
 
     @Test
     void constructor_scoreAboveOne_throws() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, 1.1))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("score must be in [-1,1]");
+        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, 1.1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("score must be in [-1,1]");
     }
 
     @Test
     void constructor_scoreBelowMinusOne_throws() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, -1.1))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("score must be in [-1,1]");
+        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, -1.1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("score must be in [-1,1]");
     }
 
     @Test
     void constructor_scoreNaN_throws() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, Double.NaN))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("score must be in [-1,1]");
+        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, Double.NaN))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("score must be in [-1,1]");
     }
 
     @Test
     void constructor_scorePositiveInfinity_throws() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, Double.POSITIVE_INFINITY))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("score must be in [-1,1]");
+        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, Double.POSITIVE_INFINITY))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("score must be in [-1,1]");
     }
 
     @Test
     void constructor_scoreNegativeInfinity_throws() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, Double.NEGATIVE_INFINITY))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("score must be in [-1,1]");
+        assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, Double.NEGATIVE_INFINITY))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("score must be in [-1,1]");
     }
 
     @Test
     void constructor_nullCase_throws() {
-        assertThatThrownBy(() -> new ScoredCbrCase<>(null, 0.5))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("cbrCase required");
+        assertThatThrownBy(() -> new ScoredCbrCase<>(null, TYPE, 0.5))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("cbrCase required");
     }
 
     @Test
     void constructor_twoArg_defaultsRerankedFalse() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThat(new ScoredCbrCase<>(cbrCase, 0.5).reranked()).isFalse();
+        assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 0.5).reranked()).isFalse();
     }
 
     @Test
     void constructor_threeArg_setsReranked() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        assertThat(new ScoredCbrCase<>(cbrCase, 0.5, true).reranked()).isTrue();
+        assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 0.5, true).reranked()).isTrue();
     }
 
     @Test
     void withReranked_returnsNewInstanceWithRerankedTrue() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var original = new ScoredCbrCase<>(cbrCase, 0.8);
+        var cbrCase  = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var original = new ScoredCbrCase<>(cbrCase, TYPE, 0.8);
         var reranked = original.withReranked();
         assertThat(reranked.reranked()).isTrue();
         assertThat(reranked.score()).isEqualTo(0.8);
@@ -88,40 +90,40 @@ class ScoredCbrCaseTest {
     @Test
     void featureSimilarities_present() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var sims = java.util.Map.of("posture", 0.6, "size", 0.3);
-        var scored = new ScoredCbrCase<>(cbrCase, 0.9, false, sims);
+        var sims    = java.util.Map.of("posture", 0.6, "size", 0.3);
+        var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, sims);
         assertThat(scored.featureSimilarities()).isEqualTo(sims);
     }
 
     @Test
     void featureSimilarities_immutable() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var sims = new java.util.HashMap<String, Double>();
+        var sims    = new java.util.HashMap<String, Double>();
         sims.put("a", 0.5);
-        var scored = new ScoredCbrCase<>(cbrCase, 0.9, false, sims);
+        var scored = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, sims);
         assertThatThrownBy(() -> scored.featureSimilarities().put("b", 0.1))
-            .isInstanceOf(UnsupportedOperationException.class);
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
     void twoArgConstructor_emptyFeatureSimilarities() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var scored = new ScoredCbrCase<>(cbrCase, 0.9);
+        var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9);
         assertThat(scored.featureSimilarities()).isEmpty();
     }
 
     @Test
     void threeArgConstructor_emptyFeatureSimilarities() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var scored = new ScoredCbrCase<>(cbrCase, 0.9, true);
+        var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, true);
         assertThat(scored.featureSimilarities()).isEmpty();
     }
 
     @Test
     void withReranked_preservesFeatureSimilarities() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var sims = java.util.Map.of("posture", 0.6);
-        var scored = new ScoredCbrCase<>(cbrCase, 0.9, false, sims);
+        var cbrCase  = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var sims     = java.util.Map.of("posture", 0.6);
+        var scored   = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, sims);
         var reranked = scored.withReranked();
         assertThat(reranked.reranked()).isTrue();
         assertThat(reranked.featureSimilarities()).isEqualTo(sims);
@@ -130,28 +132,28 @@ class ScoredCbrCaseTest {
     @Test
     void nullFeatureSimilarities_becomesEmpty() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var scored = new ScoredCbrCase<>(cbrCase, 0.9, false, null);
+        var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, null);
         assertThat(scored.featureSimilarities()).isEmpty();
     }
 
     @Test
     void caseId_present() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var scored  = new ScoredCbrCase<>(cbrCase, "case-1", 0.9);
+        var scored  = new ScoredCbrCase<>(cbrCase, "case-1", TYPE, 0.9);
         assertThat(scored.caseId()).isEqualTo("case-1");
     }
 
     @Test
     void caseId_null_allowed() {
         var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var scored  = new ScoredCbrCase<>(cbrCase, 0.9);
+        var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9);
         assertThat(scored.caseId()).isNull();
     }
 
     @Test
     void withReranked_preservesCaseId() {
         var cbrCase  = new TextualCbrCase("problem", "solution", null, null, null, null);
-        var original = new ScoredCbrCase<>(cbrCase, "case-1", 0.8);
+        var original = new ScoredCbrCase<>(cbrCase, "case-1", TYPE, 0.8);
         var reranked = original.withReranked();
         assertThat(reranked.caseId()).isEqualTo("case-1");
         assertThat(reranked.reranked()).isTrue();
@@ -161,32 +163,33 @@ class ScoredCbrCaseTest {
     @Test
     void storedAt_includedInCanonicalConstructor() {
         var now    = java.time.Instant.now();
-        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), now, io.casehub.platform.api.path.Path.root(), null);
+        var scored = new ScoredCbrCase<>(textCase(), "c1", TYPE, 0.9, false, java.util.Map.of(), now, io.casehub.platform.api.path.Path.root(), null);
         assertThat(scored.storedAt()).isEqualTo(now);
     }
 
     @Test
     void storedAt_nullableAndDefaultsToNull() {
-        var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of(), null, io.casehub.platform.api.path.Path.root(), null);
+        var scored = new ScoredCbrCase<>(textCase(), "c1", TYPE, 0.9, false, java.util.Map.of(), null, io.casehub.platform.api.path.Path.root(), null);
         assertThat(scored.storedAt()).isNull();
     }
 
     @Test
     void convenienceConstructors_defaultStoredAtToNull() {
-        assertThat(new ScoredCbrCase<>(textCase(), "c1", 0.9).storedAt()).isNull();
-        assertThat(new ScoredCbrCase<>(textCase(), 0.9).storedAt()).isNull();
-        assertThat(new ScoredCbrCase<>(textCase(), 0.9, false).storedAt()).isNull();
-        assertThat(new ScoredCbrCase<>(textCase(), 0.9, false, java.util.Map.of()).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), "c1", TYPE, 0.9).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), TYPE, 0.9).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), TYPE, 0.9, false).storedAt()).isNull();
+        assertThat(new ScoredCbrCase<>(textCase(), TYPE, 0.9, false, java.util.Map.of()).storedAt()).isNull();
     }
 
     @Test
     void withScore_preservesAllFieldsExceptScore() {
         var now      = java.time.Instant.now();
-        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, true, java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root(), null);
+        var original = new ScoredCbrCase<>(textCase(), "c1", TYPE, 0.9, true, java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root(), null);
         var modified = original.withScore(0.5);
         assertThat(modified.score()).isEqualTo(0.5);
         assertThat(modified.cbrCase()).isSameAs(original.cbrCase());
         assertThat(modified.caseId()).isEqualTo("c1");
+        assertThat(modified.caseType()).isEqualTo(TYPE);
         assertThat(modified.reranked()).isTrue();
         assertThat(modified.featureSimilarities()).isEqualTo(java.util.Map.of("f", 0.8));
         assertThat(modified.storedAt()).isEqualTo(now);
@@ -195,12 +198,56 @@ class ScoredCbrCaseTest {
     @Test
     void withReranked_preservesStoredAt() {
         var now      = java.time.Instant.now();
-        var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root(), null);
+        var original = new ScoredCbrCase<>(textCase(), "c1", TYPE, 0.9, false, java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root(), null);
         var reranked = original.withReranked();
         assertThat(reranked.reranked()).isTrue();
         assertThat(reranked.score()).isEqualTo(0.9);
+        assertThat(reranked.caseType()).isEqualTo(TYPE);
         assertThat(reranked.storedAt()).isEqualTo(now);
         assertThat(reranked.featureSimilarities()).isEqualTo(java.util.Map.of("f", 0.8));
+    }
+
+    // --- caseType tests ---
+
+    @Test
+    void caseType_requiredOnCanonicalConstructor() {
+        assertThatThrownBy(() -> new ScoredCbrCase<>(textCase(), "c1", null, 0.9, false,
+                                                     java.util.Map.of(), null, io.casehub.platform.api.path.Path.root(), null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("caseType required");
+    }
+
+    @Test
+    void caseType_presentOnCanonicalConstructor() {
+        var scored = new ScoredCbrCase<>(textCase(), "c1", "my-type", 0.9, false,
+                                         java.util.Map.of(), null, io.casehub.platform.api.path.Path.root(), null);
+        assertThat(scored.caseType()).isEqualTo("my-type");
+    }
+
+    @Test
+    void withCaseType_returnsNewInstance() {
+        var scored = new ScoredCbrCase<>(textCase(), "c1", "type-a", 0.9, false,
+                                         java.util.Map.of(), null, io.casehub.platform.api.path.Path.root(), null);
+        var updated = scored.withCaseType("type-b");
+        assertThat(updated.caseType()).isEqualTo("type-b");
+        assertThat(updated.score()).isEqualTo(0.9);
+        assertThat(updated.caseId()).isEqualTo("c1");
+        assertThat(scored.caseType()).isEqualTo("type-a");
+    }
+
+    @Test
+    void withCaseType_preservesAllOtherFields() {
+        var now = java.time.Instant.now();
+        var original = new ScoredCbrCase<>(textCase(), "c1", "type-a", 0.9, true,
+                                           java.util.Map.of("f", 0.8), now, io.casehub.platform.api.path.Path.root(), 0.5);
+        var updated = original.withCaseType("type-b");
+        assertThat(updated.cbrCase()).isSameAs(original.cbrCase());
+        assertThat(updated.caseId()).isEqualTo("c1");
+        assertThat(updated.score()).isEqualTo(0.9);
+        assertThat(updated.reranked()).isTrue();
+        assertThat(updated.featureSimilarities()).isEqualTo(java.util.Map.of("f", 0.8));
+        assertThat(updated.storedAt()).isEqualTo(now);
+        assertThat(updated.trustTrajectory()).isEqualTo(0.5);
     }
 
     private TextualCbrCase textCase() {

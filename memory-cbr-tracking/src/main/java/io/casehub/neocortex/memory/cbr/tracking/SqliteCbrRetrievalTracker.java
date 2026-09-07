@@ -125,7 +125,7 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, traceId);
-            ps.setString(2, query.caseType());
+            ps.setString(2, query.caseTypeScope() instanceof io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific s ? s.caseType() : null);
             ps.setString(3, query.tenantId());
             ps.setString(4, query.domain().name());
             ps.setString(5, queryJson);
@@ -196,7 +196,7 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
 
     static Map<String, Object> serializeQuery(CbrQuery query) {
         var map = new LinkedHashMap<String, Object>();
-        map.put("caseType", query.caseType());
+        map.put("caseType", query.caseTypeScope() instanceof io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific s ? s.caseType() : null);
         map.put("tenantId", query.tenantId());
         map.put("domain", query.domain().name());
         map.put("retrievalMode", query.retrievalMode().name());
@@ -239,9 +239,12 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
                 ? ((Map<String, Object>) map.get("filters")).entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, e -> deserializeFilter((Map<String, Object>) e.getValue())))
                 : Map.of();
-        return new CbrQuery(tid, dom, ct, features, filters, weights,
+        io.casehub.neocortex.memory.cbr.CaseTypeScope caseTypeScope = ct != null
+                ? new io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific(ct)
+                : new io.casehub.neocortex.memory.cbr.CaseTypeScope.AllInDomain();
+        return new CbrQuery(tid, dom, caseTypeScope, features, filters, weights,
                 topK, minSim, notBefore, problem, vecW, mode, fusion, null,
-                io.casehub.platform.api.path.Path.root(), null);
+                io.casehub.platform.api.path.Path.root(), null, null);
     }
 
     static Map<String, Object> serializeFilter(CbrFilter filter) {

@@ -27,7 +27,7 @@ class TrackingPlanEnsembleAnalyzerTest {
         var trace = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
         var plan = new PlanCbrCase("problem", "solution", "WIN", Confidence.unknown(0.9),
                                    Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
-        return new ScoredCbrCase<>(plan, "c1", 0.85);
+        return new ScoredCbrCase<>(plan, "c1", "test-type", 0.85);
     }
 
     private AdaptedPlan adapted() {

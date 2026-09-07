@@ -14,6 +14,7 @@ import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Collections.VectorParamsMap;
 import io.qdrant.client.grpc.Collections.VectorsConfig;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +50,16 @@ final class CbrCollectionManager {
     String collectionName(String caseType) {
         return config.collectionPrefix() + "_" + caseType;
     }
+
+    List<String> discoverCaseTypes() {
+        String prefix      = config.collectionPrefix() + "_";
+        var    collections = awaitFuture(client.listCollectionsAsync(), "listCollections");
+        return collections.stream()
+                          .filter(name -> name.startsWith(prefix))
+                          .map(name -> name.substring(prefix.length()))
+                          .toList();
+    }
+
 
     void ensureCollection(String caseType, int vectorDimension) {
         String collection = collectionName(caseType);

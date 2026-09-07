@@ -19,7 +19,7 @@ class TrustWeightedCbrCaseMemoryStoreTest {
 
     @Test void nullTrustScore_passesThrough() {
         var c = testCase("p", null, null);
-        var delegate = stubDelegate(List.of(new ScoredCbrCase<>(c, "c1", 0.9)));
+        var delegate = stubDelegate(List.of(new ScoredCbrCase<>(c, "c1", "test-type", 0.9)));
         var decorator = new TrustWeightedCbrCaseMemoryStore(delegate, fn, (AgentTrustProvider) null);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().score()).isCloseTo(0.9, offset(1e-9));
@@ -29,8 +29,8 @@ class TrustWeightedCbrCaseMemoryStoreTest {
         var trusted = testCase("trusted", 0.9, "agent-1");
         var unknown = testCase("unknown", null, null);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(trusted, "c1", 0.8),
-                new ScoredCbrCase<>(unknown, "c2", 0.8)));
+                new ScoredCbrCase<>(trusted, "c1", "test-type", 0.8),
+                new ScoredCbrCase<>(unknown, "c2", "test-type", 0.8)));
         var decorator = new TrustWeightedCbrCaseMemoryStore(delegate, fn, (AgentTrustProvider) null);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results).hasSize(2);
@@ -42,8 +42,8 @@ class TrustWeightedCbrCaseMemoryStoreTest {
         var highTrust = testCase("high", 1.0, "a1");
         var lowTrust = testCase("low", 0.1, "a2");
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowTrust, "c1", 0.9),
-                new ScoredCbrCase<>(highTrust, "c2", 0.85)));
+                new ScoredCbrCase<>(lowTrust, "c1", "test-type", 0.9),
+                new ScoredCbrCase<>(highTrust, "c2", "test-type", 0.85)));
         var decorator = new TrustWeightedCbrCaseMemoryStore(delegate, fn, (AgentTrustProvider) null);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.get(0).score()).isGreaterThanOrEqualTo(results.get(1).score());
@@ -65,8 +65,8 @@ class TrustWeightedCbrCaseMemoryStoreTest {
             return OptionalDouble.of(0.9);
         };
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c1, "c1", 0.9),
-                new ScoredCbrCase<>(c2, "c2", 0.8)));
+                new ScoredCbrCase<>(c1, "c1", "test-type", 0.9),
+                new ScoredCbrCase<>(c2, "c2", "test-type", 0.8)));
         var decorator = new TrustWeightedCbrCaseMemoryStore(delegate, fn, provider);
         decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(callCount.get()).isEqualTo(1);
@@ -74,7 +74,7 @@ class TrustWeightedCbrCaseMemoryStoreTest {
 
     @Test void noAgentTrustProvider_authorityOnly() {
         var c = testCase("p", 0.8, "agent-1");
-        var delegate = stubDelegate(List.of(new ScoredCbrCase<>(c, "c1", 0.9)));
+        var delegate = stubDelegate(List.of(new ScoredCbrCase<>(c, "c1", "test-type", 0.9)));
         var decorator = new TrustWeightedCbrCaseMemoryStore(delegate, fn, (AgentTrustProvider) null);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         double expected = 0.9 * (1.0 - 0.3 + 0.3 * 0.8);
@@ -85,7 +85,7 @@ class TrustWeightedCbrCaseMemoryStoreTest {
     @Test void trustTrajectory_storedOnScoredCbrCase() {
         var c = testCase("p", 0.8, "agent-1");
         AgentTrustProvider provider = agentId -> OptionalDouble.of(0.6);
-        var delegate = stubDelegate(List.of(new ScoredCbrCase<>(c, "c1", 0.9)));
+        var delegate = stubDelegate(List.of(new ScoredCbrCase<>(c, "c1", "test-type", 0.9)));
         var decorator = new TrustWeightedCbrCaseMemoryStore(delegate, fn, provider);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().trustTrajectory()).isCloseTo(-0.2, offset(1e-9));

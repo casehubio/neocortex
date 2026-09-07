@@ -98,7 +98,7 @@ class CbrCaseTest {
     @Test
     void scoredCbrCase_rejectsScoreAboveOne() {
         var c = new TextualCbrCase("p", "s", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(c, 1.1))
+        assertThatThrownBy(() -> new ScoredCbrCase<>(c, "t", 1.1))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("[-1,1]");
     }
@@ -106,7 +106,7 @@ class CbrCaseTest {
     @Test
     void scoredCbrCase_rejectsScoreBelowNegativeOne() {
         var c = new TextualCbrCase("p", "s", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(c, -1.1))
+        assertThatThrownBy(() -> new ScoredCbrCase<>(c, "t", -1.1))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("[-1,1]");
     }
@@ -114,24 +114,24 @@ class CbrCaseTest {
     @Test
     void scoredCbrCase_rejectsNaN() {
         var c = new TextualCbrCase("p", "s", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(c, Double.NaN))
+        assertThatThrownBy(() -> new ScoredCbrCase<>(c, "t", Double.NaN))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void scoredCbrCase_rejectsPositiveInfinity() {
         var c = new TextualCbrCase("p", "s", null, null, null, null);
-        assertThatThrownBy(() -> new ScoredCbrCase<>(c, Double.POSITIVE_INFINITY))
+        assertThatThrownBy(() -> new ScoredCbrCase<>(c, "t", Double.POSITIVE_INFINITY))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void scoredCbrCase_acceptsBoundaryValues() {
         var c = new TextualCbrCase("p", "s", null, null, null, null);
-        assertThatCode(() -> new ScoredCbrCase<>(c, 1.0)).doesNotThrowAnyException();
-        assertThatCode(() -> new ScoredCbrCase<>(c, -1.0)).doesNotThrowAnyException();
-        assertThatCode(() -> new ScoredCbrCase<>(c, 0.0)).doesNotThrowAnyException();
-        assertThatCode(() -> new ScoredCbrCase<>(c, 0.75)).doesNotThrowAnyException();
+        assertThatCode(() -> new ScoredCbrCase<>(c, "t", 1.0)).doesNotThrowAnyException();
+        assertThatCode(() -> new ScoredCbrCase<>(c, "t", -1.0)).doesNotThrowAnyException();
+        assertThatCode(() -> new ScoredCbrCase<>(c, "t", 0.0)).doesNotThrowAnyException();
+        assertThatCode(() -> new ScoredCbrCase<>(c, "t", 0.75)).doesNotThrowAnyException();
     }
 
     @Test

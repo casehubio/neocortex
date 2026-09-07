@@ -32,7 +32,7 @@ class ScopeDecayCbrCaseMemoryStoreTest {
 
     private ScoredCbrCase<FeatureVectorCbrCase> scored(double score, Path scope) {
         var c = new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null);
-        return new ScoredCbrCase<>(c, "id", score, false, Map.of(), Instant.now(), scope, null);
+        return new ScoredCbrCase<>(c, "id", "test-type", score, false, Map.of(), Instant.now(), scope, null);
     }
 
     @Test

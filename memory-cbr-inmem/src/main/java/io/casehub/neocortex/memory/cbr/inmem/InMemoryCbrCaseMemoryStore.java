@@ -86,39 +86,51 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
                                     .warning("HYBRID mode degraded to FEATURE_ONLY — no EmbeddingModel available");
         }
 
-        CbrFeatureSchema schema = schemas.get(query.caseType());
-        if (schema != null) {
-            CbrFeatureValidator.validateQueryFeatures(query.features(), schema);
-        }
+        String queryCaseType = switch (query.caseTypeScope()) {
+            case io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific s -> s.caseType();
+            case io.casehub.neocortex.memory.cbr.CaseTypeScope.AllInDomain a -> null;
+        };
 
-        if (!query.filters().isEmpty()) {
-            if (schema == null) {
+        CbrFeatureSchema querySchema = queryCaseType != null ? schemas.get(queryCaseType) : null;
+
+        if (queryCaseType != null && querySchema != null) {
+            CbrFeatureValidator.validateQueryFeatures(query.features(), querySchema);
+        }
+        if (!query.filters().isEmpty() && queryCaseType != null) {
+            if (querySchema == null) {
                 throw new IllegalStateException(
                         "Cannot apply structural filters: no schema registered for caseType '"
-                        + query.caseType() + "'");
+                        + queryCaseType + "'");
             }
-            CbrFeatureValidator.validateFilters(query.filters(), schema);
+            CbrFeatureValidator.validateFilters(query.filters(), querySchema);
         }
-
-        List<FeatureField.TimeSeries> dtwBandFields = schema == null ? List.of()
-                                                                     : schema.fields().stream()
-                                                                             .filter(f -> f instanceof FeatureField.TimeSeries ts
-                                                                                          && ts.similaritySpec() instanceof SimilaritySpec.DtwSpec ds
-                                                                                          && ds.constraint() instanceof WarpingConstraint.SakoeChibaBand)
-                                                                             .map(f -> (FeatureField.TimeSeries) f)
-                                                                             .toList();
 
         List<ScoredCbrCase<C>> candidates = new ArrayList<>();
         for (StoredCase stored : cases) {
             if (!stored.tenantId().equals(query.tenantId())) {continue;}
             if (!stored.domain().equals(query.domain())) {continue;}
-            if (!stored.caseType().equals(query.caseType())) {continue;}
+            if (queryCaseType != null && !stored.caseType().equals(queryCaseType)) {continue;}
             if (!isVisibleAtScope(stored.scope(), query.scope())) {continue;}
             if (query.notBefore() != null && stored.storedAt().isBefore(query.notBefore())) {continue;}
             if (stored.supersededAt() != null) {continue;}
             if (!caseClass.isInstance(stored.cbrCase())) {continue;}
 
-            if (!matchesFilters(stored.cbrCase(), query.filters(), schema)) {continue;}
+            CbrFeatureSchema candidateSchema = queryCaseType != null
+                                               ? querySchema
+                                               : schemas.get(stored.caseType());
+
+            if (!query.filters().isEmpty()) {
+                if (candidateSchema == null) {continue;}
+                if (!matchesFilters(stored.cbrCase(), query.filters(), candidateSchema)) {continue;}
+            }
+
+            List<FeatureField.TimeSeries> dtwBandFields = candidateSchema == null ? List.of()
+                                                                                  : candidateSchema.fields().stream()
+                                                                                                   .filter(f -> f instanceof FeatureField.TimeSeries ts
+                                                                                                                && ts.similaritySpec() instanceof SimilaritySpec.DtwSpec ds
+                                                                                                                && ds.constraint() instanceof WarpingConstraint.SakoeChibaBand)
+                                                                                                   .map(f -> (FeatureField.TimeSeries) f)
+                                                                                                   .toList();
 
             double abandonCost = Double.POSITIVE_INFINITY;
             if (!dtwBandFields.isEmpty() && candidates.size() >= query.topK()) {
@@ -145,12 +157,12 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
             }
 
             CbrSimilarityScorer.SimilarityBreakdown breakdown = CbrSimilarityScorer.scoreDetailed(
-                    query.features(), stored.cbrCase().features(), query.weights(), schema, Map.of(),
+                    query.features(), stored.cbrCase().features(), query.weights(), candidateSchema, Map.of(),
                     abandonCost);
 
             double score = breakdown.score();
             if (score >= query.minSimilarity()) {
-                candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), stored.caseId(),
+                candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), stored.caseId(), stored.caseType(),
                                                    score, false, breakdown.featureSimilarities(), stored.storedAt(), stored.scope(), null));
                 candidates.sort((a, b) -> Double.compare(b.score(), a.score()));
             }
@@ -159,8 +171,7 @@ public class InMemoryCbrCaseMemoryStore implements CbrCaseMemoryStore {
         List<ScoredCbrCase<C>> results = candidates.size() <= query.topK()
                                          ? candidates
                                          : candidates.subList(0, query.topK());
-        return Collections.unmodifiableList(new ArrayList<>(results));
-    }
+        return Collections.unmodifiableList(new ArrayList<>(results));}
 
     @Override
     public Integer erase(EraseRequest request) {

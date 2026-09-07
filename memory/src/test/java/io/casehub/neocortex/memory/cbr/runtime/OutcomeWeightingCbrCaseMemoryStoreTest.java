@@ -26,8 +26,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var highConf = testCase("high", 0.9);
         var lowConf = testCase("low", 0.5);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null),
-                new ScoredCbrCase<>(highConf, "c2", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(lowConf, "c1", "test-type", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null),
+                new ScoredCbrCase<>(highConf, "c2", "test-type", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().cbrCase().confidence().value()).isEqualTo(0.9);
@@ -36,7 +36,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void nullConfidence_treatedAsOne() {
         var noOutcome = testCase("none", null);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(noOutcome, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(noOutcome, "c1", "test-type", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().score()).isCloseTo(0.8, within(1e-9));
@@ -46,8 +46,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var a = testCase("a", 1.0);
         var b = testCase("b", 1.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(a, "c1", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null),
-                new ScoredCbrCase<>(b, "c2", 0.7, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(a, "c1", "test-type", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null),
+                new ScoredCbrCase<>(b, "c2", "test-type", 0.7, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.get(0).cbrCase().problem()).isEqualTo("a");
@@ -58,7 +58,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var lowConf = testCase("low", 0.1);
         var noEffect = new DefaultOutcomeWeightingFunction(0.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(lowConf, "c1", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(lowConf, "c1", "test-type", 0.8, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, noEffect);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.getFirst().score()).isCloseTo(0.8, within(1e-9));
@@ -67,7 +67,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void preservesCaseIdAndRerankedFlag() {
         var c = testCase("p", 0.8);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "case-42", 0.9, true, Map.of("f", 0.95), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(c, "case-42", "test-type", 0.9, true, Map.of("f", 0.95), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var result = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class).getFirst();
         assertThat(result.caseId()).isEqualTo("case-42");
@@ -85,7 +85,7 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
     @Test void customWeightingFunction_applied() {
         var c = testCase("p", 0.8);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(c, "c1", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(c, "c1", "test-type", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         OutcomeWeightingFunction custom = (sim, conf) -> sim * conf;
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, custom);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
@@ -96,8 +96,8 @@ class OutcomeWeightingCbrCaseMemoryStoreTest {
         var highSim = testCase("highSim", 0.3);
         var lowSim = testCase("lowSim", 1.0);
         var delegate = stubDelegate(List.of(
-                new ScoredCbrCase<>(highSim, "c1", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null),
-                new ScoredCbrCase<>(lowSim, "c2", 0.5, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
+                new ScoredCbrCase<>(highSim, "c1", "test-type", 0.9, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null),
+                new ScoredCbrCase<>(lowSim, "c2", "test-type", 0.5, false, Map.of(), null, io.casehub.platform.api.path.Path.root(), null)));
         var decorator = new OutcomeWeightingCbrCaseMemoryStore(delegate, fn);
         var results = decorator.retrieveSimilar(testQuery(), FeatureVectorCbrCase.class);
         assertThat(results.get(0).score()).isGreaterThanOrEqualTo(results.get(1).score());

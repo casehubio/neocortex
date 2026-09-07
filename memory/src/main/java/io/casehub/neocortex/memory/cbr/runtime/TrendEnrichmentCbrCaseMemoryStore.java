@@ -2,10 +2,11 @@ package io.casehub.neocortex.memory.cbr.runtime;
 
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;
+import io.casehub.neocortex.memory.cbr.CaseTypeScope;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.DelegatingCbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.DelegatingCbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.TrendAnalyzer;
@@ -53,7 +54,10 @@ public class TrendEnrichmentCbrCaseMemoryStore extends DelegatingCbrCaseMemorySt
     @Override
     public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(
             CbrQuery query, Class<C> caseClass) {
-        CbrFeatureSchema schema = expandedSchemas.get(query.caseType());
+        CbrFeatureSchema schema = switch (query.caseTypeScope()) {
+            case CaseTypeScope.Specific s -> expandedSchemas.get(s.caseType());
+            case CaseTypeScope.AllInDomain a -> null;
+        };
         if (schema != null) {
             Map<String, FeatureValue> enriched = TrendAnalyzer.enrichFeatures(query.features(), schema);
             if (enriched != query.features()) {

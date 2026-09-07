@@ -86,9 +86,9 @@ class CbrQueryTranslatorTest {
     @Test
     void toIdentityFilter_includesNotBefore() {
         Instant notBefore = Instant.parse("2025-01-01T00:00:00Z");
-        var query = new CbrQuery("tenant-1", CBR, "starcraft-game",
+        var query = new CbrQuery("tenant-1", CBR, new io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific("starcraft-game"),
             Map.of("opponent_race", string("Zerg")), Map.of(), Map.of(), 5, 0.0, notBefore, null, 0.5,
-            RetrievalMode.HYBRID, FusionStrategy.RRF, null, io.casehub.platform.api.path.Path.root(), null);
+            RetrievalMode.HYBRID, FusionStrategy.RRF, null, io.casehub.platform.api.path.Path.root(), null, null);
         Filter filter = CbrQueryTranslator.toIdentityFilter(query);
 
         // 3 identity + 1 scope + 1 notBefore (supersession is must_not)

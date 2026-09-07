@@ -180,6 +180,8 @@ Structured feature-vector similarity search over past cases. Open `CbrCase` type
 
 **Similarity scoring:** `CbrSimilarityScorer` — pure-Java weighted composite scoring with three-level precedence: caller override, field `SimilaritySpec`, type default. `SimilaritySpec` sealed interface: `CategoricalTable`, `GaussianDecay`, `StepDecay`, `ExponentialDecay`, `DtwSpec`, `EditDistanceSpec`.
 
+**Cross-type retrieval:** `CaseTypeScope` sealed interface — `Specific(caseType)` for single-type queries, `AllInDomain()` for cross-type. `CbrQuery.crossType(tenantId, domain, scope, features, topK)` factory. Results carry `ScoredCbrCase.caseType()` for type identification. Qdrant backend fans out across all collections matching the prefix.
+
 **Retrieval modes:** `CbrQuery.RetrievalMode` — `FEATURE_ONLY`, `SEMANTIC_ONLY`, `HYBRID`. `FusionStrategy` from `fusion-api` for result merging.
 
 **Hierarchical scoping:** `CbrQuery.scope` (required `Path`) for hierarchical visibility. `ScopeDecay` sealed interface (Exponential, Linear, Step) for scope-distance score decay.

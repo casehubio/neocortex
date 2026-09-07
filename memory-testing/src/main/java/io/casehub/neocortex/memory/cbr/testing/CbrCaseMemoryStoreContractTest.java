@@ -69,6 +69,80 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                                    FeatureField.numeric("army_size_ratio", 0.0, 3.0),
                                                    FeatureField.text("notes")));
     }
+// --- Cross-type retrieval tests ---
+
+    @Test
+    void retrieveSimilar_crossType_returnsCasesFromAllTypes() {
+        store().registerSchema(CbrFeatureSchema.of("type-a", FeatureField.categorical("category")));
+        store().registerSchema(CbrFeatureSchema.of("type-b", FeatureField.categorical("category")));
+
+        store().store(new FeatureVectorCbrCase("problem-a", "solution-a", null, null,
+                                               Map.of("category", string("X")), null, null), "type-a", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(new FeatureVectorCbrCase("problem-b", "solution-b", null, null,
+                                               Map.of("category", string("X")), null, null), "type-b", ENTITY, CBR, TENANT, "c2", Path.root());
+
+        var query   = CbrQuery.crossType(TENANT, CBR, Path.root(), Map.of("category", string("X")), 10);
+        var results = store().retrieveSimilar(query, CbrCase.class);
+
+        assertThat(results).hasSize(2);
+        assertThat(results).extracting(ScoredCbrCase::caseType).containsExactlyInAnyOrder("type-a", "type-b");
+    }
+
+    @Test
+    void retrieveSimilar_crossType_orderedByScoreAndRespectsTopK() {
+        store().registerSchema(CbrFeatureSchema.of("type-a", FeatureField.categorical("color")));
+        store().registerSchema(CbrFeatureSchema.of("type-b", FeatureField.categorical("color")));
+
+        store().store(new FeatureVectorCbrCase("p1", "s1", null, null,
+                                               Map.of("color", string("red")), null, null), "type-a", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(new FeatureVectorCbrCase("p2", "s2", null, null,
+                                               Map.of("color", string("red")), null, null), "type-b", ENTITY, CBR, TENANT, "c2", Path.root());
+        store().store(new FeatureVectorCbrCase("p3", "s3", null, null,
+                                               Map.of("color", string("blue")), null, null), "type-a", ENTITY, CBR, TENANT, "c3", Path.root());
+
+        var query   = CbrQuery.crossType(TENANT, CBR, Path.root(), Map.of("color", string("red")), 2);
+        var results = store().retrieveSimilar(query, CbrCase.class);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).score()).isGreaterThanOrEqualTo(results.get(1).score());
+    }
+
+    @Test
+    void retrieveSimilar_crossType_filterOnSharedField() {
+        store().registerSchema(CbrFeatureSchema.of("type-a",
+                                                   FeatureField.categorical("color"), FeatureField.categoricalList("tags")));
+        store().registerSchema(CbrFeatureSchema.of("type-b",
+                                                   FeatureField.categorical("color"), FeatureField.categoricalList("tags")));
+
+        store().store(new FeatureVectorCbrCase("p1", "s1", null, null,
+                                               Map.of("color", string("red"), "tags", stringList(List.of("urgent"))), null, null),
+                      "type-a", ENTITY, CBR, TENANT, "c1", Path.root());
+        store().store(new FeatureVectorCbrCase("p2", "s2", null, null,
+                                               Map.of("color", string("red"), "tags", stringList(List.of("normal"))), null, null),
+                      "type-b", ENTITY, CBR, TENANT, "c2", Path.root());
+
+        var query = CbrQuery.crossType(TENANT, CBR, Path.root(), Map.of("color", string("red")), 10)
+                            .withFilter("tags", CbrFilter.contains("urgent"));
+        var results = store().retrieveSimilar(query, CbrCase.class);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).caseType()).isEqualTo("type-a");
+    }
+
+    @Test
+    void retrieveSimilar_specificType_caseTypePopulatedOnResult() {
+        store().store(new FeatureVectorCbrCase("Zerg rush", "early pressure", "WIN", null,
+                                               Map.of("opponent_race", string("Zerg")), null, null),
+                      "starcraft-game", ENTITY, CBR, TENANT, "c1", Path.root());
+
+        var query = CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
+                                Map.of("opponent_race", string("Zerg")), 5);
+        var results = store().retrieveSimilar(query, CbrCase.class);
+
+        assertThat(results).isNotEmpty();
+        assertThat(results.get(0).caseType()).isEqualTo("starcraft-game");
+    }
+
 
     @Test
     void store_returnsNonBlankId() {
@@ -291,9 +365,9 @@ public abstract class CbrCaseMemoryStoreContractTest {
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-new", Path.root());
 
-        var q = new CbrQuery(TENANT, CBR, "starcraft-game",
+        var q = new CbrQuery(TENANT, CBR, new io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific("starcraft-game"),
                              Map.of("opponent_race", string("Zerg")), Map.of(), Map.of(), 10, 0.0, boundary, null, 0.5,
-                             RetrievalMode.HYBRID, FusionStrategy.RRF, null, Path.root(), null);
+                             RetrievalMode.HYBRID, FusionStrategy.RRF, null, Path.root(), null, null);
         var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().cbrCase().problem()).isEqualTo("new game");

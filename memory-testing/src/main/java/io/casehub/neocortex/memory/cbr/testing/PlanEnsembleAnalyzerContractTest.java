@@ -29,7 +29,7 @@ public abstract class PlanEnsembleAnalyzerContractTest {
         }
         var plan = new PlanCbrCase("problem", "solution", "COMPLETED", Confidence.unknown(score),
                                    Map.of("f", FeatureValue.string("v")), traces, null, null);
-        return new ScoredCbrCase<>(plan, caseId, score);
+        return new ScoredCbrCase<>(plan, caseId, "test-type", score);
     }
 
     private static AdaptedPlan adapted(String... bindings) {

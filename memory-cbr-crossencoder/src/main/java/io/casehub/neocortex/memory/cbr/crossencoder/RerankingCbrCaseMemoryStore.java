@@ -56,11 +56,11 @@ public class RerankingCbrCaseMemoryStore extends DelegatingCbrCaseMemoryStore {
 
         int fetchSize = Math.max(query.topK(), config.rerankPoolSize());
         CbrQuery overfetchQuery = new CbrQuery(
-                query.tenantId(), query.domain(), query.caseType(),
+                query.tenantId(), query.domain(), query.caseTypeScope(),
                 query.features(), query.filters(), query.weights(), fetchSize,
                 query.minSimilarity(), query.notBefore(), query.problem(),
                 query.vectorWeight(), query.retrievalMode(), query.fusionStrategy(), query.temporalDecay(),
-                query.scope(), query.scopeDecay());
+                query.scope(), query.scopeDecay(), query.callerPrincipalId());
 
         List<ScoredCbrCase<C>> candidates = delegate.retrieveSimilar(overfetchQuery, caseClass);
         if (candidates.isEmpty()) {return candidates;}

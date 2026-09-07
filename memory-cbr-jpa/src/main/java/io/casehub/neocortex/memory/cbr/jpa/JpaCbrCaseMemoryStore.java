@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.cbr.CaseTypeScope;
 import io.casehub.neocortex.memory.cbr.CbrCase;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
@@ -108,30 +109,38 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
             LOG.info("HYBRID mode degraded to FEATURE_ONLY — no EmbeddingModel available");
         }
 
-        CbrFeatureSchema schema = schemas.get(query.caseType());
-        if (schema != null) {
-            CbrFeatureValidator.validateQueryFeatures(query.features(), schema);
-        }
+        String queryCaseType = switch (query.caseTypeScope()) {
+            case CaseTypeScope.Specific s -> s.caseType();
+            case CaseTypeScope.AllInDomain a -> null;
+        };
 
-        if (!query.filters().isEmpty()) {
-            if (schema == null) {
+        CbrFeatureSchema querySchema = queryCaseType != null ? schemas.get(queryCaseType) : null;
+
+        if (queryCaseType != null && querySchema != null) {
+            CbrFeatureValidator.validateQueryFeatures(query.features(), querySchema);
+        }
+        if (!query.filters().isEmpty() && queryCaseType != null) {
+            if (querySchema == null) {
                 throw new IllegalStateException(
                         "Cannot apply structural filters: no schema registered for caseType '"
-                        + query.caseType() + "'");
+                        + queryCaseType + "'");
             }
-            CbrFeatureValidator.validateFilters(query.filters(), schema);
+            CbrFeatureValidator.validateFilters(query.filters(), querySchema);
         }
 
         String scopeVal = query.scope().value();
-        String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.caseType = :ct AND e.supersededAt IS NULL"
+        String jpql = "SELECT e FROM CbrCaseEntity e WHERE e.tenantId = :t AND e.domain = :d AND e.supersededAt IS NULL"
+                      + (queryCaseType != null ? " AND e.caseType = :ct" : "")
                       + " AND (e.scope = '' OR e.scope = :scopeVal OR :scopeVal LIKE CONCAT(e.scope, '/%'))"
                       + (query.notBefore() != null ? " AND e.storedAt >= :nb" : "");
 
         var jpaQuery = em.createQuery(jpql, CbrCaseEntity.class)
                          .setParameter("t", query.tenantId())
                          .setParameter("d", query.domain().name())
-                         .setParameter("ct", query.caseType())
                          .setParameter("scopeVal", scopeVal);
+        if (queryCaseType != null) {
+            jpaQuery.setParameter("ct", queryCaseType);
+        }
         if (query.notBefore() != null) {
             jpaQuery.setParameter("nb", query.notBefore());
         }
@@ -143,17 +152,24 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
             CbrCase reconstructed = reconstruct(entity);
             if (!caseClass.isInstance(reconstructed)) {continue;}
 
-            if (!matchesFilters(reconstructed, query.filters(), schema)) {continue;}
+            CbrFeatureSchema candidateSchema = queryCaseType != null
+                                               ? querySchema
+                                               : schemas.get(entity.caseType);
+
+            if (!query.filters().isEmpty()) {
+                if (candidateSchema == null) {continue;}
+                if (!matchesFilters(reconstructed, query.filters(), candidateSchema)) {continue;}
+            }
 
             CbrSimilarityScorer.SimilarityBreakdown breakdown = CbrSimilarityScorer.scoreDetailed(
-                    query.features(), reconstructed.features(), query.weights(), schema, Map.of());
+                    query.features(), reconstructed.features(), query.weights(), candidateSchema, Map.of());
 
             double score = breakdown.score();
             if (score >= query.minSimilarity()) {
                 io.casehub.platform.api.path.Path entityScope = entity.scope.isEmpty()
-                        ? io.casehub.platform.api.path.Path.root()
-                        : io.casehub.platform.api.path.Path.parse(entity.scope);
-                candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId,
+                                                                ? io.casehub.platform.api.path.Path.root()
+                                                                : io.casehub.platform.api.path.Path.parse(entity.scope);
+                candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId, entity.caseType,
                                                    score, false, breakdown.featureSimilarities(), entity.storedAt, entityScope, null));
             }
         }

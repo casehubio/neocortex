@@ -37,7 +37,9 @@ final class CbrQueryTranslator {
 
         builder.addMust(ConditionFactory.matchKeyword("tenantId", query.tenantId()));
         builder.addMust(ConditionFactory.matchKeyword("domain", query.domain().name()));
-        builder.addMust(ConditionFactory.matchKeyword("caseType", query.caseType()));
+        if (query.caseTypeScope() instanceof io.casehub.neocortex.memory.cbr.CaseTypeScope.Specific s) {
+            builder.addMust(ConditionFactory.matchKeyword("caseType", s.caseType()));
+        }
 
         // Scope visibility: match cases whose scope is an ancestor of (or equal to) the query scope
         java.util.List<String> ancestorScopes = new java.util.ArrayList<>();
