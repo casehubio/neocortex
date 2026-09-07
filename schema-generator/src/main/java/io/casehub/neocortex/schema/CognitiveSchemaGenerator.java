@@ -28,6 +28,7 @@ import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 import io.casehub.neocortex.memory.cbr.WarpingConstraint;
+import io.casehub.schema.generator.module.SealedHierarchyModule;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
