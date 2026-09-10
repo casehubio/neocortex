@@ -78,6 +78,25 @@ Four related capabilities in one repo:
 | `memory-cbr-crossencoder` | `casehub-neocortex-memory-cbr-crossencoder` | Cross-encoder reranking for CBR retrieval. Config-gated decorator |
 | `memory-cbr-tracking` | `casehub-neocortex-memory-cbr-tracking` | SQLite-backed CBR retrieval tracking + plan adaptation tracking + ensemble tracking |
 
+### Knowledge Model
+
+| Module | artifactId | What you get |
+|--------|-----------|-------------|
+| `thing-api` | `casehub-neocortex-thing-api` | `Thing` interface — id, name, type, properties, traits, `is()`/`as()`. Zero deps. Consumer-facing module |
+| `cognitive-api` | `casehub-neocortex-cognitive-api` | `Confidence` record, `ConfidenceOrigin` enum, `TemporalMark` sealed hierarchy — cross-cutting cognitive types. Zero deps |
+| `mindmap-api` | `casehub-neocortex-mindmap-api` | `MindMapStore` SPI, `MindMapNode` (extends Thing with confidence, PAD, temporal bounds), `MindMapQuery`, `SubgraphTypes`, `SchemaField`, `NodeRef`, `EdgeTypeDefinition` |
+| `mindmap` | `casehub-neocortex-mindmap` | CDI wiring, `ConfidenceDecayDecorator`, `VocabularyNormalizationDecorator`, `DerivedEdgeDecorator`, `MindMapAnalyzer` graph analytics |
+| `mindmap-inmem` | `casehub-neocortex-mindmap-inmem` | In-memory `MindMapStore` for tests |
+| `mindmap-sqlite` | `casehub-neocortex-mindmap-sqlite` | SQLite + HikariCP WAL + FTS5 — production backend for single-node deployments |
+| `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`), `TraitRule` implementations, `MindMapExtractor` |
+| `mindmap-testing` | `casehub-neocortex-mindmap-testing` | `MindMapStoreContractTest` abstract base (72 tests) |
+
+### Cognitive Index
+
+| Module | artifactId | What you get |
+|--------|-----------|-------------|
+| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution across MindMap + Memory), `PerspectivalResolver` (per-agent overlay merging), `CognitiveDefaultsRegistry` (YAML-driven per-agent config) |
+
 ### Corpus
 
 | Module | artifactId | What you get |
@@ -217,6 +236,164 @@ Built-in CBR schema for personality evolution memory. Records when an agent's co
 ### Corpus Ingestion Bridge (rag)
 
 Config-driven bridge that populates a RAG corpus from external sources. `CorpusIngestionService` orchestrates both event-driven ingestion (directory-watcher for filesystem corpora) and scheduled polling (for ZIP-based corpora). `MetadataExtractor` SPI extracts body + metadata from document content. `CursorStore` SPI provides pluggable cursor persistence for incremental polling.
+
+### Thing — The Universal Entity Base (thing-api)
+
+Every entity in the knowledge graph is a `Thing`. The interface provides identity, properties, traits, and a dynamic type system with `instanceof`-style checking and typed property access via JDK Proxy.
+
+```java
+Thing entity = store.getNode(nodeId, tenantId);
+entity.id();               // unique identifier
+entity.name();             // "Emily"
+entity.type();             // "person" — derived from subgraph membership
+entity.properties();       // {role: "mum", email: "emily@example.com"}
+entity.traits();           // {"Personable"}
+entity.is("person");       // true — creation type
+entity.is("Personable");   // true — trait type
+entity.is("project");      // false — neither
+```
+
+`thing-api` has zero dependencies. App builders depend on `thing-api` for entity access without pulling in MindMap internals. `MindMapNode extends Thing` — any MindMapNode can be used wherever a Thing is expected.
+
+### is() / as() — Dynamic Type Checking and Typed Access (thing-api)
+
+`is()` checks both the entity's creation type (from subgraph membership) and its trait set. `as()` creates a JDK Proxy that maps interface method names to `property(methodName)` calls:
+
+```java
+if (emily.is("Personable")) {
+    Personable p = emily.as(Personable.class);
+    p.role();     // Optional.of("mum")
+    p.email();    // Optional.of("emily@example.com")
+    p.birthday(); // Optional.empty() — not set yet
+}
+```
+
+Return types are coerced automatically:
+
+| Return type | Behaviour |
+|-------------|----------|
+| `Optional<String>` | `Optional.ofNullable(property value)` |
+| `String` | value or `null` |
+| `int`, `long`, `double`, `boolean` | parsed, or type default (0, 0L, 0.0, false) |
+| `Integer`, `Long`, `Double`, `Boolean` | parsed, or `null` |
+
+### Custom Trait Interfaces (thing-api)
+
+`as()` works with any interface — no platform dependency required. Method names map to property keys:
+
+```java
+interface PartyGuest {
+    Optional<String> dietary();
+    Optional<String> rsvpStatus();
+}
+
+PartyGuest guest = john.as(PartyGuest.class);
+guest.dietary();    // Optional.of("nut allergy")
+guest.rsvpStatus(); // Optional.empty()
+```
+
+The platform provides `Personable`, `Projectlike`, `Organisational`, and `Eventlike` in `mindmap-intelligence`. These are conveniences — consumers define domain-specific traits the same way.
+
+**Convention:** trait names are PascalCase (matching Java interface simple names). Type names are lowercase. Traits come from code; types come from data.
+
+### Types and SubgraphTypes (mindmap-api)
+
+Entity types are dynamic strings, not a fixed enum. A node's type comes from its subgraph membership — a node in a "person" subgraph has type `"person"`.
+
+Well-known types are constants in `SubgraphTypes`:
+
+| Constant | Value |
+|----------|-------|
+| `PERSON` | `"person"` |
+| `PROJECT` | `"project"` |
+| `RESEARCH_AREA` | `"research-area"` |
+| `ORGANISATION` | `"organisation"` |
+| `CONCEPT` | `"concept"` |
+| `GENERAL` | `"general"` |
+| `TYPE_SYSTEM` | `"type-system"` |
+
+The LLM can discover new types at runtime without recompilation:
+
+```java
+// Well-known type
+store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), tenant);
+
+// LLM-discovered type — works identically
+store.createSubgraph(new SubgraphInput("Emily's Party", "birthday-party", null), tenant);
+```
+
+Type strings are lowercase-normalized in `SubgraphInput`'s constructor — `"Person"`, `"PERSON"`, and `"person"` all resolve to `"person"`.
+
+### TypeRegistry (mindmap-intelligence)
+
+Types are first-class data stored as nodes in a `TYPE_SYSTEM` subgraph. `TypeRegistry` mediates type operations:
+
+```java
+@Inject TypeRegistry registry;
+
+registry.typeExists("person", tenant);          // true — core type
+registry.javaClass("person", tenant);           // Optional.of(Personable.class)
+
+registry.registerType("birthday-party", "general", tenant);
+registry.subtypesOf("general", tenant);         // [..., "birthday-party"]
+registry.javaClass("birthday-party", tenant);   // Optional.empty() — no Java interface yet
+
+Map<String, SchemaField> schema = registry.schemaFor("person", tenant);
+// {birthday: SchemaField(name=birthday, type=string, required=false),
+//  role:     SchemaField(name=role, type=string, required=false), ...}
+```
+
+Core types derive their schema from Java trait interfaces via reflection. Dynamic types start with no schema — as the LLM discovers consistent property patterns, schema can be added to the type node. Schema validation is advisory — it documents expectations but doesn't reject novel properties.
+
+The type hierarchy is graph-native. `subtype-of` edges between type nodes. Hierarchy queries are graph traversal. Adding a type is adding a node.
+
+### MindMapNode — Cognitive Extension of Thing (mindmap-api)
+
+`MindMapNode extends Thing`, adding cognitive features for reasoning:
+
+| Field | Purpose |
+|-------|---------|
+| `confidence()` | Epistemic certainty — `Confidence(origin, value, decayReference)` with `ConfidenceOrigin` (STATED/INFERRED/SPECULATED/UNKNOWN) |
+| `pleasure()`, `arousal()`, `dominance()` | PAD emotional dimensions — how the agent feels about this entity |
+| `validFrom()`, `validUntil()` | Temporal validity — when this knowledge applies |
+| `provenance()` | Where this knowledge came from |
+| `refs()` | External references via `NodeRef(scheme, id, qualifier)` |
+| `principalId()`, `sharedWith()` | Visibility controls — who can see this node |
+
+Consumers who only need entity access depend on `thing-api`. The cognitive machinery lives in `mindmap-api` and is relevant when building reasoning or agent subsystems.
+
+### Subject Bridge — Cross-Store Entity References (memory-api)
+
+`Subject(String type, String id)` references a Thing by convention. Same type string, same id — no code dependency between modules:
+
+```java
+Subject ref = Subject.of("person", emilyId);
+
+Thing resolved = store.getNode(ref.id(), tenantId);
+assert resolved.type().equals(ref.type()); // both "person"
+```
+
+Memories stored via `CaseMemoryStore` can reference MindMap entities through `Subject` without coupling `memory-api` to `mindmap-api`. The Subject type is lowercase-normalized to match `SubgraphInput`'s convention.
+
+### Knowledge Lifecycle
+
+Knowledge evolves through phases — from raw conversation to structured, retrievable entities:
+
+```
+Notes ──→ Entities ──→ Traits ──→ Types
+(prose)   (extracted)   (discovered) (named)
+```
+
+| Phase | What happens | Speed |
+|-------|-------------|-------|
+| **Notes** | Conversation captured as "general" nodes with freeform properties | Real-time (during conversation) |
+| **Extraction** | Entities identified, typed, and connected with edges | Near-time (after conversation) |
+| **Trait discovery** | `TraitRule` implementations evaluate nodes — matching properties/edges assign traits | Near-time |
+| **Type registration** | Recurring entity patterns registered as named types via `TypeRegistry` | Background |
+
+In production, the `ConversationBridge` handles real-time capture (creating initial "general" nodes), and the `ConsolidationScheduler` runs near-time and background phases automatically via a four-phase pipeline: access-frequency tracking, merge detection, community summaries, and curiosity refresh.
+
+**The promotion path:** when a dynamic type crystallises — stable schema, frequently queried, consistent properties — a developer creates a Java trait interface for it. The type node gains a `java-class` property, and consumers get typed access via `as()`.
 
 ---
 
