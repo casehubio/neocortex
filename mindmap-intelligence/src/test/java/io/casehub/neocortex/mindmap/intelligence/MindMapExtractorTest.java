@@ -6,7 +6,7 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
@@ -59,7 +59,7 @@ class MindMapExtractorTest {
 
     @Test
     void resolveExistingEntity() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("Alice", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of("role", "manager")), TENANT);
 
@@ -82,10 +82,10 @@ class MindMapExtractorTest {
 
     @Test
     void detectContradiction() {
-        String sgPerson = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgPerson = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String aliceId = store.addNode(new NodeInput("Alice", sgPerson, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
-        String sgOrg = store.createSubgraph(new SubgraphInput("Orgs", SubgraphType.ORGANISATION, null), TENANT);
+        String sgOrg = store.createSubgraph(new SubgraphInput("Orgs", SubgraphTypes.ORGANISATION, null), TENANT);
         String acmeId = store.addNode(new NodeInput("Acme", sgOrg, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
         store.addEdge(new EdgeInput(aliceId, acmeId, "works-at", null, "test",
@@ -162,7 +162,7 @@ class MindMapExtractorTest {
     }
 
     @Test
-    void unknownEntityTypeDefaultsToGeneral() {
+    void unknownEntityTypePreservedAsLowercase() {
         String response = """
             {"entities": [
                 {"name": "Climate Change", "type": "TOPIC", "properties": {}, "confidence": "STATED"}
@@ -173,7 +173,7 @@ class MindMapExtractorTest {
         ExtractionResult result = extractor.extract("We discussed climate change", TENANT);
 
         assertThat(result.entities()).hasSize(1);
-        assertThat(result.entities().get(0).subgraphType()).isEqualTo("GENERAL");
+        assertThat(result.entities().get(0).subgraphType()).isEqualTo("topic");
     }
 
     @Test
@@ -212,10 +212,10 @@ class MindMapExtractorTest {
 
     @Test
     void contextSerializationIncludesExistingNodes() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String aliceId = store.addNode(new NodeInput("Alice", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of("role", "engineer")), TENANT);
-        String sgOrg = store.createSubgraph(new SubgraphInput("Orgs", SubgraphType.ORGANISATION, null), TENANT);
+        String sgOrg = store.createSubgraph(new SubgraphInput("Orgs", SubgraphTypes.ORGANISATION, null), TENANT);
         String acmeId = store.addNode(new NodeInput("Acme", sgOrg, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
         store.addEdge(new EdgeInput(aliceId, acmeId, "works-at", null, "test",

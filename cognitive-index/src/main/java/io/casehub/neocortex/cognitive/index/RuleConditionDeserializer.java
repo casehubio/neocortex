@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import io.casehub.neocortex.mindmap.RuleCondition;
-import io.casehub.neocortex.mindmap.SubgraphType;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ class RuleConditionDeserializer extends StdDeserializer<RuleCondition> {
         }
         if (node.has("inSubgraphType")) {
             return new RuleCondition.InSubgraphType(
-                SubgraphType.valueOf(node.get("inSubgraphType").asText()));
+                node.get("inSubgraphType").asText().strip().toLowerCase());
         }
         if (node.has("anyOf")) {
             List<RuleCondition> conditions = new ArrayList<>();

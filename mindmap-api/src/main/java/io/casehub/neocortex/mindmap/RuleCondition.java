@@ -66,9 +66,9 @@ public sealed interface RuleCondition {
         }
     }
 
-    record InSubgraphType(SubgraphType type) implements RuleCondition {
+    record InSubgraphType(String type) implements RuleCondition {
         public boolean evaluate(MindMapNode node, List<MindMapEdge> edges) {
-            return false;
+            return type.equals(node.subgraphType());
         }
     }
 

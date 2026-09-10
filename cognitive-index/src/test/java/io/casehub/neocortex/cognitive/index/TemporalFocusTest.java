@@ -154,6 +154,7 @@ class TemporalFocusTest {
             @Override public String id() { return id; }
             @Override public String name() { return name; }
             @Override public String subgraphId() { return "sg1"; }
+            @Override public String subgraphType() { return "general"; }
             @Override public io.casehub.neocortex.cognitive.Confidence confidence() { return null; }
             @Override public String provenance() { return "test"; }
             @Override public Instant createdAt() { return NOW; }

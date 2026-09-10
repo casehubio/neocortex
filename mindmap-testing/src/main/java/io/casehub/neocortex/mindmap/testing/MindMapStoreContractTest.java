@@ -15,7 +15,7 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeRef;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.SupersessionStatus;
 import io.casehub.neocortex.mindmap.ValidationTier;
 import io.casehub.neocortex.mindmap.VocabularyConflictException;
@@ -51,7 +51,7 @@ public abstract class MindMapStoreContractTest {
             .edgeType("related-to")
             .build());
         subgraphId = store.createSubgraph(
-            new SubgraphInput("Test Graph", SubgraphType.GENERAL, null), TENANT);
+            new SubgraphInput("Test Graph", SubgraphTypes.GENERAL, null), TENANT);
     }
 
     protected String defaultSubgraphId() {
@@ -73,17 +73,17 @@ public abstract class MindMapStoreContractTest {
     @Test
     void createSubgraph_returnsId() {
         String id = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         assertThat(id).isNotBlank();
     }
 
     @Test
     void getSubgraph_returnsStoredSubgraph() {
         String id = store.createSubgraph(
-            new SubgraphInput("Projects", SubgraphType.PROJECT, null), TENANT);
+            new SubgraphInput("Projects", SubgraphTypes.PROJECT, null), TENANT);
         MindMapSubgraph sg = store.getSubgraph(id, TENANT);
         assertThat(sg.name()).isEqualTo("Projects");
-        assertThat(sg.type()).isEqualTo(SubgraphType.PROJECT);
+        assertThat(sg.type()).isEqualTo(SubgraphTypes.PROJECT);
         assertThat(sg.tenantId()).isEqualTo(TENANT);
         assertThat(sg.rootNodeId()).isNull();
     }
@@ -91,7 +91,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void updateSubgraph_setsRootNodeId() {
         String sgId = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String nodeId = store.addNode(nodeInput("Alice", sgId), TENANT);
         store.updateSubgraph(sgId, nodeId, TENANT);
         MindMapSubgraph sg = store.getSubgraph(sgId, TENANT);
@@ -100,9 +100,9 @@ public abstract class MindMapStoreContractTest {
 
     @Test
     void listSubgraphs_returnsAllSubgraphsForTenant() {
-        String sg1 = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
-        String sg2 = store.createSubgraph(new SubgraphInput("Projects", SubgraphType.PROJECT, null), TENANT);
-        store.createSubgraph(new SubgraphInput("Other", SubgraphType.GENERAL, null), TENANT_2);
+        String sg1 = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
+        String sg2 = store.createSubgraph(new SubgraphInput("Projects", SubgraphTypes.PROJECT, null), TENANT);
+        store.createSubgraph(new SubgraphInput("Other", SubgraphTypes.GENERAL, null), TENANT_2);
 
         List<MindMapSubgraph> subgraphs = store.listSubgraphs(TENANT);
 
@@ -263,7 +263,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void nodesIn_returnsNodesInSubgraph() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(nodeInput("Alice", sg1), TENANT);
         store.addNode(nodeInput("Bob", sg1), TENANT);
 
@@ -273,9 +273,9 @@ public abstract class MindMapStoreContractTest {
     @Test
     void nodesIn_excludesOtherSubgraphs() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String sg2 = store.createSubgraph(
-            new SubgraphInput("Projects", SubgraphType.PROJECT, null), TENANT);
+            new SubgraphInput("Projects", SubgraphTypes.PROJECT, null), TENANT);
         store.addNode(nodeInput("Alice", sg1), TENANT);
         store.addNode(nodeInput("Neocortex", sg2), TENANT);
 
@@ -322,7 +322,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void resolveNode_nullSubgraphId_searchesAll() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String id = store.addNode(nodeInput("Alice", sg1), TENANT);
         store.addAlias(id, "Dr. A", TENANT);
 
@@ -334,9 +334,9 @@ public abstract class MindMapStoreContractTest {
     @Test
     void resolveNode_withSubgraphId_scopesSearch() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String sg2 = store.createSubgraph(
-            new SubgraphInput("Projects", SubgraphType.PROJECT, null), TENANT);
+            new SubgraphInput("Projects", SubgraphTypes.PROJECT, null), TENANT);
         store.addNode(nodeInput("Alice", sg1), TENANT);
         store.addNode(nodeInput("Alice", sg2), TENANT);
 
@@ -487,9 +487,9 @@ public abstract class MindMapStoreContractTest {
     @Test
     void bridgeEdges_returnsCrossSubgraphEdges() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String sg2 = store.createSubgraph(
-            new SubgraphInput("Orgs", SubgraphType.ORGANISATION, null), TENANT);
+            new SubgraphInput("Orgs", SubgraphTypes.ORGANISATION, null), TENANT);
         String alice = store.addNode(nodeInput("Alice", sg1), TENANT);
         String acme = store.addNode(nodeInput("Acme", sg2), TENANT);
         store.addEdge(edgeInput(alice, acme, "works-at"), TENANT);
@@ -500,7 +500,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void bridgeEdges_excludesInternalEdges() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String alice = store.addNode(nodeInput("Alice", sg1), TENANT);
         String bob = store.addNode(nodeInput("Bob", sg1), TENANT);
         store.addEdge(edgeInput(alice, bob, "related-to"), TENANT);
@@ -521,7 +521,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void search_bySubgraph() {
         String sg1 = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(nodeInput("Alice", sg1), TENANT);
         store.addNode(nodeInput("Bob"), TENANT);
 
@@ -870,7 +870,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void eraseSubgraph_removesAllNodesAndEdges() {
         String sg = store.createSubgraph(
-            new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+            new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(nodeInput("Alice", sg), TENANT);
         store.addNode(nodeInput("Bob", sg), TENANT);
 
@@ -893,7 +893,7 @@ public abstract class MindMapStoreContractTest {
     @Test
     void eraseEntityAcrossTenants_erasesInAllTenants() {
         String sg2 = store.createSubgraph(
-            new SubgraphInput("Test", SubgraphType.GENERAL, null), TENANT_2);
+            new SubgraphInput("Test", SubgraphTypes.GENERAL, null), TENANT_2);
         store.addNode(nodeInput("Alice"), TENANT);
         store.addNode(nodeInput("Alice", sg2), TENANT_2);
 

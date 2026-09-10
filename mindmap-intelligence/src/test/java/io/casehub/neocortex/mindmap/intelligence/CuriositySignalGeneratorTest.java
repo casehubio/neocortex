@@ -11,7 +11,7 @@ import io.casehub.neocortex.mindmap.CuriosityConfig;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void orphanNodeProducesStructuralSignal() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("Alice", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
 
@@ -57,7 +57,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void contradictionProducesQualitySignal() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String aliceId = store.addNode(new NodeInput("Alice", sgId, null, "test",
                                                      null, null, null, null, null, null, null, Map.of()), TENANT);
         String acmeId = store.addNode(new NodeInput("Acme", sgId, null, "test",
@@ -78,7 +78,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void proximitySignalForFutureEvent() {
-        String sgId = store.createSubgraph(new SubgraphInput("Events", SubgraphType.GENERAL, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("Events", SubgraphTypes.GENERAL, null), TENANT);
         Instant threeDaysFromNow = Instant.now().plus(3, ChronoUnit.DAYS);
         store.addNode(new NodeInput("Visit parents", sgId, null, "test",
             null, null, threeDaysFromNow, null, null, null, null, Map.of()), TENANT);
@@ -93,7 +93,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void pastEventProducesTemporalCheckSignal() {
-        String sgId = store.createSubgraph(new SubgraphInput("Events", SubgraphType.GENERAL, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("Events", SubgraphTypes.GENERAL, null), TENANT);
         Instant yesterday = Instant.now().minus(1, ChronoUnit.DAYS);
         store.addNode(new NodeInput("Meeting", sgId, null, "test",
             null, null, null, yesterday, null, null, null, Map.of()), TENANT);
@@ -108,7 +108,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void affectDampeningReducesScoreForNegativePleasure() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("Sad Topic", sgId, null, "test",
             null, null, null, null, -0.8, null, null, Map.of()), TENANT);
 
@@ -124,7 +124,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void proximitySignalParticipatesInAffectDampening() {
-        String  sgId           = store.createSubgraph(new SubgraphInput("Events", SubgraphType.GENERAL, null), TENANT);
+        String  sgId           = store.createSubgraph(new SubgraphInput("Events", SubgraphTypes.GENERAL, null), TENANT);
         Instant twoDaysFromNow = Instant.now().plus(2, ChronoUnit.DAYS);
         store.addNode(new NodeInput("Funeral", sgId, null, "test",
                                     null, null, twoDaysFromNow, null, -0.9, null, null, Map.of()), TENANT);
@@ -141,7 +141,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void topicalDistanceDampeningReducesDistantSignals() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String aId = store.addNode(new NodeInput("A", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
         String bId = store.addNode(new NodeInput("B", sgId, null, "test",
@@ -174,7 +174,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void signalsSortedByScoreDescending() {
-        String sgId = store.createSubgraph(new SubgraphInput("Mixed", SubgraphType.GENERAL, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("Mixed", SubgraphTypes.GENERAL, null), TENANT);
         store.addNode(new NodeInput("Orphan1", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
         Instant tomorrow = Instant.now().plus(1, ChronoUnit.DAYS);
@@ -191,7 +191,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void centralitySignalForHighDegreeNode() {
-        String sgId = store.createSubgraph(new SubgraphInput("Network", SubgraphType.GENERAL, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("Network", SubgraphTypes.GENERAL, null), TENANT);
         String hubId = store.addNode(new NodeInput("Hub", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
         for (int i = 0; i < 5; i++) {
@@ -210,7 +210,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void freshNodeIsNotStale() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("FreshNode", sgId, null, "test",
             null, null, null, null, null, null, null, Map.of()), TENANT);
 
@@ -224,7 +224,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void worseningTrajectory_boostsCuriosity() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String nodeId = store.addNode(new NodeInput("Worsening Topic", sgId, null, "test",
                                                     null, null, null, null, -0.5, null, null, Map.of()), TENANT);
 
@@ -251,7 +251,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void improvingTrajectory_dampensCuriosity() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String nodeId = store.addNode(new NodeInput("Improving Topic", sgId, null, "test",
                                                     null, null, null, null, 0.3, null, null, Map.of()), TENANT);
 
@@ -277,7 +277,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void noMemoryStore_fallsBackToSnapshot() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("Negative Node", sgId, null, "test",
                                     null, null, null, null, -0.8, null, null, Map.of()), TENANT);
 
@@ -295,7 +295,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void highVolatility_boostsCuriosity() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         String nodeId = store.addNode(new NodeInput("Volatile Topic", sgId, null, "test",
                                                     null, null, null, null, 0.0, null, null, Map.of()), TENANT);
 
@@ -328,7 +328,7 @@ class CuriositySignalGeneratorTest {
         var config = CuriosityConfig.defaults().withCategoryWeights(Map.of("STRUCTURAL", 1.5, "QUALITY", 0.5));
         var gen    = new CuriositySignalGenerator(store, null, config);
 
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("Alice", sgId, null, "test",
                                     null, null, null, null, null, null, null, Map.of()), TENANT);
 
@@ -342,7 +342,7 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void emptyCategoryWeights_noScaling() {
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         store.addNode(new NodeInput("Bob", sgId, null, "test",
                                     null, null, null, null, null, null, null, Map.of()), TENANT);
 
@@ -356,10 +356,10 @@ class CuriositySignalGeneratorTest {
 
     @Test
     void subgraphProximityWeights_scaleProximitySignals() {
-        var tfConfig = TemporalFocusConfig.defaults().withSubgraphProximityWeights(Map.of("PERSON", 1.5));
+        var tfConfig = TemporalFocusConfig.defaults().withSubgraphProximityWeights(Map.of("person", 1.5));
         var gen = new CuriositySignalGenerator(store, null, CuriosityConfig.defaults(), tfConfig);
 
-        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphType.PERSON, null), TENANT);
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
         Instant tomorrow = Instant.now().plus(1, ChronoUnit.DAYS);
         store.addNode(new NodeInput("Meeting", sgId, null, "test",
             null, null, tomorrow, null, null, null, null, Map.of()), TENANT);

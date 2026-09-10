@@ -5,7 +5,7 @@ import java.time.Instant;
 public record MindMapSubgraph(
     String id,
     String name,
-    SubgraphType type,
+    String type,
     String rootNodeId,
     String tenantId,
     Instant createdAt

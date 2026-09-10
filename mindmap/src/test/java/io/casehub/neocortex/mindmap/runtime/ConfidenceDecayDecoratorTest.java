@@ -24,7 +24,7 @@ class ConfidenceDecayDecoratorTest {
         decorator = new ConfidenceDecayDecorator(delegate, 180.0);
 
         subgraphId = decorator.createSubgraph(
-            new SubgraphInput("Test", SubgraphType.GENERAL, null), "t1");
+            new SubgraphInput("Test", SubgraphTypes.GENERAL, null), "t1");
     }
 
     @Test

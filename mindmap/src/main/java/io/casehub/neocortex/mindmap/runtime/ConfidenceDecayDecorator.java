@@ -108,6 +108,9 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
         public String subgraphId()                   {return delegate.subgraphId();}
 
         @Override
+        public String subgraphType()                 {return delegate.subgraphType();}
+
+        @Override
         public Confidence confidence()               {return decayedConfidence;}
 
         @Override

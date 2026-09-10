@@ -73,7 +73,7 @@ class PerspectivalMergeTest {
     @Test
     void sharedNameTraitsSubgraphPreserved() {
         MindMapNode shared = new StubNode(
-            "shared-1", "Grandma", "sg-family",
+            "shared-1", "Grandma", "sg-family", "general",
             SHARED_CONF, null, NOW, NOW, null, null,
             Set.of("Personable"), Set.of(), null, null, null,
             Map.of("birthday", "1945-03-12"), null, Set.of());
@@ -90,14 +90,14 @@ class PerspectivalMergeTest {
 
     private MindMapNode sharedNode(Double p, Double a, Double d,
             Confidence conf, Map<String, String> props) {
-        return new StubNode("shared-1", "Grandma", "sg-family",
+        return new StubNode("shared-1", "Grandma", "sg-family", "general",
             conf, null, NOW, NOW, null, null,
             Set.of("Personable"), Set.of(), p, a, d, props, null, Set.of());
     }
 
     private MindMapNode overlayNode(Double p, Double a, Double d,
             Confidence conf, Map<String, String> props) {
-        return new StubNode("overlay-1", "Grandma", "sg-overlays",
+        return new StubNode("overlay-1", "Grandma", "sg-overlays", "general",
             conf, null, NOW, NOW, null, null,
             Set.of("overlay"), Set.of(OverlayRef.of("shared-1")),
             p, a, d, props, null, Set.of());

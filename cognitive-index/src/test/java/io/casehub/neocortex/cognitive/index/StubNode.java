@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 record StubNode(
-    String id, String name, String subgraphId,
+    String id, String name, String subgraphId, String subgraphType,
     Confidence confidence, String provenance,
     Instant createdAt, Instant updatedAt,
     Instant validFrom, Instant validUntil,
@@ -24,7 +24,7 @@ record StubNode(
 
     static StubNode named(String name) {
         return new StubNode(
-            "id-" + name.toLowerCase(), name, "sg-1",
+            "id-" + name.toLowerCase(), name, "sg-1", "general",
             new Confidence(ConfidenceOrigin.STATED, 0.9, Instant.now()),
             null, Instant.now(), Instant.now(), null, null,
             Set.of(), Set.of(), null, null, null, Map.of(), null, Set.of());
@@ -32,7 +32,7 @@ record StubNode(
 
     static StubNode withRefs(String name, Set<NodeRef> refs) {
         return new StubNode(
-            "id-" + name.toLowerCase(), name, "sg-1",
+            "id-" + name.toLowerCase(), name, "sg-1", "general",
             new Confidence(ConfidenceOrigin.STATED, 0.9, Instant.now()),
             null, Instant.now(), Instant.now(), null, null,
             Set.of(), refs, null, null, null, Map.of(), null, Set.of());

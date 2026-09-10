@@ -25,7 +25,7 @@ public final class PerspectivalMerge {
         mergedProps.putAll(overlay.properties());
 
         return new MergedNode(
-            shared.id(), shared.name(), shared.subgraphId(),
+            shared.id(), shared.name(), shared.subgraphId(), shared.subgraphType(),
             confidence, shared.provenance(),
             shared.createdAt(), shared.updatedAt(),
             shared.validFrom(), shared.validUntil(),
@@ -37,7 +37,7 @@ public final class PerspectivalMerge {
     }
 
     private record MergedNode(
-        String id, String name, String subgraphId,
+        String id, String name, String subgraphId, String subgraphType,
         Confidence confidence, String provenance,
         Instant createdAt, Instant updatedAt,
         Instant validFrom, Instant validUntil,

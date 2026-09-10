@@ -12,6 +12,7 @@ record TestNode(Map<String, String> props) implements MindMapNode {
     public String id() { return "test-node"; }
     public String name() { return "test"; }
     public String subgraphId() { return "sg-1"; }
+    public String subgraphType() { return "general"; }
     public Confidence confidence() { return null; }
     public String provenance() { return null; }
     public Instant createdAt() { return Instant.now(); }

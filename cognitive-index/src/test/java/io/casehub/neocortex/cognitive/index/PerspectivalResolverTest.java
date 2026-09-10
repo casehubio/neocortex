@@ -8,7 +8,7 @@ import io.casehub.neocortex.mindmap.MindMapVocabulary;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.api.identity.PrincipalId;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ class PerspectivalResolverTest {
         resolver = new PerspectivalResolver(mindMapStore);
 
         subgraphId = mindMapStore.createSubgraph(
-                new SubgraphInput("Family", SubgraphType.GENERAL, null), TENANT);
+                new SubgraphInput("Family", SubgraphTypes.GENERAL, null), TENANT);
     }
 
     @Test
@@ -109,7 +109,7 @@ class PerspectivalResolverTest {
     void gracefulDegradationNoMindMapStore() {
         PerspectivalResolver noStore = new PerspectivalResolver(
                 (MindMapStore) null);
-        MindMapNode shared = new StubNode("s1", "Test", "sg1",
+        MindMapNode shared = new StubNode("s1", "Test", "sg1", "general",
                                           CONF, null, NOW, NOW, null, null,
                                           Set.of(), Set.of(), null, null, null, Map.of(), null, Set.of());
 

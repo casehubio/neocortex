@@ -61,13 +61,13 @@ class ModulationIntegrationTest {
         MoodState mood = new MoodState("agent", "t1", NOW, 0.5, 0.5, 0.5, "test", null, Map.of());
 
         MindMapNode aligned = new StubNode(
-            "n1", "Aligned", "sg-1",
+            "n1", "Aligned", "sg-1", "general",
             new Confidence(ConfidenceOrigin.STATED, 0.9, NOW),
             null, NOW.minus(1, ChronoUnit.HOURS), NOW, null, null,
             Set.of(), Set.of(), 0.5, 0.5, 0.5, Map.of(), null, Set.of());
 
         MindMapNode misaligned = new StubNode(
-            "n2", "Misaligned", "sg-1",
+            "n2", "Misaligned", "sg-1", "general",
             new Confidence(ConfidenceOrigin.STATED, 0.3, NOW),
             null, NOW.minus(48, ChronoUnit.HOURS), NOW, null, null,
             Set.of(), Set.of(), -0.5, -0.5, -0.5, Map.of(), null, Set.of());

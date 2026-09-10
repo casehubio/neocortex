@@ -44,6 +44,7 @@ class OverlayRefTest {
             public String id() { return "n1"; }
             public String name() { return "test"; }
             public String subgraphId() { return "sg1"; }
+            public String subgraphType() { return "general"; }
             public io.casehub.neocortex.cognitive.Confidence confidence() { return null; }
             public String provenance() { return null; }
             public java.time.Instant createdAt() { return java.time.Instant.now(); }

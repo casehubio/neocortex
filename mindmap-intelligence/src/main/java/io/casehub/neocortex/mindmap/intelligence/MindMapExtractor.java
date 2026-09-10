@@ -10,7 +10,7 @@ import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
@@ -72,7 +72,7 @@ public class MindMapExtractor {
 
     private final MindMapStore store;
     private final Instance<AgentProvider> agentProviderInstance;
-    private final Map<String, Map<SubgraphType, String>> subgraphCache = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, String>> subgraphCache = new ConcurrentHashMap<>();
 
     @Inject
     public MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance) {
@@ -194,7 +194,7 @@ public class MindMapExtractor {
         Map<String, String> nameToNodeId = new HashMap<>();
 
         for (ParsedEntity pe : parsed.entities()) {
-            SubgraphType sgType = parseSubgraphType(pe.type());
+            String sgType = normalizeType(pe.type());
             String sgId = findOrCreateSubgraph(sgType, tenantId);
 
             MindMapNode existing = store.resolveNode(pe.name(), null, tenantId);
@@ -224,7 +224,7 @@ public class MindMapExtractor {
             nameToNodeId.put(pe.name(), nodeId);
             entityNames.add(pe.name());
             entities.add(new ExtractedEntity(nodeId, pe.name(), created,
-                sgType.name(),
+                sgType,
                 pe.properties() != null ? pe.properties() : Map.of()));
         }
 
@@ -257,26 +257,21 @@ public class MindMapExtractor {
         return node != null ? node.id() : null;
     }
 
-    private String findOrCreateSubgraph(SubgraphType type, String tenantId) {
-        Map<SubgraphType, String> tenantCache = subgraphCache.computeIfAbsent(tenantId, t -> {
-            Map<SubgraphType, String> warm = new ConcurrentHashMap<>();
+    private String findOrCreateSubgraph(String type, String tenantId) {
+        Map<String, String> tenantCache = subgraphCache.computeIfAbsent(tenantId, t -> {
+            Map<String, String> warm = new ConcurrentHashMap<>();
             for (MindMapSubgraph sg : store.listSubgraphs(t)) {
                 warm.putIfAbsent(sg.type(), sg.id());
             }
             return warm;
         });
         return tenantCache.computeIfAbsent(type, t ->
-            store.createSubgraph(new SubgraphInput(t.name(), t, null), tenantId));
+            store.createSubgraph(new SubgraphInput(t, t, null), tenantId));
     }
 
-    private SubgraphType parseSubgraphType(String type) {
-        if (type == null) return SubgraphType.GENERAL;
-        try {
-            return SubgraphType.valueOf(type);
-        } catch (IllegalArgumentException e) {
-            LOG.fine("Unknown entity type '" + type + "', mapping to GENERAL");
-            return SubgraphType.GENERAL;
-        }
+    private String normalizeType(String type) {
+        if (type == null || type.isBlank()) return SubgraphTypes.GENERAL;
+        return type.strip().toLowerCase();
     }
 
     private String invokeLlm(String systemPrompt, String userPrompt) {

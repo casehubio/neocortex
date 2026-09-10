@@ -24,7 +24,7 @@ class NodeRefCleanupObserverTest {
         store = new InMemoryMindMapStore();
         observer = new NodeRefCleanupObserver(store);
         subgraphId = store.createSubgraph(
-            new SubgraphInput("Test", SubgraphType.GENERAL, null), "t1");
+            new SubgraphInput("Test", SubgraphTypes.GENERAL, null), "t1");
     }
 
     @Test

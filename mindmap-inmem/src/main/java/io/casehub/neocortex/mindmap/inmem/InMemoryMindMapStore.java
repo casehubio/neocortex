@@ -98,7 +98,9 @@ public class InMemoryMindMapStore implements MindMapStore {
                                 ? input.confidence()
                                 : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
 
-        StoredNode node = new StoredNode(id, input.name(), input.subgraphId(),
+        MindMapSubgraph sg = subgraphs.get(input.subgraphId());
+        String sgType = sg != null ? sg.type() : "";
+        StoredNode node = new StoredNode(id, input.name(), input.subgraphId(), sgType,
                                          confidence, input.provenance(),
                                          now, now,
                                          input.validFrom(), input.validUntil(),
@@ -571,6 +573,7 @@ public class InMemoryMindMapStore implements MindMapStore {
         final String id;
         String name;
         final String subgraphId;
+        final String subgraphType;
         Confidence confidence;
         final String  provenance;
         final Instant createdAt;
@@ -591,7 +594,7 @@ public class InMemoryMindMapStore implements MindMapStore {
         String  supersessionReason;
         Instant reinstatedAt;
 
-        StoredNode(String id, String name, String subgraphId,
+        StoredNode(String id, String name, String subgraphId, String subgraphType,
                    Confidence confidence, String provenance,
                    Instant createdAt, Instant updatedAt,
                    Instant validFrom, Instant validUntil,
@@ -604,6 +607,7 @@ public class InMemoryMindMapStore implements MindMapStore {
             this.id                 = id;
             this.name               = name;
             this.subgraphId         = subgraphId;
+            this.subgraphType       = subgraphType;
             this.confidence         = confidence;
             this.provenance         = provenance;
             this.createdAt          = createdAt;
@@ -637,6 +641,9 @@ public class InMemoryMindMapStore implements MindMapStore {
 
         @Override
         public String subgraphId()     {return subgraphId;}
+
+        @Override
+        public String subgraphType()   {return subgraphType;}
 
         @Override
         public Confidence confidence() {return confidence;}

@@ -44,7 +44,7 @@ class CognitiveProfileTest {
         mindMapStore = new InMemoryMindMapStore();
         memoryStore = new TestMemoryStore();
         profile = new CognitiveProfile(mindMapStore, memoryStore, null);
-        mindMapStore.createSubgraph(new SubgraphInput(SUBGRAPH, null, null), TENANT);
+        mindMapStore.createSubgraph(new SubgraphInput(SUBGRAPH, "general", null), TENANT);
     }
 
     @Test

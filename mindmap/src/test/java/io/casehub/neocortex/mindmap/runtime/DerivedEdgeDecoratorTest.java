@@ -11,7 +11,7 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.EdgeRef;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
@@ -38,7 +38,7 @@ class DerivedEdgeDecoratorTest {
         store = new InMemoryMindMapStore();
         decorator = new DerivedEdgeDecorator(store, List.of(new InverseEdgeRule()));
         subgraphId = store.createSubgraph(
-            new SubgraphInput("Test", SubgraphType.GENERAL, null), "t1");
+            new SubgraphInput("Test", SubgraphTypes.GENERAL, null), "t1");
     }
 
     @Test

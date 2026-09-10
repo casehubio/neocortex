@@ -21,7 +21,7 @@ class MindMapAnalyzerTest {
     void setUp() {
         store = new InMemoryMindMapStore();
         subgraphId = store.createSubgraph(
-            new SubgraphInput("Test", SubgraphType.GENERAL, null), "t1");
+            new SubgraphInput("Test", SubgraphTypes.GENERAL, null), "t1");
     }
 
     // --- Orphan nodes ---

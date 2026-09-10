@@ -25,7 +25,6 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeRef;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
 import io.casehub.neocortex.mindmap.SupersessionStatus;
 import io.casehub.neocortex.mindmap.ValidationTier;
 import io.casehub.neocortex.mindmap.VocabularyConflictException;
@@ -159,7 +158,7 @@ public class SqliteMindMapStore implements MindMapStore {
             ps.setString(1, id);
             ps.setString(2, tenantId);
             ps.setString(3, input.name());
-            ps.setString(4, input.type().name());
+            ps.setString(4, input.type());
             ps.setString(5, input.rootNodeId());
             ps.setString(6, now);
             ps.executeUpdate();
@@ -181,7 +180,7 @@ public class SqliteMindMapStore implements MindMapStore {
                 return new MindMapSubgraph(
                     rs.getString("subgraph_id"),
                     rs.getString("name"),
-                    SubgraphType.valueOf(rs.getString("type")),
+                    rs.getString("type"),
                     rs.getString("root_node_id"),
                     rs.getString("tenant_id"),
                     Instant.parse(rs.getString("created_at")));
@@ -218,7 +217,7 @@ public class SqliteMindMapStore implements MindMapStore {
                     result.add(new MindMapSubgraph(
                             rs.getString("subgraph_id"),
                             rs.getString("name"),
-                            SubgraphType.valueOf(rs.getString("type")),
+                            rs.getString("type"),
                             rs.getString("root_node_id"),
                             rs.getString("tenant_id"),
                             Instant.parse(rs.getString("created_at"))));
@@ -276,7 +275,7 @@ public class SqliteMindMapStore implements MindMapStore {
     public MindMapNode getNode(String nodeId, String tenantId) {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "SELECT * FROM mindmap_node WHERE node_id = ? AND tenant_id = ?")) {
+                 "SELECT n.*, sg.type AS sg_type FROM mindmap_node n JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id WHERE n.node_id = ? AND n.tenant_id = ?")) {
             ps.setString(1, nodeId);
             ps.setString(2, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -361,7 +360,7 @@ public class SqliteMindMapStore implements MindMapStore {
     public List<MindMapNode> nodesIn(String subgraphId, String tenantId) {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "SELECT * FROM mindmap_node WHERE tenant_id = ? AND subgraph_id = ? AND (superseded_at IS NULL OR reinstated_at IS NOT NULL)")) {
+                 "SELECT n.*, sg.type AS sg_type FROM mindmap_node n JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id WHERE n.tenant_id = ? AND n.subgraph_id = ? AND (n.superseded_at IS NULL OR n.reinstated_at IS NOT NULL)")) {
             ps.setString(1, tenantId);
             ps.setString(2, subgraphId);
             return collectNodes(ps);
@@ -431,8 +430,8 @@ public class SqliteMindMapStore implements MindMapStore {
             }
 
             String sql = subgraphId != null
-                         ? "SELECT * FROM mindmap_node WHERE tenant_id = ? AND name = ? COLLATE NOCASE AND subgraph_id = ? LIMIT 1"
-                         : "SELECT * FROM mindmap_node WHERE tenant_id = ? AND name = ? COLLATE NOCASE LIMIT 1";
+                         ? "SELECT n.*, sg.type AS sg_type FROM mindmap_node n JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id WHERE n.tenant_id = ? AND n.name = ? COLLATE NOCASE AND n.subgraph_id = ? LIMIT 1"
+                         : "SELECT n.*, sg.type AS sg_type FROM mindmap_node n JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id WHERE n.tenant_id = ? AND n.name = ? COLLATE NOCASE LIMIT 1";
             PreparedStatement namePs = conn.prepareStatement(sql);
             namePs.setString(1, tenantId);
             namePs.setString(2, nameOrAlias);
@@ -589,7 +588,7 @@ public class SqliteMindMapStore implements MindMapStore {
 
     @Override
     public List<MindMapNode> search(MindMapQuery query) {
-        var sql = new StringBuilder("SELECT n.* FROM mindmap_node n WHERE n.tenant_id = ?");
+        var sql = new StringBuilder("SELECT n.*, sg.type AS sg_type FROM mindmap_node n JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id WHERE n.tenant_id = ?");
         var params = new ArrayList<Object>();
         params.add(query.tenantId());
 
@@ -981,7 +980,7 @@ public class SqliteMindMapStore implements MindMapStore {
 
     private MindMapNode getNodeInternal(Connection conn, String nodeId, String tenantId) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
-            "SELECT * FROM mindmap_node WHERE node_id = ? AND tenant_id = ?")) {
+            "SELECT n.*, sg.type AS sg_type FROM mindmap_node n JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id WHERE n.node_id = ? AND n.tenant_id = ?")) {
             ps.setString(1, nodeId);
             ps.setString(2, tenantId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -1026,10 +1025,12 @@ public class SqliteMindMapStore implements MindMapStore {
         double value = rs.getDouble("confidence_value");
         String decayRefStr = rs.getString("decay_reference");
         Instant decayReference = decayRefStr != null ? Instant.parse(decayRefStr) : null;
+        String sgType = rs.getString("sg_type");
         return new SqliteNode(
             rs.getString("node_id"),
             rs.getString("name"),
             rs.getString("subgraph_id"),
+            sgType != null ? sgType : "",
             new Confidence(origin, value, decayReference),
             rs.getString("provenance"),
             Instant.parse(rs.getString("created_at")),
@@ -1104,7 +1105,7 @@ public class SqliteMindMapStore implements MindMapStore {
     // --- Value types ---
 
     private record SqliteNode(
-        String id, String name, String subgraphId,
+        String id, String name, String subgraphId, String subgraphType,
         Confidence confidence, String provenance,
         Instant createdAt, Instant updatedAt,
         Instant validFrom, Instant validUntil,

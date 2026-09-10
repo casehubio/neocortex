@@ -183,7 +183,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
 
     private void collectProximitySignals(MindMapSubgraph sg, String tenantId,
                                           List<CuriositySignal> signals) {
-        double sgWeight = temporalFocusConfig != null ? temporalFocusConfig.subgraphProximityWeight(sg.type().name()) : 1.0;
+        double sgWeight = temporalFocusConfig != null ? temporalFocusConfig.subgraphProximityWeight(sg.type()) : 1.0;
         Instant now = Instant.now();
         for (MindMapNode node : store.nodesIn(sg.id(), tenantId)) {
             if (node.validFrom() != null && node.validFrom().isAfter(now)) {

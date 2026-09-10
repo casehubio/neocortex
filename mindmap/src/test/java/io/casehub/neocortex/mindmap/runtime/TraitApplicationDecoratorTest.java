@@ -12,7 +12,7 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.RuleCondition;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.neocortex.mindmap.SubgraphType;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.TraitRule;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +36,7 @@ class TraitApplicationDecoratorTest {
         store = new InMemoryMindMapStore();
         decorator = new TraitApplicationDecorator(store, List.of(new PersonableRule()));
         subgraphId = store.createSubgraph(
-            new SubgraphInput("Test", SubgraphType.GENERAL, null), "t1");
+            new SubgraphInput("Test", SubgraphTypes.GENERAL, null), "t1");
     }
 
     @Test
