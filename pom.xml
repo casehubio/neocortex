@@ -33,6 +33,7 @@
     <module>rag-expansion</module>
     <module>rag-tracking</module>
     <module>rag-scoring</module>
+    <module>rag-query-augmentation</module>
     <module>rag-cache</module>
     <module>corpus-api</module>
     <module>corpus</module>
