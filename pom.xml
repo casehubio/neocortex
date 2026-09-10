@@ -465,6 +465,7 @@
         <module>examples/example-text-analysis</module>
         <module>examples/example-rag-pipeline</module>
         <module>examples/example-cbr</module>
+        <module>examples/example-knowledge-model</module>
       </modules>
     </profile>
     <profile>
@@ -473,6 +474,7 @@
         <module>examples/example-text-analysis</module>
         <module>examples/example-rag-pipeline</module>
         <module>examples/example-cbr</module>
+        <module>examples/example-knowledge-model</module>
       </modules>
     </profile>
   </profiles>

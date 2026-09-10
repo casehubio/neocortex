@@ -44,7 +44,7 @@ public class TypeRegistry {
         this.store = store.isResolvable() ? store.get() : null;
     }
 
-    TypeRegistry(MindMapStore store) {
+    public TypeRegistry(MindMapStore store) {
         this.store = store;
     }
 

@@ -15,8 +15,8 @@ public interface Thing {
 
     Set<String> traits();
 
-    default boolean is(String traitName) {
-        return traits().contains(traitName);
+    default boolean is(String typeName) {
+        return typeName.equals(type()) || traits().contains(typeName);
     }
 
     default <T> T as(Class<T> traitInterface) {
