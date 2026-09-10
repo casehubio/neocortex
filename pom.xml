@@ -22,6 +22,7 @@
     <module>inference-bge-m3</module>
     <module>inference-quarkus</module>
     <module>fusion-api</module>
+    <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
     <module>rag-api</module>
@@ -194,6 +195,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-fusion-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-thing-api</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
