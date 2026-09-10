@@ -27,7 +27,7 @@ final class ThingProxyHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         return switch (method.getName()) {
-            case "toString" -> traitInterface.getSimpleName() + "[" + thing.id() + "]";
+            case "toString" -> traitInterface.getSimpleName() + "[" + thing.name() + "]";
             case "hashCode" -> Objects.hash(thing.id(), traitInterface);
             case "equals"   -> args[0] != null
                 && Proxy.isProxyClass(args[0].getClass())

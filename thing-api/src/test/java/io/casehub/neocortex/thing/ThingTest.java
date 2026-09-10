@@ -108,7 +108,7 @@ class ThingTest {
     void as_toStringIncludesIdAndTraitName() {
         Thing t = thing(Map.of(), Set.of());
         Personable p = t.as(Personable.class);
-        assertThat(p.toString()).isEqualTo("Personable[t1]");
+        assertThat(p.toString()).isEqualTo("Personable[Alice]");
     }
 
     @Test
