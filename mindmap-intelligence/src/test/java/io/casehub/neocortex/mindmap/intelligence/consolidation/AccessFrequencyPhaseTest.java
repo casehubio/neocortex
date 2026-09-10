@@ -31,6 +31,7 @@ class AccessFrequencyPhaseTest {
         tracker.recordAccess(nodeId);
         tracker.recordAccess(nodeId);
 
+        phase.beginTick();
         phase.run("t1", List.of());
 
         MindMapNode node = store.getNode(nodeId, "t1");
@@ -41,10 +42,12 @@ class AccessFrequencyPhaseTest {
     @Test
     void run_accumulatesAcrossFlushes() {
         tracker.recordAccess(nodeId);
+        phase.beginTick();
         phase.run("t1", List.of());
 
         tracker.recordAccess(nodeId);
         tracker.recordAccess(nodeId);
+        phase.beginTick();
         phase.run("t1", List.of());
 
         MindMapNode node = store.getNode(nodeId, "t1");
@@ -53,6 +56,7 @@ class AccessFrequencyPhaseTest {
 
     @Test
     void run_noAccesses_noOp() {
+        phase.beginTick();
         phase.run("t1", List.of());
         MindMapNode node = store.getNode(nodeId, "t1");
         assertThat(node.property("storageStrength")).isEmpty();

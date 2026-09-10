@@ -102,6 +102,12 @@ public class ConsolidationScheduler {
                 return;
             }
 
+            for (ConsolidationPhase phase : phases) {
+                if (phase instanceof AccessFrequencyPhase afp) {
+                    afp.beginTick();
+                }
+            }
+
             for (String tenantId : memoryStore.discoverTenants(null, null)) {
                 List<String> priority = subgraphPriority(tenantId);
                 for (ConsolidationPhase phase : phases) {

@@ -26,10 +26,22 @@ public class AccessFrequencyPhase implements ConsolidationPhase {
         return "access-frequency";
     }
 
+    private AccessSnapshot cachedSnapshot;
+    private long lastSnapshotTick;
+    private long currentTick;
+
+    void beginTick() {
+        currentTick++;
+    }
+
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        var snapshot = tracker.swapAndReset();
-        if (snapshot.counts().isEmpty()) return;
+        if (lastSnapshotTick < currentTick) {
+            cachedSnapshot = tracker.swapAndReset();
+            lastSnapshotTick = currentTick;
+        }
+        var snapshot = cachedSnapshot;
+        if (snapshot == null || snapshot.counts().isEmpty()) return;
 
         for (var entry : snapshot.counts().entrySet()) {
             String nodeId = entry.getKey();

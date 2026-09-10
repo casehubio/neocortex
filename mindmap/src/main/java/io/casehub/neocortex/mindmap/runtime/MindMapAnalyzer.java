@@ -256,4 +256,81 @@ public final class MindMapAnalyzer {
             .sorted(Comparator.comparingDouble(BetweennessCentrality::score).reversed())
             .toList();
     }
+
+    public record KCore(Set<String> nodeIds, double density) {
+        public KCore {nodeIds = Set.copyOf(nodeIds);}
+    }
+
+    public static List<KCore> kCores(MindMapStore store, String subgraphId,
+                                     String tenantId, int k) {
+        requireAnalysis(store);
+        List<MindMapNode> allNodes = store.nodesIn(subgraphId, tenantId);
+        if (allNodes.isEmpty()) {return List.of();}
+
+        Map<String, Set<String>> adjacency = new HashMap<>();
+        for (MindMapNode node : allNodes) {
+            adjacency.put(node.id(), new HashSet<>());
+        }
+        for (MindMapNode node : allNodes) {
+            for (MindMapEdge edge : store.neighbors(node.id(), tenantId)) {
+                String other = edge.sourceNodeId().equals(node.id())
+                               ? edge.targetNodeId() : edge.sourceNodeId();
+                if (adjacency.containsKey(other)) {
+                    adjacency.get(node.id()).add(other);
+                    adjacency.get(other).add(node.id());
+                }
+            }
+        }
+
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            var iterator = adjacency.entrySet().iterator();
+            while (iterator.hasNext()) {
+                var entry = iterator.next();
+                if (entry.getValue().size() < k) {
+                    String removed = entry.getKey();
+                    iterator.remove();
+                    for (Set<String> neighbors : adjacency.values()) {
+                        neighbors.remove(removed);
+                    }
+                    changed = true;
+                }
+            }
+        }
+
+        if (adjacency.isEmpty()) {return List.of();}
+
+        List<KCore> cores   = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        for (String nodeId : adjacency.keySet()) {
+            if (visited.contains(nodeId)) {continue;}
+            Set<String>   component = new HashSet<>();
+            Queue<String> queue     = new ArrayDeque<>();
+            queue.add(nodeId);
+            visited.add(nodeId);
+            while (!queue.isEmpty()) {
+                String current = queue.poll();
+                component.add(current);
+                for (String neighbor : adjacency.getOrDefault(current, Set.of())) {
+                    if (visited.add(neighbor)) {
+                        queue.add(neighbor);
+                    }
+                }
+            }
+            int edgeCount = 0;
+            for (String n : component) {
+                edgeCount += (int) adjacency.getOrDefault(n, Set.of()).stream()
+                                            .filter(component::contains).count();
+            }
+            edgeCount /= 2;
+            int nodeCount = component.size();
+            double density = nodeCount <= 1 ? 0.0
+                                            : (2.0 * edgeCount) / (nodeCount * (nodeCount - 1));
+            cores.add(new KCore(component, density));
+        }
+        return cores;
+    }
+
+
 }
