@@ -6,7 +6,7 @@ import io.casehub.neocortex.memory.MemoryAttributeKeys;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,9 +42,9 @@ final class CbrMemorySerializer {
                 throw new RuntimeException("Failed to serialize features to JSON", e);
             }
         }
-        if (cbrCase instanceof PlanCbrCase plan) {
+        if (cbrCase instanceof ResolvedCase plan) {
             try {
-                attributes.put(CbrAttributeKeys.CBR_PLAN_TRACE, MAPPER.writeValueAsString(plan.planTrace()));
+                attributes.put(CbrAttributeKeys.CBR_PLAN_TRACE, MAPPER.writeValueAsString(plan.resolutionStep()));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize plan trace to JSON", e);
             }

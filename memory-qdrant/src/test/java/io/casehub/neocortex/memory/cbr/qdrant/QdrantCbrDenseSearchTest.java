@@ -12,7 +12,7 @@ import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
-import io.casehub.neocortex.memory.cbr.TextualCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolutionGuide;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QdrantGrpcClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,11 +75,11 @@ class QdrantCbrDenseSearchTest {
     @Test
     void denseSearch_ranksResultsBySimilarity() {
         // "alpha" embeds to [1,0,0,0], "alpha-ish" to [0.9,0.436,0,0], "beta" to [0,1,0,0]
-        store.store(new TextualCbrCase("alpha", "solution-a", null, null, null, null),
+        store.store(new ResolutionGuide("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("beta", "solution-b", null, null, null, null),
+        store.store(new ResolutionGuide("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-beta", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("alpha-ish", "solution-c", null, null, null, null),
+        store.store(new ResolutionGuide("alpha-ish", "solution-c", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-alpha-ish", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10)
@@ -95,9 +95,9 @@ class QdrantCbrDenseSearchTest {
 
     @Test
     void denseSearch_minSimilarity_filtersLowScoreResults() {
-        store.store(new TextualCbrCase("alpha", "solution-a", null, null, null, null),
+        store.store(new ResolutionGuide("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("beta", "solution-b", null, null, null, null),
+        store.store(new ResolutionGuide("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-beta", io.casehub.platform.api.path.Path.root());
 
         // SEMANTIC_ONLY + high threshold — "beta" should be excluded (cos≈0.0)
@@ -117,9 +117,9 @@ class QdrantCbrDenseSearchTest {
 
     @Test
     void denseSearch_fallsBackToFilterOnly_whenProblemNull() {
-        store.store(new TextualCbrCase("alpha", "solution-a", null, null, null, null),
+        store.store(new ResolutionGuide("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new TextualCbrCase("beta", "solution-b", null, null, null, null),
+        store.store(new ResolutionGuide("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-beta", io.casehub.platform.api.path.Path.root());
 
         // problem=null → filter-only mode, all results score 1.0

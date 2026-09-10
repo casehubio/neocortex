@@ -9,7 +9,7 @@ import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.TextualCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolutionGuide;
 import io.casehub.neocortex.memory.cbr.testing.CbrCaseMemoryStoreContractTest;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QdrantGrpcClient;
@@ -88,7 +88,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
 
         store1.registerSchema(CbrFeatureSchema.of("dim-test",
             FeatureField.categorical("cat")));
-        store1.store(new TextualCbrCase("p", "s", null, null, null, null),
+        store1.store(new ResolutionGuide("p", "s", null, null, null, null),
             "dim-test", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Create a second store with a mock embedding model that reports dim=4
@@ -98,7 +98,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         var store2 = new QdrantCbrCaseMemoryStore(collectionManager2, new StubEmbeddingModel(4), config2, null, null);
 
         assertThatThrownBy(() ->
-            store2.store(new TextualCbrCase("p2", "s2", null, null, null, null),
+            store2.store(new ResolutionGuide("p2", "s2", null, null, null, null),
                 "dim-test", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root()))
             .isInstanceOf(CbrDimensionMismatchException.class);
     }
@@ -117,7 +117,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
 
         store1.registerSchema(CbrFeatureSchema.of("dim-migrate",
             FeatureField.categorical("cat")));
-        store1.store(new TextualCbrCase("p", "s", null, null, null, null),
+        store1.store(new ResolutionGuide("p", "s", null, null, null, null),
             "dim-migrate", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Enabling migration allows recreation
@@ -128,7 +128,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
         store2.registerSchema(CbrFeatureSchema.of("dim-migrate",
             FeatureField.categorical("cat")));
         assertThatCode(() ->
-            store2.store(new TextualCbrCase("p2", "s2", null, null, null, null),
+            store2.store(new ResolutionGuide("p2", "s2", null, null, null, null),
                 "dim-migrate", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root()))
             .doesNotThrowAnyException();
     }
@@ -232,7 +232,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
         store1.registerSchema(CbrFeatureSchema.of("splade-evolve",
                                                   FeatureField.categorical("cat")));
-        store1.store(new TextualCbrCase("p", "s", null, null, null, null),
+        store1.store(new ResolutionGuide("p", "s", null, null, null, null),
                      "splade-evolve", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Verify no sparse vectors exist yet
@@ -301,7 +301,7 @@ class QdrantCbrCaseMemoryStoreTest extends CbrCaseMemoryStoreContractTest {
             (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
         store1.registerSchema(CbrFeatureSchema.of("bm25-evolve",
                                                   FeatureField.categorical("cat")));
-        store1.store(new TextualCbrCase("p", "s", null, null, null, null),
+        store1.store(new ResolutionGuide("p", "s", null, null, null, null),
                      "bm25-evolve", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Phase 2: New manager with BM25 enabled, same collection prefix

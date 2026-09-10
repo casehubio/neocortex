@@ -265,7 +265,7 @@ default CbrCase withFeatures(Map<String, FeatureValue> features) {
 }
 ```
 
-Overridden in `FeatureVectorCbrCase` and `PlanCbrCase`:
+Overridden in `FeatureVectorCbrCase` and `ResolvedCase`:
 
 ```java
 // FeatureVectorCbrCase
@@ -285,7 +285,7 @@ public CbrCase withFeatures(Map<String, FeatureValue> features) {
 
 This follows the existing `withOutcome` copy-with-modification pattern. The
 decorator uses it to construct enriched cases without instanceof dispatch.
-The default throws for case types without features (e.g., `TextualCbrCase`)
+The default throws for case types without features (e.g., `ResolutionGuide`)
 — the decorator never reaches this path because TextualCbrCase cannot have
 TimeSeries fields.
 
@@ -478,7 +478,7 @@ implementation clarity):
 | `CbrSimilarityScorer` | `localSimilarity()` | No change — derived fields are Numeric, dispatched to existing `numericSimilarity` |
 | `CbrCase` | interface | Add `withFeatures()` default method |
 | `FeatureVectorCbrCase` | record | Add `withFeatures()` override |
-| `PlanCbrCase` | record | Add `withFeatures()` override |
+| `ResolvedCase` | record | Add `withFeatures()` override |
 | `CbrQuery` | record | Add `withFeatures()` method |
 
 **Out of scope (future work):**

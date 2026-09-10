@@ -5,9 +5,9 @@ import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.PlanEnsembleAnalyzer;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import org.junit.jupiter.api.Test;
 
@@ -22,13 +22,13 @@ public abstract class PlanEnsembleAnalyzerContractTest {
 
     protected abstract PlanEnsembleAnalyzer analyzer();
 
-    private static ScoredCbrCase<PlanCbrCase> scored(String caseId, double score, String... bindings) {
-        var traces = new java.util.ArrayList<PlanTrace>();
+    private static ScoredCbrCase<ResolvedCase> scored(String caseId, double score, String... bindings) {
+        var traces = new java.util.ArrayList<ResolutionStep>();
         for (String b : bindings) {
-            traces.add(new PlanTrace(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
+            traces.add(new ResolutionStep(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
         }
-        var plan = new PlanCbrCase("problem", "solution", "COMPLETED", Confidence.unknown(score),
-                                   Map.of("f", FeatureValue.string("v")), traces, null, null);
+        var plan = new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(score),
+                                    Map.of("f", FeatureValue.string("v")), traces, null, null);
         return new ScoredCbrCase<>(plan, caseId, "test-type", score);
     }
 

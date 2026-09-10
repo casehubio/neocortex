@@ -23,8 +23,8 @@ import java.util.logging.Logger;
 final class CbrMemoryDeserializer {
     private static final Logger LOG = Logger.getLogger(CbrMemoryDeserializer.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
-    private static final TypeReference<List<PlanTrace>> PLAN_TRACE_TYPE = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>>  MAP_TYPE        = new TypeReference<>() {};
+    private static final TypeReference<List<ResolutionStep>> PLAN_TRACE_TYPE = new TypeReference<>() {};
 
     private CbrMemoryDeserializer() {}
 
@@ -58,16 +58,16 @@ final class CbrMemoryDeserializer {
                     if (rawFeatures == null) yield null;
                     yield new FeatureVectorCbrCase(problem, solution, outcome, confidence, CbrPointBuilder.fromRawMap(rawFeatures), null, null);
                 }
-                case PlanCbrCase.CBR_TYPE -> {
+                case ResolvedCase.CBR_TYPE -> {
                     var rawFeatures = parseFeatures(attrs);
                     if (rawFeatures == null) yield null;
-                    var features = CbrPointBuilder.fromRawMap(rawFeatures);
-                    List<PlanTrace> planTrace = parsePlanTrace(attrs);
-                    if (planTrace == null) yield null;
-                    yield new PlanCbrCase(problem, solution, outcome, confidence, features, planTrace, null, null);
+                    var                  features       = CbrPointBuilder.fromRawMap(rawFeatures);
+                    List<ResolutionStep> resolutionStep = parsePlanTrace(attrs);
+                    if (resolutionStep == null) yield null;
+                    yield new ResolvedCase(problem, solution, outcome, confidence, features, resolutionStep, null, null);
                 }
-                case TextualCbrCase.CBR_TYPE ->
-                    new TextualCbrCase(problem, solution, outcome, confidence, null, null);
+                case ResolutionGuide.CBR_TYPE ->
+                    new ResolutionGuide(problem, solution, outcome, confidence, null, null);
                 default -> {
                     LOG.warning("Unknown cbr.type '" + cbrType + "' in memory " + memory.memoryId());
                     yield null;
@@ -95,7 +95,7 @@ final class CbrMemoryDeserializer {
         }
     }
 
-    private static List<PlanTrace> parsePlanTrace(Map<String, String> attrs) {
+    private static List<ResolutionStep> parsePlanTrace(Map<String, String> attrs) {
         String json = attrs.get(CbrAttributeKeys.CBR_PLAN_TRACE);
         if (json == null) return List.of();
         try {

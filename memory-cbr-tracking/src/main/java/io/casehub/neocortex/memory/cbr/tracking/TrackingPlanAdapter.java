@@ -5,7 +5,7 @@ import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.PlanAdapter;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.Priority;
@@ -44,7 +44,7 @@ public class TrackingPlanAdapter implements PlanAdapter {
     }
 
     @Override
-    public AdaptedPlan adapt(String caseType, ScoredCbrCase<PlanCbrCase> retrieved,
+    public AdaptedPlan adapt(String caseType, ScoredCbrCase<ResolvedCase> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
         AdaptedPlan result = delegate.adapt(caseType, retrieved, currentFeatures);
         try {

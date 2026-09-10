@@ -5,7 +5,7 @@ import java.util.Map;
 
 public interface PlanEnsembleAnalyzer {
     EnsemblePlan analyze(String caseType,
-                         List<ScoredCbrCase<PlanCbrCase>> scoredCases,
+                         List<ScoredCbrCase<ResolvedCase>> scoredCases,
                          List<AdaptedPlan> adaptedPlans,
                          Map<String, FeatureValue> currentFeatures);
 }

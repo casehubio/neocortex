@@ -28,12 +28,12 @@ import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.LocalSimilarityFunction;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.SupersessionStatus;
-import io.casehub.neocortex.memory.cbr.TextualCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolutionGuide;
 import io.casehub.neocortex.memory.cbr.embedding.EmbeddingTextSimilarity;
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.PointIdFactory;
@@ -69,8 +69,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private static final Logger LOG = Logger.getLogger(QdrantCbrCaseMemoryStore.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
-    private static final TypeReference<List<PlanTrace>> PLAN_TRACE_TYPE = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>>  MAP_TYPE        = new TypeReference<>() {};
+    private static final TypeReference<List<ResolutionStep>> PLAN_TRACE_TYPE = new TypeReference<>() {};
 
     private final CbrCollectionManager collectionManager;
     private final EmbeddingModel embeddingModel;
@@ -1295,8 +1295,8 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
         String cbrType = extractString(payload, "_cbr_type");
         CbrCase reconstructed = switch (cbrType) {
             case FeatureVectorCbrCase.CBR_TYPE -> reconstructFeatureVector(payload, problem, solution, outcome, confidence, trustScore, producerAgentId);
-            case PlanCbrCase.CBR_TYPE -> reconstructPlanCase(payload, problem, solution, outcome, confidence, trustScore, producerAgentId);
-            case TextualCbrCase.CBR_TYPE -> new TextualCbrCase(problem, solution, outcome, confidence, trustScore, producerAgentId);
+            case ResolvedCase.CBR_TYPE -> reconstructPlanCase(payload, problem, solution, outcome, confidence, trustScore, producerAgentId);
+            case ResolutionGuide.CBR_TYPE -> new ResolutionGuide(problem, solution, outcome, confidence, trustScore, producerAgentId);
             case null -> throw new IllegalStateException("Missing _cbr_type in CBR point");
             default -> throw new IllegalArgumentException("Unknown CBR type: " + cbrType);
         };
@@ -1319,17 +1319,17 @@ public class QdrantCbrCaseMemoryStore implements CbrCaseMemoryStore {
             }
         }
 
-        List<PlanTrace> planTrace = List.of();
-        String planTraceJson = extractString(payload, "_plan_trace_json");
+        List<ResolutionStep> resolutionStep = List.of();
+        String               planTraceJson  = extractString(payload, "_plan_trace_json");
         if (planTraceJson != null) {
             try {
-                planTrace = MAPPER.readValue(planTraceJson, PLAN_TRACE_TYPE);
+                resolutionStep = MAPPER.readValue(planTraceJson, PLAN_TRACE_TYPE);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Corrupted _plan_trace_json in CBR point", e);
             }
         }
 
-        return new PlanCbrCase(problem, solution, outcome, confidence, features, planTrace, trustScore, producerAgentId);
+        return new ResolvedCase(problem, solution, outcome, confidence, features, resolutionStep, trustScore, producerAgentId);
     }
 
     private CbrCase reconstructFeatureVector(Map<String, Value> payload,

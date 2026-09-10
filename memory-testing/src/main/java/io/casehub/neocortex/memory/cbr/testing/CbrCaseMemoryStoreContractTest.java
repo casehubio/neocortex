@@ -16,13 +16,13 @@ import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
 import io.casehub.neocortex.memory.cbr.NumericRange;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 import io.casehub.neocortex.memory.cbr.TemporalDecay;
-import io.casehub.neocortex.memory.cbr.TextualCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolutionGuide;
 import io.casehub.neocortex.memory.cbr.TrendSpec;
 import io.casehub.neocortex.memory.cbr.TrendType;
 import io.casehub.neocortex.memory.cbr.WarpingConstraint;
@@ -146,7 +146,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void store_returnsNonBlankId() {
-        var    c  = new TextualCbrCase("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.9), null, null);
+        var    c  = new ResolutionGuide("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.9), null, null);
         String id = store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "case-1", Path.root());
         assertThat(id).isNotBlank();
     }
@@ -245,7 +245,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void erase_removesMatchingCases() {
-        store().store(new TextualCbrCase("problem", "solution", "WIN", null, null, null),
+        store().store(new ResolutionGuide("problem", "solution", "WIN", null, null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-1", Path.root());
         int erased = store().erase(new EraseRequest(ENTITY, CBR, TENANT, "case-1"));
         assertThat(erased).isGreaterThanOrEqualTo(0);
@@ -255,9 +255,9 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void eraseEntity_removesAllEntityCases() {
-        store().store(new TextualCbrCase("p1", "s1", "WIN", null, null, null),
+        store().store(new ResolutionGuide("p1", "s1", "WIN", null, null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-1", Path.root());
-        store().store(new TextualCbrCase("p2", "s2", "LOSS", null, null, null),
+        store().store(new ResolutionGuide("p2", "s2", "LOSS", null, null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-2", Path.root());
         int erased = store().eraseEntity(ENTITY, TENANT);
         assertThat(erased).isGreaterThanOrEqualTo(0);
@@ -265,15 +265,15 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void planCbrCase_storeAndRetrieve() {
-        var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
-        var c = new PlanCbrCase("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.85),
-                                Map.of("opponent_race", string("Zerg"), "detected_build", string("ROACH_RUSH")),
-                                List.of(trace), null, null);
+        var trace = new ResolutionStep("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
+        var c = new ResolvedCase("Zerg roach rush", "early pressure", "WIN", Confidence.unknown(0.85),
+                                 Map.of("opponent_race", string("Zerg"), "detected_build", string("ROACH_RUSH")),
+                                 List.of(trace), null, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
 
         var q = CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 5);
-        var results = store().retrieveSimilar(q, PlanCbrCase.class);
+        var results = store().retrieveSimilar(q, ResolvedCase.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().cbrCase().problem()).isEqualTo("Zerg roach rush");
         assertThat(results.getFirst().cbrCase().cbrType()).isEqualTo("plan");
@@ -281,17 +281,17 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void planCbrCase_featureMatchRanking() {
-        var trace = new PlanTrace("b", "c", "w", "OK", 1, Map.of(), null);
-        store().store(new PlanCbrCase("Zerg game", "rush", "WIN", null,
-                                      Map.of("opponent_race", string("Zerg")), List.of(trace), null, null),
+        var trace = new ResolutionStep("b", "c", "w", "OK", 1, Map.of(), null);
+        store().store(new ResolvedCase("Zerg game", "rush", "WIN", null,
+                                       Map.of("opponent_race", string("Zerg")), List.of(trace), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
-        store().store(new PlanCbrCase("Protoss game", "expand", "LOSS", null,
-                                      Map.of("opponent_race", string("Protoss")), List.of(trace), null, null),
+        store().store(new ResolvedCase("Protoss game", "expand", "LOSS", null,
+                                       Map.of("opponent_race", string("Protoss")), List.of(trace), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "plan-2", Path.root());
 
         var q = CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 5);
-        var results = store().retrieveSimilar(q, PlanCbrCase.class);
+        var results = store().retrieveSimilar(q, ResolvedCase.class);
         // Both returned (minSimilarity=0.0), Zerg match ranks first with score 1.0
         assertThat(results).hasSizeGreaterThanOrEqualTo(1);
         assertThat(results.getFirst().cbrCase().features()).containsEntry("opponent_race", string("Zerg"));
@@ -300,25 +300,25 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
     @Test
     void planCbrCase_planTraceRoundTrip() {
-        var trace1 = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
-                                   Map.of("duration", 30), null);
-        var trace2 = new PlanTrace("attack", "aggression", "roach-push", "SUCCESS", 2,
-                                   Map.of("supply", 44), null);
-        var c = new PlanCbrCase("Zerg game", "rush", "WIN", Confidence.unknown(0.9),
-                                Map.of("opponent_race", string("Zerg")),
-                                List.of(trace1, trace2), null, null);
+        var trace1 = new ResolutionStep("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
+                                        Map.of("duration", 30), null);
+        var trace2 = new ResolutionStep("attack", "aggression", "roach-push", "SUCCESS", 2,
+                                        Map.of("supply", 44), null);
+        var c = new ResolvedCase("Zerg game", "rush", "WIN", Confidence.unknown(0.9),
+                                 Map.of("opponent_race", string("Zerg")),
+                                 List.of(trace1, trace2), null, null);
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
 
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game", Map.of("opponent_race", string("Zerg")), 5),
-                PlanCbrCase.class);
+                ResolvedCase.class);
         assertThat(results).hasSize(1);
         var retrieved = results.getFirst().cbrCase();
-        assertThat(retrieved.planTrace()).hasSize(2);
-        assertThat(retrieved.planTrace().get(0).bindingName()).isEqualTo("scout");
-        assertThat(retrieved.planTrace().get(0).capabilityName()).isEqualTo("reconnaissance");
-        assertThat(retrieved.planTrace().get(1).bindingName()).isEqualTo("attack");
-        assertThat(retrieved.planTrace().get(1).parameters()).containsEntry("supply", 44);
+        assertThat(retrieved.resolutionStep()).hasSize(2);
+        assertThat(retrieved.resolutionStep().get(0).bindingName()).isEqualTo("scout");
+        assertThat(retrieved.resolutionStep().get(0).capabilityName()).isEqualTo("reconnaissance");
+        assertThat(retrieved.resolutionStep().get(1).bindingName()).isEqualTo("attack");
+        assertThat(retrieved.resolutionStep().get(1).parameters()).containsEntry("supply", 44);
     }
 
     // --- notBefore tests ---
@@ -328,9 +328,9 @@ public abstract class CbrCaseMemoryStoreContractTest {
         store().store(new FeatureVectorCbrCase("FV game", "strat", "WIN", null,
                                                Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "fv-1", Path.root());
-        store().store(new PlanCbrCase("Plan game", "strat", "WIN", null,
-                                      Map.of("opponent_race", string("Zerg")),
-                                      List.of(new PlanTrace("b", "c", "w", "OK", 1, Map.of(), null)), null, null),
+        store().store(new ResolvedCase("Plan game", "strat", "WIN", null,
+                                       Map.of("opponent_race", string("Zerg")),
+                                       List.of(new ResolutionStep("b", "c", "w", "OK", 1, Map.of(), null)), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "plan-1", Path.root());
 
         var fvResults = store().retrieveSimilar(
@@ -341,7 +341,7 @@ public abstract class CbrCaseMemoryStoreContractTest {
 
         var planResults = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game", Map.of("opponent_race", string("Zerg")), 10),
-                PlanCbrCase.class);
+                ResolvedCase.class);
         assertThat(planResults).hasSize(1);
         assertThat(planResults.getFirst().cbrCase().problem()).isEqualTo("Plan game");
 
@@ -2242,15 +2242,15 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void planCbrCase_trustFields_roundTrip() {
         registerDefaultSchema();
-        var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
-        var c = new PlanCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.85),
-                                Map.of("opponent_race", string("Zerg")),
-                                List.of(trace), 0.92, "agent-plan");
+        var trace = new ResolutionStep("scout", "reconnaissance", "drone-scout", "SUCCESS", 1, Map.of(), null);
+        var c = new ResolvedCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.85),
+                                 Map.of("opponent_race", string("Zerg")),
+                                 List.of(trace), 0.92, "agent-plan");
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-6", Path.root());
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 5),
-                PlanCbrCase.class);
+                ResolvedCase.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().cbrCase().trustScore()).isEqualTo(0.92);
         assertThat(results.getFirst().cbrCase().producerAgentId()).isEqualTo("agent-plan");
@@ -2259,11 +2259,11 @@ public abstract class CbrCaseMemoryStoreContractTest {
     @Test
     void textualCbrCase_trustFields_roundTrip() {
         registerDefaultSchema();
-        var c = new TextualCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.85), 0.88, "agent-text");
+        var c = new ResolutionGuide("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.85), 0.88, "agent-text");
         store().store(c, "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-7", Path.root());
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game", Map.of(), 5),
-                TextualCbrCase.class);
+                ResolutionGuide.class);
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().cbrCase().trustScore()).isEqualTo(0.88);
         assertThat(results.getFirst().cbrCase().producerAgentId()).isEqualTo("agent-text");

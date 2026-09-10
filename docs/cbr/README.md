@@ -40,9 +40,9 @@ Three `CbrCase` implementations cover different reasoning paradigms. All share
 
 | Type | Discriminator | When to use |
 |------|--------------|-------------|
-| `TextualCbrCase` | `"textual"` | No structured features. Pure NL similarity on problem text. |
+| `ResolutionGuide` | `"textual"` | No structured features. Pure NL similarity on problem text. |
 | `FeatureVectorCbrCase` | `"feature-vector"` | Structured categorical/numeric/text features. Most applications. |
-| `PlanCbrCase` | `"plan"` | Feature-Vector plus ordered execution traces. CHEF-style case-based planning. |
+| `ResolvedCase` | `"plan"` | Feature-Vector plus ordered execution traces. CHEF-style case-based planning. |
 
 See [CBR Types](cbr-types.md) for a detailed explanation of each type, its inputs/outputs,
 and how they layer for routing.

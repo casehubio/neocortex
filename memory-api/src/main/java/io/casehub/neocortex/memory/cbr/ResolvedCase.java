@@ -6,17 +6,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public record PlanCbrCase(String problem, String solution,
-                          String outcome, Confidence confidence,
-                          Map<String, FeatureValue> features,
-                          List<PlanTrace> planTrace,
-                          Double trustScore, String producerAgentId) implements CbrCase {
+public record ResolvedCase(String problem, String solution,
+                           String outcome, Confidence confidence,
+                           Map<String, FeatureValue> features,
+                           List<ResolutionStep> resolutionStep,
+                           Double trustScore, String producerAgentId) implements CbrCase {
     public static final String CBR_TYPE = "plan";
 
     @Override
     public String cbrType() {return CBR_TYPE;}
 
-    public PlanCbrCase {
+    public ResolvedCase {
         Objects.requireNonNull(problem, "problem required");
         if (problem.isBlank()) {throw new IllegalArgumentException("problem must not be blank");}
         Objects.requireNonNull(solution, "solution required");
@@ -26,18 +26,18 @@ public record PlanCbrCase(String problem, String solution,
         }
         Objects.requireNonNull(features, "features required");
         features = Map.copyOf(features);
-        Objects.requireNonNull(planTrace, "planTrace required");
-        planTrace = List.copyOf(planTrace);
+        Objects.requireNonNull(resolutionStep, "resolutionStep required");
+        resolutionStep = List.copyOf(resolutionStep);
     }
 
     @Override
     public CbrCase withOutcome(String outcome, Confidence confidence) {
-        return new PlanCbrCase(problem(), solution(), outcome, confidence, features(), planTrace(), trustScore(), producerAgentId());
+        return new ResolvedCase(problem(), solution(), outcome, confidence, features(), resolutionStep(), trustScore(), producerAgentId());
     }
 
     @Override
     public CbrCase withFeatures(Map<String, FeatureValue> features) {
-        return new PlanCbrCase(problem(), solution(), outcome(), confidence(), features, planTrace(), trustScore(), producerAgentId());
+        return new ResolvedCase(problem(), solution(), outcome(), confidence(), features, resolutionStep(), trustScore(), producerAgentId());
     }
 
 }

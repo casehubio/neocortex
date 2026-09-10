@@ -168,7 +168,7 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 ## 10. CBR — Plan Adaptation
 
-**What it is.** The Reuse step of the CBR cycle for plan-based cases. `PlanAdapter` transforms a retrieved `PlanCbrCase` into an `AdaptedPlan` for the current context, marking each step with an `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `PlanEnsembleAnalyzer` synthesises across multiple adapted plans, computing `StepConsensus` with agreement levels (UNANIMOUS through UNIQUE).
+**What it is.** The Reuse step of the CBR cycle for plan-based cases. `PlanAdapter` transforms a retrieved `ResolvedCase` into an `AdaptedPlan` for the current context, marking each step with an `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `PlanEnsembleAnalyzer` synthesises across multiple adapted plans, computing `StepConsensus` with agreement levels (UNANIMOUS through UNIQUE).
 
 **How it works.** For each retrieved plan, `PlanAdapter.adapt()` evaluates each step against the current features and decides what to change. `PlanEnsembleAnalyzer.analyze()` then examines all adapted plans together, looking for consensus (steps that appear in most plans), divergence (steps that appear in few), and contested areas (different plans disagree). The `EnsemblePlan` synthesises a recommended plan from the consensus.
 

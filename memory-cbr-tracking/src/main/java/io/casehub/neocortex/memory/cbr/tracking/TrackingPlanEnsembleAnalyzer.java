@@ -5,7 +5,7 @@ import io.casehub.neocortex.memory.cbr.CbrEnsembleRecorded;
 import io.casehub.neocortex.memory.cbr.EnsemblePlan;
 import io.casehub.neocortex.memory.cbr.EnsembleTrace;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.PlanEnsembleAnalyzer;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.quarkus.arc.properties.IfBuildProperty;
@@ -47,7 +47,7 @@ public class TrackingPlanEnsembleAnalyzer implements PlanEnsembleAnalyzer {
 
     @Override
     public EnsemblePlan analyze(String caseType,
-                                List<ScoredCbrCase<PlanCbrCase>> scoredCases,
+                                List<ScoredCbrCase<ResolvedCase>> scoredCases,
                                 List<AdaptedPlan> adaptedPlans,
                                 Map<String, FeatureValue> currentFeatures) {
         EnsemblePlan result = delegate.analyze(caseType, scoredCases, adaptedPlans, currentFeatures);

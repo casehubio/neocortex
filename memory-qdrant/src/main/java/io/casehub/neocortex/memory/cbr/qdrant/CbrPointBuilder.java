@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.embedding.Embedding;
 import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.ValueFactory;
 import io.qdrant.client.VectorFactory;
@@ -102,9 +102,9 @@ final class CbrPointBuilder {
             }
         }
 
-        if (cbrCase instanceof PlanCbrCase plan) {
+        if (cbrCase instanceof ResolvedCase plan) {
             try {
-                payload.put("_plan_trace_json", ValueFactory.value(MAPPER.writeValueAsString(plan.planTrace())));
+                payload.put("_plan_trace_json", ValueFactory.value(MAPPER.writeValueAsString(plan.resolutionStep())));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize plan trace", e);
             }

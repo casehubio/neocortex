@@ -3,7 +3,7 @@ package io.casehub.neocortex.examples.cbr;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -79,11 +79,11 @@ class CbrIntegrationTest {
                 "quarkmind-battle",
                 Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH")), 10);
 
-        var results = store.retrieveSimilar(query, PlanCbrCase.class);
+        var results = store.retrieveSimilar(query, ResolvedCase.class);
         assertThat(results).isNotEmpty();
         assertThat(results).allSatisfy(r -> {
-            assertThat(r.cbrCase().planTrace()).isNotEmpty();
-            assertThat(r.cbrCase().planTrace().get(0).bindingName()).isNotBlank();
+            assertThat(r.cbrCase().resolutionStep()).isNotEmpty();
+            assertThat(r.cbrCase().resolutionStep().get(0).bindingName()).isNotBlank();
         });
     }
 

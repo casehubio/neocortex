@@ -35,30 +35,30 @@ class CbrMemoryDeserializerTest {
 
     @Test
     void roundTrip_planCbrCase() {
-        var trace = new PlanTrace("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
-                                  Map.of("duration", 30), null);
-        var original = new PlanCbrCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.9),
-            Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
+        var trace = new ResolutionStep("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
+                                       Map.of("duration", 30), null);
+        var original = new ResolvedCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.9),
+                                        Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
 
         assertThat(deserialized).isPresent();
-        assertThat(deserialized.get()).isInstanceOf(PlanCbrCase.class);
-        var plan = (PlanCbrCase) deserialized.get();
+        assertThat(deserialized.get()).isInstanceOf(ResolvedCase.class);
+        var plan = (ResolvedCase) deserialized.get();
         assertThat(plan.problem()).isEqualTo("Zerg rush");
-        assertThat(plan.planTrace()).hasSize(1);
-        assertThat(plan.planTrace().get(0).bindingName()).isEqualTo("scout");
+        assertThat(plan.resolutionStep()).hasSize(1);
+        assertThat(plan.resolutionStep().get(0).bindingName()).isEqualTo("scout");
     }
 
     @Test
     void roundTrip_textualCbrCase() {
-        var original = new TextualCbrCase("simple problem", "simple solution", "OK", Confidence.unknown(0.5), null, null);
+        var original = new ResolutionGuide("simple problem", "simple solution", "OK", Confidence.unknown(0.5), null, null);
 
         var deserialized = roundTrip(original, "simple-type");
 
         assertThat(deserialized).isPresent();
-        assertThat(deserialized.get()).isInstanceOf(TextualCbrCase.class);
-        var t = (TextualCbrCase) deserialized.get();
+        assertThat(deserialized.get()).isInstanceOf(ResolutionGuide.class);
+        var t = (ResolutionGuide) deserialized.get();
         assertThat(t.problem()).isEqualTo("simple problem");
         assertThat(t.solution()).isEqualTo("simple solution");
         assertThat(t.outcome()).isEqualTo("OK");
@@ -67,7 +67,7 @@ class CbrMemoryDeserializerTest {
 
     @Test
     void roundTrip_nullOptionalFields() {
-        var original = new TextualCbrCase("p", "s", null, null, null, null);
+        var original = new ResolutionGuide("p", "s", null, null, null, null);
 
         var deserialized = roundTrip(original, "minimal");
 

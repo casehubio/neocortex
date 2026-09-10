@@ -18,12 +18,12 @@ import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.SupersessionStatus;
-import io.casehub.neocortex.memory.cbr.TextualCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolutionGuide;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
@@ -48,8 +48,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
     private static final Logger                             LOG             = Logger.getLogger(JpaCbrCaseMemoryStore.class);
-    private static final TypeReference<Map<String, Object>> MAP_TYPE        = new TypeReference<>() {};
-    private static final TypeReference<List<PlanTrace>>     PLAN_TRACE_TYPE = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>>  MAP_TYPE        = new TypeReference<>() {};
+    private static final TypeReference<List<ResolutionStep>> PLAN_TRACE_TYPE = new TypeReference<>() {};
 
     private final Map<String, CbrFeatureSchema> schemas = new ConcurrentHashMap<>();
 
@@ -91,8 +91,8 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         entity.trustScore      = cbrCase.trustScore();
         entity.producerAgentId = cbrCase.producerAgentId();
 
-        if (cbrCase instanceof PlanCbrCase plan && !plan.planTrace().isEmpty()) {
-            entity.planTraces = serializeJson(plan.planTrace());
+        if (cbrCase instanceof ResolvedCase plan && !plan.resolutionStep().isEmpty()) {
+            entity.planTraces = serializeJson(plan.resolutionStep());
         }
 
         em.persist(entity);
@@ -468,12 +468,12 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         io.casehub.neocortex.cognitive.Confidence confidence = entity.confidence != null
                 ? io.casehub.neocortex.cognitive.Confidence.unknown(entity.confidence) : null;
         return switch (entity.cbrType) {
-            case "plan" -> new PlanCbrCase(
+            case "plan" -> new ResolvedCase(
                     entity.problem, entity.solution, entity.outcome, confidence,
                     features, deserializePlanTraces(entity.planTraces), entity.trustScore, entity.producerAgentId);
             case "feature-vector" -> new FeatureVectorCbrCase(
                     entity.problem, entity.solution, entity.outcome, confidence, features, entity.trustScore, entity.producerAgentId);
-            case "textual" -> new TextualCbrCase(
+            case "textual" -> new ResolutionGuide(
                     entity.problem, entity.solution, entity.outcome, confidence, entity.trustScore, entity.producerAgentId);
             default -> new FeatureVectorCbrCase(
                     entity.problem, entity.solution, entity.outcome, confidence, features, entity.trustScore, entity.producerAgentId);
@@ -563,7 +563,7 @@ public class JpaCbrCaseMemoryStore implements CbrCaseMemoryStore {
         }
     }
 
-    private List<PlanTrace> deserializePlanTraces(String json) {
+    private List<ResolutionStep> deserializePlanTraces(String json) {
         if (json == null || json.isBlank()) {return List.of();}
         try {
             return objectMapper.readValue(json, PLAN_TRACE_TYPE);

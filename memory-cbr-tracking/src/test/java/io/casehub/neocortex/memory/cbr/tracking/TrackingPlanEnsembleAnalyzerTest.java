@@ -7,9 +7,9 @@ import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.CbrEnsembleRecorded;
 import io.casehub.neocortex.memory.cbr.EnsemblePlan;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.PlanEnsembleAnalyzer;
-import io.casehub.neocortex.memory.cbr.PlanTrace;
+import io.casehub.neocortex.memory.cbr.ResolutionStep;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.StepAgreement;
 import io.casehub.neocortex.memory.cbr.StepConsensus;
@@ -23,10 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TrackingPlanEnsembleAnalyzerTest {
 
-    private ScoredCbrCase<PlanCbrCase> scored() {
-        var trace = new PlanTrace("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
-        var plan = new PlanCbrCase("problem", "solution", "WIN", Confidence.unknown(0.9),
-                                   Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
+    private ScoredCbrCase<ResolvedCase> scored() {
+        var trace = new ResolutionStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
+        var plan = new ResolvedCase("problem", "solution", "WIN", Confidence.unknown(0.9),
+                                    Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
         return new ScoredCbrCase<>(plan, "c1", "test-type", 0.85);
     }
 

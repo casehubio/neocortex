@@ -13,7 +13,7 @@ adapt it for the current situation.
 **Feature-Vector → Plan-Based CBR.** Structured features (domain-specific attributes)
 filter the candidate set. The plan trace captures the full execution chain:
 binding → capability → worker → outcome. This is the only CaseHub app that uses
-`PlanCbrCase` — all others use `FeatureVectorCbrCase`.
+`ResolvedCase` — all others use `FeatureVectorCbrCase`.
 
 Plan-Based CBR goes beyond "find similar cases" to "find similar plans and show me
 how they were structured." The plan trace enables adaptation: "4 out of 5 similar
@@ -38,7 +38,7 @@ classification, numeric fields for continuous state.
 
 ## PlanTrace
 
-`PlanTrace` captures one step of plan execution:
+`ResolutionStep` captures one step of plan execution:
 
 ```java
 public record PlanTrace(
@@ -54,7 +54,7 @@ A plan case contains the full execution chain as `List<PlanTrace>`.
 
 ## Retain — Storing Plan Outcomes
 
-At case close, the `CaseOutcomeObserver` builds a `PlanCbrCase` from the plan
+At case close, the `CaseOutcomeObserver` builds a `ResolvedCase` from the plan
 execution trace:
 
 ```java

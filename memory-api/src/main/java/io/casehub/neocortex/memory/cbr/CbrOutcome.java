@@ -10,8 +10,8 @@ public record CbrOutcome(
     Outcome result,
     double successRate,
     String detail,
-    Instant observedAt
-) {
+    Instant observedAt,
+    String retrievalId) {
     public enum Outcome { SUCCESS, PARTIAL, FAILURE }
 
     public static final double DEFAULT_LEARNING_RATE = 0.2;
@@ -27,7 +27,7 @@ public record CbrOutcome(
         Outcome result = successRate == 1.0 ? Outcome.SUCCESS
                        : successRate == 0.0 ? Outcome.FAILURE
                        : Outcome.PARTIAL;
-        return new CbrOutcome(result, successRate, detail, observedAt);
+        return new CbrOutcome(result, successRate, detail, observedAt, null);
     }
 
     public static Confidence adjustConfidence(Confidence old, double successRate,

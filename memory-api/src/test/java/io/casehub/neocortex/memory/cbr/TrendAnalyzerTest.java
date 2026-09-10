@@ -364,16 +364,16 @@ class TrendAnalyzerTest {
 
     @Test
     void planCbrCase_withFeatures_preservesPlanTrace() {
-        var trace = List.of(new PlanTrace("step1", "cap1", "worker1", "OK", 1, Map.of(), null));
-        var original = new PlanCbrCase("p", "s", null, null, Map.of("a", string("x")), trace, null, null);
-        var updated = (PlanCbrCase) original.withFeatures(Map.of("a", string("x"), "b", number(1)));
+        var trace = List.of(new ResolutionStep("step1", "cap1", "worker1", "OK", 1, Map.of(), null));
+        var original = new ResolvedCase("p", "s", null, null, Map.of("a", string("x")), trace, null, null);
+        var updated = (ResolvedCase) original.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");
-        assertThat(updated.planTrace()).hasSize(1);
+        assertThat(updated.resolutionStep()).hasSize(1);
     }
 
     @Test
     void textualCbrCase_withFeatures_throws() {
-        var tc = new TextualCbrCase("p", "s", null, null, null, null);
+        var tc = new ResolutionGuide("p", "s", null, null, null, null);
         org.assertj.core.api.Assertions.assertThatThrownBy(
                 () -> tc.withFeatures(Map.of("a", string("x"))))
                 .isInstanceOf(UnsupportedOperationException.class);

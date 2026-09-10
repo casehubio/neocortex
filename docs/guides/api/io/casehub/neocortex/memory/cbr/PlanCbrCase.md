@@ -14,7 +14,7 @@
 
 ### `outcome` (`java.lang.String`)
 
-### `planTrace` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
+### `resolutionStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
 
 ### `problem` (`java.lang.String`)
 
@@ -32,7 +32,7 @@
 
 ### `outcome` (`java.lang.String`)
 
-### `planTrace` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
+### `resolutionStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
 
 ### `problem` (`java.lang.String`)
 
@@ -53,7 +53,7 @@
 - `outcome` (`java.lang.String`)
 - `confidence` (`java.lang.Double`)
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
-- `planTrace` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
+- `resolutionStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
 - `trustScore` (`java.lang.Double`)
 - `producerAgentId` (`java.lang.String`)
 

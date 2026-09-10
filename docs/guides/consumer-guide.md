@@ -191,7 +191,7 @@ Queryable, permission-aware, persistent memory. Key operations:
 
 ### CbrCaseMemoryStore (memory-api)
 
-Structured feature-vector similarity search over past cases. Open `CbrCase` type hierarchy with `cbrType()` discriminator: `TextualCbrCase`, `FeatureVectorCbrCase`, `PlanCbrCase`.
+Structured feature-vector similarity search over past cases. Open `CbrCase` type hierarchy with `cbrType()` discriminator: `ResolutionGuide`, `FeatureVectorCbrCase`, `ResolvedCase`.
 
 **Typed feature values:** `FeatureValue` sealed interface with seven value types: `StringVal`, `NumberVal`, `RangeVal`, `StringListVal`, `NumberListVal`, `StructVal`, `StructListVal`. Booleans coerced via `FeatureValue.of(Object)`.
 
@@ -219,7 +219,7 @@ Structured feature-vector similarity search over past cases. Open `CbrCase` type
 
 ### PlanAdapter / PlanEnsembleAnalyzer (memory-api)
 
-`PlanAdapter` SPI — transforms retrieved plans for new case contexts. `adapt(caseType, ScoredCbrCase<PlanCbrCase>, features)` returns `AdaptedPlan` with `AdaptedStep` entries tagged by `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `PlanTrace` records audit data with optional `variantId`.
+`PlanAdapter` SPI — transforms retrieved plans for new case contexts. `adapt(caseType, ScoredCbrCase<PlanCbrCase>, features)` returns `AdaptedPlan` with `AdaptedStep` entries tagged by `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `ResolutionStep` records audit data with optional `variantId`.
 
 `PlanEnsembleAnalyzer` SPI — cross-plan structural analysis. After per-plan adaptation, examines multiple adapted plans for consensus/divergence and synthesizes an `EnsemblePlan`. `StepConsensus` classifies agreement as UNANIMOUS, CONSENSUS, CONTESTED, MINORITY, or UNIQUE.
 

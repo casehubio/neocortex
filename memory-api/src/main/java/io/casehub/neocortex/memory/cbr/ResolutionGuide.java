@@ -4,15 +4,15 @@ import io.casehub.neocortex.cognitive.Confidence;
 
 import java.util.Objects;
 
-public record TextualCbrCase(String problem, String solution,
-                             String outcome, Confidence confidence,
-                             Double trustScore, String producerAgentId) implements CbrCase {
+public record ResolutionGuide(String problem, String solution,
+                              String outcome, Confidence confidence,
+                              Double trustScore, String producerAgentId) implements CbrCase {
     public static final String CBR_TYPE = "textual";
 
     @Override
     public String cbrType() {return CBR_TYPE;}
 
-    public TextualCbrCase {
+    public ResolutionGuide {
         Objects.requireNonNull(problem, "problem required");
         if (problem.isBlank()) {throw new IllegalArgumentException("problem must not be blank");}
         Objects.requireNonNull(solution, "solution required");
@@ -24,6 +24,6 @@ public record TextualCbrCase(String problem, String solution,
 
     @Override
     public CbrCase withOutcome(String outcome, Confidence confidence) {
-        return new TextualCbrCase(problem(), solution(), outcome, confidence, trustScore(), producerAgentId());
+        return new ResolutionGuide(problem(), solution(), outcome, confidence, trustScore(), producerAgentId());
     }
 }

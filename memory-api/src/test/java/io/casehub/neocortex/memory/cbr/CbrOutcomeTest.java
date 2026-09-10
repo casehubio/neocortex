@@ -39,25 +39,25 @@ class CbrOutcomeTest {
     @Test
     void constructor_rejectsNegativeRate() {
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> new CbrOutcome(CbrOutcome.Outcome.FAILURE, -0.1, null, NOW));
+            .isThrownBy(() -> new CbrOutcome(CbrOutcome.Outcome.FAILURE, -0.1, null, NOW, null));
     }
 
     @Test
     void constructor_rejectsRateAboveOne() {
         assertThatIllegalArgumentException()
-            .isThrownBy(() -> new CbrOutcome(CbrOutcome.Outcome.SUCCESS, 1.1, null, NOW));
+            .isThrownBy(() -> new CbrOutcome(CbrOutcome.Outcome.SUCCESS, 1.1, null, NOW, null));
     }
 
     @Test
     void constructor_rejectsNullResult() {
         assertThatNullPointerException()
-            .isThrownBy(() -> new CbrOutcome(null, 0.5, null, NOW));
+            .isThrownBy(() -> new CbrOutcome(null, 0.5, null, NOW, null));
     }
 
     @Test
     void constructor_rejectsNullObservedAt() {
         assertThatNullPointerException()
-            .isThrownBy(() -> new CbrOutcome(CbrOutcome.Outcome.SUCCESS, 1.0, null, null));
+            .isThrownBy(() -> new CbrOutcome(CbrOutcome.Outcome.SUCCESS, 1.0, null, null, null));
     }
 
     @Test

@@ -3,7 +3,7 @@ package io.casehub.neocortex.memory.cbr.runtime;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.EnsemblePlan;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanCbrCase;
+import io.casehub.neocortex.memory.cbr.ResolvedCase;
 import io.casehub.neocortex.memory.cbr.PlanEnsembleAnalyzer;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
 import io.casehub.neocortex.memory.cbr.StepAgreement;
@@ -20,7 +20,7 @@ import java.util.Objects;
 public class NoOpPlanEnsembleAnalyzer implements PlanEnsembleAnalyzer {
     @Override
     public EnsemblePlan analyze(String caseType,
-                                List<ScoredCbrCase<PlanCbrCase>> scoredCases,
+                                List<ScoredCbrCase<ResolvedCase>> scoredCases,
                                 List<AdaptedPlan> adaptedPlans,
                                 Map<String, FeatureValue> currentFeatures) {
         Objects.requireNonNull(caseType, "caseType");

@@ -11,7 +11,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_validScoreRange_succeeds() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 1.0).score()).isEqualTo(1.0);
         assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 0.0).score()).isEqualTo(0.0);
         assertThat(new ScoredCbrCase<>(cbrCase, TYPE, -1.0).score()).isEqualTo(-1.0);
@@ -19,7 +19,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_scoreAboveOne_throws() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, 1.1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("score must be in [-1,1]");
@@ -27,7 +27,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_scoreBelowMinusOne_throws() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, -1.1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("score must be in [-1,1]");
@@ -35,7 +35,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_scoreNaN_throws() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, Double.NaN))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("score must be in [-1,1]");
@@ -43,7 +43,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_scorePositiveInfinity_throws() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, Double.POSITIVE_INFINITY))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("score must be in [-1,1]");
@@ -51,7 +51,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_scoreNegativeInfinity_throws() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThatThrownBy(() -> new ScoredCbrCase<>(cbrCase, TYPE, Double.NEGATIVE_INFINITY))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("score must be in [-1,1]");
@@ -66,19 +66,19 @@ class ScoredCbrCaseTest {
 
     @Test
     void constructor_twoArg_defaultsRerankedFalse() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 0.5).reranked()).isFalse();
     }
 
     @Test
     void constructor_threeArg_setsReranked() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         assertThat(new ScoredCbrCase<>(cbrCase, TYPE, 0.5, true).reranked()).isTrue();
     }
 
     @Test
     void withReranked_returnsNewInstanceWithRerankedTrue() {
-        var cbrCase  = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase  = new ResolutionGuide("problem", "solution", null, null, null, null);
         var original = new ScoredCbrCase<>(cbrCase, TYPE, 0.8);
         var reranked = original.withReranked();
         assertThat(reranked.reranked()).isTrue();
@@ -89,7 +89,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void featureSimilarities_present() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var sims    = java.util.Map.of("posture", 0.6, "size", 0.3);
         var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, sims);
         assertThat(scored.featureSimilarities()).isEqualTo(sims);
@@ -97,7 +97,7 @@ class ScoredCbrCaseTest {
 
     @Test
     void featureSimilarities_immutable() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var sims    = new java.util.HashMap<String, Double>();
         sims.put("a", 0.5);
         var scored = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, sims);
@@ -107,21 +107,21 @@ class ScoredCbrCaseTest {
 
     @Test
     void twoArgConstructor_emptyFeatureSimilarities() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9);
         assertThat(scored.featureSimilarities()).isEmpty();
     }
 
     @Test
     void threeArgConstructor_emptyFeatureSimilarities() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, true);
         assertThat(scored.featureSimilarities()).isEmpty();
     }
 
     @Test
     void withReranked_preservesFeatureSimilarities() {
-        var cbrCase  = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase  = new ResolutionGuide("problem", "solution", null, null, null, null);
         var sims     = java.util.Map.of("posture", 0.6);
         var scored   = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, sims);
         var reranked = scored.withReranked();
@@ -131,28 +131,28 @@ class ScoredCbrCaseTest {
 
     @Test
     void nullFeatureSimilarities_becomesEmpty() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9, false, null);
         assertThat(scored.featureSimilarities()).isEmpty();
     }
 
     @Test
     void caseId_present() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var scored  = new ScoredCbrCase<>(cbrCase, "case-1", TYPE, 0.9);
         assertThat(scored.caseId()).isEqualTo("case-1");
     }
 
     @Test
     void caseId_null_allowed() {
-        var cbrCase = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
         var scored  = new ScoredCbrCase<>(cbrCase, TYPE, 0.9);
         assertThat(scored.caseId()).isNull();
     }
 
     @Test
     void withReranked_preservesCaseId() {
-        var cbrCase  = new TextualCbrCase("problem", "solution", null, null, null, null);
+        var cbrCase  = new ResolutionGuide("problem", "solution", null, null, null, null);
         var original = new ScoredCbrCase<>(cbrCase, "case-1", TYPE, 0.8);
         var reranked = original.withReranked();
         assertThat(reranked.caseId()).isEqualTo("case-1");
@@ -250,7 +250,7 @@ class ScoredCbrCaseTest {
         assertThat(updated.trustTrajectory()).isEqualTo(0.5);
     }
 
-    private TextualCbrCase textCase() {
-        return new TextualCbrCase("problem", "solution", null, null, null, null);
+    private ResolutionGuide textCase() {
+        return new ResolutionGuide("problem", "solution", null, null, null, null);
     }
 }

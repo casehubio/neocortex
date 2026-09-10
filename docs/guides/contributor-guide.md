@@ -211,7 +211,7 @@ SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (De
 
 ### CBR Plan Adaptation
 
-`PlanAdapter` SPI — `adapt(caseType, ScoredCbrCase<PlanCbrCase>, features)` returns `AdaptedPlan` (wrapping `List<AdaptedStep>`). `caseType` is a first-class parameter for type-specific adaptation rules. `AdaptedStep` carries `bindingName`, nullable `capabilityName`, `workerName`, `stepOutcome`, `priority`, `parameters`, `AdaptationAction`, `reason`. `AdaptationTrace` for audit with `retrievalTraceId` link. `PlanTrace` record with optional `variantId` for variant tracking.
+`PlanAdapter` SPI — `adapt(caseType, ScoredCbrCase<PlanCbrCase>, features)` returns `AdaptedPlan` (wrapping `List<AdaptedStep>`). `caseType` is a first-class parameter for type-specific adaptation rules. `AdaptedStep` carries `bindingName`, nullable `capabilityName`, `workerName`, `stepOutcome`, `priority`, `parameters`, `AdaptationAction`, `reason`. `AdaptationTrace` for audit with `retrievalTraceId` link. `ResolutionStep` record with optional `variantId` for variant tracking.
 
 `NoOpPlanAdapter` @DefaultBean — returns all steps RETAINED, zero behavioral change.
 

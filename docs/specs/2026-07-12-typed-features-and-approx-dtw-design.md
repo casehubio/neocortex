@@ -441,7 +441,7 @@ LB_Keogh + early abandonment integrate into `InMemoryCbrCaseMemoryStore.retrieve
 
 ### Phase 1: FeatureValue type + API migration (#131)
 - New `FeatureValue.java` sealed interface
-- `CbrCase`, `FeatureVectorCbrCase`, `PlanCbrCase` — features type change
+- `CbrCase`, `FeatureVectorCbrCase`, `ResolvedCase` — features type change
 - `CbrQuery` — features type change
 - `CbrFilter.HasMatch` — subFields type change
 

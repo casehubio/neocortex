@@ -12,7 +12,7 @@ Today, `CbrAgentRoutingStrategy.analyseExperiences()` does primitive inline adap
 
 ## Solution
 
-A `PlanAdapter` SPI in `memory-api` that transforms a retrieved `PlanCbrCase` into an `AdaptedPlan` for the current case context. The SPI operates on a single retrieved plan per invocation. Cross-plan structural analysis is a separate concern (tracked in other issues).
+A `PlanAdapter` SPI in `memory-api` that transforms a retrieved `ResolvedCase` into an `AdaptedPlan` for the current case context. The SPI operates on a single retrieved plan per invocation. Cross-plan structural analysis is a separate concern (tracked in other issues).
 
 ### Position in the data flow
 
