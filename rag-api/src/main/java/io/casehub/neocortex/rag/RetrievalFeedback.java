@@ -6,7 +6,8 @@ public record RetrievalFeedback(
     String retrievalId,
     String sourceDocumentId,
     RetrievalOutcome outcome,
-    Instant timestamp
+    Instant timestamp,
+    FeedbackContext context
 ) {
     public RetrievalFeedback {
         if (retrievalId == null || retrievalId.isBlank())
@@ -17,5 +18,10 @@ public record RetrievalFeedback(
             throw new IllegalArgumentException("outcome must not be null");
         if (timestamp == null)
             throw new IllegalArgumentException("timestamp must not be null");
+    }
+
+    public RetrievalFeedback(String retrievalId, String sourceDocumentId,
+                             RetrievalOutcome outcome, Instant timestamp) {
+        this(retrievalId, sourceDocumentId, outcome, timestamp, null);
     }
 }

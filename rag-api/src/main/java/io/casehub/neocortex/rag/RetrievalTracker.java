@@ -10,7 +10,12 @@ public interface RetrievalTracker {
                   List<RetrievedChunk> results, int maxResults);
 
     void feedback(String retrievalId, String sourceDocumentId,
-                  RetrievalOutcome outcome);
+                  RetrievalOutcome outcome, FeedbackContext context);
+
+    default void feedback(String retrievalId, String sourceDocumentId,
+                          RetrievalOutcome outcome) {
+        feedback(retrievalId, sourceDocumentId, outcome, null);
+    }
 
     List<RetrievalRecord> findRecords(CorpusRef corpus, Instant since, Instant until);
 

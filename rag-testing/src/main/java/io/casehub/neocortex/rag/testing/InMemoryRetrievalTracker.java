@@ -2,6 +2,7 @@ package io.casehub.neocortex.rag.testing;
 
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.RetrievalFeedback;
+import io.casehub.neocortex.rag.FeedbackContext;
 import io.casehub.neocortex.rag.RetrievalOutcome;
 import io.casehub.neocortex.rag.RetrievalRecord;
 import io.casehub.neocortex.rag.RetrievalTracker;
@@ -47,10 +48,10 @@ public class InMemoryRetrievalTracker implements RetrievalTracker {
 
     @Override
     public void feedback(String retrievalId, String sourceDocumentId,
-                         RetrievalOutcome outcome) {
+                         RetrievalOutcome outcome, FeedbackContext context) {
         final String key = retrievalId + "\0" + sourceDocumentId;
         feedbackIndex.put(key, new RetrievalFeedback(
-            retrievalId, sourceDocumentId, outcome, Instant.now()));
+            retrievalId, sourceDocumentId, outcome, Instant.now(), context));
     }
 
     @Override

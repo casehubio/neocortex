@@ -129,7 +129,7 @@ class CorrelationGraphTest {
             @Override public String record(RetrievalQuery q, CorpusRef c,
                     List<RetrievedChunk> r, int m) { return "stub"; }
             @Override public void feedback(String rid, String docId,
-                    RetrievalOutcome o) {}
+                    RetrievalOutcome o, FeedbackContext ctx) {}
             @Override public List<RetrievalRecord> findRecords(CorpusRef c,
                     Instant s, Instant u) { return records; }
             @Override public List<RetrievalFeedback> findFeedback(CorpusRef c,

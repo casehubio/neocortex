@@ -39,7 +39,7 @@ class RetrievalAnalyzerDocumentStatsTest {
             }
 
             @Override
-            public void feedback(String rid, String did, RetrievalOutcome o) {
+            public void feedback(String rid, String did, RetrievalOutcome o, FeedbackContext ctx) {
                 throw new UnsupportedOperationException();
             }
 

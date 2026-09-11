@@ -130,7 +130,7 @@ class RetrievalAnalyzerQueryTest {
         }
 
         @Override
-        public void feedback(String retrievalId, String sourceDocumentId, RetrievalOutcome outcome) {
+        public void feedback(String retrievalId, String sourceDocumentId, RetrievalOutcome outcome, FeedbackContext context) {
             throw new UnsupportedOperationException();
         }
 

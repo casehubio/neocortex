@@ -1,6 +1,8 @@
 package io.casehub.neocortex.rag.testing;
 
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.neocortex.rag.FeedbackAttributeKeys;
+import io.casehub.neocortex.rag.FeedbackContext;
 import io.casehub.neocortex.rag.RetrievalFeedback;
 import io.casehub.neocortex.rag.RetrievalOutcome;
 import io.casehub.neocortex.rag.RetrievalQuery;
@@ -234,5 +236,57 @@ public abstract class RetrievalTrackerContractTest {
     void purge_emptyWhenNothingOld() {
         int deleted = tracker().purgeOlderThan(Instant.now());
         assertThat(deleted).isEqualTo(0);
+    }
+
+    // --- feedback context ---
+
+    @Test
+    void feedback_storesContext() {
+        String id = tracker().record(RetrievalQuery.of("q"), CORPUS, chunks("d1"), 10);
+        var ctx = FeedbackContext.ofIssue("casehubio/neocortex", 305);
+        tracker().feedback(id, "d1", RetrievalOutcome.RELEVANT, ctx);
+        var fb = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX);
+        assertThat(fb).hasSize(1);
+        assertThat(fb.getFirst().context()).isNotNull();
+        assertThat(fb.getFirst().context().issueRepo()).isEqualTo("casehubio/neocortex");
+        assertThat(fb.getFirst().context().issueNumber()).isEqualTo(305);
+    }
+
+    @Test
+    void feedback_nullContext() {
+        String id = tracker().record(RetrievalQuery.of("q"), CORPUS, chunks("d1"), 10);
+        tracker().feedback(id, "d1", RetrievalOutcome.RELEVANT);
+        var fb = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX);
+        assertThat(fb).hasSize(1);
+        assertThat(fb.getFirst().context()).isNull();
+    }
+
+    @Test
+    void feedback_upsertPreservesLatestContext() {
+        String id = tracker().record(RetrievalQuery.of("q"), CORPUS, chunks("d1"), 10);
+        var ctx1 = FeedbackContext.ofIssue("repo-a", 1);
+        var ctx2 = FeedbackContext.ofIssue("repo-b", 2);
+        tracker().feedback(id, "d1", RetrievalOutcome.NOT_RELEVANT, ctx1);
+        tracker().feedback(id, "d1", RetrievalOutcome.RELEVANT, ctx2);
+        var fb = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX);
+        assertThat(fb).hasSize(1);
+        assertThat(fb.getFirst().outcome()).isEqualTo(RetrievalOutcome.RELEVANT);
+        assertThat(fb.getFirst().context().issueRepo()).isEqualTo("repo-b");
+        assertThat(fb.getFirst().context().issueNumber()).isEqualTo(2);
+    }
+
+    @Test
+    void feedback_attributesRoundTrip() {
+        String id = tracker().record(RetrievalQuery.of("q"), CORPUS, chunks("d1"), 10);
+        var ctx = new FeedbackContext(null, null,
+            Map.of(FeedbackAttributeKeys.AGENT_ID, "agent-1",
+                   FeedbackAttributeKeys.SESSION_ID, "sess-42"));
+        tracker().feedback(id, "d1", RetrievalOutcome.RELEVANT, ctx);
+        var fb = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX);
+        assertThat(fb.getFirst().context()).isNotNull();
+        assertThat(fb.getFirst().context().issueRepo()).isNull();
+        assertThat(fb.getFirst().context().attributes())
+            .containsEntry(FeedbackAttributeKeys.AGENT_ID, "agent-1")
+            .containsEntry(FeedbackAttributeKeys.SESSION_ID, "sess-42");
     }
 }
