@@ -372,11 +372,11 @@ class TrendAnalyzerTest {
     }
 
     @Test
-    void textualCbrCase_withFeatures_throws() {
+    void textualCbrCase_withFeatures_succeeds() {
         var tc = new ResolutionGuide("p", "s", null, null, null, null);
-        org.assertj.core.api.Assertions.assertThatThrownBy(
-                () -> tc.withFeatures(Map.of("a", string("x"))))
-                .isInstanceOf(UnsupportedOperationException.class);
+        var updated = (ResolutionGuide) tc.withFeatures(Map.of("a", string("x")));
+        org.assertj.core.api.Assertions.assertThat(updated.features()).containsKey("a");
+        org.assertj.core.api.Assertions.assertThat(updated.problem()).isEqualTo("p");
     }
 
     @Test

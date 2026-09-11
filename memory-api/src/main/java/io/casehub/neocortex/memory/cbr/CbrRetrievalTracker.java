@@ -12,5 +12,7 @@ public interface CbrRetrievalTracker {
                                         MemoryDomain domain,
                                         Instant since, Instant until);
 
+    default void feedback(String traceId, String tenantId, List<CbrRetrievalFeedback> entries) {}
+
     int purgeOlderThan(Instant cutoff);
 }

@@ -9,6 +9,7 @@ import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetrievalFeedback;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTrace;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
@@ -171,12 +172,36 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
     }
 
     @Override
-    public int purgeOlderThan(Instant cutoff) {
-        String sql = "DELETE FROM cbr_retrieval_traces WHERE timestamp < ?";
+    public void feedback(String traceId, String tenantId, List<CbrRetrievalFeedback> entries) {
+        String sql = "INSERT OR REPLACE INTO cbr_retrieval_feedback (trace_id, traced_case_id, outcome, recorded_at) VALUES (?, ?, ?, ?)";
+        String now = Instant.now().toString();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, cutoff.toString());
-            return ps.executeUpdate();
+            for (var entry : entries) {
+                ps.setString(1, traceId);
+                ps.setString(2, entry.tracedCaseId());
+                ps.setString(3, entry.outcome().name());
+                ps.setString(4, now);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to record CBR retrieval feedback", e);
+        }
+    }
+
+    @Override
+    public int purgeOlderThan(Instant cutoff) {
+        String cutoffStr = cutoff.toString();
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM cbr_retrieval_feedback WHERE recorded_at < ?")) {
+                ps.setString(1, cutoffStr);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM cbr_retrieval_traces WHERE timestamp < ?")) {
+                ps.setString(1, cutoffStr);
+                return ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to purge CBR retrieval traces", e);
         }

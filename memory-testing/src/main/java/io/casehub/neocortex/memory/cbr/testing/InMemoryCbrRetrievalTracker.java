@@ -2,6 +2,7 @@ package io.casehub.neocortex.memory.cbr.testing;
 
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRetrievalFeedback;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTrace;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
@@ -14,6 +15,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class InMemoryCbrRetrievalTracker implements CbrRetrievalTracker {
 
     private final List<CbrRetrievalTrace> traces = new CopyOnWriteArrayList<>();
+    private final List<FeedbackEntry> feedbackEntries = new CopyOnWriteArrayList<>();
+
+    public record FeedbackEntry(String traceId, String tenantId, CbrRetrievalFeedback feedback, Instant recordedAt) {}
+
 
     @Override
     public String record(CbrQuery query, List<ScoredCbrCase<?>> results) {
@@ -42,6 +47,18 @@ public class InMemoryCbrRetrievalTracker implements CbrRetrievalTracker {
                 .filter(t -> !t.timestamp().isBefore(since) && t.timestamp().isBefore(until))
                 .sorted(Comparator.comparing(CbrRetrievalTrace::timestamp))
                 .toList();
+    }
+
+    @Override
+    public void feedback(String traceId, String tenantId, List<CbrRetrievalFeedback> entries) {
+        Instant now = Instant.now();
+        for (var entry : entries) {
+            feedbackEntries.add(new FeedbackEntry(traceId, tenantId, entry, now));
+        }
+    }
+
+    public List<FeedbackEntry> feedbackEntries() {
+        return List.copyOf(feedbackEntries);
     }
 
     @Override
