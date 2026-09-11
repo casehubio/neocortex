@@ -1,6 +1,7 @@
 package io.casehub.neocortex.rag.tracking;
 
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.neocortex.rag.FeedbackContext;
 import io.casehub.neocortex.rag.RetrievalFeedback;
 import io.casehub.neocortex.rag.RetrievalOutcome;
 import io.casehub.neocortex.rag.RetrievalQuery;
@@ -8,11 +9,15 @@ import io.casehub.neocortex.rag.RetrievalRecord;
 import io.casehub.neocortex.rag.RetrievalTracker;
 import io.casehub.neocortex.rag.RetrievedChunk;
 import io.casehub.neocortex.rag.RetrievedDocumentRef;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.flywaydb.core.Flyway;
 import org.sqlite.SQLiteConfig;
@@ -43,6 +48,9 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
 
     @ConfigProperty(name = "casehub.rag.tracking.sqlite.busy-timeout-ms", defaultValue = "5000")
     int busyTimeoutMs;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     private HikariDataSource dataSource;
 
@@ -136,15 +144,28 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
 
     @Override
     public void feedback(String retrievalId, String sourceDocumentId,
-                         RetrievalOutcome outcome) {
+                         RetrievalOutcome outcome, FeedbackContext context) {
         String timestamp = toIso(Instant.now());
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                 "INSERT OR REPLACE INTO retrieval_feedback (retrieval_id, source_document_id, outcome, timestamp) VALUES (?,?,?,?)")) {
+                 "INSERT OR REPLACE INTO retrieval_feedback (retrieval_id, source_document_id, outcome, timestamp, issue_repo, issue_number, attributes) VALUES (?,?,?,?,?,?,?)")) {
             ps.setString(1, retrievalId);
             ps.setString(2, sourceDocumentId);
             ps.setString(3, outcome.name());
             ps.setString(4, timestamp);
+            if (context != null) {
+                ps.setString(5, context.issueRepo());
+                if (context.issueNumber() != null) {
+                    ps.setInt(6, context.issueNumber());
+                } else {
+                    ps.setNull(6, java.sql.Types.INTEGER);
+                }
+                ps.setString(7, toJson(context.attributes()));
+            } else {
+                ps.setNull(5, java.sql.Types.VARCHAR);
+                ps.setNull(6, java.sql.Types.INTEGER);
+                ps.setNull(7, java.sql.Types.VARCHAR);
+            }
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("feedback() failed", e);
@@ -199,7 +220,7 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
     @Override
     public List<RetrievalFeedback> findFeedback(CorpusRef corpus,
                                                  Instant since, Instant until) {
-        var sql = new StringBuilder("SELECT f.retrieval_id, f.source_document_id, f.outcome, f.timestamp FROM retrieval_feedback f JOIN retrieval_records r ON f.retrieval_id = r.retrieval_id WHERE r.tenant_id = ? AND r.corpus_name = ?");
+        var sql = new StringBuilder("SELECT f.retrieval_id, f.source_document_id, f.outcome, f.timestamp, f.issue_repo, f.issue_number, f.attributes FROM retrieval_feedback f JOIN retrieval_records r ON f.retrieval_id = r.retrieval_id WHERE r.tenant_id = ? AND r.corpus_name = ?");
         boolean hasSince = hasSinceFilter(since);
         boolean hasUntil = hasUntilFilter(until);
         if (hasSince) sql.append(" AND f.timestamp >= ?");
@@ -220,7 +241,8 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
                         rs.getString("retrieval_id"),
                         rs.getString("source_document_id"),
                         RetrievalOutcome.valueOf(rs.getString("outcome")),
-                        fromIso(rs.getString("timestamp"))
+                        fromIso(rs.getString("timestamp")),
+                        readContext(rs)
                     ));
                 }
             }
@@ -310,6 +332,36 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
     }
 
     // --- private helpers ---
+
+    private String toJson(Map<String, String> attrs) {
+        if (attrs == null || attrs.isEmpty()) return null;
+        try {
+            return objectMapper.writeValueAsString(attrs);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize attributes", e);
+        }
+    }
+
+    private Map<String, String> fromJson(String json) {
+        if (json == null || json.isBlank()) return Map.of();
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to deserialize attributes: " + json, e);
+        }
+    }
+
+    private FeedbackContext readContext(ResultSet rs) throws SQLException {
+        String issueRepo = rs.getString("issue_repo");
+        int issueNumber = rs.getInt("issue_number");
+        boolean hasIssueNumber = !rs.wasNull();
+        String attributesJson = rs.getString("attributes");
+        if (issueRepo == null && !hasIssueNumber && attributesJson == null) {
+            return null;
+        }
+        return new FeedbackContext(issueRepo, hasIssueNumber ? issueNumber : null,
+            fromJson(attributesJson));
+    }
 
     private List<RetrievedDocumentRef> findDocumentRefs(Connection conn, String retrievalId) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(

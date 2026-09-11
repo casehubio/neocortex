@@ -1,6 +1,7 @@
 package io.casehub.neocortex.rag.tracking;
 
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.neocortex.rag.FeedbackContext;
 import io.casehub.neocortex.rag.RetrievalFeedback;
 import io.casehub.neocortex.rag.RetrievalOutcome;
 import io.casehub.neocortex.rag.RetrievalQuery;
@@ -87,7 +88,7 @@ class StubTracker implements RetrievalTracker {
 
     @Override
     public void feedback(String retrievalId, String sourceDocumentId,
-                         RetrievalOutcome outcome) {
+                         RetrievalOutcome outcome, FeedbackContext context) {
         // no-op
     }
 

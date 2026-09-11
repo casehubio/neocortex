@@ -13,6 +13,7 @@ class SqliteRetrievalTrackerTest extends RetrievalTrackerContractTest {
         store.path = ":memory:";
         store.maxPoolSize = 1;
         store.busyTimeoutMs = 5000;
+        store.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
         store.init();
     }
 
