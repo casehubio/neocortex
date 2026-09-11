@@ -1,6 +1,7 @@
 package io.casehub.neocortex.rag.scoring;
 
 import io.casehub.neocortex.rag.AdaptiveFilter;
+import io.casehub.neocortex.rag.AdaptiveFilterOptions;
 import io.casehub.neocortex.rag.AdaptiveSearchConfig;
 import io.casehub.neocortex.rag.CaseRetriever;
 import io.casehub.neocortex.rag.CorpusRef;
@@ -40,6 +41,7 @@ public class AdaptiveSearchWrapper {
             })
             .toList();
 
-        return AdaptiveFilter.filter(scored, maxResults, config);
+        var options = AdaptiveFilterOptions.of(config, RetrievedChunk::relevanceScore);
+        return AdaptiveFilter.filter(scored, maxResults, options);
     }
 }

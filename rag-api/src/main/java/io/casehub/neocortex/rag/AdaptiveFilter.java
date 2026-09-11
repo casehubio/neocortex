@@ -7,21 +7,34 @@ import java.util.List;
 public final class AdaptiveFilter {
     private AdaptiveFilter() {}
 
-    public static List<RetrievedChunk> filter(List<RetrievedChunk> scored,
-                                               int requestedLimit,
-                                               AdaptiveSearchConfig config) {
+    public static <T> List<T> filter(List<T> scored, int requestedLimit,
+                                      AdaptiveFilterOptions<T> options) {
         if (scored.isEmpty()) return List.of();
 
+        var config = options.config();
+        var extractor = options.scoreExtractor();
+
         var sorted = scored.stream()
-            .sorted(Comparator.comparingDouble(RetrievedChunk::relevanceScore).reversed())
+            .sorted(Comparator.comparingDouble(extractor).reversed())
             .toList();
 
         var floored = new ArrayList<>(sorted.stream()
-            .filter(c -> c.relevanceScore() >= config.scoreFloor())
+            .filter(item -> extractor.applyAsDouble(item) >= config.scoreFloor())
             .toList());
 
+        if (options.ceBoundary() != null) {
+            for (int i = 1; i < floored.size(); i++) {
+                if (options.ceBoundary().test(floored.get(i - 1))
+                        && !options.ceBoundary().test(floored.get(i))) {
+                    floored.subList(i, floored.size()).clear();
+                    break;
+                }
+            }
+        }
+
         for (int i = 1; i < floored.size(); i++) {
-            double gap = floored.get(i - 1).relevanceScore() - floored.get(i).relevanceScore();
+            double gap = extractor.applyAsDouble(floored.get(i - 1))
+                       - extractor.applyAsDouble(floored.get(i));
             if (gap >= config.gapThreshold()) {
                 floored.subList(i, floored.size()).clear();
                 break;
@@ -33,6 +46,17 @@ public final class AdaptiveFilter {
         }
         if (floored.size() < config.minResults()) {
             return sorted;
+        }
+
+        if (options.clusterGapThreshold() > 0 && floored.size() > requestedLimit) {
+            int end = requestedLimit;
+            while (end < floored.size()) {
+                double gap = extractor.applyAsDouble(floored.get(end - 1))
+                           - extractor.applyAsDouble(floored.get(end));
+                if (gap >= options.clusterGapThreshold()) break;
+                end++;
+            }
+            return floored.subList(0, end);
         }
 
         return floored.size() > requestedLimit
