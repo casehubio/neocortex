@@ -21,6 +21,16 @@ public interface RetrievalTracker {
 
     List<RetrievalFeedback> findFeedback(CorpusRef corpus, Instant since, Instant until);
 
+    default List<RetrievalFeedback> findFeedback(CorpusRef corpus, Instant since,
+                                                  Instant until, FeedbackFilter filter) {
+        if (filter == null || FeedbackFilter.NONE.equals(filter)) {
+            return findFeedback(corpus, since, until);
+        }
+        return findFeedback(corpus, since, until).stream()
+            .filter(f -> FeedbackFilter.matches(f, filter))
+            .toList();
+    }
+
     Set<String> findRetrievedDocumentIds(CorpusRef corpus, Instant since, Instant until);
 
     int purgeOlderThan(Instant cutoff);

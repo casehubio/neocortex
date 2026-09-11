@@ -3,6 +3,7 @@ package io.casehub.neocortex.rag.testing;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.FeedbackAttributeKeys;
 import io.casehub.neocortex.rag.FeedbackContext;
+import io.casehub.neocortex.rag.FeedbackFilter;
 import io.casehub.neocortex.rag.RetrievalFeedback;
 import io.casehub.neocortex.rag.RetrievalOutcome;
 import io.casehub.neocortex.rag.RetrievalQuery;
@@ -288,5 +289,58 @@ public abstract class RetrievalTrackerContractTest {
         assertThat(fb.getFirst().context().attributes())
             .containsEntry(FeedbackAttributeKeys.AGENT_ID, "agent-1")
             .containsEntry(FeedbackAttributeKeys.SESSION_ID, "sess-42");
+    }
+
+    // --- feedback filtering ---
+
+    @Test
+    void findFeedback_filterByIssue() {
+        String id1 = tracker().record(RetrievalQuery.of("q1"), CORPUS, chunks("d1"), 10);
+        String id2 = tracker().record(RetrievalQuery.of("q2"), CORPUS, chunks("d2"), 10);
+        tracker().feedback(id1, "d1", RetrievalOutcome.RELEVANT,
+            FeedbackContext.ofIssue("repo-a", 1));
+        tracker().feedback(id2, "d2", RetrievalOutcome.RELEVANT,
+            FeedbackContext.ofIssue("repo-b", 2));
+        var filtered = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX,
+            FeedbackFilter.byIssue("repo-a", 1));
+        assertThat(filtered).hasSize(1);
+        assertThat(filtered.getFirst().sourceDocumentId()).isEqualTo("d1");
+    }
+
+    @Test
+    void findFeedback_filterByAttributes() {
+        String id1 = tracker().record(RetrievalQuery.of("q1"), CORPUS, chunks("d1"), 10);
+        String id2 = tracker().record(RetrievalQuery.of("q2"), CORPUS, chunks("d2"), 10);
+        tracker().feedback(id1, "d1", RetrievalOutcome.RELEVANT,
+            new FeedbackContext(null, null, Map.of(FeedbackAttributeKeys.AGENT_ID, "agent-1")));
+        tracker().feedback(id2, "d2", RetrievalOutcome.RELEVANT,
+            new FeedbackContext(null, null, Map.of(FeedbackAttributeKeys.AGENT_ID, "agent-2")));
+        var filtered = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX,
+            new FeedbackFilter(null, null, Map.of(FeedbackAttributeKeys.AGENT_ID, "agent-1")));
+        assertThat(filtered).hasSize(1);
+        assertThat(filtered.getFirst().sourceDocumentId()).isEqualTo("d1");
+    }
+
+    @Test
+    void findFeedback_filterNoneReturnsAll() {
+        String id = tracker().record(RetrievalQuery.of("q"), CORPUS, chunks("d1", "d2"), 10);
+        tracker().feedback(id, "d1", RetrievalOutcome.RELEVANT,
+            FeedbackContext.ofIssue("repo-a", 1));
+        tracker().feedback(id, "d2", RetrievalOutcome.RELEVANT);
+        var filtered = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX,
+            FeedbackFilter.NONE);
+        assertThat(filtered).hasSize(2);
+    }
+
+    @Test
+    void findFeedback_nullContextExcludedByFilter() {
+        String id = tracker().record(RetrievalQuery.of("q"), CORPUS, chunks("d1", "d2"), 10);
+        tracker().feedback(id, "d1", RetrievalOutcome.RELEVANT,
+            FeedbackContext.ofIssue("repo-a", 1));
+        tracker().feedback(id, "d2", RetrievalOutcome.RELEVANT);
+        var filtered = tracker().findFeedback(CORPUS, Instant.EPOCH, Instant.MAX,
+            FeedbackFilter.byIssue("repo-a", 1));
+        assertThat(filtered).hasSize(1);
+        assertThat(filtered.getFirst().sourceDocumentId()).isEqualTo("d1");
     }
 }
