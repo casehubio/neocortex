@@ -2,6 +2,7 @@ package io.casehub.neocortex.rag.tracking;
 
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.FeedbackContext;
+import io.casehub.neocortex.rag.FeedbackFilter;
 import io.casehub.neocortex.rag.RetrievalFeedback;
 import io.casehub.neocortex.rag.RetrievalOutcome;
 import io.casehub.neocortex.rag.RetrievalQuery;
@@ -249,6 +250,59 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
             return List.copyOf(feedbacks);
         } catch (SQLException e) {
             throw new IllegalStateException("findFeedback() failed", e);
+        }
+    }
+
+    @Override
+    public List<RetrievalFeedback> findFeedback(CorpusRef corpus,
+                                                 Instant since, Instant until,
+                                                 FeedbackFilter filter) {
+        if (filter == null || FeedbackFilter.NONE.equals(filter)) {
+            return findFeedback(corpus, since, until);
+        }
+
+        var sql = new StringBuilder("SELECT f.retrieval_id, f.source_document_id, f.outcome, f.timestamp, f.issue_repo, f.issue_number, f.attributes FROM retrieval_feedback f JOIN retrieval_records r ON f.retrieval_id = r.retrieval_id WHERE r.tenant_id = ? AND r.corpus_name = ?");
+        boolean hasSince = hasSinceFilter(since);
+        boolean hasUntil = hasUntilFilter(until);
+        if (hasSince) sql.append(" AND f.timestamp >= ?");
+        if (hasUntil) sql.append(" AND f.timestamp < ?");
+
+        if (filter.issueRepo() != null) sql.append(" AND f.issue_repo = ?");
+        if (filter.issueNumber() != null) sql.append(" AND f.issue_number = ?");
+        for (var entry : filter.attributes().entrySet()) {
+            sql.append(" AND json_extract(f.attributes, ?) = ?");
+        }
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            ps.setString(idx++, corpus.tenantId());
+            ps.setString(idx++, corpus.corpusName());
+            if (hasSince) ps.setString(idx++, toIso(since));
+            if (hasUntil) ps.setString(idx++, toIso(until));
+
+            if (filter.issueRepo() != null) ps.setString(idx++, filter.issueRepo());
+            if (filter.issueNumber() != null) ps.setInt(idx++, filter.issueNumber());
+            for (var entry : filter.attributes().entrySet()) {
+                ps.setString(idx++, "$." + entry.getKey());
+                ps.setString(idx++, entry.getValue());
+            }
+
+            List<RetrievalFeedback> feedbacks = new ArrayList<>();
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    feedbacks.add(new RetrievalFeedback(
+                        rs.getString("retrieval_id"),
+                        rs.getString("source_document_id"),
+                        RetrievalOutcome.valueOf(rs.getString("outcome")),
+                        fromIso(rs.getString("timestamp")),
+                        readContext(rs)
+                    ));
+                }
+            }
+            return List.copyOf(feedbacks);
+        } catch (SQLException e) {
+            throw new IllegalStateException("findFeedback(filter) failed", e);
         }
     }
 
