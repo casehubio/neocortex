@@ -24,13 +24,21 @@ public final class RetrievalAnalyzer {
             RetrievalTracker tracker,
             CorpusRef corpus,
             Instant since, Instant until) {
+        return documentStats(tracker, corpus, since, until, FeedbackFilter.NONE);
+    }
+
+    public static Map<String, DocumentStats> documentStats(
+            RetrievalTracker tracker,
+            CorpusRef corpus,
+            Instant since, Instant until,
+            FeedbackFilter filter) {
 
         List<RetrievalRecord> records = tracker.findRecords(corpus, since, until);
         if (records.isEmpty()) {
             return Map.of();
         }
 
-        List<RetrievalFeedback> allFeedback = tracker.findFeedback(corpus, since, Instant.MAX);
+        List<RetrievalFeedback> allFeedback = tracker.findFeedback(corpus, since, Instant.MAX, filter);
 
         Set<String> inWindowRetrievalIds = new HashSet<>();
         for (RetrievalRecord r : records) {
@@ -95,8 +103,18 @@ public final class RetrievalAnalyzer {
             CorpusRef corpus,
             Instant since, Instant until,
             QualityThresholds thresholds) {
+        return qualitySignals(tracker, ingestor, corpus, since, until, thresholds, FeedbackFilter.NONE);
+    }
 
-        Map<String, DocumentStats> stats       = documentStats(tracker, corpus, since, until);
+    public static List<DocumentQualitySignal> qualitySignals(
+            RetrievalTracker tracker,
+            EmbeddingIngestor ingestor,
+            CorpusRef corpus,
+            Instant since, Instant until,
+            QualityThresholds thresholds,
+            FeedbackFilter filter) {
+
+        Map<String, DocumentStats> stats       = documentStats(tracker, corpus, since, until, filter);
         Set<String>                unretrieved = unretrievedDocuments(tracker, ingestor, corpus, since, until);
 
         List<DocumentQualitySignal> neverRetrievedSignals = new ArrayList<>();

@@ -291,4 +291,32 @@ class RetrievalAnalyzerQualitySignalsTest {
         assertThat(result.get(2).signal()).isEqualTo(QualitySignal.STALE);
         assertThat(result.get(2).sourceDocumentId()).isEqualTo("doc-C");
     }
+
+    @Test
+    void qualitySignals_filteredByIssue() {
+        var records = new ArrayList<RetrievalRecord>();
+        var feedback = new ArrayList<RetrievalFeedback>();
+        Instant recent = Instant.now().minusSeconds(60);
+
+        for (int i = 0; i < 5; i++) {
+            String rid = "r" + i;
+            records.add(new RetrievalRecord(rid, RetrievalQuery.of("q"), CORPUS,
+                List.of(new RetrievedDocumentRef("doc-A", 0.9)), 10, recent));
+            feedback.add(new RetrievalFeedback(rid, "doc-A",
+                RetrievalOutcome.NOT_RELEVANT, recent,
+                FeedbackContext.ofIssue("repo-bad", 1)));
+        }
+        feedback.add(new RetrievalFeedback("r0", "doc-A",
+            RetrievalOutcome.HIGHLY_RELEVANT, recent,
+            FeedbackContext.ofIssue("repo-good", 2)));
+
+        var tracker = combinedStub(records, feedback, Set.of("doc-A"));
+        var ingestor = stubIngestor(List.of("doc-A"));
+
+        var signals = RetrievalAnalyzer.qualitySignals(tracker, ingestor, CORPUS,
+            SINCE, UNTIL, DEFAULTS, FeedbackFilter.byIssue("repo-bad", 1));
+
+        assertThat(signals).anyMatch(s ->
+            s.sourceDocumentId().equals("doc-A") && s.signal() == QualitySignal.HIGH_RETRIEVAL_LOW_QUALITY);
+    }
 }

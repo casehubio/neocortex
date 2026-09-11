@@ -187,4 +187,25 @@ class RetrievalAnalyzerDocumentStatsTest {
 
         assertThat(result.get("doc-A").feedbackDistribution()).isEmpty();
     }
+
+    @Test
+    void documentStats_filteredByIssue() {
+        var records = List.of(
+            new RetrievalRecord("r1", RetrievalQuery.of("q"), CORPUS,
+                List.of(new RetrievedDocumentRef("doc-A", 0.9)), 10, T1));
+        var feedback = List.of(
+            new RetrievalFeedback("r1", "doc-A", RetrievalOutcome.RELEVANT, T2,
+                FeedbackContext.ofIssue("repo-a", 1)),
+            new RetrievalFeedback("r1", "doc-A", RetrievalOutcome.NOT_RELEVANT, T2,
+                FeedbackContext.ofIssue("repo-b", 2)));
+
+        var tracker = stubTracker(records, feedback);
+        var stats = RetrievalAnalyzer.documentStats(tracker, CORPUS, SINCE, UNTIL,
+            FeedbackFilter.byIssue("repo-a", 1));
+
+        assertThat(stats).containsKey("doc-A");
+        assertThat(stats.get("doc-A").feedbackDistribution())
+            .containsEntry(RetrievalOutcome.RELEVANT, 1)
+            .doesNotContainKey(RetrievalOutcome.NOT_RELEVANT);
+    }
 }
