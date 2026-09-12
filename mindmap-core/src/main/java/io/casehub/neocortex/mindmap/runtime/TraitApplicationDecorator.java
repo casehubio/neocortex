@@ -7,15 +7,9 @@ import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
-import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.TraitRule;
-import jakarta.annotation.Priority;
-import jakarta.decorator.Decorator;
-import jakarta.decorator.Delegate;
-import jakarta.enterprise.inject.Any;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
+import io.casehub.platform.api.identity.PrincipalId;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Decorator
-@Priority(70)
 public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
 
     private static final ThreadLocal<Boolean> evaluating =
@@ -34,21 +26,12 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
     private final List<TraitRule>         programmaticRules;
     private final DeclarativeRuleRegistry registry;
 
-    @Inject
-    public TraitApplicationDecorator(@Delegate @Any MindMapStore delegate,
-                                     Instance<TraitRule> rules,
-                                     Instance<DeclarativeRuleRegistry> registry) {
-        super(delegate);
-        this.programmaticRules = List.copyOf(rules.stream().toList());
-        this.registry          = registry.isResolvable() ? registry.get() : null;
-    }
-
-    TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules) {
+    public TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules) {
         this(delegate, rules, null);
     }
 
-    TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules,
-                              DeclarativeRuleRegistry registry) {
+    public TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules,
+                                     DeclarativeRuleRegistry registry) {
         super(delegate);
         this.programmaticRules = List.copyOf(rules);
         this.registry          = registry;

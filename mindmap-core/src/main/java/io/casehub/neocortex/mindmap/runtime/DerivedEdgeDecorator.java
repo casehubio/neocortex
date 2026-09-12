@@ -8,10 +8,6 @@ import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.platform.api.identity.PrincipalId;
-import jakarta.decorator.Delegate;
-import jakarta.enterprise.inject.Any;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,26 +25,16 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
     private final int                       maxDepth;
     private final Map<String, List<String>> triggerToDerived = new ConcurrentHashMap<>();
 
-    @Inject
-    public DerivedEdgeDecorator(@Delegate @Any MindMapStore delegate,
-                                Instance<DerivedEdgeRule> rules,
-                                Instance<DeclarativeRuleRegistry> registry) {
-        super(delegate);
-        this.programmaticRules = List.copyOf(rules.stream().toList());
-        this.registry          = registry.isResolvable() ? registry.get() : null;
-        this.maxDepth          = DEFAULT_MAX_DEPTH;
-    }
-
-    DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules) {
+    public DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules) {
         this(delegate, rules, DEFAULT_MAX_DEPTH, null);
     }
 
-    DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth) {
+    public DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth) {
         this(delegate, rules, maxDepth, null);
     }
 
-    DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth,
-                         DeclarativeRuleRegistry registry) {
+    public DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth,
+                                DeclarativeRuleRegistry registry) {
         super(delegate);
         this.programmaticRules = List.copyOf(rules);
         this.maxDepth          = maxDepth;

@@ -29,28 +29,15 @@ public final class MindMapAnalyzer {
         store.requireCapability(MindMapCapability.GRAPH_ANALYSIS);
     }
 
-
-    // --- Signal records ---
-
     public record OrphanNode(String nodeId, String name, String subgraphId) {}
-
     public record NodeDegree(String nodeId, String name, int degree) {}
-
     public record SparseSubgraph(String subgraphId, String name, int nodeCount, int edgeCount, double density) {}
-
     public record UnvalidatedEdgeRatio(String subgraphId, String name, int total, int unvalidated, double ratio) {}
-
     public record StaleNode(String nodeId, String name, Instant lastUpdated, Duration age) {}
-
     public record ContradictionCluster(String nodeId, String name, String edgeType, List<String> conflictingTargets) {}
-
     public record LowConfidenceCluster(String subgraphId, String name, int total, int lowConfidence, double ratio) {}
-
     public record DanglingNodeRef(String nodeId, String name, NodeRef ref) {}
-
     public record BetweennessCentrality(String nodeId, String name, double score) {}
-
-    // --- Structural signals ---
 
     public static List<OrphanNode> orphanNodes(MindMapStore store, String subgraphId, String tenantId) {
         requireAnalysis(store);
@@ -93,8 +80,6 @@ public final class MindMapAnalyzer {
         double density = maxEdges > 0 ? edgeCount / maxEdges : 0.0;
         return new SparseSubgraph(subgraphId, sg.name(), nodeCount, edgeCount, density);
     }
-
-    // --- Quality signals ---
 
     public static UnvalidatedEdgeRatio unvalidatedEdgeRatio(MindMapStore store, String subgraphId, String tenantId) {
         requireAnalysis(store);
@@ -153,8 +138,6 @@ public final class MindMapAnalyzer {
         return new LowConfidenceCluster(subgraphId, sg.name(), total, low, ratio);
     }
 
-    // --- Temporal signals ---
-
     public static List<StaleNode> staleNodes(MindMapStore store, String subgraphId,
                                               String tenantId, Duration staleThreshold, Instant now) {
         requireAnalysis(store);
@@ -169,8 +152,6 @@ public final class MindMapAnalyzer {
         stale.sort(Comparator.comparing(StaleNode::age).reversed());
         return stale;
     }
-
-    // --- Centrality signals ---
 
     public static List<BetweennessCentrality> betweennessCentrality(MindMapStore store,
                                                                      String subgraphId, String tenantId) {

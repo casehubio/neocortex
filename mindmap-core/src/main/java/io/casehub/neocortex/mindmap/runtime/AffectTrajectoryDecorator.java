@@ -7,50 +7,17 @@ import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeUpdate;
-import jakarta.annotation.Priority;
-import jakarta.decorator.Decorator;
-import jakarta.decorator.Delegate;
-import jakarta.enterprise.event.Event;
-import jakarta.enterprise.inject.Any;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/**
- * Intercepts {@link MindMapStore#updateNode} to log PAD changes as
- * {@code domain="affect"} memory entries, creating a timestamped
- * affect trajectory per node.
- *
- * <p>This is a <strong>write-through decorator</strong> — it delegates
- * the update to the underlying store, then records the PAD change as
- * a memory entry if any PAD dimension changed. The stored memories
- * form a queryable trajectory via
- * {@code MemoryQuery.forEntity(nodeId, AffectEvents.DOMAIN, tenantId)}.
- *
- * <p>Uses {@link Instance} for graceful degradation — if no
- * {@link CaseMemoryStore} is on the classpath, PAD changes are not
- * logged (silently skipped).
- */
-@Decorator
-@Priority(65)
 public class AffectTrajectoryDecorator extends AbstractForwardingMindMapStore {
 
     private final CaseMemoryStore memoryStore;
     private final Consumer<AffectRecorded> eventSink;
 
-    @Inject
-    public AffectTrajectoryDecorator(@Delegate @Any MindMapStore delegate,
-                                     Instance<CaseMemoryStore> memoryStore,
-                                     Event<AffectRecorded> event) {
-        super(delegate);
-        this.memoryStore = memoryStore.isResolvable() ? memoryStore.get() : null;
-        this.eventSink = event::fire;
-    }
-
-    AffectTrajectoryDecorator(MindMapStore delegate, CaseMemoryStore memoryStore,
-                              Consumer<AffectRecorded> eventSink) {
+    public AffectTrajectoryDecorator(MindMapStore delegate, CaseMemoryStore memoryStore,
+                                     Consumer<AffectRecorded> eventSink) {
         super(delegate);
         this.memoryStore = memoryStore;
         this.eventSink = eventSink;

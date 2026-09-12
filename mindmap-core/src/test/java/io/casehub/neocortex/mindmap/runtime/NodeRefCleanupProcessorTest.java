@@ -2,27 +2,23 @@ package io.casehub.neocortex.mindmap.runtime;
 
 import io.casehub.neocortex.mindmap.*;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
-import io.casehub.neocortex.memory.MemoryEntityErased;
-import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCasesErased;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class NodeRefCleanupObserverTest {
+class NodeRefCleanupProcessorTest {
 
     private InMemoryMindMapStore store;
-    private NodeRefCleanupObserver observer;
+    private NodeRefCleanupProcessor processor;
     private String subgraphId;
 
     @BeforeEach
     void setUp() {
         store = new InMemoryMindMapStore();
-        observer = new NodeRefCleanupObserver(store);
+        processor = new NodeRefCleanupProcessor(store);
         subgraphId = store.createSubgraph(
             new SubgraphInput("Test", SubgraphTypes.GENERAL, null), "t1");
     }
@@ -35,8 +31,7 @@ class NodeRefCleanupObserverTest {
             null, "test", null,
             Set.of(memRef, otherRef), null, null, null, null, null, null), "t1");
 
-        observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
-            "t1", 3, "mem-123", Instant.now()));
+        processor.removeRefs("memory", "mem-123", "t1");
 
         MindMapNode node = store.getNode(nodeId, "t1");
         assertThat(node.refs()).containsExactly(otherRef);
@@ -49,8 +44,7 @@ class NodeRefCleanupObserverTest {
             null, "test", null,
             Set.of(cbrRef), null, null, null, null, null, null), "t1");
 
-        observer.onCbrCasesErased(new CbrCasesErased.ByEntity(
-            "t1", 2, "cbr-456", Instant.now()));
+        processor.removeRefs("cbr", "cbr-456", "t1");
 
         MindMapNode node = store.getNode(nodeId, "t1");
         assertThat(node.refs()).isEmpty();
@@ -63,8 +57,7 @@ class NodeRefCleanupObserverTest {
             null, "test", null,
             Set.of(unrelated), null, null, null, null, null, null), "t1");
 
-        observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
-            "t1", 1, "nonexistent", Instant.now()));
+        processor.removeRefs("memory", "nonexistent", "t1");
 
         MindMapNode node = store.getNode(nodeId, "t1");
         assertThat(node.refs()).containsExactly(unrelated);
@@ -82,8 +75,7 @@ class NodeRefCleanupObserverTest {
             null, "test", null,
             Set.of(otherMemRef), null, null, null, null, null, null), "t1");
 
-        observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
-            "t1", 1, "mem-123", Instant.now()));
+        processor.removeRefs("memory", "mem-123", "t1");
 
         assertThat(store.getNode(alice, "t1").refs()).isEmpty();
         assertThat(store.getNode(bob, "t1").refs()).containsExactly(otherMemRef);
@@ -97,8 +89,7 @@ class NodeRefCleanupObserverTest {
             null, "test", null,
             Set.of(ref1, ref2), null, null, null, null, null, null), "t1");
 
-        observer.onMemoryEntityErased(new MemoryEntityErased.ByEntity(
-            "t1", 1, "mem-123", Instant.now()));
+        processor.removeRefs("memory", "mem-123", "t1");
 
         MindMapNode node = store.getNode(nodeId, "t1");
         assertThat(node.refs()).isEmpty();

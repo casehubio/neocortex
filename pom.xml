@@ -53,6 +53,7 @@
     <module>memory-mem0</module>
     <module>memory-graphiti</module>
     <module>mindmap-api</module>
+    <module>mindmap-core</module>
     <module>mindmap</module>
     <module>mindmap-testing</module>
     <module>mindmap-inmem</module>
