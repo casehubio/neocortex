@@ -91,4 +91,20 @@ class ConsolidationSchedulerTest {
 
         assertThat(executedPhases).containsExactly("healthy:tenant-1");
     }
+
+    @Test
+    void consolidateNow_runsAllPhasesForTenant() {
+        scheduler.consolidateNow("tenant-1");
+        assertThat(executedPhases).containsExactly(
+                "phase-1:tenant-1", "phase-2:tenant-1");
+    }
+
+    @Test
+    void consolidateNow_bypassesIdleCheck() {
+        idleTracker.recordWrite();
+        scheduler.consolidateNow("tenant-1");
+        assertThat(executedPhases).containsExactly(
+                "phase-1:tenant-1", "phase-2:tenant-1");
+    }
+
 }

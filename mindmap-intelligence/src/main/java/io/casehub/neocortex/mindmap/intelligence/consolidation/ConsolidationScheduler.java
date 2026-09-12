@@ -124,6 +124,32 @@ public class ConsolidationScheduler {
         }
     }
 
+    public void consolidateNow(String tenantId) {
+        if (!lock.tryLock()) {
+            LOG.info("Consolidation already running — skipping on-demand request for " + tenantId);
+            return;
+        }
+        try {
+            for (ConsolidationPhase phase : phases) {
+                if (phase instanceof AccessFrequencyPhase afp) {
+                    afp.beginTick();
+                }
+            }
+            List<String> priority = subgraphPriority(tenantId);
+            for (ConsolidationPhase phase : phases) {
+                try {
+                    phase.run(tenantId, priority);
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Phase " + phase.name()
+                                           + " failed for tenant " + tenantId, e);
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+
     private List<String> subgraphPriority(String tenantId) {
         if (curiosityGenerator == null) return List.of();
         return curiosityGenerator.computeSignals(tenantId, Set.of()).stream()
