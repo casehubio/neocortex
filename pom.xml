@@ -38,6 +38,7 @@
     <module>corpus-api</module>
     <module>corpus</module>
     <module>memory-api</module>
+    <module>memory-core</module>
     <module>memory</module>
     <module>memory-testing</module>
     <module>memory-cbr-inmem</module>
