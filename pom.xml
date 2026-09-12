@@ -27,6 +27,7 @@
     <module>cognitive-index</module>
     <module>rag-api</module>
     <module>rag-core</module>
+    <module>rag-spring</module>
     <module>rag</module>
     <module>rag-tika</module>
     <module>rag-testing</module>
@@ -40,6 +41,7 @@
     <module>corpus</module>
     <module>memory-api</module>
     <module>memory-core</module>
+    <module>memory-spring</module>
     <module>memory</module>
     <module>memory-testing</module>
     <module>memory-cbr-inmem</module>
@@ -55,6 +57,7 @@
     <module>memory-graphiti</module>
     <module>mindmap-api</module>
     <module>mindmap-core</module>
+    <module>mindmap-spring</module>
     <module>mindmap</module>
     <module>mindmap-testing</module>
     <module>mindmap-inmem</module>
@@ -118,6 +121,7 @@
     <directory-watcher.version>0.19.1</directory-watcher.version>
     <casehub-platform-api.version>0.2-SNAPSHOT</casehub-platform-api.version>
     <casehub-desiredstate-api.version>0.2-SNAPSHOT</casehub-desiredstate-api.version>
+    <spring-boot.version>3.4.5</spring-boot.version>
   </properties>
 
   <dependencyManagement>
@@ -128,6 +132,15 @@
         <groupId>io.quarkus.platform</groupId>
         <artifactId>quarkus-bom</artifactId>
         <version>${quarkus.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Spring Boot BOM -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -229,6 +242,11 @@
       </dependency>
       <dependency>
         <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-rag-spring</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-rag-testing</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -265,6 +283,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-memory</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-memory-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -310,6 +333,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-mindmap</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-mindmap-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
