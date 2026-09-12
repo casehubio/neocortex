@@ -62,7 +62,7 @@
 
 | Module | artifactId | Type | Purpose |
 |--------|-----------|------|---------|
-| `memory-api/` | (same artifact) | Pure Java | `CbrCaseMemoryStore` SPI (composite extending CbrCaseStore + CbrCaseRetriever + CbrCaseLifecycle + CbrCaseAdmin ISP sub-interfaces); `DelegatingCbrCaseMemoryStore` (forwarding base class for decorators); `CbrCase` hierarchy (TextualCbrCase, FeatureVectorCbrCase, PlanCbrCase); `CbrQuery` (CaseTypeScope sealed: Specific/AllInDomain for cross-type retrieval, weights, vectorWeight, RetrievalMode, FusionStrategy, filters, TemporalDecay, scope Path, ScopeDecay, withFeatures(), crossType() factory); `CbrFilter` sealed hierarchy (8 variants); `FeatureValue` sealed (7 types); `FeatureField` sealed (9 types); `SimilaritySpec` sealed (6 types); `CbrSimilarityScorer`; `CbrFeatureValidator`; `CbrFeatureSchema` (with optional learningRate); `DtwSimilarity` + `LbKeogh` (O(n) lower-bound pruning); `EditDistanceSimilarity`; `WarpingConstraint` sealed; `TrendAnalyzer`, `TrendSpec`, `TrendType`, `TrendProfile`, `TrendFieldNaming`; `TemporalDecay` sealed (3 types); `ScopeDecay` sealed (3 types); `PlanAdapter` SPI; `PlanEnsembleAnalyzer` SPI; `CbrOutcome`; `CbrRetentionPolicy` (with minTrustScore); `CbrScanRequest`; `CbrCaseSummary`; `SupersessionStatus`; `AgentTrustProvider` SPI; `TrustWeightingFunction` SPI; `OutcomeWeightingFunction` SPI; `ExplanationRenderer` SPI; `CbrRetrievalTracker` SPI; `PersonalityTransitionSchema`; `FeatureStatistics`; `CbrSuggestions`; CDI events: `CbrRetrievalRecorded`, `CbrAdaptationRecorded`, `CbrEnsembleRecorded`, `CbrCasesErased` (sealed: ByRequest, ByEntity, ByScope), `CbrCasesSuperseded` (sealed: ByCase, ByFilter, ByIds), `CbrCasesReinstated` (sealed: ByCase, ByFilter, ByIds) |
+| `memory-api/` | (same artifact) | Pure Java | `CbrCaseMemoryStore` SPI (composite extending CbrCaseStore + CbrCaseRetriever + CbrCaseLifecycle + CbrCaseAdmin ISP sub-interfaces); `DelegatingCbrCaseMemoryStore` (forwarding base class for decorators); `CbrCase` hierarchy (TextualCbrCase, FeatureVectorCbrCase, PlanCbrCase); `ResolutionGuide` (with features `Map<String, FeatureValue>` + `List<GuidanceStep>` structured steps); `CbrQuery` (CaseTypeScope sealed: Specific/AllInDomain for cross-type retrieval, weights, vectorWeight, RetrievalMode, FusionStrategy, filters, TemporalDecay, scope Path, ScopeDecay, withFeatures(), crossType() factory); `CbrFilter` sealed hierarchy (8 variants); `FeatureValue` sealed (7 types); `FeatureField` sealed (9 types); `SimilaritySpec` sealed (6 types); `CbrSimilarityScorer`; `CbrFeatureValidator`; `CbrFeatureSchema` (with optional learningRate); `DtwSimilarity` + `LbKeogh` (O(n) lower-bound pruning); `EditDistanceSimilarity`; `WarpingConstraint` sealed; `TrendAnalyzer`, `TrendSpec`, `TrendType`, `TrendProfile`, `TrendFieldNaming`; `TemporalDecay` sealed (3 types); `ScopeDecay` sealed (3 types); `PlanAdapter` SPI; `PlanEnsembleAnalyzer` SPI; `CbrOutcome`; `CbrRetentionPolicy` (with minTrustScore); `CbrScanRequest`; `CbrCaseSummary`; `SupersessionStatus`; `AgentTrustProvider` SPI; `TrustWeightingFunction` SPI; `OutcomeWeightingFunction` SPI; `ExplanationRenderer` SPI; `CbrRetrievalTracker` SPI (record, findTraces, purgeOlderThan, feedback with `CbrFeedbackOutcome` and `CbrRetrievalFeedback`); `PersonalityTransitionSchema`; `FeatureStatistics`; `CbrSuggestions`; CDI events: `CbrRetrievalRecorded`, `CbrAdaptationRecorded`, `CbrEnsembleRecorded`, `CbrCasesErased` (sealed: ByRequest, ByEntity, ByScope), `CbrCasesSuperseded` (sealed: ByCase, ByFilter, ByIds), `CbrCasesReinstated` (sealed: ByCase, ByFilter, ByIds) |
 | `memory/` | (same artifact) | CDI module | CBR decorator chain (all @Decorator on CbrCaseMemoryStore): `TrendEnrichmentCbrCaseMemoryStore` (@Priority(90) — enriches TimeSeries features with derived trend metrics on store/retrieve); `ScopeDecayCbrCaseMemoryStore` (@Priority(85) — scope-distance score decay); `TemporalDecayCbrCaseMemoryStore` (@Priority(80) — temporal decay post-scoring); `OutcomeWeightingCbrCaseMemoryStore` (@Priority(65) — confidence-based score modulation, @IfBuildProperty); `TrustWeightedCbrCaseMemoryStore` (@Priority(60) — trust authority + trajectory scoring, @IfBuildProperty); `TrackingCbrCaseMemoryStore` in memory-cbr-tracking (@Priority(50) — retrieval tracking); `ErasureNotificationCbrCaseMemoryStore` (@Priority(45) — fires CbrCasesErased CDI events). Plus: `NoOpCbrCaseMemoryStore` @DefaultBean; `CbrOutcomeConsumer` (@ObservesAsync @CloudEventType — bridges CloudEvent to recordOutcome); `CbrRetentionScheduler` (scheduled age+count+trust purge); `TrustRetentionService` (trust-trajectory-based purge via AgentTrustProvider); `DefaultOutcomeWeightingFunction` (linear interpolation); `DefaultTrustWeightingFunction` (authority + trajectory); `DefaultExplanationRenderer`; `NoOpPlanAdapter` @DefaultBean; `NoOpPlanEnsembleAnalyzer` @DefaultBean |
 | `memory-cbr-inmem/` | `casehub-neocortex-memory-cbr-inmem` | Backend | @Alternative @Priority(2) — in-memory stub for tests, clearCases() for isolation (clears cases, preserves schemas) |
 | `memory-cbr-jpa/` | `casehub-neocortex-memory-cbr-jpa` | Backend | @Alternative @Priority(3) JPA/PostgreSQL. `CbrCaseEntity` with JSONB features (`Map<String, FeatureValue>`), plan traces, outcome tracking, supersession metadata. Flyway migrations |
@@ -630,7 +630,7 @@ Pure static utility. Computes affect trajectory from `domain="affect"` memories 
 
 **Algorithms:** Least-squares regression for pleasure slope and dominance slope (time in hours). Population standard deviation for arousal volatility.
 
-**Output:** `AffectTrajectory` record — `pleasureSlope`, `arousalVolatility`, `dominanceSlope`, `TrendDirection` (IMPROVING/WORSENING/STABLE based on pleasure slope vs threshold), `rateOfChange`, `sampleCount`. Edge cases: 0–1 samples → all-zero STABLE. Null PAD values treated as 0.0.
+**Output:** `AffectTrajectory` record — `pleasureSlope`, `arousalVolatility`, `arousalSlope`, `dominanceSlope`, `TrendDirection` (IMPROVING/WORSENING/STABLE based on pleasure slope vs threshold), `rateOfChange`, `sampleCount`. All three slopes computed via least-squares regression; arousalVolatility via population standard deviation. Edge cases: 0–1 samples → all-zero STABLE. Null PAD values treated as 0.0.
 
 #### TemporalFocus
 
@@ -644,17 +644,53 @@ Pure static utility. Scores `TemporalEntry` items by proximity/recency plus affe
 
 `@ApplicationScoped`. Cross-store entity resolution — resolves a unified `EntityKnowledge` record for a single entity across MindMap + Memory stores.
 
-**Resolution:** `CognitiveProfileQuery` with `byId(nodeId, tenantId)` or `byName(entityName, tenantId)` factories (mutually exclusive). Configurable domain set (defaults: experience, relationship, reflection, mood, engagement, affect), edge inclusion toggle, memory limit.
+**Resolution:** `CognitiveProfileQuery` with `byId(nodeId, tenantId)` or `byName(entityName, tenantId)` factories (mutually exclusive). Configurable domain set (defaults: experience, relationship, reflection, mood, engagement, affect), edge inclusion toggle, memory limit. `withAsSeenBy(PrincipalId)` enables perspectival resolution.
 
 **Entity ID collection:** Gathers IDs from node ID, node name, and `NodeRef` entries with `scheme="memory"` — enabling cross-reference following between stores.
 
-**Output:** `EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, tenantId)`. `unresolvedRefs` = NodeRefs with scheme ≠ "memory" (external references the profile couldn't follow). Affect trajectory computed via `AffectTrajectoryAnalyzer`.
+**Perspective-aware resolve():** When `asSeenBy` is set, the resolution pipeline: (1) resolve shared node, (2) apply perspectival overlay via `PerspectivalResolver` (package-private, internalized) before any derived computation, (3) collect entity IDs from the merged node, (4) query memories scoped by `withCallerPrincipalId(asSeenBy)`, (5) compute trajectory from principal-scoped affect memories. Without `asSeenBy`, the pipeline is unchanged — steps 2 and 4's scoping are skipped.
+
+**Multi-agent comparison:** `compare(CognitiveProfileQuery, Set<PrincipalId>)` returns `Map<PrincipalId, EntityKnowledge>`. Loads all overlay nodes once via `PerspectivalResolver.loadAllOverlays(tenantId)` (single `MindMapStore.search()` call), partitions by `agentId` property, then resolves per-agent: merge overlay → collect entity IDs → query principal-scoped memories → compute trajectory. Each entry's `perceiver` is set. Callers pass the result to `SocialComparison.compare()` for divergence metrics.
+
+**Output:** `EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, tenantId, perceiver)`. `perceiver` is null for shared views, non-null for perspectival views. `unresolvedRefs` = NodeRefs with scheme ≠ "memory" (external references the profile couldn't follow). Affect trajectory computed via `AffectTrajectoryAnalyzer`.
 
 #### PerspectivalMerge and PerspectivalResolver
 
-**PerspectivalMerge** — pure static utility. Merges a shared `MindMapNode` with a private overlay node. Overlay wins for PAD, confidence, and properties; shared wins for identity (id, name, subgraph, temporal bounds, traits, refs). Returns a `MergedNode` implementing `MindMapNode`.
+**PerspectivalMerge** — public pure static utility. Merges a shared `MindMapNode` with a private overlay node. Overlay wins for PAD, confidence, and properties; shared wins for identity (id, name, subgraph, temporal bounds, traits, refs). Returns a `MergedNode` implementing `MindMapNode`.
 
-**PerspectivalResolver** — `@ApplicationScoped`. Finds overlay nodes by querying for the `"overlay"` trait in a tenant, filtering by `agentId` property matching the caller's `PrincipalId`. Maps overlays to shared nodes via `OverlayRef.sharedNodeId()`. `resolve(sharedNodes, principal, tenantId)` returns a new list with overlay merges applied where they exist; non-overlay nodes pass through unchanged.
+**PerspectivalResolver** — package-private class (internalized inside `CognitiveProfile`). Finds overlay nodes by querying for the `"overlay"` trait in a tenant, filtering by `agentId` property matching the caller's `PrincipalId`. Maps overlays to shared nodes via `OverlayRef.sharedNodeId()`. `resolve(sharedNodes, principal, tenantId)` returns a new list with overlay merges applied where they exist; non-overlay nodes pass through unchanged. `loadAllOverlays(tenantId)` returns all overlay nodes for batched comparison — used by `CognitiveProfile.compare()` for single-scan multi-agent resolution.
+
+#### SocialComparison
+
+Pure static utility following the `AffectTrajectoryAnalyzer` pattern. `compare(Map<PrincipalId, EntityKnowledge>)` computes multi-agent divergence metrics from already-resolved perspectives (typically the output of `CognitiveProfile.compare()`).
+
+**Output:** `PerspectivalComparison` record containing:
+- `perspectives` — per-agent `AffectSnapshot` (PAD values from merged perspectival node + trajectory)
+- `unassessedAgents` — agents with any null PAD dimension, excluded from distance/difference computations
+- `distances` — `PadDistanceMatrix` with pairwise Euclidean distances in PAD space
+- `dimensionDifferences` — per-`PadDimension` signed `PairwiseDifferences` (canonical pair ordering: `pair.a() - pair.b()`)
+- `trajectoryAlignment` — pairwise 3D slope vector cosine similarity (`[pleasureSlope, arousalSlope, dominanceSlope]`) + `TrendAgreement` (ALIGNED, DIVERGENT, MIXED, INSUFFICIENT)
+
+**Canonical ordering:** `AgentPair` enforces `a.value() < b.value()` lexicographically. Signed differences follow this ordering — `difference(alice, bob)` returns `alice - bob` when alice < bob, negated otherwise.
+
+#### DomainActivation
+
+`@ApplicationScoped` CDI bean. Cross-subgraph affect correlation via time-bucketed PAD aggregation and pairwise DTW similarity. `Instance<MindMapStore>` + `Instance<CaseMemoryStore>` for graceful degradation.
+
+**Resolution flow:**
+1. For each subgraph: `MindMapStore.search()` for member entities
+2. For each entity: query `domain="affect"` memories with `withCallerPrincipalId(principal)` + `withSince(from)`, filter by `to` in Java (no `withUntil()` on MemoryQuery)
+3. Time-bucket into `double[][]` arrays (rows = buckets, cols = pleasure/arousal/dominance). Empty buckets skipped — DTW handles unequal lengths natively
+4. Compute `AffectTrajectory` per subgraph via `AffectTrajectoryAnalyzer.analyze()`
+5. Pairwise 3D DTW via `PadDtw.compute()`. `CorrelationStrength` from similarity score
+
+**Privacy by construction:** `DomainActivationQuery.principal` is required, non-nullable. Cross-principal analysis not expressible. Returns `Optional.empty()` when any subgraph has zero entities or zero memories.
+
+**Key types:** `DomainActivationQuery` (with `between()` factory, `bucketDuration` default 24h), `DomainActivationResult`, `DomainSignal` (per-subgraph trajectory + counts), `DomainPair` (canonical ordering), `DomainCorrelation` (DTW similarity + alignment + strength).
+
+#### PadDtw
+
+Package-private pure static utility. Lightweight Dynamic Time Warping for multi-dimensional `double[][]` time series (rows = time points, columns = PAD dimensions). Euclidean distance per time point, O(n×m) DP matrix, backtrace alignment path. `1.0 / (1.0 + normalizedCost)` scoring. Independent of CBR's `DtwSimilarity` — same algorithm, incompatible type interfaces (`FeatureValue`/`FeatureField` vs raw doubles).
 
 #### CognitiveDefaults and CognitiveDefaultsRegistry
 
@@ -1069,7 +1105,7 @@ All inference, RAG, CBR, agent memory, MindMap, and cognitive subsystem modules 
 | Agent Memory | Five backends (in-memory, JPA, SQLite, Mem0, Graphiti); `MemoryEmitter` fire-and-forget wrapper; `MemoryOrder.SALIENCE` (recency x confidence); unified `Confidence` record (origin + value); confidence-based retention purge; five event streams (experience, relationship, reflection, mood, engagement); `CaseEnrichmentStep` SPI; erasure notification |
 | MindMap | Thing/MindMapNode hierarchy; TypeRegistry with lazy per-tenant bootstrap; trait system (programmatic + declarative rules); 4-deep CDI decorator chain (DerivedEdge, TraitApplication, AffectTrajectory, IdleTracker); ConfidenceDecay read-side decorator; vocabulary normalization; graph analysis (MindMapAnalyzer — orphans, centrality, k-cores, contradictions); merge with conflict reporting; supersession/reinstatement; capability-gated operations |
 | MindMap Intelligence | MindMapExtractor (LLM entity/relationship extraction); ConversationBridge (fast segmentation + async enrichment pipeline); CognitiveLoader (vocabulary from YAML profiles); CuriositySignalGenerator (5-category signals with affect dampening); RecurrenceRule/Generator |
-| Cognitive Index | TemporalIndex (cross-store chronological aggregation); AffectTrajectoryAnalyzer; TemporalFocus (proximity/recency + affect modifiers); CognitiveProfile (cross-store entity resolution); PerspectivalMerge/Resolver; CognitiveDefaults/Registry (YAML per-agent config); CognitiveDerivationEngine (8 derivation pathways from eidos identity); DeclarativeRuleRegistry; Modulation framework (profiles + factors + retrieval modulator) |
+| Cognitive Index | TemporalIndex (cross-store chronological aggregation); AffectTrajectoryAnalyzer (3-axis slope + volatility); TemporalFocus (proximity/recency + affect modifiers); CognitiveProfile (cross-store entity resolution + perspective-aware resolve + multi-agent compare); SocialComparison (PAD distance matrix, signed pairwise differences, 3D trajectory alignment); DomainActivation (cross-domain DTW correlation with time-bucketed 3D PAD); PerspectivalMerge (public static utility) + PerspectivalResolver (package-private, internalized in CognitiveProfile); CognitiveDefaults/Registry (YAML per-agent config); CognitiveDerivationEngine (8 derivation pathways from eidos identity); DeclarativeRuleRegistry; Modulation framework (profiles + factors + retrieval modulator) |
 | Consolidation | ConsolidationScheduler (idle-gated, curiosity-driven priority); 4-phase pipeline (AccessFrequency, MergeDetection, CommunitySummary, CuriosityRefresh); RetrievalAccessTracker + Bjork's dual-strength model |
 | Corpus | Append-only zip archives, flat filesystem, composite multi-backend; chain manifest; change tracking; compaction; integrity checks with recovery |
 | Score Fusion | `fusion-api` tier-1 module — weighted RRF + CC algorithms, `CamelCaseExpander` for BM25 preprocessing. Shared by RAG and CBR |

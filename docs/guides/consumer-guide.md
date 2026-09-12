@@ -95,7 +95,8 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution across MindMap + Memory), `PerspectivalResolver` (per-agent overlay merging), `CognitiveDefaultsRegistry` (YAML-driven per-agent config) |
+| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution + multi-agent comparison), `SocialComparison` (perspectival divergence metrics), `DomainActivation` (cross-domain DTW correlation), `CognitiveDefaultsRegistry` (YAML-driven per-agent config) |
+| `schema-generator` | `casehub-neocortex-schema-generator` | JSON Schema generation (Draft 2020-12) for cognitive types — sealed hierarchy `oneOf`, enum inlining, shorthand patterns, YAML output |
 
 ### Corpus
 
@@ -191,7 +192,7 @@ Queryable, permission-aware, persistent memory. Key operations:
 
 ### CbrCaseMemoryStore (memory-api)
 
-Structured feature-vector similarity search over past cases. Open `CbrCase` type hierarchy with `cbrType()` discriminator: `ResolutionGuide`, `FeatureVectorCbrCase`, `ResolvedCase`.
+Structured feature-vector similarity search over past cases. Open `CbrCase` type hierarchy with `cbrType()` discriminator: `ResolutionGuide` (with optional `features` and structured `GuidanceStep` list), `FeatureVectorCbrCase`, `ResolvedCase`.
 
 **Typed feature values:** `FeatureValue` sealed interface with seven value types: `StringVal`, `NumberVal`, `RangeVal`, `StringListVal`, `NumberListVal`, `StructVal`, `StructListVal`. Booleans coerced via `FeatureValue.of(Object)`.
 
@@ -212,6 +213,8 @@ Structured feature-vector similarity search over past cases. Open `CbrCase` type
 **Supersession:** `supersede(caseId, tenantId, supersedingCaseId, reason)` and `reinstate(caseId, tenantId)`. `getSupersessionStatus()` and `findSupersededCases()` for audit.
 
 **Outcome feedback:** `recordOutcome(CbrOutcome)` — CBR Revise feedback loop with EMA confidence adjustment.
+
+**Retrieval feedback:** `CbrRetrievalTracker.feedback(traceId, List<CbrRetrievalFeedback>)` — per-result relevance signals with `CbrFeedbackOutcome` (RELEVANT, NOT_RELEVANT, PARTIALLY_RELEVANT, HIGHLY_RELEVANT, OUTDATED). Independent of rag-api's `RetrievalOutcome`.
 
 **Retention:** `purge(CbrRetentionPolicy)` — age + count + trust-based purge. `CbrRetentionScheduler` for scheduled purging. `TrustRetentionService` — evaluates agent trust trajectories via `AgentTrustProvider` and purges cases below `minCurrentTrust`.
 
@@ -394,6 +397,82 @@ Notes ──→ Entities ──→ Traits ──→ Types
 In production, the `ConversationBridge` handles real-time capture (creating initial "general" nodes), and the `ConsolidationScheduler` runs near-time and background phases automatically via a four-phase pipeline: access-frequency tracking, merge detection, community summaries, and curiosity refresh.
 
 **The promotion path:** when a dynamic type crystallises — stable schema, frequently queried, consistent properties — a developer creates a Java trait interface for it. The type node gains a `java-class` property, and consumers get typed access via `as()`.
+
+### CognitiveProfile — Entity Resolution and Multi-Agent Comparison (cognitive-index)
+
+`CognitiveProfile` resolves a unified `EntityKnowledge` record for a single entity across MindMap + Memory stores. Configurable domain set, edge inclusion, memory limit.
+
+**Single-entity resolution:**
+
+```java
+@Inject CognitiveProfile profile;
+
+// Shared view (no perspective)
+var query = CognitiveProfileQuery.byId(nodeId, tenantId);
+Optional<EntityKnowledge> ek = profile.resolve(query);
+
+// Perspectival view — applies agent's overlay before trajectory computation
+var query = CognitiveProfileQuery.byId(nodeId, tenantId)
+    .withAsSeenBy(PrincipalId.agent("alice"));
+Optional<EntityKnowledge> ek = profile.resolve(query);
+// ek.get().perceiver() == alice
+// ek.get().node().pleasure() reflects alice's overlay PAD
+// ek.get().trajectory() computed from alice's principal-scoped affect memories
+```
+
+When `asSeenBy` is set, perspective is applied before any derived computation — the overlay merges onto the shared node before trajectory analysis, and memory queries are scoped to the requesting agent via `withCallerPrincipalId`.
+
+**Multi-agent comparison:**
+
+```java
+Map<PrincipalId, EntityKnowledge> views = profile.compare(
+    CognitiveProfileQuery.byId(nodeId, tenantId),
+    Set.of(PrincipalId.agent("alice"), PrincipalId.agent("bob")));
+// Single overlay scan for all agents — each gets perspectival node + scoped memories
+```
+
+### SocialComparison — Perspectival Divergence Metrics (cognitive-index)
+
+Pure static utility for computing divergence between agents' perspectives on the same entity. Takes the output of `CognitiveProfile.compare()`:
+
+```java
+Map<PrincipalId, EntityKnowledge> views = profile.compare(query, agents);
+PerspectivalComparison result = SocialComparison.compare(views);
+
+// PAD distance matrix — pairwise Euclidean distances
+double dist = result.distances().distance(alice, bob);
+
+// Per-dimension signed differences
+double pleasureDiff = result.dimensionDifferences()
+    .get(PadDimension.PLEASURE).difference(alice, bob);
+
+// Trajectory alignment — 3D slope vector cosine similarity
+TrendAgreement agreement = result.trajectoryAlignment()
+    .agreements().get(AgentPair.of(alice, bob));
+// ALIGNED, DIVERGENT, MIXED, or INSUFFICIENT
+```
+
+Agents with any null PAD dimension are excluded from distance/difference computations and listed in `unassessedAgents`. Trajectory alignment is computed independently — agents with trajectory data but null PAD still participate.
+
+### DomainActivation — Cross-Domain Correlation (cognitive-index)
+
+CDI bean for correlating affect signals across life domains (subgraphs). Uses Dynamic Time Warping on time-bucketed 3D PAD time series to detect cross-domain emotional patterns.
+
+```java
+@Inject DomainActivation domainActivation;
+
+var query = DomainActivationQuery.between(
+    PrincipalId.agent("alice"), tenantId, workSubgraphId, familySubgraphId)
+    .withFrom(windowStart)
+    .withTo(windowEnd)
+    .withBucketDuration(Duration.ofHours(24));
+
+Optional<DomainActivationResult> result = domainActivation.correlate(query);
+// result.get().correlations() — pairwise DTW similarity per DomainPair
+// result.get().domains() — per-subgraph DomainSignal (trajectory, entity/memory counts)
+```
+
+Privacy by construction — `PrincipalId` is required and non-nullable. Only the specified agent's affect memories are queried. Returns `Optional.empty()` when any subgraph has zero entities or zero affect memories.
 
 ---
 
