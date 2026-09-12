@@ -600,6 +600,10 @@ public class SqliteMindMapStore implements MindMapStore {
             sql.append(" AND n.subgraph_id = ?");
             params.add(query.subgraphId());
         }
+        if (query.type() != null) {
+            sql.append(" AND sg.type = ?");
+            params.add(query.type());
+        }
         if (query.minConfidence() != null) {
             sql.append(" AND n.confidence_value >= ?");
             params.add(query.minConfidence());

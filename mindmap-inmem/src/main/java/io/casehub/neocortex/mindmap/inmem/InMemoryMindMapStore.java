@@ -331,6 +331,7 @@ public class InMemoryMindMapStore implements MindMapStore {
             .filter(n -> n.tenantId.equals(query.tenantId()))
             .filter(n -> !n.isSuperseded() || query.includeSuperseded())
             .filter(n -> query.subgraphId() == null || n.subgraphId.equals(query.subgraphId()))
+            .filter(n -> query.type() == null || n.subgraphType().equals(query.type()))
             .filter(n -> query.text() == null || matchesText(n, query.text()))
             .filter(n -> query.traits() == null || n.traits.containsAll(query.traits()))
             .filter(n -> query.minConfidence() == null || n.confidence.value() >= query.minConfidence())
