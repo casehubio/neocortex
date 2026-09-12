@@ -5,97 +5,85 @@ import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.StoreFailure;
 import io.casehub.neocortex.memory.experience.*;
-import jakarta.enterprise.event.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExperienceStreamTest {
+class ExperienceRecorderCoreTest {
 
     private StubCaseMemoryStore store;
-    private StubEvent<ExperienceRecorded> eventSink;
-    private ExperienceStream stream;
+    private List<ExperienceRecorded> recorded;
+    private ExperienceRecorderCore recorder;
 
     @BeforeEach
     void setUp() {
         store = new StubCaseMemoryStore();
-        eventSink = new StubEvent<>();
-        stream = new ExperienceStream(store, eventSink);
+        recorded = new ArrayList<>();
+        recorder = new ExperienceRecorderCore(store, recorded::add);
     }
 
-    @Test
-    void recordStoresAndReturnsMemoryId() {
+    @Test void recordStoresAndReturnsMemoryId() {
         var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
-        String id = stream.record(obs);
+        String id = recorder.record(obs);
         assertEquals("mem-0", id);
         assertEquals(1, store.stored.size());
         assertEquals(ExperienceEvents.DOMAIN, store.stored.getFirst().domain());
     }
 
-    @Test
-    void recordFiresCdiEvent() {
+    @Test void recordFiresCallback() {
         var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
-        stream.record(obs);
-        assertEquals(1, eventSink.fired.size());
-        assertEquals("mem-0", eventSink.fired.getFirst().memoryId());
-        assertSame(obs, eventSink.fired.getFirst().event());
+        recorder.record(obs);
+        assertEquals(1, recorded.size());
+        assertEquals("mem-0", recorded.getFirst().memoryId());
+        assertSame(obs, recorded.getFirst().event());
     }
 
-    @Test
-    void recordPropagatesSecurityException() {
+    @Test void recordPropagatesSecurityException() {
         store.throwOnStore = new SecurityException("forbidden");
         var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
-        assertThrows(SecurityException.class, () -> stream.record(obs));
-        assertTrue(eventSink.fired.isEmpty());
+        assertThrows(SecurityException.class, () -> recorder.record(obs));
+        assertTrue(recorded.isEmpty());
     }
 
-    @Test
-    void recordAllReturnsResult() {
+    @Test void recordAllReturnsResult() {
         var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
         var act = new Action("a1", "t1", null, null, null, "did it", null, Map.of(), null);
-        ExperienceStoreResult result = stream.recordAll(List.of(obs, act));
+        ExperienceStoreResult result = recorder.recordAll(List.of(obs, act));
         assertTrue(result.allSucceeded());
         assertEquals(2, result.stored().size());
     }
 
-    @Test
-    void recordAllFiresEventPerStoredItem() {
+    @Test void recordAllFiresCallbackPerStoredItem() {
         var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
         var act = new Action("a1", "t1", null, null, null, "did it", null, Map.of(), null);
-        stream.recordAll(List.of(obs, act));
-        assertEquals(2, eventSink.fired.size());
+        recorder.recordAll(List.of(obs, act));
+        assertEquals(2, recorded.size());
     }
 
-    @Test
-    void recordAllHandlesPartialFailure() {
+    @Test void recordAllHandlesPartialFailure() {
         store.failAtIndex = 1;
         var obs = new Observation("a1", "t1", null, null, null, "saw it", null, Map.of(), "subj");
         var act = new Action("a1", "t1", null, null, null, "did it", null, Map.of(), null);
         var out = new Outcome("a1", "t1", null, null, null, "done", null, Map.of(), "ok", null);
-        ExperienceStoreResult result = stream.recordAll(List.of(obs, act, out));
-
+        ExperienceStoreResult result = recorder.recordAll(List.of(obs, act, out));
         assertFalse(result.allSucceeded());
         assertEquals(2, result.stored().size());
         assertEquals(1, result.failures().size());
         assertEquals(1, result.failures().getFirst().inputIndex());
         assertSame(act, result.failures().getFirst().event());
-        assertEquals(2, eventSink.fired.size());
+        assertEquals(2, recorded.size());
     }
 
-    @Test
-    void recordAllWithEmptyListReturnsEmptyResult() {
-        ExperienceStoreResult result = stream.recordAll(List.of());
+    @Test void recordAllWithEmptyListReturnsEmptyResult() {
+        ExperienceStoreResult result = recorder.recordAll(List.of());
         assertTrue(result.allSucceeded());
         assertTrue(result.stored().isEmpty());
     }
-
-    // --- Stubs ---
 
     static class StubCaseMemoryStore implements CaseMemoryStore {
         final List<MemoryInput> stored = new ArrayList<>();
@@ -103,25 +91,14 @@ class ExperienceStreamTest {
         RuntimeException throwOnStore;
         int failAtIndex = -1;
 
-        @Override
-        public String store(MemoryInput input) {
+        @Override public String store(MemoryInput input) {
             if (throwOnStore != null) throw throwOnStore;
             stored.add(input);
             return "mem-" + counter++;
         }
-
-        @Override
-        public List<io.casehub.neocortex.memory.Memory> query(io.casehub.neocortex.memory.MemoryQuery query) {
-            return List.of();
-        }
-
-        @Override
-        public int erase(io.casehub.neocortex.memory.EraseRequest request) {
-            return 0;
-        }
-
-        @Override
-        public StoreAllResult storeAll(List<MemoryInput> inputs) {
+        @Override public List<io.casehub.neocortex.memory.Memory> query(io.casehub.neocortex.memory.MemoryQuery query) { return List.of(); }
+        @Override public int erase(io.casehub.neocortex.memory.EraseRequest request) { return 0; }
+        @Override public StoreAllResult storeAll(List<MemoryInput> inputs) {
             var ids = new ArrayList<String>();
             var failures = new ArrayList<StoreFailure>();
             for (int i = 0; i < inputs.size(); i++) {
@@ -134,16 +111,5 @@ class ExperienceStreamTest {
             }
             return new StoreAllResult(ids, failures);
         }
-    }
-
-    static class StubEvent<T> implements Event<T> {
-        final List<T> fired = new ArrayList<>();
-
-        @Override public void fire(T event) { fired.add(event); }
-        @Override public <U extends T> CompletionStage<U> fireAsync(U event) { throw new UnsupportedOperationException(); }
-        @Override public <U extends T> CompletionStage<U> fireAsync(U event, jakarta.enterprise.event.NotificationOptions options) { throw new UnsupportedOperationException(); }
-        @Override public Event<T> select(java.lang.annotation.Annotation... qualifiers) { throw new UnsupportedOperationException(); }
-        @Override public <U extends T> Event<U> select(Class<U> subtype, java.lang.annotation.Annotation... qualifiers) { throw new UnsupportedOperationException(); }
-        @Override public <U extends T> Event<U> select(jakarta.enterprise.util.TypeLiteral<U> subtype, java.lang.annotation.Annotation... qualifiers) { throw new UnsupportedOperationException(); }
     }
 }
