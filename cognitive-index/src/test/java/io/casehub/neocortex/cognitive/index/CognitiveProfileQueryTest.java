@@ -76,14 +76,14 @@ class CognitiveProfileQueryTest {
     @Test
     void rejectsBothNodeIdAndEntityName() {
         assertThatThrownBy(() -> new CognitiveProfileQuery(
-            NODE_ID, NAME, null, TENANT, Set.of(), true, 50))
+            NODE_ID, NAME, null, TENANT, Set.of(), true, 50, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void rejectsNeitherNodeIdNorEntityName() {
         assertThatThrownBy(() -> new CognitiveProfileQuery(
-            null, null, null, TENANT, Set.of(), true, 50))
+            null, null, null, TENANT, Set.of(), true, 50, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 

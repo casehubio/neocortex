@@ -23,14 +23,14 @@ class EntityKnowledgeTest {
     @Test
     void rejectsNullNode() {
         assertThatThrownBy(() -> new EntityKnowledge(
-            null, List.of(), Map.of(), null, Set.of(), "tenant"))
+            null, List.of(), Map.of(), null, Set.of(), "tenant", null))
             .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void rejectsNullTenantId() {
         assertThatThrownBy(() -> new EntityKnowledge(
-            StubNode.named("Alice"), List.of(), Map.of(), null, Set.of(), null))
+            StubNode.named("Alice"), List.of(), Map.of(), null, Set.of(), null, null))
             .isInstanceOf(NullPointerException.class);
     }
 
@@ -42,7 +42,7 @@ class EntityKnowledgeTest {
         refs.add(new NodeRef("cbr", "case-1", null));
 
         var ek = new EntityKnowledge(
-            StubNode.named("Alice"), List.of(), memories, null, refs, "tenant");
+            StubNode.named("Alice"), List.of(), memories, null, refs, "tenant", null);
 
         memories.put(new MemoryDomain("mood"), List.of());
         refs.add(new NodeRef("cbr", "case-2", null));
@@ -54,7 +54,7 @@ class EntityKnowledgeTest {
     @Test
     void trajectoryNullable() {
         var ek = new EntityKnowledge(
-            StubNode.named("Alice"), List.of(), Map.of(), null, Set.of(), "tenant");
+            StubNode.named("Alice"), List.of(), Map.of(), null, Set.of(), "tenant", null);
         assertThat(ek.trajectory()).isNull();
     }
 
@@ -62,7 +62,7 @@ class EntityKnowledgeTest {
     void trajectoryPresent() {
         var trajectory = new AffectTrajectory(0.1, 0.2, 0.05, TrendDirection.IMPROVING, 0.1, 5);
         var ek = new EntityKnowledge(
-            StubNode.named("Alice"), List.of(), Map.of(), trajectory, Set.of(), "tenant");
+            StubNode.named("Alice"), List.of(), Map.of(), trajectory, Set.of(), "tenant", null);
         assertThat(ek.trajectory()).isEqualTo(trajectory);
     }
 }

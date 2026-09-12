@@ -82,7 +82,7 @@ public class CognitiveProfile {
 
         AffectTrajectory trajectory = computeTrajectory(entityIds, memories, query);
 
-        return Optional.of(new EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, query.tenantId()));
+        return Optional.of(new EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, query.tenantId(), null));
     }
 
     private MindMapNode resolveNode(CognitiveProfileQuery query) {
