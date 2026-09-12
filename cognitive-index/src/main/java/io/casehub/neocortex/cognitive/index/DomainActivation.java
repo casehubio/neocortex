@@ -37,7 +37,7 @@ public class DomainActivation {
                             ? memoryStore.get() : null;
     }
 
-    DomainActivation(MindMapStore mindMapStore, CaseMemoryStore memoryStore) {
+    public DomainActivation(MindMapStore mindMapStore, CaseMemoryStore memoryStore) {
         this.mindMapStore = mindMapStore;
         this.memoryStore  = memoryStore;
     }

@@ -468,6 +468,11 @@
         <module>examples/example-rag-pipeline</module>
         <module>examples/example-cbr</module>
         <module>examples/example-knowledge-model</module>
+        <module>examples/example-cognitive-index</module>
+        <module>examples/example-agent-memory</module>
+        <module>examples/example-cbr-advanced</module>
+        <module>examples/example-rag-analytics</module>
+        <module>examples/example-mindmap-intelligence</module>
       </modules>
     </profile>
     <profile>
@@ -477,6 +482,11 @@
         <module>examples/example-rag-pipeline</module>
         <module>examples/example-cbr</module>
         <module>examples/example-knowledge-model</module>
+        <module>examples/example-cognitive-index</module>
+        <module>examples/example-agent-memory</module>
+        <module>examples/example-cbr-advanced</module>
+        <module>examples/example-rag-analytics</module>
+        <module>examples/example-mindmap-intelligence</module>
       </modules>
     </profile>
   </profiles>

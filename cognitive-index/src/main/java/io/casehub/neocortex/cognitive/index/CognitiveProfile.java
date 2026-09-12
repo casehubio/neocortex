@@ -54,7 +54,7 @@ public class CognitiveProfile {
                                     ? new PerspectivalResolver(this.mindMapStore) : null;
     }
 
-    CognitiveProfile(MindMapStore mindMapStore, CaseMemoryStore memoryStore) {
+    public CognitiveProfile(MindMapStore mindMapStore, CaseMemoryStore memoryStore) {
         this.mindMapStore         = mindMapStore;
         this.memoryStore          = memoryStore;
         this.perspectivalResolver = mindMapStore != null
