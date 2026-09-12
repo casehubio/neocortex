@@ -5,7 +5,7 @@ import io.casehub.platform.api.identity.PrincipalId;
 import java.util.Map;
 
 public record PadDistanceMatrix(Map<AgentPair, Double> distances) {
-    public PadDistanceMatrix { distances = Map.copyOf(distances); }
+    public PadDistanceMatrix {distances = Map.copyOf(distances);}
 
     public double distance(PrincipalId a, PrincipalId b) {
         return distances.getOrDefault(AgentPair.of(a, b), 0.0);

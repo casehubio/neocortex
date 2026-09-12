@@ -60,7 +60,8 @@ public final class AffectTrajectoryAnalyzer {
         }
 
         return new AffectTrajectory(pleasureSlope, arousalVolatility, arousalSlope, dominanceSlope,
-                                    trend, Math.abs(pleasureSlope), n);}
+                                    trend, Math.abs(pleasureSlope), n);
+    }
 
     private static double slope(double[] x, double[] y, int n) {
         double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
@@ -71,14 +72,14 @@ public final class AffectTrajectoryAnalyzer {
             sumX2 += x[i] * x[i];
         }
         double denom = n * sumX2 - sumX * sumX;
-        if (Math.abs(denom) < 1e-15) return 0.0;
+        if (Math.abs(denom) < 1e-15) {return 0.0;}
         return (n * sumXY - sumX * sumY) / denom;
     }
 
     private static double stddev(double[] values, int n) {
         double sum = 0;
-        for (int i = 0; i < n; i++) sum += values[i];
-        double mean = sum / n;
+        for (int i = 0; i < n; i++) {sum += values[i];}
+        double mean     = sum / n;
         double variance = 0;
         for (int i = 0; i < n; i++) {
             double diff = values[i] - mean;

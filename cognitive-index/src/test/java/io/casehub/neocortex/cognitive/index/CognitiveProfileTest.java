@@ -425,5 +425,14 @@ class CognitiveProfileTest {
         public int erase(EraseRequest request) {
             return 0;
         }
+
+        void storeAt(String entityId, double pleasure, double arousal, double dominance,
+                     Instant timestamp, String tenantId) {
+            String id = java.util.UUID.randomUUID().toString();
+            memories.add(new Memory(id, entityId, new MemoryDomain("affect"), tenantId,
+                                    null, "PAD update", Map.of(), timestamp,
+                                    CONF, pleasure, arousal, dominance));
+        }
+
     }
 }

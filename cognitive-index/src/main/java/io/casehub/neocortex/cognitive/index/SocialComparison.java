@@ -45,20 +45,21 @@ public final class SocialComparison {
         TrajectoryAlignment                    alignment = computeAlignment(perspectives, allAgents);
 
         return new PerspectivalComparison(entityId, entityName, snapshots,
-                                          unassessed, distances, diffs, alignment, perspectives.size());}
+                                          unassessed, distances, diffs, alignment, perspectives.size());
+    }
 
     private static PadDistanceMatrix computeDistances(
             Map<PrincipalId, AffectSnapshot> snapshots, List<PrincipalId> assessed) {
         Map<AgentPair, Double> distances = new LinkedHashMap<>();
         for (int i = 0; i < assessed.size(); i++) {
             for (int j = i + 1; j < assessed.size(); j++) {
-                AffectSnapshot a = snapshots.get(assessed.get(i));
-                AffectSnapshot b = snapshots.get(assessed.get(j));
-                double dp = a.pleasure() - b.pleasure();
-                double da = a.arousal() - b.arousal();
-                double dd = a.dominance() - b.dominance();
+                AffectSnapshot a  = snapshots.get(assessed.get(i));
+                AffectSnapshot b  = snapshots.get(assessed.get(j));
+                double         dp = a.pleasure() - b.pleasure();
+                double         da = a.arousal() - b.arousal();
+                double         dd = a.dominance() - b.dominance();
                 distances.put(AgentPair.of(assessed.get(i), assessed.get(j)),
-                    Math.sqrt(dp * dp + da * da + dd * dd));
+                              Math.sqrt(dp * dp + da * da + dd * dd));
             }
         }
         return new PadDistanceMatrix(distances);
@@ -79,20 +80,21 @@ public final class SocialComparison {
             }
             result.put(dim, new PairwiseDifferences(diffs));
         }
-        return result;}
+        return result;
+    }
 
     private static TrajectoryAlignment computeAlignment(
             Map<PrincipalId, EntityKnowledge> perspectives, List<PrincipalId> assessed) {
-        Map<AgentPair, Double> cosines = new LinkedHashMap<>();
+        Map<AgentPair, Double>         cosines    = new LinkedHashMap<>();
         Map<AgentPair, TrendAgreement> agreements = new LinkedHashMap<>();
 
         for (int i = 0; i < assessed.size(); i++) {
             for (int j = i + 1; j < assessed.size(); j++) {
-                PrincipalId ai = assessed.get(i);
-                PrincipalId aj = assessed.get(j);
-                AgentPair pair = AgentPair.of(ai, aj);
-                AffectTrajectory ta = perspectives.get(ai).trajectory();
-                AffectTrajectory tb = perspectives.get(aj).trajectory();
+                PrincipalId      ai   = assessed.get(i);
+                PrincipalId      aj   = assessed.get(j);
+                AgentPair        pair = AgentPair.of(ai, aj);
+                AffectTrajectory ta   = perspectives.get(ai).trajectory();
+                AffectTrajectory tb   = perspectives.get(aj).trajectory();
 
                 if (ta == null || tb == null || ta.sampleCount() < 2 || tb.sampleCount() < 2) {
                     cosines.put(pair, 0.0);
@@ -100,11 +102,11 @@ public final class SocialComparison {
                     continue;
                 }
 
-                double[] va = {ta.pleasureSlope(), ta.arousalSlope(), ta.dominanceSlope()};
-                double[] vb = {tb.pleasureSlope(), tb.arousalSlope(), tb.dominanceSlope()};
-                double dot = va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2];
-                double magA = Math.sqrt(va[0] * va[0] + va[1] * va[1] + va[2] * va[2]);
-                double magB = Math.sqrt(vb[0] * vb[0] + vb[1] * vb[1] + vb[2] * vb[2]);
+                double[] va   = {ta.pleasureSlope(), ta.arousalSlope(), ta.dominanceSlope()};
+                double[] vb   = {tb.pleasureSlope(), tb.arousalSlope(), tb.dominanceSlope()};
+                double   dot  = va[0] * vb[0] + va[1] * vb[1] + va[2] * vb[2];
+                double   magA = Math.sqrt(va[0] * va[0] + va[1] * va[1] + va[2] * va[2]);
+                double   magB = Math.sqrt(vb[0] * vb[0] + vb[1] * vb[1] + vb[2] * vb[2]);
 
                 double cosine = (magA < 1e-9 || magB < 1e-9) ? 0.0 : dot / (magA * magB);
                 cosines.put(pair, cosine);
@@ -113,7 +115,7 @@ public final class SocialComparison {
                 if (ta.trend() == tb.trend()) {
                     agreement = TrendAgreement.ALIGNED;
                 } else if (ta.trend() == TrendDirection.STABLE
-                        || tb.trend() == TrendDirection.STABLE) {
+                           || tb.trend() == TrendDirection.STABLE) {
                     agreement = TrendAgreement.MIXED;
                 } else {
                     agreement = TrendAgreement.DIVERGENT;
