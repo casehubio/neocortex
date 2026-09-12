@@ -13,8 +13,8 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeRef;
 import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.neocortex.mindmap.SubgraphInput;
-import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
+import io.casehub.platform.api.identity.PrincipalId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -93,6 +93,82 @@ class CognitiveProfileTest {
         assertThat(ek.get().node().pleasure()).isNull();
         assertThat(ek.get().perceiver()).isEqualTo(bob);
     }
+
+    @Test
+    void compareReturnsPerspectivePerAgent() {
+        String nodeId = mindMapStore.addNode(node("Grandma"), TENANT);
+
+        PrincipalId alice = PrincipalId.agent("alice");
+        PrincipalId bob   = PrincipalId.agent("bob");
+
+        addOverlay(nodeId, "alice", 0.9, 0.3, 0.5);
+        addOverlay(nodeId, "bob", -0.2, 0.7, 0.1);
+
+        var                               query  = CognitiveProfileQuery.byId(nodeId, TENANT);
+        Map<PrincipalId, EntityKnowledge> result = profile.compare(query, Set.of(alice, bob));
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(alice).node().pleasure()).isEqualTo(0.9);
+        assertThat(result.get(bob).node().pleasure()).isEqualTo(-0.2);
+        assertThat(result.get(alice).perceiver()).isEqualTo(alice);
+        assertThat(result.get(bob).perceiver()).isEqualTo(bob);
+    }
+
+    @Test
+    void compareThreeAgentsAllPairwiseCorrect() {
+        String nodeId = mindMapStore.addNode(node("Entity"), TENANT);
+
+        PrincipalId a = PrincipalId.agent("a");
+        PrincipalId b = PrincipalId.agent("b");
+        PrincipalId c = PrincipalId.agent("c");
+
+        addOverlay(nodeId, "a", 0.1, 0.2, 0.3);
+        addOverlay(nodeId, "b", 0.4, 0.5, 0.6);
+        addOverlay(nodeId, "c", 0.7, 0.8, 0.9);
+
+        var result = profile.compare(CognitiveProfileQuery.byId(nodeId, TENANT), Set.of(a, b, c));
+
+        assertThat(result).hasSize(3);
+        assertThat(result.keySet()).containsExactlyInAnyOrder(a, b, c);
+        assertThat(result.get(a).node().pleasure()).isEqualTo(0.1);
+        assertThat(result.get(c).node().pleasure()).isEqualTo(0.7);
+    }
+
+    @Test
+    void compareAgentWithNoOverlayGetsSharedNode() {
+        String nodeId = mindMapStore.addNode(node("Grandma"), TENANT);
+
+        PrincipalId alice = PrincipalId.agent("alice");
+        PrincipalId bob   = PrincipalId.agent("bob");
+
+        addOverlay(nodeId, "alice", 0.9, 0.3, 0.5);
+
+        var result = profile.compare(CognitiveProfileQuery.byId(nodeId, TENANT), Set.of(alice, bob));
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(alice).node().pleasure()).isEqualTo(0.9);
+        assertThat(result.get(bob).node().pleasure()).isNull();
+        assertThat(result.get(bob).perceiver()).isEqualTo(bob);
+    }
+
+    @Test
+    void compareEmptyAgentsReturnsEmptyMap() {
+        String nodeId = mindMapStore.addNode(node("Grandma"), TENANT);
+
+        var result = profile.compare(CognitiveProfileQuery.byId(nodeId, TENANT), Set.of());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void compareNonexistentNodeReturnsEmptyMap() {
+        PrincipalId alice = PrincipalId.agent("alice");
+
+        var result = profile.compare(CognitiveProfileQuery.byId("nonexistent", TENANT), Set.of(alice));
+
+        assertThat(result).isEmpty();
+    }
+
 
     private void addOverlay(String sharedNodeId, String agentId,
                             double p, double a, double d) {

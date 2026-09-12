@@ -15,11 +15,13 @@ import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -92,6 +94,61 @@ public class CognitiveProfile {
 
         return Optional.of(new EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, query.tenantId(), asSeenBy));
     }
+
+    public Map<PrincipalId, EntityKnowledge> compare(
+            CognitiveProfileQuery query, Set<PrincipalId> agents) {
+        if (mindMapStore == null || agents.isEmpty()) {
+            return Map.of();
+        }
+
+        MindMapNode sharedNode = resolveNode(query);
+        if (sharedNode == null) {
+            return Map.of();
+        }
+
+        List<MindMapNode> allOverlays = perspectivalResolver != null
+                                        ? perspectivalResolver.loadAllOverlays(query.tenantId())
+                                        : List.of();
+
+        Map<String, MindMapNode> overlaysByAgent = new HashMap<>();
+        for (MindMapNode overlay : allOverlays) {
+            String agentId = overlay.properties().get(OverlayRef.AGENT_ID);
+            if (agentId != null) {
+                OverlayRef.sharedNodeId(overlay).ifPresent(sid -> {
+                    if (sid.equals(sharedNode.id())) {
+                        overlaysByAgent.put(agentId, overlay);
+                    }
+                });
+            }
+        }
+
+        Set<MemoryDomain> domains = query.domains().isEmpty()
+                                    ? DEFAULT_DOMAINS : query.domains();
+
+        Map<PrincipalId, EntityKnowledge> result = new LinkedHashMap<>();
+        for (PrincipalId agent : agents) {
+            MindMapNode agentNode = overlaysByAgent.containsKey(agent.value())
+                                    ? PerspectivalMerge.merge(sharedNode, overlaysByAgent.get(agent.value()))
+                                    : sharedNode;
+
+            List<String> entityIds      = collectEntityIds(agentNode);
+            Set<NodeRef> unresolvedRefs = collectUnresolvedRefs(agentNode);
+
+            List<MindMapEdge> edges = query.includeEdges()
+                                      ? mindMapStore.neighbors(agentNode.id(), query.tenantId())
+                                      : List.of();
+
+            CognitiveProfileQuery           agentQuery = query.withAsSeenBy(agent);
+            Map<MemoryDomain, List<Memory>> memories   = queryMemories(entityIds, domains, agentQuery);
+            AffectTrajectory                trajectory = computeTrajectory(entityIds, memories, agentQuery);
+
+            result.put(agent, new EntityKnowledge(
+                    agentNode, edges, memories, trajectory, unresolvedRefs,
+                    query.tenantId(), agent));
+        }
+        return result;
+    }
+
 
     private MindMapNode resolveNode(CognitiveProfileQuery query) {
         try {
