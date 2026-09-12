@@ -26,6 +26,7 @@
     <module>cognitive-api</module>
     <module>cognitive-index</module>
     <module>rag-api</module>
+    <module>rag-core</module>
     <module>rag</module>
     <module>rag-tika</module>
     <module>rag-testing</module>

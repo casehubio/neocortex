@@ -13,13 +13,6 @@ import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.CursorStore;
 import io.casehub.neocortex.rag.EmbeddingIngestor;
 import io.casehub.neocortex.rag.ExtractionResult;
-import io.quarkus.runtime.StartupEvent;
-import io.quarkus.scheduler.Scheduled;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,7 +24,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@ApplicationScoped
 public class CorpusIngestionService {
 
     private static final Logger LOG = Logger.getLogger(CorpusIngestionService.class.getName());
@@ -41,25 +33,26 @@ public class CorpusIngestionService {
     private final ConcurrentHashMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
     private final List<WatchableChangeSource> activeWatchers = new ArrayList<>();
 
-    @Inject CorpusBindingProducer bindingProducer;
-    @Inject Instance<CorpusIngestionBinding> customBindings;
-    @Inject IngestionConfig config;
-
     public CorpusIngestionService(EmbeddingIngestor ingestor, CursorStore cursorStore) {
         this.ingestor = ingestor;
         this.cursorStore = cursorStore;
     }
 
-    void onStart(@Observes StartupEvent event) {
-        for (CorpusIngestionBinding binding : allBindings()) {
-            IngestionMode mode = modeFor(binding);
+    public List<WatchableChangeSource> activeWatchers() {
+        return activeWatchers;
+    }
+
+    public void startAutoBindings(Iterable<CorpusIngestionBinding> bindings,
+                                   IngestionConfig config) {
+        for (CorpusIngestionBinding binding : bindings) {
+            IngestionMode mode = modeFor(binding, config);
             if (mode != IngestionMode.AUTO) continue;
 
-            processBinding(binding, splitterFor(binding.name()));
+            processBinding(binding, splitterFor(binding.name(), config));
 
             if (binding.changeSource() instanceof WatchableChangeSource watchable) {
                 try {
-                    watchable.watch(entries -> onWatchEvent(binding, entries));
+                    watchable.watch(entries -> onWatchEvent(binding, entries, config));
                     activeWatchers.add(watchable);
                     LOG.info(() -> "Started filesystem watcher for corpus '" + binding.name() + "'");
                 } catch (Exception e) {
@@ -71,8 +64,7 @@ public class CorpusIngestionService {
         }
     }
 
-    @PreDestroy
-    void shutdown() {
+    public void shutdown() {
         for (WatchableChangeSource watchable : activeWatchers) {
             try {
                 watchable.close();
@@ -83,7 +75,8 @@ public class CorpusIngestionService {
         activeWatchers.clear();
     }
 
-    private void onWatchEvent(CorpusIngestionBinding binding, List<ChangedEntry> entries) {
+    private void onWatchEvent(CorpusIngestionBinding binding, List<ChangedEntry> entries,
+                               IngestionConfig config) {
         if (entries.isEmpty()) return;
 
         ReentrantLock lock = locks.computeIfAbsent(binding.name(), k -> new ReentrantLock());
@@ -93,7 +86,7 @@ public class CorpusIngestionService {
             return;
         }
         try {
-            doProcessWatchEvent(binding, entries, splitterFor(binding.name()));
+            doProcessWatchEvent(binding, entries, splitterFor(binding.name(), config));
         } finally {
             lock.unlock();
         }
@@ -302,7 +295,7 @@ public class CorpusIngestionService {
         cursorStore.save(corpusName, fullScan.newCursor());
     }
 
-    private List<ChunkInput> chunkDocument(String path, ExtractionResult result, DocumentSplitter splitter) {
+    public List<ChunkInput> chunkDocument(String path, ExtractionResult result, DocumentSplitter splitter) {
         if (result.body().isBlank()) {
             return List.of();
         }
@@ -320,26 +313,20 @@ public class CorpusIngestionService {
         return chunks;
     }
 
-    // --- Scheduling and convenience methods ---
-
-    @Scheduled(every = "${casehub.rag.ingestion.interval:30s}",
-               concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
-    void poll() {
-        for (CorpusIngestionBinding binding : allBindings()) {
-            IngestionMode mode = modeFor(binding);
+    public void poll(Iterable<CorpusIngestionBinding> bindings, IngestionConfig config) {
+        for (CorpusIngestionBinding binding : bindings) {
+            IngestionMode mode = modeFor(binding, config);
             if (mode == IngestionMode.AUTO) {
                 if (binding.changeSource() instanceof WatchableChangeSource) {
                     continue;
                 }
-                processBinding(binding, splitterFor(binding.name()));
+                processBinding(binding, splitterFor(binding.name(), config));
             }
         }
     }
 
-    @Scheduled(every = "${casehub.rag.ingestion.cursor-checkpoint-interval:5m}",
-               concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
-    void checkpointCursors() {
-        for (CorpusIngestionBinding binding : allBindings()) {
+    public void checkpointCursors(Iterable<CorpusIngestionBinding> bindings) {
+        for (CorpusIngestionBinding binding : bindings) {
             if (binding.changeSource() instanceof WatchableChangeSource watchable) {
                 try {
                     String cursor = watchable.currentCursor();
@@ -352,51 +339,42 @@ public class CorpusIngestionService {
         }
     }
 
-    public void triggerManual(String corpusName) {
-        for (CorpusIngestionBinding binding : allBindings()) {
+    public void triggerManual(String corpusName, Iterable<CorpusIngestionBinding> bindings,
+                               IngestionConfig config) {
+        for (CorpusIngestionBinding binding : bindings) {
             if (binding.name().equals(corpusName)) {
-                processBinding(binding, splitterFor(binding.name()));
+                processBinding(binding, splitterFor(binding.name(), config));
                 return;
             }
         }
         LOG.warning(() -> "No binding found for corpus: " + corpusName);
     }
 
-    public void reconcile(String corpusName) {
-        for (CorpusIngestionBinding binding : allBindings()) {
+    public void reconcile(String corpusName, Iterable<CorpusIngestionBinding> bindings,
+                            IngestionConfig config) {
+        for (CorpusIngestionBinding binding : bindings) {
             if (binding.name().equals(corpusName)) {
-                reconcile(corpusName, binding, splitterFor(binding.name()));
+                reconcile(corpusName, binding, splitterFor(binding.name(), config));
                 return;
             }
         }
         LOG.warning(() -> "No binding found for corpus: " + corpusName);
     }
 
-    public void reconcileAll() {
-        for (CorpusIngestionBinding binding : allBindings()) {
-            reconcile(binding.name(), binding, splitterFor(binding.name()));
+    public void reconcileAll(Iterable<CorpusIngestionBinding> bindings, IngestionConfig config) {
+        for (CorpusIngestionBinding binding : bindings) {
+            reconcile(binding.name(), binding, splitterFor(binding.name(), config));
         }
     }
 
-    private List<CorpusIngestionBinding> allBindings() {
-        List<CorpusIngestionBinding> all = new ArrayList<>();
-        if (bindingProducer != null) {
-            all.addAll(bindingProducer.bindings());
-        }
-        if (customBindings != null) {
-            customBindings.forEach(all::add);
-        }
-        return all;
-    }
-
-    private IngestionMode modeFor(CorpusIngestionBinding binding) {
+    static IngestionMode modeFor(CorpusIngestionBinding binding, IngestionConfig config) {
         if (config == null) return IngestionMode.AUTO;
         var corpusConfig = config.corpora().get(binding.name());
         if (corpusConfig == null) return IngestionMode.AUTO;
         return corpusConfig.mode();
     }
 
-    private DocumentSplitter splitterFor(String corpusName) {
+    static DocumentSplitter splitterFor(String corpusName, IngestionConfig config) {
         if (config == null) return null;
         var corpusConfig = config.corpora().get(corpusName);
         if (corpusConfig == null || "none".equalsIgnoreCase(corpusConfig.chunking())) {
@@ -407,7 +385,6 @@ public class CorpusIngestionService {
             int overlap = corpusConfig.chunkingOverlapSize().orElse(200);
             return DocumentSplitters.recursive(maxSize, overlap);
         }
-        LOG.warning(() -> "Unknown chunking strategy: " + corpusConfig.chunking() + " — defaulting to none");
         return null;
     }
 }

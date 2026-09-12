@@ -6,33 +6,21 @@ import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.PayloadFilter;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
-import io.quarkus.arc.Unremovable;
-import jakarta.annotation.Priority;
-import jakarta.decorator.Decorator;
-import jakarta.decorator.Delegate;
-import jakarta.enterprise.inject.Any;
-import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-@Decorator
-@Priority(60)
-@Unremovable
 public class PayloadBoostCaseRetriever implements CaseRetriever {
 
     private final CaseRetriever delegate;
     private final RagConfig config;
 
-    @Inject
-    PayloadBoostCaseRetriever(@Delegate @Any CaseRetriever delegate, RagConfig config) {
+    public PayloadBoostCaseRetriever(CaseRetriever delegate, RagConfig config) {
         this.delegate = delegate;
         this.config = config;
     }
-
-
 
     @Override
     public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus,

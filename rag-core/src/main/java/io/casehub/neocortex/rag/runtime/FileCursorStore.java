@@ -1,9 +1,6 @@
 package io.casehub.neocortex.rag.runtime;
 
 import io.casehub.neocortex.rag.CursorStore;
-import io.quarkus.arc.DefaultBean;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -12,18 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
-@DefaultBean
-@ApplicationScoped
 public class FileCursorStore implements CursorStore {
 
     private final Path baseDir;
 
-    @Inject
-    FileCursorStore(IngestionConfig config) {
-        this(config.cursorDir());
-    }
-
-    FileCursorStore(String cursorDir) {
+    public FileCursorStore(String cursorDir) {
         this.baseDir = Path.of(cursorDir);
     }
 

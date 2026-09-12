@@ -12,7 +12,6 @@ import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.PayloadFilter;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievedChunk;
-import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QueryFactory;
 import io.qdrant.client.WithPayloadSelectorFactory;
@@ -26,9 +25,6 @@ import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.Rrf;
 import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.SearchParams;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,32 +33,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
-@ApplicationScoped
 public class HybridCaseRetriever implements CaseRetriever {
-    private static final org.jboss.logging.Logger LOG = org.jboss.logging.Logger.getLogger(HybridCaseRetriever.class);
-
+    private static final Logger LOG = Logger.getLogger(HybridCaseRetriever.class.getName());
 
     private final QdrantClient client;
     private final MultiModalEmbedder embedder;
     private final TenantGuard tenantGuard;
     private final RagConfig config;
 
-    @Inject
-    HybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
-                        Instance<CurrentPrincipal> currentPrincipalInstance,
-                        RagConfig config) {
-        this(client,
-            MatryoshkaMultiModalEmbedder.wrapIfNeeded(embedder, config.matryoshka().dimension()),
-            TenantGuard.of(currentPrincipalInstance.isResolvable()
-                ? currentPrincipalInstance.get() : null),
-            config);
-    }
-
-    HybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
-                        TenantGuard tenantGuard, RagConfig config) {
+    public HybridCaseRetriever(QdrantClient client, MultiModalEmbedder embedder,
+                               TenantGuard tenantGuard, RagConfig config) {
         this.client = client;
-        this.embedder = embedder;
+        this.embedder = MatryoshkaMultiModalEmbedder.wrapIfNeeded(embedder, config.matryoshka().dimension());
         this.tenantGuard = tenantGuard;
         this.config = config;
         if (config.retrieval().fusionStrategy() == FusionStrategy.DBSF) {
@@ -70,7 +54,7 @@ public class HybridCaseRetriever implements CaseRetriever {
             double s = config.retrieval().weights().sparse();
             double b = config.retrieval().weights().bm25();
             if (Double.compare(d, s) != 0 || Double.compare(d, b) != 0) {
-                LOG.warn("Non-equal fusion weights have no effect with DBSF strategy — " +
+                LOG.warning("Non-equal fusion weights have no effect with DBSF strategy — " +
                          "DBSF uses server-side equal-weight fusion. Consider RRF or CC for per-leg weight control.");
             }
         }
@@ -90,7 +74,6 @@ public class HybridCaseRetriever implements CaseRetriever {
         Optional<Filter> mergedFilter = combined.getMustCount() > 0
             ? Optional.of(combined.build()) : Optional.empty();
 
-        // Check collection exists — return empty if not
         if (!collectionExists(collection)) {
             return List.of();
         }
@@ -103,13 +86,11 @@ public class HybridCaseRetriever implements CaseRetriever {
         boolean useFusion = hasSparse || config.bm25Enabled();
         FusionStrategy fusionStrategy = config.retrieval().fusionStrategy();
 
-        // CC fusion uses client-side fusion, not server-side prefetch
         if (useFusion && fusionStrategy == FusionStrategy.CC) {
             return executeConvexCombinationFusion(collection, query, embedding,
                 mergedFilter, maxResults);
         }
 
-        // Weighted RRF: when weights are non-equal, use client-side fusion
         if (useFusion && fusionStrategy == FusionStrategy.RRF && !hasEqualActiveWeights(query)) {
             return executeRrfFusion(collection, query, embedding,
                 mergedFilter, maxResults);
@@ -119,7 +100,6 @@ public class HybridCaseRetriever implements CaseRetriever {
         if (useFusion) {
             List<PrefetchQuery> prefetchLegs = new ArrayList<>();
 
-            // Dense prefetch (always present in fusion mode)
             PrefetchQuery.Builder densePrefetch = PrefetchQuery.newBuilder()
                 .setQuery(QueryFactory.nearest(denseVector))
                 .setUsing(config.denseVectorName())
@@ -130,7 +110,6 @@ public class HybridCaseRetriever implements CaseRetriever {
             mergedFilter.ifPresent(densePrefetch::setFilter);
             prefetchLegs.add(densePrefetch.build());
 
-            // SPLADE prefetch (when available)
             if (hasSparse) {
                 Map<Integer, Float> sparseMap = embedding.sparse();
                 List<Float> sparseValues = new ArrayList<>(sparseMap.size());
@@ -148,7 +127,6 @@ public class HybridCaseRetriever implements CaseRetriever {
                 prefetchLegs.add(sparsePrefetch.build());
             }
 
-            // BM25 prefetch (when enabled)
             if (config.bm25Enabled()) {
                 String expandedQuery = CamelCaseExpander.expand(query.text());
                 PrefetchQuery.Builder bm25Prefetch = PrefetchQuery.newBuilder()
@@ -163,8 +141,6 @@ public class HybridCaseRetriever implements CaseRetriever {
                 prefetchLegs.add(bm25Prefetch.build());
             }
 
-            // ColBERT MAX_SIM two-stage: fusion as prefetch, ColBERT as outer query
-            // Note: CC fusion does not support ColBERT reranking (handled separately above)
             if (embedder.supportedModes().contains(EmbeddingMode.COLBERT)
                     && embedding.colbert() != null
                     && config.retrieval().rerankEnabled()) {
@@ -189,7 +165,6 @@ public class HybridCaseRetriever implements CaseRetriever {
                 queryPoints = qb.build();
             }
         } else {
-            // Dense-only mode: direct nearest-neighbor query (no fusion)
             QueryPoints.Builder builder = QueryPoints.newBuilder()
                 .setCollectionName(collection)
                 .setQuery(QueryFactory.nearest(denseVector))
@@ -203,11 +178,9 @@ public class HybridCaseRetriever implements CaseRetriever {
             queryPoints = builder.build();
         }
 
-        // Execute query and map to chunks
         List<ScoredPoint> scoredPoints = executeQuery(queryPoints);
         List<RetrievedChunk> chunks = mapToChunks(scoredPoints);
 
-        // Sort by descending relevance and return
         chunks.sort((a, b) -> Double.compare(b.relevanceScore(), a.relevanceScore()));
         return Collections.unmodifiableList(chunks);
     }
@@ -260,7 +233,6 @@ public class HybridCaseRetriever implements CaseRetriever {
         };
     }
 
-
     private double effectiveWeight(String leg, RetrievalQuery query) {
         double base = switch (leg) {
             case "dense" -> config.retrieval().weights().dense();
@@ -269,7 +241,8 @@ public class HybridCaseRetriever implements CaseRetriever {
             case "quality" -> config.retrieval().weights().quality();
             default -> 1.0;
         };
-        return base * query.weightMultipliers().getOrDefault(leg, 1.0);}
+        return base * query.weightMultipliers().getOrDefault(leg, 1.0);
+    }
 
     private boolean hasEqualActiveWeights(RetrievalQuery query) {
         double dense = effectiveWeight("dense", query);
@@ -283,84 +256,9 @@ public class HybridCaseRetriever implements CaseRetriever {
             String collection, RetrievalQuery query, MultiModalEmbedding embedding,
             Optional<Filter> mergedFilter, int maxResults) {
 
-        List<Float>                                 denseVector = QdrantPointBuilder.floatListFrom(embedding.dense());
-        List<ScoreFusion.ScoredLeg<RetrievedChunk>> legs        = new ArrayList<>();
-
-        QueryPoints.Builder denseQuery = QueryPoints.newBuilder()
-                                                    .setCollectionName(collection)
-                                                    .setQuery(QueryFactory.nearest(denseVector))
-                                                    .setUsing(config.denseVectorName())
-                                                    .setLimit(config.retrieval().denseTopK())
-                                                    .setWithPayload(WithPayloadSelectorFactory.enable(true));
-        if (config.quantization().type() != DenseQuantization.NONE && config.quantization().oversampling().isPresent()) {
-            denseQuery.setParams(quantizationSearchParams());
-        }
-        mergedFilter.ifPresent(denseQuery::setFilter);
-
-        List<ScoredPoint> densePoints = executeQuery(denseQuery.build());
-        if (!densePoints.isEmpty()) {
-            legs.add(new ScoreFusion.ScoredLeg<>(
-                    mapToChunks(densePoints), RetrievedChunk::relevanceScore, effectiveWeight("dense", query)));
-        }
-
-        if (embedding.sparse() != null) {
-            Map<Integer, Float> sparseMap     = embedding.sparse();
-            List<Float>         sparseValues  = new ArrayList<>(sparseMap.size());
-            List<Integer>       sparseIndices = new ArrayList<>(sparseMap.size());
-            for (Map.Entry<Integer, Float> entry : sparseMap.entrySet()) {
-                sparseIndices.add(entry.getKey());
-                sparseValues.add(entry.getValue());
-            }
-
-            QueryPoints.Builder sparseQuery = QueryPoints.newBuilder()
-                                                         .setCollectionName(collection)
-                                                         .setQuery(QueryFactory.nearest(sparseValues, sparseIndices))
-                                                         .setUsing(config.sparseVectorName())
-                                                         .setLimit(config.retrieval().sparseTopK())
-                                                         .setWithPayload(WithPayloadSelectorFactory.enable(true));
-            mergedFilter.ifPresent(sparseQuery::setFilter);
-
-            List<ScoredPoint> sparsePoints = executeQuery(sparseQuery.build());
-            if (!sparsePoints.isEmpty()) {
-                legs.add(new ScoreFusion.ScoredLeg<>(
-                        mapToChunks(sparsePoints), RetrievedChunk::relevanceScore, effectiveWeight("sparse", query)));
-            }
-        }
-
-        if (config.bm25Enabled()) {
-            String expandedQuery = CamelCaseExpander.expand(query.text());
-            QueryPoints.Builder bm25Query = QueryPoints.newBuilder()
-                                                       .setCollectionName(collection)
-                                                       .setQuery(QueryFactory.nearest(
-                                                               Document.newBuilder()
-                                                                       .setText(expandedQuery)
-                                                                       .setModel(QdrantPointBuilder.BM25_MODEL)
-                                                                       .build()))
-                                                       .setUsing(config.bm25VectorName())
-                                                       .setLimit(config.retrieval().bm25TopK())
-                                                       .setWithPayload(WithPayloadSelectorFactory.enable(true));
-            mergedFilter.ifPresent(bm25Query::setFilter);
-
-            List<ScoredPoint> bm25Points = executeQuery(bm25Query.build());
-            if (!bm25Points.isEmpty()) {
-                legs.add(new ScoreFusion.ScoredLeg<>(
-                        mapToChunks(bm25Points), RetrievedChunk::relevanceScore, effectiveWeight("bm25", query)));
-            }
-        }
-
-        return ScoreFusion.rrf(legs, RetrievedChunk::fusionKey, maxResults, config.retrieval().rrfK())
-                          .stream().map(f -> f.item().withRelevanceScore(f.score())).toList();
-    }
-
-
-    private List<RetrievedChunk> executeConvexCombinationFusion(
-            String collection, RetrievalQuery query, MultiModalEmbedding embedding,
-            Optional<Filter> mergedFilter, int maxResults) {
-
         List<Float> denseVector = QdrantPointBuilder.floatListFrom(embedding.dense());
         List<ScoreFusion.ScoredLeg<RetrievedChunk>> legs = new ArrayList<>();
 
-        // Dense leg
         QueryPoints.Builder denseQuery = QueryPoints.newBuilder()
             .setCollectionName(collection)
             .setQuery(QueryFactory.nearest(denseVector))
@@ -378,7 +276,6 @@ public class HybridCaseRetriever implements CaseRetriever {
                 mapToChunks(densePoints), RetrievedChunk::relevanceScore, effectiveWeight("dense", query)));
         }
 
-        // Sparse leg (if available)
         if (embedding.sparse() != null) {
             Map<Integer, Float> sparseMap = embedding.sparse();
             List<Float> sparseValues = new ArrayList<>(sparseMap.size());
@@ -403,7 +300,79 @@ public class HybridCaseRetriever implements CaseRetriever {
             }
         }
 
-        // BM25 leg (if enabled)
+        if (config.bm25Enabled()) {
+            String expandedQuery = CamelCaseExpander.expand(query.text());
+            QueryPoints.Builder bm25Query = QueryPoints.newBuilder()
+                .setCollectionName(collection)
+                .setQuery(QueryFactory.nearest(
+                    Document.newBuilder()
+                        .setText(expandedQuery)
+                        .setModel(QdrantPointBuilder.BM25_MODEL)
+                        .build()))
+                .setUsing(config.bm25VectorName())
+                .setLimit(config.retrieval().bm25TopK())
+                .setWithPayload(WithPayloadSelectorFactory.enable(true));
+            mergedFilter.ifPresent(bm25Query::setFilter);
+
+            List<ScoredPoint> bm25Points = executeQuery(bm25Query.build());
+            if (!bm25Points.isEmpty()) {
+                legs.add(new ScoreFusion.ScoredLeg<>(
+                    mapToChunks(bm25Points), RetrievedChunk::relevanceScore, effectiveWeight("bm25", query)));
+            }
+        }
+
+        return ScoreFusion.rrf(legs, RetrievedChunk::fusionKey, maxResults, config.retrieval().rrfK())
+                          .stream().map(f -> f.item().withRelevanceScore(f.score())).toList();
+    }
+
+    private List<RetrievedChunk> executeConvexCombinationFusion(
+            String collection, RetrievalQuery query, MultiModalEmbedding embedding,
+            Optional<Filter> mergedFilter, int maxResults) {
+
+        List<Float> denseVector = QdrantPointBuilder.floatListFrom(embedding.dense());
+        List<ScoreFusion.ScoredLeg<RetrievedChunk>> legs = new ArrayList<>();
+
+        QueryPoints.Builder denseQuery = QueryPoints.newBuilder()
+            .setCollectionName(collection)
+            .setQuery(QueryFactory.nearest(denseVector))
+            .setUsing(config.denseVectorName())
+            .setLimit(config.retrieval().denseTopK())
+            .setWithPayload(WithPayloadSelectorFactory.enable(true));
+        if (config.quantization().type() != DenseQuantization.NONE && config.quantization().oversampling().isPresent()) {
+            denseQuery.setParams(quantizationSearchParams());
+        }
+        mergedFilter.ifPresent(denseQuery::setFilter);
+
+        List<ScoredPoint> densePoints = executeQuery(denseQuery.build());
+        if (!densePoints.isEmpty()) {
+            legs.add(new ScoreFusion.ScoredLeg<>(
+                mapToChunks(densePoints), RetrievedChunk::relevanceScore, effectiveWeight("dense", query)));
+        }
+
+        if (embedding.sparse() != null) {
+            Map<Integer, Float> sparseMap = embedding.sparse();
+            List<Float> sparseValues = new ArrayList<>(sparseMap.size());
+            List<Integer> sparseIndices = new ArrayList<>(sparseMap.size());
+            for (Map.Entry<Integer, Float> entry : sparseMap.entrySet()) {
+                sparseIndices.add(entry.getKey());
+                sparseValues.add(entry.getValue());
+            }
+
+            QueryPoints.Builder sparseQuery = QueryPoints.newBuilder()
+                .setCollectionName(collection)
+                .setQuery(QueryFactory.nearest(sparseValues, sparseIndices))
+                .setUsing(config.sparseVectorName())
+                .setLimit(config.retrieval().sparseTopK())
+                .setWithPayload(WithPayloadSelectorFactory.enable(true));
+            mergedFilter.ifPresent(sparseQuery::setFilter);
+
+            List<ScoredPoint> sparsePoints = executeQuery(sparseQuery.build());
+            if (!sparsePoints.isEmpty()) {
+                legs.add(new ScoreFusion.ScoredLeg<>(
+                    mapToChunks(sparsePoints), RetrievedChunk::relevanceScore, effectiveWeight("sparse", query)));
+            }
+        }
+
         if (config.bm25Enabled()) {
             String expandedQuery = CamelCaseExpander.expand(query.text());
             QueryPoints.Builder bm25Query = QueryPoints.newBuilder()
@@ -464,10 +433,9 @@ public class HybridCaseRetriever implements CaseRetriever {
             String sourceDocumentId = extractStringPayload(payload, "sourceDocumentId");
 
             if (content == null || sourceDocumentId == null) {
-                continue; // skip malformed points
+                continue;
             }
 
-            // Extract remaining payload entries as metadata (excluding reserved keys)
             Map<String, String> metadata = new HashMap<>();
             for (Map.Entry<String, Value> entry : payload.entrySet()) {
                 if (!QdrantPointBuilder.RESERVED_PAYLOAD_KEYS.contains(entry.getKey())) {

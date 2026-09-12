@@ -2,15 +2,11 @@ package io.casehub.neocortex.rag.runtime;
 
 import io.casehub.neocortex.rag.ExtractionResult;
 import io.casehub.neocortex.rag.MetadataExtractor;
-import io.quarkus.arc.DefaultBean;
-import jakarta.enterprise.context.ApplicationScoped;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@DefaultBean
-@ApplicationScoped
 public class YamlFrontmatterExtractor implements MetadataExtractor {
 
     @Override

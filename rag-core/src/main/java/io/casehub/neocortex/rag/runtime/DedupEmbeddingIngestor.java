@@ -10,11 +10,6 @@ import io.qdrant.client.QueryFactory;
 import io.qdrant.client.WithPayloadSelectorFactory;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.ScoredPoint;
-import jakarta.annotation.Priority;
-import jakarta.decorator.Decorator;
-import jakarta.decorator.Delegate;
-import jakarta.enterprise.inject.Any;
-import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +17,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Decorator
-@Priority(50)
 public class DedupEmbeddingIngestor implements EmbeddingIngestor {
 
     private static final Logger LOG = Logger.getLogger(DedupEmbeddingIngestor.class.getName());
@@ -34,12 +27,11 @@ public class DedupEmbeddingIngestor implements EmbeddingIngestor {
     private final DedupIngestionConfig config;
     private final RagConfig ragConfig;
 
-    @Inject
-    DedupEmbeddingIngestor(@Delegate @Any EmbeddingIngestor delegate,
-                           MultiModalEmbedder embedder,
-                           QdrantClient qdrantClient,
-                           DedupIngestionConfig config,
-                           RagConfig ragConfig) {
+    public DedupEmbeddingIngestor(EmbeddingIngestor delegate,
+                                  MultiModalEmbedder embedder,
+                                  QdrantClient qdrantClient,
+                                  DedupIngestionConfig config,
+                                  RagConfig ragConfig) {
         this.delegate = delegate;
         this.embedder = embedder;
         this.qdrantClient = qdrantClient;

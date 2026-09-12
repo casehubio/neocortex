@@ -3,26 +3,18 @@ package io.casehub.neocortex.rag.runtime;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.PayloadFilter;
 import io.casehub.neocortex.rag.RetrievedChunk;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ApplicationScoped
 public class BM25IndexRegistry {
 
     private final TenancyStrategy tenancyStrategy;
     private final Map<String, BM25Index> indexes = new ConcurrentHashMap<>();
 
-    @Inject
-    BM25IndexRegistry(RagConfig ragConfig) {
-        this.tenancyStrategy = ragConfig.tenancyStrategy();
-    }
-
-    // Test-visible constructor
-    BM25IndexRegistry(TenancyStrategy strategy) {
+    public BM25IndexRegistry(TenancyStrategy strategy) {
         this.tenancyStrategy = strategy;
     }
 
