@@ -65,7 +65,7 @@ class TemporalFocusTest {
         TemporalEntry entry = new TemporalEntry(
             node.validFrom(), new TemporalSource.FromMindMap(node), TENANT, null);
 
-        AffectTrajectory worsening = new AffectTrajectory(-0.2, 0.1, -0.1,
+        AffectTrajectory worsening = new AffectTrajectory(-0.2, 0.1, 0.0, -0.1,
             TrendDirection.WORSENING, 0.2, 5);
 
         List<AttentionItem> withTrajectory = TemporalFocus.focus(
@@ -84,7 +84,7 @@ class TemporalFocusTest {
         TemporalEntry entry = new TemporalEntry(
             node.validFrom(), new TemporalSource.FromMindMap(node), TENANT, null);
 
-        AffectTrajectory improving = new AffectTrajectory(0.3, 0.1, 0.1,
+        AffectTrajectory improving = new AffectTrajectory(0.3, 0.1, 0.0, 0.1,
             TrendDirection.IMPROVING, 0.3, 5);
 
         List<AttentionItem> withTrajectory = TemporalFocus.focus(
@@ -101,7 +101,7 @@ class TemporalFocusTest {
         TemporalEntry entry = new TemporalEntry(
             memory.createdAt(), new TemporalSource.FromMemory(memory), TENANT, null);
 
-        AffectTrajectory volatile_ = new AffectTrajectory(0.0, 0.6, 0.0,
+        AffectTrajectory volatile_ = new AffectTrajectory(0.0, 0.6, 0.0, 0.0,
             TrendDirection.STABLE, 0.0, 5);
 
         List<AttentionItem> withVolatility = TemporalFocus.focus(

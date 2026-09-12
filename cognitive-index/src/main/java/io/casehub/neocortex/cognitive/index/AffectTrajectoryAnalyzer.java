@@ -23,30 +23,31 @@ public final class AffectTrajectoryAnalyzer {
     public static AffectTrajectory analyze(List<Memory> affectMemories) {
         int n = affectMemories.size();
         if (n == 0) {
-            return new AffectTrajectory(0, 0, 0, TrendDirection.STABLE, 0, 0);
+            return new AffectTrajectory(0, 0, 0, 0, TrendDirection.STABLE, 0, 0);
         }
         if (n == 1) {
-            return new AffectTrajectory(0, 0, 0, TrendDirection.STABLE, 0, 1);
+            return new AffectTrajectory(0, 0, 0, 0, TrendDirection.STABLE, 0, 1);
         }
 
-        double[] times = new double[n];
-        double[] pleasures = new double[n];
-        double[] arousals = new double[n];
+        double[] times      = new double[n];
+        double[] pleasures  = new double[n];
+        double[] arousals   = new double[n];
         double[] dominances = new double[n];
 
         Instant t0 = affectMemories.getFirst().createdAt();
         for (int i = 0; i < n; i++) {
             Memory m = affectMemories.get(i);
-            times[i] = m.createdAt() != null
-                ? (m.createdAt().getEpochSecond() - t0.getEpochSecond()) / 3600.0
-                : 0.0;
-            pleasures[i] = m.pleasure() != null ? m.pleasure() : 0.0;
-            arousals[i] = m.arousal() != null ? m.arousal() : 0.0;
+            times[i]      = m.createdAt() != null
+                            ? (m.createdAt().getEpochSecond() - t0.getEpochSecond()) / 3600.0
+                            : 0.0;
+            pleasures[i]  = m.pleasure() != null ? m.pleasure() : 0.0;
+            arousals[i]   = m.arousal() != null ? m.arousal() : 0.0;
             dominances[i] = m.dominance() != null ? m.dominance() : 0.0;
         }
 
-        double pleasureSlope = slope(times, pleasures, n);
-        double dominanceSlope = slope(times, dominances, n);
+        double pleasureSlope     = slope(times, pleasures, n);
+        double arousalSlope      = slope(times, arousals, n);
+        double dominanceSlope    = slope(times, dominances, n);
         double arousalVolatility = stddev(arousals, n);
 
         TrendDirection trend;
@@ -58,9 +59,8 @@ public final class AffectTrajectoryAnalyzer {
             trend = TrendDirection.STABLE;
         }
 
-        return new AffectTrajectory(pleasureSlope, arousalVolatility, dominanceSlope,
-                                    trend, Math.abs(pleasureSlope), n);
-    }
+        return new AffectTrajectory(pleasureSlope, arousalVolatility, arousalSlope, dominanceSlope,
+                                    trend, Math.abs(pleasureSlope), n);}
 
     private static double slope(double[] x, double[] y, int n) {
         double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;

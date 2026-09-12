@@ -60,7 +60,7 @@ class EntityKnowledgeTest {
 
     @Test
     void trajectoryPresent() {
-        var trajectory = new AffectTrajectory(0.1, 0.2, 0.05, TrendDirection.IMPROVING, 0.1, 5);
+        var trajectory = new AffectTrajectory(0.1, 0.2, 0.0, 0.05, TrendDirection.IMPROVING, 0.1, 5);
         var ek = new EntityKnowledge(
             StubNode.named("Alice"), List.of(), Map.of(), trajectory, Set.of(), "tenant", null);
         assertThat(ek.trajectory()).isEqualTo(trajectory);
