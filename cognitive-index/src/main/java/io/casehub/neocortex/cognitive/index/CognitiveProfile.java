@@ -5,7 +5,6 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryQuery;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvents;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.mood.AffectEvents;
@@ -16,6 +15,7 @@ import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -31,31 +31,32 @@ import java.util.Set;
 public class CognitiveProfile {
 
     static final Set<MemoryDomain> DEFAULT_DOMAINS = Set.of(
-        ExperienceEvents.DOMAIN,
-        RelationshipEvents.DOMAIN,
-        ReflectionEvents.DOMAIN,
-        MoodEvents.DOMAIN,
-        EngagementEvents.DOMAIN,
-        AffectEvents.DOMAIN
-    );
+            ExperienceEvents.DOMAIN,
+            RelationshipEvents.DOMAIN,
+            ReflectionEvents.DOMAIN,
+            MoodEvents.DOMAIN,
+            EngagementEvents.DOMAIN,
+            AffectEvents.DOMAIN
+                                                           );
 
-    private final MindMapStore mindMapStore;
-    private final CaseMemoryStore memoryStore;
-    private final CbrCaseMemoryStore cbrStore;
+    private final MindMapStore         mindMapStore;
+    private final CaseMemoryStore      memoryStore;
+    private final PerspectivalResolver perspectivalResolver;
 
     @Inject
     public CognitiveProfile(Instance<MindMapStore> mindMapStore,
-                            Instance<CaseMemoryStore> memoryStore,
-                            Instance<CbrCaseMemoryStore> cbrStore) {
-        this.mindMapStore = mindMapStore != null && mindMapStore.isResolvable() ? mindMapStore.get() : null;
-        this.memoryStore = memoryStore != null && memoryStore.isResolvable() ? memoryStore.get() : null;
-        this.cbrStore = cbrStore != null && cbrStore.isResolvable() ? cbrStore.get() : null;
+                            Instance<CaseMemoryStore> memoryStore) {
+        this.mindMapStore         = mindMapStore != null && mindMapStore.isResolvable() ? mindMapStore.get() : null;
+        this.memoryStore          = memoryStore != null && memoryStore.isResolvable() ? memoryStore.get() : null;
+        this.perspectivalResolver = this.mindMapStore != null
+                                    ? new PerspectivalResolver(this.mindMapStore) : null;
     }
 
-    CognitiveProfile(MindMapStore mindMapStore, CaseMemoryStore memoryStore, CbrCaseMemoryStore cbrStore) {
-        this.mindMapStore = mindMapStore;
-        this.memoryStore = memoryStore;
-        this.cbrStore = cbrStore;
+    CognitiveProfile(MindMapStore mindMapStore, CaseMemoryStore memoryStore) {
+        this.mindMapStore         = mindMapStore;
+        this.memoryStore          = memoryStore;
+        this.perspectivalResolver = mindMapStore != null
+                                    ? new PerspectivalResolver(mindMapStore) : null;
     }
 
     public Optional<EntityKnowledge> resolve(CognitiveProfileQuery query) {
@@ -68,21 +69,28 @@ public class CognitiveProfile {
             return Optional.empty();
         }
 
-        List<String> entityIds = collectEntityIds(node);
+        PrincipalId asSeenBy = query.asSeenBy();
+        if (asSeenBy != null && perspectivalResolver != null) {
+            List<MindMapNode> resolved = perspectivalResolver.resolve(
+                    List.of(node), asSeenBy, query.tenantId());
+            node = resolved.getFirst();
+        }
+
+        List<String> entityIds      = collectEntityIds(node);
         Set<NodeRef> unresolvedRefs = collectUnresolvedRefs(node);
 
         List<MindMapEdge> edges = query.includeEdges()
-            ? mindMapStore.neighbors(node.id(), query.tenantId())
-            : List.of();
+                                  ? mindMapStore.neighbors(node.id(), query.tenantId())
+                                  : List.of();
 
         Set<MemoryDomain> domains = query.domains().isEmpty()
-            ? DEFAULT_DOMAINS : query.domains();
+                                    ? DEFAULT_DOMAINS : query.domains();
 
         Map<MemoryDomain, List<Memory>> memories = queryMemories(entityIds, domains, query);
 
         AffectTrajectory trajectory = computeTrajectory(entityIds, memories, query);
 
-        return Optional.of(new EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, query.tenantId(), null));
+        return Optional.of(new EntityKnowledge(node, edges, memories, trajectory, unresolvedRefs, query.tenantId(), asSeenBy));
     }
 
     private MindMapNode resolveNode(CognitiveProfileQuery query) {
@@ -127,10 +135,17 @@ public class CognitiveProfile {
         }
         Map<MemoryDomain, List<Memory>> result = new LinkedHashMap<>();
         for (MemoryDomain domain : domains) {
-            List<Memory> memories = memoryStore.query(
-                MemoryQuery.forSubjects(entityIds.stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(), domain, query.tenantId())
-                    .withLimit(query.memoryLimit())
-                    .withOrder(MemoryOrder.CHRONOLOGICAL));
+            var memQuery = MemoryQuery.forSubjects(
+                                              entityIds.stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(),
+                                              domain, query.tenantId())
+                                      .withLimit(query.memoryLimit())
+                                      .withOrder(MemoryOrder.CHRONOLOGICAL);
+
+            if (query.asSeenBy() != null) {
+                memQuery = memQuery.withCallerPrincipalId(query.asSeenBy());
+            }
+
+            List<Memory> memories = memoryStore.query(memQuery);
             if (!memories.isEmpty()) {
                 result.put(domain, memories);
             }
@@ -148,10 +163,17 @@ public class CognitiveProfile {
 
         List<Memory> affectMemories = memories.get(AffectEvents.DOMAIN);
         if (affectMemories == null) {
-            affectMemories = memoryStore.query(
-                MemoryQuery.forSubjects(entityIds.stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(), AffectEvents.DOMAIN, query.tenantId())
-                    .withLimit(query.memoryLimit())
-                    .withOrder(MemoryOrder.CHRONOLOGICAL));
+            var memQuery = MemoryQuery.forSubjects(
+                                              entityIds.stream().map(id -> io.casehub.neocortex.memory.Subject.of("unknown", id)).toList(),
+                                              AffectEvents.DOMAIN, query.tenantId())
+                                      .withLimit(query.memoryLimit())
+                                      .withOrder(MemoryOrder.CHRONOLOGICAL);
+
+            if (query.asSeenBy() != null) {
+                memQuery = memQuery.withCallerPrincipalId(query.asSeenBy());
+            }
+
+            affectMemories = memoryStore.query(memQuery);
         }
 
         if (affectMemories.isEmpty()) {

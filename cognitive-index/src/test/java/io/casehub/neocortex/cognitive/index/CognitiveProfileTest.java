@@ -11,7 +11,9 @@ import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,9 +45,65 @@ class CognitiveProfileTest {
     void setUp() {
         mindMapStore = new InMemoryMindMapStore();
         memoryStore = new TestMemoryStore();
-        profile = new CognitiveProfile(mindMapStore, memoryStore, null);
+        profile = new CognitiveProfile(mindMapStore, memoryStore);
         mindMapStore.createSubgraph(new SubgraphInput(SUBGRAPH, "general", null), TENANT);
     }
+
+    @Test
+    void resolveWithAsSeenByAppliesOverlayBeforeTrajectory() {
+        String nodeId = mindMapStore.addNode(node("Grandma"), TENANT);
+
+        PrincipalId alice = PrincipalId.agent("alice");
+        addOverlay(nodeId, "alice", 0.9, 0.3, 0.5);
+
+        var query = CognitiveProfileQuery.byId(nodeId, TENANT)
+                                         .withAsSeenBy(alice);
+        var ek = profile.resolve(query);
+
+        assertThat(ek).isPresent();
+        assertThat(ek.get().node().pleasure()).isEqualTo(0.9);
+        assertThat(ek.get().node().arousal()).isEqualTo(0.3);
+        assertThat(ek.get().node().dominance()).isEqualTo(0.5);
+        assertThat(ek.get().perceiver()).isEqualTo(alice);
+    }
+
+    @Test
+    void resolveWithoutAsSeenByReturnsSharedView() {
+        String nodeId = mindMapStore.addNode(node("Grandma"), TENANT);
+        addOverlay(nodeId, "alice", 0.9, 0.3, 0.5);
+
+        var query = CognitiveProfileQuery.byId(nodeId, TENANT);
+        var ek    = profile.resolve(query);
+
+        assertThat(ek).isPresent();
+        assertThat(ek.get().node().pleasure()).isNull();
+        assertThat(ek.get().perceiver()).isNull();
+    }
+
+    @Test
+    void resolveWithAsSeenByNoOverlayReturnsSharedNodeWithPerceiverSet() {
+        String nodeId = mindMapStore.addNode(node("Grandma"), TENANT);
+
+        PrincipalId bob = PrincipalId.agent("bob");
+        var query = CognitiveProfileQuery.byId(nodeId, TENANT)
+                                         .withAsSeenBy(bob);
+        var ek = profile.resolve(query);
+
+        assertThat(ek).isPresent();
+        assertThat(ek.get().node().pleasure()).isNull();
+        assertThat(ek.get().perceiver()).isEqualTo(bob);
+    }
+
+    private void addOverlay(String sharedNodeId, String agentId,
+                            double p, double a, double d) {
+        String principalValue = PrincipalId.agent(agentId).value();
+        mindMapStore.addNode(new NodeInput(
+                "overlay-" + sharedNodeId + "-" + agentId, SUBGRAPH, null, null,
+                Set.of("overlay"), Set.of(OverlayRef.of(sharedNodeId)),
+                null, null, p, a, d,
+                Map.of(OverlayRef.AGENT_ID, principalValue)), TENANT);
+    }
+
 
     @Test
     void resolveById_returnsEntityKnowledge() {
@@ -205,7 +263,7 @@ class CognitiveProfileTest {
 
     @Test
     void gracefulDegradation_noMemoryStore() {
-        var profileNoMemory = new CognitiveProfile(mindMapStore, null, null);
+        var profileNoMemory = new CognitiveProfile(mindMapStore, null);
         String nodeId = mindMapStore.addNode(node("Alice"), TENANT);
 
         var result = profileNoMemory.resolve(CognitiveProfileQuery.byId(nodeId, TENANT));
@@ -218,7 +276,7 @@ class CognitiveProfileTest {
 
     @Test
     void gracefulDegradation_noMindMapStore() {
-        var profileNoMindMap = new CognitiveProfile(null, memoryStore, null);
+        var profileNoMindMap = new CognitiveProfile(null, memoryStore);
 
         var result = profileNoMindMap.resolve(CognitiveProfileQuery.byId("any-id", TENANT));
 
