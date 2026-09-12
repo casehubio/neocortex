@@ -1,7 +1,11 @@
 package io.casehub.neocortex.mindmap.runtime;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapVocabulary;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -243,6 +247,27 @@ class MindMapAnalyzerTest {
 
         assertThat(result).allSatisfy(bc -> assertThat(bc.score()).isEqualTo(0.0));
     }
+
+    @Test
+    void betweennessCentrality_crossSubgraphEdges_noNpe() {
+        String otherSg = store.createSubgraph(
+                new SubgraphInput("Other", SubgraphTypes.PERSON, null), "t1");
+
+        String a = store.addNode(node("A"), "t1");
+        String b = store.addNode(node("B"), "t1");
+        String external = store.addNode(
+                new NodeInput("External", otherSg, null, "test", null, null, null, null, null, null, null, null), "t1");
+
+        store.addEdge(edge(a, b, "knows"), "t1");
+        store.addEdge(edge(b, external, "linked-to"), "t1");
+
+        List<MindMapAnalyzer.BetweennessCentrality> result =
+                MindMapAnalyzer.betweennessCentrality(store, subgraphId, "t1");
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting("name").containsExactlyInAnyOrder("A", "B");
+    }
+
 
     // --- Helpers ---
 

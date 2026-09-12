@@ -220,6 +220,7 @@ public final class MindMapAnalyzer {
                 String v = queue.poll();
                 stack.push(v);
                 for (String w : adjacency.getOrDefault(v, Set.of())) {
+                    if (!dist.containsKey(w)) continue;
                     if (dist.get(w) < 0) {
                         dist.put(w, dist.get(v) + 1);
                         queue.add(w);
