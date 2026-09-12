@@ -142,14 +142,7 @@ public class MemoryBeans {
         return new CbrOutcomeProcessor(store);
     }
 
-    @Produces
-    @ApplicationScoped
-    public CaseEnrichmentPipeline caseEnrichmentPipeline(CaseMemoryStore store,
-                                                          Instance<CaseEnrichmentStep> steps) {
-        return new CaseEnrichmentPipeline(store, steps.stream()
-            .sorted(Comparator.comparingInt(CaseEnrichmentStep::priority))
-            .toList());
-    }
+    // CaseEnrichmentPipeline is exposed via @Decorator CaseEnrichmentDecorator — no @Produces needed
 
     // --- CDI event observers ---
 
