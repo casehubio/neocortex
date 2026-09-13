@@ -147,21 +147,21 @@ class AgentMemoryWalkthroughTest {
         // The agent starts in a neutral mood
         var sessionStart = new MoodState(
             AGENT, TENANT, SESSION_START,
-            0.2, 0.1, 0.3, "session-start", "turn-0", Map.of());
+            0.2, 0.1, 0.3, "session-start", "turn-0", null, Map.of());
 
         store.store(MoodEvents.toMemoryInput(sessionStart));
 
         // After a student asks a very difficult question — arousal spikes
         var underPressure = new MoodState(
             AGENT, TENANT, SESSION_START.plusSeconds(600),
-            0.1, 0.7, 0.2, "complex-question-from-bob", "turn-5", Map.of());
+            0.1, 0.7, 0.2, "complex-question-from-bob", "turn-5", null, Map.of());
 
         store.store(MoodEvents.toMemoryInput(underPressure));
 
         // After successfully explaining — pleasure increases
         var afterSuccess = new MoodState(
             AGENT, TENANT, SESSION_START.plusSeconds(900),
-            0.7, 0.3, 0.5, "successful-explanation", "turn-8", Map.of());
+            0.7, 0.3, 0.5, "successful-explanation", "turn-8", null, Map.of());
 
         store.store(MoodEvents.toMemoryInput(afterSuccess));
 
@@ -341,7 +341,7 @@ class AgentMemoryWalkthroughTest {
         // Current mood: the tutor is feeling positive after a successful lesson
         var currentMood = new MoodState(
             AGENT, TENANT, SESSION_START.plusSeconds(1800),
-            0.8, 0.3, 0.6, "lesson-going-well", "turn-12", Map.of());
+            0.8, 0.3, 0.6, "lesson-going-well", "turn-12", null, Map.of());
 
         // Store some memories with different emotional signatures
         // — a positive memory (high pleasure)

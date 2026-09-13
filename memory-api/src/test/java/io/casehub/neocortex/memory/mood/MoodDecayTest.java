@@ -3,6 +3,7 @@ package io.casehub.neocortex.memory.mood;
 import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MoodDecayTest {
@@ -11,7 +12,7 @@ class MoodDecayTest {
     private static final Duration TAU = Duration.ofHours(6);
 
     private MoodState mood(double p, double a, double d) {
-        return new MoodState("a1", "t1", null, p, a, d, "test", null, Map.of());
+        return new MoodState("a1", "t1", null, p, a, d, "test", null, null, Map.of());
     }
 
     @Test
@@ -81,10 +82,19 @@ class MoodDecayTest {
     @Test
     void preservesAgentAndTenantId() {
         var current = new MoodState("agent-x", "tenant-y", null, 0.8, 0.0, 0.0,
-                                    "event", "turn-1", Map.of("k", "v"));
+                                    "event", "turn-1", null, Map.of("k", "v"));
         var decayed = MoodDecay.decay(current, NEUTRAL, Duration.ofHours(1), TAU);
         assertEquals("agent-x", decayed.agentId());
         assertEquals("tenant-y", decayed.tenantId());
         assertEquals("decay", decayed.cause());
+    }
+
+    @Test
+    void preservesActiveContextIds() {
+        var ids = Set.of("sg-work", "sg-family");
+        var current = new MoodState("a", "t", null, 0.8, 0.5, 0.3,
+                                    "happy", "turn-1", ids, Map.of());
+        var result = MoodDecay.decay(current, NEUTRAL, Duration.ofHours(6), TAU);
+        assertEquals(ids, result.activeContextIds());
     }
 }

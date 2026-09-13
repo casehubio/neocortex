@@ -3,6 +3,7 @@ package io.casehub.neocortex.memory.mood;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public record MoodState(
         String agentId,
@@ -12,6 +13,7 @@ public record MoodState(
         double dominance,
         String cause,
         String turnId,
+        Set<String> activeContextIds,
         Map<String, String> metadata
 ) {
     public MoodState {
@@ -23,6 +25,7 @@ public record MoodState(
         validateAxis("pleasure", pleasure);
         validateAxis("arousal", arousal);
         validateAxis("dominance", dominance);
+        if (activeContextIds != null) activeContextIds = Set.copyOf(activeContextIds);
         Objects.requireNonNull(metadata, "metadata required");
         metadata = Map.copyOf(metadata);
     }

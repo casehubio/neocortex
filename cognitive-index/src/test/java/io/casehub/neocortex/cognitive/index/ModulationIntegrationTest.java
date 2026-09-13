@@ -27,7 +27,7 @@ class ModulationIntegrationTest {
 
     @Test
     void fullMemoryPipelineRanksCorrectly() {
-        MoodState mood = new MoodState("agent", "t1", NOW, 0.7, 0.3, 0.5, "test", null, Map.of());
+        MoodState mood = new MoodState("agent", "t1", NOW, 0.7, 0.3, 0.5, "test", null, null, Map.of());
         PersonalityWeights weights = new PersonalityWeights(
             Map.of(new MemoryDomain("experience"), 2.0));
 
@@ -58,7 +58,7 @@ class ModulationIntegrationTest {
 
     @Test
     void nodeModulationWithoutDomainWeight() {
-        MoodState mood = new MoodState("agent", "t1", NOW, 0.5, 0.5, 0.5, "test", null, Map.of());
+        MoodState mood = new MoodState("agent", "t1", NOW, 0.5, 0.5, 0.5, "test", null, null, Map.of());
 
         MindMapNode aligned = new StubNode(
             "n1", "Aligned", "sg-1", "general",

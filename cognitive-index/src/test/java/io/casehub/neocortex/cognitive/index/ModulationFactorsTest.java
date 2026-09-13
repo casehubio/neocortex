@@ -70,7 +70,7 @@ class ModulationFactorsTest {
     void moodCongruenceAlignedItemsScoreHigher() {
         var aligned = new TestItem(Confidence.unknown(1.0), 0.8, 0.5, 0.3, NOW);
         var misaligned = new TestItem(Confidence.unknown(1.0), -0.8, -0.5, -0.3, NOW);
-        MoodState mood = new MoodState("agent", "t1", NOW, 0.8, 0.5, 0.3, "test", null, Map.of());
+        MoodState mood = new MoodState("agent", "t1", NOW, 0.8, 0.5, 0.3, "test", null, null, Map.of());
 
         ModulationFactor<TestItem> factor =
             ModulationFactors.moodCongruence(mood, 0.8);
@@ -82,7 +82,7 @@ class ModulationFactorsTest {
     @Test
     void moodCongruenceNoPadReturnsOne() {
         var item = new TestItem(Confidence.unknown(1.0), null, null, null, NOW);
-        MoodState mood = new MoodState("agent", "t1", NOW, 0.5, 0.5, 0.5, "test", null, Map.of());
+        MoodState mood = new MoodState("agent", "t1", NOW, 0.5, 0.5, 0.5, "test", null, null, Map.of());
         ModulationFactor<TestItem> factor =
             ModulationFactors.moodCongruence(mood, 0.8);
         assertThat(factor.apply(item, PROFILE)).isEqualTo(1.0);
@@ -91,7 +91,7 @@ class ModulationFactorsTest {
     @Test
     void moodCongruenceZeroInfluenceReturnsOne() {
         var item = new TestItem(Confidence.unknown(1.0), 0.5, 0.5, 0.5, NOW);
-        MoodState mood = new MoodState("agent", "t1", NOW, -0.5, -0.5, -0.5, "test", null, Map.of());
+        MoodState mood = new MoodState("agent", "t1", NOW, -0.5, -0.5, -0.5, "test", null, null, Map.of());
         ModulationFactor<TestItem> factor =
             ModulationFactors.moodCongruence(mood, 0.0);
         assertThat(factor.apply(item, PROFILE)).isEqualTo(1.0);

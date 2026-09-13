@@ -34,6 +34,12 @@ public final class MoodEvents {
         reserved.add(MoodAttributeKeys.TIMESTAMP);
         attrs.put(MoodAttributeKeys.TIMESTAMP, state.timestamp().toString());
 
+        if (state.activeContextIds() != null && !state.activeContextIds().isEmpty()) {
+            reserved.add(MoodAttributeKeys.ACTIVE_CONTEXT_IDS);
+            attrs.put(MoodAttributeKeys.ACTIVE_CONTEXT_IDS,
+                      String.join(",", state.activeContextIds()));
+        }
+
         for (String key : state.metadata().keySet()) {
             if (reserved.contains(key)) {
                 throw new IllegalArgumentException(

@@ -6,6 +6,7 @@ public final class MoodAttributeKeys {
     public static final String DOMINANCE = "dominance";
     public static final String TURN_ID = "turn-id";
     public static final String TIMESTAMP = "timestamp";
+    public static final String ACTIVE_CONTEXT_IDS = "active-context-ids";
 
     private MoodAttributeKeys() {}
 }

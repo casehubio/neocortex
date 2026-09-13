@@ -29,6 +29,7 @@ public final class MoodDecay {
                 decayAxis(current.dominance(), baseline.dominance(), factor),
                 "decay",
                 null,
+                current.activeContextIds(),
                 Map.of()
         );
     }
