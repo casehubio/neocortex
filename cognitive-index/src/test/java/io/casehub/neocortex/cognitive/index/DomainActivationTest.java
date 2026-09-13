@@ -2,6 +2,14 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.Subject;
+import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
+import io.casehub.neocortex.memory.experience.ExperienceEvents;
+import io.casehub.neocortex.memory.mood.MoodAttributeKeys;
+import io.casehub.neocortex.memory.mood.MoodEvents;
+import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
@@ -11,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -95,7 +104,7 @@ class DomainActivationTest {
     @Test
     void correlateRequiresPrincipal() {
         assertThatThrownBy(() -> new DomainActivationQuery(
-            null, Set.of("a", "b"), TENANT, null, null, null))
+            null, Set.of("a", "b"), TENANT, null, null, null, Set.of(), null))
             .isInstanceOf(NullPointerException.class);
     }
 
@@ -166,7 +175,7 @@ class DomainActivationTest {
         }
 
         var query = new DomainActivationQuery(alice, Set.of(sgA, sgB, sgC),
-            TENANT, BASE, BASE.plus(Duration.ofDays(5)), null);
+            TENANT, BASE, BASE.plus(Duration.ofDays(5)), null, Set.of(), null);
         var result = domainActivation.correlate(query);
 
         assertThat(result).isPresent();
@@ -206,5 +215,162 @@ class DomainActivationTest {
         DomainSignal signalB = result.get().domains().get(sgB);
         assertThat(signalB.entityCount()).isEqualTo(1);
         assertThat(signalB.memoryCount()).isEqualTo(5);
+    }
+
+    @Test
+    void emptyContextDomainsProducesEmptyMaps() {
+        PrincipalId alice = PrincipalId.agent("alice");
+        String sgA = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String nodeA = mindMapStore.addNode(
+            new NodeInput("eA", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        String nodeB = mindMapStore.addNode(
+            new NodeInput("eB", sgB, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        for (int d = 0; d < 10; d++) {
+            Instant t = BASE.plus(Duration.ofDays(d));
+            memoryStore.storeAt(nodeA, d * 0.1, 0.0, 0.0, t, TENANT);
+            memoryStore.storeAt(nodeB, d * 0.05, 0.0, 0.0, t, TENANT);
+        }
+
+        var query = DomainActivationQuery.between(alice, TENANT, sgA, sgB)
+                        .withFrom(BASE).withTo(BASE.plus(Duration.ofDays(10)));
+        var result = domainActivation.correlate(query);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().contextCorrelations()).isEmpty();
+        assertThat(result.get().eventImpacts()).isEmpty();
+    }
+
+    @Test
+    void moodCorrelationWithContextAttribution() {
+        PrincipalId alice = PrincipalId.agent("alice");
+        String sgA = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String nodeA = mindMapStore.addNode(
+            new NodeInput("eA", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        String nodeB = mindMapStore.addNode(
+            new NodeInput("eB", sgB, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        for (int d = 0; d < 10; d++) {
+            Instant t = BASE.plus(Duration.ofDays(d));
+            double v = d * 0.1;
+            memoryStore.storeAt(nodeA, v, 0.0, 0.0, t, TENANT);
+            memoryStore.storeAt(nodeB, -v, 0.0, 0.0, t, TENANT);
+            storeMoodAt(alice, v, 0.0, 0.0, t, Set.of(sgA));
+        }
+
+        var query = DomainActivationQuery.between(alice, TENANT, sgA, sgB)
+                        .withContextDomains(Set.of(MoodEvents.DOMAIN))
+                        .withFrom(BASE).withTo(BASE.plus(Duration.ofDays(10)));
+        var result = domainActivation.correlate(query);
+
+        assertThat(result).isPresent();
+        var moodCorrelations = result.get().contextCorrelations().get(MoodEvents.DOMAIN);
+        assertThat(moodCorrelations).isNotNull();
+        assertThat(moodCorrelations).containsKey(sgA);
+        assertThat(moodCorrelations).containsKey(sgB);
+        assertThat(moodCorrelations.get(sgA).totalMoodCount()).isGreaterThan(0);
+    }
+
+    @Test
+    void agentGlobalMoodCorrelatesWithAllSubgraphs() {
+        PrincipalId alice = PrincipalId.agent("alice");
+        String sgA = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String nodeA = mindMapStore.addNode(
+            new NodeInput("eA", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        String nodeB = mindMapStore.addNode(
+            new NodeInput("eB", sgB, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        for (int d = 0; d < 10; d++) {
+            Instant t = BASE.plus(Duration.ofDays(d));
+            memoryStore.storeAt(nodeA, d * 0.1, 0.0, 0.0, t, TENANT);
+            memoryStore.storeAt(nodeB, d * 0.1, 0.0, 0.0, t, TENANT);
+            storeMoodAt(alice, d * 0.1, 0.0, 0.0, t, null);
+        }
+
+        var query = DomainActivationQuery.between(alice, TENANT, sgA, sgB)
+                        .withContextDomains(Set.of(MoodEvents.DOMAIN))
+                        .withFrom(BASE).withTo(BASE.plus(Duration.ofDays(10)));
+        var result = domainActivation.correlate(query);
+
+        assertThat(result).isPresent();
+        var moodCorrelations = result.get().contextCorrelations().get(MoodEvents.DOMAIN);
+        assertThat(moodCorrelations.get(sgA).totalMoodCount()).isGreaterThan(0);
+        assertThat(moodCorrelations.get(sgB).totalMoodCount()).isGreaterThan(0);
+        assertThat(moodCorrelations.get(sgA).contextAttributedCount()).isEqualTo(0);
+    }
+
+    @Test
+    void experienceCorrelationProducesEventImpact() {
+        PrincipalId alice = PrincipalId.agent("alice");
+        String sgA = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String nodeA = mindMapStore.addNode(
+            new NodeInput("eA", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        String nodeB = mindMapStore.addNode(
+            new NodeInput("eB", sgB, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        for (int d = 0; d < 20; d++) {
+            Instant t = BASE.plus(Duration.ofDays(d));
+            double v = d < 10 ? -0.3 : 0.5;
+            memoryStore.storeAt(nodeA, v, 0.0, 0.0, t, TENANT);
+            memoryStore.storeAt(nodeB, 0.0, 0.0, 0.0, t, TENANT);
+        }
+        storeExperienceAt(alice, BASE.plus(Duration.ofDays(10)), "outcome");
+
+        var query = DomainActivationQuery.between(alice, TENANT, sgA, sgB)
+                        .withContextDomains(Set.of(ExperienceEvents.DOMAIN))
+                        .withEventWindow(Duration.ofDays(5))
+                        .withFrom(BASE).withTo(BASE.plus(Duration.ofDays(20)));
+        var result = domainActivation.correlate(query);
+
+        assertThat(result).isPresent();
+        var impacts = result.get().eventImpacts().get(ExperienceEvents.DOMAIN);
+        assertThat(impacts).isNotNull().containsKey(sgA);
+        assertThat(impacts.get(sgA).totalEvents()).isEqualTo(1);
+        assertThat(impacts.get(sgA).byType()).containsKey("outcome");
+    }
+
+    @Test
+    void singleSubgraphAllowedWithContextDomains() {
+        PrincipalId alice = PrincipalId.agent("alice");
+        String sgA = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        mindMapStore.addNode(
+            new NodeInput("eA", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        var query = new DomainActivationQuery(alice, Set.of(sgA), TENANT,
+                        null, null, null, Set.of(MoodEvents.DOMAIN), null);
+        assertThat(query.subgraphIds()).hasSize(1);
+    }
+
+    @Test
+    void singleSubgraphWithoutContextDomainsThrows() {
+        PrincipalId alice = PrincipalId.agent("alice");
+        assertThatThrownBy(() -> new DomainActivationQuery(alice, Set.of("sg"),
+            TENANT, null, null, null, Set.of(), null))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private void storeMoodAt(PrincipalId agent, double p, double a, double d,
+                             Instant t, Set<String> contextIds) {
+        var attrs = new HashMap<String, String>();
+        attrs.put(MoodAttributeKeys.PLEASURE, String.valueOf(p));
+        attrs.put(MoodAttributeKeys.AROUSAL, String.valueOf(a));
+        attrs.put(MoodAttributeKeys.DOMINANCE, String.valueOf(d));
+        attrs.put(MoodAttributeKeys.TIMESTAMP, t.toString());
+        if (contextIds != null && !contextIds.isEmpty()) {
+            attrs.put(MoodAttributeKeys.ACTIVE_CONTEXT_IDS, String.join(",", contextIds));
+        }
+        memoryStore.storeAtDomain(Subject.of("agent", agent.id()), MoodEvents.DOMAIN, TENANT,
+                "mood", attrs, t, p, a, d, agent);
+    }
+
+    private void storeExperienceAt(PrincipalId agent, Instant t, String eventType) {
+        var attrs = new HashMap<String, String>();
+        attrs.put(ExperienceAttributeKeys.EVENT_TYPE, eventType);
+        attrs.put(ExperienceAttributeKeys.TIMESTAMP, t.toString());
+        memoryStore.storeAtDomain(Subject.of("agent", agent.id()), ExperienceEvents.DOMAIN, TENANT,
+                "experience event", attrs, t, null, null, null, agent);
     }
 }

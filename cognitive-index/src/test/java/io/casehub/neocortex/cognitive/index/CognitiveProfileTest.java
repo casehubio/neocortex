@@ -8,6 +8,7 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeRef;
@@ -432,6 +433,15 @@ class CognitiveProfileTest {
             memories.add(new Memory(id, entityId, new MemoryDomain("affect"), tenantId,
                                     null, "PAD update", Map.of(), timestamp,
                                     CONF, pleasure, arousal, dominance));
+        }
+
+        void storeAtDomain(Subject subject, MemoryDomain domain, String tenantId,
+                           String text, Map<String, String> attributes, Instant timestamp,
+                           Double pleasure, Double arousal, Double dominance, PrincipalId principalId) {
+            String id = java.util.UUID.randomUUID().toString();
+            memories.add(new Memory(id, subject, domain, tenantId,
+                                    null, text, attributes, timestamp,
+                                    null, pleasure, arousal, dominance, principalId, null));
         }
 
     }
