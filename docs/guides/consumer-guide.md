@@ -95,7 +95,7 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution + multi-agent comparison), `SocialComparison` (perspectival divergence metrics), `DomainActivation` (cross-domain DTW correlation), `CognitiveDefaultsRegistry` (YAML-driven per-agent config) |
+| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution + multi-agent comparison), `SocialComparison` (perspectival divergence metrics), `DomainActivation` (cross-domain DTW correlation + mood/experience context correlation), `CognitiveDefaultsRegistry` (YAML-driven per-agent config) |
 | `schema-generator` | `casehub-neocortex-schema-generator` | JSON Schema generation (Draft 2020-12) for cognitive types — sealed hierarchy `oneOf`, enum inlining, shorthand patterns, YAML output |
 
 ### Corpus
@@ -456,11 +456,12 @@ Agents with any null PAD dimension are excluded from distance/difference computa
 
 ### DomainActivation — Cross-Domain Correlation (cognitive-index)
 
-CDI bean for correlating affect signals across life domains (subgraphs). Uses Dynamic Time Warping on time-bucketed 3D PAD time series to detect cross-domain emotional patterns.
+CDI bean for correlating affect signals across life domains (subgraphs). Uses Dynamic Time Warping on time-bucketed 3D PAD time series to detect cross-domain emotional patterns. Optionally correlates agent mood and experience events against per-subgraph affect trajectories.
 
 ```java
 @Inject DomainActivation domainActivation;
 
+// Affect-only correlation (existing)
 var query = DomainActivationQuery.between(
     PrincipalId.agent("alice"), tenantId, workSubgraphId, familySubgraphId)
     .withFrom(windowStart)
@@ -470,9 +471,20 @@ var query = DomainActivationQuery.between(
 Optional<DomainActivationResult> result = domainActivation.correlate(query);
 // result.get().correlations() — pairwise DTW similarity per DomainPair
 // result.get().domains() — per-subgraph DomainSignal (trajectory, entity/memory counts)
+
+// With mood + experience context correlation (opt-in)
+var contextQuery = DomainActivationQuery.between(
+    PrincipalId.agent("alice"), tenantId, workSubgraphId, familySubgraphId)
+    .withFrom(windowStart).withTo(windowEnd)
+    .withContextDomains(Set.of(MoodEvents.DOMAIN, ExperienceEvents.DOMAIN))
+    .withEventWindow(Duration.ofDays(1));
+
+Optional<DomainActivationResult> contextResult = domainActivation.correlate(contextQuery);
+// contextResult.get().contextCorrelations() — mood ↔ affect DTW per subgraph (with pValue)
+// contextResult.get().eventImpacts() — experience → affect Δ(PAD) per subgraph per event type
 ```
 
-Privacy by construction — `PrincipalId` is required and non-nullable. Only the specified agent's affect memories are queried. Returns `Optional.empty()` when any subgraph has zero entities or zero affect memories.
+Privacy by construction — `PrincipalId` is required and non-nullable. Only the specified agent's affect memories are queried. Returns `Optional.empty()` when any subgraph has zero entities or zero affect memories. Context correlations degrade gracefully — empty maps when no mood/experience data exists.
 
 ---
 

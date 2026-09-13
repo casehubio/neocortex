@@ -683,14 +683,16 @@ Pure static utility following the `AffectTrajectoryAnalyzer` pattern. `compare(M
 3. Time-bucket into `double[][]` arrays (rows = buckets, cols = pleasure/arousal/dominance). Empty buckets skipped — DTW handles unequal lengths natively
 4. Compute `AffectTrajectory` per subgraph via `AffectTrajectoryAnalyzer.analyze()`
 5. Pairwise 3D DTW via `PadDtw.compute()`. `CorrelationStrength` from similarity score
+6. Optional mood correlation: context-partitioned mood PAD via `activeContextIds`, time-bucketed DTW with Sakoe-Chiba banding, circular shift significance testing
+7. Optional experience correlation: event-triggered affect windows via `EventTriggeredAnalyzer`, Δ(affect) pre/post each event per PAD dimension with bootstrap 95% CI
 
 **Privacy by construction:** `DomainActivationQuery.principal` is required, non-nullable. Cross-principal analysis not expressible. Returns `Optional.empty()` when any subgraph has zero entities or zero memories.
 
-**Key types:** `DomainActivationQuery` (with `between()` factory, `bucketDuration` default 24h), `DomainActivationResult`, `DomainSignal` (per-subgraph trajectory + counts), `DomainPair` (canonical ordering), `DomainCorrelation` (DTW similarity + alignment + strength).
+**Key types:** `DomainActivationQuery` (with `between()` factory, `bucketDuration` default 24h, `withContextDomains(Set<MemoryDomain>)` for mood/experience opt-in, `withEventWindow(Duration)`, ≥1 subgraph when contextDomains non-empty), `DomainActivationResult` (`contextCorrelations` Map<MemoryDomain, Map<String, DomainCorrelation>> for mood DTW, `eventImpacts` Map<MemoryDomain, Map<String, EventImpact>> for experience windows), `DomainSignal` (per-subgraph trajectory + counts), `DomainPair` (canonical ordering), `DomainCorrelation` (DTW similarity + alignment + CorrelationStrength + pValue + contextAttributedCount/totalMoodCount), `EventTriggeredAnalyzer` (static utility: Δ(affect) pre/post experience events per PAD dimension, bootstrap 95% CI), `EventImpact`, `EventTypeImpact`, `ConfidenceInterval`.
 
 #### PadDtw
 
-Package-private pure static utility. Lightweight Dynamic Time Warping for multi-dimensional `double[][]` time series (rows = time points, columns = PAD dimensions). Euclidean distance per time point, O(n×m) DP matrix, backtrace alignment path. `1.0 / (1.0 + normalizedCost)` scoring. Independent of CBR's `DtwSimilarity` — same algorithm, incompatible type interfaces (`FeatureValue`/`FeatureField` vs raw doubles).
+Package-private pure static utility. Lightweight Dynamic Time Warping for multi-dimensional `double[][]` time series (rows = time points, columns = PAD dimensions). Euclidean distance per time point, O(n×m) DP matrix, backtrace alignment path. `1.0 / (1.0 + normalizedCost)` scoring. `WarpingConstraint` overload supports all 3 sealed variants (Unconstrained, SakoeChibaBand, ItakuraParallelogram). `significanceTest()` uses circular shift surrogates (preserves autocorrelation) with deterministic seed, returns `SignificanceResult` (similarity + pValue + CorrelationStrength). Independent of CBR's `DtwSimilarity` — same algorithm, incompatible type interfaces (`FeatureValue`/`FeatureField` vs raw doubles).
 
 #### CognitiveDefaults and CognitiveDefaultsRegistry
 
@@ -841,11 +843,11 @@ Five domain-specific event streams layer typed agent experience on top of `CaseM
 
 #### MoodState, MoodBaseline, and MoodDecay
 
-`MoodState` — record: `agentId`, `tenantId`, PAD axes (pleasure/arousal/dominance ∈ [-1,1]), `cause`, `turnId`. Dynamic emotional state stored with `domain="mood"`. PAD values stored both as attributes and as first-class PAD fields on `MemoryInput`.
+`MoodState` — record: `agentId`, `tenantId`, PAD axes (pleasure/arousal/dominance ∈ [-1,1]), `cause`, `turnId`, `activeContextIds` (optional Set<String>, null = agent-global fallback — subgraph IDs the agent was engaged with when mood was captured; used by `DomainActivation` for domain-partitioned correlation). Dynamic emotional state stored with `domain="mood"`. PAD values stored both as attributes and as first-class PAD fields on `MemoryInput`.
 
 `MoodBaseline` — per-agent emotional resting point for decay.
 
-`MoodDecay` — pure static utility. `decay(current, baseline, elapsed, timeConstant)` → new `MoodState`. Formula: `current + (baseline − current) × (1 − e^(-elapsed/τ))`. Returns current unchanged when elapsed=0 or τ=0.
+`MoodDecay` — pure static utility. `decay(current, baseline, elapsed, timeConstant)` → new `MoodState`. Formula: `current + (baseline − current) × (1 − e^(-elapsed/τ))`. Returns current unchanged when elapsed=0 or τ=0. Preserves `activeContextIds` from input.
 
 #### EngagementStream and EngagementEvent
 
