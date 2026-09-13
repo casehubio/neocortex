@@ -9,4 +9,11 @@ public enum CorrelationStrength {
         if (s >= 0.2) {return WEAK;}
         return NONE;
     }
+
+    public static CorrelationStrength fromSimilarity(double s, double pValue) {
+        CorrelationStrength base = fromSimilarity(s);
+        if (Double.isNaN(pValue)) return base;
+        if (pValue >= 0.05 && (base == STRONG || base == MODERATE)) return WEAK;
+        return base;
+    }
 }

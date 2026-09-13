@@ -6,7 +6,10 @@ public record DomainCorrelation(
         double dtwSimilarity,
         List<DtwAlignment> alignment,
         int samplePairs,
-        CorrelationStrength strength
+        CorrelationStrength strength,
+        double pValue,
+        int contextAttributedCount,
+        int totalMoodCount
 ) {
     public DomainCorrelation {
         alignment = List.copyOf(alignment);

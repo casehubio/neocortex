@@ -103,7 +103,7 @@ public class DomainActivation {
                 if (a.length < 2 || b.length < 2) {
                     correlations.put(pair, new DomainCorrelation(
                             0.0, List.of(), Math.min(a.length, b.length),
-                            CorrelationStrength.NONE));
+                            CorrelationStrength.NONE, Double.NaN, 0, 0));
                     continue;
                 }
 
@@ -111,7 +111,8 @@ public class DomainActivation {
                 correlations.put(pair, new DomainCorrelation(
                         dtw.similarity(), dtw.alignment(),
                         Math.min(a.length, b.length),
-                        CorrelationStrength.fromSimilarity(dtw.similarity())));
+                        CorrelationStrength.fromSimilarity(dtw.similarity()),
+                        Double.NaN, 0, 0));
             }
         }
 
