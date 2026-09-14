@@ -1,13 +1,14 @@
 package io.casehub.neocortex.memory.inmem;
 
+import io.casehub.neocortex.cognitive.PrincipalVisibility;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryPermissions;
-import io.casehub.neocortex.cognitive.PrincipalVisibility;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import io.casehub.neocortex.memory.StoreAllResult;
@@ -47,6 +48,7 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             MemoryCapability.ERASE_ENTITY,
             MemoryCapability.ERASE_DOMAIN_CASE,
             MemoryCapability.CROSS_TENANT_ERASE,
+            MemoryCapability.SCAN,
             MemoryCapability.DISCOVER_TENANTS,
             MemoryCapability.PURGE
         );
@@ -194,6 +196,37 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
     @Override
     public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         return eraseSubjectAcrossTenants(Subject.of("unknown", entityId), tenantIds);
+    }
+
+
+    @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "scan"})
+    @Override
+    public java.util.List<Memory> scan(MemoryScanRequest request) {
+        requireCapability(MemoryCapability.SCAN);
+        MemoryPermissions.assertTenant(request.tenantId(), principal, requestContextActive());
+        var all = new java.util.ArrayList<Memory>();
+        for (var entry : store.entrySet()) {
+            if (!entry.getKey().tenantId().equals(request.tenantId())) {continue;}
+            if (request.domain() != null && !entry.getKey().domain().name().equals(request.domain())) {continue;}
+            for (Memory m : entry.getValue()) {
+                if (request.attributeKey() != null
+                    && !request.attributeValue().equals(m.attributes().get(request.attributeKey()))) {continue;}
+                all.add(m);
+            }
+        }
+        all.sort(Comparator.comparing(Memory::createdAt));
+        if (request.afterMemoryId() != null) {
+            int idx = -1;
+            for (int i = 0; i < all.size(); i++) {
+                if (all.get(i).memoryId().equals(request.afterMemoryId())) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx >= 0) {all = new java.util.ArrayList<>(all.subList(idx + 1, all.size()));}
+        }
+        if (all.size() > request.limit()) {all = new java.util.ArrayList<>(all.subList(0, request.limit()));}
+        return List.copyOf(all);
     }
 
     @Timed(value = "casehub.memory.inmem", histogram = true, extraTags = {"operation", "discoverTenants"})
