@@ -99,7 +99,12 @@ public class TypeRegistry {
                     key.length() - ".type".length());
                 boolean required = Boolean.parseBoolean(
                     typeNode.property(SCHEMA_PREFIX + fieldName + ".required").orElse("false"));
-                schema.put(fieldName, new SchemaField(fieldName, value, required));
+                boolean collection = Boolean.parseBoolean(
+                    typeNode.property(SCHEMA_PREFIX + fieldName + ".collection").orElse("false"));
+                String description = typeNode.property(SCHEMA_PREFIX + fieldName + ".description").orElse(null);
+                String enumStr = typeNode.property(SCHEMA_PREFIX + fieldName + ".enum").orElse(null);
+                List<String> enumValues = enumStr != null ? List.of(enumStr.split(",")) : null;
+                schema.put(fieldName, new SchemaField(fieldName, value, required, collection, description, enumValues));
             }
         });
 
@@ -143,6 +148,7 @@ public class TypeRegistry {
             props.put(JAVA_CLASS, javaClass.getName());
             deriveSchemaFromInterface(javaClass).forEach((fieldName, sf) -> {
                 props.put(SCHEMA_PREFIX + fieldName + ".type", sf.type());
+                props.put(SCHEMA_PREFIX + fieldName + ".source", "java");
             });
         }
 
@@ -215,6 +221,7 @@ public class TypeRegistry {
                     props.put(JAVA_CLASS, javaClass.getName());
                     deriveSchemaFromInterface(javaClass).forEach((fieldName, sf) -> {
                         props.put(SCHEMA_PREFIX + fieldName + ".type", sf.type());
+                        props.put(SCHEMA_PREFIX + fieldName + ".source", "java");
                     });
                 }
                 String nodeId = store.addNode(
