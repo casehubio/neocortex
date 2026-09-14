@@ -44,31 +44,36 @@ public class ConversationBridge {
             return SegmentationResult.EMPTY;
         }
 
-        List<TextSegment> segments = segment(cleanedText);
-        String subgraphId = findOrCreateGeneralSubgraph(tenantId);
+        MutationContext.set("conversation-bridge");
+        try {
+            List<TextSegment> segments = segment(cleanedText);
+            String subgraphId = findOrCreateGeneralSubgraph(tenantId);
 
-        List<String> createdNodeIds = new ArrayList<>();
-        for (TextSegment seg : segments) {
-            String nodeId = store.addNode(
-                NodeInput.of(seg.title(), subgraphId)
-                    .withConfidence(MindMapConfidenceDefaults.forOrigin(
-                        ConfidenceOrigin.STATED, Instant.now()))
-                    .withProvenance("conversation-bridge")
-                    .withProperties(Map.of(
-                        "body", seg.body(),
-                        "topic", seg.topic())),
-                tenantId);
-            createdNodeIds.add(nodeId);
+            List<String> createdNodeIds = new ArrayList<>();
+            for (TextSegment seg : segments) {
+                String nodeId = store.addNode(
+                    NodeInput.of(seg.title(), subgraphId)
+                        .withConfidence(MindMapConfidenceDefaults.forOrigin(
+                            ConfidenceOrigin.STATED, Instant.now()))
+                        .withProvenance("conversation-bridge")
+                        .withProperties(Map.of(
+                            "body", seg.body(),
+                            "topic", seg.topic())),
+                    tenantId);
+                createdNodeIds.add(nodeId);
+            }
+
+            if (accessTracker != null) {
+                createdNodeIds.forEach(accessTracker::recordAccess);
+            }
+
+            eventSink.accept(new ExtractionRequested(
+                cleanedText, tenantId, recentEntityNames, createdNodeIds));
+
+            return new SegmentationResult(createdNodeIds, segments.size());
+        } finally {
+            MutationContext.clear();
         }
-
-        if (accessTracker != null) {
-            createdNodeIds.forEach(accessTracker::recordAccess);
-        }
-
-        eventSink.accept(new ExtractionRequested(
-            cleanedText, tenantId, recentEntityNames, createdNodeIds));
-
-        return new SegmentationResult(createdNodeIds, segments.size());
     }
 
     List<TextSegment> segment(String text) {

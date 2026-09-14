@@ -1,6 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MutationContext;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.RetrievalAccessTracker;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.ObservesAsync;
@@ -38,6 +39,7 @@ public class ExtractionRequestedObserver {
     }
 
     public void onExtractionRequested(@ObservesAsync ExtractionRequested event) {
+        MutationContext.set("extraction");
         try {
             var result = extractor.extract(
                 event.cleanedText(), event.tenantId(), event.recentEntityNames());
@@ -65,6 +67,8 @@ public class ExtractionRequestedObserver {
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Extraction failed for tenant " + event.tenantId(), e);
+        } finally {
+            MutationContext.clear();
         }
     }
 }

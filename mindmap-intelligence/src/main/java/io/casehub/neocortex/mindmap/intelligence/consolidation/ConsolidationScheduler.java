@@ -8,16 +8,22 @@ import io.casehub.neocortex.mindmap.runtime.IdleTracker;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import io.casehub.neocortex.mindmap.MutationContext;
+
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +41,7 @@ public class ConsolidationScheduler {
     private final IdleTracker idleTracker;
     private final CaseMemoryStore memoryStore;
     private final CuriositySignalGenerator curiosityGenerator;
+    private final Consumer<ConsolidationCompleted> completionSink;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
     private ScheduledExecutorService executor;
@@ -44,6 +51,7 @@ public class ConsolidationScheduler {
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            Instance<CuriositySignalGenerator> curiosityGenerator,
+                           Event<ConsolidationCompleted> completionEvent,
                            @ConfigProperty(name = "casehub.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
         this(phases.stream()
@@ -55,6 +63,7 @@ public class ConsolidationScheduler {
                 .toList(),
             idleTracker, memoryStore,
             curiosityGenerator.isResolvable() ? curiosityGenerator.get() : null,
+            completionEvent::fire,
             intervalMinutes);
     }
 
@@ -62,11 +71,13 @@ public class ConsolidationScheduler {
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            CuriositySignalGenerator curiosityGenerator,
+                           Consumer<ConsolidationCompleted> completionSink,
                            long intervalMinutes) {
         this.phases = phases;
         this.idleTracker = idleTracker;
         this.memoryStore = memoryStore;
         this.curiosityGenerator = curiosityGenerator;
+        this.completionSink = completionSink;
         this.intervalMinutes = intervalMinutes;
     }
 
@@ -74,7 +85,7 @@ public class ConsolidationScheduler {
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            CuriositySignalGenerator curiosityGenerator) {
-        this(phases, idleTracker, memoryStore, curiosityGenerator, 5);
+        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5);
     }
 
     @PostConstruct
@@ -110,14 +121,22 @@ public class ConsolidationScheduler {
 
             for (String tenantId : memoryStore.discoverTenants(null, null)) {
                 List<String> priority = subgraphPriority(tenantId);
+                List<PhaseResult> phaseResults = new ArrayList<>();
                 for (ConsolidationPhase phase : phases) {
+                    Instant phaseStart = Instant.now();
+                    MutationContext.set("consolidation:" + phase.name());
                     try {
                         phase.run(tenantId, priority);
+                        phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
                     } catch (Exception e) {
+                        phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
                         LOG.log(Level.WARNING, "Phase " + phase.name()
                             + " failed for tenant " + tenantId, e);
+                    } finally {
+                        MutationContext.clear();
                     }
                 }
+                completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
             }
         } finally {
             lock.unlock();
@@ -136,14 +155,22 @@ public class ConsolidationScheduler {
                 }
             }
             List<String> priority = subgraphPriority(tenantId);
+            List<PhaseResult> phaseResults = new ArrayList<>();
             for (ConsolidationPhase phase : phases) {
+                Instant phaseStart = Instant.now();
+                MutationContext.set("consolidation:" + phase.name());
                 try {
                     phase.run(tenantId, priority);
+                    phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
                 } catch (Exception e) {
+                    phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
                     LOG.log(Level.WARNING, "Phase " + phase.name()
                                            + " failed for tenant " + tenantId, e);
+                } finally {
+                    MutationContext.clear();
                 }
             }
+            completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
         } finally {
             lock.unlock();
         }
