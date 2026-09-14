@@ -9,6 +9,7 @@ import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SchemaField;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
@@ -22,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,12 +84,26 @@ public class MindMapExtractor {
 
     private final MindMapStore store;
     private final Instance<AgentProvider> agentProviderInstance;
+    private final TypeRegistry typeRegistry;
     private final Map<String, Map<String, String>> subgraphCache = new ConcurrentHashMap<>();
 
     @Inject
-    public MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance) {
+    public MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance,
+                             Instance<TypeRegistry> typeRegistryInstance) {
         this.store = store;
         this.agentProviderInstance = agentProviderInstance;
+        this.typeRegistry = typeRegistryInstance.isResolvable() ? typeRegistryInstance.get() : null;
+    }
+
+    MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance) {
+        this(store, agentProviderInstance, (TypeRegistry) null);
+    }
+
+    MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance,
+                      TypeRegistry typeRegistry) {
+        this.store = store;
+        this.agentProviderInstance = agentProviderInstance;
+        this.typeRegistry = typeRegistry;
     }
 
     public ExtractionResult extract(String conversationText, String tenantId) {
@@ -194,6 +210,59 @@ public class MindMapExtractor {
             sb.append("Recently mentioned entities:\n");
             sb.append(String.join(", ", recentEntityNames)).append("\n");
         }
+
+        if (typeRegistry != null) {
+            Map<String, Map<String, SchemaField>> schemas = new LinkedHashMap<>();
+            Set<String> contextTypes = new HashSet<>();
+            for (var entry : context.entrySet()) {
+                MindMapNode node = store.getNode(entry.getKey(), tenantId);
+                if (node != null && node.subgraphType() != null) {
+                    String type = node.property("cognitiveKind").orElse(node.subgraphType());
+                    contextTypes.add(type);
+                }
+            }
+            for (String type : contextTypes) {
+                Map<String, SchemaField> schema = typeRegistry.schemaFor(type, tenantId);
+                if (!schema.isEmpty()) {
+                    schemas.put(type, schema);
+                }
+            }
+            String schemaHint = buildSchemaHint(schemas);
+            if (!schemaHint.isEmpty()) {
+                sb.append(schemaHint);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    static String buildSchemaHint(Map<String, Map<String, SchemaField>> schemas) {
+        if (schemas.isEmpty()) return "";
+        var sb = new StringBuilder();
+        sb.append("Known type schemas:\n");
+        for (var entry : schemas.entrySet()) {
+            sb.append("  ").append(entry.getKey()).append(": {");
+            var fields = new ArrayList<String>();
+            for (var field : entry.getValue().values()) {
+                var desc = new StringBuilder(field.name()).append(": ").append(field.type());
+                var qualifiers = new ArrayList<String>();
+                if (field.required()) qualifiers.add("required");
+                if (field.collection()) qualifiers.add("collection");
+                if (!qualifiers.isEmpty()) {
+                    desc.append(" (").append(String.join(", ", qualifiers)).append(")");
+                }
+                if (field.enumValues() != null && !field.enumValues().isEmpty()) {
+                    desc.append(" [").append(String.join(", ", field.enumValues())).append("]");
+                }
+                if (field.description() != null) {
+                    desc.append(" — ").append(field.description());
+                }
+                fields.add(desc.toString());
+            }
+            sb.append(String.join(", ", fields));
+            sb.append("}\n");
+        }
+        sb.append("\nExtract all observed properties, including those not listed in known schemas.\n");
         return sb.toString();
     }
 
