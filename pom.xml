@@ -25,6 +25,7 @@
     <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
+    <module>cognitive-observability</module>
     <module>rag-api</module>
     <module>rag-core</module>
     <module>rag-spring</module>
@@ -145,6 +146,13 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- MicroProfile GraphQL annotations -->
+      <dependency>
+        <groupId>org.eclipse.microprofile.graphql</groupId>
+        <artifactId>microprofile-graphql-api</artifactId>
+        <version>2.0</version>
+      </dependency>
+
       <!-- casehub-platform -->
       <dependency>
         <groupId>io.casehub</groupId>
@@ -228,6 +236,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-cognitive-index</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cognitive-observability</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -353,6 +366,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-mindmap-sqlite</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-mindmap-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
