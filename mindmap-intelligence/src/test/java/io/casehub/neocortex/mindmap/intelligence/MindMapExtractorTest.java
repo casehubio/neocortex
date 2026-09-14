@@ -1,6 +1,5 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
@@ -252,6 +251,46 @@ class MindMapExtractorTest {
         assertThat(result.entities()).hasSize(1);
         assertThat(result.entities().get(0).name()).isEqualTo("Bob");
     }
+
+    @Test
+    void resolveSubgraphType_routesCognitiveTypesToCognitiveSubgraph() {
+        assertThat(MindMapExtractor.resolveSubgraphType("belief")).isEqualTo(SubgraphTypes.COGNITIVE);
+        assertThat(MindMapExtractor.resolveSubgraphType("intention")).isEqualTo(SubgraphTypes.COGNITIVE);
+        assertThat(MindMapExtractor.resolveSubgraphType("prediction")).isEqualTo(SubgraphTypes.COGNITIVE);
+        assertThat(MindMapExtractor.resolveSubgraphType("judgment")).isEqualTo(SubgraphTypes.COGNITIVE);
+        assertThat(MindMapExtractor.resolveSubgraphType("fear")).isEqualTo(SubgraphTypes.COGNITIVE);
+        assertThat(MindMapExtractor.resolveSubgraphType("desire")).isEqualTo(SubgraphTypes.COGNITIVE);
+    }
+
+    @Test
+    void resolveSubgraphType_preservesNonCognitiveTypes() {
+        assertThat(MindMapExtractor.resolveSubgraphType("person")).isEqualTo("person");
+        assertThat(MindMapExtractor.resolveSubgraphType("concept")).isEqualTo("concept");
+        assertThat(MindMapExtractor.resolveSubgraphType("general")).isEqualTo("general");
+    }
+
+    @Test
+    void extractCognitiveEntity_routesToCognitiveSubgraphWithCognitiveKind() {
+        String response = """
+                          {"entities": [
+                              {"name": "Project will succeed", "type": "BELIEF", "properties": {"subject": "project"}, "confidence": "STATED"}
+                          ], "relationships": [], "contradictions": []}
+                          """;
+        var extractor = createExtractor(response);
+
+        ExtractionResult result = extractor.extract("I believe the project will succeed", TENANT);
+
+        assertThat(result.entities()).hasSize(1);
+        ExtractedEntity entity = result.entities().get(0);
+        assertThat(entity.name()).isEqualTo("Project will succeed");
+        assertThat(entity.subgraphType()).isEqualTo(SubgraphTypes.COGNITIVE);
+        assertThat(entity.created()).isTrue();
+
+        MindMapNode node = store.getNode(entity.nodeId(), TENANT);
+        assertThat(node.property("cognitiveKind")).hasValue("belief");
+        assertThat(node.property("subject")).hasValue("project");
+    }
+
 
     // --- Test helpers ---
 

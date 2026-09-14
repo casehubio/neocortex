@@ -33,19 +33,23 @@ public class CognitiveLoader {
     private static final Logger LOG = Logger.getLogger(CognitiveLoader.class.getName());
 
     private final MindMapStore store;
+    private final TypeRegistry typeRegistry;
     private final Collection<CognitiveDefaults> profiles;
 
     @Inject
     CognitiveLoader(Instance<MindMapStore> store,
+                    Instance<TypeRegistry> typeRegistry,
                     Instance<CognitiveDefaultsRegistry> registry) {
         this.store = store.isResolvable() ? store.get() : null;
+        this.typeRegistry = typeRegistry.isResolvable() ? typeRegistry.get() : null;
         this.profiles = registry.isResolvable()
             ? registry.get().allProfiles()
             : List.of();
     }
 
-    CognitiveLoader(MindMapStore store, Collection<CognitiveDefaults> profiles) {
+    CognitiveLoader(MindMapStore store, TypeRegistry typeRegistry, Collection<CognitiveDefaults> profiles) {
         this.store = store;
+        this.typeRegistry = typeRegistry;
         this.profiles = profiles;
     }
 
@@ -65,6 +69,15 @@ public class CognitiveLoader {
         }
         if (registered > 0) {
             LOG.info("Registered vocabulary from " + registered + " cognitive profile(s)");
+        }
+
+        if (typeRegistry != null) {
+            String tenantId = "default";
+            typeRegistry.registerType("cognitive", null, null, tenantId);
+            for (var entry : TypeRegistry.COGNITIVE_TYPES.entrySet()) {
+                typeRegistry.registerType(entry.getKey(), "cognitive", entry.getValue(), tenantId);
+            }
+            LOG.info("Registered " + TypeRegistry.COGNITIVE_TYPES.size() + " cognitive type(s)");
         }
     }
 }

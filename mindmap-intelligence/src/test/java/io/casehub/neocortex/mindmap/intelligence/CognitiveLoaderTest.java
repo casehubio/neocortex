@@ -23,9 +23,9 @@ import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CognitiveLoaderTest {
@@ -37,7 +37,7 @@ class CognitiveLoaderTest {
         var defaults = CognitiveDefaults.empty("alice").withVocabulary(vocab);
         var store = new InMemoryMindMapStore();
 
-        var loader = new CognitiveLoader(store, List.of(defaults));
+        var loader = new CognitiveLoader(store, null, List.of(defaults));
         loader.init();
 
         // Vocabulary was registered — conflicting alias should throw
@@ -52,7 +52,7 @@ class CognitiveLoaderTest {
         var defaults = CognitiveDefaults.empty("bob");
         var store = new InMemoryMindMapStore();
 
-        var loader = new CognitiveLoader(store, List.of(defaults));
+        var loader = new CognitiveLoader(store, null, List.of(defaults));
         loader.init();
 
         // No vocabulary registered — should accept any registration
@@ -63,7 +63,7 @@ class CognitiveLoaderTest {
     @Test
     void emptyProfiles_noOp() {
         var store  = new InMemoryMindMapStore();
-        var loader = new CognitiveLoader(store, List.of());
+        var loader = new CognitiveLoader(store, null, List.of());
         loader.init();
     }
 
@@ -77,7 +77,7 @@ class CognitiveLoaderTest {
         var carol = CognitiveDefaults.empty("carol").withVocabulary(vocab2);
         var store = new InMemoryMindMapStore();
 
-        var loader = new CognitiveLoader(store, List.of(alice, carol));
+        var loader = new CognitiveLoader(store, null, List.of(alice, carol));
         loader.init();
 
         // Both vocabularies registered
@@ -89,5 +89,59 @@ class CognitiveLoaderTest {
                 new EdgeTypeDefinition("y", Set.of("employed-by"), null)));
         assertThatThrownBy(() -> store.registerVocabulary(conflict2))
                 .isInstanceOf(VocabularyConflictException.class);
+    }
+
+    @Test
+    void registersCognitiveTypesInTypeRegistry() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        assertThat(registry.typeExists("cognitive", "default")).isTrue();
+        assertThat(registry.typeExists("belief", "default")).isTrue();
+        assertThat(registry.typeExists("intention", "default")).isTrue();
+        assertThat(registry.typeExists("prediction", "default")).isTrue();
+        assertThat(registry.typeExists("judgment", "default")).isTrue();
+        assertThat(registry.typeExists("fear", "default")).isTrue();
+        assertThat(registry.typeExists("desire", "default")).isTrue();
+    }
+
+    @Test
+    void cognitiveTypesAreSubtypesOfCognitive() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        var subtypes = registry.subtypesOf("cognitive", "default");
+        assertThat(subtypes).containsExactlyInAnyOrder(
+                "belief", "intention", "prediction", "judgment", "fear", "desire");
+    }
+
+    @Test
+    void cognitiveTypesHaveJavaClassAssociations() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        assertThat(registry.javaClass("belief", "default")).contains(Belieflike.class);
+        assertThat(registry.javaClass("intention", "default")).contains(Intentionlike.class);
+        assertThat(registry.javaClass("prediction", "default")).contains(Predictive.class);
+        assertThat(registry.javaClass("judgment", "default")).contains(Evaluative.class);
+        assertThat(registry.javaClass("fear", "default")).contains(Fearlike.class);
+        assertThat(registry.javaClass("desire", "default")).contains(Desirelike.class);
+    }
+
+    @Test
+    void schemaForBelief_derivesFromInterface() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        var schema = registry.schemaFor("belief", "default");
+        assertThat(schema).containsKeys("subject", "status", "basis");
     }
 }

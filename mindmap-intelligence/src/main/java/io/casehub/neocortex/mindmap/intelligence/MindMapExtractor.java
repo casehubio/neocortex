@@ -43,7 +43,7 @@ public class MindMapExtractor {
         Respond with a JSON object:
         {
           "entities": [
-            {"name": "...", "type": "PERSON|PROJECT|RESEARCH_AREA|ORGANISATION|CONCEPT|GENERAL", \
+            {"name": "...", "type": "PERSON|PROJECT|RESEARCH_AREA|ORGANISATION|CONCEPT|GENERAL|BELIEF|INTENTION|PREDICTION|JUDGMENT|FEAR|DESIRE", \
         "properties": {"key": "value"}, "confidence": "STATED|INFERRED|SPECULATED"}
           ],
           "relationships": [
@@ -61,6 +61,8 @@ public class MindMapExtractor {
         - Use the existing graph context to avoid creating duplicates
         - Use recently mentioned entities to resolve pronouns
         - Flag contradictions when extracted facts conflict with existing graph
+        - For cognitive content (beliefs, intentions, predictions, judgments, fears, desires), \
+        classify by the PRIMARY cognitive aspect
         - Respond with valid JSON only""";
 
     private static final Set<String> COMMON_WORDS = Set.of(
@@ -69,6 +71,14 @@ public class MindMapExtractor {
         "Its", "Our", "Their", "And", "But", "Or", "So", "If", "When",
         "Where", "How", "What", "Who", "Which", "Not", "No", "Yes",
         "Also", "Just", "Now", "Then", "Here", "There");
+    private static final Set<String> COGNITIVE_TYPES = Set.of(
+            "belief", "intention", "prediction", "judgment", "fear", "desire");
+
+    static String resolveSubgraphType(String normalizedType) {
+        if (COGNITIVE_TYPES.contains(normalizedType)) {return SubgraphTypes.COGNITIVE;}
+        return normalizedType;
+    }
+
 
     private final MindMapStore store;
     private final Instance<AgentProvider> agentProviderInstance;
@@ -194,8 +204,15 @@ public class MindMapExtractor {
         Map<String, String> nameToNodeId = new HashMap<>();
 
         for (ParsedEntity pe : parsed.entities()) {
-            String sgType = normalizeType(pe.type());
+            String normalizedType = normalizeType(pe.type());
+            String sgType = resolveSubgraphType(normalizedType);
             String sgId = findOrCreateSubgraph(sgType, tenantId);
+
+            Map<String, String> nodeProps = pe.properties() != null
+                ? new HashMap<>(pe.properties()) : new HashMap<>();
+            if (COGNITIVE_TYPES.contains(normalizedType)) {
+                nodeProps.put("cognitiveKind", normalizedType);
+            }
 
             MindMapNode existing = store.resolveNode(pe.name(), null, tenantId);
             String nodeId;
@@ -204,12 +221,12 @@ public class MindMapExtractor {
             if (existing != null) {
                 nodeId = existing.id();
                 created = false;
-                if (pe.properties() != null && !pe.properties().isEmpty()) {
+                if (!nodeProps.isEmpty()) {
                     store.updateNode(nodeId,
                         new NodeUpdate(null, null,
                             null, null, null, null, null, null,
                             null, null, null,
-                            pe.properties(), null), tenantId);
+                            nodeProps, null), tenantId);
                 }
             } else {
                 nodeId = store.addNode(new NodeInput(
@@ -217,7 +234,7 @@ public class MindMapExtractor {
                     MindMapConfidenceDefaults.forOrigin(pe.origin(), Instant.now()),
                     "llm-extraction", null, null, null, null,
                     null, null, null,
-                    pe.properties() != null ? pe.properties() : Map.of()), tenantId);
+                    nodeProps), tenantId);
                 created = true;
             }
 
@@ -225,7 +242,7 @@ public class MindMapExtractor {
             entityNames.add(pe.name());
             entities.add(new ExtractedEntity(nodeId, pe.name(), created,
                 sgType,
-                pe.properties() != null ? pe.properties() : Map.of()));
+                nodeProps));
         }
 
         for (ParsedRelationship pr : parsed.relationships()) {

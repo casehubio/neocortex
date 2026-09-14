@@ -35,6 +35,15 @@ public class TypeRegistry {
         SubgraphTypes.PROJECT, Projectlike.class,
         SubgraphTypes.ORGANISATION, Organisational.class
     );
+    static final         Map<String, Class<?>> COGNITIVE_TYPES = Map.of(
+            "belief", Belieflike.class,
+            "intention", Intentionlike.class,
+            "prediction", Predictive.class,
+            "judgment", Evaluative.class,
+            "fear", Fearlike.class,
+            "desire", Desirelike.class
+                                                                       );
+
 
     private final MindMapStore store;
     private final Map<String, BootstrappedTenant> tenantCache = new ConcurrentHashMap<>();
@@ -123,6 +132,35 @@ public class TypeRegistry {
             }
         }
     }
+
+    public void registerType(String typeName, String parentType, Class<?> javaClass, String tenantId) {
+        BootstrappedTenant bt         = ensureBootstrapped(tenantId);
+        String             normalized = typeName.strip().toLowerCase();
+        if (bt.resolveTypeNode(normalized) != null) {return;}
+
+        Map<String, String> props = new HashMap<>();
+        if (javaClass != null) {
+            props.put(JAVA_CLASS, javaClass.getName());
+            deriveSchemaFromInterface(javaClass).forEach((fieldName, sf) -> {
+                props.put(SCHEMA_PREFIX + fieldName + ".type", sf.type());
+            });
+        }
+
+        String nodeId = store.addNode(
+                NodeInput.of(normalized, bt.typeSystemSubgraphId)
+                         .withProperties(props),
+                tenantId);
+        bt.typeNodeIds.put(normalized, nodeId);
+
+        if (parentType != null) {
+            MindMapNode parentNode = bt.resolveTypeNode(parentType.strip().toLowerCase());
+            if (parentNode != null) {
+                store.addEdge(EdgeInput.of(nodeId, parentNode.id(), SUBTYPE_OF)
+                                       .withProvenance("type-registry"), tenantId);
+            }
+        }
+    }
+
 
     private BootstrappedTenant ensureBootstrapped(String tenantId) {
         if (store == null) return BootstrappedTenant.EMPTY;

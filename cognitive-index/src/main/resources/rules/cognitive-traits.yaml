@@ -1,0 +1,38 @@
+traitRules:
+  - trait: Belieflike
+    when:
+      propertyEquals:
+        cognitiveKind: belief
+
+  - trait: Intentionlike
+    when:
+      propertyEquals:
+        cognitiveKind: intention
+
+  - trait: Predictive
+    when:
+      anyOf:
+        - propertyEquals:
+            cognitiveKind: prediction
+        - allOf:
+            - hasProperty: timeframe
+            - hasProperty: cognitiveKind
+
+  - trait: Evaluative
+    when:
+      anyOf:
+        - propertyEquals:
+            cognitiveKind: judgment
+        - allOf:
+            - hasProperty: target
+            - hasProperty: stance
+
+  - trait: Fearlike
+    when:
+      propertyEquals:
+        cognitiveKind: fear
+
+  - trait: Desirelike
+    when:
+      propertyEquals:
+        cognitiveKind: desire

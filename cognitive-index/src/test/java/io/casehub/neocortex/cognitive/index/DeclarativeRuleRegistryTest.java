@@ -40,9 +40,10 @@ class DeclarativeRuleRegistryTest {
     @Test
     void loadFromClasspath_loadsGlobalTraitRules() {
         List<TraitRule> rules = registry.traitRules(null);
-        assertThat(rules).hasSize(2);
+        assertThat(rules).hasSize(8);
         assertThat(rules.stream().map(TraitRule::traitName))
-            .containsExactly("Personable", "Appointable");
+            .contains("Personable", "Appointable",
+                "Belieflike", "Intentionlike", "Predictive", "Evaluative", "Fearlike", "Desirelike");
     }
 
     @Test
@@ -77,9 +78,9 @@ class DeclarativeRuleRegistryTest {
     @Test
     void traitRules_unknownAgent_returnsGlobalOnly() {
         List<TraitRule> rules = registry.traitRules("unknown");
-        assertThat(rules).hasSize(2);
+        assertThat(rules).hasSize(8);
         assertThat(rules.stream().map(TraitRule::traitName))
-            .containsExactly("Personable", "Appointable");
+            .contains("Personable", "Appointable");
     }
 
     @Test
@@ -115,7 +116,7 @@ class DeclarativeRuleRegistryTest {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         var registryNoCognitive = DeclarativeRuleRegistry.loadFromClasspath(
             "rules/", null, cl);
-        assertThat(registryNoCognitive.traitRules("alice")).hasSize(2);
+        assertThat(registryNoCognitive.traitRules("alice")).hasSize(8);
         assertThat(registryNoCognitive.derivedEdgeRules("alice")).hasSize(2);
     }
 }
