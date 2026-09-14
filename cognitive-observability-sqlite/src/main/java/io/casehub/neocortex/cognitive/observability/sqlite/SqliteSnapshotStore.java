@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public class SqliteSnapshotStore implements SnapshotStore {
+public class SqliteSnapshotStore implements SnapshotStore, AutoCloseable {
 
     private final HikariDataSource dataSource;
     private final ObjectMapper mapper;
@@ -255,7 +255,9 @@ public class SqliteSnapshotStore implements SnapshotStore {
             purgeTable(conn, "mutations", "timestamp", cutoffStr, policy.tenantId());
             purgeTable(conn, "keyframes", "captured_at", cutoffStr, policy.tenantId());
             purgeTable(conn, "audit_entries", "completed_at", cutoffStr, policy.tenantId());
-            conn.prepareStatement("DELETE FROM mutation_nodes WHERE mutation_id NOT IN (SELECT id FROM mutations)").executeUpdate();
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM mutation_nodes WHERE mutation_id NOT IN (SELECT id FROM mutations)")) {
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to purge", e);
         }
