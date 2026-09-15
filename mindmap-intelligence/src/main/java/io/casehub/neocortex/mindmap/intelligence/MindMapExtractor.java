@@ -15,6 +15,7 @@ import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -106,26 +107,40 @@ public class MindMapExtractor {
         this.typeRegistry = typeRegistry;
     }
 
+
+    public ParsedExtraction parse(String conversationText, String tenantId,
+                                  List<String> recentEntityNames) {
+        if (conversationText == null || conversationText.isBlank()) {return null;}
+        if (agentProviderInstance.isUnsatisfied()) {return null;}
+
+        Map<String, List<MindMapEdge>> context =
+                retrieveContext(conversationText, tenantId, recentEntityNames);
+        String userPrompt  = buildUserPrompt(conversationText, context, recentEntityNames, tenantId);
+        String llmResponse = invokeLlm(SYSTEM_PROMPT, userPrompt);
+        if (llmResponse == null) {return null;}
+
+        return ExtractionJsonParser.parse(llmResponse);
+    }
+
+    public ExtractionResult apply(ParsedExtraction parsed, String tenantId) {
+        return apply(parsed, tenantId, null);
+    }
+
+    public ExtractionResult apply(ParsedExtraction parsed, String tenantId,
+                                  PrincipalId principalId) {
+        return applyExtraction(parsed, tenantId, principalId);
+    }
+
+
     public ExtractionResult extract(String conversationText, String tenantId) {
         return extract(conversationText, tenantId, List.of());
     }
 
     public ExtractionResult extract(String conversationText, String tenantId,
                                      List<String> recentEntityNames) {
-        if (conversationText == null || conversationText.isBlank()) return ExtractionResult.EMPTY;
-        if (agentProviderInstance.isUnsatisfied()) return ExtractionResult.EMPTY;
-
-        Map<String, List<MindMapEdge>> context =
-            retrieveContext(conversationText, tenantId, recentEntityNames);
-        String userPrompt = buildUserPrompt(conversationText, context, recentEntityNames, tenantId);
-        String llmResponse = invokeLlm(SYSTEM_PROMPT, userPrompt);
-        if (llmResponse == null) return ExtractionResult.EMPTY;
-
-        ParsedExtraction parsed = ExtractionJsonParser.parse(llmResponse);
-        if (parsed == null) return ExtractionResult.EMPTY;
-
-        return applyExtraction(parsed, tenantId);
-    }
+        ParsedExtraction parsed = parse(conversationText, tenantId, recentEntityNames);
+        if (parsed == null) {return ExtractionResult.EMPTY;}
+        return apply(parsed, tenantId);}
 
     private Map<String, List<MindMapEdge>> retrieveContext(String conversationText,
                                                             String tenantId,
@@ -266,52 +281,53 @@ public class MindMapExtractor {
         return sb.toString();
     }
 
-    private ExtractionResult applyExtraction(ParsedExtraction parsed, String tenantId) {
-        List<ExtractedEntity> entities = new ArrayList<>();
+    private ExtractionResult applyExtraction(ParsedExtraction parsed, String tenantId,
+                                             PrincipalId principalId) {
+        List<ExtractedEntity>       entities      = new ArrayList<>();
         List<ExtractedRelationship> relationships = new ArrayList<>();
-        List<String> entityNames = new ArrayList<>();
-        Map<String, String> nameToNodeId = new HashMap<>();
+        List<String>                entityNames   = new ArrayList<>();
+        Map<String, String>         nameToNodeId  = new HashMap<>();
 
         for (ParsedEntity pe : parsed.entities()) {
             String normalizedType = normalizeType(pe.type());
-            String sgType = resolveSubgraphType(normalizedType);
-            String sgId = findOrCreateSubgraph(sgType, tenantId);
+            String sgType         = resolveSubgraphType(normalizedType);
+            String sgId           = findOrCreateSubgraph(sgType, tenantId);
 
             Map<String, String> nodeProps = pe.properties() != null
-                ? new HashMap<>(pe.properties()) : new HashMap<>();
+                                            ? new HashMap<>(pe.properties()) : new HashMap<>();
             if (COGNITIVE_TYPES.contains(normalizedType)) {
                 nodeProps.put("cognitiveKind", normalizedType);
             }
 
             MindMapNode existing = store.resolveNode(pe.name(), null, tenantId);
-            String nodeId;
-            boolean created;
+            String      nodeId;
+            boolean     created;
 
             if (existing != null) {
-                nodeId = existing.id();
+                nodeId  = existing.id();
                 created = false;
                 if (!nodeProps.isEmpty()) {
                     store.updateNode(nodeId,
-                        new NodeUpdate(null, null,
-                            null, null, null, null, null, null,
-                            null, null, null,
-                            nodeProps, null), tenantId);
+                                     new NodeUpdate(null, null,
+                                                    null, null, null, null, null, null,
+                                                    null, null, null,
+                                                    nodeProps, null), tenantId);
                 }
             } else {
-                nodeId = store.addNode(new NodeInput(
-                    pe.name(), sgId,
-                    MindMapConfidenceDefaults.forOrigin(pe.origin(), Instant.now()),
-                    "llm-extraction", null, null, null, null,
-                    null, null, null,
-                    nodeProps), tenantId);
+                nodeId  = store.addNode(new NodeInput(
+                        pe.name(), sgId,
+                        MindMapConfidenceDefaults.forOrigin(pe.origin(), Instant.now()),
+                        "llm-extraction", null, null, null, null,
+                        null, null, null,
+                        nodeProps, principalId, null), tenantId);
                 created = true;
             }
 
             nameToNodeId.put(pe.name(), nodeId);
             entityNames.add(pe.name());
             entities.add(new ExtractedEntity(nodeId, pe.name(), created,
-                sgType,
-                nodeProps));
+                                             sgType,
+                                             nodeProps));
         }
 
         for (ParsedRelationship pr : parsed.relationships()) {
@@ -319,18 +335,19 @@ public class MindMapExtractor {
             String targetId = resolveNodeId(pr.target(), nameToNodeId, tenantId);
             if (sourceId != null && targetId != null) {
                 String edgeId = store.addEdge(new EdgeInput(
-                    sourceId, targetId, pr.type(),
-                    MindMapConfidenceDefaults.forOrigin(pr.origin(), Instant.now()),
-                    "llm-extraction", null, null, null, null, null, Map.of()), tenantId);
+                        sourceId, targetId, pr.type(),
+                        MindMapConfidenceDefaults.forOrigin(pr.origin(), Instant.now()),
+                        "llm-extraction", null, null, null, null, null, Map.of(),
+                        principalId), tenantId);
                 relationships.add(new ExtractedRelationship(
-                    edgeId, pr.source(), pr.target(), pr.type(), pr.origin()));
+                        edgeId, pr.source(), pr.target(), pr.type(), pr.origin()));
             }
         }
 
         List<Contradiction> contradictions = new ArrayList<>();
         for (ParsedContradiction pc : parsed.contradictions()) {
             contradictions.add(new Contradiction(
-                pc.entity(), pc.property(), pc.existing(), pc.extracted(), pc.explanation()));
+                    pc.entity(), pc.property(), pc.existing(), pc.extracted(), pc.explanation()));
         }
 
         return new ExtractionResult(entities, relationships, contradictions, entityNames);

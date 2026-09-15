@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-record ParsedContradiction(
+public record ParsedContradiction(
     String entity,
     String property,
     String existing,

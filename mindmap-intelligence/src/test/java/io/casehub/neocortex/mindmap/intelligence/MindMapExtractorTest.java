@@ -1,7 +1,10 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
@@ -251,6 +254,68 @@ class MindMapExtractorTest {
         assertThat(result.entities()).hasSize(1);
         assertThat(result.entities().get(0).name()).isEqualTo("Bob");
     }
+
+    @Test
+    void parse_returnsExtractedEntitiesWithoutPersisting() {
+        String response = """
+                          {"entities": [
+                              {"name": "Alice", "type": "PERSON", "properties": {"role": "engineer"}, "confidence": "STATED"}
+                          ], "relationships": [], "contradictions": []}
+                          """;
+        var extractor = createExtractor(response);
+
+        ParsedExtraction parsed = extractor.parse("Alice is an engineer", TENANT, List.of());
+
+        assertThat(parsed).isNotNull();
+        assertThat(parsed.entities()).hasSize(1);
+        assertThat(parsed.entities().getFirst().name()).isEqualTo("Alice");
+        assertThat(parsed.entities().getFirst().origin()).isEqualTo(ConfidenceOrigin.STATED);
+        // Verify nothing persisted
+        assertThat(store.search(MindMapQuery.of(TENANT, 100))).isEmpty();
+    }
+
+    @Test
+    void parse_blankInput_returnsNull() {
+        var extractor = createExtractor("{}");
+        assertThat(extractor.parse(null, TENANT, List.of())).isNull();
+        assertThat(extractor.parse("  ", TENANT, List.of())).isNull();
+    }
+
+    @Test
+    void apply_withPrincipalId_setsOnCreatedNodes() {
+        String response = """
+                          {"entities": [
+                              {"name": "Alice", "type": "PERSON", "properties": {}, "confidence": "STATED"}
+                          ], "relationships": [], "contradictions": []}
+                          """;
+        var              extractor = createExtractor(response);
+        ParsedExtraction parsed    = extractor.parse("Alice is here", TENANT, List.of());
+        PrincipalId      pid       = PrincipalId.agent("agent-1");
+
+        ExtractionResult result = extractor.apply(parsed, TENANT, pid);
+
+        assertThat(result.entities()).hasSize(1);
+        MindMapNode node = store.getNode(result.entities().getFirst().nodeId(), TENANT);
+        assertThat(node.principalId()).isEqualTo(pid);
+    }
+
+    @Test
+    void extract_compositionPreservesBehavior() {
+        String response = """
+                          {"entities": [
+                              {"name": "Bob", "type": "PERSON", "properties": {}, "confidence": "INFERRED"}
+                          ], "relationships": [], "contradictions": []}
+                          """;
+        var extractor = createExtractor(response);
+
+        ExtractionResult result = extractor.extract("Bob is here", TENANT);
+
+        assertThat(result.entities()).hasSize(1);
+        assertThat(result.entities().getFirst().name()).isEqualTo("Bob");
+        // Verify it did persist (unlike parse)
+        assertThat(store.search(MindMapQuery.of(TENANT, 100))).isNotEmpty();
+    }
+
 
     @Test
     void resolveSubgraphType_routesCognitiveTypesToCognitiveSubgraph() {
