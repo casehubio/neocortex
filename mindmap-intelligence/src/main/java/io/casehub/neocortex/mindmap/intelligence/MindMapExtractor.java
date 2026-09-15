@@ -140,7 +140,8 @@ public class MindMapExtractor {
                                      List<String> recentEntityNames) {
         ParsedExtraction parsed = parse(conversationText, tenantId, recentEntityNames);
         if (parsed == null) {return ExtractionResult.EMPTY;}
-        return apply(parsed, tenantId);}
+        return apply(parsed, tenantId);
+    }
 
     private Map<String, List<MindMapEdge>> retrieveContext(String conversationText,
                                                             String tenantId,

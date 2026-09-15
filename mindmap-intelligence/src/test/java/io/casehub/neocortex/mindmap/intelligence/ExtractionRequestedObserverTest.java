@@ -1,12 +1,17 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
+import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.RetrievalAccessTracker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ExtractionRequestedObserverTest {
@@ -33,7 +38,7 @@ class ExtractionRequestedObserverTest {
         var observer = new ExtractionRequestedObserver(extractor, store, tracker);
 
         observer.onExtractionRequested(
-            new ExtractionRequested("text", "t1", List.of(), List.of(segmentId)));
+            new ExtractionRequested("text", "t1", List.of(), List.of(segmentId), null));
 
         var status = store.getSupersessionStatus(segmentId, "t1");
         assertThat(status.superseded()).isTrue();
@@ -47,7 +52,7 @@ class ExtractionRequestedObserverTest {
         var observer = new ExtractionRequestedObserver(extractor, store, tracker);
 
         observer.onExtractionRequested(
-            new ExtractionRequested("text", "t1", List.of(), List.of(segmentId)));
+            new ExtractionRequested("text", "t1", List.of(), List.of(segmentId), null));
 
         var status = store.getSupersessionStatus(segmentId, "t1");
         assertThat(status.superseded()).isFalse();
@@ -62,7 +67,7 @@ class ExtractionRequestedObserverTest {
         var observer = new ExtractionRequestedObserver(extractor, store, tracker);
 
         observer.onExtractionRequested(
-            new ExtractionRequested("text", "t1", List.of(), List.of()));
+            new ExtractionRequested("text", "t1", List.of(), List.of(), null));
 
         var snapshot = tracker.swapAndReset();
         assertThat(snapshot.counts()).containsKeys("e1", "e2");
@@ -71,8 +76,15 @@ class ExtractionRequestedObserverTest {
     private MindMapExtractor stubExtractor(ExtractionResult result) {
         return new MindMapExtractor(store, null) {
             @Override
-            public ExtractionResult extract(String text, String tenantId,
-                                             List<String> recentEntityNames) {
+            public ParsedExtraction parse(String text, String tenantId,
+                                          List<String> recentEntityNames) {
+                if (result == ExtractionResult.EMPTY) {return null;}
+                return new ParsedExtraction(List.of(), List.of(), List.of());
+            }
+
+            @Override
+            public ExtractionResult apply(ParsedExtraction parsed, String tenantId,
+                                          PrincipalId principalId) {
                 return result;
             }
         };

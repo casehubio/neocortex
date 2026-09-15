@@ -555,13 +555,22 @@ Static utility in `mindmap/` — pure Java graph analysis. All methods require `
 
 #### MindMapExtractor
 
-`@Singleton` CDI bean in `mindmap-intelligence/`. LLM-driven entity and relationship extraction from conversation text. Depends on `MindMapStore` and `Instance<AgentProvider>` (graceful degradation — returns empty when no LLM available).
+`@Singleton` CDI bean in `mindmap-intelligence/`. LLM-driven entity and relationship extraction from conversation text. Depends on `MindMapStore` and `Instance<AgentProvider>` (graceful degradation — returns empty/null when no LLM available).
 
-**Flow:**
+**Public API — three entry points:**
+- `parse(text, tenantId, recentEntityNames)` → `ParsedExtraction` (nullable) — LLM extraction without persistence. Returns null on blank input, unavailable LLM, or malformed response.
+- `apply(parsed, tenantId)` / `apply(parsed, tenantId, principalId)` → `ExtractionResult` — persists a `ParsedExtraction` to the store. Optional `PrincipalId` scopes created nodes/edges to a specific agent.
+- `extract(text, tenantId, recentEntityNames)` → `ExtractionResult` — convenience composition of `parse()` + `apply()`. Returns `ExtractionResult.EMPTY` on failure.
+
+`ParsedExtraction`, `ParsedEntity`, `ParsedRelationship`, `ParsedContradiction` are public records — callers of `parse()` work with these directly.
+
+**Flow (parse phase):**
 1. Gathers up to 20 existing graph nodes as context — resolves recent entity names via `store.resolveNode()`, then searches for capitalized multi-word terms via rule-based `extractCandidateTerms()` heuristic (joins consecutive capitalized words, filters common pronouns/articles)
 2. Builds a structured prompt with conversation text + graph context (nodes with confidence, traits, edges) + recently mentioned entities
 3. Parses JSON response (`ExtractionJsonParser`) for entities, relationships, and contradictions
-4. For each entity: resolves via `store.resolveNode()` (updates existing or creates new), with `MindMapConfidenceDefaults.forOrigin()` and `"llm-extraction"` provenance
+
+**Flow (apply phase):**
+4. For each entity: resolves via `store.resolveNode()` (updates existing or creates new), with `MindMapConfidenceDefaults.forOrigin()`, `"llm-extraction"` provenance, and optional `PrincipalId`
 
 **Type normalization:** `normalizeType()` → `strip().toLowerCase()`, defaults to `SubgraphTypes.GENERAL`.
 
@@ -572,10 +581,10 @@ Static utility in `mindmap/` — pure Java graph analysis. All methods require `
 `ConversationBridge` (`@ApplicationScoped`) provides immediate node availability from text, with deferred LLM enrichment.
 
 **Pipeline:**
-1. `process(cleanedText, tenantId, recentEntityNames, principalId)` — segments text by paragraph boundaries (`\n\n+`). Each segment → one MindMapNode in the GENERAL subgraph with STATED confidence and `"conversation-bridge"` provenance
+1. `process(cleanedText, tenantId, recentEntityNames, principalId, confidenceOrigin)` — segments text by paragraph boundaries (`\n\n+`). Each segment → one MindMapNode in the GENERAL subgraph with caller-specified confidence (`ConfidenceOrigin` param, defaults to STATED when null) and `"conversation-bridge"` provenance. `PrincipalId` (nullable) scopes created nodes to a specific agent.
 2. Records access for created nodes via `RetrievalAccessTracker` (if available via `Instance<>`)
-3. Fires `ExtractionRequested` CDI event asynchronously (`fireAsync`)
-4. `ExtractionRequestedObserver` (`@ApplicationScoped`, `@ObservesAsync`) receives the event, calls `MindMapExtractor.extract()`, records access for extracted entities, then supersedes each segment node with the first extracted entity — replacing raw text with structured knowledge
+3. Fires `ExtractionRequested` CDI event asynchronously (`fireAsync`) — carries `principalId` for downstream propagation
+4. `ExtractionRequestedObserver` (`@ApplicationScoped`, `@ObservesAsync`) receives the event, calls `MindMapExtractor.parse()` + `apply(principalId)` for agent-scoped extraction, records access for extracted entities, then supersedes each segment node with the first extracted entity — replacing raw text with structured knowledge
 
 **Design:** ConversationBridge is fast (rule-based, no LLM). LLM enrichment is async — nodes are available immediately for retrieval, then upgraded when extraction completes.
 
@@ -1106,7 +1115,7 @@ All inference, RAG, CBR, agent memory, MindMap, and cognitive subsystem modules 
 | CBR | Typed feature values (9 field types, 7 value types); `SimilaritySpec` sealed (6 similarity functions incl. DTW + edit distance); weighted per-field scoring; plan adaptation SPI (caseType-aware, variantId tracking); plan ensemble analysis SPI; temporal decay (3 strategies); hierarchical scoping with ScopeDecay; supersession + reinstate + audit; trend detection + enrichment; cross-encoder reranking; embedding-based text similarity; trust-weighted retrieval; outcome-weighted retrieval + CloudEvent feedback; CBR retention (age + count + trust purge); trust trajectory purge; reconciliation with Qdrant; JPA/PostgreSQL backend; retrieval tracking (retrieval + adaptation + ensemble); erasure notification; personality transition schema; scan/discoverTenants admin operations; CbrSuggestions/FeatureStatistics |
 | Agent Memory | Five backends (in-memory, JPA, SQLite, Mem0, Graphiti); `MemoryEmitter` fire-and-forget wrapper; `MemoryOrder.SALIENCE` (recency x confidence); unified `Confidence` record (origin + value); confidence-based retention purge; five event streams (experience, relationship, reflection, mood, engagement); `CaseEnrichmentStep` SPI; erasure notification |
 | MindMap | Thing/MindMapNode hierarchy; TypeRegistry with lazy per-tenant bootstrap; trait system (programmatic + declarative rules); 4-deep CDI decorator chain (DerivedEdge, TraitApplication, AffectTrajectory, IdleTracker); ConfidenceDecay read-side decorator; vocabulary normalization; graph analysis (MindMapAnalyzer — orphans, centrality, k-cores, contradictions); merge with conflict reporting; supersession/reinstatement; capability-gated operations |
-| MindMap Intelligence | MindMapExtractor (LLM entity/relationship extraction); ConversationBridge (fast segmentation + async enrichment pipeline); CognitiveLoader (vocabulary from YAML profiles); CuriositySignalGenerator (5-category signals with affect dampening); RecurrenceRule/Generator |
+| MindMap Intelligence | MindMapExtractor (LLM entity/relationship extraction — parse/apply decomposition, public ParsedExtraction types, optional PrincipalId); ConversationBridge (fast segmentation + async enrichment pipeline, PrincipalId + ConfidenceOrigin params); CognitiveLoader (vocabulary from YAML profiles); CuriositySignalGenerator (5-category signals with affect dampening); RecurrenceRule/Generator |
 | Cognitive Index | TemporalIndex (cross-store chronological aggregation); AffectTrajectoryAnalyzer (3-axis slope + volatility); TemporalFocus (proximity/recency + affect modifiers); CognitiveProfile (cross-store entity resolution + perspective-aware resolve + multi-agent compare); SocialComparison (PAD distance matrix, signed pairwise differences, 3D trajectory alignment); DomainActivation (cross-domain DTW correlation with time-bucketed 3D PAD); PerspectivalMerge (public static utility) + PerspectivalResolver (package-private, internalized in CognitiveProfile); CognitiveDefaults/Registry (YAML per-agent config); CognitiveDerivationEngine (8 derivation pathways from eidos identity); DeclarativeRuleRegistry; Modulation framework (profiles + factors + retrieval modulator) |
 | Consolidation | ConsolidationScheduler (idle-gated, curiosity-driven priority); 4-phase pipeline (AccessFrequency, MergeDetection, CommunitySummary, CuriosityRefresh); RetrievalAccessTracker + Bjork's dual-strength model |
 | Corpus | Append-only zip archives, flat filesystem, composite multi-backend; chain manifest; change tracking; compaction; integrity checks with recovery |

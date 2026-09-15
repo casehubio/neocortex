@@ -88,7 +88,7 @@ Four related capabilities in one repo:
 | `mindmap` | `casehub-neocortex-mindmap` | CDI wiring, `ConfidenceDecayDecorator`, `VocabularyNormalizationDecorator`, `DerivedEdgeDecorator`, `MindMapAnalyzer` graph analytics |
 | `mindmap-inmem` | `casehub-neocortex-mindmap-inmem` | In-memory `MindMapStore` for tests |
 | `mindmap-sqlite` | `casehub-neocortex-mindmap-sqlite` | SQLite + HikariCP WAL + FTS5 — production backend for single-node deployments |
-| `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`), `TraitRule` implementations, `MindMapExtractor` |
+| `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params) |
 | `mindmap-testing` | `casehub-neocortex-mindmap-testing` | `MindMapStoreContractTest` abstract base (72 tests) |
 
 ### Cognitive Index

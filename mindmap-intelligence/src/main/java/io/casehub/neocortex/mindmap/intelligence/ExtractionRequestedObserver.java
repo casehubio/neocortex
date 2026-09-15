@@ -41,25 +41,29 @@ public class ExtractionRequestedObserver {
     public void onExtractionRequested(@ObservesAsync ExtractionRequested event) {
         MutationContext.set("extraction");
         try {
-            var result = extractor.extract(
-                event.cleanedText(), event.tenantId(), event.recentEntityNames());
+            var parsed = extractor.parse(
+                    event.cleanedText(), event.tenantId(), event.recentEntityNames());
+
+            if (parsed == null) {return;}
+
+            var result = extractor.apply(parsed, event.tenantId(), event.principalId());
 
             if (accessTracker != null) {
                 result.entities().stream()
-                    .map(ExtractedEntity::nodeId)
-                    .forEach(accessTracker::recordAccess);
+                      .map(ExtractedEntity::nodeId)
+                      .forEach(accessTracker::recordAccess);
             }
 
             List<String> createdEntityIds = result.entities().stream()
-                .filter(ExtractedEntity::created)
-                .map(ExtractedEntity::nodeId)
-                .toList();
+                                                  .filter(ExtractedEntity::created)
+                                                  .map(ExtractedEntity::nodeId)
+                                                  .toList();
 
             if (!createdEntityIds.isEmpty()) {
                 for (String segmentId : event.segmentNodeIds()) {
                     try {
                         store.supersede(segmentId, createdEntityIds.getFirst(),
-                            "llm-extraction", event.tenantId());
+                                        "llm-extraction", event.tenantId());
                     } catch (Exception e) {
                         LOG.log(Level.FINE, "Could not supersede segment " + segmentId, e);
                     }

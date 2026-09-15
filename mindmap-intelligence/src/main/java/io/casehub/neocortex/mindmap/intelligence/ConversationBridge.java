@@ -1,12 +1,20 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.MutationContext;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.RetrievalAccessTracker;
+import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,28 +46,31 @@ public class ConversationBridge {
     }
 
     public SegmentationResult process(String cleanedText, String tenantId,
-                                       List<String> recentEntityNames,
-                                       Object principalId) {
+                                      List<String> recentEntityNames,
+                                      PrincipalId principalId,
+                                      ConfidenceOrigin confidenceOrigin) {
         if (cleanedText == null || cleanedText.isBlank()) {
             return SegmentationResult.EMPTY;
         }
 
         MutationContext.set("conversation-bridge");
         try {
-            List<TextSegment> segments = segment(cleanedText);
-            String subgraphId = findOrCreateGeneralSubgraph(tenantId);
+            List<TextSegment> segments   = segment(cleanedText);
+            String            subgraphId = findOrCreateGeneralSubgraph(tenantId);
+
+            ConfidenceOrigin origin = confidenceOrigin != null ? confidenceOrigin : ConfidenceOrigin.STATED;
 
             List<String> createdNodeIds = new ArrayList<>();
             for (TextSegment seg : segments) {
                 String nodeId = store.addNode(
-                    NodeInput.of(seg.title(), subgraphId)
-                        .withConfidence(MindMapConfidenceDefaults.forOrigin(
-                            ConfidenceOrigin.STATED, Instant.now()))
-                        .withProvenance("conversation-bridge")
-                        .withProperties(Map.of(
-                            "body", seg.body(),
-                            "topic", seg.topic())),
-                    tenantId);
+                        NodeInput.of(seg.title(), subgraphId)
+                                 .withConfidence(MindMapConfidenceDefaults.forOrigin(origin, Instant.now()))
+                                 .withProvenance("conversation-bridge")
+                                 .withPrincipalId(principalId)
+                                 .withProperties(Map.of(
+                                         "body", seg.body(),
+                                         "topic", seg.topic())),
+                        tenantId);
                 createdNodeIds.add(nodeId);
             }
 
@@ -68,7 +79,7 @@ public class ConversationBridge {
             }
 
             eventSink.accept(new ExtractionRequested(
-                cleanedText, tenantId, recentEntityNames, createdNodeIds));
+                    cleanedText, tenantId, recentEntityNames, createdNodeIds, principalId));
 
             return new SegmentationResult(createdNodeIds, segments.size());
         } finally {
