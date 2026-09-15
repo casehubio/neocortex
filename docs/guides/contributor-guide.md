@@ -1037,11 +1037,11 @@ Implements `CorpusIntegrity`. Three levels: `check()` validates chain + ZIP exis
 `CognitiveSchemaGenerator` — plain Java class (no CDI) in `schema-generator/`. Constructs a victools `SchemaGenerator` (Draft 2020-12) with four modules:
 
 - **JacksonModule** — respects `@JsonPropertyOrder`
-- **EnumInliningModule** — intercepts enum types, produces `{type: "string", enum: [values]}` using `toString()` on each constant
+- **EnumInliningModule** — from `casehub-platform-schema-generator`. Intercepts enum types, produces `{type: "string", enum: [values]}` using `toString()` on each constant
 - **SealedHierarchyModule** — from `casehub-platform-schema-generator`. Sealed interfaces → `oneOf` + `const` type discriminator. `DISCRIMINATOR_OVERRIDES` map overrides discriminator values per permit (e.g., `GaussianDecay → "gaussian"`, `ItakuraParallelogram → "itakura"`)
-- **ShorthandModule** — scalar-or-object `oneOf` for three types: `Confidence` (number or `{origin, value, decayReference}`), `NodeRef` (string pattern or `{scheme, id, qualifier}`), `RecurrenceRule` (RRULE string or `{freq, interval, count, until, byDay}`)
+- **ShorthandModule** — from `casehub-platform-schema-generator`. Configured with `SHORTHAND_DEFINITIONS` map — scalar-or-object `oneOf` for three types: `Confidence` (number or `{origin, value, decayReference}`), `NodeRef` (string pattern or `{scheme, id, qualifier}`), `RecurrenceRule` (RRULE string or `{freq, interval, count, until, byDay}`)
 
-Two public methods: `generate(Class<?>) → JsonNode`, `generateToYaml(Class<?>, Path)` (YAML output, minimize-quotes). **Extension:** add shorthand types to `ShorthandModule`, discriminator overrides to the `DISCRIMINATOR_OVERRIDES` map.
+Two public methods: `generate(Class<?>) → JsonNode`, `generateToYaml(Class<?>, Path)` (YAML output, minimize-quotes). **Extension:** add `ShorthandDefinition` registrations to `SHORTHAND_DEFINITIONS`, discriminator overrides to the `DISCRIMINATOR_OVERRIDES` map.
 
 ### CBR JPA Backend
 

@@ -24,6 +24,7 @@ import com.github.victools.jsonschema.generator.SchemaVersion;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.mindmap.NodeRef;
 import io.casehub.neocortex.mindmap.RecurrenceRule;
+import io.casehub.schema.generator.module.ShorthandModule;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +34,7 @@ class ShorthandModuleTest {
         var builder = new SchemaGeneratorConfigBuilder(
             SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON);
         builder.with(Option.DEFINITIONS_FOR_ALL_OBJECTS);
-        builder.with(new ShorthandModule());
+        builder.with(new ShorthandModule(CognitiveSchemaGenerator.SHORTHAND_DEFINITIONS));
         return new SchemaGenerator(builder.build());
     }
 
