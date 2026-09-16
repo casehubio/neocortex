@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-cognitive-observability</artifactId>
+            <artifactId>casehub-neocortex-cognitive-observability-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -62,7 +62,7 @@
                         <goals><goal>generate</goal></goals>
                         <configuration>
                             <quarkusModules>
-                                <quarkusModule>${project.basedir}/../cognitive-observability</quarkusModule>
+                                <quarkusModule>${project.basedir}/../cognitive-observability-core</quarkusModule>
                             </quarkusModules>
                         </configuration>
                     </execution>
@@ -72,7 +72,7 @@
                         <phase>verify</phase>
                         <configuration>
                             <quarkusModules>
-                                <quarkusModule>${project.basedir}/../cognitive-observability</quarkusModule>
+                                <quarkusModule>${project.basedir}/../cognitive-observability-core</quarkusModule>
                             </quarkusModules>
                         </configuration>
                     </execution>

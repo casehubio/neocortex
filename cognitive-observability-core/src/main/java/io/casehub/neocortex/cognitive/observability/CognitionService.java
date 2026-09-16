@@ -4,22 +4,19 @@ import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
 import io.casehub.neocortex.cognitive.index.EntityKnowledge;
 import io.casehub.neocortex.mindmap.MindMapStore;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 
 import java.time.Instant;
 import java.util.Optional;
 
-@ApplicationScoped
 public class CognitionService implements CognitionApi {
 
     private final MindMapStore store;
-    private final Instance<CognitiveProfile> cognitiveProfile;
-    private final Instance<SnapshotStore> snapshotStore;
+    private final CognitiveProfile cognitiveProfile;
+    private final SnapshotStore snapshotStore;
 
     public CognitionService(MindMapStore store,
-                            Instance<CognitiveProfile> cognitiveProfile,
-                            Instance<SnapshotStore> snapshotStore) {
+                            CognitiveProfile cognitiveProfile,
+                            SnapshotStore snapshotStore) {
         this.store = store;
         this.cognitiveProfile = cognitiveProfile;
         this.snapshotStore = snapshotStore;
@@ -33,10 +30,9 @@ public class CognitionService implements CognitionApi {
     @Override
     public EntityKnowledge entity(String tenantId, String entityName, String nodeId,
                                   String subgraphId, Boolean includeMemories, Integer memoryLimit) {
-        if (!cognitiveProfile.isResolvable()) {
+        if (cognitiveProfile == null) {
             return null;
         }
-        CognitiveProfile profile = cognitiveProfile.get();
         CognitiveProfileQuery query;
         if (nodeId != null) {
             query = CognitiveProfileQuery.byId(nodeId, tenantId);
@@ -52,7 +48,7 @@ public class CognitionService implements CognitionApi {
         } else {
             query = query.withMemoryLimit(limit);
         }
-        Optional<EntityKnowledge> result = profile.resolve(query);
+        Optional<EntityKnowledge> result = cognitiveProfile.resolve(query);
         return result.orElse(null);
     }
 
@@ -67,19 +63,19 @@ public class CognitionService implements CognitionApi {
     @Override
     public GraphDiffResult diff(String tenantId, String subgraphId,
                                 String from, String to, String source) {
-        if (!snapshotStore.isResolvable()) {
+        if (snapshotStore == null) {
             return null;
         }
         Instant fromInstant = from != null ? Instant.parse(from) : null;
         Instant toInstant = to != null ? Instant.parse(to) : null;
-        return CognitionDiffService.diff(snapshotStore.get(), tenantId, subgraphId,
+        return CognitionDiffService.diff(snapshotStore, tenantId, subgraphId,
                                          fromInstant, toInstant, source);
     }
 
     @Override
     public EntityTrace trace(String tenantId, String entityName, String nodeId,
                              String subgraphId, String from, String to) {
-        if (!snapshotStore.isResolvable()) {
+        if (snapshotStore == null) {
             return null;
         }
         String resolvedNodeId = nodeId;
@@ -96,7 +92,7 @@ public class CognitionService implements CognitionApi {
         }
         Instant fromInstant = from != null ? Instant.parse(from) : null;
         Instant toInstant = to != null ? Instant.parse(to) : null;
-        return CognitionTraceService.trace(snapshotStore.get(), tenantId,
+        return CognitionTraceService.trace(snapshotStore, tenantId,
                                            resolvedNodeId, fromInstant, toInstant);
     }
 }

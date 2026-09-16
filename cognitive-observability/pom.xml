@@ -14,31 +14,8 @@
     <dependencies>
         <dependency>
             <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-cognitive-index</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-cognitive-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-mindmap-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-mindmap-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-memory-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-mindmap-intelligence</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+            <artifactId>casehub-neocortex-cognitive-observability-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.casehub</groupId>
@@ -66,26 +43,6 @@
             <artifactId>jakarta.inject-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-mindmap-inmem</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-memory-inmem</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -108,6 +65,11 @@
                             <groupId>io.casehub</groupId>
                             <artifactId>casehub-platform-graphql-generator</artifactId>
                             <version>${casehub-platform-api.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.casehub</groupId>
+                            <artifactId>casehub-neocortex-cognitive-observability-core</artifactId>
+                            <version>${project.version}</version>
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
