@@ -95,7 +95,7 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution + multi-agent comparison), `SocialComparison` (perspectival divergence metrics), `DomainActivation` (cross-domain DTW correlation + mood/experience context correlation), `CognitiveDefaultsRegistry` (YAML-driven per-agent config) |
+| `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution + multi-agent comparison), `SocialComparison` (perspectival divergence metrics), `DomainActivation` (cross-domain DTW correlation + mood/experience context correlation), `CognitiveDefaultsRegistry` (YAML-driven per-agent config), `CognitiveProfileWatcher` (file-watch hot-reload for profiles + rules via `casehub.cognitive.profiles-dir` / `casehub.cognitive.rules-dir`) |
 | `schema-generator` | `casehub-neocortex-schema-generator` | JSON Schema generation (Draft 2020-12) for cognitive types — sealed hierarchy `oneOf`, enum inlining, shorthand patterns, YAML output |
 
 ### Corpus

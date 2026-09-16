@@ -590,9 +590,9 @@ Static utility in `mindmap/` — pure Java graph analysis. All methods require `
 
 #### CognitiveLoader
 
-`@ApplicationScoped` with `@PostConstruct`. Bridges YAML cognitive profiles into the MindMap vocabulary system. Iterates all `CognitiveDefaults` from `CognitiveDefaultsRegistry`; for each with a non-null `vocabulary()`, calls `store.registerVocabulary()`. `Instance<MindMapStore>` + `Instance<CognitiveDefaultsRegistry>` for graceful degradation.
+`@ApplicationScoped` with `@PostConstruct`. Bridges YAML cognitive profiles into the MindMap vocabulary system. Iterates all `CognitiveDefaults` from `CognitiveDefaultsRegistry`; for each with a non-null `vocabulary()`, calls `store.registerVocabulary()`. `Instance<MindMapStore>` + `Instance<CognitiveDefaultsRegistry>` for graceful degradation. Observes `CognitiveProfilesReloaded` CDI event for vocabulary re-registration on hot-reload, with per-profile `VocabularyConflictException` handling.
 
-**Extension:** Add a YAML cognitive profile with a `vocabulary:` section — CognitiveLoader picks it up automatically via classpath scanning.
+**Extension:** Add a YAML cognitive profile with a `vocabulary:` section — CognitiveLoader picks it up automatically via classpath scanning. For hot-reload, set `casehub.cognitive.profiles-dir` to a filesystem directory — `CognitiveProfileWatcher` monitors it and fires reload events on change.
 
 #### CuriositySignalGenerator
 
