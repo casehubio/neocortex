@@ -19,8 +19,10 @@ import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.CognitiveProfilesReloaded;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.VocabularyConflictException;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
@@ -82,7 +84,7 @@ public class CognitiveLoader {
         }
     }
 
-    void onProfilesReloaded(@jakarta.enterprise.event.Observes CognitiveProfilesReloaded event) {
+    void onProfilesReloaded(@Observes CognitiveProfilesReloaded event) {
         if (store == null) {return;}
         int registered = 0;
         for (CognitiveDefaults defaults : event.profiles()) {
@@ -90,7 +92,7 @@ public class CognitiveLoader {
                 try {
                     store.registerVocabulary(defaults.vocabulary());
                     registered++;
-                } catch (io.casehub.neocortex.mindmap.VocabularyConflictException e) {
+                } catch (VocabularyConflictException e) {
                     LOG.warning("Vocabulary conflict during reload for agent '"
                                 + defaults.agentId() + "': " + e.getMessage());
                 }
