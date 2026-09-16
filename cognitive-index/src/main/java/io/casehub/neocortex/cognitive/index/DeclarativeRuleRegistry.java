@@ -37,11 +37,13 @@ import java.util.logging.Logger;
 
 @ApplicationScoped
 public class DeclarativeRuleRegistry {
+    record GlobalRules(List<DeclarativeTraitRule> traitRules,
+                       List<DeclarativeDerivedEdgeRule> derivedEdgeRules) {}
+
 
     private static final Logger LOG = Logger.getLogger(DeclarativeRuleRegistry.class.getName());
 
-    private List<DeclarativeTraitRule>       globalTraitRules   = List.of();
-    private List<DeclarativeDerivedEdgeRule> globalDerivedRules = List.of();
+    private volatile GlobalRules globalRules = new GlobalRules(List.of(), List.of());
 
     @Inject
     CognitiveDefaultsRegistry cognitiveDefaults;
@@ -51,9 +53,8 @@ public class DeclarativeRuleRegistry {
     DeclarativeRuleRegistry(List<DeclarativeTraitRule> globalTraitRules,
                             List<DeclarativeDerivedEdgeRule> globalDerivedRules,
                             CognitiveDefaultsRegistry cognitiveDefaults) {
-        this.globalTraitRules   = List.copyOf(globalTraitRules);
-        this.globalDerivedRules = List.copyOf(globalDerivedRules);
-        this.cognitiveDefaults  = cognitiveDefaults;
+        this.globalRules       = new GlobalRules(List.copyOf(globalTraitRules), List.copyOf(globalDerivedRules));
+        this.cognitiveDefaults = cognitiveDefaults;
     }
 
     @PostConstruct
@@ -61,14 +62,16 @@ public class DeclarativeRuleRegistry {
         try {
             var result = loadGlobalRules("rules/",
                                          Thread.currentThread().getContextClassLoader());
-            this.globalTraitRules   = result.traitRules();
-            this.globalDerivedRules = result.derivedEdgeRules();
+            this.globalRules = new GlobalRules(
+                    List.copyOf(result.traitRules()),
+                    List.copyOf(result.derivedEdgeRules()));
         } catch (IOException e) {
             LOG.warning("Failed to load global rules: " + e.getMessage());
         }
-        if (!globalTraitRules.isEmpty() || !globalDerivedRules.isEmpty()) {
-            LOG.info("Loaded " + globalTraitRules.size() + " global trait rule(s) and "
-                     + globalDerivedRules.size() + " global derived edge rule(s)");
+        GlobalRules snapshot = globalRules;
+        if (!snapshot.traitRules().isEmpty() || !snapshot.derivedEdgeRules().isEmpty()) {
+            LOG.info("Loaded " + snapshot.traitRules().size() + " global trait rule(s) and "
+                     + snapshot.derivedEdgeRules().size() + " global derived edge rule(s)");
         }
     }
 
@@ -85,8 +88,9 @@ public class DeclarativeRuleRegistry {
 
 
     public List<TraitRule> traitRules(String agentId) {
-        var merged = new LinkedHashMap<String, TraitRule>();
-        globalTraitRules.forEach(r -> merged.put(r.traitName(), r));
+        var         merged   = new LinkedHashMap<String, TraitRule>();
+        GlobalRules snapshot = globalRules;
+        snapshot.traitRules().forEach(r -> merged.put(r.traitName(), r));
         if (agentId != null && cognitiveDefaults != null) {
             cognitiveDefaults.forAgent(agentId).ifPresent(defaults -> {
                 if (defaults.traitRules() != null) {
@@ -98,8 +102,9 @@ public class DeclarativeRuleRegistry {
     }
 
     public List<TraitRule> allTraitRules() {
-        var merged = new LinkedHashMap<String, TraitRule>();
-        globalTraitRules.forEach(r -> merged.put(r.traitName(), r));
+        var         merged   = new LinkedHashMap<String, TraitRule>();
+        GlobalRules snapshot = globalRules;
+        snapshot.traitRules().forEach(r -> merged.put(r.traitName(), r));
         if (cognitiveDefaults != null) {
             for (CognitiveDefaults defaults : cognitiveDefaults.allProfiles()) {
                 if (defaults.traitRules() != null) {
@@ -111,8 +116,9 @@ public class DeclarativeRuleRegistry {
     }
 
     public List<DerivedEdgeRule> derivedEdgeRules(String agentId) {
-        var merged = new LinkedHashMap<String, DerivedEdgeRule>();
-        globalDerivedRules.forEach(r -> merged.put(r.name(), r));
+        var         merged   = new LinkedHashMap<String, DerivedEdgeRule>();
+        GlobalRules snapshot = globalRules;
+        snapshot.derivedEdgeRules().forEach(r -> merged.put(r.name(), r));
         if (agentId != null && cognitiveDefaults != null) {
             cognitiveDefaults.forAgent(agentId).ifPresent(defaults -> {
                 if (defaults.derivedEdgeRules() != null) {
@@ -124,8 +130,9 @@ public class DeclarativeRuleRegistry {
     }
 
     public List<DerivedEdgeRule> allDerivedEdgeRules() {
-        var merged = new LinkedHashMap<String, DerivedEdgeRule>();
-        globalDerivedRules.forEach(r -> merged.put(r.name(), r));
+        var         merged   = new LinkedHashMap<String, DerivedEdgeRule>();
+        GlobalRules snapshot = globalRules;
+        snapshot.derivedEdgeRules().forEach(r -> merged.put(r.name(), r));
         if (cognitiveDefaults != null) {
             for (CognitiveDefaults defaults : cognitiveDefaults.allProfiles()) {
                 if (defaults.derivedEdgeRules() != null) {
@@ -135,6 +142,18 @@ public class DeclarativeRuleRegistry {
         }
         return List.copyOf(merged.values());
     }
+
+    void reloadGlobalRules(List<DeclarativeTraitRule> traitRules,
+                           List<DeclarativeDerivedEdgeRule> derivedRules) {
+        this.globalRules = new GlobalRules(
+                List.copyOf(traitRules), List.copyOf(derivedRules));
+    }
+
+    RuleFile currentGlobalRules() {
+        GlobalRules snapshot = globalRules;
+        return new RuleFile(snapshot.traitRules(), snapshot.derivedEdgeRules());
+    }
+
 
     private static RuleFile loadGlobalRules(String rulesPath, ClassLoader classLoader) throws IOException {
         ObjectMapper                     mapper         = CognitiveDefaultsRegistry.createMapper();

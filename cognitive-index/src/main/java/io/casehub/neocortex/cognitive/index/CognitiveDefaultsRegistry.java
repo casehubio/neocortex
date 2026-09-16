@@ -42,7 +42,7 @@ public class CognitiveDefaultsRegistry {
 
     private static final Logger LOG = Logger.getLogger(CognitiveDefaultsRegistry.class.getName());
 
-    private Map<String, CognitiveDefaults> profiles;
+    private volatile Map<String, CognitiveDefaults> profiles;
 
     CognitiveDefaultsRegistry() {
         this.profiles = Map.of();
@@ -70,6 +70,11 @@ public class CognitiveDefaultsRegistry {
     public Collection<CognitiveDefaults> allProfiles() {
         return profiles.values();
     }
+
+    void reload(Map<String, CognitiveDefaults> newProfiles) {
+        this.profiles = Map.copyOf(newProfiles);
+    }
+
 
     public static CognitiveDefaultsRegistry forTesting(CognitiveDefaults... profiles) {
         var r   = new CognitiveDefaultsRegistry();
@@ -126,11 +131,11 @@ public class CognitiveDefaultsRegistry {
         return mapper;
     }
 
-    private static void addProfile(Map<String, CognitiveDefaults> map,
-            CognitiveDefaults defaults, String source) {
+    static void addProfile(Map<String, CognitiveDefaults> map,
+                           CognitiveDefaults defaults, String source) {
         if (map.containsKey(defaults.agentId())) {
             throw new IllegalStateException(
-                "Duplicate agentId '" + defaults.agentId()
+                    "Duplicate agentId '" + defaults.agentId()
                     + "' in cognitive profile: " + source);
         }
         map.put(defaults.agentId(), defaults);
