@@ -97,6 +97,13 @@ public record CbrQuery(
                             scope, scopeDecay, callerPrincipalId);
     }
 
+    public CbrQuery withTopK(int topK) {
+        return new CbrQuery(tenantId, domain, caseTypeScope, features, filters, weights, topK,
+                            minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
+                            scope, scopeDecay, callerPrincipalId);
+    }
+
+
     public CbrQuery withProblem(String problem) {
         return new CbrQuery(tenantId, domain, caseTypeScope, features, filters, weights, topK,
                             minSimilarity, notBefore, problem, vectorWeight, retrievalMode, fusionStrategy, temporalDecay,
