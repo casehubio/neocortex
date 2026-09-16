@@ -1,8 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.memory.Memory;
-import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
@@ -22,7 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExperienceConsolidationPhaseTest {
 
@@ -45,10 +44,10 @@ class ExperienceConsolidationPhaseTest {
     void setUp() {
         memoryStore = new InMemoryMemoryStore(principal);
         mindMapStore = new InMemoryMindMapStore();
-        scorer = new DefaultGraduationScorer();
+        scorer = new DefaultGraduationScorer(1);
         classifier = new DefaultGraduationClassifier();
         phase = new ExperienceConsolidationPhase(
-            memoryStore, mindMapStore, scorer, classifier, 0.5, 20);
+            memoryStore, mindMapStore, scorer, classifier, 0.5, 20, 1);
     }
 
     private String storeExperience(String agentId, String eventType,
@@ -144,7 +143,7 @@ class ExperienceConsolidationPhaseTest {
         storeExperience("a1", "observation", "another good",
             Map.of("subject", "B"), 0.8);
 
-        GraduationScorer failOnFirst = m -> {
+        GraduationScorer failOnFirst = (m, ctx) -> {
             if (m.text().equals("good event")) throw new RuntimeException("scorer failed");
             return 0.8;
         };
@@ -240,5 +239,75 @@ class ExperienceConsolidationPhaseTest {
         MindMapNode node = cognitiveNodes().get(0);
         assertTrue(node.name().length() <= 104); // 100 + "..."
         assertTrue(node.name().endsWith("..."));
+    }
+
+    @Test
+    void singleObservation_notGraduated_whenCorroborationRequired() {
+        storeExperience("a1", "observation", "Bob looks worried",
+                        Map.of("subject", "Bob"), 0.8);
+
+        var corroboratingPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+        corroboratingPhase.run(TENANT, List.of());
+
+        assertEquals(0, cognitiveNodes().size());
+    }
+
+    @Test
+    void threeConvergingObservations_graduates() {
+        storeExperience("a1", "observation", "Bob looks worried",
+                        Map.of("subject", "Bob"), 0.8);
+        storeExperience("a1", "observation", "Bob seems stressed",
+                        Map.of("subject", "Bob"), 0.7);
+        storeExperience("a1", "observation", "Bob is anxious",
+                        Map.of("subject", "Bob"), 0.9);
+
+        var corroboratingPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+        corroboratingPhase.run(TENANT, List.of());
+
+        assertEquals(3, cognitiveNodes().size());
+    }
+
+    @Test
+    void differentSubjects_doNotCorroborate() {
+        storeExperience("a1", "observation", "Bob looks worried",
+                        Map.of("subject", "Bob"), 0.8);
+        storeExperience("a1", "observation", "Alice is happy",
+                        Map.of("subject", "Alice"), 0.8);
+        storeExperience("a1", "observation", "Charlie is tired",
+                        Map.of("subject", "Charlie"), 0.8);
+
+        var corroboratingPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+        corroboratingPhase.run(TENANT, List.of());
+
+        assertEquals(0, cognitiveNodes().size());
+    }
+
+    @Test
+    void retroactiveCorroboration_graduatesOnSubsequentPass() {
+        storeExperience("a1", "observation", "Bob event 1",
+                        Map.of("subject", "Bob"), 0.8);
+        storeExperience("a1", "observation", "Bob event 2",
+                        Map.of("subject", "Bob"), 0.8);
+
+        var corroboratingPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+        corroboratingPhase.run(TENANT, List.of());
+        assertEquals(0, cognitiveNodes().size());
+
+        storeExperience("a1", "observation", "Bob event 3",
+                        Map.of("subject", "Bob"), 0.8);
+
+        var freshPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+        freshPhase.run(TENANT, List.of());
+        assertEquals(3, cognitiveNodes().size());
     }
 }

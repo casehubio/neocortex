@@ -7,4 +7,8 @@ import io.smallrye.config.WithDefault;
 public interface ExperienceConsolidationConfig {
     @WithDefault("0.5") double threshold();
     @WithDefault("20") int maxPerPass();
+
+    @WithDefault("3")
+    int minCorroboration();
+
 }

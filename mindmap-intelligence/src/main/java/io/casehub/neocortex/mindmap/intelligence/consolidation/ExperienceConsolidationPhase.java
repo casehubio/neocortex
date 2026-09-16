@@ -2,10 +2,13 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryScanRequest;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.experience.GraduationClassifier;
+import io.casehub.neocortex.memory.experience.GraduationContext;
 import io.casehub.neocortex.memory.experience.GraduationResult;
 import io.casehub.neocortex.memory.experience.GraduationScorer;
 import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
@@ -13,7 +16,6 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
-import io.casehub.neocortex.mindmap.MutationContext;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphInput;
@@ -48,6 +50,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
     private final GraduationClassifier classifier;
     private final double threshold;
     private final int maxPerPass;
+    private final int minCorroboration;
 
     @Inject
     public ExperienceConsolidationPhase(
@@ -63,6 +66,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         ExperienceConsolidationConfig c = config.isResolvable() ? config.get() : null;
         this.threshold = c != null ? c.threshold() : 0.5;
         this.maxPerPass = c != null ? c.maxPerPass() : 20;
+        this.minCorroboration = c != null ? c.minCorroboration() : 3;
     }
 
     ExperienceConsolidationPhase(CaseMemoryStore memoryStore,
@@ -71,12 +75,23 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                                   GraduationClassifier classifier,
                                   double threshold,
                                   int maxPerPass) {
+        this(memoryStore, mindMapStore, scorer, classifier, threshold, maxPerPass, 3);
+    }
+
+    ExperienceConsolidationPhase(CaseMemoryStore memoryStore,
+                                  MindMapStore mindMapStore,
+                                  GraduationScorer scorer,
+                                  GraduationClassifier classifier,
+                                  double threshold,
+                                  int maxPerPass,
+                                  int minCorroboration) {
         this.memoryStore = memoryStore;
         this.mindMapStore = mindMapStore;
         this.scorer = scorer;
         this.classifier = classifier;
         this.threshold = threshold;
         this.maxPerPass = maxPerPass;
+        this.minCorroboration = minCorroboration;
     }
 
     @Override
@@ -99,13 +114,23 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
 
         String subgraphId = findOrCreateCognitiveSubgraph(tenantId);
         Set<String> existingSourceIds = loadExistingSourceMemoryIds(tenantId);
+        Map<String, GraduationContext> corroborationMap =
+            buildCorroborationMap(experiences, tenantId);
         String lastProcessedId = cursor;
 
         for (Memory memory : experiences) {
             try {
-                double score = scorer.score(memory);
+                String observed = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
+                GraduationContext context = observed != null
+                    ? corroborationMap.getOrDefault(observed, new GraduationContext(0, tenantId))
+                    : new GraduationContext(Integer.MAX_VALUE, tenantId);
+                double score = scorer.score(memory, context);
                 if (score < threshold) {
-                    lastProcessedId = memory.memoryId();
+                    boolean corroborationBlocked = observed != null
+                        && context.corroboratingCount() < minCorroboration;
+                    if (!corroborationBlocked) {
+                        lastProcessedId = memory.memoryId();
+                    }
                     continue;
                 }
 
@@ -150,6 +175,23 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         if (lastProcessedId != null && !lastProcessedId.equals(cursor)) {
             saveCursor(tenantId, lastProcessedId);
         }
+    }
+
+
+    private Map<String, GraduationContext> buildCorroborationMap(
+            List<Memory> experiences, String tenantId) {
+        Map<String, GraduationContext> map = new HashMap<>();
+        for (Memory m : experiences) {
+            String observed = m.attributes().get(ExperienceAttributeKeys.SUBJECT);
+            if (observed == null || map.containsKey(observed)) continue;
+            var scan = new MemoryScanRequest(tenantId,
+                ExperienceEvents.DOMAIN.name(),
+                ExperienceAttributeKeys.SUBJECT, observed,
+                minCorroboration, null);
+            int count = memoryStore.scan(scan).size();
+            map.put(observed, new GraduationContext(count, tenantId));
+        }
+        return map;
     }
 
     private String findOrCreateCognitiveSubgraph(String tenantId) {

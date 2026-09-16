@@ -4,5 +4,5 @@ import io.casehub.neocortex.memory.Memory;
 
 @FunctionalInterface
 public interface GraduationScorer {
-    double score(Memory memory);
+    double score(Memory memory, GraduationContext context);
 }
