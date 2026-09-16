@@ -26,6 +26,7 @@
     <module>cognitive-api</module>
     <module>cognitive-index</module>
     <module>cognitive-observability</module>
+    <module>cognitive-observability-spring</module>
     <module>cognitive-observability-testing</module>
     <module>cognitive-observability-sqlite</module>
     <module>rag-api</module>
@@ -241,6 +242,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-cognitive-observability</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cognitive-observability-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
