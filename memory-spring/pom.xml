@@ -42,4 +42,31 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.casehub</groupId>
+                <artifactId>casehub-platform-spring-generator</artifactId>
+                <version>${casehub-platform-api.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate</id>
+                        <goals><goal>generate</goal></goals>
+                        <configuration>
+                            <quarkusModule>${project.basedir}/../memory</quarkusModule>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>verify-drift</id>
+                        <goals><goal>verify</goal></goals>
+                        <phase>verify</phase>
+                        <configuration>
+                            <quarkusModule>${project.basedir}/../memory</quarkusModule>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
