@@ -42,6 +42,7 @@ public class ConsolidationScheduler {
     private final CaseMemoryStore memoryStore;
     private final CuriositySignalGenerator curiosityGenerator;
     private final Consumer<ConsolidationCompleted> completionSink;
+    private final SignificanceAccumulator significanceAccumulator;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
     private ScheduledExecutorService executor;
@@ -51,6 +52,7 @@ public class ConsolidationScheduler {
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            Instance<CuriositySignalGenerator> curiosityGenerator,
+                           Instance<SignificanceAccumulator> significanceAccumulator,
                            Event<ConsolidationCompleted> completionEvent,
                            @ConfigProperty(name = "casehub.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
@@ -64,7 +66,8 @@ public class ConsolidationScheduler {
             idleTracker, memoryStore,
             curiosityGenerator.isResolvable() ? curiosityGenerator.get() : null,
             completionEvent::fire,
-            intervalMinutes);
+            intervalMinutes,
+            significanceAccumulator.isResolvable() ? significanceAccumulator.get() : null);
     }
 
     ConsolidationScheduler(List<ConsolidationPhase> phases,
@@ -72,20 +75,22 @@ public class ConsolidationScheduler {
                            CaseMemoryStore memoryStore,
                            CuriositySignalGenerator curiosityGenerator,
                            Consumer<ConsolidationCompleted> completionSink,
-                           long intervalMinutes) {
+                           long intervalMinutes,
+                           SignificanceAccumulator significanceAccumulator) {
         this.phases = phases;
         this.idleTracker = idleTracker;
         this.memoryStore = memoryStore;
         this.curiosityGenerator = curiosityGenerator;
         this.completionSink = completionSink;
         this.intervalMinutes = intervalMinutes;
+        this.significanceAccumulator = significanceAccumulator;
     }
 
     ConsolidationScheduler(List<ConsolidationPhase> phases,
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            CuriositySignalGenerator curiosityGenerator) {
-        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5);
+        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5, null);
     }
 
     @PostConstruct
@@ -111,6 +116,9 @@ public class ConsolidationScheduler {
             if (!memoryStore.capabilities()
                     .contains(MemoryCapability.DISCOVER_TENANTS)) {
                 return;
+            }
+            if (significanceAccumulator != null) {
+                significanceAccumulator.swapAndReset();
             }
 
             for (ConsolidationPhase phase : phases) {
@@ -149,6 +157,9 @@ public class ConsolidationScheduler {
             return;
         }
         try {
+            if (significanceAccumulator != null) {
+                significanceAccumulator.swapAndReset();
+            }
             for (ConsolidationPhase phase : phases) {
                 if (phase instanceof AccessFrequencyPhase afp) {
                     afp.beginTick();

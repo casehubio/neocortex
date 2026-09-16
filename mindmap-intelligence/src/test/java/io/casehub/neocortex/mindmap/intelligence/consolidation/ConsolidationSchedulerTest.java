@@ -107,4 +107,46 @@ class ConsolidationSchedulerTest {
                 "phase-1:tenant-1", "phase-2:tenant-1");
     }
 
+
+    @Test
+    void tick_resetsSignificanceAccumulator() {
+        var accumulator = new SignificanceAccumulator(
+                e -> 1.0, 100.0, t -> {});
+
+        var schedulerWithAccumulator = new ConsolidationScheduler(
+                List.of(), idleTracker, memoryStore, null, e -> {},
+                5, accumulator);
+
+        var event = new io.casehub.neocortex.memory.experience.ExperienceRecorded(
+                new io.casehub.neocortex.memory.experience.Observation("a1", "tenant-1", null, "t1",
+                                                                       java.time.Instant.now(), "test event", null, java.util.Map.of(), "entity-1"),
+                "m1");
+        accumulator.onExperienceRecorded(event);
+
+        schedulerWithAccumulator.tick();
+
+        SignificanceSnapshot snapshot = accumulator.swapAndReset();
+        assertThat(snapshot.perTenant()).isEmpty();
+    }
+
+    @Test
+    void consolidateNow_resetsSignificanceAccumulator() {
+        var accumulator = new SignificanceAccumulator(
+                e -> 1.0, 100.0, t -> {});
+
+        var schedulerWithAccumulator = new ConsolidationScheduler(
+                List.of(), idleTracker, memoryStore, null, e -> {},
+                5, accumulator);
+
+        var event = new io.casehub.neocortex.memory.experience.ExperienceRecorded(
+                new io.casehub.neocortex.memory.experience.Observation("a1", "tenant-1", null, "t1",
+                                                                       java.time.Instant.now(), "test event", null, java.util.Map.of(), "entity-1"),
+                "m1");
+        accumulator.onExperienceRecorded(event);
+
+        schedulerWithAccumulator.consolidateNow("tenant-1");
+
+        SignificanceSnapshot snapshot = accumulator.swapAndReset();
+        assertThat(snapshot.perTenant()).isEmpty();
+    }
 }
