@@ -1,6 +1,6 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
-import io.casehub.desiredstate.api.CbrOutcomeData;
+import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 

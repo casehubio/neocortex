@@ -1,7 +1,7 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
-import io.casehub.desiredstate.api.CbrOutcomeData;
-import io.casehub.desiredstate.api.CbrPath;
+import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
+import io.casehub.neocortex.memory.cbr.CbrPath;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCase;

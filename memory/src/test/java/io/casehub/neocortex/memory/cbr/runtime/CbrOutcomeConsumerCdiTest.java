@@ -1,9 +1,9 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.casehub.desiredstate.api.CbrEventTypes;
-import io.casehub.desiredstate.api.CbrOutcomeData;
-import io.casehub.desiredstate.api.CbrPath;
+import io.casehub.neocortex.memory.cbr.CbrEventTypes;
+import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
+import io.casehub.neocortex.memory.cbr.CbrPath;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.platform.api.event.CloudEventType;
 import io.cloudevents.CloudEvent;

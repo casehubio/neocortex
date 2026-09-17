@@ -1,8 +1,8 @@
 package io.casehub.neocortex.memory.cdi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.casehub.desiredstate.api.CbrEventTypes;
-import io.casehub.desiredstate.api.CbrOutcomeData;
+import io.casehub.neocortex.memory.cbr.CbrEventTypes;
+import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
 import io.casehub.memory.runtime.CaseEnrichmentPipeline;
 import io.casehub.memory.runtime.MemoryEmitterCore;
 import io.casehub.neocortex.memory.CaseEnrichmentStep;
