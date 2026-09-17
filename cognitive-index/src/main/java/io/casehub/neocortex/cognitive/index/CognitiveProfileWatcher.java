@@ -62,7 +62,7 @@ public class CognitiveProfileWatcher {
 
     private volatile DirectoryWatcher profilesWatcher;
     private volatile DirectoryWatcher rulesWatcher;
-    private ScheduledExecutorService debounceExecutor;
+    private volatile ScheduledExecutorService debounceExecutor;
     private ScheduledFuture<?> pendingProfilesFlush;
     private ScheduledFuture<?> pendingRulesFlush;
     private final Object flushLock = new Object();

@@ -32,7 +32,7 @@ public final class FlatChangeSource implements WatchableChangeSource {
     private final Object watchLock = new Object();
     private volatile DirectoryWatcher watcher;
     private volatile ChangeListener listener;
-    private volatile Map<String, Long> watchState;
+    private volatile ConcurrentHashMap<String, Long> watchState;
     private ScheduledExecutorService debounceExecutor;
     private ScheduledFuture<?> pendingFlush;
     private final ConcurrentHashMap<String, ChangeType> eventBuffer = new ConcurrentHashMap<>();
@@ -91,7 +91,7 @@ public final class FlatChangeSource implements WatchableChangeSource {
 
             this.listener = listener;
 
-            watchState = new HashMap<>();
+            watchState = new ConcurrentHashMap<>();
             for (String path : store.list()) {
                 watchState.put(path, getLastModified(path));
             }
@@ -257,7 +257,7 @@ public final class FlatChangeSource implements WatchableChangeSource {
 
             eventBuffer.clear();
 
-            Map<String, Long> newState = new HashMap<>();
+            ConcurrentHashMap<String, Long> newState = new ConcurrentHashMap<>();
             for (String path : store.list()) {
                 newState.put(path, getLastModified(path));
             }

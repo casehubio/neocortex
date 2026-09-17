@@ -45,7 +45,7 @@ public class ConsolidationScheduler {
     private final SignificanceAccumulator significanceAccumulator;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
-    private ScheduledExecutorService executor;
+    private volatile ScheduledExecutorService executor;
 
     @Inject
     ConsolidationScheduler(Instance<ConsolidationPhase> phases,

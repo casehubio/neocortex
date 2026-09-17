@@ -26,7 +26,7 @@ public class RetentionScheduler {
     @ConfigProperty(name = "casehub.rag.tracking.retention.days", defaultValue = "90")
     int retentionDays;
 
-    private ScheduledExecutorService executor;
+    private volatile ScheduledExecutorService executor;
 
     @PostConstruct
     void start() {
