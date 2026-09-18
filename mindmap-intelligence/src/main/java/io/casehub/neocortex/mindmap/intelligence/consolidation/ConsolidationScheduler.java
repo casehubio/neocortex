@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -106,48 +106,36 @@ public class ConsolidationScheduler {
 
     @PreDestroy
     void stop() {
-        if (executor != null) executor.shutdown();
+        if (executor != null) {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    LOG.warning("Consolidation scheduler did not terminate within 30s");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     void tick() {
-        if (!lock.tryLock()) return;
         try {
-            if (!idleTracker.isIdle(Duration.ofMinutes(1))) return;
-            if (!memoryStore.capabilities()
-                    .contains(MemoryCapability.DISCOVER_TENANTS)) {
-                return;
-            }
-            if (significanceAccumulator != null) {
-                significanceAccumulator.swapAndReset();
-            }
-
-            for (ConsolidationPhase phase : phases) {
-                if (phase instanceof AccessFrequencyPhase afp) {
-                    afp.beginTick();
+            if (!lock.tryLock()) {return;}
+            try {
+                if (!idleTracker.isIdle(Duration.ofMinutes(1))) {return;}
+                if (!memoryStore.capabilities()
+                                .contains(MemoryCapability.DISCOVER_TENANTS)) {
+                    return;
                 }
-            }
-
-            for (String tenantId : memoryStore.discoverTenants(null, null)) {
-                List<String> priority = subgraphPriority(tenantId);
-                List<PhaseResult> phaseResults = new ArrayList<>();
-                for (ConsolidationPhase phase : phases) {
-                    Instant phaseStart = Instant.now();
-                    MutationContext.set("consolidation:" + phase.name());
-                    try {
-                        phase.run(tenantId, priority);
-                        phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
-                    } catch (Exception e) {
-                        phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
-                        LOG.log(Level.WARNING, "Phase " + phase.name()
-                            + " failed for tenant " + tenantId, e);
-                    } finally {
-                        MutationContext.clear();
-                    }
+                beginTickAllPhases();
+                for (String tenantId : memoryStore.discoverTenants(null, null)) {
+                    runPhases(tenantId);
                 }
-                completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
+            } finally {
+                lock.unlock();
             }
-        } finally {
-            lock.unlock();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Consolidation tick failed — scheduler will retry next interval", e);
         }
     }
 
@@ -157,36 +145,42 @@ public class ConsolidationScheduler {
             return;
         }
         try {
-            if (significanceAccumulator != null) {
-                significanceAccumulator.swapAndReset();
-            }
-            for (ConsolidationPhase phase : phases) {
-                if (phase instanceof AccessFrequencyPhase afp) {
-                    afp.beginTick();
-                }
-            }
-            List<String> priority = subgraphPriority(tenantId);
-            List<PhaseResult> phaseResults = new ArrayList<>();
-            for (ConsolidationPhase phase : phases) {
-                Instant phaseStart = Instant.now();
-                MutationContext.set("consolidation:" + phase.name());
-                try {
-                    phase.run(tenantId, priority);
-                    phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
-                } catch (Exception e) {
-                    phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
-                    LOG.log(Level.WARNING, "Phase " + phase.name()
-                                           + " failed for tenant " + tenantId, e);
-                } finally {
-                    MutationContext.clear();
-                }
-            }
-            completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
+            beginTickAllPhases();
+            runPhases(tenantId);
         } finally {
             lock.unlock();
         }
     }
 
+
+    private void runPhases(String tenantId) {
+        List<String>      priority     = subgraphPriority(tenantId);
+        List<PhaseResult> phaseResults = new ArrayList<>();
+        for (ConsolidationPhase phase : phases) {
+            Instant phaseStart = Instant.now();
+            MutationContext.set("consolidation:" + phase.name());
+            try {
+                phase.run(tenantId, priority);
+                phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
+            } catch (Exception e) {
+                phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
+                LOG.log(Level.WARNING, "Phase " + phase.name()
+                                       + " failed for tenant " + tenantId, e);
+            } finally {
+                MutationContext.clear();
+            }
+        }
+        completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
+    }
+
+    private void beginTickAllPhases() {
+        if (significanceAccumulator != null) {
+            significanceAccumulator.swapAndReset();
+        }
+        for (ConsolidationPhase phase : phases) {
+            phase.beginTick();
+        }
+    }
 
     private List<String> subgraphPriority(String tenantId) {
         if (curiosityGenerator == null) return List.of();

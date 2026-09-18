@@ -5,4 +5,7 @@ import java.util.List;
 public interface ConsolidationPhase {
     String name();
     void run(String tenantId, List<String> subgraphPriority);
+
+    default void beginTick() {}
+
 }

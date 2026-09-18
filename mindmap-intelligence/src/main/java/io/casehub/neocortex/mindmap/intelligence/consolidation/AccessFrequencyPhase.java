@@ -30,7 +30,8 @@ public class AccessFrequencyPhase implements ConsolidationPhase {
     private long lastSnapshotTick;
     private long currentTick;
 
-    void beginTick() {
+    @Override
+    public void beginTick() {
         currentTick++;
     }
 
