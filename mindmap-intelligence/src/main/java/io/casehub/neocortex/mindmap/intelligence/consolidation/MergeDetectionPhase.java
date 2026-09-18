@@ -1,12 +1,21 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.NodeUpdate;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -78,26 +87,32 @@ public class MergeDetectionPhase implements ConsolidationPhase {
 
     List<MergeCandidate> detectCandidates(String subgraphId, String tenantId) {
         List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId).stream()
-            .filter(n -> !n.traits().contains("Summary"))
-            .toList();
+                                       .filter(n -> !n.traits().contains("Summary"))
+                                       .toList();
+
+        if (nodes.size() > 500) {
+            LOG.fine("Subgraph " + subgraphId + " has " + nodes.size()
+                     + " nodes — skipping O(n²) merge detection");
+            return List.of();
+        }
 
         List<MergeCandidate> candidates = new ArrayList<>();
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = i + 1; j < nodes.size(); j++) {
-                MindMapNode a = nodes.get(i);
-                MindMapNode b = nodes.get(j);
-                double nameSim = JaroWinkler.similarity(a.name(), b.name());
-                if (nameSim < nameThreshold) continue;
+                MindMapNode a       = nodes.get(i);
+                MindMapNode b       = nodes.get(j);
+                double      nameSim = JaroWinkler.similarity(a.name(), b.name());
+                if (nameSim < nameThreshold) {continue;}
 
-                Set<String> neighborsA = neighborIds(a.id(), tenantId);
-                Set<String> neighborsB = neighborIds(b.id(), tenantId);
-                double neighborOverlap = jaccard(neighborsA, neighborsB);
+                Set<String> neighborsA      = neighborIds(a.id(), tenantId);
+                Set<String> neighborsB      = neighborIds(b.id(), tenantId);
+                double      neighborOverlap = jaccard(neighborsA, neighborsB);
 
                 double combined = 0.6 * nameSim + 0.4 * neighborOverlap;
                 if (combined >= 0.6) {
                     String reason = neighborOverlap > 0 ? "name+neighbors" : "name-similarity";
                     candidates.add(new MergeCandidate(
-                        a.id(), b.id(), combined, reason, Instant.now()));
+                            a.id(), b.id(), combined, reason, Instant.now()));
                 }
             }
         }

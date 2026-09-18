@@ -2,11 +2,11 @@ package io.casehub.neocortex.mindmap.intelligence;
 
 import io.casehub.neocortex.cognitive.index.AffectTrajectory;
 import io.casehub.neocortex.cognitive.index.AffectTrajectoryAnalyzer;
+import io.casehub.neocortex.cognitive.index.TemporalFocusConfig;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.mood.AffectEvents;
-import io.casehub.neocortex.cognitive.index.TemporalFocusConfig;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -155,28 +155,33 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
     }
 
     private void collectCentralitySignals(MindMapSubgraph sg, String tenantId,
-                                           List<CuriositySignal> signals) {
+                                          List<CuriositySignal> signals) {
+        var nodes = store.nodesIn(sg.id(), tenantId);
+        if (nodes.size() > 2000) {
+            return;
+        }
+
         var betweenness = MindMapAnalyzer.betweennessCentrality(store, sg.id(), tenantId);
-        int count = 0;
+        int count       = 0;
         for (var bc : betweenness) {
-            if (count >= config.topCentrality() || bc.score() <= 0) break;
+            if (count >= config.topCentrality() || bc.score() <= 0) {break;}
             signals.add(new CuriositySignal(
-                SignalCategory.CENTRALITY, Math.min(1.0, bc.score()),
-                bc.nodeId(), sg.id(),
-                "Tell me more about " + bc.name() + " — it connects many areas of knowledge.",
-                "High betweenness centrality: " + bc.name()));
+                    SignalCategory.CENTRALITY, Math.min(1.0, bc.score()),
+                    bc.nodeId(), sg.id(),
+                    "Tell me more about " + bc.name() + " — it connects many areas of knowledge.",
+                    "High betweenness centrality: " + bc.name()));
             count++;
         }
 
         var degrees = MindMapAnalyzer.degreeCentrality(store, sg.id(), tenantId);
         count = 0;
         for (var deg : degrees) {
-            if (count >= config.topCentrality() || deg.degree() <= 1) break;
+            if (count >= config.topCentrality() || deg.degree() <= 1) {break;}
             signals.add(new CuriositySignal(
-                SignalCategory.CENTRALITY, Math.min(1.0, deg.degree() / 10.0),
-                deg.nodeId(), sg.id(),
-                "Tell me more about " + deg.name() + " — it connects many areas of knowledge.",
-                "High degree centrality: " + deg.name() + " (" + deg.degree() + " edges)"));
+                    SignalCategory.CENTRALITY, Math.min(1.0, deg.degree() / 10.0),
+                    deg.nodeId(), sg.id(),
+                    "Tell me more about " + deg.name() + " — it connects many areas of knowledge.",
+                    "High degree centrality: " + deg.name() + " (" + deg.degree() + " edges)"));
             count++;
         }
     }
