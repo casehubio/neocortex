@@ -36,7 +36,7 @@
 | `rag-tika/` | `casehub-neocortex-rag-tika` | JVM library | Apache Tika document parser — `TikaDocumentParser` extracts text + metadata from binary documents (PDF, DOCX, etc.) |
 | `rag-crossencoder/` | `casehub-neocortex-rag-crossencoder` | JVM library | Two CDI decorators: `CorrectiveCaseRetriever` (@Priority(100), grades chunks via `evaluateChunks()` polymorphically); `RerankingCaseRetriever` (@Priority(75), cross-encoder score re-ordering). `CrossEncoderRelevanceEvaluator` (ONNX reranker). `CrossEncoderBeanProducer` (cross-encoder when available, ColBERT fallback). `CragConfig` with ColBERT sub-group (separate thresholds). Config-gated: `casehub.rag.crag.enabled`, `casehub.rag.reranking.enabled` |
 | `rag-expansion/` | `casehub-neocortex-rag-expansion` | JVM library | `QueryExpandingCaseRetriever` @Decorator. Expanders: `LlmQueryExpander` (HyDE), `TemplateQueryExpander`, `StepBackQueryExpander`. Multi-query fan-out with RRF fusion. `NoOpQueryExpander` @DefaultBean. `ExpansionConfigValidator` startup warning. `ExpansionConfig`. Config: `casehub.rag.expansion.mode=llm|step-back|template` |
-| `rag-tracking/` | `casehub-neocortex-rag-tracking` | JVM library | `TrackingCaseRetriever` (@Decorator @Priority(50), stamps chunks with retrieval ID). `SqliteRetrievalTracker` (SQLite + HikariCP WAL + Flyway). `RetentionScheduler` (ScheduledExecutorService daemon, purge every 24h). CDI events: `RetrievalRecorded`. Config: `casehub.rag.tracking.enabled=true`, `casehub.rag.tracking.retention.days` (default 90) |
+| `rag-tracking/` | `casehub-neocortex-rag-tracking` | JVM library | `TrackingCaseRetriever` (@Decorator @Priority(40), stamps chunks with retrieval ID). `SqliteRetrievalTracker` (SQLite + HikariCP WAL + Flyway). `RetentionScheduler` (ScheduledExecutorService daemon, purge every 24h). CDI events: `RetrievalRecorded`. Config: `casehub.rag.tracking.enabled=true`, `casehub.rag.tracking.retention.days` (default 90) |
 
 ### Corpus Modules
 
@@ -489,23 +489,23 @@ Forward-chaining rule engine for automatic edge derivation. Intercepts `addEdge`
 
 **Key interaction:** Recursive `this.addEdge()` traverses the full chain — derived edges also trigger trait evaluation (Priority 70) and idle tracking (Priority 30).
 
-#### ConfidenceDecayDecorator
+#### ConfidenceDecayCdiDecorator (Priority 55)
 
-Read-side decorator (not in the CDI `@Decorator` chain — wired manually). Intercepts `getNode`, `nodesIn`, `search`, `neighbors`, `bridgeEdges`.
+Read-side CDI decorator (`@Decorator @Priority(55)` in `mindmap/` module). Intercepts `getNode`, `nodesIn`, `search`, `neighbors`, `bridgeEdges`. Configurable half-life via `casehub.mindmap.confidence.half-life-days` (default 30).
 
 **Decay formula:** `confidence × 2^(-hoursSince / halfLifeHours)`. Uses `Confidence.decayReference()` as the anchor timestamp. No-op when `decayReference` is null or elapsed time ≤ 0.
 
 **Post-search filtering:** After decay, `search()` re-applies `MindMapQuery.minConfidence()` — nodes that decayed below threshold are removed from results. Returns `DecayedNode`/`DecayedEdge` wrapper records that delegate all methods except `confidence()`.
 
-#### VocabularyNormalizationDecorator
+#### Vocabulary Normalization
 
-Edge type alias resolution via `MindMapVocabulary`. `EdgeTypeDefinition` declares a canonical name, a set of aliases, and an optional decay half-life. `MindMapStore.registerVocabulary()` registers edge type definitions. Edges whose type matches a registered vocabulary entry receive `ValidationTier.REGISTERED`; others get `UNVALIDATED`.
+Edge type alias resolution is handled by store implementations directly via `MindMapStore.registerVocabulary()`. `EdgeTypeDefinition` declares a canonical name, a set of aliases, and an optional decay half-life. Edges whose type matches a registered vocabulary entry receive `ValidationTier.REGISTERED`; others get `UNVALIDATED`. Note: `VocabularyNormalizationDecorator` in `mindmap-core` is an empty stub — normalization is implemented in `InMemoryMindMapStore` and `SqliteMindMapStore`.
 
 #### AffectTrajectoryDecorator (Priority 65)
 
 Intercepts `updateNode` only. Write-through — delegates to the underlying store, then records PAD changes. Compares before/after PAD values (pleasure/arousal/dominance). If any dimension changed, stores a `domain="affect"` memory via `CaseMemoryStore` and fires `AffectRecorded` CDI event.
 
-**Graceful degradation:** `Instance<CaseMemoryStore>` — if no memory store on classpath, PAD changes silently skip. Early-exit optimization: checks whether `NodeUpdate` contains PAD fields before reading the "before" node.
+**Graceful degradation:** `Instance<CaseMemoryStore>` — if no memory store on classpath, PAD changes silently skip. Memory store failures after successful graph update are caught and logged — never propagated to callers. Early-exit optimization: checks whether `NodeUpdate` contains PAD fields before reading the "before" node.
 
 #### MindMapStoreIdleTracker (Priority 30)
 
@@ -1114,7 +1114,7 @@ All inference, RAG, CBR, agent memory, MindMap, and cognitive subsystem modules 
 | RAG Pipeline | Three-leg hybrid search (dense + sparse + BM25) with configurable fusion (RRF/DBSF/CC); `FusionWeightsConfig` with per-leg weights; per-query weight multipliers + effectiveWeight(); `PayloadBoostCaseRetriever` quality rescore; `MatryoshkaEmbeddingModel`; `DenseQuantization`; ColBERT multi-vector scalar quantization; per-leg embedding separation; corrective RAG + cross-encoder reranking; query expansion (HyDE, template, step-back) with drift detection; retrieval tracking; pre-ingestion dedup gate; `RetrievalAnalyzer` (document stats, query clusters with MinHash, correlation graph, document impact); `CorpusIngestionService` with event-driven + polling modes |
 | CBR | Typed feature values (9 field types, 7 value types); `SimilaritySpec` sealed (6 similarity functions incl. DTW + edit distance); weighted per-field scoring; plan adaptation SPI (caseType-aware, variantId tracking); plan ensemble analysis SPI; temporal decay (3 strategies); hierarchical scoping with ScopeDecay; supersession + reinstate + audit; trend detection + enrichment; cross-encoder reranking; embedding-based text similarity; trust-weighted retrieval; outcome-weighted retrieval + CloudEvent feedback; CBR retention (age + count + trust purge); trust trajectory purge; reconciliation with Qdrant; JPA/PostgreSQL backend; retrieval tracking (retrieval + adaptation + ensemble); erasure notification; personality transition schema; scan/discoverTenants admin operations; CbrSuggestions/FeatureStatistics |
 | Agent Memory | Five backends (in-memory, JPA, SQLite, Mem0, Graphiti); `MemoryEmitter` fire-and-forget wrapper; `MemoryOrder.SALIENCE` (recency x confidence); unified `Confidence` record (origin + value); confidence-based retention purge; five event streams (experience, relationship, reflection, mood, engagement); `CaseEnrichmentStep` SPI; erasure notification |
-| MindMap | Thing/MindMapNode hierarchy; TypeRegistry with lazy per-tenant bootstrap; trait system (programmatic + declarative rules); 4-deep CDI decorator chain (DerivedEdge, TraitApplication, AffectTrajectory, IdleTracker); ConfidenceDecay read-side decorator; vocabulary normalization; graph analysis (MindMapAnalyzer — orphans, centrality, k-cores, contradictions); merge with conflict reporting; supersession/reinstatement; capability-gated operations |
+| MindMap | Thing/MindMapNode hierarchy; TypeRegistry with lazy per-tenant bootstrap; trait system (programmatic + declarative rules); 5-deep CDI decorator chain (DerivedEdge @80, TraitApplication @70, AffectTrajectory @65, ConfidenceDecay @55, IdleTracker @30); graph analysis (MindMapAnalyzer — orphans, centrality, k-cores, contradictions); merge with conflict reporting; supersession/reinstatement; capability-gated operations |
 | MindMap Intelligence | MindMapExtractor (LLM entity/relationship extraction — parse/apply decomposition, public ParsedExtraction types, optional PrincipalId); ConversationBridge (fast segmentation + async enrichment pipeline, PrincipalId + ConfidenceOrigin params); CognitiveLoader (vocabulary from YAML profiles); CuriositySignalGenerator (5-category signals with affect dampening); RecurrenceRule/Generator |
 | Cognitive Index | TemporalIndex (cross-store chronological aggregation); AffectTrajectoryAnalyzer (3-axis slope + volatility); TemporalFocus (proximity/recency + affect modifiers); CognitiveProfile (cross-store entity resolution + perspective-aware resolve + multi-agent compare); SocialComparison (PAD distance matrix, signed pairwise differences, 3D trajectory alignment); DomainActivation (cross-domain DTW correlation with time-bucketed 3D PAD); PerspectivalMerge (public static utility) + PerspectivalResolver (package-private, internalized in CognitiveProfile); CognitiveDefaults/Registry (YAML per-agent config); CognitiveDerivationEngine (8 derivation pathways from eidos identity); DeclarativeRuleRegistry; Modulation framework (profiles + factors + retrieval modulator) |
 | Consolidation | ConsolidationScheduler (idle-gated, curiosity-driven priority); 4-phase pipeline (AccessFrequency, MergeDetection, CommunitySummary, CuriosityRefresh); RetrievalAccessTracker + Bjork's dual-strength model |
