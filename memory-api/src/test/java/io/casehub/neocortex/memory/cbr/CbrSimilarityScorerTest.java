@@ -145,6 +145,16 @@ class CbrSimilarityScorerTest {
     }
 
     @Test
+    void partialIntersection_onlyMatchedFeaturesCount() {
+        // query has color + score, case only has color → score based on color alone
+        double sim = CbrSimilarityScorer.score(
+            Map.of("color", string("red"), "score", number(80.0)),
+            Map.of("color", string("red")),
+            Map.of(), SCHEMA);
+        assertThat(sim).isEqualTo(1.0);
+    }
+
+    @Test
     void unknownFieldInQueryIgnored() {
         // "unknown" not in schema → skipped, only "color" counts
         double sim = CbrSimilarityScorer.score(

@@ -73,8 +73,8 @@ public final class CbrSimilarityScorer {
 
             double       weight    = weights.getOrDefault(entry.getKey(), 1.0);
             FeatureValue caseValue = caseFeatures.get(entry.getKey());
-            double localSim = caseValue == null ? 0.0
-                                                : localSimilarity(field, entry.getValue(), caseValue, overrides);
+            if (caseValue == null) {continue;}
+            double localSim = localSimilarity(field, entry.getValue(), caseValue, overrides);
 
             double contribution = weight * localSim;
             weightedSum += contribution;
@@ -82,7 +82,7 @@ public final class CbrSimilarityScorer {
             rawContributions.put(entry.getKey(), contribution);
         }
 
-        double              score       = totalWeight > 0 ? weightedSum / totalWeight : 1.0;
+        double              score       = totalWeight > 0 ? weightedSum / totalWeight : 0.0;
         Map<String, Double> featureSims = new java.util.LinkedHashMap<>();
         if (totalWeight > 0) {
             for (var e : rawContributions.entrySet()) {
@@ -112,8 +112,8 @@ public final class CbrSimilarityScorer {
 
             double       weight    = weights.getOrDefault(entry.getKey(), 1.0);
             FeatureValue caseValue = caseFeatures.get(entry.getKey());
-            double localSim = caseValue == null ? 0.0
-                                                : localSimilarity(field, entry.getValue(), caseValue, overrides, dtwAbandonCostThreshold);
+            if (caseValue == null) {continue;}
+            double localSim = localSimilarity(field, entry.getValue(), caseValue, overrides, dtwAbandonCostThreshold);
 
             double contribution = weight * localSim;
             weightedSum += contribution;
@@ -121,7 +121,7 @@ public final class CbrSimilarityScorer {
             rawContributions.put(entry.getKey(), contribution);
         }
 
-        double              score       = totalWeight > 0 ? weightedSum / totalWeight : 1.0;
+        double              score       = totalWeight > 0 ? weightedSum / totalWeight : 0.0;
         Map<String, Double> featureSims = new java.util.LinkedHashMap<>();
         if (totalWeight > 0) {
             for (var e : rawContributions.entrySet()) {
