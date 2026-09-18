@@ -31,9 +31,9 @@ public class AffectTrajectoryDecorator extends AbstractForwardingMindMapStore {
         }
 
         MindMapNode before = delegate().getNode(nodeId, tenantId);
-        Double oldP = before.pleasure();
-        Double oldA = before.arousal();
-        Double oldD = before.dominance();
+        Double      oldP   = before.pleasure();
+        Double      oldA   = before.arousal();
+        Double      oldD   = before.dominance();
 
         delegate().updateNode(nodeId, update, tenantId);
 
@@ -41,15 +41,20 @@ public class AffectTrajectoryDecorator extends AbstractForwardingMindMapStore {
         Double newA = update.arousal() != null ? update.arousal() : oldA;
         Double newD = update.dominance() != null ? update.dominance() : oldD;
 
-        if (Objects.equals(oldP, newP) && Objects.equals(oldA, newA) && Objects.equals(oldD, newD)) return;
+        if (Objects.equals(oldP, newP) && Objects.equals(oldA, newA) && Objects.equals(oldD, newD)) {return;}
 
-        double p = newP != null ? newP : 0.0;
-        double a = newA != null ? newA : 0.0;
-        double d = newD != null ? newD : 0.0;
+        try {
+            double p = newP != null ? newP : 0.0;
+            double a = newA != null ? newA : 0.0;
+            double d = newD != null ? newD : 0.0;
 
-        var input = AffectEvents.toMemoryInput(nodeId, tenantId, p, a, d);
-        String memoryId = memoryStore.store(input);
-        eventSink.accept(new AffectRecorded(nodeId, tenantId, memoryId));
+            var    input    = AffectEvents.toMemoryInput(nodeId, tenantId, p, a, d);
+            String memoryId = memoryStore.store(input);
+            eventSink.accept(new AffectRecorded(nodeId, tenantId, memoryId));
+        } catch (Exception e) {
+            java.util.logging.Logger.getLogger(AffectTrajectoryDecorator.class.getName())
+                                    .log(java.util.logging.Level.WARNING, "Affect trajectory recording failed for node " + nodeId, e);
+        }
     }
 
     private static boolean hasPadUpdate(NodeUpdate update) {

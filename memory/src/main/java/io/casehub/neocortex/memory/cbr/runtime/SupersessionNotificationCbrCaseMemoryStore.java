@@ -21,6 +21,8 @@ import java.util.Map;
 @Decorator
 @Priority(44)
 public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCaseMemoryStore {
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(SupersessionNotificationCbrCaseMemoryStore.class.getName());
+
 
     private final Event<CbrCasesSuperseded> supersededEvent;
     private final Event<CbrCasesReinstated> reinstatedEvent;
@@ -49,7 +51,7 @@ public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCas
     public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
         boolean result = delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
         if (result) {
-            supersededEvent.fire(new CbrCasesSuperseded.ByCase(
+            safeFire(supersededEvent, new CbrCasesSuperseded.ByCase(
                     tenantId, caseId, supersedingCaseId, reason, Instant.now(clock)));
         }
         return result;
@@ -60,7 +62,7 @@ public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCas
                                   Map<String, CbrFilter> filters, String reason) {
         int count = delegate.supersedeMatching(tenantId, domain, caseType, filters, reason);
         if (count > 0) {
-            supersededEvent.fire(new CbrCasesSuperseded.ByFilter(
+            safeFire(supersededEvent, new CbrCasesSuperseded.ByFilter(
                     tenantId, domain, caseType, filters, reason, count, Instant.now(clock)));
         }
         return count;
@@ -70,7 +72,7 @@ public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCas
     public int supersedeAll(Collection<String> caseIds, String tenantId, String reason) {
         int count = delegate.supersedeAll(caseIds, tenantId, reason);
         if (count > 0) {
-            supersededEvent.fire(new CbrCasesSuperseded.ByIds(
+            safeFire(supersededEvent, new CbrCasesSuperseded.ByIds(
                     tenantId, caseIds, reason, count, Instant.now(clock)));
         }
         return count;
@@ -80,7 +82,7 @@ public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCas
     public boolean reinstate(String caseId, String tenantId) {
         boolean result = delegate.reinstate(caseId, tenantId);
         if (result) {
-            reinstatedEvent.fire(new CbrCasesReinstated.ByCase(
+            safeFire(reinstatedEvent, new CbrCasesReinstated.ByCase(
                     tenantId, caseId, Instant.now(clock)));
         }
         return result;
@@ -91,7 +93,7 @@ public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCas
                                   Map<String, CbrFilter> filters) {
         int count = delegate.reinstateMatching(tenantId, domain, caseType, filters);
         if (count > 0) {
-            reinstatedEvent.fire(new CbrCasesReinstated.ByFilter(
+            safeFire(reinstatedEvent, new CbrCasesReinstated.ByFilter(
                     tenantId, domain, caseType, filters, count, Instant.now(clock)));
         }
         return count;
@@ -101,9 +103,17 @@ public class SupersessionNotificationCbrCaseMemoryStore extends DelegatingCbrCas
     public int reinstateAll(Collection<String> caseIds, String tenantId) {
         int count = delegate.reinstateAll(caseIds, tenantId);
         if (count > 0) {
-            reinstatedEvent.fire(new CbrCasesReinstated.ByIds(
+            safeFire(reinstatedEvent, new CbrCasesReinstated.ByIds(
                     tenantId, caseIds, count, Instant.now(clock)));
         }
         return count;
+    }
+
+    private static <T> void safeFire(Event<T> event, T payload) {
+        try {
+            event.fire(payload);
+        } catch (Exception e) {
+            LOG.log(java.util.logging.Level.WARNING, "CDI event notification failed", e);
+        }
     }
 }

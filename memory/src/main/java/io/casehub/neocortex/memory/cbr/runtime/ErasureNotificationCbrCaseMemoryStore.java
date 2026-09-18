@@ -1,11 +1,10 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
 import io.casehub.neocortex.memory.EraseRequest;
-import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrCasesErased;
 import io.casehub.neocortex.memory.cbr.DelegatingCbrCaseMemoryStore;
 import io.casehub.platform.api.path.Path;
-import io.casehub.neocortex.memory.cbr.CbrCasesErased;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
 import jakarta.decorator.Delegate;
@@ -19,6 +18,8 @@ import java.time.Instant;
 @Decorator
 @Priority(45)
 public class ErasureNotificationCbrCaseMemoryStore extends DelegatingCbrCaseMemoryStore {
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(ErasureNotificationCbrCaseMemoryStore.class.getName());
+
 
     private final Event<CbrCasesErased.ByRequest> byRequestEvent;
     private final Event<CbrCasesErased.ByEntity> byEntityEvent;
@@ -51,7 +52,7 @@ public class ErasureNotificationCbrCaseMemoryStore extends DelegatingCbrCaseMemo
     public Integer erase(EraseRequest request) {
         int count = delegate.erase(request);
         if (count > 0) {
-            byRequestEvent.fire(new CbrCasesErased.ByRequest(
+            safeFire(byRequestEvent, new CbrCasesErased.ByRequest(
                     request.tenantId(), count, request.subject(),
                     request.domain(), request.caseId(),
                     Instant.now(clock)));
@@ -63,7 +64,7 @@ public class ErasureNotificationCbrCaseMemoryStore extends DelegatingCbrCaseMemo
     public Integer eraseEntity(String entityId, String tenantId) {
         int count = delegate.eraseEntity(entityId, tenantId);
         if (count > 0) {
-            byEntityEvent.fire(new CbrCasesErased.ByEntity(
+            safeFire(byEntityEvent, new CbrCasesErased.ByEntity(
                     tenantId, count, entityId, Instant.now(clock)));
         }
         return count;
@@ -73,7 +74,7 @@ public class ErasureNotificationCbrCaseMemoryStore extends DelegatingCbrCaseMemo
     public Integer eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
         int count = delegate.eraseSubject(subject, tenantId);
         if (count > 0) {
-            byEntityEvent.fire(new CbrCasesErased.ByEntity(
+            safeFire(byEntityEvent, new CbrCasesErased.ByEntity(
                     tenantId, count, subject, Instant.now(clock)));
         }
         return count;
@@ -84,10 +85,18 @@ public class ErasureNotificationCbrCaseMemoryStore extends DelegatingCbrCaseMemo
     public Integer eraseByScope(Path scope, String tenantId) {
         int count = delegate.eraseByScope(scope, tenantId);
         if (count > 0) {
-            byScopeEvent.fire(new CbrCasesErased.ByScope(
+            safeFire(byScopeEvent, new CbrCasesErased.ByScope(
                     tenantId, count, scope, Instant.now(clock)));
         }
         return count;
     }
 
+
+    private static <T> void safeFire(Event<T> event, T payload) {
+        try {
+            event.fire(payload);
+        } catch (Exception e) {
+            LOG.log(java.util.logging.Level.WARNING, "CDI event notification failed", e);
+        }
+    }
 }

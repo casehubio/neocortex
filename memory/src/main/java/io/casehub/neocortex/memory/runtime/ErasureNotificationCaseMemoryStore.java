@@ -26,6 +26,8 @@ import java.util.Set;
 @Decorator
 @Priority(45)
 public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(ErasureNotificationCaseMemoryStore.class.getName());
+
 
     private final CaseMemoryStore delegate;
     private final Event<MemoryEntityErased.ByRequest> byRequestEvent;
@@ -59,7 +61,7 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     public int erase(EraseRequest request) {
         int count = delegate.erase(request);
         if (count > 0) {
-            byRequestEvent.fire(new MemoryEntityErased.ByRequest(
+            safeFire(byRequestEvent, new MemoryEntityErased.ByRequest(
                     request.tenantId(), count, request.subject(),
                     request.domain(), Instant.now(clock)));
         }
@@ -70,7 +72,7 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     public int eraseSubject(Subject subject, String tenantId) {
         int count = delegate.eraseSubject(subject, tenantId);
         if (count > 0) {
-            byEntityEvent.fire(new MemoryEntityErased.ByEntity(
+            safeFire(byEntityEvent, new MemoryEntityErased.ByEntity(
                     tenantId, count, subject, Instant.now(clock)));
         }
         return count;
@@ -81,7 +83,7 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     public int eraseEntity(String entityId, String tenantId) {
         int count = delegate.eraseEntity(entityId, tenantId);
         if (count > 0) {
-            byEntityEvent.fire(new MemoryEntityErased.ByEntity(
+            safeFire(byEntityEvent, new MemoryEntityErased.ByEntity(
                     tenantId, count, entityId, Instant.now(clock)));
         }
         return count;
@@ -91,7 +93,7 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) {
         int count = delegate.eraseSubjectAcrossTenants(subject, tenantIds);
         if (count > 0) {
-            crossTenantEvent.fire(new MemoryEntityErased.CrossTenant(
+            safeFire(crossTenantEvent, new MemoryEntityErased.CrossTenant(
                     count, subject, tenantIds, Instant.now(clock)));
         }
         return count;
@@ -102,7 +104,7 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) {
         int count = delegate.eraseEntityAcrossTenants(entityId, tenantIds);
         if (count > 0) {
-            crossTenantEvent.fire(new MemoryEntityErased.CrossTenant(
+            safeFire(crossTenantEvent, new MemoryEntityErased.CrossTenant(
                     count, entityId, tenantIds, Instant.now(clock)));
         }
         return count;
@@ -117,4 +119,12 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
     @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }
     @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }
     @Override public Set<String> discoverTenants(String attributeKey, String attributeValue) { return delegate.discoverTenants(attributeKey, attributeValue); }
+
+    private static <T> void safeFire(Event<T> event, T payload) {
+        try {
+            event.fire(payload);
+        } catch (Exception e) {
+            LOG.log(java.util.logging.Level.WARNING, "CDI event notification failed", e);
+        }
+    }
 }
