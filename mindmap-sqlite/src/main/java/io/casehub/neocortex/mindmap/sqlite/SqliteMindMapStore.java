@@ -621,10 +621,9 @@ public class SqliteMindMapStore implements MindMapStore {
             params.add(resolved);
         }
         if (query.text() != null) {
-            sql.append(" AND (n.name LIKE ? COLLATE NOCASE OR n.properties LIKE ? COLLATE NOCASE)");
-            String pattern = "%" + query.text() + "%";
-            params.add(pattern);
-            params.add(pattern);
+            sql.append(" AND n.rowid IN (SELECT rowid FROM mindmap_fts WHERE mindmap_fts MATCH ?)");
+            String ftsQuery = query.text().replaceAll("[\"'()]", "") + "*";
+            params.add(ftsQuery);
         }
         if (query.validAfter() != null) {
             sql.append(" AND n.valid_from IS NOT NULL AND n.valid_from > ?");
