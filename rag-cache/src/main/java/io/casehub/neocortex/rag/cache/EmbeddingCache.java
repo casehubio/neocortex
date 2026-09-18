@@ -13,7 +13,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +60,7 @@ public class EmbeddingCache {
                 .migrate();
     }
 
+    @jakarta.annotation.PreDestroy
     public void shutdown() {
         if (dataSource != null) {
             dataSource.close();

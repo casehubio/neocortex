@@ -53,7 +53,7 @@ public class RagAutoConfiguration {
             @Value("${casehub.rag.retrieval.sparse-top-k:40}") int sparseTopK,
             @Value("${casehub.rag.retrieval.bm25-top-k:40}") int bm25TopK,
             @Value("${casehub.rag.retrieval.rrf-k:60}") int rrfK,
-            @Value("${casehub.rag.retrieval.rerank-enabled:true}") boolean rerankEnabled,
+            @Value("${casehub.rag.reranking.colbert-fallback:true}") boolean rerankEnabled,
             @Value("${casehub.rag.retrieval.rerank-top-n:10}") int rerankTopN,
             @Value("${casehub.rag.retrieval.weights.dense:1.0}") double weightsDense,
             @Value("${casehub.rag.retrieval.weights.sparse:1.0}") double weightsSparse,

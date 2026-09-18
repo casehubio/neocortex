@@ -22,7 +22,7 @@ public class CrossEncoderBeanProducer {
     @Inject
     Instance<CrossEncoderReranker> rerankerInstance;
 
-    @ConfigProperty(name = "casehub.rag.retrieval.rerank-enabled",
+    @ConfigProperty(name = "casehub.rag.reranking.colbert-fallback",
                     defaultValue = "false")
     boolean rerankEnabled;
 
@@ -38,7 +38,7 @@ public class CrossEncoderBeanProducer {
         if (!rerankEnabled) {
             throw new IllegalStateException(
                     "No CrossEncoderReranker available and ColBERT reranking "
-                    + "is not enabled (casehub.rag.retrieval.rerank-enabled"
+                    + "is not enabled (casehub.rag.reranking.colbert-fallback"
                     + "=false). Configure a cross-encoder model or enable "
                     + "ColBERT reranking.");
         }
