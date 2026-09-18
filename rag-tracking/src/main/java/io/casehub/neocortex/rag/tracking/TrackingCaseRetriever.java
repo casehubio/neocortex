@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Decorator
-@Priority(50)
+@Priority(40)
 @IfBuildProperty(name = "casehub.rag.tracking.enabled", stringValue = "true")
 public class TrackingCaseRetriever implements CaseRetriever {
 

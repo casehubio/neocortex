@@ -10,8 +10,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,9 +92,10 @@ public class SignificanceAccumulator {
     }
 
     public SignificanceSnapshot swapAndReset() {
-        var old = perTenant;
+        var old          = perTenant;
+        var oldTriggered = triggered;
         perTenant = new ConcurrentHashMap<>();
-        triggered.clear();
+        oldTriggered.clear();
         var snapshot = new HashMap<String, Double>();
         old.forEach((k, v) -> snapshot.put(k, v.sum()));
         return new SignificanceSnapshot(Map.copyOf(snapshot));
