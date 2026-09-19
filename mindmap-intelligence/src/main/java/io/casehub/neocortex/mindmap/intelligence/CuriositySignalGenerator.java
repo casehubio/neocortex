@@ -156,13 +156,9 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
 
     private void collectCentralitySignals(MindMapSubgraph sg, String tenantId,
                                           List<CuriositySignal> signals) {
-        var nodes = store.nodesIn(sg.id(), tenantId);
-        if (nodes.size() > 2000) {
-            return;
-        }
-
-        var betweenness = MindMapAnalyzer.betweennessCentrality(store, sg.id(), tenantId);
-        int count       = 0;
+        var betweenness = MindMapAnalyzer.approximateBetweennessCentrality(
+                store, sg.id(), tenantId, 100);
+        int count = 0;
         for (var bc : betweenness) {
             if (count >= config.topCentrality() || bc.score() <= 0) {break;}
             signals.add(new CuriositySignal(
@@ -180,8 +176,8 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             signals.add(new CuriositySignal(
                     SignalCategory.CENTRALITY, Math.min(1.0, deg.degree() / 10.0),
                     deg.nodeId(), sg.id(),
-                    "Tell me more about " + deg.name() + " — it connects many areas of knowledge.",
-                    "High degree centrality: " + deg.name() + " (" + deg.degree() + " edges)"));
+                    "Tell me more about " + deg.name() + " — it has many connections.",
+                    "High degree centrality: " + deg.name()));
             count++;
         }
     }

@@ -271,6 +271,72 @@ class MindMapAnalyzerTest {
 
     // --- Helpers ---
 
+
+// --- Approximate betweenness centrality ---
+
+    @Test
+    void approximateBetweennessCentrality_bridgeNodeScoresHighest() {
+        String a = store.addNode(node("A"), "t1");
+        String b = store.addNode(node("B"), "t1");
+        String c = store.addNode(node("C"), "t1");
+        store.addEdge(edge(a, b, "knows"), "t1");
+        store.addEdge(edge(b, c, "knows"), "t1");
+
+        List<MindMapAnalyzer.BetweennessCentrality> result =
+                MindMapAnalyzer.approximateBetweennessCentrality(store, subgraphId, "t1", 100);
+
+        assertThat(result).hasSize(3);
+        assertThat(result.get(0).name()).isEqualTo("B");
+        assertThat(result.get(0).score()).isGreaterThan(0.0);
+    }
+
+    @Test
+    void approximateBetweennessCentrality_matchesExactOnSmallGraph() {
+        String a = store.addNode(node("A"), "t1");
+        String b = store.addNode(node("B"), "t1");
+        String c = store.addNode(node("C"), "t1");
+        String d = store.addNode(node("D"), "t1");
+        store.addEdge(edge(a, b, "knows"), "t1");
+        store.addEdge(edge(b, c, "knows"), "t1");
+        store.addEdge(edge(c, d, "knows"), "t1");
+
+        var exact = MindMapAnalyzer.betweennessCentrality(store, subgraphId, "t1");
+        var approx = MindMapAnalyzer.approximateBetweennessCentrality(
+                store, subgraphId, "t1", 100);
+
+        assertThat(approx).extracting("name")
+                          .containsExactlyElementsOf(exact.stream().map(bc -> bc.name()).toList());
+    }
+
+    @Test
+    void approximateBetweennessCentrality_deterministicResults() {
+        String a = store.addNode(node("A"), "t1");
+        String b = store.addNode(node("B"), "t1");
+        String c = store.addNode(node("C"), "t1");
+        store.addEdge(edge(a, b, "knows"), "t1");
+        store.addEdge(edge(b, c, "knows"), "t1");
+
+        var result1 = MindMapAnalyzer.approximateBetweennessCentrality(
+                store, subgraphId, "t1", 2);
+        var result2 = MindMapAnalyzer.approximateBetweennessCentrality(
+                store, subgraphId, "t1", 2);
+
+        assertThat(result1).extracting("score")
+                           .containsExactlyElementsOf(result2.stream().map(bc -> bc.score()).toList());
+    }
+
+    @Test
+    void approximateBetweennessCentrality_kGreaterThanV_usesAllNodes() {
+        String a = store.addNode(node("A"), "t1");
+        String b = store.addNode(node("B"), "t1");
+        store.addEdge(edge(a, b, "knows"), "t1");
+
+        var result = MindMapAnalyzer.approximateBetweennessCentrality(
+                store, subgraphId, "t1", 1000);
+
+        assertThat(result).hasSize(2);
+    }
+
     private NodeInput node(String name) {
         return new NodeInput(name, subgraphId, null,
             "test", null, null, null, null, null, null, null, null);

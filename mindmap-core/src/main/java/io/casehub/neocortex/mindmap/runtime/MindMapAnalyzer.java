@@ -235,6 +235,104 @@ public final class MindMapAnalyzer {
             .toList();
     }
 
+    public static List<BetweennessCentrality> approximateBetweennessCentrality(
+            MindMapStore store, String subgraphId, String tenantId, int k) {
+        requireAnalysis(store);
+        List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId);
+        if (nodes.size() <= 2) {
+            return nodes.stream()
+                        .map(n -> new BetweennessCentrality(n.id(), n.name(), 0.0))
+                        .toList();
+        }
+
+        Map<String, Set<String>> adjacency = new HashMap<>();
+        for (MindMapNode node : nodes) {
+            Set<String> neighbors = new HashSet<>();
+            for (MindMapEdge edge : store.neighbors(node.id(), tenantId)) {
+                String other = edge.sourceNodeId().equals(node.id())
+                               ? edge.targetNodeId() : edge.sourceNodeId();
+                neighbors.add(other);
+            }
+            adjacency.put(node.id(), neighbors);
+        }
+
+        Map<String, Double> centrality = new HashMap<>();
+        List<String>        nodeIds    = nodes.stream().map(MindMapNode::id).toList();
+        for (String id : nodeIds) {
+            centrality.put(id, 0.0);
+        }
+
+        int          effectiveK = Math.min(k, nodeIds.size());
+        List<String> sources;
+        if (effectiveK >= nodeIds.size()) {
+            sources = nodeIds;
+        } else {
+            List<String> shuffled = new ArrayList<>(nodeIds);
+            java.util.Collections.shuffle(shuffled, new java.util.Random(42));
+            sources = shuffled.subList(0, effectiveK);
+        }
+
+        for (String source : sources) {
+            Map<String, Integer>      dist  = new HashMap<>();
+            Map<String, List<String>> pred  = new HashMap<>();
+            Map<String, Double>       sigma = new HashMap<>();
+            for (String n : nodeIds) {
+                dist.put(n, -1);
+                pred.put(n, new ArrayList<>());
+                sigma.put(n, 0.0);
+            }
+            dist.put(source, 0);
+            sigma.put(source, 1.0);
+
+            Queue<String> queue = new ArrayDeque<>();
+            Deque<String> stack = new ArrayDeque<>();
+            queue.add(source);
+
+            while (!queue.isEmpty()) {
+                String v = queue.poll();
+                stack.push(v);
+                for (String w : adjacency.getOrDefault(v, Set.of())) {
+                    if (!dist.containsKey(w)) {continue;}
+                    if (dist.get(w) < 0) {
+                        dist.put(w, dist.get(v) + 1);
+                        queue.add(w);
+                    }
+                    if (dist.get(w) == dist.get(v) + 1) {
+                        sigma.put(w, sigma.get(w) + sigma.get(v));
+                        pred.get(w).add(v);
+                    }
+                }
+            }
+
+            Map<String, Double> delta = new HashMap<>();
+            for (String n : nodeIds) {
+                delta.put(n, 0.0);
+            }
+            while (!stack.isEmpty()) {
+                String w = stack.pop();
+                for (String v : pred.get(w)) {
+                    delta.put(v, delta.get(v)
+                                 + (sigma.get(v) / sigma.get(w)) * (1 + delta.get(w)));
+                }
+                if (!w.equals(source)) {
+                    centrality.put(w, centrality.get(w) + delta.get(w));
+                }
+            }
+        }
+
+        double n     = nodeIds.size();
+        double norm  = (n - 1) * (n - 2);
+        double scale = (effectiveK < nodeIds.size()) ? (double) nodeIds.size() / effectiveK : 1.0;
+
+        return nodes.stream()
+                    .map(node -> new BetweennessCentrality(
+                            node.id(), node.name(),
+                            norm > 0 ? centrality.get(node.id()) * scale / norm : 0.0))
+                    .sorted(Comparator.comparingDouble(BetweennessCentrality::score).reversed())
+                    .toList();
+    }
+
+
     public record KCore(Set<String> nodeIds, double density) {
         public KCore {nodeIds = Set.copyOf(nodeIds);}
     }
