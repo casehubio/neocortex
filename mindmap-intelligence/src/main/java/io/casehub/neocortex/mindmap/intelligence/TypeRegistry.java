@@ -209,14 +209,17 @@ public class TypeRegistry {
     }
 
     private void createCoreTypesIfAbsent(BootstrappedTenant bt, String tenantId) {
+        List<NodeInput> newInputs    = new ArrayList<>();
+        List<String>    newTypeNames = new ArrayList<>();
+
         for (String coreType : List.of(
                 SubgraphTypes.GENERAL,
                 SubgraphTypes.PERSON, SubgraphTypes.PROJECT,
                 SubgraphTypes.ORGANISATION, SubgraphTypes.CONCEPT,
                 SubgraphTypes.RESEARCH_AREA)) {
             if (!bt.typeNodeIds.containsKey(coreType)) {
-                Map<String, String> props = new HashMap<>();
-                Class<?> javaClass = CORE_TYPES.get(coreType);
+                Map<String, String> props     = new HashMap<>();
+                Class<?>            javaClass = CORE_TYPES.get(coreType);
                 if (javaClass != null) {
                     props.put(JAVA_CLASS, javaClass.getName());
                     deriveSchemaFromInterface(javaClass).forEach((fieldName, sf) -> {
@@ -224,20 +227,31 @@ public class TypeRegistry {
                         props.put(SCHEMA_PREFIX + fieldName + ".source", "java");
                     });
                 }
-                String nodeId = store.addNode(
-                    NodeInput.of(coreType, bt.typeSystemSubgraphId)
-                        .withProperties(props),
-                    tenantId);
-                bt.typeNodeIds.put(coreType, nodeId);
+                newInputs.add(NodeInput.of(coreType, bt.typeSystemSubgraphId)
+                                       .withProperties(props));
+                newTypeNames.add(coreType);
+            }
+        }
 
-                if (!coreType.equals(SubgraphTypes.GENERAL)) {
-                    MindMapNode generalNode = bt.resolveTypeNode(SubgraphTypes.GENERAL);
-                    if (generalNode != null) {
-                        store.addEdge(EdgeInput.of(nodeId, generalNode.id(), SUBTYPE_OF)
-                            .withProvenance("type-registry"), tenantId);
-                    }
+        if (newInputs.isEmpty()) {return;}
+
+        List<String> newIds = store.addNodes(newInputs, tenantId);
+        for (int i = 0; i < newIds.size(); i++) {
+            bt.typeNodeIds.put(newTypeNames.get(i), newIds.get(i));
+        }
+
+        List<EdgeInput> edgeInputs  = new ArrayList<>();
+        MindMapNode     generalNode = bt.resolveTypeNode(SubgraphTypes.GENERAL);
+        if (generalNode != null) {
+            for (int i = 0; i < newTypeNames.size(); i++) {
+                if (!newTypeNames.get(i).equals(SubgraphTypes.GENERAL)) {
+                    edgeInputs.add(EdgeInput.of(newIds.get(i), generalNode.id(), SUBTYPE_OF)
+                                            .withProvenance("type-registry"));
                 }
             }
+        }
+        if (!edgeInputs.isEmpty()) {
+            store.addEdges(edgeInputs, tenantId);
         }
     }
 

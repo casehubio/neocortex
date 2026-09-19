@@ -289,10 +289,14 @@ public class MindMapExtractor {
         List<String>                entityNames   = new ArrayList<>();
         Map<String, String>         nameToNodeId  = new HashMap<>();
 
-        for (ParsedEntity pe : parsed.entities()) {
-            String normalizedType = normalizeType(pe.type());
-            String sgType         = resolveSubgraphType(normalizedType);
-            String sgId           = findOrCreateSubgraph(sgType, tenantId);
+        List<NodeInput> newNodeInputs    = new ArrayList<>();
+        List<Integer>   newEntityIndices = new ArrayList<>();
+
+        for (int i = 0; i < parsed.entities().size(); i++) {
+            ParsedEntity pe             = parsed.entities().get(i);
+            String       normalizedType = normalizeType(pe.type());
+            String       sgType         = resolveSubgraphType(normalizedType);
+            String       sgId           = findOrCreateSubgraph(sgType, tenantId);
 
             Map<String, String> nodeProps = pe.properties() != null
                                             ? new HashMap<>(pe.properties()) : new HashMap<>();
@@ -301,48 +305,64 @@ public class MindMapExtractor {
             }
 
             MindMapNode existing = store.resolveNode(pe.name(), null, tenantId);
-            String      nodeId;
-            boolean     created;
 
             if (existing != null) {
-                nodeId  = existing.id();
-                created = false;
+                nameToNodeId.put(pe.name(), existing.id());
+                entityNames.add(pe.name());
+                entities.add(new ExtractedEntity(existing.id(), pe.name(), false, sgType, nodeProps));
                 if (!nodeProps.isEmpty()) {
-                    store.updateNode(nodeId,
+                    store.updateNode(existing.id(),
                                      new NodeUpdate(null, null,
                                                     null, null, null, null, null, null,
                                                     null, null, null,
                                                     nodeProps, null), tenantId);
                 }
             } else {
-                nodeId  = store.addNode(new NodeInput(
+                newNodeInputs.add(new NodeInput(
                         pe.name(), sgId,
                         MindMapConfidenceDefaults.forOrigin(pe.origin(), Instant.now()),
                         "llm-extraction", null, null, null, null,
                         null, null, null,
-                        nodeProps, principalId, null), tenantId);
-                created = true;
+                        nodeProps, principalId, null));
+                newEntityIndices.add(i);
             }
-
-            nameToNodeId.put(pe.name(), nodeId);
-            entityNames.add(pe.name());
-            entities.add(new ExtractedEntity(nodeId, pe.name(), created,
-                                             sgType,
-                                             nodeProps));
         }
 
+        List<String> newNodeIds = store.addNodes(newNodeInputs, tenantId);
+        for (int j = 0; j < newNodeIds.size(); j++) {
+            int          entityIdx      = newEntityIndices.get(j);
+            ParsedEntity pe             = parsed.entities().get(entityIdx);
+            String       normalizedType = normalizeType(pe.type());
+            String       sgType         = resolveSubgraphType(normalizedType);
+            Map<String, String> nodeProps = pe.properties() != null
+                                            ? new HashMap<>(pe.properties()) : new HashMap<>();
+            if (COGNITIVE_TYPES.contains(normalizedType)) {
+                nodeProps.put("cognitiveKind", normalizedType);
+            }
+            nameToNodeId.put(pe.name(), newNodeIds.get(j));
+            entityNames.add(pe.name());
+            entities.add(new ExtractedEntity(newNodeIds.get(j), pe.name(), true, sgType, nodeProps));
+        }
+
+        List<EdgeInput>          edgeInputs         = new ArrayList<>();
+        List<ParsedRelationship> validRelationships = new ArrayList<>();
         for (ParsedRelationship pr : parsed.relationships()) {
             String sourceId = resolveNodeId(pr.source(), nameToNodeId, tenantId);
             String targetId = resolveNodeId(pr.target(), nameToNodeId, tenantId);
             if (sourceId != null && targetId != null) {
-                String edgeId = store.addEdge(new EdgeInput(
+                edgeInputs.add(new EdgeInput(
                         sourceId, targetId, pr.type(),
                         MindMapConfidenceDefaults.forOrigin(pr.origin(), Instant.now()),
                         "llm-extraction", null, null, null, null, null, Map.of(),
-                        principalId), tenantId);
-                relationships.add(new ExtractedRelationship(
-                        edgeId, pr.source(), pr.target(), pr.type(), pr.origin()));
+                        principalId));
+                validRelationships.add(pr);
             }
+        }
+        List<String> edgeIds = store.addEdges(edgeInputs, tenantId);
+        for (int k = 0; k < edgeIds.size(); k++) {
+            ParsedRelationship pr = validRelationships.get(k);
+            relationships.add(new ExtractedRelationship(
+                    edgeIds.get(k), pr.source(), pr.target(), pr.type(), pr.origin()));
         }
 
         List<Contradiction> contradictions = new ArrayList<>();

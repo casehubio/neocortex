@@ -1,16 +1,27 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.runtime.MindMapAnalyzer;
 import io.casehub.platform.agent.AgentProvider;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -51,24 +62,30 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        List<String> sgIds = orderedSubgraphs(tenantId, subgraphPriority);
-        int generated = 0;
+        List<String> sgIds     = orderedSubgraphs(tenantId, subgraphPriority);
+        int          generated = 0;
+
+        List<NodeInput>    newSummaryInputs    = new ArrayList<>();
+        List<List<String>> newSummaryMemberIds = new ArrayList<>();
 
         for (String sgId : sgIds) {
-            if (generated >= maxPerPass) break;
+            if (generated >= maxPerPass) {break;}
             List<MindMapAnalyzer.KCore> rawCores = MindMapAnalyzer.kCores(store, sgId, tenantId, k);
             List<MindMapAnalyzer.KCore> cores = rawCores.stream()
-                .map(core -> {
-                    Set<String> filtered = core.nodeIds().stream()
-                        .filter(id -> {
-                            try { return !store.getNode(id, tenantId).traits().contains("Summary"); }
-                            catch (Exception e) { return true; }
-                        })
-                        .collect(Collectors.toSet());
-                    return new MindMapAnalyzer.KCore(filtered, core.density());
-                })
-                .filter(core -> !core.nodeIds().isEmpty())
-                .toList();
+                                                        .map(core -> {
+                                                            Set<String> filtered = core.nodeIds().stream()
+                                                                                       .filter(id -> {
+                                                                                           try {
+                                                                                               return !store.getNode(id, tenantId).traits().contains("Summary");
+                                                                                           } catch (Exception e) {
+                                                                                               return true;
+                                                                                           }
+                                                                                       })
+                                                                                       .collect(Collectors.toSet());
+                                                            return new MindMapAnalyzer.KCore(filtered, core.density());
+                                                        })
+                                                        .filter(core -> !core.nodeIds().isEmpty())
+                                                        .toList();
             Set<String> currentHashes = new HashSet<>();
 
             for (MindMapAnalyzer.KCore core : cores) {
@@ -79,10 +96,10 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
             cleanupStaleSummaries(sgId, tenantId, currentHashes);
 
             for (MindMapAnalyzer.KCore core : cores) {
-                if (generated >= maxPerPass) break;
-                if (core.nodeIds().size() < minClusterSize) continue;
+                if (generated >= maxPerPass) {break;}
+                if (core.nodeIds().size() < minClusterSize) {continue;}
 
-                String coreHash = hashIds(core.nodeIds());
+                String coreHash   = hashIds(core.nodeIds());
                 String memberHash = computeMemberHash(core.nodeIds(), tenantId);
 
                 var existing = findSummaryByCoreHash(sgId, tenantId, coreHash);
@@ -93,29 +110,38 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
                     }
                     String title = generateTitle(core.nodeIds(), tenantId);
                     store.updateNode(summary.id(),
-                        NodeUpdate.empty().withName(title).withPropertiesToSet(Map.of(
-                            "memberHash", memberHash,
-                            "memberCount", String.valueOf(core.nodeIds().size()),
-                            "generatedAt", Instant.now().toString())),
-                        tenantId);
+                                     NodeUpdate.empty().withName(title).withPropertiesToSet(Map.of(
+                                             "memberHash", memberHash,
+                                             "memberCount", String.valueOf(core.nodeIds().size()),
+                                             "generatedAt", Instant.now().toString())),
+                                     tenantId);
                     generated++;
                 } else {
                     String title = generateTitle(core.nodeIds(), tenantId);
-                    String summaryId = store.addNode(
-                        NodeInput.of(title, sgId)
-                            .withTraits(Set.of("Summary"))
-                            .withProperties(Map.of(
-                                "coreHash", coreHash,
-                                "memberHash", memberHash,
-                                "memberCount", String.valueOf(core.nodeIds().size()),
-                                "generatedAt", Instant.now().toString())),
-                        tenantId);
-                    for (String nodeId : core.nodeIds()) {
-                        store.addEdge(EdgeInput.of(summaryId, nodeId, "summarizes"), tenantId);
-                    }
+                    newSummaryInputs.add(
+                            NodeInput.of(title, sgId)
+                                     .withTraits(Set.of("Summary"))
+                                     .withProperties(Map.of(
+                                             "coreHash", coreHash,
+                                             "memberHash", memberHash,
+                                             "memberCount", String.valueOf(core.nodeIds().size()),
+                                             "generatedAt", Instant.now().toString())));
+                    newSummaryMemberIds.add(new ArrayList<>(core.nodeIds()));
                     generated++;
                 }
             }
+        }
+
+        if (!newSummaryInputs.isEmpty()) {
+            List<String>    summaryIds = store.addNodes(newSummaryInputs, tenantId);
+            List<EdgeInput> edgeInputs = new ArrayList<>();
+            for (int i = 0; i < summaryIds.size(); i++) {
+                String summaryId = summaryIds.get(i);
+                for (String nodeId : newSummaryMemberIds.get(i)) {
+                    edgeInputs.add(EdgeInput.of(summaryId, nodeId, "summarizes"));
+                }
+            }
+            store.addEdges(edgeInputs, tenantId);
         }
     }
 

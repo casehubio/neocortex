@@ -2,9 +2,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
-import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryScanRequest;
-import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.experience.GraduationClassifier;
@@ -26,6 +24,7 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,30 +103,32 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         String cursor = loadCursor(tenantId);
 
         List<Memory> experiences = memoryStore.scan(
-            new MemoryScanRequest(tenantId,
-                ExperienceEvents.DOMAIN.name(),
-                null, null,
-                maxPerPass,
-                cursor));
+                new MemoryScanRequest(tenantId,
+                                      ExperienceEvents.DOMAIN.name(),
+                                      null, null,
+                                      maxPerPass,
+                                      cursor));
 
-        if (experiences.isEmpty()) return;
+        if (experiences.isEmpty()) {return;}
 
-        String subgraphId = findOrCreateCognitiveSubgraph(tenantId);
+        String      subgraphId        = findOrCreateCognitiveSubgraph(tenantId);
         Set<String> existingSourceIds = loadExistingSourceMemoryIds(tenantId);
         Map<String, GraduationContext> corroborationMap =
-            buildCorroborationMap(experiences, tenantId);
+                buildCorroborationMap(experiences, tenantId);
         String lastProcessedId = cursor;
+
+        List<NodeInput> graduatedInputs = new ArrayList<>();
 
         for (Memory memory : experiences) {
             try {
                 String observed = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
                 GraduationContext context = observed != null
-                    ? corroborationMap.getOrDefault(observed, new GraduationContext(0, tenantId))
-                    : new GraduationContext(Integer.MAX_VALUE, tenantId);
+                                            ? corroborationMap.getOrDefault(observed, new GraduationContext(0, tenantId))
+                                            : new GraduationContext(Integer.MAX_VALUE, tenantId);
                 double score = scorer.score(memory, context);
                 if (score < threshold) {
                     boolean corroborationBlocked = observed != null
-                        && context.corroboratingCount() < minCorroboration;
+                                                   && context.corroboratingCount() < minCorroboration;
                     if (!corroborationBlocked) {
                         lastProcessedId = memory.memoryId();
                     }
@@ -145,31 +146,35 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                 properties.put("source-memory-id", memory.memoryId());
                 properties.put("graduation-score", String.valueOf(score));
                 properties.put("event-type",
-                    memory.attributes().getOrDefault(
-                        ExperienceAttributeKeys.EVENT_TYPE, "unknown"));
+                               memory.attributes().getOrDefault(
+                                       ExperienceAttributeKeys.EVENT_TYPE, "unknown"));
                 properties.put("agent-id", memory.subject().id());
                 properties.put("cognitiveKind", result.cognitiveKind());
 
                 String name = memory.text().length() > 100
-                    ? memory.text().substring(0, 100) + "..."
-                    : memory.text();
+                              ? memory.text().substring(0, 100) + "..."
+                              : memory.text();
 
                 NodeInput nodeInput = NodeInput.of(name, subgraphId)
-                    .withConfidence(MindMapConfidenceDefaults.forOrigin(
-                        result.confidenceOrigin(), Instant.now()))
-                    .withProvenance("experience-consolidation")
-                    .withProperties(properties);
+                                               .withConfidence(MindMapConfidenceDefaults.forOrigin(
+                                                       result.confidenceOrigin(), Instant.now()))
+                                               .withProvenance("experience-consolidation")
+                                               .withProperties(properties);
 
-                if (memory.pleasure() != null) nodeInput = nodeInput.withPleasure(memory.pleasure());
-                if (memory.arousal() != null) nodeInput = nodeInput.withArousal(memory.arousal());
-                if (memory.dominance() != null) nodeInput = nodeInput.withDominance(memory.dominance());
+                if (memory.pleasure() != null) {nodeInput = nodeInput.withPleasure(memory.pleasure());}
+                if (memory.arousal() != null) {nodeInput = nodeInput.withArousal(memory.arousal());}
+                if (memory.dominance() != null) {nodeInput = nodeInput.withDominance(memory.dominance());}
 
-                mindMapStore.addNode(nodeInput, tenantId);
+                graduatedInputs.add(nodeInput);
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to graduate memory "
-                    + memory.memoryId() + " for tenant " + tenantId, e);
+                                       + memory.memoryId() + " for tenant " + tenantId, e);
             }
             lastProcessedId = memory.memoryId();
+        }
+
+        if (!graduatedInputs.isEmpty()) {
+            mindMapStore.addNodes(graduatedInputs, tenantId);
         }
 
         if (lastProcessedId != null && !lastProcessedId.equals(cursor)) {
