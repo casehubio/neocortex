@@ -1,11 +1,19 @@
 package io.casehub.neocortex.mindmap.runtime;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MergeResult;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.NodeInput;
+import java.util.List;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SubgraphInput;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
 import jakarta.decorator.Delegate;
 import jakarta.enterprise.inject.Any;
 import jakarta.inject.Inject;
+
 import java.util.Set;
 
 @Decorator
@@ -38,6 +46,21 @@ public class MindMapStoreIdleTracker extends AbstractForwardingMindMapStore {
         idleTracker.recordWrite();
         return delegate().addEdge(input, tenantId);
     }
+
+    @Override
+    public List<String> addNodes(List<NodeInput> inputs, String tenantId) {
+        List<String> result = delegate().addNodes(inputs, tenantId);
+        idleTracker.recordWrite();
+        return result;
+    }
+
+    @Override
+    public List<String> addEdges(List<EdgeInput> inputs, String tenantId) {
+        List<String> result = delegate().addEdges(inputs, tenantId);
+        idleTracker.recordWrite();
+        return result;
+    }
+
 
     @Override
     public void removeEdge(String edgeId, String tenantId) {

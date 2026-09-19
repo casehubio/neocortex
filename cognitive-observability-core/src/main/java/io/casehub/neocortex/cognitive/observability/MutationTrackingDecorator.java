@@ -12,6 +12,7 @@ import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -60,6 +61,33 @@ public class MutationTrackingDecorator extends AbstractForwardingMindMapStore {
             Instant.now(), MutationContext.get()), tenantId);
         return edgeId;
     }
+
+    @Override
+    public List<String> addNodes(List<NodeInput> inputs, String tenantId) {
+        List<String> nodeIds = delegate().addNodes(inputs, tenantId);
+        Instant      now     = Instant.now();
+        for (int i = 0; i < nodeIds.size(); i++) {
+            NodeInput input = inputs.get(i);
+            persistMutation(new GraphMutation.NodeAdded(
+                    nodeIds.get(i), input.name(), input.subgraphId(),
+                    input.confidence(), now, MutationContext.get()), tenantId);
+        }
+        return nodeIds;
+    }
+
+    @Override
+    public List<String> addEdges(List<EdgeInput> inputs, String tenantId) {
+        List<String> edgeIds = delegate().addEdges(inputs, tenantId);
+        Instant      now     = Instant.now();
+        for (int i = 0; i < edgeIds.size(); i++) {
+            EdgeInput input = inputs.get(i);
+            persistMutation(new GraphMutation.EdgeAdded(
+                    edgeIds.get(i), input.sourceNodeId(), input.targetNodeId(),
+                    input.edgeType(), input.confidence(), now, MutationContext.get()), tenantId);
+        }
+        return edgeIds;
+    }
+
 
     @Override
     public void removeEdge(String edgeId, String tenantId) {

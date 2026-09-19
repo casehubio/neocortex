@@ -86,6 +86,44 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
     }
 
     @Override
+    public List<String> addEdges(List<EdgeInput> inputs, String tenantId) {
+        List<String> edgeIds = delegate().addEdges(inputs, tenantId);
+
+        int depth = derivationDepth.get();
+        if (depth >= maxDepth) {
+            return edgeIds;
+        }
+
+        derivationDepth.set(depth + 1);
+        try {
+            for (int i = 0; i < edgeIds.size(); i++) {
+                String      edgeId     = edgeIds.get(i);
+                EdgeInput   input      = inputs.get(i);
+                MindMapEdge trigger    = delegate().getEdge(edgeId, tenantId);
+                MindMapNode sourceNode = delegate().getNode(input.sourceNodeId(), tenantId);
+                if (trigger == null || sourceNode == null) {
+                    continue;
+                }
+
+                for (DerivedEdgeRule rule : resolveRules(input.principalId())) {
+                    List<EdgeInput> derived = rule.derive(sourceNode, trigger, delegate());
+                    if (derived == null) {continue;}
+                    for (EdgeInput d : derived) {
+                        EdgeInput withProvenance = addProvenance(d, edgeId, rule.name());
+                        String    derivedId      = this.addEdge(withProvenance, tenantId);
+                        triggerToDerived.computeIfAbsent(edgeId, k -> new ArrayList<>()).add(derivedId);
+                    }
+                }
+            }
+        } finally {
+            derivationDepth.set(depth);
+        }
+
+        return edgeIds;
+    }
+
+
+    @Override
     public void removeEdge(String edgeId, String tenantId) {
         List<String> derivedIds = triggerToDerived.remove(edgeId);
         if (derivedIds != null) {

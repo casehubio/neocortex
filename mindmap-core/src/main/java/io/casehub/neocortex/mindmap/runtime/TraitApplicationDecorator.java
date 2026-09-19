@@ -91,6 +91,40 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
     }
 
     @Override
+    public List<String> addNodes(List<NodeInput> inputs, String tenantId) {
+        List<String> nodeIds = delegate().addNodes(inputs, tenantId);
+        if (!evaluating.get()) {
+            evaluating.set(true);
+            try {
+                for (int i = 0; i < nodeIds.size(); i++) {
+                    evaluateTraitsForNode(nodeIds.get(i), tenantId, inputs.get(i).principalId());
+                }
+            } finally {
+                evaluating.set(false);
+            }
+        }
+        return nodeIds;
+    }
+
+    @Override
+    public List<String> addEdges(List<EdgeInput> inputs, String tenantId) {
+        List<String> edgeIds = delegate().addEdges(inputs, tenantId);
+        if (!evaluating.get()) {
+            evaluating.set(true);
+            try {
+                for (EdgeInput input : inputs) {
+                    evaluateTraitsForNode(input.sourceNodeId(), tenantId, input.principalId());
+                    evaluateTraitsForNode(input.targetNodeId(), tenantId, input.principalId());
+                }
+            } finally {
+                evaluating.set(false);
+            }
+        }
+        return edgeIds;
+    }
+
+
+    @Override
     public void removeEdge(String edgeId, String tenantId) {
         MindMapEdge edge     = delegate().getEdge(edgeId, tenantId);
         String      sourceId = edge != null ? edge.sourceNodeId() : null;
