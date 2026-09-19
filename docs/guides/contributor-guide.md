@@ -545,10 +545,10 @@ Static utility in `mindmap/` — pure Java graph analysis. All methods require `
 
 | Category | Methods |
 |----------|---------|
-| Structural | `orphanNodes` (zero neighbors), `degreeCentrality` (sorted), `subgraphDensity` (edges / n(n-1)) |
+| Structural | `orphanNodes` (delegates to `MindMapStore.nodesWithoutEdges()`), `degreeCentrality` (sorted), `subgraphDensity` (edges / n(n-1)) |
 | Quality | `unvalidatedEdgeRatio`, `contradictions` (multiple outgoing edges of same type), `lowConfidenceCluster` (fraction below threshold) |
 | Temporal | `staleNodes` (decayReference/updatedAt exceeds threshold, sorted by age) |
-| Centrality | `betweennessCentrality` (Brandes' BFS algorithm, normalized by (n-1)(n-2)) |
+| Centrality | `betweennessCentrality` (exact Brandes' BFS, O(V(V+E))), `approximateBetweennessCentrality(store, subgraphId, tenantId, k)` (sampled Brandes with k random sources, deterministic seed, O(k(V+E))) |
 | Community | `kCores(k)` — O(V+E) iterative removal: prune nodes with degree < k, find connected components in survivors. Each `KCore` has `nodeIds` + `density`. Used by `CommunitySummaryPhase` in the consolidation pipeline |
 
 ### MindMap Intelligence
@@ -778,11 +778,11 @@ For each accessed node: reads existing `storageStrength` property (default 0), a
 
 #### MergeDetectionPhase (Priority 20)
 
-Two-layer similarity scoring for automatic node deduplication per subgraph.
+Two-layer similarity scoring for automatic node deduplication per subgraph. Uses prefix bucketing (first 3 chars of lowercase name) to reduce O(n²) pairwise comparison, and bulk pre-loads all neighbor sets upfront to amortize SQL queries.
 
-**Layer 1 — Name similarity:** Jaro-Winkler (threshold 0.85). Pairs below skip entirely.
+**Layer 1 — Name similarity:** Jaro-Winkler (threshold 0.85) within same prefix bucket. Pairs below skip entirely.
 
-**Layer 2 — Neighbor overlap:** Jaccard similarity on neighbor node ID sets.
+**Layer 2 — Neighbor overlap:** Jaccard similarity on pre-loaded neighbor node ID sets (no per-pair SQL).
 
 **Combined score:** `0.6 × nameSim + 0.4 × neighborOverlap`. Actions:
 - ≥ 0.9 → auto-merge via `store.mergeNodes()`. Keep node chosen by higher `storageStrength` (depends on AccessFrequencyPhase running first)

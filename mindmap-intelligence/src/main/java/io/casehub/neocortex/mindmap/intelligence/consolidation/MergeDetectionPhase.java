@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -90,29 +91,34 @@ public class MergeDetectionPhase implements ConsolidationPhase {
                                        .filter(n -> !n.traits().contains("Summary"))
                                        .toList();
 
-        if (nodes.size() > 500) {
-            LOG.fine("Subgraph " + subgraphId + " has " + nodes.size()
-                     + " nodes — skipping O(n²) merge detection");
+        if (nodes.size() <= 1) {
             return List.of();
         }
 
+        Map<String, Set<String>> neighborSets = bulkLoadNeighbors(nodes, tenantId);
+
+        Map<String, List<MindMapNode>> buckets = prefixBucket(nodes);
+
         List<MergeCandidate> candidates = new ArrayList<>();
-        for (int i = 0; i < nodes.size(); i++) {
-            for (int j = i + 1; j < nodes.size(); j++) {
-                MindMapNode a       = nodes.get(i);
-                MindMapNode b       = nodes.get(j);
-                double      nameSim = JaroWinkler.similarity(a.name(), b.name());
-                if (nameSim < nameThreshold) {continue;}
+        for (List<MindMapNode> bucket : buckets.values()) {
+            for (int i = 0; i < bucket.size(); i++) {
+                for (int j = i + 1; j < bucket.size(); j++) {
+                    MindMapNode a       = bucket.get(i);
+                    MindMapNode b       = bucket.get(j);
+                    double      nameSim = JaroWinkler.similarity(a.name(), b.name());
+                    if (nameSim < nameThreshold) {continue;}
 
-                Set<String> neighborsA      = neighborIds(a.id(), tenantId);
-                Set<String> neighborsB      = neighborIds(b.id(), tenantId);
-                double      neighborOverlap = jaccard(neighborsA, neighborsB);
+                    Set<String> neighborsA      = neighborSets.getOrDefault(a.id(), Set.of());
+                    Set<String> neighborsB      = neighborSets.getOrDefault(b.id(), Set.of());
+                    double      neighborOverlap = jaccard(neighborsA, neighborsB);
 
-                double combined = 0.6 * nameSim + 0.4 * neighborOverlap;
-                if (combined >= 0.6) {
-                    String reason = neighborOverlap > 0 ? "name+neighbors" : "name-similarity";
-                    candidates.add(new MergeCandidate(
-                            a.id(), b.id(), combined, reason, Instant.now()));
+                    double combined = 0.6 * nameSim + 0.4 * neighborOverlap;
+                    if (combined >= 0.6) {
+                        String reason = neighborOverlap > 0
+                                        ? "name+neighbors" : "name-similarity";
+                        candidates.add(new MergeCandidate(
+                                a.id(), b.id(), combined, reason, Instant.now()));
+                    }
                 }
             }
         }
@@ -121,10 +127,27 @@ public class MergeDetectionPhase implements ConsolidationPhase {
         return candidates;
     }
 
-    private Set<String> neighborIds(String nodeId, String tenantId) {
-        return store.neighbors(nodeId, tenantId).stream()
-            .map(edge -> edge.sourceNodeId().equals(nodeId) ? edge.targetNodeId() : edge.sourceNodeId())
-            .collect(Collectors.toSet());
+    private Map<String, Set<String>> bulkLoadNeighbors(List<MindMapNode> nodes,
+                                                         String tenantId) {
+        Map<String, Set<String>> result = new HashMap<>();
+        for (MindMapNode node : nodes) {
+            Set<String> ids = store.neighbors(node.id(), tenantId).stream()
+                .map(edge -> edge.sourceNodeId().equals(node.id())
+                    ? edge.targetNodeId() : edge.sourceNodeId())
+                .collect(Collectors.toSet());
+            result.put(node.id(), ids);
+        }
+        return result;
+    }
+
+    private static Map<String, List<MindMapNode>> prefixBucket(List<MindMapNode> nodes) {
+        Map<String, List<MindMapNode>> buckets = new HashMap<>();
+        for (MindMapNode node : nodes) {
+            String name = node.name().trim().toLowerCase();
+            String key = name.length() >= 3 ? name.substring(0, 3) : name;
+            buckets.computeIfAbsent(key, k -> new ArrayList<>()).add(node);
+        }
+        return buckets;
     }
 
     private double jaccard(Set<String> a, Set<String> b) {

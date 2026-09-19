@@ -1,12 +1,17 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MergeDetectionPhaseTest {
@@ -72,6 +77,59 @@ class MergeDetectionPhaseTest {
 
         List<MergeCandidate> candidates = phase.detectCandidates(subgraphId, "t1");
         assertThat(candidates).isEmpty();
+    }
+
+
+    @Test
+    void detectCandidates_differentPrefix_noCandidates() {
+        store.addNode(NodeInput.of("Alice Smith", subgraphId), "t1");
+        store.addNode(NodeInput.of("Zelda Smith", subgraphId), "t1");
+
+        List<MergeCandidate> candidates = phase.detectCandidates(subgraphId, "t1");
+
+        assertThat(candidates).isEmpty();
+    }
+
+    @Test
+    void detectCandidates_samePrefixSimilarNames_returnsCandidate() {
+        String id1    = store.addNode(NodeInput.of("Machine Learning", subgraphId), "t1");
+        String id2    = store.addNode(NodeInput.of("Machine Lerning", subgraphId), "t1");
+        String shared = store.addNode(NodeInput.of("AI", subgraphId), "t1");
+        store.addEdge(EdgeInput.of(id1, shared, "related-to"), "t1");
+        store.addEdge(EdgeInput.of(id2, shared, "related-to"), "t1");
+
+        List<MergeCandidate> candidates = phase.detectCandidates(subgraphId, "t1");
+
+        assertThat(candidates).isNotEmpty();
+    }
+
+    @Test
+    void detectCandidates_shortNames_handledCorrectly() {
+        String id1    = store.addNode(NodeInput.of("AI", subgraphId), "t1");
+        String id2    = store.addNode(NodeInput.of("AI", subgraphId), "t1");
+        String shared = store.addNode(NodeInput.of("Topic", subgraphId), "t1");
+        store.addEdge(EdgeInput.of(id1, shared, "related-to"), "t1");
+        store.addEdge(EdgeInput.of(id2, shared, "related-to"), "t1");
+
+        List<MergeCandidate> candidates = phase.detectCandidates(subgraphId, "t1");
+
+        assertThat(candidates).isNotEmpty();
+    }
+
+    @Test
+    void detectCandidates_largeSubgraph_doesNotSkip() {
+        for (int i = 0; i < 10; i++) {
+            store.addNode(NodeInput.of("Alpha-" + i, subgraphId), "t1");
+        }
+        String id1    = store.addNode(NodeInput.of("Alice Smith", subgraphId), "t1");
+        String id2    = store.addNode(NodeInput.of("Alice Smyth", subgraphId), "t1");
+        String shared = store.addNode(NodeInput.of("Project", subgraphId), "t1");
+        store.addEdge(EdgeInput.of(id1, shared, "works-on"), "t1");
+        store.addEdge(EdgeInput.of(id2, shared, "works-on"), "t1");
+
+        List<MergeCandidate> candidates = phase.detectCandidates(subgraphId, "t1");
+
+        assertThat(candidates).isNotEmpty();
     }
 
     @Test
