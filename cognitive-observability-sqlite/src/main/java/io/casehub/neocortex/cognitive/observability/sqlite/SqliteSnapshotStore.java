@@ -3,16 +3,13 @@ package io.casehub.neocortex.cognitive.observability.sqlite;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.neocortex.cognitive.observability.ConsolidationAuditEntry;
 import io.casehub.neocortex.cognitive.observability.GraphMutation;
 import io.casehub.neocortex.cognitive.observability.GraphSnapshot;
 import io.casehub.neocortex.cognitive.observability.SnapshotRetentionPolicy;
 import io.casehub.neocortex.cognitive.observability.SnapshotStore;
-import org.flywaydb.core.Flyway;
-import org.sqlite.SQLiteConfig;
-import org.sqlite.SQLiteDataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,33 +28,12 @@ public class SqliteSnapshotStore implements SnapshotStore, AutoCloseable {
     private final ObjectMapper mapper;
 
     public SqliteSnapshotStore(String path) {
-        boolean isMemory = ":memory:".equals(path) || path.isBlank();
-
-        SQLiteConfig config = new SQLiteConfig();
-        if (!isMemory) {
-            config.setJournalMode(SQLiteConfig.JournalMode.WAL);
-        }
-        config.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
-        config.setBusyTimeout(5000);
-
-        SQLiteDataSource sqDs = new SQLiteDataSource(config);
-        sqDs.setUrl("jdbc:sqlite:" + path);
-
-        HikariConfig hikari = new HikariConfig();
-        hikari.setDataSource(sqDs);
-        hikari.setMaximumPoolSize(isMemory ? 1 : 3);
-        hikari.setPoolName("observability-snapshot");
-        this.dataSource = new HikariDataSource(hikari);
+        this.dataSource = SqliteDataSourceFactory.create(path, 3, 5000);
+        SqliteDataSourceFactory.migrate(dataSource, "classpath:db/observability");
 
         this.mapper = new ObjectMapper()
-            .findAndRegisterModules()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("classpath:db/observability")
-            .load()
-            .migrate();
+                              .findAndRegisterModules()
+                              .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Override

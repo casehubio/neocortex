@@ -1,5 +1,10 @@
 package io.casehub.neocortex.rag.tracking;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.FeedbackContext;
 import io.casehub.neocortex.rag.FeedbackFilter;
@@ -10,18 +15,11 @@ import io.casehub.neocortex.rag.RetrievalRecord;
 import io.casehub.neocortex.rag.RetrievalTracker;
 import io.casehub.neocortex.rag.RetrievedChunk;
 import io.casehub.neocortex.rag.RetrievedDocumentRef;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.flywaydb.core.Flyway;
-import org.sqlite.SQLiteConfig;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -57,32 +55,8 @@ public class SqliteRetrievalTracker implements RetrievalTracker {
 
     @PostConstruct
     void init() {
-        boolean isMemory = ":memory:".equals(path) || path.isBlank();
-        int effectivePoolSize = isMemory ? 1 : maxPoolSize;
-
-        SQLiteConfig sqLiteConfig = new SQLiteConfig();
-        if (!isMemory) {
-            sqLiteConfig.setJournalMode(SQLiteConfig.JournalMode.WAL);
-        }
-        sqLiteConfig.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
-        sqLiteConfig.setBusyTimeout(busyTimeoutMs);
-        sqLiteConfig.setCacheSize(64000);
-
-        org.sqlite.SQLiteDataSource sqLiteDataSource = new org.sqlite.SQLiteDataSource(sqLiteConfig);
-        sqLiteDataSource.setUrl("jdbc:sqlite:" + path);
-
-        HikariConfig hikari = new HikariConfig();
-        hikari.setDataSource(sqLiteDataSource);
-        hikari.setMaximumPoolSize(effectivePoolSize);
-        hikari.setMinimumIdle(1);
-
-        dataSource = new HikariDataSource(hikari);
-
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("classpath:db/rag-tracking/migration")
-            .load()
-            .migrate();
+        dataSource = SqliteDataSourceFactory.create(path, maxPoolSize, busyTimeoutMs, 64000);
+        SqliteDataSourceFactory.migrate(dataSource, "classpath:db/rag-tracking/migration");
     }
 
     @PreDestroy

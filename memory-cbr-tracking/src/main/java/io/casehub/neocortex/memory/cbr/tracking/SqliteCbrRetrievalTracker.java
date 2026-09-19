@@ -3,8 +3,8 @@ package io.casehub.neocortex.memory.cbr.tracking;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
@@ -21,9 +21,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.flywaydb.core.Flyway;
 import org.jboss.logging.Logger;
-import org.sqlite.SQLiteConfig;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -62,36 +60,12 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
         initDataSource(path, poolSize, busyTimeoutMs);
     }
 
-    private void initDataSource(String path, int poolSize, int busyTimeoutMs) {
-        boolean isMemory = ":memory:".equals(path) || path == null || path.isBlank();
-        int effectivePoolSize = isMemory ? 1 : poolSize;
-
-        SQLiteConfig sqLiteConfig = new SQLiteConfig();
-        if (!isMemory) {
-            sqLiteConfig.setJournalMode(SQLiteConfig.JournalMode.WAL);
-        }
-        sqLiteConfig.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
-        sqLiteConfig.setBusyTimeout(busyTimeoutMs);
-
-        org.sqlite.SQLiteDataSource sqLiteDataSource = new org.sqlite.SQLiteDataSource(sqLiteConfig);
-        sqLiteDataSource.setUrl("jdbc:sqlite:" + (isMemory ? ":memory:" : path));
-
-        HikariConfig hikari = new HikariConfig();
-        hikari.setDataSource(sqLiteDataSource);
-        hikari.setMaximumPoolSize(effectivePoolSize);
-        hikari.setMinimumIdle(1);
-
-        dataSource = new HikariDataSource(hikari);
-    }
+    private void initDataSource(String path, int poolSize, int busyTimeoutMs) {dataSource = SqliteDataSourceFactory.create(path, poolSize, busyTimeoutMs);}
 
     @PostConstruct
     void init() {
-        if (dataSource == null) return;
-        Flyway.configure()
-                .dataSource(dataSource)
-                .locations("classpath:db/cbr-tracking/migration")
-                .load()
-                .migrate();
+        if (dataSource == null) {return;}
+        SqliteDataSourceFactory.migrate(dataSource, "classpath:db/cbr-tracking/migration");
     }
 
     @PreDestroy

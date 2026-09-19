@@ -3,8 +3,8 @@ package io.casehub.neocortex.mindmap.sqlite;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.cognitive.PrincipalVisibility;
@@ -35,8 +35,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.flywaydb.core.Flyway;
-import org.sqlite.SQLiteConfig;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -78,32 +76,8 @@ public class SqliteMindMapStore implements MindMapStore {
 
     @PostConstruct
     void init() {
-        boolean isMemory = ":memory:".equals(path) || path.isBlank();
-        int effectivePoolSize = isMemory ? 1 : maxPoolSize;
-
-        SQLiteConfig sqLiteConfig = new SQLiteConfig();
-        if (!isMemory) {
-            sqLiteConfig.setJournalMode(SQLiteConfig.JournalMode.WAL);
-        }
-        sqLiteConfig.setSynchronous(SQLiteConfig.SynchronousMode.NORMAL);
-        sqLiteConfig.setBusyTimeout(busyTimeoutMs);
-        sqLiteConfig.setCacheSize(64000);
-
-        org.sqlite.SQLiteDataSource sqLiteDataSource = new org.sqlite.SQLiteDataSource(sqLiteConfig);
-        sqLiteDataSource.setUrl("jdbc:sqlite:" + path);
-
-        HikariConfig hikari = new HikariConfig();
-        hikari.setDataSource(sqLiteDataSource);
-        hikari.setMaximumPoolSize(effectivePoolSize);
-        hikari.setMinimumIdle(1);
-
-        dataSource = new HikariDataSource(hikari);
-
-        Flyway.configure()
-            .dataSource(dataSource)
-            .locations("classpath:db/mindmap-sqlite/migration")
-            .load()
-            .migrate();
+        dataSource = SqliteDataSourceFactory.create(path, maxPoolSize, busyTimeoutMs, 64000);
+        SqliteDataSourceFactory.migrate(dataSource, "classpath:db/mindmap-sqlite/migration");
     }
 
     @PreDestroy
