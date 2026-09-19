@@ -44,6 +44,7 @@
     <module>rag-cache</module>
     <module>corpus-api</module>
     <module>corpus</module>
+    <module>sqlite-support</module>
     <module>memory-api</module>
     <module>memory-core</module>
     <module>memory-spring</module>
