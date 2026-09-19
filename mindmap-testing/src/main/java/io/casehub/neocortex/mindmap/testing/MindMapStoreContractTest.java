@@ -163,6 +163,41 @@ public abstract class MindMapStoreContractTest {
     }
 
     @Test
+    void addNodes_returnIdsInOrder() {
+        List<NodeInput> inputs = List.of(
+                nodeInput("Alice"), nodeInput("Bob"), nodeInput("Carol"));
+        List<String> ids = store.addNodes(inputs, TENANT);
+        assertEquals(3, ids.size());
+        assertEquals("Alice", store.getNode(ids.get(0), TENANT).name());
+        assertEquals("Bob", store.getNode(ids.get(1), TENANT).name());
+        assertEquals("Carol", store.getNode(ids.get(2), TENANT).name());
+    }
+
+    @Test
+    void addNodes_emptyList_returnsEmpty() {
+        assertEquals(List.of(), store.addNodes(List.of(), TENANT));
+    }
+
+    @Test
+    void addEdges_returnIdsInOrder() {
+        String a = store.addNode(nodeInput("Alice"), TENANT);
+        String b = store.addNode(nodeInput("Bob"), TENANT);
+        String c = store.addNode(nodeInput("Carol"), TENANT);
+        List<EdgeInput> inputs = List.of(
+                edgeInput(a, b, "knows"), edgeInput(b, c, "knows"));
+        List<String> ids = store.addEdges(inputs, TENANT);
+        assertEquals(2, ids.size());
+        assertNotNull(store.getEdge(ids.get(0), TENANT));
+        assertNotNull(store.getEdge(ids.get(1), TENANT));
+    }
+
+    @Test
+    void addEdges_emptyList_returnsEmpty() {
+        assertEquals(List.of(), store.addEdges(List.of(), TENANT));
+    }
+
+
+    @Test
     void updateNode_changesName() {
         String id = store.addNode(nodeInput("Alice"), TENANT);
         store.updateNode(id, new NodeUpdate("Alicia", null,

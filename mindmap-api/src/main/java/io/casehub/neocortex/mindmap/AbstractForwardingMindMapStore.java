@@ -23,6 +23,13 @@ public abstract class AbstractForwardingMindMapStore implements MindMapStore {
     @Override public MindMapNode getNode(String nodeId, String tenantId) { return delegate.getNode(nodeId, tenantId); }
     @Override public void updateNode(String nodeId, NodeUpdate update, String tenantId) { delegate.updateNode(nodeId, update, tenantId); }
     @Override public String addEdge(EdgeInput input, String tenantId) { return delegate.addEdge(input, tenantId); }
+
+    @Override
+    public List<String> addNodes(List<NodeInput> inputs, String tenantId) {return delegate.addNodes(inputs, tenantId);}
+
+    @Override
+    public List<String> addEdges(List<EdgeInput> inputs, String tenantId) {return delegate.addEdges(inputs, tenantId);}
+
     @Override public MindMapEdge getEdge(String edgeId, String tenantId) { return delegate.getEdge(edgeId, tenantId); }
     @Override public void removeEdge(String edgeId, String tenantId) { delegate.removeEdge(edgeId, tenantId); }
     @Override public void addAlias(String nodeId, String alias, String tenantId) { delegate.addAlias(nodeId, alias, tenantId); }

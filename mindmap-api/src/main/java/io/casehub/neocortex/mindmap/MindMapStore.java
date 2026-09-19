@@ -17,6 +17,15 @@ public interface MindMapStore {
 
     String addEdge(EdgeInput input, String tenantId);
 
+    default List<String> addNodes(List<NodeInput> inputs, String tenantId) {
+        return inputs.stream().map(i -> addNode(i, tenantId)).toList();
+    }
+
+    default List<String> addEdges(List<EdgeInput> inputs, String tenantId) {
+        return inputs.stream().map(i -> addEdge(i, tenantId)).toList();
+    }
+
+
     MindMapEdge getEdge(String edgeId, String tenantId);
 
     void removeEdge(String edgeId, String tenantId);
