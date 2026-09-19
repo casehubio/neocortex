@@ -8,13 +8,12 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.cognitive.PrincipalVisibility;
-import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.EdgeInput;
-import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
 import io.casehub.neocortex.mindmap.MergeConflict;
 import io.casehub.neocortex.mindmap.MergeResult;
 import io.casehub.neocortex.mindmap.MindMapCapability;
+import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -28,6 +27,7 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SupersessionStatus;
 import io.casehub.neocortex.mindmap.ValidationTier;
 import io.casehub.neocortex.mindmap.VocabularyConflictException;
+import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Priority;
@@ -272,6 +272,61 @@ public class SqliteMindMapStore implements MindMapStore {
     }
 
     @Override
+    public List<String> addNodes(List<NodeInput> inputs, String tenantId) {
+        if (inputs.isEmpty()) {return List.of();}
+        List<String> ids = new ArrayList<>(inputs.size());
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO mindmap_node (node_id, tenant_id, name, subgraph_id, confidence_origin, confidence_value, provenance, created_at, updated_at, decay_reference, valid_from, valid_until, traits, refs, pleasure, arousal, dominance, properties, principal_id, shared_with) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                for (NodeInput input : inputs) {
+                    String id = UUID.randomUUID().toString();
+                    ids.add(id);
+                    Instant now = Instant.now();
+                    Confidence confidence = input.confidence() != null
+                                            ? input.confidence()
+                                            : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
+                    String nowTs = ts(now);
+                    ps.setString(1, id);
+                    ps.setString(2, tenantId);
+                    ps.setString(3, input.name());
+                    ps.setString(4, input.subgraphId());
+                    ps.setString(5, confidence.origin().name());
+                    ps.setDouble(6, confidence.value());
+                    ps.setString(7, input.provenance());
+                    ps.setString(8, nowTs);
+                    ps.setString(9, nowTs);
+                    ps.setString(10, confidence.decayReference() != null ? ts(confidence.decayReference()) : null);
+                    ps.setString(11, input.validFrom() != null ? ts(input.validFrom()) : null);
+                    ps.setString(12, input.validUntil() != null ? ts(input.validUntil()) : null);
+                    ps.setString(13, toJson(input.traits()));
+                    ps.setString(14, refsToJson(input.refs()));
+                    setNullableDouble(ps, 15, input.pleasure());
+                    setNullableDouble(ps, 16, input.arousal());
+                    setNullableDouble(ps, 17, input.dominance());
+                    ps.setString(18, mapToJson(input.properties()));
+                    ps.setString(19, input.principalId() != null ? input.principalId().value() : null);
+                    ps.setString(20, input.sharedWith().isEmpty() ? null : String.join(",", input.sharedWith()));
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                conn.commit();
+            } catch (Exception e) {
+                conn.rollback();
+                throw new IllegalStateException("addNodes() batch failed", e);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (SQLException e) {
+            throw new IllegalStateException("addNodes() failed to acquire connection", e);
+        }
+        return ids;
+    }
+
+
+    @Override
     public MindMapNode getNode(String nodeId, String tenantId) {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
@@ -487,6 +542,62 @@ public class SqliteMindMapStore implements MindMapStore {
         }
         return id;
     }
+
+    @Override
+    public List<String> addEdges(List<EdgeInput> inputs, String tenantId) {
+        if (inputs.isEmpty()) {return List.of();}
+        List<String> ids = new ArrayList<>(inputs.size());
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO mindmap_edge (edge_id, tenant_id, source_node_id, target_node_id, edge_type, tier, confidence_origin, confidence_value, provenance, created_at, updated_at, decay_reference, valid_from, valid_until, pleasure, arousal, dominance, properties) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                for (EdgeInput input : inputs) {
+                    String id = UUID.randomUUID().toString();
+                    ids.add(id);
+                    Instant now          = Instant.now();
+                    String  resolvedType = canonicalEdgeTypes.getOrDefault(input.edgeType(), input.edgeType());
+                    ValidationTier tier = edgeTypeDefinitions.containsKey(resolvedType)
+                                          ? ValidationTier.REGISTERED : ValidationTier.UNVALIDATED;
+                    Confidence confidence = input.confidence() != null
+                                            ? input.confidence()
+                                            : MindMapConfidenceDefaults.forOrigin(ConfidenceOrigin.STATED, now);
+                    String nowTs = ts(now);
+                    ps.setString(1, id);
+                    ps.setString(2, tenantId);
+                    ps.setString(3, input.sourceNodeId());
+                    ps.setString(4, input.targetNodeId());
+                    ps.setString(5, resolvedType);
+                    ps.setString(6, tier.name());
+                    ps.setString(7, confidence.origin().name());
+                    ps.setDouble(8, confidence.value());
+                    ps.setString(9, input.provenance());
+                    ps.setString(10, nowTs);
+                    ps.setString(11, nowTs);
+                    ps.setString(12, confidence.decayReference() != null ? ts(confidence.decayReference()) : null);
+                    ps.setString(13, input.validFrom() != null ? ts(input.validFrom()) : null);
+                    ps.setString(14, input.validUntil() != null ? ts(input.validUntil()) : null);
+                    setNullableDouble(ps, 15, input.pleasure());
+                    setNullableDouble(ps, 16, input.arousal());
+                    setNullableDouble(ps, 17, input.dominance());
+                    ps.setString(18, mapToJson(input.properties()));
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                conn.commit();
+            } catch (Exception e) {
+                conn.rollback();
+                throw new IllegalStateException("addEdges() batch failed", e);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (SQLException e) {
+            throw new IllegalStateException("addEdges() failed to acquire connection", e);
+        }
+        return ids;
+    }
+
 
     @Override
     public MindMapEdge getEdge(String edgeId, String tenantId) {

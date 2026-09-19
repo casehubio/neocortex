@@ -167,15 +167,15 @@ public abstract class MindMapStoreContractTest {
         List<NodeInput> inputs = List.of(
                 nodeInput("Alice"), nodeInput("Bob"), nodeInput("Carol"));
         List<String> ids = store.addNodes(inputs, TENANT);
-        assertEquals(3, ids.size());
-        assertEquals("Alice", store.getNode(ids.get(0), TENANT).name());
-        assertEquals("Bob", store.getNode(ids.get(1), TENANT).name());
-        assertEquals("Carol", store.getNode(ids.get(2), TENANT).name());
+        assertThat(ids).hasSize(3);
+        assertThat(store.getNode(ids.get(0), TENANT).name()).isEqualTo("Alice");
+        assertThat(store.getNode(ids.get(1), TENANT).name()).isEqualTo("Bob");
+        assertThat(store.getNode(ids.get(2), TENANT).name()).isEqualTo("Carol");
     }
 
     @Test
     void addNodes_emptyList_returnsEmpty() {
-        assertEquals(List.of(), store.addNodes(List.of(), TENANT));
+        assertThat(store.addNodes(List.of(), TENANT)).isEmpty();
     }
 
     @Test
@@ -186,14 +186,14 @@ public abstract class MindMapStoreContractTest {
         List<EdgeInput> inputs = List.of(
                 edgeInput(a, b, "knows"), edgeInput(b, c, "knows"));
         List<String> ids = store.addEdges(inputs, TENANT);
-        assertEquals(2, ids.size());
-        assertNotNull(store.getEdge(ids.get(0), TENANT));
-        assertNotNull(store.getEdge(ids.get(1), TENANT));
+        assertThat(ids).hasSize(2);
+        assertThat(store.getEdge(ids.get(0), TENANT)).isNotNull();
+        assertThat(store.getEdge(ids.get(1), TENANT)).isNotNull();
     }
 
     @Test
     void addEdges_emptyList_returnsEmpty() {
-        assertEquals(List.of(), store.addEdges(List.of(), TENANT));
+        assertThat(store.addEdges(List.of(), TENANT)).isEmpty();
     }
 
 
