@@ -424,6 +424,30 @@ public class SqliteMindMapStore implements MindMapStore {
         }
     }
 
+    @Override
+    public List<MindMapNode> nodesWithoutEdges(String subgraphId, String tenantId) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT n.*, sg.type AS sg_type FROM mindmap_node n "
+                     + "JOIN mindmap_subgraph sg ON n.subgraph_id = sg.subgraph_id "
+                     + "WHERE n.tenant_id = ? AND n.subgraph_id = ? "
+                     + "AND (n.superseded_at IS NULL OR n.reinstated_at IS NOT NULL) "
+                     + "AND n.node_id NOT IN ("
+                     + "  SELECT source_node_id FROM mindmap_edge WHERE tenant_id = ?"
+                     + "  UNION"
+                     + "  SELECT target_node_id FROM mindmap_edge WHERE tenant_id = ?"
+                     + ")")) {
+            ps.setString(1, tenantId);
+            ps.setString(2, subgraphId);
+            ps.setString(3, tenantId);
+            ps.setString(4, tenantId);
+            return collectNodes(ps);
+        } catch (SQLException e) {
+            throw new IllegalStateException("nodesWithoutEdges() failed", e);
+        }
+    }
+
+
     // --- Alias ---
 
     @Override

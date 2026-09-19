@@ -3,7 +3,6 @@ package io.casehub.neocortex.mindmap.inmem;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.cognitive.PrincipalVisibility;
-import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
 import io.casehub.neocortex.mindmap.MergeConflict;
@@ -23,6 +22,7 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SupersessionStatus;
 import io.casehub.neocortex.mindmap.ValidationTier;
 import io.casehub.neocortex.mindmap.VocabularyConflictException;
+import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
@@ -184,6 +184,21 @@ public class InMemoryMindMapStore implements MindMapStore {
             .map(n -> (MindMapNode) n)
             .toList();
     }
+
+    @Override
+    public List<MindMapNode> nodesWithoutEdges(String subgraphId, String tenantId) {
+        Set<String> connectedIds = new HashSet<>();
+        for (StoredEdge e : edges.values()) {
+            if (e.tenantId.equals(tenantId)) {
+                connectedIds.add(e.sourceNodeId);
+                connectedIds.add(e.targetNodeId);
+            }
+        }
+        return nodesIn(subgraphId, tenantId).stream()
+                                            .filter(n -> !connectedIds.contains(n.id()))
+                                            .toList();
+    }
+
 
     @Override
     public void addAlias(String nodeId, String alias, String tenantId) {

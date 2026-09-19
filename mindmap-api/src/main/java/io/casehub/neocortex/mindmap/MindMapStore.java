@@ -49,6 +49,13 @@ public interface MindMapStore {
 
     List<MindMapNode> nodesIn(String subgraphId, String tenantId);
 
+    default List<MindMapNode> nodesWithoutEdges(String subgraphId, String tenantId) {
+        return nodesIn(subgraphId, tenantId).stream()
+                                            .filter(n -> neighbors(n.id(), tenantId).isEmpty())
+                                            .toList();
+    }
+
+
     List<MindMapEdge> bridgeEdges(String subgraphId, String tenantId, PrincipalId callerPrincipal);
 
     default List<MindMapEdge> bridgeEdges(String subgraphId, String tenantId) {

@@ -41,13 +41,9 @@ public final class MindMapAnalyzer {
 
     public static List<OrphanNode> orphanNodes(MindMapStore store, String subgraphId, String tenantId) {
         requireAnalysis(store);
-        List<OrphanNode> orphans = new ArrayList<>();
-        for (MindMapNode node : store.nodesIn(subgraphId, tenantId)) {
-            if (store.neighbors(node.id(), tenantId).isEmpty()) {
-                orphans.add(new OrphanNode(node.id(), node.name(), subgraphId));
-            }
-        }
-        return orphans;
+        return store.nodesWithoutEdges(subgraphId, tenantId).stream()
+                    .map(n -> new OrphanNode(n.id(), n.name(), subgraphId))
+                    .toList();
     }
 
     public static List<NodeDegree> degreeCentrality(MindMapStore store, String subgraphId, String tenantId) {

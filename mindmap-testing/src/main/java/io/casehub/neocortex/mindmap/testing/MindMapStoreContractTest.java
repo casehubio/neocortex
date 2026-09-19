@@ -999,6 +999,40 @@ public abstract class MindMapStoreContractTest {
         assertThat(results).hasSize(2);
     }
 
+
+// ===== nodesWithoutEdges =====
+
+    @Test
+    void nodesWithoutEdges_returnsIsolatedNodes() {
+        String a     = store.addNode(nodeInput("Connected"), TENANT);
+        String other = store.addNode(nodeInput("Other"), TENANT);
+        store.addNode(nodeInput("Isolated"), TENANT);
+        store.addEdge(edgeInput(a, other, "related-to"), TENANT);
+
+        List<MindMapNode> orphans = store.nodesWithoutEdges(defaultSubgraphId(), TENANT);
+
+        assertThat(orphans).extracting("name").contains("Isolated");
+        assertThat(orphans).extracting("name").doesNotContain("Connected", "Other");
+    }
+
+    @Test
+    void nodesWithoutEdges_allConnected_returnsEmpty() {
+        String a = store.addNode(nodeInput("A"), TENANT);
+        String b = store.addNode(nodeInput("B"), TENANT);
+        store.addEdge(edgeInput(a, b, "related-to"), TENANT);
+
+        List<MindMapNode> orphans = store.nodesWithoutEdges(defaultSubgraphId(), TENANT);
+
+        assertThat(orphans).isEmpty();
+    }
+
+    @Test
+    void nodesWithoutEdges_emptySubgraph_returnsEmpty() {
+        List<MindMapNode> orphans = store.nodesWithoutEdges(defaultSubgraphId(), TENANT);
+
+        assertThat(orphans).isEmpty();
+    }
+
     @Test
     void principalId_and_sharedWith_roundTrip() {
         PrincipalId alice = PrincipalId.agent("alice");
