@@ -57,6 +57,7 @@
     <module>memory-cbr-jpa</module>
     <module>memory-qdrant</module>
     <module>memory-inmem</module>
+    <module>memory-jpa-common</module>
     <module>memory-jpa</module>
     <module>memory-sqlite</module>
     <module>memory-mem0</module>

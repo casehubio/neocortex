@@ -88,7 +88,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
         entry.principalId = input.principalId() != null ? input.principalId().value() : null;
         entry.sharedWith  = serializeSharedWith(input.sharedWith());
 
-        MemoryEntry.persist(entry);
+        em.persist(entry);
         return entry.memoryId;
     }
 
@@ -117,7 +117,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
             e.sharedWith  = serializeSharedWith(input.sharedWith());
             return e;
         }).toList();
-        MemoryEntry.persist(entries);
+        entries.forEach(em::persist);
         return new StoreAllResult(entries.stream().map(e -> e.memoryId).toList(), List.of());
     }
 

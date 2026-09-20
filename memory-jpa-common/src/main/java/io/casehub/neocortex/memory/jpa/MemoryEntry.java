@@ -1,6 +1,5 @@
 package io.casehub.neocortex.memory.jpa;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -8,10 +7,9 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 
-/** JPA entity for a stored memory. domain stored as String (MemoryDomain.name()). */
 @Entity
 @Table(name = "memory_entry")
-public class MemoryEntry extends PanacheEntityBase {
+public class MemoryEntry {
 
     @Id
     @Column(name = "memory_id", length = 36, nullable = false)
@@ -32,14 +30,14 @@ public class MemoryEntry extends PanacheEntityBase {
     @Column(name = "text", nullable = false, columnDefinition = "TEXT")
     public String text;
 
-    /** JSON string serialized from Map<String,String> using Jackson ObjectMapper. */
     @Column(name = "attributes", nullable = false, columnDefinition = "TEXT")
     public String attributes;
 
     @Column(name = "created_at", nullable = false)
     public Instant createdAt;
+
     @Column(name = "confidence")
-    public Double  confidence;
+    public Double confidence;
 
     @Column(name = "pleasure")
     public Double pleasure;
@@ -49,6 +47,7 @@ public class MemoryEntry extends PanacheEntityBase {
 
     @Column(name = "dominance")
     public Double dominance;
+
     @Column(name = "subject_type", nullable = false)
     public String subjectType;
 
@@ -57,6 +56,4 @@ public class MemoryEntry extends PanacheEntityBase {
 
     @Column(name = "shared_with", columnDefinition = "TEXT")
     public String sharedWith;
-
-
 }

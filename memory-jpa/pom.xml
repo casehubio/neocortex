@@ -20,12 +20,17 @@
     <dependencies>
         <dependency>
             <groupId>io.casehub</groupId>
+            <artifactId>casehub-neocortex-memory-jpa-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+            <artifactId>quarkus-hibernate-orm</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
