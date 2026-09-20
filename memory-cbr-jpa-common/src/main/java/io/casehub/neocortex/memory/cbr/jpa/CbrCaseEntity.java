@@ -53,8 +53,9 @@ public class CbrCaseEntity {
 
     @Column(name = "stored_at", nullable = false)
     public Instant storedAt;
+
     @Column(name = "outcome_detail", columnDefinition = "TEXT")
-    public String  outcomeDetail;
+    public String outcomeDetail;
 
     @Column(name = "last_outcome_at")
     public Instant lastOutcomeAt;
@@ -67,15 +68,16 @@ public class CbrCaseEntity {
 
     @Column(name = "supersession_reason", columnDefinition = "TEXT")
     public String supersessionReason;
-    @jakarta.persistence.Column(name = "scope", nullable = false)
+
+    @Column(name = "scope", nullable = false)
     public String scope;
+
     @Column(name = "reinstated_at")
     public Instant reinstatedAt;
+
     @Column(name = "trust_score")
-    public Double  trustScore;
+    public Double trustScore;
 
     @Column(name = "producer_agent_id")
     public String producerAgentId;
-
-
 }
