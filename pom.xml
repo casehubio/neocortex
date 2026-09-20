@@ -32,8 +32,8 @@
     <module>cognitive-observability-sqlite</module>
     <module>rag-api</module>
     <module>rag-core</module>
-    <module>rag-spring</module>
     <module>rag</module>
+    <module>rag-spring</module>
     <module>rag-tika</module>
     <module>rag-testing</module>
     <module>rag-crossencoder</module>
@@ -47,8 +47,8 @@
     <module>sqlite-support</module>
     <module>memory-api</module>
     <module>memory-core</module>
-    <module>memory-spring</module>
     <module>memory</module>
+    <module>memory-spring</module>
     <module>memory-testing</module>
     <module>memory-cbr-inmem</module>
     <module>memory-cbr-embedding</module>
@@ -63,8 +63,8 @@
     <module>memory-graphiti</module>
     <module>mindmap-api</module>
     <module>mindmap-core</module>
-    <module>mindmap-spring</module>
     <module>mindmap</module>
+    <module>mindmap-spring</module>
     <module>mindmap-testing</module>
     <module>mindmap-inmem</module>
     <module>mindmap-sqlite</module>
