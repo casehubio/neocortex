@@ -15,10 +15,10 @@ import static org.assertj.core.data.Offset.offset;
 
 class CbrSimilarityScorerTest {
 
-    static final CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("test",
-        FeatureField.categorical("color"),
-        FeatureField.numeric("score", 0.0, 100.0),
-        FeatureField.text("label"));
+    static final CbrRecordSchema SCHEMA = CbrRecordSchema.of("test",
+                                                             FeatureField.categorical("color"),
+                                                             FeatureField.numeric("score", 0.0, 100.0),
+                                                             FeatureField.text("label"));
 
     @Test
     void categoricalExactMatch() {
@@ -167,8 +167,8 @@ class CbrSimilarityScorerTest {
     @Test
     void numericZeroRangeExactMatch() {
         // Field with min==max → exact match semantics
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("x", 5.0, 5.0));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("x", 5.0, 5.0));
         double sim = CbrSimilarityScorer.score(
             Map.of("x", number(5.0)), Map.of("x", number(5.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(1.0);
@@ -176,8 +176,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void numericZeroRangeMismatch() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("x", 5.0, 5.0));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("x", 5.0, 5.0));
         double sim = CbrSimilarityScorer.score(
             Map.of("x", number(5.0)), Map.of("x", number(6.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(0.0);
@@ -236,8 +236,8 @@ class CbrSimilarityScorerTest {
     }
 
     // --- Categorical table tests ---
-    static final CbrFeatureSchema TABLE_SCHEMA = CbrFeatureSchema.of("test",
-        FeatureField.categorical("type",
+    static final CbrRecordSchema TABLE_SCHEMA = CbrRecordSchema.of("test",
+                                                                   FeatureField.categorical("type",
             SimilaritySpec.categoricalTableBuilder()
                 .add("headache", "migraine", 0.8)
                 .add("headache", "fracture", 0.1)
@@ -273,8 +273,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void categoricalTable_emptyTable_exactMatch() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.categorical("x", new SimilaritySpec.CategoricalTable(Map.of())));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.categorical("x", new SimilaritySpec.CategoricalTable(Map.of())));
         double sim = CbrSimilarityScorer.score(
             Map.of("x", string("a")), Map.of("x", string("b")), Map.of(), schema);
         assertThat(sim).isEqualTo(0.0);
@@ -283,8 +283,8 @@ class CbrSimilarityScorerTest {
     // --- Numeric decay tests ---
     @Test
     void gaussianDecay_exactMatch() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(50.0)), Map.of("s", number(50.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(1.0);
@@ -292,8 +292,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void gaussianDecay_midRange() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(50.0)), Map.of("s", number(80.0)), Map.of(), schema);
         // normalized distance = 0.3, gaussian = exp(-0.3^2 / (2 * 0.5^2)) = exp(-0.18)
@@ -302,8 +302,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void gaussianDecay_maxDistance() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.3)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.3)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(0.0)), Map.of("s", number(100.0)), Map.of(), schema);
         // normalized distance = 1.0, gaussian = exp(-1.0 / (2 * 0.09)) = exp(-5.56) ≈ 0.004
@@ -313,8 +313,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void stepDecay_withinTolerance() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.StepDecay(0.1)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.StepDecay(0.1)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(50.0)), Map.of("s", number(55.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(1.0);
@@ -322,8 +322,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void stepDecay_outsideTolerance() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.StepDecay(0.1)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.StepDecay(0.1)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(50.0)), Map.of("s", number(70.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(0.0);
@@ -331,8 +331,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void exponentialDecay_exactMatch() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.ExponentialDecay(3.0)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.ExponentialDecay(3.0)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(50.0)), Map.of("s", number(50.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(1.0);
@@ -340,8 +340,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void exponentialDecay_fullRange() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.ExponentialDecay(3.0)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.ExponentialDecay(3.0)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(0.0)), Map.of("s", number(100.0)), Map.of(), schema);
         assertThat(sim).isCloseTo(Math.exp(-3.0), org.assertj.core.data.Offset.offset(1e-9));
@@ -350,8 +350,8 @@ class CbrSimilarityScorerTest {
     // --- NumericRange + SimilaritySpec ---
     @Test
     void gaussianDecay_numericRange_inside() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", FeatureValue.range(40, 60)), Map.of("s", number(50.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(1.0);
@@ -359,8 +359,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void gaussianDecay_numericRange_outside() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
         double sim = CbrSimilarityScorer.score(
             Map.of("s", FeatureValue.range(40, 60)), Map.of("s", number(80.0)), Map.of(), schema);
         // distance from nearest bound (60) = 20, normalized = 0.2
@@ -371,8 +371,8 @@ class CbrSimilarityScorerTest {
     // --- Zero range fallback ---
     @Test
     void gaussianDecay_zeroRange_exactMatch() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("x", 5.0, 5.0, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("x", 5.0, 5.0, new SimilaritySpec.GaussianDecay(0.5)));
         double sim = CbrSimilarityScorer.score(
             Map.of("x", number(5.0)), Map.of("x", number(5.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(1.0);
@@ -380,8 +380,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void gaussianDecay_zeroRange_mismatch() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("x", 5.0, 5.0, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("x", 5.0, 5.0, new SimilaritySpec.GaussianDecay(0.5)));
         double sim = CbrSimilarityScorer.score(
             Map.of("x", number(5.0)), Map.of("x", number(6.0)), Map.of(), schema);
         assertThat(sim).isEqualTo(0.0);
@@ -390,8 +390,8 @@ class CbrSimilarityScorerTest {
     // --- Precedence chain ---
     @Test
     void callerOverride_beatsSimilaritySpec() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.GaussianDecay(0.5)));
         LocalSimilarityFunction alwaysHalf = (q, c) -> 0.5;
         double sim = CbrSimilarityScorer.score(
             Map.of("s", number(50.0)), Map.of("s", number(80.0)), Map.of(), schema, Map.of("s", alwaysHalf));
@@ -400,8 +400,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void similaritySpec_beatsTypeDefault() {
-        var schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("s", 0, 100, new SimilaritySpec.StepDecay(0.1)));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.numeric("s", 0, 100, new SimilaritySpec.StepDecay(0.1)));
         // Linear default would give 0.8 for distance 20/100.
         // Step with tolerance 0.1 gives 0.0 for distance 0.2 > 0.1
         double sim = CbrSimilarityScorer.score(
@@ -419,8 +419,8 @@ class CbrSimilarityScorerTest {
 
     @Test
     void dtwSpec_windowedDtw_affectsScore() {
-        var schema = CbrFeatureSchema.of("ts-test",
-                                         FeatureField.timeSeries("curve", "t",
+        var schema = CbrRecordSchema.of("ts-test",
+                                        FeatureField.timeSeries("curve", "t",
                                                                  new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(1)),
                                                                  FeatureField.numeric("t", 0, 10),
                                                                  FeatureField.numeric("val", 0, 100)));
@@ -438,14 +438,14 @@ class CbrSimilarityScorerTest {
     void editDistanceSpec_weightedSubstitution_affectsScore() {
         var spec = new SimilaritySpec.EditDistanceSpec(java.util.Map.of(
                 "MACRO", java.util.Map.of("DEFENSIVE", 0.8)));
-        var schema = CbrFeatureSchema.of("seq-test",
-                                         FeatureField.discreteSequence("phases", spec));
+        var schema = CbrRecordSchema.of("seq-test",
+                                        FeatureField.discreteSequence("phases", spec));
         var    q        = java.util.Map.<String, FeatureValue>of("phases", stringList("MACRO"));
         var    c        = java.util.Map.<String, FeatureValue>of("phases", stringList("DEFENSIVE"));
         double withSpec = CbrSimilarityScorer.score(q, c, Map.of(), schema);
 
-        var schemaNoSpec = CbrFeatureSchema.of("seq-test2",
-                                               FeatureField.discreteSequence("phases"));
+        var schemaNoSpec = CbrRecordSchema.of("seq-test2",
+                                              FeatureField.discreteSequence("phases"));
         double withoutSpec = CbrSimilarityScorer.score(q, c, Map.of(), schemaNoSpec);
 
         assertThat(withSpec).isGreaterThan(withoutSpec);
@@ -453,9 +453,9 @@ class CbrSimilarityScorerTest {
 
     @Test
     void scoreDetailed_returns_breakdown() {
-        CbrFeatureSchema schema = CbrFeatureSchema.of("test",
-            FeatureField.numeric("temperature", 0.0, 100.0),
-            FeatureField.categorical("severity"));
+        CbrRecordSchema schema = CbrRecordSchema.of("test",
+                                                    FeatureField.numeric("temperature", 0.0, 100.0),
+                                                    FeatureField.categorical("severity"));
 
         Map<String, FeatureValue> query = Map.of("temperature", number(50.0), "severity", string("high"));
         Map<String, FeatureValue> stored = Map.of("temperature", number(60.0), "severity", string("high"));
@@ -516,9 +516,9 @@ class CbrSimilarityScorerTest {
 
     @Test
     void structuredField_overrideRespected() {
-        var schema = CbrFeatureSchema.of("test",
-                                         FeatureField.categorical("cat"),
-                                         FeatureField.categoricalList("tags"));
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.categorical("cat"),
+                                        FeatureField.categoricalList("tags"));
 
         Map<String, FeatureValue> query = Map.of("cat", FeatureValue.string("a"),
                                                  "tags", FeatureValue.stringList("x", "y", "z"));
@@ -540,8 +540,8 @@ class CbrSimilarityScorerTest {
     }
 
     // --- CategoricalList Jaccard tests ---
-    static final CbrFeatureSchema CL_SCHEMA = CbrFeatureSchema.of("test",
-                                                                  FeatureField.categoricalList("tags"));
+    static final CbrRecordSchema CL_SCHEMA = CbrRecordSchema.of("test",
+                                                                FeatureField.categoricalList("tags"));
 
     @Test
     void categoricalList_identicalSets() {
@@ -617,8 +617,8 @@ class CbrSimilarityScorerTest {
     }
 
     // --- NumericList nearest-neighbor tests ---
-    static final CbrFeatureSchema NL_SCHEMA = CbrFeatureSchema.of("test",
-                                                                  FeatureField.numericList("stats", 0.0, 100.0));
+    static final CbrRecordSchema NL_SCHEMA = CbrRecordSchema.of("test",
+                                                                FeatureField.numericList("stats", 0.0, 100.0));
 
     @Test
     void numericList_identicalValues() {
@@ -685,7 +685,7 @@ class CbrSimilarityScorerTest {
 
     @Test
     void numericList_zeroRange_exactMatch() {
-        var schema = CbrFeatureSchema.of("test", FeatureField.numericList("x", 5.0, 5.0));
+        var schema = CbrRecordSchema.of("test", FeatureField.numericList("x", 5.0, 5.0));
         double sim = CbrSimilarityScorer.score(
                 Map.of("x", numberList(5.0)),
                 Map.of("x", numberList(5.0)),
@@ -695,7 +695,7 @@ class CbrSimilarityScorerTest {
 
     @Test
     void numericList_zeroRange_mismatch() {
-        var schema = CbrFeatureSchema.of("test", FeatureField.numericList("x", 5.0, 5.0));
+        var schema = CbrRecordSchema.of("test", FeatureField.numericList("x", 5.0, 5.0));
         double sim = CbrSimilarityScorer.score(
                 Map.of("x", numberList(5.0)),
                 Map.of("x", numberList(6.0)),
@@ -704,8 +704,8 @@ class CbrSimilarityScorerTest {
     }
 
     // --- NestedObject recursive scoring tests ---
-    static final CbrFeatureSchema NO_SCHEMA = CbrFeatureSchema.of("test",
-                                                                  FeatureField.nestedObject("economy",
+    static final CbrRecordSchema NO_SCHEMA = CbrRecordSchema.of("test",
+                                                                FeatureField.nestedObject("economy",
                                                                                             FeatureField.numeric("gold", 0, 100),
                                                                                             FeatureField.categorical("tier")));
 
@@ -756,8 +756,8 @@ class CbrSimilarityScorerTest {
     }
 
     // --- ObjectList greedy best-match tests ---
-    static final CbrFeatureSchema OL_SCHEMA = CbrFeatureSchema.of("test",
-                                                                  FeatureField.objectList("events",
+    static final CbrRecordSchema OL_SCHEMA = CbrRecordSchema.of("test",
+                                                                FeatureField.objectList("events",
                                                                                           FeatureField.categorical("type"),
                                                                                           FeatureField.numeric("minute", 0, 90)));
 

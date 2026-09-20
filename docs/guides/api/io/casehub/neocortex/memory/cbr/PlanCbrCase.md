@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.PlanCbrCase
+# io.casehub.neocortex.memory.cbr.PlanCbrRecord
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -14,7 +14,7 @@
 
 ### `outcome` (`java.lang.String`)
 
-### `resolutionStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
+### `cbrPlanStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
 
 ### `problem` (`java.lang.String`)
 
@@ -32,7 +32,7 @@
 
 ### `outcome` (`java.lang.String`)
 
-### `resolutionStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
+### `cbrPlanStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
 
 ### `problem` (`java.lang.String`)
 
@@ -44,7 +44,7 @@
 
 ## Constructors
 
-### `public PlanCbrCase(java.lang.String problem, java.lang.String solution, java.lang.String outcome, java.lang.Double confidence, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace> planTrace, java.lang.Double trustScore, java.lang.String producerAgentId)`
+### `public PlanCbrRecord(java.lang.String problem, java.lang.String solution, java.lang.String outcome, java.lang.Double confidence, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace> planTrace, java.lang.Double trustScore, java.lang.String producerAgentId)`
 
 #### Parameters
 
@@ -53,13 +53,13 @@
 - `outcome` (`java.lang.String`)
 - `confidence` (`java.lang.Double`)
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
-- `resolutionStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
+- `cbrPlanStep` (`java.util.List<io.casehub.neocortex.memory.cbr.PlanTrace>`)
 - `trustScore` (`java.lang.Double`)
 - `producerAgentId` (`java.lang.String`)
 
 ## Methods
 
-### `public java.lang.String cbrType()`
+### `public java.lang.String recordType()`
 
 ### `public java.lang.Double confidence()`
 
@@ -87,13 +87,13 @@
 
 ### `public java.lang.Double trustScore()`
 
-### `public io.casehub.neocortex.memory.cbr.CbrCase withFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features)`
+### `public io.casehub.neocortex.memory.cbr.CbrRecord withFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features)`
 
 #### Parameters
 
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 
-### `public io.casehub.neocortex.memory.cbr.CbrCase withOutcome(java.lang.String outcome, java.lang.Double confidence)`
+### `public io.casehub.neocortex.memory.cbr.CbrRecord withOutcome(java.lang.String outcome, java.lang.Double confidence)`
 
 #### Parameters
 

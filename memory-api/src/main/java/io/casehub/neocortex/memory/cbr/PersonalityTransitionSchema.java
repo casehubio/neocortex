@@ -34,8 +34,8 @@ public final class PersonalityTransitionSchema {
 
     public static final String CASE_TYPE = "personality-transition";
 
-    public static CbrFeatureSchema schema() {
-        return new CbrFeatureSchema(CASE_TYPE, List.of(
+    public static CbrRecordSchema schema() {
+        return new CbrRecordSchema(CASE_TYPE, List.of(
                 FeatureField.categorical("agent_id"),
                 FeatureField.categorical("old_dominant"),
                 FeatureField.categorical("new_dominant"),
@@ -43,7 +43,7 @@ public final class PersonalityTransitionSchema {
                 FeatureField.categorical("new_auxiliary"),
                 FeatureField.categorical("trigger_type"),
                 FeatureField.categorical("outcome")
-        ), null);
+                                                     ), null);
     }
 
     private PersonalityTransitionSchema() {}

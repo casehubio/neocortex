@@ -5,11 +5,11 @@ import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.CbrAdaptationRecorded;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.PlanAdapter;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanAdapter;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -20,16 +20,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TrackingPlanAdapterTest {
 
-    private ScoredCbrCase<ResolvedCase> scored() {
-        var trace = new ResolutionStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
-        var plan = new ResolvedCase("problem", "solution", "WIN", Confidence.unknown(0.9),
-                                    Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
-        return new ScoredCbrCase<>(plan, "c1", "test-type", 0.85);
+    private CbrMatch<CbrPlanRecord> scored() {
+        var trace = new CbrPlanStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
+        var plan = new CbrPlanRecord("problem", "solution", "WIN", Confidence.unknown(0.9),
+                                     Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
+        return new CbrMatch<>(plan, "c1", "test-type", 0.85);
     }
 
-    private PlanAdapter noOpDelegate() {
+    private CbrPlanAdapter noOpDelegate() {
         return (caseType, retrieved, features) -> new AdaptedPlan(
-                retrieved.cbrCase().resolutionStep().stream()
+                retrieved.cbrRecord().cbrPlanStep().stream()
                          .map(t -> new AdaptedStep(t.bindingName(), t.capabilityName(),
                                                    t.workerName(), t.stepOutcome(), t.priority(), t.parameters(),
                                                    AdaptationAction.RETAINED, null))
@@ -39,7 +39,7 @@ class TrackingPlanAdapterTest {
     @Test
     void firesEventAfterAdaptation() {
         var eventRef  = new AtomicReference<CbrAdaptationRecorded>();
-        var decorator = new TrackingPlanAdapter(noOpDelegate(), eventRef::set);
+        var decorator = new TrackingCbrPlanAdapter(noOpDelegate(), eventRef::set);
 
         Map<String, FeatureValue> features = Map.of("f", FeatureValue.string("q"));
         decorator.adapt("typeA", scored(), features);
@@ -54,7 +54,7 @@ class TrackingPlanAdapterTest {
     @Test
     void traceContainsCorrectFields() {
         var                       eventRef  = new AtomicReference<CbrAdaptationRecorded>();
-        var                       decorator = new TrackingPlanAdapter(noOpDelegate(), eventRef::set);
+        var                       decorator = new TrackingCbrPlanAdapter(noOpDelegate(), eventRef::set);
         Map<String, FeatureValue> features  = Map.of("f", FeatureValue.string("q"));
 
         decorator.adapt("typeB", scored(), features);
@@ -69,7 +69,7 @@ class TrackingPlanAdapterTest {
 
     @Test
     void trackingFailureDoesNotBreakAdaptation() {
-        var decorator = new TrackingPlanAdapter(noOpDelegate(), e -> {
+        var decorator = new TrackingCbrPlanAdapter(noOpDelegate(), e -> {
             throw new RuntimeException("event sink failure");
         });
 
@@ -82,11 +82,11 @@ class TrackingPlanAdapterTest {
     @Test
     void firesForNoOpAdapter() {
         var eventRef  = new AtomicReference<CbrAdaptationRecorded>();
-        var decorator = new TrackingPlanAdapter(noOpDelegate(), eventRef::set);
+        var decorator = new TrackingCbrPlanAdapter(noOpDelegate(), eventRef::set);
 
-        var emptyPlan = new ResolvedCase("problem", "solution", null, null,
-                                         Map.of(), List.of(), null, null);
-        var scored = new ScoredCbrCase<>(emptyPlan, "c2", "test-type", 0.3);
+        var emptyPlan = new CbrPlanRecord("problem", "solution", null, null,
+                                          Map.of(), List.of(), null, null);
+        var scored = new CbrMatch<>(emptyPlan, "c2", "test-type", 0.3);
         decorator.adapt("typeA", scored, Map.of());
 
         assertThat(eventRef.get()).isNotNull();

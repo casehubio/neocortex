@@ -17,7 +17,7 @@ The root cause is deeper: similarity functions aren't pluggable. #106 (text embe
 Add a `Map<String, LocalSimilarityFunction>` parameter to `CbrSimilarityScorer.score()`. The scorer checks overrides by field name first, falls back to the existing type-based default. Store implementations build the map at query time based on available capabilities (e.g., `EmbeddingModel` presence).
 
 Rejected alternatives:
-- **Type-level strategy on `CbrFeatureSchema`** — turns the schema from a data declaration into a behavior carrier. Doesn't support per-field overrides without additional complexity.
+- **Type-level strategy on `CbrRecordSchema`** — turns the schema from a data declaration into a behavior carrier. Doesn't support per-field overrides without additional complexity.
 - **CDI-managed scorer** — pulls CDI into `memory-api`, violating Tier 1 purity.
 
 ### 1. `LocalSimilarityFunction` — functional interface in `memory-api`
@@ -58,7 +58,7 @@ static FeatureField semanticText(String name) { return new Text(name, true); }
 public static double score(Map<String, Object> queryFeatures,
                            Map<String, Object> caseFeatures,
                            Map<String, Double> weights,
-                           CbrFeatureSchema schema,
+                           CbrRecordSchema schema,
                            Map<String, LocalSimilarityFunction> overrides)
 ```
 
@@ -126,13 +126,13 @@ public class EmbeddingTextSimilarity implements LocalSimilarityFunction {
 
 ### 5. Store wiring
 
-**QdrantCbrCaseMemoryStore** — builds overrides when EmbeddingModel is present.
+**QdrantCbrRecordStore** — builds overrides when EmbeddingModel is present.
 
 `buildTextOverrides()` takes an externally-created `textSim` instance so the caller retains a reference for precomputation:
 
 ```java
 private Map<String, LocalSimilarityFunction> buildTextOverrides(
-        CbrFeatureSchema schema, EmbeddingTextSimilarity textSim) {
+        CbrRecordSchema schema, EmbeddingTextSimilarity textSim) {
     if (textSim == null) return Map.of();
     Map<String, LocalSimilarityFunction> overrides = new HashMap<>();
     for (FeatureField field : schema.fields()) {
@@ -147,7 +147,7 @@ private Map<String, LocalSimilarityFunction> buildTextOverrides(
 `retrieveSimilar()` restructured to a two-pass flow — reconstruct all candidates first, then batch-precompute, then score:
 
 ```java
-CbrFeatureSchema schema = schemas.get(query.caseType());
+CbrRecordSchema schema = schemas.get(query.caseType());
 if (schema != null) {
     CbrQueryTranslator.validateQueryFeatures(query.features(), schema);
 }
@@ -200,7 +200,7 @@ private List<String> collectSemanticTextValues(
 
 When `schema` is null, the 5-arg `score()` with empty overrides delegates to the 4-arg behavior (returns 1.0).
 
-**InMemoryCbrCaseMemoryStore** — same two-pass flow with empty overrides by default:
+**InMemoryCbrRecordStore** — same two-pass flow with empty overrides by default:
 
 ```java
 // InMemory has no EmbeddingModel, so textSim is always null
@@ -211,7 +211,7 @@ double featureScore = CbrSimilarityScorer.score(
     query.features(), stored.cbrCase().features(), query.weights(), schema, overrides);
 ```
 
-The InMemory store uses the same scoring code path as Qdrant. Without an `EmbeddingModel`, overrides are empty and Text fields use exact match. A testing constructor accepts a `Function<CbrFeatureSchema, Map<String, LocalSimilarityFunction>>` override builder, allowing unit tests to verify override behavior without requiring langchain4j dependencies. The InMemory store does not need a two-pass loop — it iterates its in-memory list and scores directly, since `precompute()` is only needed when embedding calls are expensive (Qdrant reconstructing from payloads).
+The InMemory store uses the same scoring code path as Qdrant. Without an `EmbeddingModel`, overrides are empty and Text fields use exact match. A testing constructor accepts a `Function<CbrRecordSchema, Map<String, LocalSimilarityFunction>>` override builder, allowing unit tests to verify override behavior without requiring langchain4j dependencies. The InMemory store does not need a two-pass loop — it iterates its in-memory list and scores directly, since `precompute()` is only needed when embedding calls are expensive (Qdrant reconstructing from payloads).
 
 ## Testing
 
@@ -228,12 +228,12 @@ The InMemory store uses the same scoring code path as Qdrant. Without an `Embedd
    - `precompute()` batch-embeds uncached texts in single `embedAll()` call
    - `compute()` hits warm cache after `precompute()`
 
-3. **`CbrCaseMemoryStoreContractTest`** (memory-testing) — extended with Text field:
+3. **`CbrRecordStoreContractTest`** (memory-testing) — extended with Text field:
    - Schema includes `text("description")` alongside existing Categorical and Numeric fields
    - Text exact match: identical strings → 1.0, different strings → 0.0
    - Text field scoring consistent across store implementations
 
-4. **`QdrantCbrCaseMemoryStoreTest`** (memory-qdrant) — integration test with Testcontainers Qdrant + stub EmbeddingModel verifying end-to-end semantic text ranking.
+4. **`QdrantCbrRecordStoreTest`** (memory-qdrant) — integration test with Testcontainers Qdrant + stub EmbeddingModel verifying end-to-end semantic text ranking.
 
 ## Module changes
 
@@ -241,7 +241,7 @@ The InMemory store uses the same scoring code path as Qdrant. Without an `Embedd
 |--------|---------|
 | `memory-api` | New `LocalSimilarityFunction`. `FeatureField.Text` gains `semantic` flag. New `semanticText()` factory method. `CbrSimilarityScorer` gains 5-arg `score()`. |
 | `memory-cbr-embedding` | **New module.** `EmbeddingTextSimilarity` with batch `precompute()`. Depends on `memory-api` + `langchain4j-core`. Zero Qdrant dependencies. |
-| `memory-qdrant` | `QdrantCbrCaseMemoryStore.retrieveSimilar()` builds overrides via `buildTextOverrides()`. Depends on `memory-cbr-embedding`. |
+| `memory-qdrant` | `QdrantCbrRecordStore.retrieveSimilar()` builds overrides via `buildTextOverrides()`. Depends on `memory-cbr-embedding`. |
 | `memory-cbr-inmem` | Uses 5-arg `score()` with `Map.of()` overrides. Testing constructor accepts override builder function. |
 | `memory-testing` | Contract test extended with `text("description")` field. |
 

@@ -11,7 +11,7 @@
 
 **Goal:** Fix temporal decay placement (decorator instead of store-level), add decay variants, implement case supersession with audit metadata.
 
-**Architecture:** Temporal decay moves from inline store logic to a `@Decorator @Priority(80)` that applies after reranking. `ScoredCbrCase` gains `Instant storedAt` as domain metadata. Supersession adds `supersede()`/`reinstate()` to the SPI with store-level filter exclusion. All existing decorators migrate from constructor-based `ScoredCbrCase` creation to `with*` methods to preserve `storedAt` through the chain.
+**Architecture:** Temporal decay moves from inline store logic to a `@Decorator @Priority(80)` that applies after reranking. `CbrMatch` gains `Instant storedAt` as domain metadata. Supersession adds `supersede()`/`reinstate()` to the SPI with store-level filter exclusion. All existing decorators migrate from constructor-based `CbrMatch` creation to `with*` methods to preserve `storedAt` through the chain.
 
 **Tech Stack:** Java 21, Quarkus CDI decorators, Qdrant gRPC client, JPA/Hibernate, JUnit 5 + AssertJ
 
@@ -26,42 +26,42 @@
 
 ---
 
-### Task 1: `ScoredCbrCase` — add `storedAt` field and `with*` methods
+### Task 1: `CbrMatch` — add `storedAt` field and `with*` methods
 
 **Files:**
-- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/ScoredCbrCase.java`
-- Test: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/ScoredCbrCaseTest.java` (create if absent)
+- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrMatch.java`
+- Test: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/CbrMatchTest.java` (create if absent)
 
 **Interfaces:**
-- Produces: `ScoredCbrCase<C>(C cbrCase, String caseId, double score, boolean reranked, Map<String,Double> featureSimilarities, Instant storedAt)` — canonical constructor with 6 fields. `withScore(double)`, `withReranked()`, `withStoredAt(Instant)` — immutable copy methods.
+- Produces: `CbrMatch<C>(C cbrCase, String caseId, double score, boolean reranked, Map<String,Double> featureSimilarities, Instant storedAt)` — canonical constructor with 6 fields. `withScore(double)`, `withReranked()`, `withStoredAt(Instant)` — immutable copy methods.
 
 This is the foundation — every subsequent task depends on this record shape.
 
 - [ ] **Step 1: Write tests for the new `storedAt` field and `with*` methods**
 
 ```java
-// ScoredCbrCaseTest.java
+// CbrMatchTest.java
 @Test void storedAt_includedInCanonicalConstructor() {
     Instant now = Instant.now();
-    var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, Map.of(), now);
+    var scored = new CbrMatch<>(textCase(), "c1", 0.9, false, Map.of(), now);
     assertThat(scored.storedAt()).isEqualTo(now);
 }
 
 @Test void storedAt_nullableAndDefaultsToNull() {
-    var scored = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, Map.of(), null);
+    var scored = new CbrMatch<>(textCase(), "c1", 0.9, false, Map.of(), null);
     assertThat(scored.storedAt()).isNull();
 }
 
 @Test void convenienceConstructors_defaultStoredAtToNull() {
-    assertThat(new ScoredCbrCase<>(textCase(), "c1", 0.9).storedAt()).isNull();
-    assertThat(new ScoredCbrCase<>(textCase(), 0.9).storedAt()).isNull();
-    assertThat(new ScoredCbrCase<>(textCase(), 0.9, false).storedAt()).isNull();
-    assertThat(new ScoredCbrCase<>(textCase(), 0.9, false, Map.of()).storedAt()).isNull();
+    assertThat(new CbrMatch<>(textCase(), "c1", 0.9).storedAt()).isNull();
+    assertThat(new CbrMatch<>(textCase(), 0.9).storedAt()).isNull();
+    assertThat(new CbrMatch<>(textCase(), 0.9, false).storedAt()).isNull();
+    assertThat(new CbrMatch<>(textCase(), 0.9, false, Map.of()).storedAt()).isNull();
 }
 
 @Test void withScore_preservesAllFieldsExceptScore() {
     Instant now = Instant.now();
-    var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, true, Map.of("f", 0.8), now);
+    var original = new CbrMatch<>(textCase(), "c1", 0.9, true, Map.of("f", 0.8), now);
     var modified = original.withScore(0.5);
     assertThat(modified.score()).isEqualTo(0.5);
     assertThat(modified.cbrCase()).isSameAs(original.cbrCase());
@@ -73,7 +73,7 @@ This is the foundation — every subsequent task depends on this record shape.
 
 @Test void withReranked_preservesAllFieldsIncludingStoredAt() {
     Instant now = Instant.now();
-    var original = new ScoredCbrCase<>(textCase(), "c1", 0.9, false, Map.of("f", 0.8), now);
+    var original = new CbrMatch<>(textCase(), "c1", 0.9, false, Map.of("f", 0.8), now);
     var reranked = original.withReranked();
     assertThat(reranked.reranked()).isTrue();
     assertThat(reranked.score()).isEqualTo(0.9);
@@ -81,28 +81,28 @@ This is the foundation — every subsequent task depends on this record shape.
     assertThat(reranked.featureSimilarities()).isEqualTo(Map.of("f", 0.8));
 }
 
-private TextualCbrCase textCase() {
-    return new TextualCbrCase("problem", "solution", null, null);
+private TextualCbrRecord textCase() {
+    return new TextualCbrRecord("problem", "solution", null, null);
 }
 ```
 
 - [ ] **Step 2: Run tests — verify they fail**
 
 ```bash
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory-api -Dtest=ScoredCbrCaseTest -DfailIfNoTests=false
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory-api -Dtest=CbrMatchTest -DfailIfNoTests=false
 ```
 
 Expected: compilation errors — `storedAt` parameter doesn't exist, `withScore()` doesn't exist.
 
-- [ ] **Step 3: Update `ScoredCbrCase` record**
+- [ ] **Step 3: Update `CbrMatch` record**
 
 Use `ide_edit_member` to replace the record declaration. The new canonical constructor has 6 fields. All existing convenience constructors delegate to canonical with `storedAt = null`. Replace `withReranked()` to use all 6 fields. Add `withScore(double)`.
 
 New record declaration (replace entire record):
 ```java
-public record ScoredCbrCase<C extends CbrCase>(C cbrCase, String caseId, double score, boolean reranked,
+public record CbrMatch<C extends CbrRecord>(C cbrCase, String caseId, double score, boolean reranked,
                                                Map<String, Double> featureSimilarities, Instant storedAt) {
-    public ScoredCbrCase {
+    public CbrMatch {
         Objects.requireNonNull(cbrCase, "cbrCase required");
         if (!(score >= -1.0 && score <= 1.0)) {
             throw new IllegalArgumentException("score must be in [-1,1], got: " + score);
@@ -110,29 +110,29 @@ public record ScoredCbrCase<C extends CbrCase>(C cbrCase, String caseId, double 
         featureSimilarities = featureSimilarities != null ? Map.copyOf(featureSimilarities) : Map.of();
     }
 
-    public ScoredCbrCase(C cbrCase, String caseId, double score) {
+    public CbrMatch(C cbrCase, String caseId, double score) {
         this(cbrCase, caseId, score, false, Map.of(), null);
     }
 
-    public ScoredCbrCase(C cbrCase, double score) {
+    public CbrMatch(C cbrCase, double score) {
         this(cbrCase, null, score, false, Map.of(), null);
     }
 
-    public ScoredCbrCase(C cbrCase, double score, boolean reranked) {
+    public CbrMatch(C cbrCase, double score, boolean reranked) {
         this(cbrCase, null, score, reranked, Map.of(), null);
     }
 
-    public ScoredCbrCase(C cbrCase, double score, boolean reranked,
+    public CbrMatch(C cbrCase, double score, boolean reranked,
                          Map<String, Double> featureSimilarities) {
         this(cbrCase, null, score, reranked, featureSimilarities, null);
     }
 
-    public ScoredCbrCase<C> withScore(double newScore) {
-        return new ScoredCbrCase<>(cbrCase, caseId, newScore, reranked, featureSimilarities, storedAt);
+    public CbrMatch<C> withScore(double newScore) {
+        return new CbrMatch<>(cbrCase, caseId, newScore, reranked, featureSimilarities, storedAt);
     }
 
-    public ScoredCbrCase<C> withReranked() {
-        return new ScoredCbrCase<>(cbrCase, caseId, score, true, featureSimilarities, storedAt);
+    public CbrMatch<C> withReranked() {
+        return new CbrMatch<>(cbrCase, caseId, score, true, featureSimilarities, storedAt);
     }
 }
 ```
@@ -141,18 +141,18 @@ Add `import java.time.Instant;` to the file.
 
 - [ ] **Step 4: Fix compilation across the project**
 
-The canonical constructor gains a 6th param. All callers using the 5-arg canonical constructor `new ScoredCbrCase<>(cbrCase, caseId, score, reranked, featureSimilarities)` must add `, null` or `, storedAt`. Use `ide_find_references` on the `ScoredCbrCase` constructor to find all call sites. The convenience constructors (3-arg, 2-arg, etc.) are unchanged.
+The canonical constructor gains a 6th param. All callers using the 5-arg canonical constructor `new CbrMatch<>(cbrCase, caseId, score, reranked, featureSimilarities)` must add `, null` or `, storedAt`. Use `ide_find_references` on the `CbrMatch` constructor to find all call sites. The convenience constructors (3-arg, 2-arg, etc.) are unchanged.
 
 Key call sites that construct with 5 args (add `, null` for now — stores will populate properly in Task 3):
-- `OutcomeWeightingCbrCaseMemoryStore:62-63` → replace with `scored.withScore(newScore)`
-- `RerankingCbrCaseMemoryStore:101` → replace with `original.withScore(sigmoidScore).withReranked()`
-- `InMemoryCbrCaseMemoryStore:135-136` → add storedAt from `stored.storedAt()`
-- `JpaCbrCaseMemoryStore:150-151` → add storedAt from `entity.storedAt`
-- `QdrantCbrCaseMemoryStore` multiple sites → add storedAt extraction (Task 3)
+- `OutcomeWeightingCbrRecordStore:62-63` → replace with `scored.withScore(newScore)`
+- `RerankingCbrRecordStore:101` → replace with `original.withScore(sigmoidScore).withReranked()`
+- `InMemoryCbrRecordStore:135-136` → add storedAt from `stored.storedAt()`
+- `JpaCbrRecordStore:150-151` → add storedAt from `entity.storedAt`
+- `QdrantCbrRecordStore` multiple sites → add storedAt extraction (Task 3)
 
 For OutcomeWeighting, use `ide_replace_member` on `retrieveSimilar`:
 ```java
-// Replace the new ScoredCbrCase<> constructor call with:
+// Replace the new CbrMatch<> constructor call with:
 weighted.add(scored.withScore(newScore));
 ```
 
@@ -163,8 +163,8 @@ results.add(original.withScore(sigmoidScore).withReranked());
 ```
 
 Also fix the reactive counterparts:
-- `ReactiveOutcomeWeightingCbrCaseMemoryStore` — same `withScore()` migration
-- `ReactiveRerankingCbrCaseMemoryStore` — same `withScore().withReranked()` migration
+- `ReactiveOutcomeWeightingCbrRecordStore` — same `withScore()` migration
+- `ReactiveRerankingCbrRecordStore` — same `withScore().withReranked()` migration
 
 - [ ] **Step 5: Run full build to verify compilation**
 
@@ -177,7 +177,7 @@ Expected: BUILD SUCCESS
 - [ ] **Step 6: Run tests**
 
 ```bash
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory-api -Dtest=ScoredCbrCaseTest
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory-api -Dtest=CbrMatchTest
 ```
 
 Expected: all tests pass.
@@ -195,7 +195,7 @@ git -C /Users/mdproctor/claude/casehub/neocortex add memory-qdrant/src/
 ```
 
 ```
-feat(#152): add storedAt to ScoredCbrCase, migrate decorators to with* methods
+feat(#152): add storedAt to CbrMatch, migrate decorators to with* methods
 ```
 
 ---
@@ -396,57 +396,57 @@ feat(#152): add Linear/Step temporal decay variants, null guard on HalfLife
 ### Task 3: Stores populate `storedAt`, remove store-level decay
 
 **Files:**
-- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrCaseMemoryStore.java`
-- Modify: `memory-cbr-jpa/src/main/java/io/casehub/neocortex/memory/cbr/jpa/JpaCbrCaseMemoryStore.java`
-- Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/QdrantCbrCaseMemoryStore.java`
+- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrRecordStore.java`
+- Modify: `memory-cbr-jpa/src/main/java/io/casehub/neocortex/memory/cbr/jpa/JpaCbrRecordStore.java`
+- Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/QdrantCbrRecordStore.java`
 - Test: existing contract tests validate `storedAt` population (added in Task 5)
 
 **Interfaces:**
-- Consumes: `ScoredCbrCase` with `storedAt` field (Task 1)
-- Produces: All stores return `ScoredCbrCase` instances with `storedAt` populated
+- Consumes: `CbrMatch` with `storedAt` field (Task 1)
+- Produces: All stores return `CbrMatch` instances with `storedAt` populated
 
-- [ ] **Step 1: `InMemoryCbrCaseMemoryStore` — remove decay, populate `storedAt`**
+- [ ] **Step 1: `InMemoryCbrRecordStore` — remove decay, populate `storedAt`**
 
 In `retrieveSimilar()` (lines 125-145):
 1. Remove the decay block (lines 131-133): `if (query.temporalDecay() != null) { score *= ... }`
-2. Change the `ScoredCbrCase` constructor call to include `stored.storedAt()`:
+2. Change the `CbrMatch` constructor call to include `stored.storedAt()`:
 
 ```java
 // Before:
-candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), stored.caseId(),
+candidates.add(new CbrMatch<>((C) stored.cbrCase(), stored.caseId(),
                                    score, false, breakdown.featureSimilarities()));
 // After:
-candidates.add(new ScoredCbrCase<>((C) stored.cbrCase(), stored.caseId(),
+candidates.add(new CbrMatch<>((C) stored.cbrCase(), stored.caseId(),
                                    score, false, breakdown.featureSimilarities(), stored.storedAt()));
 ```
 
 Use `ide_replace_member` on `retrieveSimilar`.
 
-- [ ] **Step 2: `JpaCbrCaseMemoryStore` — remove decay, populate `storedAt`**
+- [ ] **Step 2: `JpaCbrRecordStore` — remove decay, populate `storedAt`**
 
 In `retrieveSimilar()` (lines 97-157):
 1. Remove the decay block (lines 145-147): `if (query.temporalDecay() != null) { score *= ... }`
-2. Change the `ScoredCbrCase` constructor call to include `entity.storedAt`:
+2. Change the `CbrMatch` constructor call to include `entity.storedAt`:
 
 ```java
 // Before:
-candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId,
+candidates.add(new CbrMatch<>((C) reconstructed, entity.caseId,
                                    score, false, breakdown.featureSimilarities()));
 // After:
-candidates.add(new ScoredCbrCase<>((C) reconstructed, entity.caseId,
+candidates.add(new CbrMatch<>((C) reconstructed, entity.caseId,
                                    score, false, breakdown.featureSimilarities(), entity.storedAt));
 ```
 
 Use `ide_replace_member` on `retrieveSimilar`.
 
-- [ ] **Step 3: `QdrantCbrCaseMemoryStore` — populate `storedAt` in all retrieval paths**
+- [ ] **Step 3: `QdrantCbrRecordStore` — populate `storedAt` in all retrieval paths**
 
-Three retrieval methods construct `ScoredCbrCase`:
+Three retrieval methods construct `CbrMatch`:
 
 **`retrieveFeatureOnly()`** (line 304): Extract `_stored_at` from the point payload during `reconstructAll()`. The `ReconstructedCandidate` record needs a `storedAt` field. Use `ide_edit_member` to update the record:
 
 ```java
-private record ReconstructedCandidate<C extends CbrCase>(
+private record ReconstructedCandidate<C extends CbrRecord>(
     String pointId, C cbrCase, float vectorScore, String caseId, Instant storedAt) {}
 ```
 
@@ -457,11 +457,11 @@ long storedAtMillis = point.getPayloadOrDefault("_stored_at",
 Instant storedAt = storedAtMillis > 0 ? Instant.ofEpochMilli(storedAtMillis) : null;
 ```
 
-Then pass `rc.storedAt()` when constructing `ScoredCbrCase` in all three retrieval methods.
+Then pass `rc.storedAt()` when constructing `CbrMatch` in all three retrieval methods.
 
 **`retrieveSemanticOnly()`** (line 322): Same extraction from the point's payload map.
 
-**`retrieveHybrid()`** (line 340+): Uses `ReconstructedCandidate` which already carries `storedAt` after the record change. The `FusionEntry` inner record also needs `storedAt`. Pass it through to the final `ScoredCbrCase`.
+**`retrieveHybrid()`** (line 340+): Uses `ReconstructedCandidate` which already carries `storedAt` after the record change. The `FusionEntry` inner record also needs `storedAt`. Pass it through to the final `CbrMatch`.
 
 - [ ] **Step 4: Build and run existing tests**
 
@@ -479,22 +479,22 @@ feat(#152): populate storedAt in all stores, remove store-level temporal decay
 
 ---
 
-### Task 4: `TemporalDecayCbrCaseMemoryStore` decorator + reactive parity
+### Task 4: `TemporalDecayCbrRecordStore` decorator + reactive parity
 
 **Files:**
-- Create: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/TemporalDecayCbrCaseMemoryStore.java`
-- Create: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/ReactiveTemporalDecayCbrCaseMemoryStore.java`
-- Create: `memory/src/test/java/io/casehub/neocortex/memory/cbr/runtime/TemporalDecayCbrCaseMemoryStoreTest.java`
-- Create: `memory/src/test/java/io/casehub/neocortex/memory/cbr/runtime/ReactiveTemporalDecayCbrCaseMemoryStoreTest.java`
+- Create: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/TemporalDecayCbrRecordStore.java`
+- Create: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/ReactiveTemporalDecayCbrRecordStore.java`
+- Create: `memory/src/test/java/io/casehub/neocortex/memory/cbr/runtime/TemporalDecayCbrRecordStoreTest.java`
+- Create: `memory/src/test/java/io/casehub/neocortex/memory/cbr/runtime/ReactiveTemporalDecayCbrRecordStoreTest.java`
 
 **Interfaces:**
-- Consumes: `ScoredCbrCase.storedAt()` (Task 1), `TemporalDecay.factor()` (Task 2), `CbrQuery.temporalDecay()` (existing)
+- Consumes: `CbrMatch.storedAt()` (Task 1), `TemporalDecay.factor()` (Task 2), `CbrQuery.temporalDecay()` (existing)
 - Produces: `@Decorator @Priority(80)` — applies temporal decay factor to retrieval scores post-reranking
 
 - [ ] **Step 1: Write blocking decorator tests**
 
 ```java
-// TemporalDecayCbrCaseMemoryStoreTest.java
+// TemporalDecayCbrRecordStoreTest.java
 @Test void nullTemporalDecay_passThrough() {
     // query with no temporalDecay → results unchanged
 }
@@ -520,16 +520,16 @@ feat(#152): populate storedAt in all stores, remove store-level temporal decay
 }
 
 @Test void nullStoredAt_factorIsOne() {
-    // ScoredCbrCase with null storedAt → score unchanged
+    // CbrMatch with null storedAt → score unchanged
 }
 ```
 
-Set up a mock/stub delegate that returns controlled `ScoredCbrCase` instances with known `storedAt` values. Use constructor injection for testing (same pattern as `OutcomeWeightingCbrCaseMemoryStoreTest`).
+Set up a mock/stub delegate that returns controlled `CbrMatch` instances with known `storedAt` values. Use constructor injection for testing (same pattern as `OutcomeWeightingCbrRecordStoreTest`).
 
 - [ ] **Step 2: Run tests — verify they fail**
 
 ```bash
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory -Dtest=TemporalDecayCbrCaseMemoryStoreTest -DfailIfNoTests=false
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory -Dtest=TemporalDecayCbrRecordStoreTest -DfailIfNoTests=false
 ```
 
 - [ ] **Step 3: Implement blocking decorator**
@@ -537,25 +537,25 @@ JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory -Dtest=TemporalDec
 ```java
 @Decorator
 @Priority(80)
-public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
+public class TemporalDecayCbrRecordStore implements CbrRecordStore {
 
-    private final CbrCaseMemoryStore delegate;
+    private final CbrRecordStore delegate;
 
     @Inject
-    TemporalDecayCbrCaseMemoryStore(@Delegate @Any CbrCaseMemoryStore delegate) {
+    TemporalDecayCbrRecordStore(@Delegate @Any CbrRecordStore delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(
+    public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(
             CbrQuery query, Class<C> caseType) {
-        List<ScoredCbrCase<C>> results = delegate.retrieveSimilar(query, caseType);
+        List<CbrMatch<C>> results = delegate.retrieveSimilar(query, caseType);
         if (query.temporalDecay() == null) {
             return results;
         }
         Instant now = Instant.now();
         TemporalDecay decay = query.temporalDecay();
-        List<ScoredCbrCase<C>> decayed = new ArrayList<>(results.size());
+        List<CbrMatch<C>> decayed = new ArrayList<>(results.size());
         for (var scored : results) {
             double factor = (scored.storedAt() != null)
                 ? decay.factor(scored.storedAt(), now) : 1.0;
@@ -569,8 +569,8 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
     }
 
     // All other methods: delegate directly
-    @Override public void registerSchema(CbrFeatureSchema schema) { delegate.registerSchema(schema); }
-    @Override public String store(CbrCase c, String ct, String e, MemoryDomain d, String t, String ci) { return delegate.store(c, ct, e, d, t, ci); }
+    @Override public void registerSchema(CbrRecordSchema schema) { delegate.registerSchema(schema); }
+    @Override public String store(CbrRecord c, String ct, String e, MemoryDomain d, String t, String ci) { return delegate.store(c, ct, e, d, t, ci); }
     @Override public Integer erase(EraseRequest r) { return delegate.erase(r); }
     @Override public Integer eraseEntity(String e, String t) { return delegate.eraseEntity(e, t); }
     @Override public void recordOutcome(String ci, String t, CbrOutcome o) { delegate.recordOutcome(ci, t, o); }
@@ -580,7 +580,7 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
 - [ ] **Step 4: Implement reactive decorator**
 
-Same pattern as `ReactiveOutcomeWeightingCbrCaseMemoryStore`. Wraps `retrieveSimilar()` with `Uni` transformation. All other methods delegate.
+Same pattern as `ReactiveOutcomeWeightingCbrRecordStore`. Wraps `retrieveSimilar()` with `Uni` transformation. All other methods delegate.
 
 - [ ] **Step 5: Run tests**
 
@@ -599,18 +599,18 @@ feat(#152): temporal decay decorator @Priority(80) with reactive parity
 ### Task 5: Supersession SPI — add `supersede()`/`reinstate()` to interfaces and all implementations
 
 **Files:**
-- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrCaseMemoryStore.java`
-- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/ReactiveCbrCaseMemoryStore.java`
-- Modify: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/NoOpCbrCaseMemoryStore.java`
+- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrRecordStore.java`
+- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/ReactiveCbrRecordStore.java`
+- Modify: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/NoOpCbrRecordStore.java`
 - Modify: `memory/src/main/java/io/casehub/neocortex/memory/cbr/runtime/BlockingToReactiveCbrBridge.java`
 - Modify: all 4 blocking decorators (TrendEnrichment, OutcomeWeighting, Decay, Tracking) — add delegation
 - Modify: all 4 reactive decorators — add delegation
-- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrCaseMemoryStore.java`
-- Modify: `memory-cbr-jpa/src/main/java/io/casehub/neocortex/memory/cbr/jpa/JpaCbrCaseMemoryStore.java` + `CbrCaseEntity.java`
-- Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/QdrantCbrCaseMemoryStore.java`
+- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrRecordStore.java`
+- Modify: `memory-cbr-jpa/src/main/java/io/casehub/neocortex/memory/cbr/jpa/JpaCbrRecordStore.java` + `CbrRecordEntity.java`
+- Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/QdrantCbrRecordStore.java`
 - Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/CbrQueryTranslator.java`
 - Create: `memory-cbr-jpa/src/main/resources/db/cbr/migration/V2__add_supersession.sql`
-- Test: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrCaseMemoryStoreContractTest.java`
+- Test: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrRecordStoreContractTest.java`
 
 **Interfaces:**
 - Produces: `void supersede(String caseId, String tenantId, @Nullable String supersedingCaseId, @Nullable String reason)`, `void reinstate(String caseId, String tenantId)` on both blocking and reactive SPIs.
@@ -619,13 +619,13 @@ This is the largest task — it touches every implementation. Work systematicall
 
 - [ ] **Step 1: Add methods to SPI interfaces**
 
-`CbrCaseMemoryStore` — add:
+`CbrRecordStore` — add:
 ```java
 void supersede(String caseId, String tenantId, String supersedingCaseId, String reason);
 void reinstate(String caseId, String tenantId);
 ```
 
-`ReactiveCbrCaseMemoryStore` — add:
+`ReactiveCbrRecordStore` — add:
 ```java
 Uni<Void> supersede(String caseId, String tenantId, String supersedingCaseId, String reason);
 Uni<Void> reinstate(String caseId, String tenantId);
@@ -641,7 +641,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn clean install -DskipTests 2>&1 | h
 
 This confirms all call sites that need updating.
 
-- [ ] **Step 3: Implement in `InMemoryCbrCaseMemoryStore`**
+- [ ] **Step 3: Implement in `InMemoryCbrRecordStore`**
 
 Add `supersededAt`, `supersedingCaseId`, `supersessionReason` fields to the `StoredCase` record. Update the `store()` method to pass null for these new fields. Add filter in `retrieveSimilar()`: `if (stored.supersededAt() != null) continue;`.
 
@@ -686,9 +686,9 @@ public void reinstate(String caseId, String tenantId) {
 
 The `StoredCase` record needs a `withSupersessionMetadata()` method.
 
-- [ ] **Step 4: Implement in `JpaCbrCaseMemoryStore`**
+- [ ] **Step 4: Implement in `JpaCbrRecordStore`**
 
-Add columns to `CbrCaseEntity`:
+Add columns to `CbrRecordEntity`:
 ```java
 public Instant supersededAt;
 public String supersedingCaseId;
@@ -707,7 +707,7 @@ Add `AND e.supersededAt IS NULL` to the JPQL query in `retrieveSimilar()`.
 
 Implement `supersede()` and `reinstate()` using JPA queries.
 
-- [ ] **Step 5: Implement in `QdrantCbrCaseMemoryStore`**
+- [ ] **Step 5: Implement in `QdrantCbrRecordStore`**
 
 In `supersede()`: locate point by `CbrPointBuilder.pointId(tenantId, caseType, caseId)` (same pattern as `recordOutcome`). Set payload fields `_superseded_at`, `_superseding_case_id`, `_supersession_reason`. Handle already-superseded case (preserve timestamp, update non-null metadata).
 
@@ -734,19 +734,19 @@ For each blocking decorator (`TrendEnrichment`, `OutcomeWeighting`, `TemporalDec
 
 Same for reactive decorators with `Uni<Void>` wrapping.
 
-`NoOpCbrCaseMemoryStore` — empty implementations.
+`NoOpCbrRecordStore` — empty implementations.
 `BlockingToReactiveCbrBridge` — delegate to blocking store.
 
 - [ ] **Step 7: Write contract tests**
 
-Add to `CbrCaseMemoryStoreContractTest`:
+Add to `CbrRecordStoreContractTest`:
 
 ```java
 // storedAt population
 @Test void storedAt_populatedOnRetrievedCases() {
     store.registerSchema(simpleSchema());
     store.store(featureCase(Map.of("severity", number(5))), "test", ENTITY, CBR, TENANT, "c1");
-    var results = store.retrieveSimilar(simpleQuery(Map.of("severity", number(5)), 10), FeatureVectorCbrCase.class);
+    var results = store.retrieveSimilar(simpleQuery(Map.of("severity", number(5)), 10), CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
     assertThat(results.get(0).storedAt()).isNotNull();
     assertThat(results.get(0).storedAt()).isBefore(Instant.now().plusSeconds(1));
@@ -797,7 +797,7 @@ In `DecoratorChainIntegrationTest`:
 ```java
 @Test void storedAt_preservedThroughDecoratorChain() {
     // Set up a chain: Decay@80 → OutcomeWeighting@65 → stub store
-    // Store returns ScoredCbrCase with known storedAt
+    // Store returns CbrMatch with known storedAt
     // Apply a query with temporalDecay
     // Verify decay was applied (score changed) AND storedAt is preserved in output
 }
@@ -828,7 +828,7 @@ feat(#152): chain integration test for storedAt preservation through decorator s
 ## Task Dependencies
 
 ```
-Task 1 (ScoredCbrCase + with*) ─┬─→ Task 3 (stores populate storedAt) ──→ Task 4 (decay decorator)
+Task 1 (CbrMatch + with*) ─┬─→ Task 3 (stores populate storedAt) ──→ Task 4 (decay decorator)
                                 │
 Task 2 (TemporalDecay variants) ─┘
                                      Task 5 (supersession SPI) depends on Tasks 1-4

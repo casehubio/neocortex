@@ -6,23 +6,23 @@
 
 ## Fields
 
-### `items` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary>`)
+### `items` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrRecordSummary>`)
 
 ### `nextCursor` (`java.lang.String`)
 
 ## Record Components
 
-### `items` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary>`)
+### `items` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrRecordSummary>`)
 
 ### `nextCursor` (`java.lang.String`)
 
 ## Constructors
 
-### `public CbrScanResult(java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> items, java.lang.String nextCursor)`
+### `public CbrScanResult(java.util.List<io.casehub.neocortex.memory.cbr.CbrRecordSummary> items, java.lang.String nextCursor)`
 
 #### Parameters
 
-- `items` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary>`)
+- `items` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrRecordSummary>`)
 - `nextCursor` (`java.lang.String`)
 
 ## Methods
@@ -39,7 +39,7 @@
 
 ### `public boolean isEmpty()`
 
-### `public java.util.List<io.casehub.neocortex.memory.cbr.CbrCaseSummary> items()`
+### `public java.util.List<io.casehub.neocortex.memory.cbr.CbrRecordSummary> items()`
 
 ### `public java.lang.String nextCursor()`
 

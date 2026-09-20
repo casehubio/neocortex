@@ -17,7 +17,7 @@ share the same structural profile but differ in specifics.
 ## Feature Schema
 
 ```java
-CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("life-contractor",
+CbrRecordSchema SCHEMA = CbrRecordSchema.of("life-contractor",
     FeatureField.categorical("job_type"),       // PLUMBING, ELECTRICAL, ROOFING, APPLIANCE, GENERAL
     FeatureField.categorical("urgency"),        // EMERGENCY, ROUTINE, PLANNED
     FeatureField.categorical("property_area"),  // KITCHEN, BATHROOM, EXTERIOR, HVAC, GENERAL
@@ -43,10 +43,10 @@ When a contractor job completes:
 @ApplicationScoped
 public class ContractorJobOutcomeObserver {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     void onJobClosed(@Observes ContractorJobClosedEvent event) {
-        var cbrCase = new FeatureVectorCbrCase(
+        var cbrCase = new CbrFeatureRecord(
             event.jobDescription(),                         // problem
             formatSolution(event),                          // solution summary
             event.disposition().name(),                     // COMPLETED_ON_TIME, DELAYED, OVERCHARGED, EXCELLENT
@@ -79,9 +79,9 @@ When a new job request arrives:
 @ApplicationScoped
 public class ContractorRecommender {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    public List<FeatureVectorCbrCase> findSimilarJobs(JobRequest request) {
+    public List<CbrFeatureRecord> findSimilarJobs(JobRequest request) {
         var query = CbrQuery.of(
             request.tenantId(),
             LIFE_DOMAIN,
@@ -91,7 +91,7 @@ public class ContractorRecommender {
                 "property_area", request.propertyArea().name()),
             10);
 
-        return cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        return cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
     }
 }
 ```

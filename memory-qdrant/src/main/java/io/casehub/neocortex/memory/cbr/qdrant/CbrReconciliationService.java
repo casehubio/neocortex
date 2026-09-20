@@ -6,7 +6,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import io.casehub.neocortex.fusion.CamelCaseExpander;
 import io.casehub.neocortex.inference.splade.SparseEmbedder;
 import io.casehub.neocortex.memory.*;
-import io.casehub.neocortex.memory.cbr.CbrCase;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.qdrant.client.ConditionFactory;
@@ -117,28 +117,28 @@ public class CbrReconciliationService {
             List<PointStruct> batch = new ArrayList<>();
             for (var entry : delegateIndex.entrySet()) {
                 try {
-                    Memory            memory       = entry.getValue();
-                    Optional<CbrCase> maybeCbrCase = CbrMemoryDeserializer.deserialize(memory);
-                    if (maybeCbrCase.isEmpty()) {
+                    Memory              memory       = entry.getValue();
+                    Optional<CbrRecord> maybeCbrRecord = CbrMemoryDeserializer.deserialize(memory);
+                    if (maybeCbrRecord.isEmpty()) {
                         LOG.warning("Skipping undeserializable memory " + memory.memoryId());
                         errors++;
                         continue;
                     }
-                    CbrCase cbrCase = maybeCbrCase.get();
+                    CbrRecord cbrRecord = maybeCbrRecord.get();
 
                     Embedding embedding = null;
                     if (embeddingModel != null) {
-                        embedding = embeddingModel.embed(TextSegment.from(cbrCase.problem())).content();
+                        embedding = embeddingModel.embed(TextSegment.from(cbrRecord.problem())).content();
                     }
 
                     Map<Integer, Float> sparseEmbedding = null;
                     if (sparseEmbedder != null && config.spladeEnabled()) {
-                        sparseEmbedding = sparseEmbedder.embed(cbrCase.problem());
+                        sparseEmbedding = sparseEmbedder.embed(cbrRecord.problem());
                     }
-                    String bm25Text = config.bm25Enabled() ? CamelCaseExpander.expand(cbrCase.problem()) : null;
+                    String bm25Text = config.bm25Enabled() ? CamelCaseExpander.expand(cbrRecord.problem()) : null;
 
                     PointStruct point = CbrPointBuilder.buildPoint(
-                            cbrCase, caseType, memory.entityId(), memory.domain().name(),
+                            cbrRecord, caseType, memory.entityId(), memory.domain().name(),
                             memory.tenantId(), memory.caseId(), embedding, config.denseVectorName(),
                             sparseEmbedding, config.spladeVectorName(),
                             bm25Text, config.bm25VectorName(), config.bm25Model(), "");

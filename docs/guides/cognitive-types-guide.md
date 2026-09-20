@@ -134,11 +134,11 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 **What it is.** Structured similarity search over past cases. Unlike text memory's semantic search, CBR compares cases by typed feature vectors with configurable per-field similarity functions. Three paradigms: Textual (problem text), Feature-Vector (structured fields), Plan-Based (step sequences for reuse).
 
-**How it works.** `CbrCaseMemoryStore` registers schemas (`CbrFeatureSchema` with `FeatureField` definitions), stores cases with typed `FeatureValue` fields, and retrieves by weighted similarity (`CbrSimilarityScorer`). Seven feature value types (StringVal through StructListVal), ten field types (Categorical through DiscreteSequence), six similarity specs (CategoricalTable through EditDistanceSpec), and eight filter types (Contains through AllOf) provide the vocabulary for describing case structure. `CbrOutcome.recordOutcome` implements the Revise step of the CBR cycle via EMA confidence adjustment.
+**How it works.** `CbrRecordStore` registers schemas (`CbrRecordSchema` with `FeatureField` definitions), stores cases with typed `FeatureValue` fields, and retrieves by weighted similarity (`CbrSimilarityScorer`). Seven feature value types (StringVal through StructListVal), ten field types (Categorical through DiscreteSequence), six similarity specs (CategoricalTable through EditDistanceSpec), and eight filter types (Contains through AllOf) provide the vocabulary for describing case structure. `CbrOutcome.recordOutcome` implements the Revise step of the CBR cycle via EMA confidence adjustment.
 
 **Why it matters.** Text memory answers "what do I know about X?" CBR answers "what similar situations have I seen before, and what happened?" This is the foundation for learning from past cases — the agent doesn't just recall, it reasons by analogy.
 
-**Composition.** Feeds into: Plan Adaptation (retrieved PlanCbrCases are adapted for the current context), Trust (trust scores modulate retrieval), Temporal (TemporalDecay applies recency bias). Fed by: blocks orchestrators that store domain-specific cases (mental models, strategies, user profiles, narratives).
+**Composition.** Feeds into: Plan Adaptation (retrieved PlanCbrRecords are adapted for the current context), Trust (trust scores modulate retrieval), Temporal (TemporalDecay applies recency bias). Fed by: blocks orchestrators that store domain-specific cases (mental models, strategies, user profiles, narratives).
 
 **Cognitive parallel.** Analogical reasoning and Schank's dynamic memory theory — retrieving and adapting past experiences to solve new problems. The three CBR paradigms (textual, feature-vector, plan-based) correspond to surface similarity, structural similarity, and procedural similarity in analogical reasoning research.
 
@@ -152,7 +152,7 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 **What it is.** Time-aware reasoning over case histories. `TemporalDecay` (HalfLife, Linear, Step) applies smooth recency bias post-scoring. `TrendAnalyzer` computes derived metrics from TimeSeries fields: slope, volatility, acceleration, change-points (CUSUM), duration, and observation count. `DtwSimilarity` and `EditDistanceSimilarity` compare temporal sequences.
 
-**How it works.** `TrendEnrichmentCbrCaseMemoryStore` (@Decorator @Priority(90)) intercepts schema registration to expand TimeSeries fields with derived trend features, enriches stored cases and queries with computed trend values, all transparently. `LbKeogh` provides O(n) lower-bound pruning to filter DTW candidates before the full O(n×m) DP computation.
+**How it works.** `TrendEnrichmentCbrRecordStore` (@Decorator @Priority(90)) intercepts schema registration to expand TimeSeries fields with derived trend features, enriches stored cases and queries with computed trend values, all transparently. `LbKeogh` provides O(n) lower-bound pruning to filter DTW candidates before the full O(n×m) DP computation.
 
 **Why it matters.** Cases evolvde over time. A strategy that worked last month may be declining. Trend detection surfaces "this pattern is accelerating" or "this approach has plateauing outcomes" — temporal context that flat similarity misses.
 
@@ -168,13 +168,13 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 ## 10. CBR — Plan Adaptation
 
-**What it is.** The Reuse step of the CBR cycle for plan-based cases. `PlanAdapter` transforms a retrieved `ResolvedCase` into an `AdaptedPlan` for the current context, marking each step with an `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `PlanEnsembleAnalyzer` synthesises across multiple adapted plans, computing `StepConsensus` with agreement levels (UNANIMOUS through UNIQUE).
+**What it is.** The Reuse step of the CBR cycle for plan-based cases. `CbrCbrPlanAdapter` transforms a retrieved `CbrPlanRecord` into an `AdaptedPlan` for the current context, marking each step with an `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `CbrCbrPlanEnsembleAnalyzer` synthesises across multiple adapted plans, computing `StepConsensus` with agreement levels (UNANIMOUS through UNIQUE).
 
-**How it works.** For each retrieved plan, `PlanAdapter.adapt()` evaluates each step against the current features and decides what to change. `PlanEnsembleAnalyzer.analyze()` then examines all adapted plans together, looking for consensus (steps that appear in most plans), divergence (steps that appear in few), and contested areas (different plans disagree). The `EnsemblePlan` synthesises a recommended plan from the consensus.
+**How it works.** For each retrieved plan, `CbrPlanAdapter.adapt()` evaluates each step against the current features and decides what to change. `CbrPlanEnsembleAnalyzer.analyze()` then examines all adapted plans together, looking for consensus (steps that appear in most plans), divergence (steps that appear in few), and contested areas (different plans disagree). The `EnsemblePlan` synthesises a recommended plan from the consensus.
 
 **Why it matters.** Single-case adaptation can overfit to one past experience. Ensemble analysis across multiple retrieved cases reveals which steps are robustly applicable (they appear in many similar situations) and which are situation-specific (they appear in only one case).
 
-**Composition.** Fed by: CBR retrieval (provides the scored cases to adapt). Feeds into: Traceability (AdaptationTrace and EnsembleTrace record the decisions for audit), engine/blocks (the adapted plan drives agent behaviour).
+**Composition.** Fed by: CBR retrieval (provides the scored cases to adapt). Feeds into: Traceability (CbrAdaptationTrace and EnsembleTrace record the decisions for audit), engine/blocks (the adapted plan drives agent behaviour).
 
 **Cognitive parallel.** Plan reuse and means-ends analysis (Newell & Simon 1972) — adapting known solutions to new problems rather than planning from scratch. Ensemble analysis parallels committee machines in ML and the "wisdom of crowds" effect in decision science.
 
@@ -188,7 +188,7 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 **What it is.** Source-authority modulation on CBR retrieval. `AgentTrustProvider` supplies trust scores per agent. `TrustWeightingFunction` modulates similarity scores by trust authority and trajectory (is trust rising or falling?). `OutcomeWeightingFunction` modulates by case confidence (from `CbrOutcome` EMA).
 
-**How it works.** `TrustWeightedCbrCaseMemoryStore` (@Decorator @Priority(60)) injects the trust provider and weighting function. For each retrieved case, it looks up the source agent's trust score, applies the weighting function (`score * (1-α + α*trustScore)`), and optionally adjusts for trust trajectory (declining trust further dampens scores). `ScopeDecay` (Exponential, Linear, Step) adds hierarchical scope-distance decay.
+**How it works.** `TrustWeightedCbrRecordStore` (@Decorator @Priority(60)) injects the trust provider and weighting function. For each retrieved case, it looks up the source agent's trust score, applies the weighting function (`score * (1-α + α*trustScore)`), and optionally adjusts for trust trajectory (declining trust further dampens scores). `ScopeDecay` (Exponential, Linear, Step) adds hierarchical scope-distance decay.
 
 **Why it matters.** Not all past cases are equally trustworthy. A case from a highly-trusted agent should score higher than one from an untrusted source, even if feature similarity is identical. Trust weighting implements this.
 
@@ -204,9 +204,9 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 ## 12. Traceability
 
-**What it is.** Audit infrastructure for compliance and debugging. `CbrRetrievalTrace` snapshots every retrieval event (query, scored cases, timestamp). `AdaptationTrace` records plan adaptation decisions. `EnsembleTrace` records ensemble analysis. `CbrCasesErased` and `MemoryEntityErased` fire CDI events after erasure operations for GDPR compliance.
+**What it is.** Audit infrastructure for compliance and debugging. `CbrRetrievalTrace` snapshots every retrieval event (query, scored cases, timestamp). `CbrCbrAdaptationTrace` records plan adaptation decisions. `EnsembleTrace` records ensemble analysis. `CbrRecordErased` and `MemoryEntityErased` fire CDI events after erasure operations for GDPR compliance.
 
-**How it works.** Tracking decorators (@Priority(50) on CbrCaseMemoryStore, PlanAdapter, PlanEnsembleAnalyzer) fire CDI events after operations complete. `SqliteCbrRetrievalTracker` persists traces with retention-based purging (default 90 days, daily purge cycle). Domain filtering on `findTraces()` supports per-use-case audit.
+**How it works.** Tracking decorators (@Priority(50) on CbrRecordStore, CbrPlanAdapter, CbrPlanEnsembleAnalyzer) fire CDI events after operations complete. `SqliteCbrRetrievalTracker` persists traces with retention-based purging (default 90 days, daily purge cycle). Domain filtering on `findTraces()` supports per-use-case audit.
 
 **Why it matters.** Explainability — "why did the agent do that?" requires tracing back through retrieval, adaptation, and ensemble decisions. GDPR compliance requires proving that erasure cascaded to all stores.
 
@@ -234,7 +234,7 @@ A comprehensive reference for every memory, cognitive, and affective type in neo
 
 **Research tags:** semantic memory, Quillian 1968, knowledge graphs, semantic networks, ontology, RDF, property graphs, knowledge representation, Sowa 1984, concept maps
 
-**Key insight.** `NodeRef` is the bridge pattern that keeps the graph loosely coupled to other stores. A MindMap node can reference a `CaseMemoryStore` memory, a `CbrCaseMemoryStore` case, or an external URL — all with the same `(scheme, id, qualifier)` tuple. The graph stores references, not copies.
+**Key insight.** `NodeRef` is the bridge pattern that keeps the graph loosely coupled to other stores. A MindMap node can reference a `CaseMemoryStore` memory, a `CbrRecordStore` case, or an external URL — all with the same `(scheme, id, qualifier)` tuple. The graph stores references, not copies.
 
 ---
 
@@ -391,13 +391,13 @@ Conversation Text
 
 **CDI Events for Loose Coupling.** Subsystems communicate via CDI events (`ExperienceRecorded`, `RelationshipRecorded`, `CbrRetrievalRecorded`, `MemoryEntityErased`), not direct method calls. This means adding a new observer (e.g., MindMap listening for experience events) requires zero changes to the event producer.
 
-**Sealed Hierarchies for Exhaustive Modelling.** `ExperienceEvent`, `FeatureValue`, `FeatureField`, `SimilaritySpec`, `CbrFilter`, `TemporalDecay`, `ScopeDecay`, `WarpingConstraint`, `AdaptationAction`, `StepAgreement`, `MemoryEntityErased`, `CbrCasesErased` — all sealed. The compiler enforces exhaustive handling. Adding a new variant is a deliberate SPI evolution, not a silent addition.
+**Sealed Hierarchies for Exhaustive Modelling.** `ExperienceEvent`, `FeatureValue`, `FeatureField`, `SimilaritySpec`, `CbrFilter`, `TemporalDecay`, `ScopeDecay`, `WarpingConstraint`, `AdaptationAction`, `StepAgreement`, `MemoryEntityErased`, `CbrRecordErased` — all sealed. The compiler enforces exhaustive handling. Adding a new variant is a deliberate SPI evolution, not a silent addition.
 
 **Domain Tags as Universal Routing.** All cognitive subsystem data flows through `CaseMemoryStore` via domain-tagged `MemoryInput`. Experience, relationships, reflections, moods, and engagement are differentiated only by their `domain` string. Any backend that implements the store SPI automatically supports all subsystems.
 
 **Pure Computation Utilities.** `PersonalityWeightedRetrieval`, `MoodModulatedRetrieval`, `MindMapAnalyzer`, `TrendAnalyzer`, `CbrSimilarityScorer`, `DtwSimilarity`, `ScoreFusion` — all pure static utilities with zero CDI dependencies. They can be used in tests, in non-Quarkus contexts, and in any combination without wiring overhead.
 
-**Confidence as a First-Class Dimension (cf. ACT-R's activation).** Every knowledge type carries a unified `Confidence` record (`cognitive-api`): origin (STATED/INFERRED/SPECULATED/UNKNOWN) + value [0,1] + optional decay reference. `MindMapNode.confidence()`, `CbrCase.confidence()`, and `Memory.confidence()` all return the same type. `CbrOutcome` EMA preserves origin while updating value. Confidence decays over time (`ConfidenceDecayDecorator` reads `confidence().decayReference()`), gets reinforced by updating the decay reference with a fresh `Instant`, and modulates retrieval (minConfidence filters, trust weighting). The system knows what it doesn't know.
+**Confidence as a First-Class Dimension (cf. ACT-R's activation).** Every knowledge type carries a unified `Confidence` record (`cognitive-api`): origin (STATED/INFERRED/SPECULATED/UNKNOWN) + value [0,1] + optional decay reference. `MindMapNode.confidence()`, `CbrRecord.confidence()`, and `Memory.confidence()` all return the same type. `CbrOutcome` EMA preserves origin while updating value. Confidence decays over time (`ConfidenceDecayDecorator` reads `confidence().decayReference()`), gets reinforced by updating the decay reference with a fresh `Instant`, and modulates retrieval (minConfidence filters, trust weighting). The system knows what it doesn't know.
 
 ---
 

@@ -1,12 +1,11 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
-import io.casehub.neocortex.memory.cbr.CbrFeatureValidator;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordValidator;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.NumericRange;
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.Common.Range;
@@ -65,15 +64,15 @@ final class CbrQueryTranslator {
 
     static Filter applyStructuralFilters(Filter baseFilter,
                                          Map<String, CbrFilter> filters,
-                                         CbrFeatureSchema schema) {
+                                         CbrRecordSchema schema) {
         if (filters.isEmpty()) {return baseFilter;}
-        CbrFeatureValidator.validateFilters(filters, schema);
+        CbrRecordValidator.validateFilters(filters, schema);
 
         Filter.Builder builder = baseFilter.toBuilder();
         for (var entry : filters.entrySet()) {
             String       payloadKey = "f_" + entry.getKey();
             CbrFilter    filter     = entry.getValue();
-            FeatureField field      = CbrFeatureValidator.findField(schema, entry.getKey());
+            FeatureField field      = CbrRecordValidator.findField(schema, entry.getKey());
 
             applyFilter(builder, payloadKey, filter, field);
         }
@@ -132,9 +131,9 @@ final class CbrQueryTranslator {
      * Validate query features against schema types.
      * Throws IllegalArgumentException on type mismatches.
      */
-    static void validateQueryFeatures(Map<String, FeatureValue> features, CbrFeatureSchema schema) {CbrFeatureValidator.validateQueryFeatures(features, schema);}
+    static void validateQueryFeatures(Map<String, FeatureValue> features, CbrRecordSchema schema) {CbrRecordValidator.validateQueryFeatures(features, schema);}
 
-    private static FeatureField findField(CbrFeatureSchema schema, String name) {
+    private static FeatureField findField(CbrRecordSchema schema, String name) {
         for (FeatureField f : schema.fields()) {
             if (f.name().equals(name)) return f;
         }

@@ -103,7 +103,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 - Core three + integrity — adds integrity checks but still defers versioning and cross-linking
 **Rationale:** Complete coverage avoids fragmented follow-up issues. The fold-ins (temporal versioning via existing supersession, cross-linking via feature maps) are lightweight additions that leverage existing store APIs.
 **Trade-offs:** Larger implementation surface in a single issue
-**Sources:** Research §2.2, §2.8; CbrCaseMemoryStore.supersede()/features()
+**Sources:** Research §2.2, §2.8; CbrRecordStore.supersede()/features()
 **Exploration:** quick
 **Status:** captured
 
@@ -138,11 +138,11 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 **Alternatives:**
 - SummarisationRunner composition only — simpler but misses knowledge synthesis
 - ReflectionOrchestrator delegation only — generates insights but doesn't merge/reduce raw memories
-**Rationale:** Two passes serve different purposes: data reduction (100→20 memories) vs knowledge synthesis ("user raises security concerns after deployments"). Tick mode stays cheap (heuristic summariser, no LLM). Idle mode leverages Sleeptime concept for full LLM-powered reflection.
-**Trade-offs:** Idle scheduler has higher LLM cost. Reflection output is stored separately from CBR cases — reflections are `List<String>` (abstract insights) that don't fit the `CbrCase` contract (problem/solution/outcome). Stored as lightweight `ReflectionEntry` records to avoid polluting CBR retrieval results with structurally mismatched entries.
-**Sources:** Research §2.2 (LUFY, MemGPT Sleeptime); ContentSummariser; TieredContentSummariser; ReflectionOrchestrator
-**Exploration:** deep-analysis
-**Status:** revised (R1-07: reflections stored as ReflectionEntry, not CBR cases — avoids retrieval pollution and semantic mismatch with CbrCase contract)
+  **Rationale:** Two passes serve different purposes: data reduction (100→20 memories) vs knowledge synthesis ("user raises security concerns after deployments"). Tick mode stays cheap (heuristic summariser, no LLM). Idle mode leverages Sleeptime concept for full LLM-powered reflection.
+  **Trade-offs:** Idle scheduler has higher LLM cost. Reflection output is stored separately from CBR cases — reflections are `List<String>` (abstract insights) that don't fit the `CbrRecord` contract (problem/solution/outcome). Stored as lightweight `ReflectionEntry` records to avoid polluting CBR retrieval results with structurally mismatched entries.
+  **Sources:** Research §2.2 (LUFY, MemGPT Sleeptime); ContentSummariser; TieredContentSummariser; ReflectionOrchestrator
+  **Exploration:** deep-analysis
+  **Status:** revised (R1-07: reflections stored as ReflectionEntry, not CBR cases — avoids retrieval pollution and semantic mismatch with CbrRecord contract)
 
 ## D11: Eviction policy — composite score threshold (replaces CbrRetentionScheduler)
 
@@ -151,7 +151,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 - Staged filters (age → importance → capacity) — simpler but less nuanced
 - Configurable EvictionStrategy SPI with composite default — adds SPI overhead for a single-strategy concern
 - Compose with CbrRetentionPolicy.purge() — impossible because purge uses simple filter criteria (maxAgeDays, maxCasesPerType, minTrustScore), not weighted composite scores
-**Rationale:** Single unified score is easier to tune and reason about. All signal types already produce [0,1] factors. Composite = weighted product of factors. Threshold is the one knob operators adjust. Retrieval-time decay (TemporalDecayCbrCaseMemoryStore decorator) and eviction-time decay serve different purposes: retrieval decay modulates ranking; eviction decay determines whether the memory is worth keeping at all.
+**Rationale:** Single unified score is easier to tune and reason about. All signal types already produce [0,1] factors. Composite = weighted product of factors. Threshold is the one knob operators adjust. Retrieval-time decay (TemporalDecayCbrRecordStore decorator) and eviction-time decay serve different purposes: retrieval decay modulates ranking; eviction decay determines whether the memory is worth keeping at all.
 **Trade-offs:** Weight tuning requires experimentation; no independent stage-level visibility. Agents using MemoryHygiene should disable CbrRetentionScheduler for the same domain to avoid conflicting retention decisions.
 **Sources:** TemporalDecay; ScopeDecay; CbrRetentionPolicy; CbrRetentionScheduler; LUFY retention target (<10%); GE-20260804-eb75e0 (scan returns summaries without features — use retrieveSimilar)
 **Exploration:** quick
@@ -159,26 +159,26 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D12: Temporal versioning — supersession-based
 
-**Choice:** Use existing CbrCaseMemoryStore.supersede(caseId, supersedingCaseId, reason) for temporal versioning. Old memory is marked superseded; new consolidated version replaces it. reinstate() available for rollback.
+**Choice:** Use existing CbrRecordStore.supersede(caseId, supersedingCaseId, reason) for temporal versioning. Old memory is marked superseded; new consolidated version replaces it. reinstate() available for rollback.
 **Alternatives:**
 - Validity windows (validFrom/validTo) — richer bi-temporal model but requires store API changes
 - Soft-delete with archive domain — simple but grows storage
 **Rationale:** Zero new store API needed. Supersession already provides invalidate-not-delete semantics. SupersessionStatus tracking gives audit trail. reinstate() gives rollback.
 **Trade-offs:** No explicit time windows — supersession is binary (active/superseded), not temporal-range-based
-**Sources:** CbrCaseMemoryStore.supersede()/reinstate()/getSupersessionStatus(); Research §2.8
+**Sources:** CbrRecordStore.supersede()/reinstate()/getSupersessionStatus(); Research §2.8
 **Exploration:** quick
 **Status:** captured
 
 ## D13: Cross-linking — feature-based write-only annotations
 
-**Choice:** Store cross-links as StringListVal feature values on CbrCase (e.g., "related_cases" → list of caseIds). Cross-links are write-only annotations that enrich consolidated cases — not a navigable graph. During consolidation, the orchestrator records which source cases were merged into the consolidated entry. No reverse traversal (finding "what links TO case B" requires scanning all cases).
+**Choice:** Store cross-links as StringListVal feature values on CbrRecord (e.g., "related_cases" → list of caseIds). Cross-links are write-only annotations that enrich consolidated cases — not a navigable graph. During consolidation, the orchestrator records which source cases were merged into the consolidated entry. No reverse traversal (finding "what links TO case B" requires scanning all cases).
 **Alternatives:**
 - Dedicated MemoryLinkStore SPI — richer graph model with bidirectional traversal, but adds persistence contract consumers must implement
 - Supersession chains — limited to parent-child, no peer links
 - Comma-separated StringVal — rejected: forces string parsing, doesn't use FeatureValue type system
 **Rationale:** No store API change. StringListVal uses the type system correctly. Cross-links serve consolidation context ("these 5 memories were merged into this one"), not knowledge graph navigation. If navigable graph queries become needed, a dedicated link store can be added later without changing the annotation format.
 **Trade-offs:** No reverse traversal. Not a Zettelkasten-style navigable graph — scoped to consolidation provenance. Adequate for the memory hygiene use case but not for general knowledge graph queries.
-**Sources:** CbrCase.features(); FeatureValue.StringListVal; Research §2.8 (Zettelkasten/A-MEM)
+**Sources:** CbrRecord.features(); FeatureValue.StringListVal; Research §2.8 (Zettelkasten/A-MEM)
 **Exploration:** quick
 **Status:** revised (R1-02: StringListVal replaces comma-separated StringVal; scoped to write-only annotations, not navigable graph)
 
@@ -263,26 +263,26 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 **Depends on:** D17 (tiered synthesis — tick triggers the synthesis)
 **Status:** captured
 
-## D20: Profile storage — UserProfileStore SPI backed by CbrCaseMemoryStore
+## D20: Profile storage — UserProfileStore SPI backed by CbrRecordStore
 
-**Choice:** `UserProfileStore` SPI with `store(UserProfile)`, `lookup(agentId, subjectId, tenantId) → Optional<UserProfile>`, `findByAgent(agentId, tenantId) → List<UserProfile>`, `eraseSubject(subjectId, tenantId)`. Default implementation (`CbrUserProfileStore`) backs onto `CbrCaseMemoryStore` internally — CbrCase convention (profile summary as problem, fields as features, supersession for versioning) is contained in the adapter. Consumers get a profile-oriented API; the CbrCase hack is hidden.
+**Choice:** `UserProfileStore` SPI with `store(UserProfile)`, `lookup(agentId, subjectId, tenantId) → Optional<UserProfile>`, `findByAgent(agentId, tenantId) → List<UserProfile>`, `eraseSubject(subjectId, tenantId)`. Default implementation (`CbrUserProfileStore`) backs onto `CbrRecordStore` internally — CbrRecord convention (profile summary as problem, fields as features, supersession for versioning) is contained in the adapter. Consumers get a profile-oriented API; the CbrRecord hack is hidden.
 **Alternatives:**
-- Raw CbrCaseMemoryStore — exposes CbrCase semantics (problem/solution/features) that don't map naturally to profiles. Every consumer must post-filter by producerAgentId AND caseType. Erasure by subjectId is impossible without scanning all cases. The "similarity search across profiles" benefit is secondary analytics, not a core retrieval pattern.
+- Raw CbrRecordStore — exposes CbrRecord semantics (problem/solution/features) that don't map naturally to profiles. Every consumer must post-filter by producerAgentId AND caseType. Erasure by subjectId is impossible without scanning all cases. The "similarity search across profiles" benefit is secondary analytics, not a core retrieval pattern.
 - In-memory only — lost on restart. Too limiting for long-term relationships.
-**Rationale:** R1-03 (decision review): the reviewer identified that CbrCase is a semantic misfit for profile storage and proposed the adapter pattern. The primary access pattern is direct lookup by (agentId, subjectId, tenantId) — something a dedicated SPI expresses naturally. Supersession, trend enrichment, and similarity search are preserved in the backing implementation. The `eraseSubject()` method provides the GDPR Art.17 erasure path (R1-05) that raw CbrCaseMemoryStore cannot express.
+**Rationale:** R1-03 (decision review): the reviewer identified that CbrRecord is a semantic misfit for profile storage and proposed the adapter pattern. The primary access pattern is direct lookup by (agentId, subjectId, tenantId) — something a dedicated SPI expresses naturally. Supersession, trend enrichment, and similarity search are preserved in the backing implementation. The `eraseSubject()` method provides the GDPR Art.17 erasure path (R1-05) that raw CbrRecordStore cannot express.
 **Trade-offs:** One additional SPI type (UserProfileStore) and one adapter class (CbrUserProfileStore). Minor cost for significant clarity.
-**Sources:** CbrCaseMemoryStore (neocortex-memory-api), R1-03 (decision review finding), R1-05 (GDPR erasure gap), GE-20260820-c19b68 (producerAgentId post-filtering)
+**Sources:** CbrRecordStore (neocortex-memory-api), R1-03 (decision review finding), R1-05 (GDPR erasure gap), GE-20260820-c19b68 (producerAgentId post-filtering)
 **Exploration:** quick
 **Depends on:** D16 (profile subject identity — subjectId stored as feature)
-**Status:** revised (R1-03: UserProfileStore SPI wrapping CbrCaseMemoryStore, not raw CbrCase exposure; R1-05: eraseSubject for GDPR compliance)
+**Status:** revised (R1-03: UserProfileStore SPI wrapping CbrRecordStore, not raw CbrRecord exposure; R1-05: eraseSubject for GDPR compliance)
 
 ## D21: Profile structure — fixed core + extensible metadata
 
-**Choice:** Core fields defined by UserModel: relationship stage (String), familiarity score (double), interaction count (int), last interaction timestamp, positive/negative signal counts. Open-ended dimensions (topics of interest, communication style, preferences) stored as LLM-synthesized text in a summary field plus domain-specific metadata via the CbrCase features Map.
+**Choice:** Core fields defined by UserModel: relationship stage (String), familiarity score (double), interaction count (int), last interaction timestamp, positive/negative signal counts. Open-ended dimensions (topics of interest, communication style, preferences) stored as LLM-synthesized text in a summary field plus domain-specific metadata via the CbrRecord features Map.
 **Alternatives:**
 - Fully extensible ProfileDimension SPI — consumers declare what dimensions to track. Maximum flexibility but over-engineered; every consumer must configure dimensions before anything works
 - Fixed schema only — all fields pre-defined. Too rigid: clinical needs different dimensions than gaming
-**Rationale:** Fixed core gives consumers reliable, queryable fields for the common needs (relationship stage drives tone, interaction count drives personalization depth). Extensible metadata via features Map lets domains add whatever they need. LLM synthesis produces a free-text summary that captures nuances no fixed schema could anticipate. The CbrCase features Map is already designed for this — FeatureValue supports String, Number, and StringList values.
+**Rationale:** Fixed core gives consumers reliable, queryable fields for the common needs (relationship stage drives tone, interaction count drives personalization depth). Extensible metadata via features Map lets domains add whatever they need. LLM synthesis produces a free-text summary that captures nuances no fixed schema could anticipate. The CbrRecord features Map is already designed for this — FeatureValue supports String, Number, and StringList values.
 **Trade-offs:** LLM-synthesized summary is opaque — consumers can't query specific sub-fields without parsing. Mitigation: the LLM can be prompted to produce structured JSON that's stored as a StringVal feature, giving partial queryability.
 **Sources:** FeatureValue (neocortex-memory-api), UserProfileSchema concept, HeuristicMessageSummariser precedent (fixed structure from message metadata), Research §2.4 (profile schema extensibility)
 **Exploration:** quick
@@ -375,13 +375,13 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D28: Persistence — MentalModelStore SPI
 
-**Choice:** MentalModelStore SPI with store(MentalModelSnapshot), lookup(agentId, subjectId, tenantId) → Optional<MentalModelSnapshot>, findByAgent(agentId, tenantId) → List<MentalModelSnapshot>, eraseSubject(subjectId, tenantId). Default implementation backed by CbrCaseMemoryStore (same adapter pattern as CbrUserProfileStore). Beliefs stored as features; desires and intentions as JSON feature values.
+**Choice:** MentalModelStore SPI with store(MentalModelSnapshot), lookup(agentId, subjectId, tenantId) → Optional<MentalModelSnapshot>, findByAgent(agentId, tenantId) → List<MentalModelSnapshot>, eraseSubject(subjectId, tenantId). Default implementation backed by CbrRecordStore (same adapter pattern as CbrUserProfileStore). Beliefs stored as features; desires and intentions as JSON feature values.
 **Alternatives:**
 - In-memory with optional persist — primary state is ConcurrentHashMap, persistence is callback. State lost on restart, which is unacceptable for long-lived agents tracking relationship context over months.
 - RelationshipEvent storage — record mental state observations as RelationshipEvents. No separate store. Reconstruction from history is expensive (scan + replay) and loses confidence/entrenchment metadata.
-**Rationale:** Follows UserProfileStore (D20) pattern exactly. Dedicated SPI hides CbrCase impedance mismatch. The primary access pattern is direct lookup by (agentId, subjectId, tenantId). eraseSubject() provides GDPR compliance (established by D20). CbrCaseMemoryStore gives similarity search, supersession, and feature-based retrieval for free.
+**Rationale:** Follows UserProfileStore (D20) pattern exactly. Dedicated SPI hides CbrRecord impedance mismatch. The primary access pattern is direct lookup by (agentId, subjectId, tenantId). eraseSubject() provides GDPR compliance (established by D20). CbrRecordStore gives similarity search, supersession, and feature-based retrieval for free.
 **Trade-offs:** One more SPI type + adapter class. Same cost as UserProfileStore; same clarity benefit.
-**Sources:** UserProfileStore/CbrUserProfileStore (D20), CbrCaseMemoryStore (neocortex-memory-api), GDPR Art.17 erasure (D20 R1-05)
+**Sources:** UserProfileStore/CbrUserProfileStore (D20), CbrRecordStore (neocortex-memory-api), GDPR Art.17 erasure (D20 R1-05)
 **Exploration:** quick
 **Depends on:** D23 (full BDI scope), D27 (confidence decay — confidence stored as feature)
 **Status:** captured
@@ -480,12 +480,12 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 **Depends on:** D31 (per-orchestrator signal types), D38 (dimensional scores provide the snapshot values)
 **Status:** revised (R1-03: replaced free-text strategyUsed with Map<String, Double> dimensionalSnapshot for objective correlation data)
 
-## D36: Storage — StrategyStore SPI backed by CbrCaseMemoryStore
+## D36: Storage — StrategyStore SPI backed by CbrRecordStore
 
-**Choice:** StrategyStore SPI with store(StrategyProfile), lookup(agentId, tenantId) → Optional<StrategyProfile>, subjectInsights(agentId, subjectId, tenantId) → List<String>, eraseAgent(agentId, tenantId). Default CbrStrategyStore backed by CbrCaseMemoryStore. Profile lookup is per-agent (no subjectId). subjectInsights() queries engagement CBR cases filtered by subjectId feature, extracts per-subject strategy insights. Same adapter pattern as CbrUserProfileStore (D20) and CbrMentalModelStore (D28).
+**Choice:** StrategyStore SPI with store(StrategyProfile), lookup(agentId, tenantId) → Optional<StrategyProfile>, subjectInsights(agentId, subjectId, tenantId) → List<String>, eraseAgent(agentId, tenantId). Default CbrStrategyStore backed by CbrRecordStore. Profile lookup is per-agent (no subjectId). subjectInsights() queries engagement CBR cases filtered by subjectId feature, extracts per-subject strategy insights. Same adapter pattern as CbrUserProfileStore (D20) and CbrMentalModelStore (D28).
 **Alternatives:**
 - In-memory only — profiles lost on restart. Unacceptable for learning that accumulates over weeks/months.
-- Direct CbrCaseMemoryStore — exposes CbrCase semantics. Already rejected in D20 and D28.
+- Direct CbrRecordStore — exposes CbrRecord semantics. Already rejected in D20 and D28.
 - No per-subject retrieval (original D36) — leaves per-subject strategy gap (R1-08). The StrategyProfile is global; consumers at interaction time need "what works with User X" without manually querying CBR.
 **Rationale:** Same pattern as the two prior stores, plus subjectInsights() to close the per-subject retrieval gap identified in R1-08. The method is a convenience query — internally filters engagement CBR cases by subjectId feature and returns summary insights. Placeholder solution field per GE-20260820-d4e011.
 **Trade-offs:** subjectInsights() requires scanning CBR cases with post-filtering (GE-20260820-c19b68). Acceptable for per-interaction retrieval on bounded case sets.
@@ -498,8 +498,8 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 **Choice:** tick() runs tiers 1-2 (cheap). reflect() runs tier 3 (expensive). Separated per revised D33.
 - Tier 1 (per-response, every tick with new signals): Update aggregate engagement counters — signals processed, engagement rate (responded/total), mean sentiment trend, mean response length. NO dimensional score adjustment — tier 1 cannot attribute engagement changes to specific dimensions (R1-05). Zero LLM cost.
-- Tier 2 (per-conversation, on ConversationOutcome signal or threshold): Two separate operations: (a) structured feature extraction — aggregate EngagementEvent fields directly into numeric features (avgResponseLength, continuationRate, meanSentimentShift, avgDimensionalSnapshot per dimension); (b) optional text summary via ContentSummariser<EngagementSignal> stored as StringVal feature. Assembled into a CbrCase and stored via CbrCaseMemoryStore. Builds the per-subject evidence base.
-- Tier 3 (periodic, in reflect()): Full reflection pipeline. ReflectionOrchestrator.reflect() over accumulated memories. TrendAnalyzer on engagement CBR case history — requires CbrFeatureSchema with TimeSeries fields (spec will define schema). LLM synthesis correlates dimensional snapshots with engagement outcomes to produce updated StrategyProfile (new guidelines, revised dimensional scores). Stores profile via StrategyStore.
+- Tier 2 (per-conversation, on ConversationOutcome signal or threshold): Two separate operations: (a) structured feature extraction — aggregate EngagementEvent fields directly into numeric features (avgResponseLength, continuationRate, meanSentimentShift, avgDimensionalSnapshot per dimension); (b) optional text summary via ContentSummariser<EngagementSignal> stored as StringVal feature. Assembled into a CbrRecord and stored via CbrRecordStore. Builds the per-subject evidence base.
+- Tier 3 (periodic, in reflect()): Full reflection pipeline. ReflectionOrchestrator.reflect() over accumulated memories. TrendAnalyzer on engagement CBR case history — requires CbrRecordSchema with TimeSeries fields (spec will define schema). LLM synthesis correlates dimensional snapshots with engagement outcomes to produce updated StrategyProfile (new guidelines, revised dimensional scores). Stores profile via StrategyStore.
 **Alternatives:**
 - SummarisationRunner pipeline for tier aggregation — overhead disproportionate to engagement signal volume.
 - Tier 1 adjusts dimensional scores heuristically — can't attribute engagement to dimensions from EngagementEvent metrics alone (R1-05). Only responseLength maps to verbosity; others are outcome metrics, not strategy indicators.
@@ -512,7 +512,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D38: Strategy dimensions — fixed core + extensible metadata
 
-**Choice:** Five core dimensions: verbosity (concise↔elaborate), formality (casual↔formal), initiative (reactive↔proactive), directness (indirect↔direct), questionRate (statements↔questions). Each double [0,1], default 0.5 (neutral). Consumers add domain-specific dimensions via CbrCase features on the backing store.
+**Choice:** Five core dimensions: verbosity (concise↔elaborate), formality (casual↔formal), initiative (reactive↔proactive), directness (indirect↔direct), questionRate (statements↔questions). Each double [0,1], default 0.5 (neutral). Consumers add domain-specific dimensions via CbrRecord features on the backing store.
 **Alternatives:**
 - Fully configurable dimension set — maximum flexibility but every consumer must configure.
 - Open-ended only (no numerics) — simple but not queryable.

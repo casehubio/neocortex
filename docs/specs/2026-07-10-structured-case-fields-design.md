@@ -213,12 +213,12 @@ All existing `with*` methods updated to thread `filters` through.
 **Breaking change**: Record constructor gains a parameter. Pre-release — direct
 constructor callers (tests, backends) need updating. Factory method callers unaffected.
 
-### CbrFeatureSchema — Field Name Uniqueness
+### CbrRecordSchema — Field Name Uniqueness
 
 With mixed flat and structured field types sharing the same `FeatureField` sealed
 interface, duplicate field names cause cross-type shadowing: every `findField`
 implementation (in `CbrSimilarityScorer`, `CbrQueryTranslator`, and
-`CbrFeatureValidator`) uses linear scan returning the first match. A schema with
+`CbrRecordValidator`) uses linear scan returning the first match. A schema with
 both `categorical("posture")` and `categoricalList("posture")` would silently
 shadow the list variant, causing filter validation to check against the wrong
 field type.
@@ -226,7 +226,7 @@ field type.
 Add uniqueness validation to the compact constructor:
 
 ```java
-public CbrFeatureSchema {
+public CbrRecordSchema {
     Objects.requireNonNull(caseType, "caseType required");
     if (caseType.isBlank()) throw new IllegalArgumentException("caseType must not be blank");
     Objects.requireNonNull(fields, "fields required");
@@ -265,7 +265,7 @@ naturally.
 
 ### CbrQueryTranslator — Structural Filter Conditions
 
-New method `applyStructuralFilters(Filter baseFilter, Map<String, CbrFilter> filters, CbrFeatureSchema schema)`:
+New method `applyStructuralFilters(Filter baseFilter, Map<String, CbrFilter> filters, CbrRecordSchema schema)`:
 
 | CbrFilter variant | Qdrant mapping |
 |---|---|
@@ -278,7 +278,7 @@ New method `applyStructuralFilters(Filter baseFilter, Map<String, CbrFilter> fil
 Sub-field value mapping in `HasMatch`: `String` → `matchKeyword`, `Number` →
 `range(gte=val, lte=val)`, `NumericRange` → `range(gte=min, lte=max)`.
 
-### Integration Point — QdrantCbrCaseMemoryStore.retrieveSimilar()
+### Integration Point — QdrantCbrRecordStore.retrieveSimilar()
 
 Structural filters are combined with the identity filter **once**, before
 dispatching to any retrieval path. This ensures consistent filtering regardless
@@ -303,7 +303,7 @@ return switch (effectiveMode) {
 
 Structural filters are hard pre-filters — silently ignoring them when a schema is
 missing is a correctness violation. Callers providing filters expect them to be
-applied. The same guard applies to `InMemoryCbrCaseMemoryStore.retrieveSimilar()`:
+applied. The same guard applies to `InMemoryCbrRecordStore.retrieveSimilar()`:
 structural filters are evaluated after identity filters, before scoring, and
 require a registered schema.
 
@@ -344,7 +344,7 @@ index type:
 
 ### CbrSimilarityScorer — Skip Structured Fields
 
-Structured fields are invisible to scoring. `CbrFeatureValidator.validateQueryFeatures()`
+Structured fields are invisible to scoring. `CbrRecordValidator.validateQueryFeatures()`
 rejects any feature whose schema field is a structured type with a clear message:
 
 ```java
@@ -360,9 +360,9 @@ prevents it) but required for exhaustive switch compilation on the sealed type.
 
 ## In-Memory Backend
 
-### InMemoryCbrCaseMemoryStore — Filter Evaluation
+### InMemoryCbrRecordStore — Filter Evaluation
 
-New `matchesFilters(CbrCase, Map<String, CbrFilter>, CbrFeatureSchema)` method
+New `matchesFilters(CbrRecord, Map<String, CbrFilter>, CbrRecordSchema)` method
 applied after identity filters, before scoring:
 
 | CbrFilter variant | In-memory evaluation |
@@ -397,11 +397,11 @@ to ensure in-memory and Qdrant backends produce identical results.
 
 ## Validation
 
-### CbrFeatureValidator — Shared Utility
+### CbrRecordValidator — Shared Utility
 
 New class in `memory-api` consolidating validation logic currently duplicated
 between `CbrQueryTranslator.validateQueryFeatures()` and
-`InMemoryCbrCaseMemoryStore.validateQueryFeatures()`:
+`InMemoryCbrRecordStore.validateQueryFeatures()`:
 
 - `validateStoreFeatures(features, schema)` — store-time value type checking,
   including structured types: `CategoricalList` requires `List<String>`,
@@ -425,9 +425,9 @@ Both store implementations call `validateStoreFeatures` when a schema is registe
 
 ```java
 // In store() — after schema lookup, before serialization/storage
-CbrFeatureSchema schema = schemas.get(caseType);
+CbrRecordSchema schema = schemas.get(caseType);
 if (schema != null) {
-    CbrFeatureValidator.validateStoreFeatures(cbrCase.features(), schema);
+    CbrRecordValidator.validateStoreFeatures(cbrCase.features(), schema);
 }
 ```
 
@@ -440,10 +440,10 @@ but required for filtered queries.
 
 ## Unchanged Components
 
-- **CbrReconciliationService** — re-creates points from CbrCase; structured features
+- **CbrReconciliationService** — re-creates points from CbrRecord; structured features
   flow through `features()` → `CbrPointBuilder` automatically.
 - **Cross-encoder reranking decorator** — operates on `problem()` text for
-  reranking. Both `RerankingCbrCaseMemoryStore` and `ReactiveRerankingCbrCaseMemoryStore`
+  reranking. Both `RerankingCbrRecordStore` and `ReactiveRerankingCbrRecordStore`
   construct overfetch `CbrQuery` instances with positional arguments. These must
   pass through `query.filters()` to the new constructor parameter — otherwise
   structural filters would be silently dropped during reranking overfetch. This is
@@ -453,7 +453,7 @@ but required for filtered queries.
 
 ## Contract Tests
 
-New tests in `CbrCaseMemoryStoreContractTest` (~23 tests):
+New tests in `CbrRecordStoreContractTest` (~23 tests):
 
 1. CategoricalList store and retrieve (with and without Contains filter)
 2. ContainsAll — matches subset, rejects missing element
@@ -474,7 +474,7 @@ New tests in `CbrCaseMemoryStoreContractTest` (~23 tests):
 17. Validation: query with non-empty filters and no registered schema → IllegalStateException
 18. Validation: inner Categorical field with SimilaritySpec → IllegalArgumentException
 19. Validation: inner Text field with semantic=true → IllegalArgumentException
-20. Validation: duplicate field names in CbrFeatureSchema → IllegalArgumentException
+20. Validation: duplicate field names in CbrRecordSchema → IllegalArgumentException
 21. Validation: HasMatch with non-existent sub-field name → IllegalArgumentException
 22. Validation: HasMatch with Number value on Categorical inner field → IllegalArgumentException
 23. Validation: HasMatch with String value on Numeric inner field → IllegalArgumentException
@@ -491,21 +491,21 @@ the codebase:
 | 2 | `CbrQueryTranslator.toFilter()` | memory-qdrant | Unreachable for same reason. Cases throw `IllegalStateException`. |
 | 3 | `CbrQueryTranslator.validateQueryFeatures()` | memory-qdrant | Active: new cases reject structured field types in features with `IllegalArgumentException`. |
 | 4 | `CbrCollectionManager.registerSchemaIndexes()` | memory-qdrant | Active: new cases create appropriate payload indexes (see §Storage). |
-| 5 | `QdrantCbrCaseMemoryStore.buildTextOverrides()` | memory-qdrant | No-op: structured fields are not `Text`, so new cases are empty `-> {}`. |
+| 5 | `QdrantCbrRecordStore.buildTextOverrides()` | memory-qdrant | No-op: structured fields are not `Text`, so new cases are empty `-> {}`. |
 
-Additionally, `InMemoryCbrCaseMemoryStore.validateQueryFeatures()` uses `instanceof`
+Additionally, `InMemoryCbrRecordStore.validateQueryFeatures()` uses `instanceof`
 chains (not a switch expression) — it needs the same structured field rejection logic
-as site #3. This validation is consolidated in `CbrFeatureValidator`.
+as site #3. This validation is consolidated in `CbrRecordValidator`.
 
 ## Module Impact
 
 | Module | Changes |
 |---|---|
-| `memory-api` | FeatureField (3 variants + `validateFlatFields`), CbrFilter (new type), CbrQuery (filters field), CbrFeatureSchema (field name uniqueness), CbrFeatureValidator (new), CbrSimilarityScorer (switch update) |
-| `memory-cbr-inmem` | InMemoryCbrCaseMemoryStore (filter evaluation, validation via CbrFeatureValidator) |
-| `memory-qdrant` | CbrPointBuilder (structured serialization), CbrQueryTranslator (structural filters, switch updates), CbrCollectionManager (payload indexes incl. NestedObject), QdrantCbrCaseMemoryStore (wire filters, switch update in buildTextOverrides) |
-| `memory-testing` | CbrCaseMemoryStoreContractTest (~23 new tests) |
-| `memory` | NoOpCbrCaseMemoryStore (compile fix — CbrQuery constructor) |
+| `memory-api` | FeatureField (3 variants + `validateFlatFields`), CbrFilter (new type), CbrQuery (filters field), CbrRecordSchema (field name uniqueness), CbrRecordValidator (new), CbrSimilarityScorer (switch update) |
+| `memory-cbr-inmem` | InMemoryCbrRecordStore (filter evaluation, validation via CbrRecordValidator) |
+| `memory-qdrant` | CbrPointBuilder (structured serialization), CbrQueryTranslator (structural filters, switch updates), CbrCollectionManager (payload indexes incl. NestedObject), QdrantCbrRecordStore (wire filters, switch update in buildTextOverrides) |
+| `memory-testing` | CbrRecordStoreContractTest (~23 new tests) |
+| `memory` | NoOpCbrRecordStore (compile fix — CbrQuery constructor) |
 | `memory-cbr-crossencoder` | Correctness fix — CbrQuery overfetch must pass through `query.filters()` |
 | `memory-cbr-embedding` | No changes |
 

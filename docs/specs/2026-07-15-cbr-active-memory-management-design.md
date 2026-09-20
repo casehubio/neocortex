@@ -8,7 +8,7 @@
 
 Two gaps in the CBR case base management:
 
-1. **Relevance decay exists but is applied in the wrong place.** `TemporalDecay` SPI is defined on `CbrQuery` with a `HalfLife` variant. `InMemoryCbrCaseMemoryStore` applies it as a post-scoring multiplier inside the store. `QdrantCbrCaseMemoryStore` ignores it entirely. The store-level placement is also incorrect: the reranking decorator (`@Priority(75)`) replaces scores with cross-encoder evaluation, discarding any pre-applied decay factor. Store-level decay has zero effect on the final ranking when reranking is enabled.
+1. **Relevance decay exists but is applied in the wrong place.** `TemporalDecay` SPI is defined on `CbrQuery` with a `HalfLife` variant. `InMemoryCbrRecordStore` applies it as a post-scoring multiplier inside the store. `QdrantCbrRecordStore` ignores it entirely. The store-level placement is also incorrect: the reranking decorator (`@Priority(75)`) replaces scores with cross-encoder evaluation, discarding any pre-applied decay factor. Store-level decay has zero effect on the final ranking when reranking is enabled.
 
 2. **No supersession concept.** Cases that have been invalidated (overturned rulings, revised protocols, corrected diagnoses) continue to appear in retrieval results. There is no mechanism to exclude them without deleting them — and deletion destroys the audit trail.
 
@@ -24,7 +24,7 @@ Two gaps in the CBR case base management:
 
 ### 1.1 Decorator placement
 
-New `TemporalDecayCbrCaseMemoryStore` at `@Decorator @Priority(80)`:
+New `TemporalDecayCbrRecordStore` at `@Decorator @Priority(80)`:
 
 ```
 TrendEnrichment@90 → Decay@80 → Reranking@75 → OutcomeWeighting@65 → Tracking@50 → Store
@@ -38,13 +38,13 @@ Decay sees the final reranked scores (or base scores when reranking is disabled)
 
 **Post-decay filtering:** After applying decay, re-filter against `query.minSimilarity()` and re-sort. Results that were above threshold before decay may fall below after.
 
-**Reactive parity:** `ReactiveTemporalDecayCbrCaseMemoryStore` at same priority.
+**Reactive parity:** `ReactiveTemporalDecayCbrRecordStore` at same priority.
 
-### 1.2 `Instant storedAt` on `ScoredCbrCase`
+### 1.2 `Instant storedAt` on `CbrMatch`
 
-In CBR, when a precedent was established is domain-relevant — not a storage implementation detail. `caseId` is already on `ScoredCbrCase`; `storedAt` is the same kind of metadata.
+In CBR, when a precedent was established is domain-relevant — not a storage implementation detail. `caseId` is already on `CbrMatch`; `storedAt` is the same kind of metadata.
 
-Add `Instant storedAt` (nullable) to `ScoredCbrCase`. All stores populate it from their storage timestamp:
+Add `Instant storedAt` (nullable) to `CbrMatch`. All stores populate it from their storage timestamp:
 - **Qdrant:** Extract from `_stored_at` payload field (already persisted)
 - **In-memory:** From the internal `StoredCase.storedAt()` field
 - **JPA/SQLite:** From the `stored_at` column
@@ -53,38 +53,38 @@ Backward-compatible: existing convenience constructors default `storedAt` to nul
 
 #### `with*` mutation methods
 
-All score or flag modifications on `ScoredCbrCase` MUST use `with*` methods, not constructors. These methods return an immutable copy preserving all fields except the one being changed:
+All score or flag modifications on `CbrMatch` MUST use `with*` methods, not constructors. These methods return an immutable copy preserving all fields except the one being changed:
 
 ```java
-public ScoredCbrCase<C> withScore(double newScore) {
-    return new ScoredCbrCase<>(cbrCase, caseId, newScore, reranked, featureSimilarities, storedAt);
+public CbrMatch<C> withScore(double newScore) {
+    return new CbrMatch<>(cbrCase, caseId, newScore, reranked, featureSimilarities, storedAt);
 }
 
-public ScoredCbrCase<C> withReranked() {
-    return new ScoredCbrCase<>(cbrCase, caseId, score, true, featureSimilarities, storedAt);
+public CbrMatch<C> withReranked() {
+    return new CbrMatch<>(cbrCase, caseId, score, true, featureSimilarities, storedAt);
 }
 ```
 
-This is a mandatory pattern for decorators: `OutcomeWeightingCbrCaseMemoryStore` and `RerankingCbrCaseMemoryStore` currently construct new `ScoredCbrCase` instances with the 5-arg constructor, which would silently drop `storedAt`. Both must be updated to use `withScore()` / `withReranked()` instead.
+This is a mandatory pattern for decorators: `OutcomeWeightingCbrRecordStore` and `RerankingCbrRecordStore` currently construct new `CbrMatch` instances with the 5-arg constructor, which would silently drop `storedAt`. Both must be updated to use `withScore()` / `withReranked()` instead.
 
-**OutcomeWeighting** (line 68-69): `new ScoredCbrCase<>(scored.cbrCase(), scored.caseId(), newScore, scored.reranked(), scored.featureSimilarities())` → `scored.withScore(newScore)`
+**OutcomeWeighting** (line 68-69): `new CbrMatch<>(scored.cbrCase(), scored.caseId(), newScore, scored.reranked(), scored.featureSimilarities())` → `scored.withScore(newScore)`
 
-**Reranking** (line 98): `new ScoredCbrCase<C>(...).withReranked()` → `original.withScore(sigmoidScore).withReranked()`
+**Reranking** (line 98): `new CbrMatch<C>(...).withReranked()` → `original.withScore(sigmoidScore).withReranked()`
 
 Constructors remain for initial creation (store implementations constructing results from storage), where `storedAt` is provided explicitly or defaulted to null.
 
-### 1.3 Remove store-level decay from InMemoryCbrCaseMemoryStore and JpaCbrCaseMemoryStore
+### 1.3 Remove store-level decay from InMemoryCbrRecordStore and JpaCbrRecordStore
 
 Both stores apply decay inline during retrieval. This must be removed — the decorator is the single point of decay application.
 
-**InMemoryCbrCaseMemoryStore** (lines 131-132):
+**InMemoryCbrRecordStore** (lines 131-132):
 ```java
 if (query.temporalDecay() != null) {
     score *= query.temporalDecay().factor(stored.storedAt(), Instant.now());
 }
 ```
 
-**JpaCbrCaseMemoryStore** (lines 145-147):
+**JpaCbrRecordStore** (lines 145-147):
 ```java
 if (query.temporalDecay() != null) {
     score *= query.temporalDecay().factor(entity.storedAt, Instant.now());
@@ -112,25 +112,25 @@ All implement `double factor(Instant storedAt, Instant now)`. Contract: return 1
 ```java
 @Decorator
 @Priority(80)
-public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
+public class TemporalDecayCbrRecordStore implements CbrRecordStore {
 
-    private final CbrCaseMemoryStore delegate;
+    private final CbrRecordStore delegate;
 
     @Inject
-    TemporalDecayCbrCaseMemoryStore(@Delegate @Any CbrCaseMemoryStore delegate) {
+    TemporalDecayCbrRecordStore(@Delegate @Any CbrRecordStore delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(
+    public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(
             CbrQuery query, Class<C> caseType) {
-        List<ScoredCbrCase<C>> results = delegate.retrieveSimilar(query, caseType);
+        List<CbrMatch<C>> results = delegate.retrieveSimilar(query, caseType);
         if (query.temporalDecay() == null) {
             return results;
         }
         Instant now = Instant.now();
         TemporalDecay decay = query.temporalDecay();
-        List<ScoredCbrCase<C>> decayed = new ArrayList<>(results.size());
+        List<CbrMatch<C>> decayed = new ArrayList<>(results.size());
         for (var scored : results) {
             double factor = (scored.storedAt() != null)
                 ? decay.factor(scored.storedAt(), now) : 1.0;
@@ -149,7 +149,7 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
 ### 1.6 Module placement
 
-`TemporalDecayCbrCaseMemoryStore` + reactive variant go in the `memory/` module alongside `TrendEnrichmentCbrCaseMemoryStore` (@90) and `OutcomeWeightingCbrCaseMemoryStore` (@65). All three are lightweight decorators with no external dependencies beyond memory-api.
+`TemporalDecayCbrRecordStore` + reactive variant go in the `memory/` module alongside `TrendEnrichmentCbrRecordStore` (@90) and `OutcomeWeightingCbrRecordStore` (@65). All three are lightweight decorators with no external dependencies beyond memory-api.
 
 ---
 
@@ -157,7 +157,7 @@ public class TemporalDecayCbrCaseMemoryStore implements CbrCaseMemoryStore {
 
 ### 2.1 SPI methods
 
-Add to `CbrCaseMemoryStore`:
+Add to `CbrRecordStore`:
 
 ```java
 void supersede(String caseId, String tenantId,
@@ -165,7 +165,7 @@ void supersede(String caseId, String tenantId,
 void reinstate(String caseId, String tenantId);
 ```
 
-Reactive parity on `ReactiveCbrCaseMemoryStore`:
+Reactive parity on `ReactiveCbrRecordStore`:
 
 ```java
 Uni<Void> supersede(String caseId, String tenantId,
@@ -198,9 +198,9 @@ Uni<Void> reinstate(String caseId, String tenantId);
 
 `CbrQueryTranslator.toIdentityFilter()` in memory-qdrant adds a `IsNull("_superseded_at")` condition. Superseded cases never appear in `retrieveSimilar()` results. This is unconditional — no query flag to include superseded cases.
 
-For in-memory: `InMemoryCbrCaseMemoryStore.retrieveSimilar()` skips cases where `stored.supersededAt() != null`.
+For in-memory: `InMemoryCbrRecordStore.retrieveSimilar()` skips cases where `stored.supersededAt() != null`.
 
-For JPA: `JpaCbrCaseMemoryStore.retrieveSimilar()` adds `AND e.supersededAt IS NULL` to the JPQL query at line 119. The current query filters only by tenantId, domain, caseType, and optionally notBefore — without this condition, superseded cases appear in JPA retrieval results.
+For JPA: `JpaCbrRecordStore.retrieveSimilar()` adds `AND e.supersededAt IS NULL` to the JPQL query at line 119. The current query filters only by tenantId, domain, caseType, and optionally notBefore — without this condition, superseded cases appear in JPA retrieval results.
 
 **`toFilter()` deletion:** `CbrQueryTranslator.toFilter()` is dead code — zero production callers (only referenced by `CbrQueryTranslatorTest`). Its Javadoc says "Retained for backward compatibility" but there is no backward compatibility concern in this platform. Delete `toFilter()` and its tests to eliminate the risk of a future caller bypassing the supersession filter.
 
@@ -220,27 +220,27 @@ For JPA: `JpaCbrCaseMemoryStore.retrieveSimilar()` adds `AND e.supersededAt IS N
 
 Supersession is a store-level filter, not a decorator. The decorators never see superseded cases because the store filters them out before returning — no behavioral changes to decorator retrieval logic.
 
-However, adding `supersede()` and `reinstate()` to the `CbrCaseMemoryStore` interface requires all implementations to provide them. Every decorator must add mechanical delegation (`delegate.supersede(...)` / `delegate.reinstate(...)`).
+However, adding `supersede()` and `reinstate()` to the `CbrRecordStore` interface requires all implementations to provide them. Every decorator must add mechanical delegation (`delegate.supersede(...)` / `delegate.reinstate(...)`).
 
 **Blocking decorators requiring delegation:**
-- `TrendEnrichmentCbrCaseMemoryStore` (memory/)
-- `OutcomeWeightingCbrCaseMemoryStore` (memory/)
-- `RerankingCbrCaseMemoryStore` (memory-cbr-crossencoder/)
-- `TrackingCbrCaseMemoryStore` (memory-cbr-tracking/)
-- `NoOpCbrCaseMemoryStore` (memory/) — empty implementations
+- `TrendEnrichmentCbrRecordStore` (memory/)
+- `OutcomeWeightingCbrRecordStore` (memory/)
+- `RerankingCbrRecordStore` (memory-cbr-crossencoder/)
+- `TrackingCbrRecordStore` (memory-cbr-tracking/)
+- `NoOpCbrRecordStore` (memory/) — empty implementations
 - `BlockingToReactiveCbrBridge` (memory/) — delegates to blocking store
 
 **Reactive decorators requiring delegation:**
-- `ReactiveTrendEnrichmentCbrCaseMemoryStore` (memory/)
-- `ReactiveOutcomeWeightingCbrCaseMemoryStore` (memory/)
-- `ReactiveRerankingCbrCaseMemoryStore` (memory-cbr-crossencoder/)
-- `ReactiveTrackingCbrCaseMemoryStore` (memory-cbr-tracking/)
+- `ReactiveTrendEnrichmentCbrRecordStore` (memory/)
+- `ReactiveOutcomeWeightingCbrRecordStore` (memory/)
+- `ReactiveRerankingCbrRecordStore` (memory-cbr-crossencoder/)
+- `ReactiveTrackingCbrRecordStore` (memory-cbr-tracking/)
 
 ---
 
 ## §3 Contract Tests
 
-### 3.1 New contract tests (CbrCaseMemoryStoreContractTest)
+### 3.1 New contract tests (CbrRecordStoreContractTest)
 
 **storedAt population:**
 - `storedAt_populatedOnRetrievedCases` — store a case, retrieve it, assert `storedAt` is non-null and recent
@@ -257,7 +257,7 @@ However, adding `supersede()` and `reinstate()` to the `CbrCaseMemoryStore` inte
 
 **Supersession metadata-update (store-level — per-store test classes):**
 
-The metadata-update semantics from §2.1 (timestamp preserved, metadata correctable) cannot be verified through the SPI because supersession metadata is not SPI-readable (deferred to #155). These tests belong in each store's own test class (`InMemoryCbrCaseMemoryStoreTest`, `JpaCbrCaseMemoryStoreTest`, `QdrantCbrCaseMemoryStoreTest`), where internal state can be queried directly:
+The metadata-update semantics from §2.1 (timestamp preserved, metadata correctable) cannot be verified through the SPI because supersession metadata is not SPI-readable (deferred to #155). These tests belong in each store's own test class (`InMemoryCbrRecordStoreTest`, `JpaCbrRecordStoreTest`, `QdrantCbrRecordStoreTest`), where internal state can be queried directly:
 
 - `supersede_repeatCall_preservesTimestamp` — supersede twice, verify `supersededAt` unchanged
 - `supersede_repeatCall_updatesNonNullMetadata` — supersede with reason A, supersede with reason B, verify B stored
@@ -283,13 +283,13 @@ The metadata-update semantics from §2.1 (timestamp preserved, metadata correcta
 
 | Module | Changes |
 |--------|---------|
-| **memory-api** | `TemporalDecay`: add `Linear`, `Step` records; update `HalfLife.factor()` for null `storedAt`. `ScoredCbrCase`: add `Instant storedAt`, `withScore(double)`, update `withReranked()` to preserve all fields. `CbrCaseMemoryStore`: add `supersede()`, `reinstate()` with audit metadata. `ReactiveCbrCaseMemoryStore`: reactive parity. |
-| **memory/** | New `TemporalDecayCbrCaseMemoryStore` @Decorator @Priority(80) + reactive. `OutcomeWeightingCbrCaseMemoryStore` + reactive: use `withScore()` instead of constructing new instances. `TrendEnrichmentCbrCaseMemoryStore` + reactive: delegate `supersede()`/`reinstate()`. `BlockingToReactiveCbrBridge`: delegate new methods. `NoOpCbrCaseMemoryStore`: empty implementations. |
+| **memory-api** | `TemporalDecay`: add `Linear`, `Step` records; update `HalfLife.factor()` for null `storedAt`. `CbrMatch`: add `Instant storedAt`, `withScore(double)`, update `withReranked()` to preserve all fields. `CbrRecordStore`: add `supersede()`, `reinstate()` with audit metadata. `ReactiveCbrRecordStore`: reactive parity. |
+| **memory/** | New `TemporalDecayCbrRecordStore` @Decorator @Priority(80) + reactive. `OutcomeWeightingCbrRecordStore` + reactive: use `withScore()` instead of constructing new instances. `TrendEnrichmentCbrRecordStore` + reactive: delegate `supersede()`/`reinstate()`. `BlockingToReactiveCbrBridge`: delegate new methods. `NoOpCbrRecordStore`: empty implementations. |
 | **memory-cbr-inmem** | Remove store-level decay. Populate `storedAt`. Implement `supersede()`, `reinstate()`. |
 | **memory-qdrant** | Populate `storedAt`. Implement `supersede()`, `reinstate()`. Add `_superseded_at` filter in `CbrQueryTranslator.toIdentityFilter()`. Delete dead-code `toFilter()` method and its tests. |
 | **memory-cbr-jpa** | Remove store-level decay. Implement `supersede()`, `reinstate()`. Add `AND e.supersededAt IS NULL` to retrieval JPQL. Add Flyway migration for `superseded_at`, `superseding_case_id`, `supersession_reason` columns. Populate `storedAt`. |
-| **memory-cbr-crossencoder** | `RerankingCbrCaseMemoryStore` + reactive: use `withScore().withReranked()` instead of constructing new instances. Delegate `supersede()`/`reinstate()`. |
-| **memory-cbr-tracking** | `TrackingCbrCaseMemoryStore` + reactive: delegate `supersede()`/`reinstate()`. Chain integration test per §3.3. |
+| **memory-cbr-crossencoder** | `RerankingCbrRecordStore` + reactive: use `withScore().withReranked()` instead of constructing new instances. Delegate `supersede()`/`reinstate()`. |
+| **memory-cbr-tracking** | `TrackingCbrRecordStore` + reactive: delegate `supersede()`/`reinstate()`. Chain integration test per §3.3. |
 | **memory-testing** | Contract tests per §3.1. Decay decorator unit tests per §3.2. |
 
 ---
@@ -302,7 +302,7 @@ Store-level decay is discarded by the reranking decorator. Decorator at @Priorit
 
 ### DD-2: `storedAt` is domain data
 
-When a precedent was established is domain-relevant in CBR. `storedAt` on `ScoredCbrCase` is the same kind of metadata as `caseId` — not storage leakage.
+When a precedent was established is domain-relevant in CBR. `storedAt` on `CbrMatch` is the same kind of metadata as `caseId` — not storage leakage.
 
 ### DD-3: Query-driven activation for decay
 

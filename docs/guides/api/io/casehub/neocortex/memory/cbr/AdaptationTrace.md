@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.AdaptationTrace
+# io.casehub.neocortex.memory.cbr.CbrAdaptationTrace
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -42,7 +42,7 @@
 
 ## Constructors
 
-### `public AdaptationTrace(java.lang.String traceId, java.lang.String retrievalTraceId, java.lang.String caseType, java.lang.String sourceCaseId, double sourceScore, java.util.List<io.casehub.neocortex.memory.cbr.AdaptedStep> steps, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> currentFeatures, java.time.Instant timestamp)`
+### `public CbrAdaptationTrace(java.lang.String traceId, java.lang.String retrievalTraceId, java.lang.String caseType, java.lang.String sourceCaseId, double sourceScore, java.util.List<io.casehub.neocortex.memory.cbr.AdaptedStep> steps, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> currentFeatures, java.time.Instant timestamp)`
 
 #### Parameters
 

@@ -1,7 +1,7 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.grpc.Collections.CreateCollection;
@@ -77,7 +77,7 @@ final class CbrCollectionManager {
         knownCollections.add(collection);
     }
 
-    void registerSchemaIndexes(CbrFeatureSchema schema, int vectorDimension) {
+    void registerSchemaIndexes(CbrRecordSchema schema, int vectorDimension) {
         ensureCollection(schema.caseType(), vectorDimension);
         String collection = collectionName(schema.caseType());
         for (FeatureField field : schema.fields()) {

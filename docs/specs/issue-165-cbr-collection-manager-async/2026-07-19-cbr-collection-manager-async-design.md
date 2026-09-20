@@ -6,7 +6,7 @@
 
 ## Problem
 
-`CbrCollectionManager` wraps natively-async Qdrant gRPC calls (`ListenableFuture`) with blocking `.get()`. `ReactiveQdrantCbrCaseMemoryStore` then wraps these blocking calls with `runSubscriptionOn(workerPool)` to avoid blocking the Vert.x event loop. This creates a double conversion: async → blocking → async, with unnecessary worker pool dispatch overhead.
+`CbrCollectionManager` wraps natively-async Qdrant gRPC calls (`ListenableFuture`) with blocking `.get()`. `ReactiveQdrantCbrRecordStore` then wraps these blocking calls with `runSubscriptionOn(workerPool)` to avoid blocking the Vert.x event loop. This creates a double conversion: async → blocking → async, with unnecessary worker pool dispatch overhead.
 
 Pre-existing bug: `purgeCollection()` calls `deleteByFilter` via `Uni.createFrom().item(() -> ...)` without `runSubscriptionOn` — blocks the event loop if called from a reactive context.
 
@@ -24,7 +24,7 @@ Package-private utility class in `io.casehub.neocortex.memory.cbr.qdrant`, mirro
 static <T> Uni<T> toUni(ListenableFuture<T> future)
 ```
 
-Includes cancellation propagation (`em.onTermination(() -> future.cancel(false))`). Replaces the private static `toUni()` in `ReactiveQdrantCbrCaseMemoryStore`, which lacks cancellation propagation — cancelled Uni subscriptions (timeout, client disconnect, competing Uni arm failure) now cancel the underlying gRPC `ListenableFuture`. This is an intentional improvement affecting all existing `toUni()` callers in the reactive store, matching the rag module's established behavior.
+Includes cancellation propagation (`em.onTermination(() -> future.cancel(false))`). Replaces the private static `toUni()` in `ReactiveQdrantCbrRecordStore`, which lacks cancellation propagation — cancelled Uni subscriptions (timeout, client disconnect, competing Uni arm failure) now cancel the underlying gRPC `ListenableFuture`. This is an intentional improvement affecting all existing `toUni()` callers in the reactive store, matching the rag module's established behavior.
 
 **Duplication rationale:** `memory-qdrant` has no Maven dependency on the `rag` module, and the rag copy is package-private. Both are internal implementation details of their respective modules — a shared utility module for a 12-line static method would be over-engineering. Each copy has its own test class (`QdrantFuturesTest`).
 
@@ -43,7 +43,7 @@ Chains:
 
 Domain exceptions (`CbrDimensionMismatchException`, `CbrSparseVectorMigrationException`) propagate as Uni failures. No `InterruptedException`/`ExecutionException` handling needed — `toUni()` handles this.
 
-**`registerSchemaIndexesAsync(CbrFeatureSchema schema, int vectorDimension)` → `Uni<Void>`**
+**`registerSchemaIndexesAsync(CbrRecordSchema schema, int vectorDimension)` → `Uni<Void>`**
 
 Chains `ensureCollectionAsync()` then iterates schema fields sequentially via `Multi.createFrom().iterable(schema.fields()).onItem().transformToUniAndConcatenate(field -> indexesForField(collection, "f_" + field.name(), field)).collect().asList().replaceWithVoid()`.
 
@@ -53,7 +53,7 @@ Chains `ensureCollectionAsync()` then iterates schema fields sequentially via `M
 - `ObjectList`: same as `NestedObject` but with `payloadKey + "[]." + inner.name()` key format
 - `TimeSeries`, `DiscreteSequence`: `Uni.createFrom().voidItem()` (no indexes)
 
-All Multi chains use `.collect().asList()` as the terminal operator, matching the established pattern in `ReactiveQdrantCbrCaseMemoryStore` (6 existing instances). `.toUni()` is not used — it requests only one item and cancels the upstream, which would risk incomplete index creation.
+All Multi chains use `.collect().asList()` as the terminal operator, matching the established pattern in `ReactiveQdrantCbrRecordStore` (6 existing instances). `.toUni()` is not used — it requests only one item and cancels the upstream, which would risk incomplete index creation.
 
 **`deleteByFilterAsync(String collection, Filter filter)` → `Uni<Integer>`**
 
@@ -69,12 +69,12 @@ void ensureCollection(String caseType, int dim) {
 int deleteByFilter(String collection, Filter filter) {
     return deleteByFilterAsync(collection, filter).await().indefinitely();
 }
-void registerSchemaIndexes(CbrFeatureSchema schema, int dim) {
+void registerSchemaIndexes(CbrRecordSchema schema, int dim) {
     registerSchemaIndexesAsync(schema, dim).await().indefinitely();
 }
 ```
 
-### 3. ReactiveQdrantCbrCaseMemoryStore — remove worker pool dispatch
+### 3. ReactiveQdrantCbrRecordStore — remove worker pool dispatch
 
 **`registerSchema()`** — direct async call, no `runSubscriptionOn`:
 ```java
@@ -96,7 +96,7 @@ return collectionManager.registerSchemaIndexesAsync(schema, vectorDimension());
 ### 4. Files unchanged
 
 - `CbrReconciliationService.java` — blocking batch service, uses blocking convenience wrappers
-- `QdrantCbrCaseMemoryStore.java` — thin delegate to reactive store, no direct CbrCollectionManager usage
+- `QdrantCbrRecordStore.java` — thin delegate to reactive store, no direct CbrCollectionManager usage
 - `QdrantCbrBeanProducer.java` — produces CbrCollectionManager, no API change
 
 ## Scope
@@ -106,11 +106,11 @@ return collectionManager.registerSchemaIndexesAsync(schema, vectorDimension());
 | `QdrantFutures.java` | New — package-private `toUni()` utility |
 | `QdrantFuturesTest.java` | New — unit tests mirroring rag module's `QdrantFuturesTest` |
 | `CbrCollectionManager.java` | Modified — async methods canonical, blocking wrappers |
-| `ReactiveQdrantCbrCaseMemoryStore.java` | Modified — use async methods, restructure `store()`, remove private `toUni()` |
+| `ReactiveQdrantCbrRecordStore.java` | Modified — use async methods, restructure `store()`, remove private `toUni()` |
 
 ## Testing
 
-Existing `QdrantCbrCaseMemoryStoreTest` and `CbrReconciliationServiceTest` (Testcontainers) validate functional correctness end-to-end. The refactor is internal — no SPI or API changes. Existing tests should pass without modification.
+Existing `QdrantCbrRecordStoreTest` and `CbrReconciliationServiceTest` (Testcontainers) validate functional correctness end-to-end. The refactor is internal — no SPI or API changes. Existing tests should pass without modification.
 
 **New:** `QdrantFuturesTest` for the CBR copy, mirroring `io.casehub.neocortex.rag.runtime.QdrantFuturesTest` — success propagation, failure propagation, cancellation propagation, pre-completed future.
 
@@ -123,4 +123,4 @@ Existing `QdrantCbrCaseMemoryStoreTest` and `CbrReconciliationServiceTest` (Test
 
 ## Follow-up
 
-- **#166:** Reactive JPA backend for CbrCaseMemoryStore — eliminates the same double-conversion pattern in `memory-cbr-jpa`
+- **#166:** Reactive JPA backend for CbrRecordStore — eliminates the same double-conversion pattern in `memory-cbr-jpa`

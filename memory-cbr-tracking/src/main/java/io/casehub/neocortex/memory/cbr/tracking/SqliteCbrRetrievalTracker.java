@@ -15,7 +15,7 @@ import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.NumericRange;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -76,15 +76,15 @@ public class SqliteCbrRetrievalTracker implements CbrRetrievalTracker {
     }
 
     @Override
-    public String record(CbrQuery query, List<ScoredCbrCase<?>> results) {
+    public String record(CbrQuery query, List<CbrMatch<?>> results) {
         String traceId = UUID.randomUUID().toString();
         Instant now = Instant.now();
 
         List<CbrRetrievalTrace.TracedCase> traced = results.stream()
                 .map(s -> new CbrRetrievalTrace.TracedCase(
                         s.caseId(), s.score(), s.reranked(),
-                        s.featureSimilarities(), s.cbrCase().confidence(),
-                        s.cbrCase().trustScore(), s.cbrCase().producerAgentId(), null))
+                        s.featureSimilarities(), s.cbrRecord().confidence(),
+                        s.cbrRecord().trustScore(), s.cbrRecord().producerAgentId(), null))
                 .toList();
 
         String resultsJson;

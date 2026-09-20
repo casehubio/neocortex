@@ -71,7 +71,7 @@ auto-degrades silently (with a log warning):
 | `SEMANTIC_ONLY` | No `EmbeddingModel` | Return empty list |
 
 No validation error — this matches the existing organic fallback behavior
-in `QdrantCbrCaseMemoryStore` and extends it to explicit mode dispatch.
+in `QdrantCbrRecordStore` and extends it to explicit mode dispatch.
 
 ### `ScoreFusion` utility class
 
@@ -103,7 +103,7 @@ public final class ScoreFusion {
 }
 ```
 
-Generic over `T` — operates on `ScoredCbrCase` or any future type. Score
+Generic over `T` — operates on `CbrMatch` or any future type. Score
 extraction via function reference. ID extraction for deduplication across legs.
 
 **RRF algorithm:** Each leg is sorted internally by `scoreExtractor` descending
@@ -123,7 +123,7 @@ composite). Sort descending, take `topK`.
 
 **Score normalization:** RRF output scores are normalized to [0, 1] by
 dividing by the theoretical maximum `N/(k+1)` where N is the number of legs.
-This ensures all fused scores fit in `ScoredCbrCase`'s `[-1, 1]` range and
+This ensures all fused scores fit in `CbrMatch`'s `[-1, 1]` range and
 are interpretable as relative ranking quality.
 
 **`minSimilarity` interaction:** `minSimilarity` filtering is **skipped** for
@@ -137,7 +137,7 @@ values in [0, 1]).
 `ScoreFusion` is the generic replacement. Issue #124 tracks migrating
 `RrfFusion` callers to `ScoreFusion` and removing `RrfFusion`.
 
-### `ScoredCbrCase` changes
+### `CbrMatch` changes
 
 New field:
 
@@ -145,8 +145,8 @@ New field:
 |-------|------|---------|
 | `reranked` | `boolean` | `false` |
 
-Backward-compatible two-arg constructor retained: `ScoredCbrCase(cbrCase, score)`
-delegates to `ScoredCbrCase(cbrCase, score, false)`.
+Backward-compatible two-arg constructor retained: `CbrMatch(cbrCase, score)`
+delegates to `CbrMatch(cbrCase, score, false)`.
 
 `withReranked()` method returns a copy with `reranked=true`. Used by the
 reranking decorator to stamp results and prevent double-reranking.
@@ -155,9 +155,9 @@ reranking decorator to stamp results and prevent double-reranking.
 
 `compositeScore(featureScore, vectorScore, vectorWeight)` is superseded by
 `ScoreFusion.convexCombination()` and removed. The single call site in
-`QdrantCbrCaseMemoryStore` is replaced by the mode-dispatched fusion path.
+`QdrantCbrRecordStore` is replaced by the mode-dispatched fusion path.
 
-## `QdrantCbrCaseMemoryStore` Changes — `memory-qdrant`
+## `QdrantCbrRecordStore` Changes — `memory-qdrant`
 
 ### Mode-dispatched retrieval
 
@@ -217,7 +217,7 @@ Both legs overfetch independently. Existing `oversampleFactor` (dense) and
 `overFetchLimit` (scroll) config properties apply. Fusion output trimmed to
 `topK`.
 
-## `InMemoryCbrCaseMemoryStore` Changes — `memory-cbr-inmem`
+## `InMemoryCbrRecordStore` Changes — `memory-cbr-inmem`
 
 Mode behavior (no `EmbeddingModel` available):
 
@@ -243,9 +243,9 @@ isolates the heavy `inference-tasks` dependency (ONNX Runtime JVM).
 - `memory-api`
 - `inference-tasks`
 
-### `RerankingCbrCaseMemoryStore`
+### `RerankingCbrRecordStore`
 
-`@Decorator @Priority(75)` on `CbrCaseMemoryStore`. Priority 75 positions
+`@Decorator @Priority(75)` on `CbrRecordStore`. Priority 75 positions
 the reranking decorator as the outermost in the chain — it sees results
 after any inner decorators (at higher priority values) have processed them,
 making reranking the final refinement step before results reach the caller.
@@ -257,17 +257,17 @@ Behaviour:
 4. Call `CrossEncoderReranker.rerank(query.problem(), candidateProblems)`
 5. Sigmoid-normalize raw cross-encoder logits: `1 / (1 + exp(-rawScore))`
    → scores in [0, 1]. Cross-encoder models (e.g., MS-MARCO) output
-   unbounded logits; `ScoredCbrCase` validates `[-1, 1]`.
+   unbounded logits; `CbrMatch` validates `[-1, 1]`.
 6. Re-sort by normalized score, trim to original `topK`. Output
-   `ScoredCbrCase` instances carry the normalized cross-encoder score
+   `CbrMatch` instances carry the normalized cross-encoder score
    (not the original fused score).
-7. Stamp results via `ScoredCbrCase.withReranked()` — sets `reranked=true`
+7. Stamp results via `CbrMatch.withReranked()` — sets `reranked=true`
 
 Guards:
 - `FEATURE_ONLY` mode: skip entirely (no semantic text to cross-encode)
 - `problem()` is null: skip entirely
 - Config disabled: pass-through
-- Already reranked (`ScoredCbrCase.reranked()` true on all inputs): pass-through
+- Already reranked (`CbrMatch.reranked()` true on all inputs): pass-through
 
 ### CDI wiring
 
@@ -286,8 +286,8 @@ from `rag-crossencoder`'s `CrossEncoderBeanProducer`.
 
 ### Reactive parity
 
-`RerankingReactiveCbrCaseMemoryStore` — `@Decorator @Priority(75)` on
-`ReactiveCbrCaseMemoryStore`. Same logic, returns `Uni<List<ScoredCbrCase>>`.
+`RerankingReactiveCbrRecordStore` — `@Decorator @Priority(75)` on
+`ReactiveCbrRecordStore`. Same logic, returns `Uni<List<CbrMatch>>`.
 
 ## Testing
 
@@ -304,9 +304,9 @@ from `rag-crossencoder`'s `CrossEncoderBeanProducer`.
 - CC weight renormalization
 - CC with constant-score leg — all items normalized to 1.0 (no division by zero)
 
-### `CbrCaseMemoryStoreContractTest` additions (memory-testing)
+### `CbrRecordStoreContractTest` additions (memory-testing)
 
-Tests all implementations (including `InMemoryCbrCaseMemoryStore`) must pass:
+Tests all implementations (including `InMemoryCbrRecordStore`) must pass:
 
 - `FEATURE_ONLY` with `problem` populated — `problem` ignored
 - Default `retrievalMode` is `HYBRID`
@@ -314,7 +314,7 @@ Tests all implementations (including `InMemoryCbrCaseMemoryStore`) must pass:
 - `HYBRID` without `EmbeddingModel` — degrades to `FEATURE_ONLY`
 - `SEMANTIC_ONLY` without `EmbeddingModel` — returns empty list
 
-### `QdrantCbrCaseMemoryStore` integration tests (memory-qdrant, Testcontainers)
+### `QdrantCbrRecordStore` integration tests (memory-qdrant, Testcontainers)
 
 - `HYBRID`: cases with varying feature AND problem similarity — fusion ranks
   cases strong on both legs higher
@@ -342,7 +342,7 @@ Tests all implementations (including `InMemoryCbrCaseMemoryStore`) must pass:
 | `CbrFusionStrategy` enum | `memory-api` | API type |
 | `ScoreFusion` utility | `memory-api` | Pure algorithm, zero deps, shared by all backends |
 | `CbrQuery` field additions | `memory-api` | Record change |
-| `ScoredCbrCase` `reranked` field | `memory-api` | Record change, used by reranking decorator |
+| `CbrMatch` `reranked` field | `memory-api` | Record change, used by reranking decorator |
 | `compositeScore()` removal | `memory-api` | Superseded by `ScoreFusion.convexCombination()` |
 | Two-pass retrieval | `memory-qdrant` | Qdrant-specific orchestration |
 | Mode degradation | `memory-cbr-inmem` | Auto-degrade for missing embedding |

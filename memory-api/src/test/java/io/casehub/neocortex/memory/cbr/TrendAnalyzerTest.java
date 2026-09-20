@@ -246,9 +246,9 @@ class TrendAnalyzerTest {
         var features = Map.<String, FeatureValue>of(
                 "drug", string("aspirin"),
                 "vitals", FeatureValue.structList(obs));
-        var schema = CbrFeatureSchema.of("test",
-                FeatureField.categorical("drug"),
-                SCHEMA);
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.categorical("drug"),
+                                        SCHEMA);
         var enriched = TrendAnalyzer.enrichFeatures(features, schema);
         assertThat(enriched).containsKey("drug");
         assertThat(enriched).containsKey("vitals");
@@ -260,7 +260,7 @@ class TrendAnalyzerTest {
     @Test
     void enrichFeatures_noTimeSeries_returnsInputUnchanged() {
         var features = Map.<String, FeatureValue>of("drug", string("aspirin"));
-        var schema = CbrFeatureSchema.of("test", FeatureField.categorical("drug"));
+        var schema = CbrRecordSchema.of("test", FeatureField.categorical("drug"));
         var enriched = TrendAnalyzer.enrichFeatures(features, schema);
         assertThat(enriched).isSameAs(features);
     }
@@ -269,9 +269,9 @@ class TrendAnalyzerTest {
 
     @Test
     void expandSchema_addsDerivedNumericFields() {
-        var schema = CbrFeatureSchema.of("test",
-                FeatureField.categorical("drug"),
-                SCHEMA);
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.categorical("drug"),
+                                        SCHEMA);
         var expanded = TrendAnalyzer.expandSchema(schema);
         var fieldNames = expanded.fields().stream().map(FeatureField::name).toList();
         assertThat(fieldNames).contains("vitals_slope_hr", "vitals_delta_hr",
@@ -281,9 +281,9 @@ class TrendAnalyzerTest {
 
     @Test
     void expandSchema_preservesOriginalFields() {
-        var schema = CbrFeatureSchema.of("test",
-                FeatureField.categorical("drug"),
-                SCHEMA);
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.categorical("drug"),
+                                        SCHEMA);
         var expanded = TrendAnalyzer.expandSchema(schema);
         var fieldNames = expanded.fields().stream().map(FeatureField::name).toList();
         assertThat(fieldNames).contains("drug", "vitals");
@@ -291,9 +291,9 @@ class TrendAnalyzerTest {
 
     @Test
     void expandSchema_idempotent() {
-        var schema = CbrFeatureSchema.of("test",
-                FeatureField.categorical("drug"),
-                SCHEMA);
+        var schema = CbrRecordSchema.of("test",
+                                        FeatureField.categorical("drug"),
+                                        SCHEMA);
         var expanded1 = TrendAnalyzer.expandSchema(schema);
         var expanded2 = TrendAnalyzer.expandSchema(expanded1);
         assertThat(expanded2.fields()).hasSize(expanded1.fields().size());
@@ -304,14 +304,14 @@ class TrendAnalyzerTest {
         var noTrendTs = (FeatureField) FeatureField.timeSeries("vitals", "t",
                 FeatureField.numeric("t", 0, 100),
                 FeatureField.numeric("hr", 40, 200));
-        var schema = CbrFeatureSchema.of("test", noTrendTs);
+        var schema = CbrRecordSchema.of("test", noTrendTs);
         var expanded = TrendAnalyzer.expandSchema(schema);
         assertThat(expanded.fields()).hasSize(schema.fields().size());
     }
 
     @Test
     void expandSchema_derivedFieldRanges_heuristic() {
-        var schema = CbrFeatureSchema.of("test", SCHEMA);
+        var schema = CbrRecordSchema.of("test", SCHEMA);
         var expanded = TrendAnalyzer.expandSchema(schema);
         var slopeField = expanded.fields().stream()
                 .filter(f -> f.name().equals("vitals_slope_hr"))
@@ -354,27 +354,27 @@ class TrendAnalyzerTest {
     // -- withFeatures --
 
     @Test
-    void featureVectorCbrCase_withFeatures() {
-        var original = new FeatureVectorCbrCase("p", "s", null, null,
-                                                Map.of("a", string("x")), null, null);
+    void featureRecord_withFeatures() {
+        var original = new CbrFeatureRecord("p", "s", null, null,
+                                            Map.of("a", string("x")), null, null);
         var updated = original.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");
         assertThat(updated.problem()).isEqualTo("p");
     }
 
     @Test
-    void planCbrCase_withFeatures_preservesPlanTrace() {
-        var trace = List.of(new ResolutionStep("step1", "cap1", "worker1", "OK", 1, Map.of(), null));
-        var original = new ResolvedCase("p", "s", null, null, Map.of("a", string("x")), trace, null, null);
-        var updated = (ResolvedCase) original.withFeatures(Map.of("a", string("x"), "b", number(1)));
+    void planRecord_withFeatures_preservesPlanTrace() {
+        var trace = List.of(new CbrPlanStep("step1", "cap1", "worker1", "OK", 1, Map.of(), null));
+        var original = new CbrPlanRecord("p", "s", null, null, Map.of("a", string("x")), trace, null, null);
+        var updated = (CbrPlanRecord) original.withFeatures(Map.of("a", string("x"), "b", number(1)));
         assertThat(updated.features()).containsKey("b");
-        assertThat(updated.resolutionStep()).hasSize(1);
+        assertThat(updated.cbrPlanStep()).hasSize(1);
     }
 
     @Test
-    void textualCbrCase_withFeatures_succeeds() {
-        var tc = new ResolutionGuide("p", "s", null, null, null, null);
-        var updated = (ResolutionGuide) tc.withFeatures(Map.of("a", string("x")));
+    void guidanceRecord_withFeatures_succeeds() {
+        var tc = new CbrGuidanceRecord("p", "s", null, null, null, null);
+        var updated = (CbrGuidanceRecord) tc.withFeatures(Map.of("a", string("x")));
         org.assertj.core.api.Assertions.assertThat(updated.features()).containsKey("a");
         org.assertj.core.api.Assertions.assertThat(updated.problem()).isEqualTo("p");
     }

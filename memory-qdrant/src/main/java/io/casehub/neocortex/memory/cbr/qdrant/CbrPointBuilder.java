@@ -3,8 +3,8 @@ package io.casehub.neocortex.memory.cbr.qdrant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.embedding.Embedding;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.ValueFactory;
 import io.qdrant.client.VectorFactory;
@@ -33,15 +33,15 @@ final class CbrPointBuilder {
 
     private CbrPointBuilder() {}
 
-    static PointStruct buildPoint(CbrCase cbrCase, String caseType,
+    static PointStruct buildPoint(CbrRecord cbrRecord, String caseType,
                                   String entityId, String domainName,
                                   String tenantId, String caseId,
                                   Embedding embedding, String denseVectorName) {
-        return buildPoint(cbrCase, caseType, entityId, domainName, tenantId, caseId,
+        return buildPoint(cbrRecord, caseType, entityId, domainName, tenantId, caseId,
                           embedding, denseVectorName, null, null, null, null, null, "");
     }
 
-    static PointStruct buildPoint(CbrCase cbrCase, String caseType,
+    static PointStruct buildPoint(CbrRecord cbrRecord, String caseType,
                                   String entityId, String domainName,
                                   String tenantId, String caseId,
                                   Embedding embedding, String denseVectorName,
@@ -63,26 +63,26 @@ final class CbrPointBuilder {
         if (caseId != null) {
             payload.put("caseId", ValueFactory.value(caseId));
         }
-        if (cbrCase.problem() != null) {
-            payload.put("problem", ValueFactory.value(cbrCase.problem()));
+        if (cbrRecord.problem() != null) {
+            payload.put("problem", ValueFactory.value(cbrRecord.problem()));
         }
-        if (cbrCase.solution() != null) {
-            payload.put("solution", ValueFactory.value(cbrCase.solution()));
+        if (cbrRecord.solution() != null) {
+            payload.put("solution", ValueFactory.value(cbrRecord.solution()));
         }
-        if (cbrCase.outcome() != null) {
-            payload.put("outcome", ValueFactory.value(cbrCase.outcome()));
+        if (cbrRecord.outcome() != null) {
+            payload.put("outcome", ValueFactory.value(cbrRecord.outcome()));
         }
-        if (cbrCase.confidence() != null) {
-            payload.put("confidence", ValueFactory.value(cbrCase.confidence().value()));
+        if (cbrRecord.confidence() != null) {
+            payload.put("confidence", ValueFactory.value(cbrRecord.confidence().value()));
         }
-        if (cbrCase.trustScore() != null) {
-            payload.put("trust_score", ValueFactory.value(cbrCase.trustScore()));
+        if (cbrRecord.trustScore() != null) {
+            payload.put("trust_score", ValueFactory.value(cbrRecord.trustScore()));
         }
-        if (cbrCase.producerAgentId() != null) {
-            payload.put("producer_agent_id", ValueFactory.value(cbrCase.producerAgentId()));
+        if (cbrRecord.producerAgentId() != null) {
+            payload.put("producer_agent_id", ValueFactory.value(cbrRecord.producerAgentId()));
         }
 
-        Map<String, Object> features = toRawMap(cbrCase.features());
+        Map<String, Object> features = toRawMap(cbrRecord.features());
         try {
             payload.put("_features_json", ValueFactory.value(MAPPER.writeValueAsString(features)));
         } catch (JsonProcessingException e) {
@@ -102,15 +102,15 @@ final class CbrPointBuilder {
             }
         }
 
-        if (cbrCase instanceof ResolvedCase plan) {
+        if (cbrRecord instanceof CbrPlanRecord plan) {
             try {
-                payload.put("_plan_trace_json", ValueFactory.value(MAPPER.writeValueAsString(plan.resolutionStep())));
+                payload.put("_plan_trace_json", ValueFactory.value(MAPPER.writeValueAsString(plan.cbrPlanStep())));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize plan trace", e);
             }
         }
 
-        payload.put("_cbr_type", ValueFactory.value(cbrCase.cbrType()));
+        payload.put("_cbr_type", ValueFactory.value(cbrRecord.recordType()));
         payload.put("_stored_at", ValueFactory.value(Instant.now().toEpochMilli()));
 
         // Build named vectors

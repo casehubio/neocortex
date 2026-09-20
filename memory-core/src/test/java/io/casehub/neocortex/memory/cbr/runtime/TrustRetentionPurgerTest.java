@@ -3,16 +3,16 @@ package io.casehub.neocortex.memory.cbr.runtime;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.AgentTrustProvider;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrCaseSummary;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordSummary;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 import io.casehub.neocortex.memory.cbr.CbrScanResult;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -115,9 +115,9 @@ class TrustRetentionPurgerTest {
         }
     }
 
-    static class StubStore implements CbrCaseMemoryStore {
-        final List<CbrCaseSummary> cases = new ArrayList<>();
-        final List<String> erased = new ArrayList<>();
+    static class StubStore implements CbrRecordStore {
+        final List<CbrRecordSummary> cases  = new ArrayList<>();
+        final List<String>           erased = new ArrayList<>();
         boolean scanCalled = false;
         boolean discoverTenantsUnsupported = false;
         int scanPageSize = 500;
@@ -125,7 +125,7 @@ class TrustRetentionPurgerTest {
         void addCase(String caseId, String entityId, String caseType,
                      String producerAgentId, Double trustScore,
                      MemoryDomain domain, String tenantId) {
-            cases.add(new CbrCaseSummary(caseId, entityId, caseType, producerAgentId, trustScore, Instant.now()));
+            cases.add(new CbrRecordSummary(caseId, entityId, caseType, producerAgentId, trustScore, Instant.now()));
         }
         @Override public Set<String> discoverTenants(MemoryDomain domain) {
             if (discoverTenantsUnsupported) throw new UnsupportedOperationException("not supported");
@@ -133,9 +133,9 @@ class TrustRetentionPurgerTest {
         }
         @Override public CbrScanResult scan(CbrScanRequest request) {
             scanCalled = true;
-            boolean pastCursor = request.cursor() == null;
-            List<CbrCaseSummary> result = new ArrayList<>();
-            for (CbrCaseSummary c : cases) {
+            boolean                pastCursor = request.cursor() == null;
+            List<CbrRecordSummary> result     = new ArrayList<>();
+            for (CbrRecordSummary c : cases) {
                 if (!c.caseType().equals(request.caseType())) continue;
                 if (!pastCursor) { if (c.caseId().equals(request.cursor())) pastCursor = true; continue; }
                 result.add(c);
@@ -144,11 +144,11 @@ class TrustRetentionPurgerTest {
             String nextCursor = result.isEmpty() ? null : result.get(result.size() - 1).caseId();
             return new CbrScanResult(result, nextCursor);
         }
-        @Override public Integer erase(EraseRequest request) { erased.add(request.entityId()); return 1; }
-        @Override public void registerSchema(CbrFeatureSchema s) {}
-        @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return ""; }
-        @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) { return List.of(); }
-        @Override public Integer eraseEntity(String e, String t) { return 0; }
+        @Override public Integer erase(EraseRequest request)                                                                                            { erased.add(request.entityId()); return 1; }
+        @Override public void registerSchema(CbrRecordSchema s)                                                                                         {}
+        @Override public String store(CbrRecord c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return ""; }
+        @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> cl)                                               { return List.of(); }
+        @Override public Integer eraseEntity(String e, String t)                                                                                        { return 0; }
         @Override public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
         @Override public void recordOutcome(String c, String t, CbrOutcome o) {}
         @Override public Integer purge(CbrRetentionPolicy p) { return 0; }

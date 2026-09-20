@@ -88,7 +88,7 @@ interface RetrievalModulator<T> {
 }
 ```
 
-Where `ModulationContext` carries the agent's current mood, personality weights, and any other cross-cutting retrieval parameters. Implementations for `Memory`, `ScoredCbrCase`, and `MindMapNode` adapt to their respective affect/confidence fields.
+Where `ModulationContext` carries the agent's current mood, personality weights, and any other cross-cutting retrieval parameters. Implementations for `Memory`, `CbrMatch`, and `MindMapNode` adapt to their respective affect/confidence fields.
 
 **Scope:** M — new abstraction, three implementations, replaces two existing utilities.
 
@@ -295,7 +295,7 @@ Update `CuriositySignalGenerator`'s affect dampening to use trajectory, not snap
 Implemented in `cognitive-index` module. `CognitiveProfile` CDI bean (`@ApplicationScoped`, `Instance<T>` graceful degradation) resolves everything the system knows about an entity:
 
 1. Resolves MindMap node (by ID via `getNode` or by name/alias via `resolveNode`)
-2. Follows `NodeRef(scheme="memory")` to linked memories; records `scheme="cbr"` as unresolved (CbrCaseMemoryStore has no get-by-ID)
+2. Follows `NodeRef(scheme="memory")` to linked memories; records `scheme="cbr"` as unresolved (CbrRecordStore has no get-by-ID)
 3. Queries memories across 6 cognitive domains (experience, relationship, reflection, mood, engagement, affect) using dual entity ID resolution (nodeId + nodeName)
 4. Computes affect trajectory via `AffectTrajectoryAnalyzer` composition
 5. Returns unified `EntityKnowledge` record (node, edges, memories-by-domain, trajectory, unresolved refs)

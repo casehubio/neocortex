@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.ScoredCbrCase
+# io.casehub.neocortex.memory.cbr.CbrMatch
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -42,14 +42,14 @@
 
 ## Constructors
 
-### `public ScoredCbrCase(C cbrCase, double score)`
+### `public CbrMatch(C cbrCase, double score)`
 
 #### Parameters
 
 - `cbrCase` (`C`)
 - `score` (`double`)
 
-### `public ScoredCbrCase(C cbrCase, double score, boolean reranked)`
+### `public CbrMatch(C cbrCase, double score, boolean reranked)`
 
 #### Parameters
 
@@ -57,7 +57,7 @@
 - `score` (`double`)
 - `reranked` (`boolean`)
 
-### `public ScoredCbrCase(C cbrCase, double score, boolean reranked, java.util.Map<java.lang.String,java.lang.Double> featureSimilarities)`
+### `public CbrMatch(C cbrCase, double score, boolean reranked, java.util.Map<java.lang.String,java.lang.Double> featureSimilarities)`
 
 #### Parameters
 
@@ -66,7 +66,7 @@
 - `reranked` (`boolean`)
 - `featureSimilarities` (`java.util.Map<java.lang.String,java.lang.Double>`)
 
-### `public ScoredCbrCase(C cbrCase, java.lang.String caseId, double score)`
+### `public CbrMatch(C cbrCase, java.lang.String caseId, double score)`
 
 #### Parameters
 
@@ -74,7 +74,7 @@
 - `caseId` (`java.lang.String`)
 - `score` (`double`)
 
-### `public ScoredCbrCase(C cbrCase, java.lang.String caseId, double score, boolean reranked, java.util.Map<java.lang.String,java.lang.Double> featureSimilarities, java.time.Instant storedAt, io.casehub.platform.api.path.Path scope, java.lang.Double trustTrajectory)`
+### `public CbrMatch(C cbrCase, java.lang.String caseId, double score, boolean reranked, java.util.Map<java.lang.String,java.lang.Double> featureSimilarities, java.time.Instant storedAt, io.casehub.platform.api.path.Path scope, java.lang.Double trustTrajectory)`
 
 #### Parameters
 
@@ -115,15 +115,15 @@
 
 ### `public java.lang.Double trustTrajectory()`
 
-### `public io.casehub.neocortex.memory.cbr.ScoredCbrCase<C> withReranked()`
+### `public io.casehub.neocortex.memory.cbr.CbrMatch<C> withReranked()`
 
-### `public io.casehub.neocortex.memory.cbr.ScoredCbrCase<C> withScore(double newScore)`
+### `public io.casehub.neocortex.memory.cbr.CbrMatch<C> withScore(double newScore)`
 
 #### Parameters
 
 - `newScore` (`double`)
 
-### `public io.casehub.neocortex.memory.cbr.ScoredCbrCase<C> withTrustTrajectory(java.lang.Double delta)`
+### `public io.casehub.neocortex.memory.cbr.CbrMatch<C> withTrustTrajectory(java.lang.Double delta)`
 
 #### Parameters
 

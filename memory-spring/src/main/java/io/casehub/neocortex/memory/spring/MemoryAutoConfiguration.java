@@ -5,7 +5,7 @@ import io.casehub.memory.runtime.MemoryEmitterCore;
 import io.casehub.neocortex.memory.CaseEnrichmentStep;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.AgentTrustProvider;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.ExplanationRenderer;
 import io.casehub.neocortex.memory.cbr.OutcomeWeightingFunction;
 import io.casehub.neocortex.memory.cbr.TrustWeightingFunction;
@@ -100,18 +100,18 @@ public class MemoryAutoConfiguration {
     }
 
     @Bean
-    public CbrRetentionPurger cbrRetentionPurger(CbrCaseMemoryStore store) {
+    public CbrRetentionPurger cbrRetentionPurger(CbrRecordStore store) {
         return new CbrRetentionPurger(store);
     }
 
     @Bean
-    public TrustRetentionPurger trustRetentionPurger(CbrCaseMemoryStore store,
-                                                      Optional<AgentTrustProvider> trustProvider) {
+    public TrustRetentionPurger trustRetentionPurger(CbrRecordStore store,
+                                                     Optional<AgentTrustProvider> trustProvider) {
         return new TrustRetentionPurger(store, trustProvider.orElse(null));
     }
 
     @Bean
-    public CbrOutcomeProcessor cbrOutcomeProcessor(CbrCaseMemoryStore store) {
+    public CbrOutcomeProcessor cbrOutcomeProcessor(CbrRecordStore store) {
         return new CbrOutcomeProcessor(store);
     }
 

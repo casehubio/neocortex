@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Deserializes {@link Memory} instances back to {@link CbrCase} instances.
+ * Deserializes {@link Memory} instances back to {@link CbrRecord} instances.
  * <p>
  * Inverse of {@link CbrMemorySerializer}.
  * <p>
@@ -23,12 +23,12 @@ import java.util.logging.Logger;
 final class CbrMemoryDeserializer {
     private static final Logger LOG = Logger.getLogger(CbrMemoryDeserializer.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TypeReference<Map<String, Object>>  MAP_TYPE        = new TypeReference<>() {};
-    private static final TypeReference<List<ResolutionStep>> PLAN_TRACE_TYPE = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> MAP_TYPE        = new TypeReference<>() {};
+    private static final TypeReference<List<CbrPlanStep>>   PLAN_TRACE_TYPE = new TypeReference<>() {};
 
     private CbrMemoryDeserializer() {}
 
-    static Optional<CbrCase> deserialize(Memory memory) {
+    static Optional<CbrRecord> deserialize(Memory memory) {
         try {
             String problem = memory.text();
             Map<String, String> attrs = memory.attributes();
@@ -52,22 +52,22 @@ final class CbrMemoryDeserializer {
                 return Optional.empty();
             }
 
-            CbrCase result = switch (cbrType) {
-                case FeatureVectorCbrCase.CBR_TYPE -> {
+            CbrRecord result = switch (cbrType) {
+                case CbrFeatureRecord.CBR_TYPE -> {
                     var rawFeatures = parseFeatures(attrs);
                     if (rawFeatures == null) yield null;
-                    yield new FeatureVectorCbrCase(problem, solution, outcome, confidence, CbrPointBuilder.fromRawMap(rawFeatures), null, null);
+                    yield new CbrFeatureRecord(problem, solution, outcome, confidence, CbrPointBuilder.fromRawMap(rawFeatures), null, null);
                 }
-                case ResolvedCase.CBR_TYPE -> {
+                case CbrPlanRecord.CBR_TYPE -> {
                     var rawFeatures = parseFeatures(attrs);
                     if (rawFeatures == null) yield null;
-                    var                  features       = CbrPointBuilder.fromRawMap(rawFeatures);
-                    List<ResolutionStep> resolutionStep = parsePlanTrace(attrs);
-                    if (resolutionStep == null) yield null;
-                    yield new ResolvedCase(problem, solution, outcome, confidence, features, resolutionStep, null, null);
+                    var               features    = CbrPointBuilder.fromRawMap(rawFeatures);
+                    List<CbrPlanStep> cbrPlanStep = parsePlanTrace(attrs);
+                    if (cbrPlanStep == null) yield null;
+                    yield new CbrPlanRecord(problem, solution, outcome, confidence, features, cbrPlanStep, null, null);
                 }
-                case ResolutionGuide.CBR_TYPE ->
-                    new ResolutionGuide(problem, solution, outcome, confidence, null, null);
+                case CbrGuidanceRecord.CBR_TYPE ->
+                    new CbrGuidanceRecord(problem, solution, outcome, confidence, null, null);
                 default -> {
                     LOG.warning("Unknown cbr.type '" + cbrType + "' in memory " + memory.memoryId());
                     yield null;
@@ -95,7 +95,7 @@ final class CbrMemoryDeserializer {
         }
     }
 
-    private static List<ResolutionStep> parsePlanTrace(Map<String, String> attrs) {
+    private static List<CbrPlanStep> parsePlanTrace(Map<String, String> attrs) {
         String json = attrs.get(CbrAttributeKeys.CBR_PLAN_TRACE);
         if (json == null) return List.of();
         try {

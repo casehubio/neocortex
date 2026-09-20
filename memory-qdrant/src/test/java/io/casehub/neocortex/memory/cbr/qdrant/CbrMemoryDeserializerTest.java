@@ -17,15 +17,15 @@ class CbrMemoryDeserializerTest {
     private static final String ENTITY = "test-entity";
 
     @Test
-    void roundTrip_featureVectorCbrCase() {
-        var original = new FeatureVectorCbrCase("Zerg rush detected", "wall-off and expand",
-            "WIN", Confidence.unknown(0.85), Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
+    void roundTrip_featureRecord() {
+        var original = new CbrFeatureRecord("Zerg rush detected", "wall-off and expand",
+                                            "WIN", Confidence.unknown(0.85), Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
 
         assertThat(deserialized).isPresent();
-        assertThat(deserialized.get()).isInstanceOf(FeatureVectorCbrCase.class);
-        var fv = (FeatureVectorCbrCase) deserialized.get();
+        assertThat(deserialized.get()).isInstanceOf(CbrFeatureRecord.class);
+        var fv = (CbrFeatureRecord) deserialized.get();
         assertThat(fv.problem()).isEqualTo("Zerg rush detected");
         assertThat(fv.solution()).isEqualTo("wall-off and expand");
         assertThat(fv.outcome()).isEqualTo("WIN");
@@ -34,31 +34,31 @@ class CbrMemoryDeserializerTest {
     }
 
     @Test
-    void roundTrip_planCbrCase() {
-        var trace = new ResolutionStep("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
-                                       Map.of("duration", 30), null);
-        var original = new ResolvedCase("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.9),
-                                        Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
+    void roundTrip_planRecord() {
+        var trace = new CbrPlanStep("scout", "reconnaissance", "drone-scout", "SUCCESS", 1,
+                                    Map.of("duration", 30), null);
+        var original = new CbrPlanRecord("Zerg rush", "early pressure", "WIN", Confidence.unknown(0.9),
+                                         Map.of("opponent_race", string("Zerg")), List.of(trace), null, null);
 
         var deserialized = roundTrip(original, "starcraft-game");
 
         assertThat(deserialized).isPresent();
-        assertThat(deserialized.get()).isInstanceOf(ResolvedCase.class);
-        var plan = (ResolvedCase) deserialized.get();
+        assertThat(deserialized.get()).isInstanceOf(CbrPlanRecord.class);
+        var plan = (CbrPlanRecord) deserialized.get();
         assertThat(plan.problem()).isEqualTo("Zerg rush");
-        assertThat(plan.resolutionStep()).hasSize(1);
-        assertThat(plan.resolutionStep().get(0).bindingName()).isEqualTo("scout");
+        assertThat(plan.cbrPlanStep()).hasSize(1);
+        assertThat(plan.cbrPlanStep().get(0).bindingName()).isEqualTo("scout");
     }
 
     @Test
-    void roundTrip_textualCbrCase() {
-        var original = new ResolutionGuide("simple problem", "simple solution", "OK", Confidence.unknown(0.5), null, null);
+    void roundTrip_guidanceRecord() {
+        var original = new CbrGuidanceRecord("simple problem", "simple solution", "OK", Confidence.unknown(0.5), null, null);
 
         var deserialized = roundTrip(original, "simple-type");
 
         assertThat(deserialized).isPresent();
-        assertThat(deserialized.get()).isInstanceOf(ResolutionGuide.class);
-        var t = (ResolutionGuide) deserialized.get();
+        assertThat(deserialized.get()).isInstanceOf(CbrGuidanceRecord.class);
+        var t = (CbrGuidanceRecord) deserialized.get();
         assertThat(t.problem()).isEqualTo("simple problem");
         assertThat(t.solution()).isEqualTo("simple solution");
         assertThat(t.outcome()).isEqualTo("OK");
@@ -67,7 +67,7 @@ class CbrMemoryDeserializerTest {
 
     @Test
     void roundTrip_nullOptionalFields() {
-        var original = new ResolutionGuide("p", "s", null, null, null, null);
+        var original = new CbrGuidanceRecord("p", "s", null, null, null, null);
 
         var deserialized = roundTrip(original, "minimal");
 
@@ -101,15 +101,15 @@ class CbrMemoryDeserializerTest {
     @Test
     void deserialize_malformedFeaturesJson_returnsEmpty() {
         var memory = new Memory("mem-1", ENTITY, CBR, TENANT, "case-1",
-                                "problem", Map.of(CbrAttributeKeys.CBR_TYPE, FeatureVectorCbrCase.CBR_TYPE,
-                              MemoryAttributeKeys.SOLUTION, "sol",
-                              CbrAttributeKeys.CBR_FEATURES, "not valid json"),
+                                "problem", Map.of(CbrAttributeKeys.CBR_TYPE, CbrFeatureRecord.CBR_TYPE,
+                                                  MemoryAttributeKeys.SOLUTION, "sol",
+                                                  CbrAttributeKeys.CBR_FEATURES, "not valid json"),
                                 Instant.now(), null, null, null, null);
         assertThat(CbrMemoryDeserializer.deserialize(memory)).isEmpty();
     }
 
-    private java.util.Optional<CbrCase> roundTrip(CbrCase original, String caseType) {
-        // Serialize using the same code path as QdrantCbrCaseMemoryStore
+    private java.util.Optional<CbrRecord> roundTrip(CbrRecord original, String caseType) {
+        // Serialize using the same code path as QdrantCbrRecordStore
         MemoryInput input = serializeToMemoryInput(original, ENTITY, CBR, TENANT, "case-1", caseType);
         // Convert to Memory (simulating what CaseMemoryStore.store() → query() returns)
         Memory memory = new Memory("mem-1", input.entityId(), input.domain(), input.tenantId(),
@@ -119,13 +119,13 @@ class CbrMemoryDeserializerTest {
 
     /**
      * Package-private access to serialization — calls the same static method
-     * that QdrantCbrCaseMemoryStore uses internally.
+     * that QdrantCbrRecordStore uses internally.
      */
-    private static MemoryInput serializeToMemoryInput(CbrCase cbrCase, String entityId,
-                                                       MemoryDomain domain, String tenantId,
-                                                       String caseId, String caseType) {
-        // Replicates QdrantCbrCaseMemoryStore.serializeToMemoryInput() logic
+    private static MemoryInput serializeToMemoryInput(CbrRecord cbrRecord, String entityId,
+                                                      MemoryDomain domain, String tenantId,
+                                                      String caseId, String caseType) {
+        // Replicates QdrantCbrRecordStore.serializeToMemoryInput() logic
         // After refactoring to CbrAttributeKeys, both paths use the same constants
-        return CbrMemorySerializer.serialize(cbrCase, entityId, domain, tenantId, caseId, caseType);
+        return CbrMemorySerializer.serialize(cbrRecord, entityId, domain, tenantId, caseId, caseType);
     }
 }

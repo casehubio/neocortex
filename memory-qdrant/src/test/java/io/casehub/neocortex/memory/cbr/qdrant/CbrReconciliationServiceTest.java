@@ -9,12 +9,12 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryScanRequest;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QdrantGrpcClient;
 import org.junit.jupiter.api.AfterEach;
@@ -51,7 +51,7 @@ class CbrReconciliationServiceTest {
     private static final String TENANT = "test-tenant";
     private static final String ENTITY = "test-entity";
 
-    private CbrCaseMemoryStore cbrStore;
+    private CbrRecordStore        cbrStore;
     private InMemoryDelegateStore delegate;
     private CbrReconciliationService reconciler;
     private CbrCollectionManager collectionManager;
@@ -65,7 +65,7 @@ class CbrReconciliationServiceTest {
             QdrantGrpcClient.newBuilder(qdrant.getHost(), qdrant.getMappedPort(6334), false).build());
         collectionManager = new CbrCollectionManager(client, config);
         delegate = new InMemoryDelegateStore();
-        cbrStore = new QdrantCbrCaseMemoryStore(collectionManager, null, config, delegate, null);
+        cbrStore = new QdrantCbrRecordStore(collectionManager, null, config, delegate, null);
         reconciler = new CbrReconciliationService(collectionManager, null, config, delegate, null);
     }
 
@@ -97,12 +97,12 @@ class CbrReconciliationServiceTest {
 
     @Test
     void reconcile_consistentState_noChanges() {
-        cbrStore.registerSchema(CbrFeatureSchema.of("game",
-            FeatureField.categorical("race")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("race", string("Zerg")), null, null), "game", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
-        cbrStore.store(new FeatureVectorCbrCase("p2", "s2", null, null,
-                                                Map.of("race", string("Protoss")), null, null), "game", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("game",
+                                                   FeatureField.categorical("race")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("race", string("Zerg")), null, null), "game", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.store(new CbrFeatureRecord("p2", "s2", null, null,
+                                            Map.of("race", string("Protoss")), null, null), "game", ENTITY, CBR, TENANT, "case-2", io.casehub.platform.api.path.Path.root());
 
         var result = reconciler.reconcile("game", TENANT);
         assertThat(result.orphansRemoved()).isZero();
@@ -113,10 +113,10 @@ class CbrReconciliationServiceTest {
     @Test
     void reconcile_missingFromQdrant_reindexes() {
         // Store via cbrStore (writes to both delegate and Qdrant)
-        cbrStore.registerSchema(CbrFeatureSchema.of("reindex-type",
-            FeatureField.categorical("cat")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("cat", string("A")), null, null), "reindex-type", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("reindex-type",
+                                                   FeatureField.categorical("cat")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("cat", string("A")), null, null), "reindex-type", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Delete the Qdrant collection to simulate data loss
         String collection = collectionManager.collectionName("reindex-type");
@@ -133,16 +133,16 @@ class CbrReconciliationServiceTest {
         // Verify the point is back in Qdrant
         var retrieved = cbrStore.retrieveSimilar(
             CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "reindex-type", Map.of("cat", string("A")), 5),
-            FeatureVectorCbrCase.class);
+            CbrFeatureRecord.class);
         assertThat(retrieved).hasSize(1);
     }
 
     @Test
     void reconcile_orphanInQdrant_removes() {
-        cbrStore.registerSchema(CbrFeatureSchema.of("orphan-type",
-            FeatureField.categorical("cat")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("cat", string("A")), null, null), "orphan-type", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("orphan-type",
+                                                   FeatureField.categorical("cat")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("cat", string("A")), null, null), "orphan-type", ENTITY, CBR, TENANT, "case-1", io.casehub.platform.api.path.Path.root());
 
         // Remove from delegate (simulating delegate erasure without Qdrant cleanup)
         delegate.eraseAll();
@@ -154,7 +154,7 @@ class CbrReconciliationServiceTest {
         // Verify Qdrant is empty
         var retrieved = cbrStore.retrieveSimilar(
             CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "orphan-type", Map.of("cat", string("A")), 5),
-            FeatureVectorCbrCase.class);
+            CbrFeatureRecord.class);
         assertThat(retrieved).isEmpty();
     }
 
@@ -162,7 +162,7 @@ class CbrReconciliationServiceTest {
     void reconcile_emptyCollection_reindexesAll() {
         // Store entries only in delegate, not in Qdrant
         delegate.storeDirectly("case-1", ENTITY, CBR, TENANT,
-                               new FeatureVectorCbrCase("p1", "s1", null, null, Map.of("cat", string("A")), null, null), "reindex-all");
+                               new CbrFeatureRecord("p1", "s1", null, null, Map.of("cat", string("A")), null, null), "reindex-all");
 
         var result = reconciler.reconcile("reindex-all", TENANT);
         assertThat(result.entriesReindexed()).isEqualTo(1);
@@ -173,7 +173,7 @@ class CbrReconciliationServiceTest {
         // Store a memory directly in delegate with missing 'solution' attribute
         delegate.storeRaw("case-err", ENTITY, CBR, TENANT, "problem text",
             Map.of(CbrAttributeKeys.CBR_CASE_TYPE, "err-type",
-                   CbrAttributeKeys.CBR_TYPE, FeatureVectorCbrCase.CBR_TYPE));
+                   CbrAttributeKeys.CBR_TYPE, CbrFeatureRecord.CBR_TYPE));
         // Missing solution → CbrMemoryDeserializer returns empty
 
         var result = reconciler.reconcile("err-type", TENANT);
@@ -183,11 +183,11 @@ class CbrReconciliationServiceTest {
 
     @Test
     void discoverTenants_returnsTenantsFromDelegate() {
-        cbrStore.registerSchema(CbrFeatureSchema.of("disc-type", FeatureField.categorical("cat")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("cat", string("A")), null, null), "disc-type", ENTITY, CBR, "tenant-x", "case-1", io.casehub.platform.api.path.Path.root());
-        cbrStore.store(new FeatureVectorCbrCase("p2", "s2", null, null,
-                                                Map.of("cat", string("B")), null, null), "disc-type", ENTITY, CBR, "tenant-y", "case-2", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("disc-type", FeatureField.categorical("cat")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("cat", string("A")), null, null), "disc-type", ENTITY, CBR, "tenant-x", "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.store(new CbrFeatureRecord("p2", "s2", null, null,
+                                            Map.of("cat", string("B")), null, null), "disc-type", ENTITY, CBR, "tenant-y", "case-2", io.casehub.platform.api.path.Path.root());
 
         Set<String> tenants = reconciler.discoverTenants("disc-type");
         assertThat(tenants).containsExactlyInAnyOrder("tenant-x", "tenant-y");
@@ -213,11 +213,11 @@ class CbrReconciliationServiceTest {
 
     @Test
     void reconcileAll_reconcilesMultipleTenants() {
-        cbrStore.registerSchema(CbrFeatureSchema.of("multi-type", FeatureField.categorical("cat")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("cat", string("A")), null, null), "multi-type", ENTITY, CBR, "t1", "case-1", io.casehub.platform.api.path.Path.root());
-        cbrStore.store(new FeatureVectorCbrCase("p2", "s2", null, null,
-                                                Map.of("cat", string("B")), null, null), "multi-type", ENTITY, CBR, "t2", "case-2", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("multi-type", FeatureField.categorical("cat")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("cat", string("A")), null, null), "multi-type", ENTITY, CBR, "t1", "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.store(new CbrFeatureRecord("p2", "s2", null, null,
+                                            Map.of("cat", string("B")), null, null), "multi-type", ENTITY, CBR, "t2", "case-2", io.casehub.platform.api.path.Path.root());
 
         // Delete collection to force reindex
         String collection = collectionManager.collectionName("multi-type");
@@ -230,11 +230,11 @@ class CbrReconciliationServiceTest {
 
     @Test
     void reconcileAll_autoDiscovery() {
-        cbrStore.registerSchema(CbrFeatureSchema.of("auto-type", FeatureField.categorical("cat")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("cat", string("A")), null, null), "auto-type", ENTITY, CBR, "auto-t1", "case-1", io.casehub.platform.api.path.Path.root());
-        cbrStore.store(new FeatureVectorCbrCase("p2", "s2", null, null,
-                                                Map.of("cat", string("B")), null, null), "auto-type", ENTITY, CBR, "auto-t2", "case-2", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("auto-type", FeatureField.categorical("cat")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("cat", string("A")), null, null), "auto-type", ENTITY, CBR, "auto-t1", "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.store(new CbrFeatureRecord("p2", "s2", null, null,
+                                            Map.of("cat", string("B")), null, null), "auto-type", ENTITY, CBR, "auto-t2", "case-2", io.casehub.platform.api.path.Path.root());
 
         // Delete collection
         String collection = collectionManager.collectionName("auto-type");
@@ -247,14 +247,14 @@ class CbrReconciliationServiceTest {
 
     @Test
     void reconcileAll_partialFailure_capturesErrorsAndSuccesses() {
-        cbrStore.registerSchema(CbrFeatureSchema.of("partial-type", FeatureField.categorical("cat")));
-        cbrStore.store(new FeatureVectorCbrCase("p1", "s1", null, null,
-                                                Map.of("cat", string("A")), null, null), "partial-type", ENTITY, CBR, "good-tenant", "case-1", io.casehub.platform.api.path.Path.root());
+        cbrStore.registerSchema(CbrRecordSchema.of("partial-type", FeatureField.categorical("cat")));
+        cbrStore.store(new CbrFeatureRecord("p1", "s1", null, null,
+                                            Map.of("cat", string("A")), null, null), "partial-type", ENTITY, CBR, "good-tenant", "case-1", io.casehub.platform.api.path.Path.root());
 
         // Store invalid memory for bad tenant (missing 'solution' attribute)
         delegate.storeRaw("case-bad", ENTITY, CBR, "bad-tenant", "problem text",
             Map.of(CbrAttributeKeys.CBR_CASE_TYPE, "partial-type",
-                   CbrAttributeKeys.CBR_TYPE, FeatureVectorCbrCase.CBR_TYPE));
+                   CbrAttributeKeys.CBR_TYPE, CbrFeatureRecord.CBR_TYPE));
         // Missing solution → CbrMemoryDeserializer returns empty → reconciliation error
 
         // Delete collection to force reindex for good-tenant
@@ -331,9 +331,9 @@ class CbrReconciliationServiceTest {
         }
 
         void storeDirectly(String caseId, String entityId, MemoryDomain domain,
-                           String tenantId, CbrCase cbrCase, String caseType) {
+                           String tenantId, CbrRecord cbrRecord, String caseType) {
             MemoryInput input = CbrMemorySerializer.serialize(
-                cbrCase, entityId, domain, tenantId, caseId, caseType);
+                    cbrRecord, entityId, domain, tenantId, caseId, caseType);
             store(input);
         }
 

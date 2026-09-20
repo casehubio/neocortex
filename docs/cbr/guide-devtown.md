@@ -16,7 +16,7 @@ semantic similarity within that filtered set.
 ## Feature Schema
 
 ```java
-CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("devtown-pr-review",
+CbrRecordSchema SCHEMA = CbrRecordSchema.of("devtown-pr-review",
     FeatureField.categorical("language"),       // JAVA, KOTLIN, TYPESCRIPT, PYTHON
     FeatureField.categorical("change_type"),    // FEATURE, BUGFIX, REFACTOR, DOCS, TEST
     FeatureField.numeric("files_changed", 1, 1000),
@@ -39,10 +39,10 @@ When a PR review completes, build a case from the outcome:
 @ApplicationScoped
 public class PrReviewOutcomeObserver {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     void onReviewComplete(@Observes PrReviewCompleteEvent event) {
-        var cbrCase = new FeatureVectorCbrCase(
+        var cbrCase = new CbrFeatureRecord(
             event.prDescription(),                          // problem
             formatSolution(event),                          // solution summary
             event.outcome().name(),                         // APPROVED, CHANGES_REQUESTED, etc.
@@ -73,9 +73,9 @@ At PR assignment time, query for similar past reviews:
 @ApplicationScoped
 public class PrReviewAssistant {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    public List<FeatureVectorCbrCase> findSimilarReviews(PullRequest pr) {
+    public List<CbrFeatureRecord> findSimilarReviews(PullRequest pr) {
         var query = CbrQuery.of(
             pr.tenantId(),
             PR_REVIEW_DOMAIN,
@@ -85,7 +85,7 @@ public class PrReviewAssistant {
                 "change_type", pr.changeType()),
             5);
 
-        return cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        return cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
     }
 }
 ```
@@ -101,7 +101,7 @@ finding was missing transaction boundaries, average review time was 2 days."
 | **Production** | `memory-qdrant` | Payload filters on language/change_type + range on files/lines + dense vector on pr_description. Persistent. Scalable. |
 
 Switching backends requires no code changes — CDI selects the highest-priority
-`CbrCaseMemoryStore` implementation on the classpath.
+`CbrRecordStore` implementation on the classpath.
 
 ## Maven Dependencies
 

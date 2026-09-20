@@ -133,4 +133,4 @@ This session delivers `MemoryEmitter` in neocortex. Consumer migration is tracke
 
 **In scope:** `MemoryEmitter` class + tests in `memory/` module.
 
-**Out of scope:** Consumer migration (peer repos), reactive variant, CDI event notification, CbrCaseMemoryStore equivalent.
+**Out of scope:** Consumer migration (peer repos), reactive variant, CDI event notification, CbrRecordStore equivalent.

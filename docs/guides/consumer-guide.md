@@ -15,7 +15,7 @@ Four related capabilities in one repo:
 
 **RAG Integration** — casehub-specific LangChain4j RAG pipeline wiring. Tenancy-isolated Qdrant corpus storage, hybrid dense+sparse+BM25 search via configurable fusion (RRF, DBSF, CC). Exposes `EmbeddingIngestor` and `CaseRetriever` SPIs for use by engine case steps and the typed fact space. Pre-ingestion dedup gate, retrieval tracking, corrective RAG, cross-encoder reranking, and query expansion.
 
-**CBR Memory** — case-based reasoning with typed feature-vector similarity search over prior cases. `CbrCaseMemoryStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, Qdrant). Typed feature values (7 value types, 9 field types), weighted similarity scoring, plan adaptation, ensemble analysis, temporal decay, trust-weighted retrieval, hierarchical scoping, and outcome feedback loops.
+**CBR Memory** — case-based reasoning with typed feature-vector similarity search over prior cases. `CbrRecordStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, Qdrant). Typed feature values (7 value types, 9 field types), weighted similarity scoring, plan adaptation, ensemble analysis, temporal decay, trust-weighted retrieval, hierarchical scoping, and outcome feedback loops.
 
 **Agent Memory** — queryable, permission-aware, persistent agent memory. `CaseMemoryStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, SQLite, Mem0, Graphiti). Salience-based ranking, confidence-aware retention, fire-and-forget emission via `MemoryEmitter`.
 
@@ -71,14 +71,14 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `memory-api` | `casehub-neocortex-memory-api` | `CbrCaseMemoryStore` SPI, typed feature values, field schema, similarity specs, `PlanAdapter`, `PlanEnsembleAnalyzer`, `AgentTrustProvider`, `CbrRetrievalTracker`, `PersonalityTransitionSchema` — pure Java |
+| `memory-api` | `casehub-neocortex-memory-api` | `CbrRecordStore` SPI, typed feature values, field schema, similarity specs, `CbrCbrPlanAdapter`, `CbrCbrPlanEnsembleAnalyzer`, `AgentTrustProvider`, `CbrRetrievalTracker`, `PersonalityTransitionSchema` — pure Java |
 | `memory` | `casehub-neocortex-memory` | CBR CDI decorator chain — outcome weighting, trust-weighted retrieval, scope decay, temporal decay, trend enrichment, erasure notification. `CbrRetentionScheduler`, `TrustRetentionService`, `CbrOutcomeConsumer` |
 | `memory-cbr-inmem` | `casehub-neocortex-memory-cbr-inmem` | In-memory CBR case store for tests |
 | `memory-cbr-jpa` | `casehub-neocortex-memory-cbr-jpa` | JPA/PostgreSQL CBR store with JSONB features, plan traces, outcome tracking |
 | `memory-qdrant` | `casehub-neocortex-memory-qdrant` | Qdrant vector store backend + multi-leg hybrid fusion + `CbrReconciliationService` |
 | `memory-cbr-embedding` | `casehub-neocortex-memory-cbr-embedding` | `EmbeddingTextSimilarity` — LangChain4j `EmbeddingModel`-based semantic text similarity for CBR fields |
 | `memory-cbr-crossencoder` | `casehub-neocortex-memory-cbr-crossencoder` | Cross-encoder reranking for CBR retrieval. Config-gated decorator |
-| `memory-cbr-spring-jpa` | `casehub-neocortex-memory-cbr-spring-jpa` | Spring Data JPA `CbrCaseMemoryStore` — PostgreSQL + Flyway, shared filter matching via `CbrCaseFilterMatcher` |
+| `memory-cbr-spring-jpa` | `casehub-neocortex-memory-cbr-spring-jpa` | Spring Data JPA `CbrRecordStore` — PostgreSQL + Flyway, shared filter matching via `CbrRecordFilterMatcher` |
 | `memory-cbr-tracking` | `casehub-neocortex-memory-cbr-tracking` | SQLite-backed CBR retrieval tracking + plan adaptation tracking + ensemble tracking |
 
 ### Knowledge Model
@@ -193,9 +193,9 @@ Queryable, permission-aware, persistent memory. Key operations:
 
 `MemoryRetentionScheduler` — scheduled confidence-based purge across discovered tenants. Config-driven: `casehub.memory.retention.enabled`, `casehub.memory.retention.min-confidence`, `casehub.memory.retention.max-age-days`.
 
-### CbrCaseMemoryStore (memory-api)
+### CbrRecordStore (memory-api)
 
-Structured feature-vector similarity search over past cases. Open `CbrCase` type hierarchy with `cbrType()` discriminator: `ResolutionGuide` (with optional `features` and structured `GuidanceStep` list), `FeatureVectorCbrCase`, `ResolvedCase`.
+Structured feature-vector similarity search over past cases. Open `CbrRecord` type hierarchy with `recordType()` discriminator: `CbrGuidanceRecord` (with optional `features` and structured `CbrCbrGuidanceStep` list), `CbrFeatureRecord`, `CbrPlanRecord`.
 
 **Typed feature values:** `FeatureValue` sealed interface with seven value types: `StringVal`, `NumberVal`, `RangeVal`, `StringListVal`, `NumberListVal`, `StructVal`, `StructListVal`. Booleans coerced via `FeatureValue.of(Object)`.
 
@@ -203,7 +203,7 @@ Structured feature-vector similarity search over past cases. Open `CbrCase` type
 
 **Similarity scoring:** `CbrSimilarityScorer` — pure-Java weighted composite scoring with three-level precedence: caller override, field `SimilaritySpec`, type default. `SimilaritySpec` sealed interface: `CategoricalTable`, `GaussianDecay`, `StepDecay`, `ExponentialDecay`, `DtwSpec`, `EditDistanceSpec`.
 
-**Cross-type retrieval:** `CaseTypeScope` sealed interface — `Specific(caseType)` for single-type queries, `AllInDomain()` for cross-type. `CbrQuery.crossType(tenantId, domain, scope, features, topK)` factory. Results carry `ScoredCbrCase.caseType()` for type identification. Qdrant backend fans out across all collections matching the prefix.
+**Cross-type retrieval:** `CaseTypeScope` sealed interface — `Specific(caseType)` for single-type queries, `AllInDomain()` for cross-type. `CbrQuery.crossType(tenantId, domain, scope, features, topK)` factory. Results carry `CbrMatch.caseType()` for type identification. Qdrant backend fans out across all collections matching the prefix.
 
 **Retrieval modes:** `CbrQuery.RetrievalMode` — `FEATURE_ONLY`, `SEMANTIC_ONLY`, `HYBRID`. `FusionStrategy` from `fusion-api` for result merging.
 
@@ -221,17 +221,17 @@ Structured feature-vector similarity search over past cases. Open `CbrCase` type
 
 **Retention:** `purge(CbrRetentionPolicy)` — age + count + trust-based purge. `CbrRetentionScheduler` for scheduled purging. `TrustRetentionService` — evaluates agent trust trajectories via `AgentTrustProvider` and purges cases below `minCurrentTrust`.
 
-**Scan:** `scan(CbrScanRequest)` — paginated scan with tenant/domain/caseType filtering. Returns `List<CbrCaseSummary>` (caseId, entityId, caseType, producerAgentId, trustScore, storedAt).
+**Scan:** `scan(CbrScanRequest)` — paginated scan with tenant/domain/caseType filtering. Returns `List<CbrRecordSummary>` (caseId, entityId, caseType, producerAgentId, trustScore, storedAt).
 
-### PlanAdapter / PlanEnsembleAnalyzer (memory-api)
+### CbrPlanAdapter / CbrPlanEnsembleAnalyzer (memory-api)
 
-`PlanAdapter` SPI — transforms retrieved plans for new case contexts. `adapt(caseType, ScoredCbrCase<PlanCbrCase>, features)` returns `AdaptedPlan` with `AdaptedStep` entries tagged by `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `ResolutionStep` records audit data with optional `variantId`.
+`CbrCbrPlanAdapter` SPI — transforms retrieved plans for new case contexts. `adapt(caseType, CbrMatch<PlanCbrRecord>, features)` returns `AdaptedPlan` with `AdaptedStep` entries tagged by `AdaptationAction` (RETAINED, SUBSTITUTED, BOOSTED, SUPPRESSED, ADDED, REMOVED). `CbrPlanStep` records audit data with optional `variantId`.
 
-`PlanEnsembleAnalyzer` SPI — cross-plan structural analysis. After per-plan adaptation, examines multiple adapted plans for consensus/divergence and synthesizes an `EnsemblePlan`. `StepConsensus` classifies agreement as UNANIMOUS, CONSENSUS, CONTESTED, MINORITY, or UNIQUE.
+`CbrCbrPlanEnsembleAnalyzer` SPI — cross-plan structural analysis. After per-plan adaptation, examines multiple adapted plans for consensus/divergence and synthesizes an `EnsemblePlan`. `StepConsensus` classifies agreement as UNANIMOUS, CONSENSUS, CONTESTED, MINORITY, or UNIQUE.
 
 ### Trust-Weighted Retrieval (memory)
 
-`TrustWeightedCbrCaseMemoryStore` (Decorator Priority 60) — modulates retrieval scores by source trust authority + optional trust trajectory via `AgentTrustProvider` SPI. `TrustWeightingFunction` SPI for pluggable score modulation. Default: linear interpolation `score*(1-alpha+alpha*trustScore)` with declining trajectory penalty.
+`TrustWeightedCbrRecordStore` (Decorator Priority 60) — modulates retrieval scores by source trust authority + optional trust trajectory via `AgentTrustProvider` SPI. `TrustWeightingFunction` SPI for pluggable score modulation. Default: linear interpolation `score*(1-alpha+alpha*trustScore)` with declining trajectory penalty.
 
 Config-gated: `casehub.cbr.trust-weighting.enabled`, `casehub.cbr.trust-weighting.influence` (default 0.3).
 

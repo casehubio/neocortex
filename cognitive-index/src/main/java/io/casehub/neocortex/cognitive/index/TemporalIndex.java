@@ -5,7 +5,7 @@ import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryQuery;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -39,18 +39,18 @@ public class TemporalIndex {
 
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;
-    private final CbrCaseMemoryStore cbrStore;
+    private final CbrRecordStore  cbrStore;
 
     @Inject
     public TemporalIndex(Instance<MindMapStore> mindMapStore,
                          Instance<CaseMemoryStore> memoryStore,
-                         Instance<CbrCaseMemoryStore> cbrStore) {
+                         Instance<CbrRecordStore> cbrStore) {
         this.mindMapStore = mindMapStore != null && mindMapStore.isResolvable() ? mindMapStore.get() : null;
         this.memoryStore = memoryStore != null && memoryStore.isResolvable() ? memoryStore.get() : null;
         this.cbrStore = cbrStore != null && cbrStore.isResolvable() ? cbrStore.get() : null;
     }
 
-    TemporalIndex(MindMapStore mindMapStore, CaseMemoryStore memoryStore, CbrCaseMemoryStore cbrStore) {
+    TemporalIndex(MindMapStore mindMapStore, CaseMemoryStore memoryStore, CbrRecordStore cbrStore) {
         this.mindMapStore = mindMapStore;
         this.memoryStore = memoryStore;
         this.cbrStore = cbrStore;

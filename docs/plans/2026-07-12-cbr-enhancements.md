@@ -37,7 +37,7 @@
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/DtwSimilarity.java`
 - Modify: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/DtwSimilarityTest.java`
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrSimilarityScorer.java`
-- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrCaseMemoryStoreContractTest.java`
+- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrRecordStoreContractTest.java`
 
 **Interfaces:**
 - Produces: `WarpingConstraint` sealed interface with `Unconstrained`, `SakoeChibaBand(int windowSize)`, `ItakuraParallelogram(double maxSlope)`
@@ -156,7 +156,7 @@ These compile errors will guide you — every `new DtwSpec(Integer)` call must b
 4. `DtwSimilarityTest.java` — all `new DtwSpec(N)` → `new DtwSpec(new WarpingConstraint.SakoeChibaBand(N))`; `new DtwSpec(null)` → `new DtwSpec(new WarpingConstraint.Unconstrained())`
 5. `SimilaritySpecTest.java` — same DtwSpec migrations
 6. `FeatureFieldTest.java` — same
-7. `CbrCaseMemoryStoreContractTest.java` — `new SimilaritySpec.DtwSpec(5)` → `new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(5))`; `new SimilaritySpec.DtwSpec(3)` similarly
+7. `CbrRecordStoreContractTest.java` — `new SimilaritySpec.DtwSpec(5)` → `new SimilaritySpec.DtwSpec(new WarpingConstraint.SakoeChibaBand(5))`; `new SimilaritySpec.DtwSpec(3)` similarly
 
 In `CbrSimilarityScorer.java`, update `dtwSimilarity()`:
 
@@ -536,10 +536,10 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "feat(#139): configur
 **Files:**
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrFilter.java`
 - Modify: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/CbrFilterTest.java`
-- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrFeatureValidator.java`
-- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrCaseMemoryStore.java`
+- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrRecordValidator.java`
+- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrRecordStore.java`
 - Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/CbrQueryTranslator.java`
-- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrCaseMemoryStoreContractTest.java`
+- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrRecordStoreContractTest.java`
 
 **Interfaces:**
 - Produces: `CbrFilter.NotContains(String value)`, `CbrFilter.NotContainsAny(List<String> values)`
@@ -547,7 +547,7 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "feat(#139): configur
 
 - [ ] **Step 1: Write contract tests for negation filters**
 
-Add to `CbrCaseMemoryStoreContractTest.java`:
+Add to `CbrRecordStoreContractTest.java`:
 
 ```java
 @Test
@@ -559,7 +559,7 @@ void structuredFields_notContains_excludesCasesWithValue() {
     var q = CbrQuery.of(TENANT, CBR, "structured-game", Map.of(), 10)
         .withFilter("phases", CbrFilter.notContains("RUSH"))
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
     assertThat(results.get(0).cbrCase().problem()).isEqualTo("no-rush");
 }
@@ -574,7 +574,7 @@ void structuredFields_notContainsAny_excludesCasesWithAnyValue() {
     var q = CbrQuery.of(TENANT, CBR, "structured-game", Map.of(), 10)
         .withFilter("phases", CbrFilter.notContainsAny(List.of("RUSH", "CHEESE")))
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
     assertThat(results.get(0).cbrCase().problem()).isEqualTo("clean");
 }
@@ -585,7 +585,7 @@ void structuredFields_notContains_validation_requiresCategoricalList() {
     assertThatThrownBy(() -> {
         var q = CbrQuery.of(TENANT, CBR, "structured-game", Map.of(), 10)
             .withFilter("playerRank", CbrFilter.notContains("GOLD"));
-        store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        store().retrieveSimilar(q, CbrFeatureRecord.class);
     }).isInstanceOf(IllegalArgumentException.class);
 }
 ```
@@ -594,7 +594,7 @@ void structuredFields_notContains_validation_requiresCategoricalList() {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory-cbr-inmem -Dtest=InMemoryCbrCaseMemoryStoreTest`
+Run: `JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn test -pl memory-cbr-inmem -Dtest=InMemoryCbrRecordStoreTest`
 Expected: FAIL (compile error — CbrFilter.notContains doesn't exist)
 
 - [ ] **Step 3: Add NotContains/NotContainsAny to CbrFilter**
@@ -624,7 +624,7 @@ static NotContains notContains(String value) { return new NotContains(value); }
 static NotContainsAny notContainsAny(List<String> values) { return new NotContainsAny(values); }
 ```
 
-- [ ] **Step 4: Update CbrFeatureValidator.validateFilters()**
+- [ ] **Step 4: Update CbrRecordValidator.validateFilters()**
 
 In the `switch (filter)` block, add:
 
@@ -633,7 +633,7 @@ case CbrFilter.NotContains nc -> requireCategoricalList(name, field);
 case CbrFilter.NotContainsAny nca -> requireCategoricalList(name, field);
 ```
 
-- [ ] **Step 5: Update InMemoryCbrCaseMemoryStore.matchesFilters()**
+- [ ] **Step 5: Update InMemoryCbrRecordStore.matchesFilters()**
 
 In the `switch (filter)` block, add:
 
@@ -673,15 +673,15 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "feat(#126): NotConta
 **Files:**
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/FeatureField.java`
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrFilter.java`
-- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrFeatureValidator.java`
+- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrRecordValidator.java`
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrSimilarityScorer.java`
 - Modify: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/FeatureFieldTest.java`
 - Modify: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/CbrFilterTest.java`
-- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrCaseMemoryStore.java`
+- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrRecordStore.java`
 - Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/CbrQueryTranslator.java`
 - Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/CbrCollectionManager.java`
-- Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/QdrantCbrCaseMemoryStore.java`
-- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrCaseMemoryStoreContractTest.java`
+- Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/QdrantCbrRecordStore.java`
+- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrRecordStoreContractTest.java`
 
 **Interfaces:**
 - Produces: `FeatureField.NumericList(String name, double min, double max)` — filter-only
@@ -691,18 +691,18 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "feat(#126): NotConta
 
 - [ ] **Step 1: Write contract tests for NumericList**
 
-Add to `CbrCaseMemoryStoreContractTest.java`. First add a schema helper:
+Add to `CbrRecordStoreContractTest.java`. First add a schema helper:
 
 ```java
 private void registerNumericListSchema() {
-    store().registerSchema(CbrFeatureSchema.of("player-stats",
+    store().registerSchema(CbrRecordSchema.of("player-stats",
         FeatureField.categorical("region"),
         FeatureField.numericList("scores", 0, 100)));
 }
 
 private String storeNumericListCase(String problem, Map<String, Object> features, String caseId) {
     return store().store(
-        new FeatureVectorCbrCase(problem, "solution", null, null, features),
+        new CbrFeatureRecord(problem, "solution", null, null, features),
         "player-stats", ENTITY, CBR, TENANT, caseId);
 }
 ```
@@ -716,7 +716,7 @@ void numericList_storeAndRetrieve() {
     storeNumericListCase("high scorer", Map.of("region", "NA", "scores", List.of(85, 92, 78)), "c1");
     var q = CbrQuery.of(TENANT, CBR, "player-stats", Map.of("region", "NA"), 10)
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
 }
 
@@ -729,7 +729,7 @@ void numericList_containsRange_matchesElementInRange() {
     var q = CbrQuery.of(TENANT, CBR, "player-stats", Map.of(), 10)
         .withFilter("scores", CbrFilter.containsRange(new NumericRange(90, 100)))
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
     assertThat(results.get(0).cbrCase().problem()).isEqualTo("has-90s");
 }
@@ -742,7 +742,7 @@ void numericList_containsRange_noMatch() {
     var q = CbrQuery.of(TENANT, CBR, "player-stats", Map.of(), 10)
         .withFilter("scores", CbrFilter.containsRange(new NumericRange(90, 100)))
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).isEmpty();
 }
 
@@ -752,7 +752,7 @@ void numericList_validation_queryFeaturesRejected() {
     assertThatThrownBy(() -> {
         var q = CbrQuery.of(TENANT, CBR, "player-stats",
             Map.of("scores", List.of(50, 60)), 10);
-        store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        store().retrieveSimilar(q, CbrFeatureRecord.class);
     }).isInstanceOf(IllegalArgumentException.class);
 }
 
@@ -769,7 +769,7 @@ void numericList_validation_containsRangeOnCategoricalList_rejected() {
     assertThatThrownBy(() -> {
         var q = CbrQuery.of(TENANT, CBR, "structured-game", Map.of(), 10)
             .withFilter("phases", CbrFilter.containsRange(new NumericRange(1, 5)));
-        store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        store().retrieveSimilar(q, CbrFeatureRecord.class);
     }).isInstanceOf(IllegalArgumentException.class);
 }
 ```
@@ -819,7 +819,7 @@ record ContainsRange(NumericRange range) implements CbrFilter {
 static ContainsRange containsRange(NumericRange range) { return new ContainsRange(range); }
 ```
 
-- [ ] **Step 4: Update CbrFeatureValidator**
+- [ ] **Step 4: Update CbrRecordValidator**
 
 In `validateStoreFeatures()`, add:
 
@@ -887,7 +887,7 @@ if (field instanceof FeatureField.CategoricalList
     || field instanceof FeatureField.NumericList) {continue;}
 ```
 
-- [ ] **Step 6: Update InMemoryCbrCaseMemoryStore**
+- [ ] **Step 6: Update InMemoryCbrRecordStore**
 
 In `matchesFilters()`, add to the switch:
 
@@ -916,11 +916,11 @@ case CbrFilter.ContainsRange cr -> builder.addMust(ConditionFactory.range(payloa
     Range.newBuilder().setGte(cr.range().min()).setLte(cr.range().max()).build()));
 ```
 
-- [ ] **Step 8: Update CbrCollectionManager and QdrantCbrCaseMemoryStore**
+- [ ] **Step 8: Update CbrCollectionManager and QdrantCbrRecordStore**
 
 In `CbrCollectionManager.registerSchemaIndexes()`, add NumericList to the FeatureField switch — create a float payload index.
 
-In `QdrantCbrCaseMemoryStore.buildTextOverrides()`, add NumericList to the FeatureField switch (empty handler — no text semantics).
+In `QdrantCbrRecordStore.buildTextOverrides()`, add NumericList to the FeatureField switch (empty handler — no text semantics).
 
 - [ ] **Step 9: Run tests**
 
@@ -941,10 +941,10 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "feat(#125): NumericL
 **Files:**
 - Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrFilter.java`
 - Modify: `memory-api/src/test/java/io/casehub/neocortex/memory/cbr/CbrFilterTest.java`
-- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrFeatureValidator.java`
-- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrCaseMemoryStore.java`
+- Modify: `memory-api/src/main/java/io/casehub/neocortex/memory/cbr/CbrRecordValidator.java`
+- Modify: `memory-cbr-inmem/src/main/java/io/casehub/neocortex/memory/cbr/inmem/InMemoryCbrRecordStore.java`
 - Modify: `memory-qdrant/src/main/java/io/casehub/neocortex/memory/cbr/qdrant/CbrQueryTranslator.java`
-- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrCaseMemoryStoreContractTest.java`
+- Modify: `memory-testing/src/main/java/io/casehub/neocortex/memory/cbr/testing/CbrRecordStoreContractTest.java`
 
 **Interfaces:**
 - Consumes: All CbrFilter variants from Tasks 3 and 4 (NotContains, NotContainsAny, ContainsRange)
@@ -953,7 +953,7 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "feat(#125): NumericL
 
 - [ ] **Step 1: Write contract tests for AllOf**
 
-Add to `CbrCaseMemoryStoreContractTest.java`:
+Add to `CbrRecordStoreContractTest.java`:
 
 ```java
 @Test
@@ -970,7 +970,7 @@ void structuredFields_allOf_twoHasMatch_onObjectList() {
             CbrFilter.hasMatch(Map.of("eventType", "FIRST_CONTACT")),
             CbrFilter.hasMatch(Map.of("eventType", "BATTLE_WON"))))
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
     assertThat(results.get(0).cbrCase().problem()).isEqualTo("both-match");
 }
@@ -987,7 +987,7 @@ void structuredFields_allOf_containsAndNotContains() {
             CbrFilter.contains("RUSH"),
             CbrFilter.notContains("CHEESE")))
         .withRetrievalMode(RetrievalMode.FEATURE_ONLY);
-    var results = store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+    var results = store().retrieveSimilar(q, CbrFeatureRecord.class);
     assertThat(results).hasSize(1);
     assertThat(results.get(0).cbrCase().problem()).isEqualTo("has-rush-no-cheese");
 }
@@ -1014,7 +1014,7 @@ void structuredFields_allOf_validation_innerFilterTypeMismatch() {
             .withFilter("phases", CbrFilter.allOf(
                 CbrFilter.contains("A"),
                 CbrFilter.hasMatch(Map.of("x", "y"))));
-        store().retrieveSimilar(q, FeatureVectorCbrCase.class);
+        store().retrieveSimilar(q, CbrFeatureRecord.class);
     }).isInstanceOf(IllegalArgumentException.class);
 }
 ```
@@ -1038,7 +1038,7 @@ record AllOf(List<CbrFilter> filters) implements CbrFilter {
 static AllOf allOf(CbrFilter... filters) { return new AllOf(List.of(filters)); }
 ```
 
-- [ ] **Step 3: Update CbrFeatureValidator.validateFilters()**
+- [ ] **Step 3: Update CbrRecordValidator.validateFilters()**
 
 Add to the switch:
 
@@ -1052,7 +1052,7 @@ case CbrFilter.AllOf allOf -> {
 
 This requires extracting the per-filter validation from the existing switch into a `validateSingleFilter()` helper method that handles Contains, ContainsAll, ContainsAny, NotContains, NotContainsAny, ContainsRange, and HasMatch — then calling it for each inner filter in AllOf.
 
-- [ ] **Step 4: Update InMemoryCbrCaseMemoryStore.matchesFilters()**
+- [ ] **Step 4: Update InMemoryCbrRecordStore.matchesFilters()**
 
 Add to the switch:
 

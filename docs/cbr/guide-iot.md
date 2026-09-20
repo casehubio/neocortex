@@ -18,7 +18,7 @@ semantic context for edge cases that categories miss.
 ## Feature Schema
 
 ```java
-CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("iot-situation",
+CbrRecordSchema SCHEMA = CbrRecordSchema.of("iot-situation",
     FeatureField.categorical("situation_type"),  // TEMPERATURE_ANOMALY, MOTION_UNEXPECTED, WATER_LEAK, SMOKE_DETECTED, POWER_OUTAGE
     FeatureField.categorical("device_class"),    // THERMOSTAT, CAMERA, SENSOR, ALARM, METER
     FeatureField.categorical("room_type"),       // LIVING, BEDROOM, KITCHEN, BATHROOM, GARAGE, EXTERIOR
@@ -44,10 +44,10 @@ When a situation is resolved:
 @ApplicationScoped
 public class IoTSituationOutcomeObserver {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     void onSituationResolved(@Observes IoTSituationResolvedEvent event) {
-        var cbrCase = new FeatureVectorCbrCase(
+        var cbrCase = new CbrFeatureRecord(
             event.situationDescription(),                   // problem
             formatSolution(event),                          // solution summary
             event.resolution().name(),                      // RESOLVED_AUTOMATICALLY, OPERATOR_DISMISSED, ESCALATED, WORK_ITEM_CREATED
@@ -79,9 +79,9 @@ When a new situation is detected:
 @ApplicationScoped
 public class IoTSituationAdvisor {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    public List<FeatureVectorCbrCase> findSimilarSituations(IoTSituation situation) {
+    public List<CbrFeatureRecord> findSimilarSituations(IoTSituation situation) {
         var query = CbrQuery.of(
             situation.tenantId(),
             IOT_DOMAIN,
@@ -91,7 +91,7 @@ public class IoTSituationAdvisor {
                 "room_type", situation.roomType().name()),
             10);
 
-        return cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        return cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
     }
 }
 ```

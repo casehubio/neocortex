@@ -30,7 +30,7 @@ semantics. `SimilaritySpec` records are pure data: clean `equals`/`hashCode`, se
 inspectable via pattern matching.
 
 **Relationship to prior spec (#106):** The semantic text similarity spec rejected "Type-level
-strategy on `CbrFeatureSchema` — turns the schema from a data declaration into a behavior
+strategy on `CbrRecordSchema` — turns the schema from a data declaration into a behavior
 carrier." `SimilaritySpec` is data, not behavior. The schema remains a data declaration —
 it declares *what kind* of similarity to compute (Gaussian with σ=0.5), and the scorer resolves
 that declaration to behavior at compute time. No functional interfaces, no CDI dependencies,
@@ -141,7 +141,7 @@ public sealed interface FeatureField permits FeatureField.Categorical, FeatureFi
 
 Usage:
 ```java
-CbrFeatureSchema.of("clinical-ae",
+CbrRecordSchema.of("clinical-ae",
     FeatureField.categorical("eventType",
         SimilaritySpec.categoricalTableBuilder()
             .add("headache", "migraine", 0.8)
@@ -325,7 +325,7 @@ This extends the sealed interface without changing existing code. The scorer add
 | File | Change |
 |------|--------|
 | `SimilaritySpec` | **New file.** Sealed interface with `CategoricalTable`, `GaussianDecay`, `StepDecay`, `ExponentialDecay` + inner `CategoricalTableBuilder` |
-| `FeatureField` | **Sealed.** `Categorical` and `Numeric` gain optional `SimilaritySpec` parameter with backward-compatible constructors. New factory method overloads. Sealing enables exhaustive pattern matching in the scorer and all dispatch sites (`CbrQueryTranslator`, `CbrCollectionManager`, `InMemoryCbrCaseMemoryStore`). |
+| `FeatureField` | **Sealed.** `Categorical` and `Numeric` gain optional `SimilaritySpec` parameter with backward-compatible constructors. New factory method overloads. Sealing enables exhaustive pattern matching in the scorer and all dispatch sites (`CbrQueryTranslator`, `CbrCollectionManager`, `InMemoryCbrRecordStore`). |
 | `CbrSimilarityScorer.localSimilarity()` | Refactored to pattern-match on field type + SimilaritySpec. `numericSimilarity()` refactored to extract `computeNormalizedDistance()`. |
 | `CbrSimilarityScorerTest` | New tests for SimilaritySpec resolution and all decay functions |
 | `FeatureFieldTest` | New tests for construction with SimilaritySpec, validation |
@@ -335,10 +335,10 @@ This extends the sealed interface without changing existing code. The scorer add
 | File | Why |
 |------|-----|
 | `LocalSimilarityFunction` | Unchanged — still the interface for caller overrides (level 1) |
-| `CbrFeatureSchema`, `CbrQuery`, `ScoredCbrCase` | Untouched — schema carries field changes transparently |
-| `QdrantCbrCaseMemoryStore` | Caller override (priority 1) still beats SimilaritySpec (priority 2), so `EmbeddingTextSimilarity` retains priority. `buildTextOverrides()` unchanged. |
-| `InMemoryCbrCaseMemoryStore` | Passes `Map.of()` overrides — SimilaritySpec on fields works automatically through the scorer |
-| `CbrCaseMemoryStoreContractTest` | Existing 28 tests pass unchanged; new contract tests added for SimilaritySpec |
+| `CbrRecordSchema`, `CbrQuery`, `CbrMatch` | Untouched — schema carries field changes transparently |
+| `QdrantCbrRecordStore` | Caller override (priority 1) still beats SimilaritySpec (priority 2), so `EmbeddingTextSimilarity` retains priority. `buildTextOverrides()` unchanged. |
+| `InMemoryCbrRecordStore` | Passes `Map.of()` overrides — SimilaritySpec on fields works automatically through the scorer |
+| `CbrRecordStoreContractTest` | Existing 28 tests pass unchanged; new contract tests added for SimilaritySpec |
 | Module dependencies | Everything stays in `memory-api` |
 
 ## Test plan
@@ -383,6 +383,6 @@ This extends the sealed interface without changing existing code. The scorer add
 - Schemas without SimilaritySpec behave identically to current behavior
 
 ### Contract tests
-- New tests in `CbrCaseMemoryStoreContractTest` for SimilaritySpec through the store
+- New tests in `CbrRecordStoreContractTest` for SimilaritySpec through the store
 - Categorical table similarity ranking through InMemory and Qdrant stores
 - Numeric Gaussian decay ranking through stores

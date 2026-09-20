@@ -2,11 +2,11 @@ package io.casehub.neocortex.memory.cbr.testing;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.platform.api.path.Path;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -31,9 +31,9 @@ public abstract class CbrRetrievalTrackerContractTest {
         return CbrQuery.of(tenantId, domain, Path.root(), "default", Map.of(), 5);
     }
 
-    private List<ScoredCbrCase<?>> results() {
-        var c = new FeatureVectorCbrCase("problem", "solution", null, Confidence.unknown(0.9), Map.of(), null, null);
-        return List.of(new ScoredCbrCase<>(c, "case-1", "test-type", 0.85));
+    private List<CbrMatch<?>> results() {
+        var c = new CbrFeatureRecord("problem", "solution", null, Confidence.unknown(0.9), Map.of(), null, null);
+        return List.of(new CbrMatch<>(c, "case-1", "test-type", 0.85));
     }
 
     @Test void record_returnsNonBlankTraceId() {

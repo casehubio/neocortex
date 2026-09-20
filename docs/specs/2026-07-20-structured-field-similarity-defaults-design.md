@@ -13,7 +13,7 @@ provided. Structured fields are excluded from both `weightedSum` and
 `totalWeight` — they contribute nothing to the score. The `return 0.0` branches
 in `localSimilarity()` are unreachable dead code behind this guard.
 
-Additionally, `CbrFeatureValidator.validateQueryFeatures()` rejects structured
+Additionally, `CbrRecordValidator.validateQueryFeatures()` rejects structured
 fields in query features entirely ("must be queried via filters, not features"),
 preventing them from reaching the scorer through any store backend.
 
@@ -131,7 +131,7 @@ algorithms:
 - Remove the `continue` guard in both `scoreDetailed()` overloads that skips
   structured fields when no override is present
 - Four switch branches updated (`return 0.0` → algorithm call) in `localSimilarity()`
-- Update `CbrFeatureValidator.validateQueryFeatures()` to accept structured
+- Update `CbrRecordValidator.validateQueryFeatures()` to accept structured
   field types with type validation (matching `validateStoreFeatures()`:
   `StringListVal` for CategoricalList, `NumberListVal` for NumericList,
   `StructVal` for NestedObject, `StructListVal` for ObjectList)
@@ -152,8 +152,8 @@ algorithms:
 
 - `memory-api/src/main/java/.../CbrSimilarityScorer.java` (`continue` guard
   removal, algorithm methods, Javadoc update)
-- `memory-api/src/main/java/.../CbrFeatureValidator.java` (accept structured
+- `memory-api/src/main/java/.../CbrRecordValidator.java` (accept structured
   fields in query features with type validation)
 - `memory-api/src/test/java/.../CbrSimilarityScorerTest.java`
-- `memory-api/src/test/java/.../CbrFeatureValidatorTest.java` (rejection tests
+- `memory-api/src/test/java/.../CbrRecordValidatorTest.java` (rejection tests
   become acceptance-with-validation tests)

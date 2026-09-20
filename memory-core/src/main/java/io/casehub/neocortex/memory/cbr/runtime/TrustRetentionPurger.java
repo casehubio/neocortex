@@ -4,7 +4,7 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.cbr.AgentTrustProvider;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrScanRequest;
 
 import java.util.HashMap;
@@ -19,10 +19,10 @@ public class TrustRetentionPurger {
 
     private static final Logger LOG = Logger.getLogger(TrustRetentionPurger.class.getName());
 
-    private final CbrCaseMemoryStore store;
+    private final CbrRecordStore     store;
     private final AgentTrustProvider trustProvider;
 
-    public TrustRetentionPurger(CbrCaseMemoryStore store, AgentTrustProvider trustProvider) {
+    public TrustRetentionPurger(CbrRecordStore store, AgentTrustProvider trustProvider) {
         this.store = store;
         this.trustProvider = trustProvider;
     }

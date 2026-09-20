@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.TextualCbrCase
+# io.casehub.neocortex.memory.cbr.TextualCbrRecord
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -36,7 +36,7 @@
 
 ## Constructors
 
-### `public TextualCbrCase(java.lang.String problem, java.lang.String solution, java.lang.String outcome, java.lang.Double confidence, java.lang.Double trustScore, java.lang.String producerAgentId)`
+### `public TextualCbrRecord(java.lang.String problem, java.lang.String solution, java.lang.String outcome, java.lang.Double confidence, java.lang.Double trustScore, java.lang.String producerAgentId)`
 
 #### Parameters
 
@@ -49,7 +49,7 @@
 
 ## Methods
 
-### `public java.lang.String cbrType()`
+### `public java.lang.String recordType()`
 
 ### `public java.lang.Double confidence()`
 
@@ -73,7 +73,7 @@
 
 ### `public java.lang.Double trustScore()`
 
-### `public io.casehub.neocortex.memory.cbr.CbrCase withOutcome(java.lang.String outcome, java.lang.Double confidence)`
+### `public io.casehub.neocortex.memory.cbr.CbrRecord withOutcome(java.lang.String outcome, java.lang.Double confidence)`
 
 #### Parameters
 

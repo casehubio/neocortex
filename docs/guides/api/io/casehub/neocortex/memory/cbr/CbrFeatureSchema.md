@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.CbrFeatureSchema
+# io.casehub.neocortex.memory.cbr.CbrRecordSchema
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -22,14 +22,14 @@
 
 ## Constructors
 
-### `public CbrFeatureSchema(java.lang.String caseType, java.util.List<io.casehub.neocortex.memory.cbr.FeatureField> fields)`
+### `public CbrRecordSchema(java.lang.String caseType, java.util.List<io.casehub.neocortex.memory.cbr.FeatureField> fields)`
 
 #### Parameters
 
 - `caseType` (`java.lang.String`)
 - `fields` (`java.util.List<io.casehub.neocortex.memory.cbr.FeatureField>`)
 
-### `public CbrFeatureSchema(java.lang.String caseType, java.util.List<io.casehub.neocortex.memory.cbr.FeatureField> fields, java.lang.Double learningRate)`
+### `public CbrRecordSchema(java.lang.String caseType, java.util.List<io.casehub.neocortex.memory.cbr.FeatureField> fields, java.lang.Double learningRate)`
 
 #### Parameters
 
@@ -53,7 +53,7 @@
 
 ### `public java.lang.Double learningRate()`
 
-### `public static io.casehub.neocortex.memory.cbr.CbrFeatureSchema of(java.lang.String caseType, io.casehub.neocortex.memory.cbr.FeatureField[] fields)`
+### `public static io.casehub.neocortex.memory.cbr.CbrRecordSchema of(java.lang.String caseType, io.casehub.neocortex.memory.cbr.FeatureField[] fields)`
 
 #### Parameters
 

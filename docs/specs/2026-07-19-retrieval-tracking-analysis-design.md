@@ -39,7 +39,7 @@ but the logic is generic and belongs in neocortex.
    `EmbeddingIngestor`) are already in `rag-api`. The computation has zero
    external dependencies. `memory-api` already contains pure computation
    classes (`CbrSimilarityScorer`, `DtwSimilarity`, `TrendAnalyzer`,
-   `CbrFeatureValidator`) alongside its SPIs — this is the established
+   `CbrRecordValidator`) alongside its SPIs — this is the established
    pattern, not an exception.
 
 4. **Focused static methods, not a monolithic analyzer.** Three methods

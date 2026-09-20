@@ -2,10 +2,10 @@ package io.casehub.neocortex.memory.cbr.runtime;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.AdaptationAction;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,15 +15,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class NoOpPlanAdapterTest {
 
-    private final NoOpPlanAdapter adapter = new NoOpPlanAdapter();
+    private final NoOpCbrPlanAdapter adapter = new NoOpCbrPlanAdapter();
 
     @Test
     void retainsAllSteps() {
-        var trace1 = new ResolutionStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
-        var trace2 = new ResolutionStep("b2", "cap2", "w2", "FAILURE", 1, Map.of("p", "v"), null);
-        var plan = new ResolvedCase("problem", "solution", "WIN", Confidence.unknown(0.9),
-                                    Map.of("f", FeatureValue.string("v")), List.of(trace1, trace2), null, null);
-        var scored = new ScoredCbrCase<>(plan, "c1", "test-type", 0.85);
+        var trace1 = new CbrPlanStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
+        var trace2 = new CbrPlanStep("b2", "cap2", "w2", "FAILURE", 1, Map.of("p", "v"), null);
+        var plan = new CbrPlanRecord("problem", "solution", "WIN", Confidence.unknown(0.9),
+                                     Map.of("f", FeatureValue.string("v")), List.of(trace1, trace2), null, null);
+        var scored = new CbrMatch<>(plan, "c1", "test-type", 0.85);
 
         var result = adapter.adapt("typeA", scored, Map.of("f", FeatureValue.string("q")));
 
@@ -36,11 +36,11 @@ class NoOpPlanAdapterTest {
 
     @Test
     void preservesStepFields() {
-        var trace = new ResolutionStep("b1", "cap1", "w1", "SUCCESS", 3,
-                                       Map.of("key", "val"), null);
-        var plan = new ResolvedCase("problem", "solution", null, null,
-                                    Map.of(), List.of(trace), null, null);
-        var scored = new ScoredCbrCase<>(plan, "c1", "test-type", 0.5);
+        var trace = new CbrPlanStep("b1", "cap1", "w1", "SUCCESS", 3,
+                                    Map.of("key", "val"), null);
+        var plan = new CbrPlanRecord("problem", "solution", null, null,
+                                     Map.of(), List.of(trace), null, null);
+        var scored = new CbrMatch<>(plan, "c1", "test-type", 0.5);
 
         var result = adapter.adapt("typeA", scored, Map.of());
         var step   = result.steps().getFirst();
@@ -55,9 +55,9 @@ class NoOpPlanAdapterTest {
 
     @Test
     void emptyTrace() {
-        var plan = new ResolvedCase("problem", "solution", null, null,
-                                    Map.of(), List.of(), null, null);
-        var scored = new ScoredCbrCase<>(plan, "c1", "test-type", 0.5);
+        var plan = new CbrPlanRecord("problem", "solution", null, null,
+                                     Map.of(), List.of(), null, null);
+        var scored = new CbrMatch<>(plan, "c1", "test-type", 0.5);
 
         var result = adapter.adapt("typeA", scored, Map.of());
 

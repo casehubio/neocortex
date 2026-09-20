@@ -433,7 +433,7 @@ public interface ExperienceConsolidationConfig {
 
 ## 9. Module Impact
 
-SPIs live in **memory-api** (where `Memory`, `ReflectionSynthesizer`, and `PlanAdapter` already live). Downstream consumers (blocks) depend on memory-api, not mindmap-intelligence — placing SPIs in mindmap-intelligence would force blocks to take a heavy implementation dependency.
+SPIs live in **memory-api** (where `Memory`, `ReflectionSynthesizer`, and `CbrCbrPlanAdapter` already live). Downstream consumers (blocks) depend on memory-api, not mindmap-intelligence — placing SPIs in mindmap-intelligence would force blocks to take a heavy implementation dependency.
 
 Implementations and the phase live in **mindmap-intelligence** alongside existing consolidation phases.
 

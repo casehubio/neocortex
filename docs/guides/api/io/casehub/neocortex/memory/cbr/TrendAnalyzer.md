@@ -64,18 +64,18 @@
 
 - `timeUnit` (`java.time.temporal.ChronoUnit`)
 
-### `public static java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> enrichFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public static java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> enrichFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
-### `public static io.casehub.neocortex.memory.cbr.CbrFeatureSchema expandSchema(io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public static io.casehub.neocortex.memory.cbr.CbrRecordSchema expandSchema(io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
 ### `private static double[] extractTimestamps(java.util.List<java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>> observations, java.lang.String timestampField)`
 

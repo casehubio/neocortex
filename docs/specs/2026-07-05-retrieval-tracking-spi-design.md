@@ -356,7 +356,7 @@ chunk deduplication, feedback UPSERT idempotency.
 
 **Contract test:** Abstract `RetrievalTrackerContractTest` in `rag-testing`
 defines the behavioural contract. Both InMemory and SQLite implementations
-extend it — same pattern as `CbrCaseMemoryStoreContractTest`.
+extend it — same pattern as `CbrRecordStoreContractTest`.
 
 **Decorator integration test:** `@QuarkusTest` in `rag-tracking` verifying
 that the decorator records retrievals and fires `RetrievalRecorded` events

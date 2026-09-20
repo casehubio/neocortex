@@ -93,7 +93,7 @@ return ScoreFusion.rrf(legs, RetrievedChunk::fusionKey, maxResults, 60)
 
 Replace `ConvexCombinationFusion.fuse(legs, maxResults)` with equivalent `ScoreFusion.convexCombination()` call using `RetrievedChunk::fusionKey` as ID extractor and `RetrievedChunk::relevanceScore` as score extractor, mapping `FusedResult` back to `RetrievedChunk` via `withRelevanceScore()`.
 
-**QdrantCbrCaseMemoryStore:** Import path changes only — `io.casehub.neocortex.memory.ScoreFusion` becomes `io.casehub.neocortex.fusion.ScoreFusion`.
+**QdrantCbrRecordStore:** Import path changes only — `io.casehub.neocortex.memory.ScoreFusion` becomes `io.casehub.neocortex.fusion.ScoreFusion`.
 
 ### 3. SPLADE Leg for CBR (#122)
 
@@ -103,7 +103,7 @@ Replace `ConvexCombinationFusion.fuse(legs, maxResults)` with equivalent `ScoreF
 
 ```java
 @Inject
-QdrantCbrCaseMemoryStore(..., Instance<SparseEmbedder> sparseEmbedderInstance, ...) {
+QdrantCbrRecordStore(..., Instance<SparseEmbedder> sparseEmbedderInstance, ...) {
     this.sparseEmbedder = sparseEmbedderInstance.isResolvable()
         ? sparseEmbedderInstance.get() : null;
 }
@@ -178,7 +178,7 @@ QdrantCbrCaseMemoryStore(..., Instance<SparseEmbedder> sparseEmbedderInstance, .
 
 **CbrReconciliationService:** `reconcileAll()` backfills sparse vectors (SPLADE) and BM25 text for cases stored before those legs were enabled.
 
-**Contract tests (QdrantCbrCaseMemoryStoreTest, Testcontainers):**
+**Contract tests (QdrantCbrRecordStoreTest, Testcontainers):**
 - HYBRID retrieval with 3 legs (dense + SPLADE + feature)
 - HYBRID retrieval with 3 legs (dense + BM25 + feature)
 - HYBRID retrieval with 4 legs (all active)
@@ -187,7 +187,7 @@ QdrantCbrCaseMemoryStore(..., Instance<SparseEmbedder> sparseEmbedderInstance, .
 - CC weighting: verify per-config weight distribution affects ranking
 - Reconciliation: cases stored without sparse vectors → reconcile → SPLADE retrieval succeeds
 
-**InMemoryCbrCaseMemoryStore:** No changes — the in-memory stub implements the SPI with simple feature matching. Multi-leg tests are Qdrant-specific.
+**InMemoryCbrRecordStore:** No changes — the in-memory stub implements the SPI with simple feature matching. Multi-leg tests are Qdrant-specific.
 
 ## Garden Context
 

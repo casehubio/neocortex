@@ -22,14 +22,14 @@ An analysis of how well the 17 cognitive types compose, with specific gaps and r
 |-------|--------|--------|
 | **MindMapQuery has no composition API** | 9-arg constructor, no `with*()` methods, no factory helpers. Compare to CbrQuery's 13 `with*()` methods. | Building queries is error-prone — every field must be specified positionally including 5+ nulls. |
 | **Three incompatible confidence models** | `ConfidenceOrigin` (STATED/INFERRED/SPECULATED with initialConfidence) for MindMap; `CbrOutcome` (EMA-adjusted double) for CBR; `confidence` (Double) for text memory. Same concept — "how sure are we?" — three different representations. | Cannot sort across subsystems by confidence. A MindMap node at confidence 0.7 and a CBR case at confidence 0.7 mean different things (origin-initial vs EMA-adjusted). |
-| **No mood-weighted CBR or graph retrieval** | `MoodModulatedRetrieval` and `PersonalityWeightedRetrieval` work on `List<Memory>` only. CBR retrieval (`ScoredCbrCase`) and MindMap search have no mood/affect/personality hooks. | Mood and personality influence text memory retrieval but have zero effect on CBR similarity scoring or graph traversal. |
-| **No cross-system query** | Cannot ask "everything about Alice" in one call. Must query CaseMemoryStore (by entityId), CbrCaseMemoryStore (by features), and MindMapStore (by resolveNode) separately, then merge results manually. | NodeRef provides the *reference* but no *resolution* utility. |
+| **No mood-weighted CBR or graph retrieval** | `MoodModulatedRetrieval` and `PersonalityWeightedRetrieval` work on `List<Memory>` only. CBR retrieval (`CbrMatch`) and MindMap search have no mood/affect/personality hooks. | Mood and personality influence text memory retrieval but have zero effect on CBR similarity scoring or graph traversal. |
+| **No cross-system query** | Cannot ask "everything about Alice" in one call. Must query CaseMemoryStore (by entityId), CbrRecordStore (by features), and MindMapStore (by resolveNode) separately, then merge results manually. | NodeRef provides the *reference* but no *resolution* utility. |
 | **ExperienceEvent has no MindMap reference** | ExperienceEvent carries agentId, tenantId, caseId, turnId, description — but no nodeId or NodeRef. Cannot link an experience to a MindMap entity at creation time. | The link must be created separately via MindMapExtractor or manual NodeRef construction. |
 
 ### Recommendations
 
 1. **Add `with*()` methods to MindMapQuery** — at minimum: `withSubgraph`, `withText`, `withMinConfidence`, `withTraits`, `withLimit`. Follow CbrQuery's pattern.
-2. **Create a `NodeResolver` utility** in mindmap that takes a NodeRef and resolves it against the appropriate store (CaseMemoryStore for scheme="memory", CbrCaseMemoryStore for scheme="cbr"). Lives in a bridge module that depends on all three SPIs.
+2. **Create a `NodeResolver` utility** in mindmap that takes a NodeRef and resolves it against the appropriate store (CaseMemoryStore for scheme="memory", CbrRecordStore for scheme="cbr"). Lives in a bridge module that depends on all three SPIs.
 3. **Add optional `nodeRef` to ExperienceEvent** — so experiences can be linked to MindMap entities at creation time, not only post-hoc via extraction.
 
 ---
@@ -41,7 +41,7 @@ An analysis of how well the 17 cognitive types compose, with specific gaps and r
 | Subsystem | Timestamp field | Time-range query | Recency sort | Temporal decay |
 |-----------|----------------|-----------------|--------------|----------------|
 | **CaseMemoryStore** / Memory | `createdAt` (Instant) | `MemoryQuery.since` (Instant) | `MemoryOrder` enum | `PersonalityWeightedRetrieval` / `MoodModulatedRetrieval` (7-day half-life) |
-| **CbrCaseMemoryStore** / CbrCase | None on interface | `CbrQuery.notBefore` (Instant) | Via `TemporalDecay` | `TemporalDecay` (HalfLife, Linear, Step) |
+| **CbrRecordStore** / CbrRecord | None on interface | `CbrQuery.notBefore` (Instant) | Via `TemporalDecay` | `TemporalDecay` (HalfLife, Linear, Step) |
 | **MindMapNode** | `createdAt`, `updatedAt`, `validFrom`, `validUntil`, `confidence().decayReference()` | **None on MindMapQuery** | No | `ConfidenceDecayDecorator` (uses `confidence().decayReference()`) |
 | **MindMapEdge** | `createdAt`, `updatedAt`, `validFrom`, `validUntil`, `confidence().decayReference()` | **None on MindMapQuery** | No | `ConfidenceDecayDecorator` (uses `confidence().decayReference()`) |
 | **ExperienceEvent** | `turnId` only (no Instant) | Via MemoryQuery.since after conversion | Via MemoryQuery | Via text memory recency |
@@ -116,7 +116,7 @@ Employment relationships and project assignments still decay at the same rate �
 | **ExperienceEvent** | **None** | N/A | N/A |
 | **RelationshipEvent** | `qualitySignal` (POSITIVE/NEGATIVE/NEUTRAL) | 3-value enum | Not PAD — much coarser |
 | **EngagementEvent** | `affectShift` (Double) | Scalar shift | Nullable, but not PAD |
-| **CbrCase** | **None** | N/A | N/A |
+| **CbrRecord** | **None** | N/A | N/A |
 | **ReflectionEvent** | **None** | N/A | N/A |
 
 ### Key findings

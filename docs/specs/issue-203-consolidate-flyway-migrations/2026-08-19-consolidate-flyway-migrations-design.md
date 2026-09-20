@@ -73,7 +73,7 @@ No Java code changes. No config changes. Test `application.properties` already p
 
 - `memory-cbr-jpa/src/main/resources/db/cbr/migration/V1__create_cbr_case.sql` — original base table
 - `memory-cbr-jpa/src/main/resources/db/cbr/migration/V2–V5` — incremental ALTERs
-- `memory-cbr-jpa/src/main/java/io/casehub/neocortex/memory/cbr/jpa/CbrCaseEntity.java` — JPA entity defining expected columns
+- `memory-cbr-jpa/src/main/java/io/casehub/neocortex/memory/cbr/jpa/CbrRecordEntity.java` — JPA entity defining expected columns
 - `memory-cbr-jpa/src/test/resources/application.properties` — Flyway config (H2, PostgreSQL mode)
 - `memory-jpa/src/main/resources/db/memory/migration/V1000__memory_entry.sql` — V1000 to normalize
 - casehubio/platform#226 — parent issue for migration consolidation across platform

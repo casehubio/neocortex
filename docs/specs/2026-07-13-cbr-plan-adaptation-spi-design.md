@@ -6,29 +6,29 @@
 
 ## Problem
 
-The CBR cycle has four phases: Retain, Retrieve, Reuse, Revise. Neocortex implements Retain (`CbrCaseRetainObserver`), Retrieve (`CbrCaseMemoryStore` + decorator chain), and Revise (`recordOutcome` + EMA confidence). **Reuse is missing.** Retrieved plans pass unchanged to routing strategies.
+The CBR cycle has four phases: Retain, Retrieve, Reuse, Revise. Neocortex implements Retain (`CbrRecordRetainObserver`), Retrieve (`CbrRecordStore` + decorator chain), and Revise (`recordOutcome` + EMA confidence). **Reuse is missing.** Retrieved plans pass unchanged to routing strategies.
 
 Today, `CbrAgentRoutingStrategy.analyseExperiences()` does primitive inline adaptation — filtering steps by current capability, checking worker eligibility, computing weighted success rates. This logic is scattered, incomplete, and closed to extension. Different consumers (engine routing, clinical AE escalation) need different adaptation strategies.
 
 ## Solution
 
-A `PlanAdapter` SPI in `memory-api` that transforms a retrieved `ResolvedCase` into an `AdaptedPlan` for the current case context. The SPI operates on a single retrieved plan per invocation. Cross-plan structural analysis is a separate concern (tracked in other issues).
+A `CbrCbrPlanAdapter` SPI in `memory-api` that transforms a retrieved `CbrPlanRecord` into an `AdaptedPlan` for the current case context. The SPI operates on a single retrieved plan per invocation. Cross-plan structural analysis is a separate concern (tracked in other issues).
 
 ### Position in the data flow
 
 ```
 caller → retrieveSimilar()
            ↓ (passes through decorator chain: Tracking @50 → OutcomeWeighting @65 → Reranking @75 → Base)
-         List<ScoredCbrCase<PlanCbrCase>>
+         List<CbrMatch<PlanCbrRecord>>
            ↓
-         PlanAdapter.adapt(each) ← NEW
+         CbrPlanAdapter.adapt(each) ← NEW
            ↓
          map AdaptedPlan → RetrievedExperience
            ↓
          routing strategies
 ```
 
-The adapter sits between retrieval (storage-layer concern) and consumption (routing-layer concern). It is NOT a `@Decorator` on `CbrCaseMemoryStore` — it's a separate SPI called by the consumer between retrieval and consumption. Reasons:
+The adapter sits between retrieval (storage-layer concern) and consumption (routing-layer concern). It is NOT a `@Decorator` on `CbrRecordStore` — it's a separate SPI called by the consumer between retrieval and consumption. Reasons:
 1. The decorator chain doesn't know the case type (would require downcasting)
 2. Adaptation is a domain operation, not a storage operation
 3. The adapter needs current case features, which aren't in the `retrieveSimilar()` signature
@@ -40,18 +40,18 @@ The adapter sits between retrieval (storage-layer concern) and consumption (rout
 
 ## SPI Contract
 
-### PlanAdapter
+### CbrPlanAdapter
 
 ```java
 package io.casehub.neocortex.memory.cbr;
 
-public interface PlanAdapter {
-    AdaptedPlan adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+public interface CbrPlanAdapter {
+    AdaptedPlan adapt(CbrMatch<PlanCbrRecord> retrieved,
                       Map<String, FeatureValue> currentFeatures);
 }
 ```
 
-Not `@FunctionalInterface` — unlike `OutcomeWeightingFunction` (which is genuinely a math function `(double, double) -> double`), `PlanAdapter` is a domain SPI that may acquire lifecycle methods (e.g., `supports(CbrCase)`) as the platform evolves. Matches the convention of other CBR SPIs (`CbrCaseMemoryStore`, `CbrRetrievalTracker`, `ExplanationRenderer`) — none of which are `@FunctionalInterface`.
+Not `@FunctionalInterface` — unlike `OutcomeWeightingFunction` (which is genuinely a math function `(double, double) -> double`), `CbrCbrPlanAdapter` is a domain SPI that may acquire lifecycle methods (e.g., `supports(CbrRecord)`) as the platform evolves. Matches the convention of other CBR SPIs (`CbrRecordStore`, `CbrRetrievalTracker`, `ExplanationRenderer`) — none of which are `@FunctionalInterface`.
 
 The context parameter is the current case's feature map — the same data that drove retrieval. Engine-specific context (available workers, trust scores, capability registry) is injected by the implementation via CDI, not passed through the SPI method. This keeps the SPI in Tier 1 (zero engine deps).
 
@@ -113,13 +113,13 @@ public enum AdaptationAction {
 }
 ```
 
-### AdaptationTrace
+### CbrAdaptationTrace
 
 Audit record for a single plan adaptation. Captures what was adapted and the
 context that drove the adaptation, for compliance and debugging.
 
 ```java
-public record AdaptationTrace(
+public record CbrAdaptationTrace(
     String traceId,
     String retrievalTraceId,
     String sourceCaseId,
@@ -128,7 +128,7 @@ public record AdaptationTrace(
     Map<String, FeatureValue> currentFeatures,
     Instant timestamp
 ) {
-    public AdaptationTrace {
+    public CbrAdaptationTrace {
         Objects.requireNonNull(traceId, "traceId");
         Objects.requireNonNull(steps, "steps");
         steps = List.copyOf(steps);
@@ -149,7 +149,7 @@ public record AdaptationTrace(
 CDI event fired after adaptation, for observability:
 
 ```java
-public record CbrAdaptationRecorded(AdaptationTrace trace) {
+public record CbrAdaptationRecorded(CbrAdaptationTrace trace) {
     public CbrAdaptationRecorded {
         Objects.requireNonNull(trace, "trace");
     }
@@ -158,37 +158,37 @@ public record CbrAdaptationRecorded(AdaptationTrace trace) {
 
 No dedicated `AdaptationTracker` SPI — the CDI event is sufficient. If persistent tracking becomes needed, it follows the `memory-cbr-tracking` pattern.
 
-### TrackingPlanAdapter (decorator)
+### TrackingCbrPlanAdapter (decorator)
 
-Fires `CbrAdaptationRecorded` — same pattern as `TrackingCbrCaseMemoryStore` fires `CbrRetrievalRecorded`.
+Fires `CbrAdaptationRecorded` — same pattern as `TrackingCbrRecordStore` fires `CbrRetrievalRecorded`.
 
 ```java
 @Decorator
 @Priority(50)
 @IfBuildProperty(name = "casehub.cbr.adaptation-tracking.enabled", stringValue = "true")
-public class TrackingPlanAdapter implements PlanAdapter {
+public class TrackingCbrPlanAdapter implements CbrPlanAdapter {
 
-    private final PlanAdapter delegate;
+    private final CbrPlanAdapter delegate;
     private final Consumer<CbrAdaptationRecorded> eventSink;
 
     @Inject
-    TrackingPlanAdapter(@Delegate @Any PlanAdapter delegate,
+    TrackingCbrPlanAdapter(@Delegate @Any CbrPlanAdapter delegate,
                         Event<CbrAdaptationRecorded> recordedEvent) {
         this(delegate, recordedEvent::fire);
     }
 
-    TrackingPlanAdapter(PlanAdapter delegate,
+    TrackingCbrPlanAdapter(CbrPlanAdapter delegate,
                         Consumer<CbrAdaptationRecorded> eventSink) {
         this.delegate = delegate;
         this.eventSink = eventSink;
     }
 
     @Override
-    public AdaptedPlan adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public AdaptedPlan adapt(CbrMatch<PlanCbrRecord> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
         AdaptedPlan result = delegate.adapt(retrieved, currentFeatures);
         try {
-            var trace = new AdaptationTrace(
+            var trace = new CbrAdaptationTrace(
                 UUID.randomUUID().toString(),
                 null,  // retrievalTraceId — set by engine integration if available
                 retrieved.caseId(),
@@ -209,7 +209,7 @@ public class TrackingPlanAdapter implements PlanAdapter {
 Responsibilities:
 1. **traceId generation** — UUID, generated by the decorator
 2. **timestamp capture** — `Instant.now()` after adaptation completes
-3. **trace assembly** — builds `AdaptationTrace` from the `ScoredCbrCase` input, `currentFeatures` input, and `AdaptedPlan` output
+3. **trace assembly** — builds `CbrCbrAdaptationTrace` from the `CbrMatch` input, `currentFeatures` input, and `AdaptedPlan` output
 4. **event firing** — `CbrAdaptationRecorded` via CDI `Event.fire()`
 5. **failure isolation** — tracking failure never breaks adaptation (warn + return result unchanged)
 
@@ -222,9 +222,9 @@ The `retrievalTraceId` field is null at this layer because the decorator has no 
 ```java
 @DefaultBean
 @ApplicationScoped
-public class NoOpPlanAdapter implements PlanAdapter {
+public class NoOpCbrPlanAdapter implements CbrPlanAdapter {
     @Override
-    public AdaptedPlan adapt(ScoredCbrCase<PlanCbrCase> retrieved,
+    public AdaptedPlan adapt(CbrMatch<PlanCbrRecord> retrieved,
                              Map<String, FeatureValue> currentFeatures) {
         return new AdaptedPlan(
             retrieved.cbrCase().planTrace().stream()
@@ -245,7 +245,7 @@ Zero behavioral change by default. Existing consumers work without adaptation un
 The issue mentions "this plan succeeded 4/5 times for similar cases" as a retrieval ranking signal. This is already implemented:
 
 - `CbrOutcome.adjustConfidence()` — EMA tracks per-case quality
-- `OutcomeWeightingCbrCaseMemoryStore` `@Decorator @Priority(65)` — modulates retrieval scores by confidence
+- `OutcomeWeightingCbrRecordStore` `@Decorator @Priority(65)` — modulates retrieval scores by confidence
 
 A plan with 4/5 success rate has high confidence → higher retrieval rank. No additional work needed in this issue.
 
@@ -255,21 +255,21 @@ Per-step quality across multiple plans (cross-plan structural analysis) is track
 
 | Type | Module | Package |
 |------|--------|---------|
-| `PlanAdapter` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
+| `CbrCbrPlanAdapter` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `AdaptedPlan` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `AdaptedStep` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `AdaptationAction` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
-| `AdaptationTrace` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
+| `CbrCbrAdaptationTrace` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `CbrAdaptationRecorded` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
-| `NoOpPlanAdapter` | `memory` | `io.casehub.neocortex.memory.cbr.runtime` |
-| `TrackingPlanAdapter` | `memory-cbr-tracking` | `io.casehub.neocortex.memory.cbr.tracking` |
+| `NoOpCbrCbrPlanAdapter` | `memory` | `io.casehub.neocortex.memory.cbr.runtime` |
+| `TrackingCbrCbrPlanAdapter` | `memory-cbr-tracking` | `io.casehub.neocortex.memory.cbr.tracking` |
 | Contract tests | `memory-testing` | `io.casehub.neocortex.memory.cbr.testing` |
 
 ## Testing Strategy
 
 ### Contract tests in memory-testing
 
-`PlanAdapterContractTest` — abstract base class that implementations extend:
+`CbrPlanAdapterContractTest` — abstract base class that implementations extend:
 
 1. **retained_steps_when_no_adaptation_needed** — all steps RETAINED with null reason
 2. **adapted_plan_preserves_step_order** — step ordering matches original
@@ -278,15 +278,15 @@ Per-step quality across multiple plans (cross-plan structural analysis) is track
 5. **null_features_rejected** — NPE on null features
 6. **empty_plan_trace_produces_empty_steps** — edge case
 
-### NoOpPlanAdapter unit tests in memory/
+### NoOpCbrPlanAdapter unit tests in memory/
 
 1. **noOp_retains_all_steps** — all steps RETAINED, null reasons
 2. **noOp_preserves_step_fields** — bindingName, capabilityName, workerName, stepOutcome, priority, parameters all round-trip
 3. **noOp_empty_trace** — empty plan trace → empty steps
 
-### TrackingPlanAdapter tests in memory-cbr-tracking
+### TrackingCbrPlanAdapter tests in memory-cbr-tracking
 
-1. **tracking_fires_event_after_adaptation** — `CbrAdaptationRecorded` event fired with valid `AdaptationTrace`
+1. **tracking_fires_event_after_adaptation** — `CbrAdaptationRecorded` event fired with valid `CbrCbrAdaptationTrace`
 2. **tracking_trace_contains_correct_fields** — traceId non-null, sourceCaseId from input, sourceScore from input, steps from result, currentFeatures from input, timestamp non-null
 3. **tracking_failure_does_not_break_adaptation** — event sink throws → adaptation result still returned (matching retrieval pattern: "tracker failure never breaks retrieval")
 4. **tracking_fires_for_noop_adapter** — trace recorded even when adapter makes no changes (all RETAINED)
@@ -295,8 +295,8 @@ Per-step quality across multiple plans (cross-plan structural analysis) is track
 
 1. **AdaptedStep validation** — null bindingName rejected, negative priority rejected, null action rejected, null workerName allowed (REMOVED and ADDED), null stepOutcome allowed (ADDED), null reason allowed (RETAINED)
 2. **AdaptedPlan immutability** — steps list is defensively copied
-3. **AdaptationTrace immutability** — steps and features defensively copied
-4. **AdaptationTrace_retrievalTraceId_nullable** — null retrievalTraceId accepted
+3. **CbrAdaptationTrace immutability** — steps and features defensively copied
+4. **CbrAdaptationTrace_retrievalTraceId_nullable** — null retrievalTraceId accepted
 5. **AdaptationAction coverage** — all enum values accessible
 
 ## Configuration
@@ -305,19 +305,19 @@ Per-step quality across multiple plans (cross-plan structural analysis) is track
 |----------|---------|--------|
 | `casehub.cbr.adaptation-tracking.enabled` | `false` | memory-cbr-tracking |
 
-Matches the retrieval tracking convention (`casehub.cbr.tracking.enabled`). When `false`, `TrackingPlanAdapter` is not activated and no `CbrAdaptationRecorded` events are fired.
+Matches the retrieval tracking convention (`casehub.cbr.tracking.enabled`). When `false`, `TrackingCbrCbrPlanAdapter` is not activated and no `CbrAdaptationRecorded` events are fired.
 
 ## Downstream Integration
 
 ### Engine (casehubio/engine#727)
 
-`CbrRetrievalService` wires `PlanAdapter` between retrieval and mapping:
+`CbrRetrievalService` wires `CbrCbrPlanAdapter` between retrieval and mapping:
 
 ```
 retrieveSimilar() → planAdapter.adapt(each) → action-aware mapping → RetrievedExperience → routing strategies
 ```
 
-Engine provides a real `PlanAdapter` implementation that injects `CapabilityRegistry`, `TrustScoreSource`, etc.
+Engine provides a real `CbrCbrPlanAdapter` implementation that injects `CapabilityRegistry`, `TrustScoreSource`, etc.
 
 #### Action-aware mapping to ExperiencePlanStep
 
@@ -336,11 +336,11 @@ Engine provides a real `PlanAdapter` implementation that injects `CapabilityRegi
 
 ### Clinical (casehubio/clinical#118)
 
-Clinical provides its own `PlanAdapter` for AE escalation plans — different adaptation logic (regulatory steps, escalation rules).
+Clinical provides its own `CbrCbrPlanAdapter` for AE escalation plans — different adaptation logic (regulatory steps, escalation rules).
 
 ## Out of Scope
 
-- Engine-side `PlanAdapter` implementation (casehubio/engine#727)
+- Engine-side `CbrCbrPlanAdapter` implementation (casehubio/engine#727)
 - Cross-plan structural analysis / ensemble adaptation (#148)
 - Persistent adaptation tracking storage (follow-on if needed)
-- `ReactivePlanAdapter` — add when a reactive consumer needs it (same pattern as `ReactiveCbrCaseMemoryStore`)
+- `ReactiveCbrPlanAdapter` — add when a reactive consumer needs it (same pattern as `ReactiveCbrRecordStore`)

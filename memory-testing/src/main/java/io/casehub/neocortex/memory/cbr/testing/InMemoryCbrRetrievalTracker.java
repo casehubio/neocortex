@@ -5,7 +5,7 @@ import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalFeedback;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTrace;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -21,15 +21,15 @@ public class InMemoryCbrRetrievalTracker implements CbrRetrievalTracker {
 
 
     @Override
-    public String record(CbrQuery query, List<ScoredCbrCase<?>> results) {
+    public String record(CbrQuery query, List<CbrMatch<?>> results) {
         String traceId = UUID.randomUUID().toString();
         List<CbrRetrievalTrace.TracedCase> traced = results.stream()
                 .map(s -> new CbrRetrievalTrace.TracedCase(
                         s.caseId(), s.score(), s.reranked(),
                         s.featureSimilarities(),
-                        s.cbrCase().confidence(),
-                        s.cbrCase().trustScore(),
-                        s.cbrCase().producerAgentId(),
+                        s.cbrRecord().confidence(),
+                        s.cbrRecord().trustScore(),
+                        s.cbrRecord().producerAgentId(),
                         null))
                 .toList();
         traces.add(new CbrRetrievalTrace(traceId, query, traced, Instant.now()));

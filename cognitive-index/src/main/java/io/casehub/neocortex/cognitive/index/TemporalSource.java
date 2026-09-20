@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.memory.Memory;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.mindmap.MindMapNode;
 
 /**
@@ -15,5 +15,5 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 public sealed interface TemporalSource {
     record FromMindMap(MindMapNode node) implements TemporalSource {}
     record FromMemory(Memory memory) implements TemporalSource {}
-    record FromCbr(ScoredCbrCase<?> cbrCase) implements TemporalSource {}
+    record FromCbr(CbrMatch<?> match) implements TemporalSource {}
 }

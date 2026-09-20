@@ -14,7 +14,7 @@
 
 ### Problem
 
-The entire CBR feature system uses `Map<String, Object>` for feature values — `CbrCase.features()`, `CbrQuery.features()`, observation maps in TimeSeries, HasMatch sub-fields. Schema validation catches type errors at runtime (store/query time), but there is no compile-time safety. The scorer, validator, serializer, and filter engine all cast from `Object` — 10+ call sites across 5 files with unsafe casts.
+The entire CBR feature system uses `Map<String, Object>` for feature values — `CbrRecord.features()`, `CbrQuery.features()`, observation maps in TimeSeries, HasMatch sub-fields. Schema validation catches type errors at runtime (store/query time), but there is no compile-time safety. The scorer, validator, serializer, and filter engine all cast from `Object` — 10+ call sites across 5 files with unsafe casts.
 
 ### Approach: Sealed `FeatureValue` hierarchy
 
@@ -100,11 +100,11 @@ The **schema** (FeatureField) tells you the semantics (Categorical vs Text, Obje
 
 ### API changes
 
-#### CbrCase
+#### CbrRecord
 
 ```java
-public interface CbrCase {
-    String cbrType();
+public interface CbrRecord {
+    String recordType();
     String problem();
     String solution();
     String outcome();
@@ -113,21 +113,21 @@ public interface CbrCase {
 }
 ```
 
-#### FeatureVectorCbrCase
+#### CbrFeatureRecord
 
 ```java
-public record FeatureVectorCbrCase(String problem, String solution,
+public record CbrFeatureRecord(String problem, String solution,
                                     String outcome, Double confidence,
-                                    Map<String, FeatureValue> features) implements CbrCase { ... }
+                                    Map<String, FeatureValue> features) implements CbrRecord { ... }
 ```
 
-#### PlanCbrCase
+#### PlanCbrRecord
 
 ```java
-public record PlanCbrCase(String problem, String solution,
+public record PlanCbrRecord(String problem, String solution,
                           String outcome, Double confidence,
                           Map<String, FeatureValue> features,
-                          List<PlanTrace> planTrace) implements CbrCase { ... }
+                          List<PlanTrace> planTrace) implements CbrRecord { ... }
 ```
 
 #### CbrQuery
@@ -204,7 +204,7 @@ case FeatureField.DiscreteSequence ds -> {
 }
 ```
 
-### CbrFeatureValidator transformation
+### CbrRecordValidator transformation
 
 Validates that FeatureValue variant matches FeatureField type:
 
@@ -290,7 +290,7 @@ Serialize: switch on FeatureValue variant → raw JSON value:
 - `StructVal` → JSON object
 - `StructListVal` → JSON array of objects
 
-Deserialize (in `QdrantCbrCaseMemoryStore.reconstructCase()`): raw JSON + schema → FeatureValue. The schema determines which variant to construct from each JSON value.
+Deserialize (in `QdrantCbrRecordStore.reconstructCase()`): raw JSON + schema → FeatureValue. The schema determines which variant to construct from each JSON value.
 
 **Per-field payload keys** (`f_<name>`) — switch on FeatureValue variant:
 - `StringVal` → `ValueFactory.value(sv.value())`
@@ -301,7 +301,7 @@ Deserialize (in `QdrantCbrCaseMemoryStore.reconstructCase()`): raw JSON + schema
 
 No Qdrant migration needed — payload format is unchanged.
 
-### InMemoryCbrCaseMemoryStore filter matching
+### InMemoryCbrRecordStore filter matching
 
 `matchesSingleFilter()` updates:
 ```java
@@ -431,9 +431,9 @@ For candidates with non-SakoeChibaBand TimeSeries fields: skip step 2, apply ste
 
 ### Integration scope
 
-LB_Keogh + early abandonment integrate into `InMemoryCbrCaseMemoryStore.retrieveSimilar()` and `CbrSimilarityScorer` (pass-through of abandon threshold for DTW fields).
+LB_Keogh + early abandonment integrate into `InMemoryCbrRecordStore.retrieveSimilar()` and `CbrSimilarityScorer` (pass-through of abandon threshold for DTW fields).
 
-`QdrantCbrCaseMemoryStore` scoring happens client-side via the scorer after Qdrant retrieval — the same optimization applies transparently.
+`QdrantCbrRecordStore` scoring happens client-side via the scorer after Qdrant retrieval — the same optimization applies transparently.
 
 ---
 
@@ -441,20 +441,20 @@ LB_Keogh + early abandonment integrate into `InMemoryCbrCaseMemoryStore.retrieve
 
 ### Phase 1: FeatureValue type + API migration (#131)
 - New `FeatureValue.java` sealed interface
-- `CbrCase`, `FeatureVectorCbrCase`, `ResolvedCase` — features type change
+- `CbrRecord`, `CbrFeatureRecord`, `CbrPlanRecord` — features type change
 - `CbrQuery` — features type change
 - `CbrFilter.HasMatch` — subFields type change
 
 ### Phase 2: Validator + scorer (#131)
-- `CbrFeatureValidator` — validate FeatureValue variants
+- `CbrRecordValidator` — validate FeatureValue variants
 - `CbrSimilarityScorer` — pattern match, eliminate all casts
 - `LocalSimilarityFunction` — Object → FeatureValue params
 - `DtwSimilarity` — observation type change
 - Tests for all of the above
 
 ### Phase 3: Store backends + embedding (#131)
-- `InMemoryCbrCaseMemoryStore` — filter matching
-- `QdrantCbrCaseMemoryStore` — reconstruction, scoring
+- `InMemoryCbrRecordStore` — filter matching
+- `QdrantCbrRecordStore` — reconstruction, scoring
 - `CbrPointBuilder` — serialization
 - `CbrMemorySerializer` — serialization
 - `CbrQueryTranslator` — HasMatch FeatureValue handling
@@ -471,7 +471,7 @@ LB_Keogh + early abandonment integrate into `InMemoryCbrCaseMemoryStore.retrieve
 - Tests
 
 ### Phase 6: Integration (#137)
-- `InMemoryCbrCaseMemoryStore` — LB_Keogh + abandon threshold in retrieval loop
+- `InMemoryCbrRecordStore` — LB_Keogh + abandon threshold in retrieval loop
 - `CbrSimilarityScorer` — pass-through abandon threshold for DTW fields
 - Integration tests + benchmark
 

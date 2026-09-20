@@ -1,17 +1,17 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
 import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CbrOutcomeProcessor {
 
-    private final CbrCaseMemoryStore store;
+    private final CbrRecordStore store;
 
-    public CbrOutcomeProcessor(CbrCaseMemoryStore store) {
+    public CbrOutcomeProcessor(CbrRecordStore store) {
         this.store = store;
     }
 

@@ -15,12 +15,11 @@
  */
 package io.casehub.neocortex.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.cognitive.TemporalMark;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 import io.casehub.neocortex.memory.cbr.ScopeDecay;
@@ -39,7 +38,7 @@ class CognitiveSchemaGeneratorTest {
 
     @Test
     void cbrFeatureSchema_generatesValidSchema() {
-        var schema = generator.generate(CbrFeatureSchema.class);
+        var schema = generator.generate(CbrRecordSchema.class);
 
         assertThat(schema).isNotNull();
         assertThat(schema.has("$defs") || schema.has("properties")).isTrue();

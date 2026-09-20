@@ -6,7 +6,7 @@
 
 ## Problem
 
-Single-plan adaptation (`PlanAdapter`, #85) transforms one retrieved plan at a time. When multiple similar cases are retrieved, each is adapted independently — no cross-plan analysis occurs. This misses stronger signals available from examining multiple plans together:
+Single-plan adaptation (`CbrCbrPlanAdapter`, #85) transforms one retrieved plan at a time. When multiple similar cases are retrieved, each is adapted independently — no cross-plan analysis occurs. This misses stronger signals available from examining multiple plans together:
 
 - **Consensus** — a step appearing in 4/5 successful plans is a stronger signal than one plan alone
 - **Divergence** — plans disagreeing on which worker to use at a binding point is actionable information
@@ -28,25 +28,25 @@ CBR literature consistently treats multi-case reuse as a **two-stage process**, 
 
 ## Solution
 
-A `PlanEnsembleAnalyzer` SPI in `memory-api` that examines multiple adapted plans together to identify structural patterns and synthesize an ensemble plan. The SPI operates **after** per-plan `PlanAdapter` adaptation — it is purely additive, never replaces or hampers single-plan adaptation.
+A `CbrCbrPlanEnsembleAnalyzer` SPI in `memory-api` that examines multiple adapted plans together to identify structural patterns and synthesize an ensemble plan. The SPI operates **after** per-plan `CbrCbrPlanAdapter` adaptation — it is purely additive, never replaces or hampers single-plan adaptation.
 
 ### Position in the data flow
 
 ```
 caller → retrieveSimilar()
            ↓ (decorator chain: Tracking @50 → OutcomeWeighting @65 → Reranking @75 → Base)
-         List<ScoredCbrCase<PlanCbrCase>>
+         List<CbrMatch<PlanCbrRecord>>
            ↓
-         PlanAdapter.adapt(each) ← existing (Phase 5, #85)
+         CbrPlanAdapter.adapt(each) ← existing (Phase 5, #85)
            ↓
          List<AdaptedPlan>  ← per-plan results
            ↓                    ↓
-    map → List<RetrievedExperience>    PlanEnsembleAnalyzer.analyze() ← NEW
+    map → List<RetrievedExperience>    CbrPlanEnsembleAnalyzer.analyze() ← NEW
            ↓ (context injection)        ↓ (routing strategies)
          cbrExperiences JSON          EnsemblePlan
 ```
 
-**Caller orchestrates both stages.** The engine's `CbrRetrievalService` calls `PlanAdapter.adapt()` per case (as today), collects the adapted plans, then calls `PlanEnsembleAnalyzer.analyze()` with both the scored cases and the adapted plans. The two SPIs are independent and composable — consumers can use per-plan adaptation without ensemble, or ensemble without per-plan adaptation (though the latter loses adaptation quality).
+**Caller orchestrates both stages.** The engine's `CbrRetrievalService` calls `CbrPlanAdapter.adapt()` per case (as today), collects the adapted plans, then calls `CbrPlanEnsembleAnalyzer.analyze()` with both the scored cases and the adapted plans. The two SPIs are independent and composable — consumers can use per-plan adaptation without ensemble, or ensemble without per-plan adaptation (though the latter loses adaptation quality).
 
 **Both outputs serve different purposes:**
 - `List<RetrievedExperience>` — per-case experiences for context injection (rules/AI reasoning about individual past cases)
@@ -54,13 +54,13 @@ caller → retrieveSimilar()
 
 ### Responsibility separation
 
-- **PlanAdapter** (existing): transforms a single plan's structure for the current context — substitute workers, adjust priorities, add/remove steps
-- **PlanEnsembleAnalyzer** (new): examines multiple adapted plans for cross-plan patterns — consensus, divergence, quality — and synthesizes an ensemble plan
+- **CbrPlanAdapter** (existing): transforms a single plan's structure for the current context — substitute workers, adjust priorities, add/remove steps
+- **CbrPlanEnsembleAnalyzer** (new): examines multiple adapted plans for cross-plan patterns — consensus, divergence, quality — and synthesizes an ensemble plan
 - **Routing strategy** (engine): selects a worker from the ensemble/adapted steps for the current capability
 
 ## SPI Contract
 
-### PlanEnsembleAnalyzer
+### CbrPlanEnsembleAnalyzer
 
 ```java
 package io.casehub.neocortex.memory.cbr;
@@ -68,22 +68,22 @@ package io.casehub.neocortex.memory.cbr;
 import java.util.List;
 import java.util.Map;
 
-public interface PlanEnsembleAnalyzer {
+public interface CbrPlanEnsembleAnalyzer {
     EnsemblePlan analyze(String caseType,
-                         List<ScoredCbrCase<PlanCbrCase>> scoredCases,
+                         List<CbrMatch<PlanCbrRecord>> scoredCases,
                          List<AdaptedPlan> adaptedPlans,
                          Map<String, FeatureValue> currentFeatures);
 }
 ```
 
-Not `@FunctionalInterface` — domain SPI that may acquire lifecycle methods, matching `PlanAdapter` and other CBR SPIs.
+Not `@FunctionalInterface` — domain SPI that may acquire lifecycle methods, matching `CbrCbrPlanAdapter` and other CBR SPIs.
 
 **Parallel list contract:** `scoredCases.get(i)` corresponds to `adaptedPlans.get(i)`. Same order, same length. Implementations must reject mismatched sizes with `IllegalArgumentException`.
 
 **Parameters:**
-- `caseType` — threads through from config, same as `PlanAdapter.adapt()`
+- `caseType` — threads through from config, same as `CbrPlanAdapter.adapt()`
 - `scoredCases` — raw retrieval results for provenance (caseId, score, featureSimilarities)
-- `adaptedPlans` — output of per-plan `PlanAdapter.adapt()`, already context-adapted
+- `adaptedPlans` — output of per-plan `CbrPlanAdapter.adapt()`, already context-adapted
 - `currentFeatures` — the current case's feature map
 
 ### EnsemblePlan
@@ -192,7 +192,7 @@ public record EnsembleTrace(
     public EnsembleTrace {
         Objects.requireNonNull(traceId, "traceId");
         // retrievalTraceId nullable — set by engine integration, not available
-        // at the decorator layer (same pattern as AdaptationTrace.retrievalTraceId)
+        // at the decorator layer (same pattern as CbrAdaptationTrace.retrievalTraceId)
         Objects.requireNonNull(caseType, "caseType");
         Objects.requireNonNull(sourceCaseIds, "sourceCaseIds");
         sourceCaseIds = List.copyOf(sourceCaseIds);
@@ -221,24 +221,24 @@ public record CbrEnsembleRecorded(EnsembleTrace trace) {
 
 CDI event fired after ensemble analysis, matching the `CbrAdaptationRecorded` pattern.
 
-### TrackingPlanEnsembleAnalyzer
+### TrackingCbrPlanEnsembleAnalyzer
 
 ```java
 @Decorator
 @Priority(50)
 @IfBuildProperty(name = "casehub.cbr.ensemble-tracking.enabled", stringValue = "true")
-public class TrackingPlanEnsembleAnalyzer implements PlanEnsembleAnalyzer {
+public class TrackingCbrPlanEnsembleAnalyzer implements CbrPlanEnsembleAnalyzer {
 
-    private final PlanEnsembleAnalyzer delegate;
+    private final CbrPlanEnsembleAnalyzer delegate;
     private final Consumer<CbrEnsembleRecorded> eventSink;
 
     @Inject
-    TrackingPlanEnsembleAnalyzer(@Delegate @Any PlanEnsembleAnalyzer delegate,
+    TrackingCbrPlanEnsembleAnalyzer(@Delegate @Any CbrPlanEnsembleAnalyzer delegate,
                                  Event<CbrEnsembleRecorded> recordedEvent) {
         this(delegate, recordedEvent::fire);
     }
 
-    TrackingPlanEnsembleAnalyzer(PlanEnsembleAnalyzer delegate,
+    TrackingCbrPlanEnsembleAnalyzer(CbrPlanEnsembleAnalyzer delegate,
                                  Consumer<CbrEnsembleRecorded> eventSink) {
         this.delegate = delegate;
         this.eventSink = eventSink;
@@ -246,7 +246,7 @@ public class TrackingPlanEnsembleAnalyzer implements PlanEnsembleAnalyzer {
 
     @Override
     public EnsemblePlan analyze(String caseType,
-                                List<ScoredCbrCase<PlanCbrCase>> scoredCases,
+                                List<CbrMatch<PlanCbrRecord>> scoredCases,
                                 List<AdaptedPlan> adaptedPlans,
                                 Map<String, FeatureValue> currentFeatures) {
         EnsemblePlan result = delegate.analyze(caseType, scoredCases, adaptedPlans, currentFeatures);
@@ -272,17 +272,17 @@ public class TrackingPlanEnsembleAnalyzer implements PlanEnsembleAnalyzer {
 }
 ```
 
-Same pattern as `TrackingPlanAdapter`: opt-in via `@IfBuildProperty`, failure isolation, testable via constructor injection.
+Same pattern as `TrackingCbrCbrPlanAdapter`: opt-in via `@IfBuildProperty`, failure isolation, testable via constructor injection.
 
 ## Default Implementation
 
 ```java
 @DefaultBean
 @ApplicationScoped
-public class NoOpPlanEnsembleAnalyzer implements PlanEnsembleAnalyzer {
+public class NoOpCbrPlanEnsembleAnalyzer implements CbrPlanEnsembleAnalyzer {
     @Override
     public EnsemblePlan analyze(String caseType,
-                                List<ScoredCbrCase<PlanCbrCase>> scoredCases,
+                                List<CbrMatch<PlanCbrRecord>> scoredCases,
                                 List<AdaptedPlan> adaptedPlans,
                                 Map<String, FeatureValue> currentFeatures) {
         Objects.requireNonNull(caseType, "caseType");
@@ -333,23 +333,23 @@ Zero behavioral change by default. Picks the top-scoring case's adapted plan and
 
 | Type | Module | Package |
 |------|--------|---------|
-| `PlanEnsembleAnalyzer` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
+| `CbrCbrPlanEnsembleAnalyzer` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `EnsemblePlan` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `StepConsensus` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `StepAgreement` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `EnsembleTrace` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
 | `CbrEnsembleRecorded` | `memory-api` | `io.casehub.neocortex.memory.cbr` |
-| `NoOpPlanEnsembleAnalyzer` | `memory` | `io.casehub.neocortex.memory.cbr.runtime` |
-| `TrackingPlanEnsembleAnalyzer` | `memory-cbr-tracking` | `io.casehub.neocortex.memory.cbr.tracking` |
+| `NoOpCbrCbrPlanEnsembleAnalyzer` | `memory` | `io.casehub.neocortex.memory.cbr.runtime` |
+| `TrackingCbrCbrPlanEnsembleAnalyzer` | `memory-cbr-tracking` | `io.casehub.neocortex.memory.cbr.tracking` |
 | Contract tests | `memory-testing` | `io.casehub.neocortex.memory.cbr.testing` |
 
-No new modules. Follows the module placement established by `PlanAdapter` (#85).
+No new modules. Follows the module placement established by `CbrCbrPlanAdapter` (#85).
 
 ## Testing Strategy
 
 ### Contract tests in memory-testing
 
-`PlanEnsembleAnalyzerContractTest` — abstract base class that implementations extend. Establishes the CBR SPI contract test pattern; `PlanAdapterContractTest` (specified in #85 but not yet implemented) should be created alongside:
+`CbrCbrPlanEnsembleAnalyzerContractTest` — abstract base class that implementations extend. Establishes the CBR SPI contract test pattern; `CbrPlanAdapterContractTest` (specified in #85 but not yet implemented) should be created alongside:
 
 1. **single_plan_returns_that_plan** — N=1, synthesized plan matches input
 2. **empty_plans_handled** — empty list produces empty EnsemblePlan
@@ -401,7 +401,7 @@ Matches the convention of `casehub.cbr.tracking.enabled` and `casehub.cbr.adapta
 
 ### Engine
 
-`CbrRetrievalService` wires `PlanEnsembleAnalyzer` after the per-plan adaptation loop:
+`CbrRetrievalService` wires `CbrCbrPlanEnsembleAnalyzer` after the per-plan adaptation loop:
 
 ```
 retrieveSimilar() → [for each: planAdapter.adapt()] → adaptedPlans
@@ -413,12 +413,12 @@ retrieveSimilar() → [for each: planAdapter.adapt()] → adaptedPlans
                    AgentRoutingContext gains ensemblePlan field  (new)
 ```
 
-Engine integration is a separate issue (follow-on, same pattern as engine#727 for PlanAdapter).
+Engine integration is a separate issue (follow-on, same pattern as engine#727 for CbrPlanAdapter).
 
 ## Out of Scope
 
 - Engine-side wiring (follow-on issue)
 - Real ensemble implementation with consensus/divergence algorithms (consumers provide domain-specific implementations — engine, clinical)
-- `ReactivePlanEnsembleAnalyzer` — add when a reactive consumer needs it
+- `ReactiveCbrPlanEnsembleAnalyzer` — add when a reactive consumer needs it
 - Persistent ensemble trace storage (follow-on if needed)
-- Cross-plan analysis for non-plan case types (FeatureVectorCbrCase, TextualCbrCase)
+- Cross-plan analysis for non-plan case types (CbrFeatureRecord, TextualCbrRecord)

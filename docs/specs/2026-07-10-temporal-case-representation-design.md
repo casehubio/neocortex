@@ -10,11 +10,11 @@ CBR cases currently represent point-in-time snapshots — flat features (Categor
 
 ## Decision
 
-Extend the `FeatureField` sealed hierarchy with two new variants for temporal data. Temporal sequences are features — they live in `CbrCase.features()`, are schema-validated, and participate in weighted similarity scoring alongside flat features. No new modules, no new SPIs, no new `CbrCase` subtypes.
+Extend the `FeatureField` sealed hierarchy with two new variants for temporal data. Temporal sequences are features — they live in `CbrRecord.features()`, are schema-validated, and participate in weighted similarity scoring alongside flat features. No new modules, no new SPIs, no new `CbrRecord` subtypes.
 
 ### Alternatives considered
 
-**New CbrCase subtype (`TemporalCbrCase`):** Rejected — temporal data is a kind of feature, not a kind of case. A game case naturally has both flat features (race, mmr) and temporal features (economy curve). Forcing a choice between "feature-vector case" and "temporal case" is a false dichotomy.
+**New CbrRecord subtype (`TemporalCbrRecord`):** Rejected — temporal data is a kind of feature, not a kind of case. A game case naturally has both flat features (race, mmr) and temporal features (economy curve). Forcing a choice between "feature-vector case" and "temporal case" is a false dichotomy.
 
 **Sequence embeddings:** Deferred — requires a trained encoder per domain, ties to ONNX infrastructure (#77), and is lossy. Can be added later as an additional retrieval leg. The hybrid fusion infrastructure already supports multiple legs.
 
@@ -66,7 +66,7 @@ Store value: `List<String>`.
 #### Schema example
 
 ```java
-CbrFeatureSchema.of("starcraft-game",
+CbrRecordSchema.of("starcraft-game",
     FeatureField.categorical("race"),
     FeatureField.numeric("mmr", 0, 8000),
     FeatureField.timeSeries("economyCurve", "minute",
@@ -81,7 +81,7 @@ CbrFeatureSchema.of("starcraft-game",
 
 ### 2. Validation
 
-#### Store-time (`CbrFeatureValidator.validateStoreFeatures`)
+#### Store-time (`CbrRecordValidator.validateStoreFeatures`)
 
 **TimeSeries:**
 - Value must be `List<Map<String, Object>>`
@@ -94,14 +94,14 @@ CbrFeatureSchema.of("starcraft-game",
 - Value must be `List<String>`
 - Empty list is valid
 
-#### Query-time (`CbrFeatureValidator.validateQueryFeatures`)
+#### Query-time (`CbrRecordValidator.validateQueryFeatures`)
 
 Both temporal field types are allowed in query features (unlike structured fields which throw). The query value has the same shape as the store value — a full sequence compared via similarity algorithms.
 
 - TimeSeries query: `List<Map<String, Object>>`, same validation as store (ascending timestamps)
 - DiscreteSequence query: `List<String>`
 
-#### Filter validation (`CbrFeatureValidator.validateFilters`)
+#### Filter validation (`CbrRecordValidator.validateFilters`)
 
 Temporal fields do not support `CbrFilter` predicates. Attempting to use Contains/ContainsAll/ContainsAny/HasMatch on a TimeSeries or DiscreteSequence field throws `IllegalArgumentException`.
 
@@ -185,22 +185,22 @@ Retrieval modes:
 
 No changes needed. `CbrPointBuilder` already handles `List<Map>` via `toListValue`/`toStructValue` and `List<String>` via `toListValue`. Values flow through the existing `features()` map serialization path as prefixed payload fields (`f_<name>`).
 
-#### Qdrant reconstruction (`QdrantCbrCaseMemoryStore`)
+#### Qdrant reconstruction (`QdrantCbrRecordStore`)
 
 `reconstructCase` must handle temporal feature values — deserializing `List<Map>` and `List<String>` from Qdrant payload back into `features()`. The `_features_json` payload field already stores the full features map as JSON; reconstruction reads from that, so no structural changes needed.
 
-`CbrQueryTranslator` — reject filters on temporal fields (same validation as `CbrFeatureValidator.validateFilters`).
+`CbrQueryTranslator` — reject filters on temporal fields (same validation as `CbrRecordValidator.validateFilters`).
 
 #### In-memory backend
 
-No code changes. Delegates to `CbrSimilarityScorer` and `CbrFeatureValidator` which gain the new field type handling.
+No code changes. Delegates to `CbrSimilarityScorer` and `CbrRecordValidator` which gain the new field type handling.
 
 ### 6. Module impact
 
 | Module | Changes |
 |--------|---------|
-| `memory-api` | `FeatureField` — add TimeSeries, DiscreteSequence sealed permits. `FeatureField.validateFlatFields()` — reject temporal types as inner fields. `CbrFeatureValidator` — store/query/filter validation for new types. `CbrSimilarityScorer` — update skip-logic in `score()`, add DTW/edit distance branches in `localSimilarity()`. New: `DtwSimilarity`, `EditDistanceSimilarity` utility classes. |
-| `memory-testing` | `CbrCaseMemoryStoreContractTest` — ~25 new tests. Unit tests for DTW and edit distance. |
+| `memory-api` | `FeatureField` — add TimeSeries, DiscreteSequence sealed permits. `FeatureField.validateFlatFields()` — reject temporal types as inner fields. `CbrRecordValidator` — store/query/filter validation for new types. `CbrSimilarityScorer` — update skip-logic in `score()`, add DTW/edit distance branches in `localSimilarity()`. New: `DtwSimilarity`, `EditDistanceSimilarity` utility classes. |
+| `memory-testing` | `CbrRecordStoreContractTest` — ~25 new tests. Unit tests for DTW and edit distance. |
 | `memory-cbr-inmem` | No code changes (delegates to scorer/validator). |
 | `memory-qdrant` | `CbrQueryTranslator` — reject temporal fields in filter translation (exhaustive switch update). Reconstruction handles temporal values via existing `_features_json` path. |
 
@@ -213,9 +213,9 @@ No new modules.
 | `FeatureField` | `validateFlatFields()` | Reject TimeSeries and DiscreteSequence as inner fields |
 | `CbrSimilarityScorer` | `score()` | Update skip-logic — don't skip temporal fields |
 | `CbrSimilarityScorer` | `localSimilarity()` | Add DTW and edit distance branches |
-| `CbrFeatureValidator` | `validateStoreFeatures()` | Add temporal validation cases |
-| `CbrFeatureValidator` | `validateQueryFeatures()` | Allow temporal fields (unlike structured) |
-| `CbrFeatureValidator` | `validateFilters()` | Reject filters on temporal fields |
+| `CbrRecordValidator` | `validateStoreFeatures()` | Add temporal validation cases |
+| `CbrRecordValidator` | `validateQueryFeatures()` | Allow temporal fields (unlike structured) |
+| `CbrRecordValidator` | `validateFilters()` | Reject filters on temporal fields |
 | `CbrQueryTranslator` | filter translation | Reject temporal fields (throw like structured) |
 
 ## Out of scope
@@ -228,7 +228,7 @@ No new modules.
 
 ## Contract tests
 
-~25 new tests in `CbrCaseMemoryStoreContractTest`:
+~25 new tests in `CbrRecordStoreContractTest`:
 
 **Schema and validation:**
 - `temporal_timeSeries_schemaCreation`

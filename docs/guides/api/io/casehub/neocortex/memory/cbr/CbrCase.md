@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.CbrCase
+# io.casehub.neocortex.memory.cbr.CbrRecord
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -6,7 +6,7 @@
 
 ## Methods
 
-### `public abstract java.lang.String cbrType()`
+### `public abstract java.lang.String recordType()`
 
 ### `public abstract java.lang.Double confidence()`
 
@@ -22,13 +22,13 @@
 
 ### `public default java.lang.Double trustScore()`
 
-### `public default io.casehub.neocortex.memory.cbr.CbrCase withFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features)`
+### `public default io.casehub.neocortex.memory.cbr.CbrRecord withFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features)`
 
 #### Parameters
 
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 
-### `public abstract io.casehub.neocortex.memory.cbr.CbrCase withOutcome(java.lang.String outcome, java.lang.Double confidence)`
+### `public abstract io.casehub.neocortex.memory.cbr.CbrRecord withOutcome(java.lang.String outcome, java.lang.Double confidence)`
 
 #### Parameters
 

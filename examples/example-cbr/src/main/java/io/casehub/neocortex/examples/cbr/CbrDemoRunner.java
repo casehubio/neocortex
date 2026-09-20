@@ -1,7 +1,7 @@
 package io.casehub.neocortex.examples.cbr;
 
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 public final class CbrDemoRunner {
 
-    public static Map<String, List<?>> run(CbrCaseMemoryStore store) {
+    public static Map<String, List<?>> run(CbrRecordStore store) {
         var results = new LinkedHashMap<String, List<?>>();
         results.put("AML Investigation", AmlInvestigationDemo.run(store));
         results.put("Clinical Adverse Event", ClinicalAdverseEventDemo.run(store));
@@ -21,7 +21,7 @@ public final class CbrDemoRunner {
     }
 
     public static void main(String[] args) {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
 
         System.out.println("╔══════════════════════════════════════════════════╗");
         System.out.println("║  CaseHub CBR — Six Domain Demos                 ║");

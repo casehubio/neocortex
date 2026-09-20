@@ -6,19 +6,19 @@
 
 ## Fields
 
-### `trace` (`io.casehub.neocortex.memory.cbr.AdaptationTrace`)
+### `trace` (`io.casehub.neocortex.memory.cbr.CbrAdaptationTrace`)
 
 ## Record Components
 
-### `trace` (`io.casehub.neocortex.memory.cbr.AdaptationTrace`)
+### `trace` (`io.casehub.neocortex.memory.cbr.CbrAdaptationTrace`)
 
 ## Constructors
 
-### `public CbrAdaptationRecorded(io.casehub.neocortex.memory.cbr.AdaptationTrace trace)`
+### `public CbrAdaptationRecorded(io.casehub.neocortex.memory.cbr.CbrAdaptationTrace trace)`
 
 #### Parameters
 
-- `trace` (`io.casehub.neocortex.memory.cbr.AdaptationTrace`)
+- `trace` (`io.casehub.neocortex.memory.cbr.CbrAdaptationTrace`)
 
 ## Methods
 
@@ -32,4 +32,4 @@
 
 ### `public final java.lang.String toString()`
 
-### `public io.casehub.neocortex.memory.cbr.AdaptationTrace trace()`
+### `public io.casehub.neocortex.memory.cbr.CbrAdaptationTrace trace()`

@@ -1,15 +1,15 @@
 package io.casehub.neocortex.examples.cbr;
 
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import static io.casehub.neocortex.memory.cbr.FeatureValue.*;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 
 import java.util.List;
 import java.util.Map;
@@ -21,17 +21,17 @@ public final class ClinicalAdverseEventDemo {
     static final String TENANT = "demo";
     static final String CASE_TYPE = "clinical-adverse-event";
 
-    static final CbrFeatureSchema SCHEMA = CbrFeatureSchema.of(CASE_TYPE,
-        FeatureField.categorical("adverse_event_type"),
-        FeatureField.categorical("trial_arm"),
-        FeatureField.numeric("severity_grade", 1, 5),
-        FeatureField.numeric("time_to_onset_days", 0, 365),
-        FeatureField.text("event_description"));
+    static final CbrRecordSchema SCHEMA = CbrRecordSchema.of(CASE_TYPE,
+                                                             FeatureField.categorical("adverse_event_type"),
+                                                             FeatureField.categorical("trial_arm"),
+                                                             FeatureField.numeric("severity_grade", 1, 5),
+                                                             FeatureField.numeric("time_to_onset_days", 0, 365),
+                                                             FeatureField.text("event_description"));
 
     record SeedCase(String problem, String solution, String outcome,
                     double confidence, Map<String, FeatureValue> features) {}
 
-    public record Result(ScoredCbrCase<FeatureVectorCbrCase> scored) {}
+    public record Result(CbrMatch<CbrFeatureRecord> scored) {}
 
     static final List<SeedCase> SEED_CASES = List.of(
         new SeedCase(
@@ -106,21 +106,21 @@ public final class ClinicalAdverseEventDemo {
                    "event_description", string("Grade 2 neutropenia, mild, no intervention needed")))
     );
 
-    public static List<Result> run(CbrCaseMemoryStore store) {
+    public static List<Result> run(CbrRecordStore store) {
         store.registerSchema(SCHEMA);
 
         for (var seed : SEED_CASES) {
-            var cbrCase = new FeatureVectorCbrCase(
+            var cbrRecord = new CbrFeatureRecord(
                     seed.problem(), seed.solution(), seed.outcome(), io.casehub.neocortex.cognitive.Confidence.unknown(seed.confidence()), seed.features(), null, null);
-            store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
+            store.store(cbrRecord, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 
         var query = CbrQuery.of(TENANT, DOMAIN, io.casehub.platform.api.path.Path.root(), CASE_TYPE,
             Map.of("adverse_event_type", string("Hepatotoxicity"), "trial_arm", string("TREATMENT")), 10);
 
-        return store.retrieveSimilar(query, FeatureVectorCbrCase.class).stream()
-            .map(Result::new)
-            .toList();
+        return store.retrieveSimilar(query, CbrFeatureRecord.class).stream()
+                    .map(Result::new)
+                    .toList();
     }
 
     static void printResults(List<Result> results) {
@@ -131,7 +131,7 @@ public final class ClinicalAdverseEventDemo {
             results.size(), SEED_CASES.size());
 
         for (int i = 0; i < results.size(); i++) {
-            var c = results.get(i).scored().cbrCase();
+            var c = results.get(i).scored().cbrRecord();
             var grade = c.features().get("severity_grade");
             var day = c.features().get("time_to_onset_days");
             System.out.printf("  #%d [%.2f] %s — Grade %s, day %s%n", i + 1,
@@ -142,10 +142,10 @@ public final class ClinicalAdverseEventDemo {
         }
 
         long protocolCount = results.stream()
-            .filter(r -> "SAFETY_PROTOCOL".equals(r.scored().cbrCase().outcome()))
+            .filter(r -> "SAFETY_PROTOCOL".equals(r.scored().cbrRecord().outcome()))
             .count();
         var onsetDays = results.stream()
-            .map(r -> ((int) ((FeatureValue.NumberVal) r.scored().cbrCase().features().get("time_to_onset_days")).value()))
+            .map(r -> ((int) ((FeatureValue.NumberVal) r.scored().cbrRecord().features().get("time_to_onset_days")).value()))
             .sorted()
             .toList();
         int medianOnset = onsetDays.isEmpty() ? 0 : onsetDays.get(onsetDays.size() / 2);
@@ -155,8 +155,8 @@ public final class ClinicalAdverseEventDemo {
         System.out.printf("         Median onset: day %d.%n", medianOnset);
 
         boolean statinFound = results.stream()
-            .anyMatch(r -> r.scored().cbrCase().features().get("event_description").toString()
-                .contains("statin"));
+            .anyMatch(r -> r.scored().cbrRecord().features().get("event_description").toString()
+                            .contains("statin"));
         if (statinFound) {
             System.out.printf("         ⚠ 1 case involved concurrent statin — assess concomitant medications.%n");
         }
@@ -167,7 +167,7 @@ public final class ClinicalAdverseEventDemo {
     }
 
     public static void main(String[] args) {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         printResults(run(store));
     }
 }

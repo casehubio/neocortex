@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore
+# io.casehub.neocortex.memory.cbr.CbrRecordStore
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -60,11 +60,11 @@
 - `tenantId` (`java.lang.String`)
 - `outcome` (`io.casehub.neocortex.memory.cbr.CbrOutcome`)
 
-### `public abstract void registerSchema(io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public abstract void registerSchema(io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
 ### `public abstract void reinstate(java.lang.String caseId, java.lang.String tenantId)`
 
@@ -73,7 +73,7 @@
 - `caseId` (`java.lang.String`)
 - `tenantId` (`java.lang.String`)
 
-### `public abstract java.util.List<io.casehub.neocortex.memory.cbr.ScoredCbrCase<C>> retrieveSimilar(io.casehub.neocortex.memory.cbr.CbrQuery query, java.lang.Class<C> caseType)`
+### `public abstract java.util.List<io.casehub.neocortex.memory.cbr.CbrMatch<C>> retrieveSimilar(io.casehub.neocortex.memory.cbr.CbrQuery query, java.lang.Class<C> caseType)`
 
 #### Parameters
 
@@ -86,11 +86,11 @@
 
 - `request` (`io.casehub.neocortex.memory.cbr.CbrScanRequest`)
 
-### `public abstract java.lang.String store(io.casehub.neocortex.memory.cbr.CbrCase cbrCase, java.lang.String caseType, java.lang.String entityId, io.casehub.neocortex.memory.MemoryDomain domain, java.lang.String tenantId, java.lang.String caseId, io.casehub.platform.api.path.Path scope)`
+### `public abstract java.lang.String store(io.casehub.neocortex.memory.cbr.CbrRecord cbrCase, java.lang.String caseType, java.lang.String entityId, io.casehub.neocortex.memory.MemoryDomain domain, java.lang.String tenantId, java.lang.String caseId, io.casehub.platform.api.path.Path scope)`
 
 #### Parameters
 
-- `cbrCase` (`io.casehub.neocortex.memory.cbr.CbrCase`)
+- `cbrCase` (`io.casehub.neocortex.memory.cbr.CbrRecord`)
 - `caseType` (`java.lang.String`)
 - `entityId` (`java.lang.String`)
 - `domain` (`io.casehub.neocortex.memory.MemoryDomain`)

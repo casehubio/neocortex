@@ -19,7 +19,7 @@ first step that delivers value without requiring a causal model.
 ## Feature Schema
 
 ```java
-CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("clinical-adverse-event",
+CbrRecordSchema SCHEMA = CbrRecordSchema.of("clinical-adverse-event",
     FeatureField.categorical("adverse_event_type"),    // MedDRA preferred term
     FeatureField.categorical("trial_arm"),             // TREATMENT, CONTROL, OPEN_LABEL
     FeatureField.numeric("severity_grade", 1, 5),      // CTCAE grade 1-5
@@ -43,10 +43,10 @@ When an AE investigation concludes:
 @ApplicationScoped
 public class AdverseEventOutcomeObserver {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     void onAeInvestigationClosed(@Observes AeInvestigationClosedEvent event) {
-        var cbrCase = new FeatureVectorCbrCase(
+        var cbrCase = new CbrFeatureRecord(
             event.eventDescription(),                       // problem
             formatSolution(event),                          // solution summary
             event.disposition().name(),                     // SAFETY_PROTOCOL, CLEARED, MONITORING
@@ -77,9 +77,9 @@ When a new AE is reported:
 @ApplicationScoped
 public class AdverseEventAssistant {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    public List<FeatureVectorCbrCase> findSimilarEvents(AdverseEvent ae) {
+    public List<CbrFeatureRecord> findSimilarEvents(AdverseEvent ae) {
         var query = CbrQuery.of(
             ae.tenantId(),
             CLINICAL_DOMAIN,
@@ -89,7 +89,7 @@ public class AdverseEventAssistant {
                 "trial_arm", ae.trialArm().name()),
             10);
 
-        return cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        return cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
     }
 }
 ```

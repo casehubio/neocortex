@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.memory.Memory;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.mindmap.MindMapNode;
 
 import java.time.Duration;
@@ -103,7 +103,7 @@ public final class TemporalFocus {
         return switch (source) {
             case TemporalSource.FromMindMap(MindMapNode node) -> node.id();
             case TemporalSource.FromMemory(Memory memory) -> memory.subject().id();
-            case TemporalSource.FromCbr(ScoredCbrCase<?> cbrCase) -> cbrCase.caseId();
+            case TemporalSource.FromCbr(CbrMatch<?> match) -> match.caseId();
         };
     }
 

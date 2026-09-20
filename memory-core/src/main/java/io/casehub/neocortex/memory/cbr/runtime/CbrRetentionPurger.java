@@ -1,7 +1,7 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 
 import java.util.List;
@@ -13,9 +13,9 @@ public class CbrRetentionPurger {
 
     private static final Logger LOG = Logger.getLogger(CbrRetentionPurger.class.getName());
 
-    private final CbrCaseMemoryStore store;
+    private final CbrRecordStore store;
 
-    public CbrRetentionPurger(CbrCaseMemoryStore store) {
+    public CbrRetentionPurger(CbrRecordStore store) {
         this.store = store;
     }
 

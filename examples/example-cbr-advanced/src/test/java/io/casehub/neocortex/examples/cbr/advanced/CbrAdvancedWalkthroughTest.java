@@ -14,9 +14,9 @@ import io.casehub.neocortex.memory.cbr.EditDistanceSimilarity;
 import io.casehub.neocortex.memory.cbr.EditOp;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.SimilaritySpec;
 import io.casehub.neocortex.memory.cbr.SupersessionStatus;
 import io.casehub.neocortex.memory.cbr.TemporalDecay;
@@ -24,7 +24,7 @@ import io.casehub.neocortex.memory.cbr.TrendAnalyzer;
 import io.casehub.neocortex.memory.cbr.TrendSpec;
 import io.casehub.neocortex.memory.cbr.TrendType;
 import io.casehub.neocortex.memory.cbr.WarpingConstraint;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.platform.api.path.Path;
 import org.junit.jupiter.api.BeforeAll;
@@ -70,7 +70,7 @@ import static org.assertj.core.api.Assertions.within;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CbrAdvancedWalkthroughTest {
 
-    private InMemoryCbrCaseMemoryStore store;
+    private InMemoryCbrRecordStore store;
 
     static final MemoryDomain DOMAIN = new MemoryDomain("clinical");
     static final String TENANT = "hospital-demo";
@@ -105,7 +105,7 @@ class CbrAdvancedWalkthroughTest {
 
     @BeforeAll
     void setUp() {
-        store = new InMemoryCbrCaseMemoryStore();
+        store = new InMemoryCbrRecordStore();
         store.registerSchema(SCHEMA);
     }
 
@@ -203,8 +203,8 @@ class CbrAdvancedWalkthroughTest {
             .withRetrievalMode(RetrievalMode.FEATURE_ONLY)
             .withWeights(Map.of("heartRate", 3.0, "severity", 2.0, "age", 1.0, "diagnosis", 1.5));
 
-        List<ScoredCbrCase<FeatureVectorCbrCase>> results =
-            store.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        List<CbrMatch<CbrFeatureRecord>> results =
+            store.retrieveSimilar(query, CbrFeatureRecord.class);
 
         assertThat(results).isNotEmpty();
 
@@ -215,7 +215,7 @@ class CbrAdvancedWalkthroughTest {
         // Show per-field similarity breakdown
         var breakdown = CbrSimilarityScorer.scoreDetailed(
             queryFeatures,
-            results.getFirst().cbrCase().features(),
+            results.getFirst().cbrRecord().features(),
             query.weights(), SCHEMA, Map.of());
 
         assertThat(breakdown.featureSimilarities().get("heartRate")).isGreaterThan(0.0);
@@ -223,7 +223,7 @@ class CbrAdvancedWalkthroughTest {
         System.out.println("=== Phase 3: Similarity Retrieval ===");
         for (var scored : results) {
             System.out.printf("  %.3f — %s%n", scored.score(),
-                scored.cbrCase().problem().substring(0, Math.min(60, scored.cbrCase().problem().length())));
+                scored.cbrRecord().problem().substring(0, Math.min(60, scored.cbrRecord().problem().length())));
         }
         System.out.printf("  Heart rate similarity (top match): %.3f%n",
             breakdown.featureSimilarities().get("heartRate"));
@@ -235,7 +235,7 @@ class CbrAdvancedWalkthroughTest {
     void temporalDecayPenalisesOlderCases() {
         // TemporalDecay is applied by the CDI decorator chain in production.
         // Without CDI, we demonstrate the decay math directly — this is what
-        // TemporalDecayCbrCaseMemoryStore applies to each retrieved score.
+        // TemporalDecayCbrRecordStore applies to each retrieved score.
 
         var halfLife = new TemporalDecay.HalfLife(Duration.ofDays(7));
 
@@ -296,11 +296,11 @@ class CbrAdvancedWalkthroughTest {
             .withRetrievalMode(RetrievalMode.FEATURE_ONLY)
             .withFilter("ward", new CbrFilter.Contains("cardiology"));
 
-        var results = store.retrieveSimilar(filteredQuery, FeatureVectorCbrCase.class);
+        var results = store.retrieveSimilar(filteredQuery, CbrFeatureRecord.class);
 
         // General surgery case excluded by filter
         assertThat(results).allSatisfy(r ->
-            assertThat(r.cbrCase().features().get("ward"))
+            assertThat(r.cbrRecord().features().get("ward"))
                 .isEqualTo(FeatureValue.string("cardiology")));
 
         System.out.println("\n=== Phase 5: Filtered Results ===");
@@ -375,9 +375,9 @@ class CbrAdvancedWalkthroughTest {
         var results = store.retrieveSimilar(
             CbrQuery.of(TENANT, DOMAIN, SCOPE, CASE_TYPE, queryFeatures, 10)
                 .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
-            FeatureVectorCbrCase.class);
+            CbrFeatureRecord.class);
 
-        assertThat(results.stream().map(ScoredCbrCase::caseId))
+        assertThat(results.stream().map(CbrMatch::caseId))
             .doesNotContain(worseningCaseId)
             .contains(revisedCaseId);
 
@@ -430,11 +430,11 @@ class CbrAdvancedWalkthroughTest {
     private String storeCase(String problem, String solution,
                              Map<String, FeatureValue> features, Instant storedAt) {
         String caseId = UUID.randomUUID().toString();
-        var cbrCase = new FeatureVectorCbrCase(
+        var cbrRecord = new CbrFeatureRecord(
             problem, solution, null,
             new Confidence(ConfidenceOrigin.STATED, 0.8, storedAt),
             features, null, null);
-        store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(),
+        store.store(cbrRecord, CASE_TYPE, UUID.randomUUID().toString(),
             DOMAIN, TENANT, caseId, SCOPE);
         return caseId;
     }
@@ -459,10 +459,10 @@ class CbrAdvancedWalkthroughTest {
         return FeatureValue.structList(items);
     }
 
-    private double findScore(List<ScoredCbrCase<FeatureVectorCbrCase>> results, String caseId) {
+    private double findScore(List<CbrMatch<CbrFeatureRecord>> results, String caseId) {
         return results.stream()
             .filter(r -> r.caseId().equals(caseId))
-            .mapToDouble(ScoredCbrCase::score)
+            .mapToDouble(CbrMatch::score)
             .findFirst()
             .orElse(0.0);
     }

@@ -1,4 +1,4 @@
-# CBR Revise SPI — recordOutcome for CbrCaseMemoryStore
+# CBR Revise SPI — recordOutcome for CbrRecordStore
 
 **Issue:** #140
 **Date:** 2026-07-13
@@ -69,13 +69,13 @@ directly — the enum does not affect the calculation.
 
 ### SPI Methods
 
-**CbrCaseMemoryStore:**
+**CbrRecordStore:**
 
 ```java
 void recordOutcome(String caseId, String tenantId, CbrOutcome outcome);
 ```
 
-**ReactiveCbrCaseMemoryStore:**
+**ReactiveCbrRecordStore:**
 
 ```java
 Uni<Void> recordOutcome(String caseId, String tenantId, CbrOutcome outcome);
@@ -90,34 +90,34 @@ but not `caseType`. Backends that partition by caseType (Qdrant) iterate registe
 schemas — the same cross-collection pattern already established in `erase()` and
 `eraseEntity()`.
 
-### CbrCase.withOutcome
+### CbrRecord.withOutcome
 
-Abstract method on `CbrCase` for immutable record reconstruction:
+Abstract method on `CbrRecord` for immutable record reconstruction:
 
 ```java
-CbrCase withOutcome(String outcome, Double confidence);
+CbrRecord withOutcome(String outcome, Double confidence);
 ```
 
 Each record implements it — compile-time safety ensures new subtypes cannot silently
 inherit a broken default:
 
 ```java
-// FeatureVectorCbrCase
+// CbrFeatureRecord
 @Override
-public CbrCase withOutcome(String outcome, Double confidence) {
-    return new FeatureVectorCbrCase(problem(), solution(), outcome, confidence, features());
+public CbrRecord withOutcome(String outcome, Double confidence) {
+    return new CbrFeatureRecord(problem(), solution(), outcome, confidence, features());
 }
 
-// PlanCbrCase
+// PlanCbrRecord
 @Override
-public CbrCase withOutcome(String outcome, Double confidence) {
-    return new PlanCbrCase(problem(), solution(), outcome, confidence, features(), planTrace());
+public CbrRecord withOutcome(String outcome, Double confidence) {
+    return new PlanCbrRecord(problem(), solution(), outcome, confidence, features(), planTrace());
 }
 
-// TextualCbrCase
+// TextualCbrRecord
 @Override
-public CbrCase withOutcome(String outcome, Double confidence) {
-    return new TextualCbrCase(problem(), solution(), outcome, confidence);
+public CbrRecord withOutcome(String outcome, Double confidence) {
+    return new TextualCbrRecord(problem(), solution(), outcome, confidence);
 }
 ```
 
@@ -148,14 +148,14 @@ history implicitly via the EMA formula. Outcome history/traceability is #84's co
 
 ### Implementations
 
-**NoOpCbrCaseMemoryStore:** No-op, returns immediately.
+**NoOpCbrRecordStore:** No-op, returns immediately.
 
-**InMemoryCbrCaseMemoryStore:** Find StoredCase by caseId + tenantId. Skip if
+**InMemoryCbrRecordStore:** Find StoredCase by caseId + tenantId. Skip if
 `outcome.observedAt()` ≤ `stored.lastOutcomeAt` (idempotency guard). Reconstruct
-CbrCase via `withOutcome()`, replace entry. `StoredCase` carries `lastOutcomeAt` —
-detail and timestamp are storage-level metadata, not surfaced through `CbrCase`.
+CbrRecord via `withOutcome()`, replace entry. `StoredCase` carries `lastOutcomeAt` —
+detail and timestamp are storage-level metadata, not surfaced through `CbrRecord`.
 
-**QdrantCbrCaseMemoryStore:** Payload-only update — no re-embedding needed:
+**QdrantCbrRecordStore:** Payload-only update — no re-embedding needed:
 1. For each registered caseType, compute deterministic UUID via
    `CbrPointBuilder.pointId(tenantId, caseType, caseId)`
 2. Direct `getAsync(collection, uuid)` — O(1) lookup, no scroll
@@ -169,12 +169,12 @@ detail and timestamp are storage-level metadata, not surfaced through `CbrCase`.
 Case not found is silently ignored — the consumer may receive outcomes for erased cases
 or cases in a different backend.
 
-**JpaCbrCaseMemoryStore:** Find entity by caseId + tenantId. Skip if
+**JpaCbrRecordStore:** Find entity by caseId + tenantId. Skip if
 `entity.lastOutcomeAt` ≥ `outcome.observedAt()` (idempotency guard). Update
 outcome/confidence/outcomeDetail/lastOutcomeAt fields, persist. Uses
 `CbrOutcome.DEFAULT_LEARNING_RATE` for confidence adjustment.
 
-**New columns on `CbrCaseEntity`:**
+**New columns on `CbrRecordEntity`:**
 
 | Column | Type | Nullable |
 |--------|------|----------|
@@ -183,7 +183,7 @@ outcome/confidence/outcomeDetail/lastOutcomeAt fields, persist. Uses
 
 DDL migration adds two nullable columns to `cbr_case` — no data backfill needed.
 
-**RerankingCbrCaseMemoryStore (+ reactive):** Pass-through to delegate.
+**RerankingCbrRecordStore (+ reactive):** Pass-through to delegate.
 
 **BlockingToReactiveCbrBridge:** Wraps blocking call in `Uni`.
 
@@ -196,7 +196,7 @@ DDL migration adds two nullable columns to `cbr_case` — no data backfill neede
 | `outcome_detail` | string | Nullable detail from CbrOutcome |
 | `last_outcome_at` | string | ISO-8601 timestamp of observation |
 
-### Contract Tests (CbrCaseMemoryStoreContractTest)
+### Contract Tests (CbrRecordStoreContractTest)
 
 | Test | What it verifies |
 |------|-----------------|
@@ -220,7 +220,7 @@ loop. New compile dependency: `casehub-desiredstate-api` (for `CbrOutcomeData` a
 @ApplicationScoped
 public class CbrOutcomeConsumer {
 
-    @Inject CbrCaseMemoryStore store;
+    @Inject CbrRecordStore store;
 
     public void onEvent(@ObservesAsync @CloudEventType(CbrEventTypes.CBR_OUTCOME)
                         CloudEvent event) {
@@ -247,8 +247,8 @@ structured outcome history is #84's concern.
 **In scope (#140):**
 - `CbrOutcome` record + `Outcome` enum in memory-api
 - `CbrOutcome.adjustConfidence()` static EMA method + `DEFAULT_LEARNING_RATE` constant
-- `CbrCase.withOutcome()` abstract method + implementations on all three records
-- `CbrCaseMemoryStore.recordOutcome()` + reactive parity
+- `CbrRecord.withOutcome()` abstract method + implementations on all three records
+- `CbrRecordStore.recordOutcome()` + reactive parity
 - All 6 implementations (NoOp, InMemory, Qdrant, JPA, reranking decorator, bridge)
 - JPA migration: `outcome_detail` and `last_outcome_at` columns on `cbr_case`
 - CloudEvent consumer for `io.casehub.cbr.outcome` in `memory/` module
@@ -272,7 +272,7 @@ structured outcome history is #84's concern.
 | Enum naming | `Outcome` (not `Result`) | Consistent with desiredstate spec; avoids java.sql collision |
 | EMA location | Static on CbrOutcome | Pure function, testable in isolation, shared across backends |
 | Learning rate | `DEFAULT_LEARNING_RATE = 0.2` constant | Explicit threading; configurable per case type in #84 |
-| withOutcome | Abstract on CbrCase | Compile-time safety; each record knows its own fields |
+| withOutcome | Abstract on CbrRecord | Compile-time safety; each record knows its own fields |
 | CloudEvent consumer | In scope, `memory/` module | Closes the feedback loop; desiredstate-api is a stable API dependency |
-| Detail storage | Backend-level, not on CbrCase | Observation metadata ≠ case domain; avoids bloating the retrieval interface |
+| Detail storage | Backend-level, not on CbrRecord | Observation metadata ≠ case domain; avoids bloating the retrieval interface |
 | Idempotency | `observedAt` guard in all backends | At-least-once delivery causes EMA drift without guard; one-line check |

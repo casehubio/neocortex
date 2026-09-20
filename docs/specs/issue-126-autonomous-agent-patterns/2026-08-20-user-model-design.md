@@ -7,7 +7,7 @@
 
 ## Summary
 
-UserModel is a per-subject profile synthesis orchestrator in `io.casehub.blocks.agentic.social` that composes existing neocortex memory capabilities (RelationshipEvent, ExperienceRecorder, TrendAnalyzer, CbrCaseMemoryStore) into a structured behavioral profile for anyone an agent interacts with. The profile tracks relationship stage, interaction patterns, and LLM-synthesized open-ended dimensions (communication style, topics of interest, preferences).
+UserModel is a per-subject profile synthesis orchestrator in `io.casehub.blocks.agentic.social` that composes existing neocortex memory capabilities (RelationshipEvent, ExperienceRecorder, TrendAnalyzer, CbrRecordStore) into a structured behavioral profile for anyone an agent interacts with. The profile tracks relationship stage, interaction patterns, and LLM-synthesized open-ended dimensions (communication style, topics of interest, preferences).
 
 The pattern does NOT duplicate neocortex's raw event storage. It fills the gap between "interaction events are recorded" and "the agent has a holistic understanding of this person" by providing tiered synthesis (heuristic for countable dimensions, LLM for open-ended), configurable relationship staging, and CBR-backed profile persistence with temporal versioning.
 
@@ -18,7 +18,7 @@ The pattern does NOT duplicate neocortex's raw event storage. It fills the gap b
 1. **RelationshipEvent / RelationshipQuery / QualitySignal** (neocortex-memory-api) — per-pair relationship event recording with POSITIVE/NEGATIVE/NEUTRAL quality signals, stored to the "relationship" MemoryDomain
 2. **ExperienceRecorder / ExperienceQuery** (neocortex-memory-api) — sealed ExperienceEvent (Observation/Action/Outcome) recording with importance scoring and salient retrieval
 3. **TrendAnalyzer / TrendProfile** (neocortex-memory-api) — time-series trend detection (slope, volatility, acceleration, change points) on CBR case features
-4. **CbrCaseMemoryStore** (neocortex-memory-api) — CBR case storage with similarity-based retrieval, supersession, outcome recording
+4. **CbrRecordStore** (neocortex-memory-api) — CBR case storage with similarity-based retrieval, supersession, outcome recording
 5. **ContentSummariser / TieredContentSummariser** (blocks/summarisation) — tiered content summarisation with dispatch by batch size
 6. **AgentProvider** (platform-agent-api) — LLM invocation for open-ended synthesis
 
@@ -28,7 +28,7 @@ The pattern does NOT duplicate neocortex's raw event storage. It fills the gap b
 2. **Tiered profile synthesis** — heuristic fold for core dimensions (familiarity score, interaction counts, stage transitions) + LLM synthesis for open-ended dimensions (communication style, topics, preferences)
 3. **Relationship staging** — continuous familiarity score [0,1] with configurable threshold-to-stage mapping and inactivity decay
 4. **UserModelOrchestrator** — CDI bean driving the `record()` + `tick()` cycle with per-subject state management
-5. **CBR profile persistence** — profiles stored as CbrCases with dedicated schema, enabling similarity retrieval and temporal versioning via supersession
+5. **CBR profile persistence** — profiles stored as CbrRecords with dedicated schema, enabling similarity retrieval and temporal versioning via supersession
 
 ### Data Flow
 
@@ -52,7 +52,7 @@ tick(agentId, subjectId, tenantId) → UserModelTick
      → parse structured response (topics, style, preferences)
   3. Persist:
      → build UserProfile record
-     → store as CbrCase (supersede previous version)
+     → store as CbrRecord (supersede previous version)
      → clear text buffer, reset counters
   4. Return UserModelTick (Unchanged | Updated | Synthesized)
 ```
@@ -202,7 +202,7 @@ public interface UserProfileStore {
 
 ### CbrUserProfileStore (default implementation)
 
-`@DefaultBean @ApplicationScoped` implementation backed by `CbrCaseMemoryStore`. Maps `UserProfile` fields to `FeatureValue` types:
+`@DefaultBean @ApplicationScoped` implementation backed by `CbrRecordStore`. Maps `UserProfile` fields to `FeatureValue` types:
 
 | Profile field | FeatureValue type | CBR feature key |
 |---|---|---|
@@ -217,9 +217,9 @@ public interface UserProfileStore {
 | `topicsOfInterest` | `StringVal` | `topics_of_interest` |
 | `preferences` | `StringVal` | `preferences` |
 
-The CbrCase `problem` field carries the profile summary text. `solution` is empty. `producerAgentId` is set to `agentId` for agent-scoped retrieval filtering (per GE-20260820-c19b68). The CbrCase convention (problem/solution/features) is contained entirely within this adapter — consumers interact only with `UserProfileStore` and `UserProfile`.
+The CbrRecord `problem` field carries the profile summary text. `solution` is empty. `producerAgentId` is set to `agentId` for agent-scoped retrieval filtering (per GE-20260820-c19b68). The CbrRecord convention (problem/solution/features) is contained entirely within this adapter — consumers interact only with `UserProfileStore` and `UserProfile`.
 
-`eraseSubject()` queries all agents' profiles by `subject_id` feature and erases each via `CbrCaseMemoryStore.erase()`. This scanning erasure is acceptable for the GDPR use case (infrequent, batch, correctness-critical).
+`eraseSubject()` queries all agents' profiles by `subject_id` feature and erases each via `CbrRecordStore.erase()`. This scanning erasure is acceptable for the GDPR use case (infrequent, batch, correctness-critical).
 
 ## Orchestrator
 
@@ -379,8 +379,8 @@ Per-subject `ReentrantLock` in `ConcurrentHashMap<String, ReentrantLock>`. The l
 | `stageConfig` | `RelationshipStageConfig.defaults()` | Stage tiers and thresholds |
 | `expectedTickInterval` | 1 hour | Expected tick frequency — converts wall-clock inactivity to tick units for decay |
 | `evictionTimeout` | 7 days | Remove per-subject state not accessed for this duration |
-| `memoryDomain` | `"user-model"` | CbrCaseMemoryStore domain |
-| `caseType` | `"user-profile"` | CbrCase type identifier |
+| `memoryDomain` | `"user-model"` | CbrRecordStore domain |
+| `caseType` | `"user-profile"` | CbrRecord type identifier |
 | `maxObservationsInPrompt` | 50 | Max signal descriptions in LLM prompt |
 
 ## TrendAnalyzer Integration
@@ -390,7 +390,7 @@ When sufficient profile history exists (3+ superseded versions), `tick()` can op
 1. Load recent profile versions via `cbrStore.findSupersededCases()` or sequential retrieval
 2. Extract time-series data: familiarity score over time, interaction frequency, positive/negative ratio
 3. Run `TrendAnalyzer.analyze()` to compute slope (is the relationship improving or declining?), volatility (is it stable?), and change points (when did something shift?)
-4. Store trend metrics as additional FeatureValues on the profile CbrCase
+4. Store trend metrics as additional FeatureValues on the profile CbrRecord
 
 This is a follow-up enhancement, not part of the initial implementation. The profile schema and storage design accommodate it without changes.
 
@@ -408,8 +408,8 @@ This is a follow-up enhancement, not part of the initial implementation. The pro
 | `RelationshipStageConfig` | Record: stage tiers, decay rate, signal weights |
 | `StageTier` | Record: `(String name, double threshold)` |
 | `UserProfileStore` | SPI: `store()`, `lookup()`, `findByAgent()`, `eraseSubject()` |
-| `CbrUserProfileStore` | `@DefaultBean`: CbrCaseMemoryStore-backed UserProfileStore |
-| `UserProfileSchema` | Package-private: CbrFeatureSchema for profile storage |
+| `CbrUserProfileStore` | `@DefaultBean`: CbrRecordStore-backed UserProfileStore |
+| `UserProfileSchema` | Package-private: CbrRecordSchema for profile storage |
 | `SynthesisResult` | Package-private record: parsed LLM output |
 
 ## Testing Strategy
@@ -421,7 +421,7 @@ All tests are plain JUnit 5 + Mockito (no Quarkus runtime).
 | `InteractionSignalTest` | Sealed type exhaustiveness, quality extraction, description delegation |
 | `RelationshipStageConfigTest` | Default tiers, custom tiers, threshold ordering validation |
 | `FamiliarityScoreTest` | Score computation from signal counts, decay over ticks, boundary values, Laplace smoothing |
-| `UserModelOrchestratorTest` | Full tick cycle: record signals → tick → Updated/Synthesised. Mock CbrCaseMemoryStore and AgentProvider. Profile persistence via store. Supersession of previous profile. |
+| `UserModelOrchestratorTest` | Full tick cycle: record signals → tick → Updated/Synthesised. Mock CbrRecordStore and AgentProvider. Profile persistence via store. Supersession of previous profile. |
 | `LlmSynthesisGateTest` | Cooldown enforcement, minimum signal threshold, parse failure graceful degradation |
 | `UserProfileTest` | Record validation, metadata immutability, null LLM fields |
 | `UserModelTickTest` | Sealed type exhaustiveness, previousProfile in Synthesised |
@@ -433,7 +433,7 @@ All tests are plain JUnit 5 + Mockito (no Quarkus runtime).
 - `RelationshipEvent.java`, `RelationshipQuery.java`, `QualitySignal.java` (neocortex-memory-api) — per-pair relationship event recording
 - `ExperienceRecorder.java`, `ExperienceQuery.java`, `ExperienceEvent.java` (neocortex-memory-api) — experience event recording SPI
 - `TrendAnalyzer.java`, `TrendProfile.java` (neocortex-memory-api) — time-series trend detection
-- `CbrCaseMemoryStore` (neocortex-memory-api) — CBR case storage and retrieval
+- `CbrRecordStore` (neocortex-memory-api) — CBR case storage and retrieval
 - `PersonalityEvolutionOrchestrator` (blocks/agentic/personality) — established record()+tick() pattern
 - `InnerLifeOrchestrator` (blocks/agentic/personality) — established observe()+tick() pattern with per-agent state
 - `TieredContentSummariser` (blocks/summarisation) — tiered dispatch pattern

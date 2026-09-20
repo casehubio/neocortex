@@ -211,7 +211,7 @@ Uses `AttributedState` directly — no separate `SnapshotBelief` type needed sin
 
 ### `CbrMentalModelStore` — `@DefaultBean` adapter
 
-Backs onto `CbrCaseMemoryStore`. Mental model snapshot stored as a CbrCase:
+Backs onto `CbrRecordStore`. Mental model snapshot stored as a CbrRecord:
 - `problem` = serialized BDI summary text
 - `caseType` = "mental-model"
 - Features: agentId, subjectId, tenantId (for lookup), BDI entries as JSON StringVal
@@ -273,14 +273,14 @@ sealed interface MentalModelTick {
 | `MentalModelTick` | Sealed interface | Tick outcome: Unchanged, Updated, Inferred |
 | `MentalModelSnapshot` | Record | Persisted BDI state |
 | `MentalModelStore` | Interface (SPI) | Persistence: store, lookup, findByAgent, eraseSubject |
-| `CbrMentalModelStore` | `@DefaultBean @ApplicationScoped` | CbrCaseMemoryStore adapter |
+| `CbrMentalModelStore` | `@DefaultBean @ApplicationScoped` | CbrRecordStore adapter |
 | `MentalModelConfig` | Record | Configuration: decay rates, thresholds, cooldowns |
 
 11 types total (6 new records/enums, 2 sealed interfaces, 1 CDI bean, 1 SPI interface, 1 default bean).
 
 ## Dependencies
 
-**Compile (existing):** `casehub-neocortex-memory-api` (CbrCaseMemoryStore, RelationshipEvent — composed via RelationshipCue)
+**Compile (existing):** `casehub-neocortex-memory-api` (CbrRecordStore, RelationshipEvent — composed via RelationshipCue)
 **Provided (existing):** `casehub-platform-agent-api` (AgentProvider for LLM inference)
 **Internal (existing):** `blocks.agentic.belief` (BeliefSet, Belief, ConsistencyChecker — used for AGM revision), `blocks.conversation` (CommonGroundState, EpistemicStatus — composed via observeConversation())
 

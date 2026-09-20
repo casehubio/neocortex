@@ -97,15 +97,15 @@
 **Alternatives:**
 - Linear decay — constant drift rate; simpler but less psychologically grounded
 - Asymmetric decay — pleasure decays faster than arousal (hedonic adaptation); research-supported but adds per-axis configuration complexity
-**Rationale:** Exponential decay is the standard in cognitive architecture (ACT-R base-level activation, `TemporalDecayCbrCaseMemoryStore` in the CBR decorator chain). It produces fast initial return from extreme states with a slow tail — agents recover quickly from spikes but retain mild emotional coloring. This matches hedonic adaptation research and is already the pattern used by temporal decay in CBR. The time constant τ is configurable per agent, allowing "emotionally sticky" (high τ) or "emotionally reactive" (low τ) characters.
-**Trade-offs:** Single time constant for all PAD axes; asymmetric decay would require per-axis constants
-**Surfaced by:** R1-11 (implicit decision I2)
+  **Rationale:** Exponential decay is the standard in cognitive architecture (ACT-R base-level activation, `TemporalDecayCbrRecordStore` in the CBR decorator chain). It produces fast initial return from extreme states with a slow tail — agents recover quickly from spikes but retain mild emotional coloring. This matches hedonic adaptation research and is already the pattern used by temporal decay in CBR. The time constant τ is configurable per agent, allowing "emotionally sticky" (high τ) or "emotionally reactive" (low τ) characters.
+  **Trade-offs:** Single time constant for all PAD axes; asymmetric decay would require per-axis constants
+  **Surfaced by:** R1-11 (implicit decision I2)
 **Exploration:** surfaced-by-review
-**Status:** captured
+  **Status:** captured
 
 ## D10: Mood modulation scopes to CaseMemoryStore retrieval only
 
-**Choice:** Mood-modulated retrieval applies to `CaseMemoryStore` queries via the `PersonalityWeightedRetrieval` path. `CbrCaseMemoryStore` retrieval is not mood-modulated.
+**Choice:** Mood-modulated retrieval applies to `CaseMemoryStore` queries via the `PersonalityWeightedRetrieval` path. `CbrRecordStore` retrieval is not mood-modulated.
 **Alternatives:**
 - Both retrieval paths — apply mood bias to CBR case retrieval as well; a frustrated agent would retrieve different case precedents than a happy agent
 **Rationale:** `CaseMemoryStore` holds episodic memories (experiences, reflections, relationships) — these are the memories subject to mood-congruent recall in the affect literature. CBR retrieval is structured feature-vector similarity search — the query is "find cases with similar problem features," not "recall what feels relevant." Mood-congruent recall bias applies to episodic memory, not to analytical case retrieval. Adding mood bias to CBR scoring would distort case-based reasoning outcomes without psychological justification.

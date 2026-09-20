@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.CbrCasesErased.ByScope
+# io.casehub.neocortex.memory.cbr.CbrRecordErased.ByScope
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 

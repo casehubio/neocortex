@@ -38,7 +38,7 @@ class NodeRefCleanupProcessorTest {
     }
 
     @Test
-    void cbrCasesErased_removesMatchingNodeRefs() {
+    void cbrRecordErased_removesMatchingNodeRefs() {
         NodeRef cbrRef = new NodeRef("cbr", "cbr-456", null);
         String nodeId = store.addNode(new NodeInput("Bob", subgraphId,
             null, "test", null,

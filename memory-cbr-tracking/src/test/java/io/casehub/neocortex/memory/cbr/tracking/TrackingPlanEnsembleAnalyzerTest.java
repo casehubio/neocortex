@@ -7,10 +7,10 @@ import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.CbrEnsembleRecorded;
 import io.casehub.neocortex.memory.cbr.EnsemblePlan;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.PlanEnsembleAnalyzer;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanEnsembleAnalyzer;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.StepAgreement;
 import io.casehub.neocortex.memory.cbr.StepConsensus;
 import org.junit.jupiter.api.Test;
@@ -23,11 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TrackingPlanEnsembleAnalyzerTest {
 
-    private ScoredCbrCase<ResolvedCase> scored() {
-        var trace = new ResolutionStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
-        var plan = new ResolvedCase("problem", "solution", "WIN", Confidence.unknown(0.9),
-                                    Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
-        return new ScoredCbrCase<>(plan, "c1", "test-type", 0.85);
+    private CbrMatch<CbrPlanRecord> scored() {
+        var trace = new CbrPlanStep("b1", "cap1", "w1", "SUCCESS", 0, Map.of(), null);
+        var plan = new CbrPlanRecord("problem", "solution", "WIN", Confidence.unknown(0.9),
+                                     Map.of("f", FeatureValue.string("v")), List.of(trace), null, null);
+        return new CbrMatch<>(plan, "c1", "test-type", 0.85);
     }
 
     private AdaptedPlan adapted() {
@@ -36,7 +36,7 @@ class TrackingPlanEnsembleAnalyzerTest {
                         Map.of(), AdaptationAction.RETAINED, null)));
     }
 
-    private PlanEnsembleAnalyzer noOpDelegate() {
+    private CbrPlanEnsembleAnalyzer noOpDelegate() {
         return (caseType, scoredCases, adaptedPlans, features) -> {
             if (adaptedPlans.isEmpty()) {
                 return new EnsemblePlan(new AdaptedPlan(List.of()), List.of(), List.of(), 0.0, 0);
@@ -56,7 +56,7 @@ class TrackingPlanEnsembleAnalyzerTest {
     @Test
     void firesEventAfterAnalysis() {
         var eventRef = new AtomicReference<CbrEnsembleRecorded>();
-        var decorator = new TrackingPlanEnsembleAnalyzer(noOpDelegate(), eventRef::set);
+        var decorator = new TrackingCbrPlanEnsembleAnalyzer(noOpDelegate(), eventRef::set);
 
         Map<String, FeatureValue> features = Map.of("f", FeatureValue.string("q"));
         decorator.analyze("typeA", List.of(scored()), List.of(adapted()), features);
@@ -72,7 +72,7 @@ class TrackingPlanEnsembleAnalyzerTest {
     @Test
     void traceContainsCorrectFields() {
         var eventRef = new AtomicReference<CbrEnsembleRecorded>();
-        var decorator = new TrackingPlanEnsembleAnalyzer(noOpDelegate(), eventRef::set);
+        var decorator = new TrackingCbrPlanEnsembleAnalyzer(noOpDelegate(), eventRef::set);
         Map<String, FeatureValue> features = Map.of("f", FeatureValue.string("q"));
 
         decorator.analyze("typeB", List.of(scored()), List.of(adapted()), features);
@@ -88,7 +88,7 @@ class TrackingPlanEnsembleAnalyzerTest {
 
     @Test
     void trackingFailureDoesNotBreakAnalysis() {
-        var decorator = new TrackingPlanEnsembleAnalyzer(noOpDelegate(), e -> {
+        var decorator = new TrackingCbrPlanEnsembleAnalyzer(noOpDelegate(), e -> {
             throw new RuntimeException("event sink failure");
         });
 
@@ -101,7 +101,7 @@ class TrackingPlanEnsembleAnalyzerTest {
     @Test
     void firesForNoOpAnalyzer() {
         var eventRef = new AtomicReference<CbrEnsembleRecorded>();
-        var decorator = new TrackingPlanEnsembleAnalyzer(noOpDelegate(), eventRef::set);
+        var decorator = new TrackingCbrPlanEnsembleAnalyzer(noOpDelegate(), eventRef::set);
 
         decorator.analyze("typeA", List.of(), List.of(), Map.of());
 

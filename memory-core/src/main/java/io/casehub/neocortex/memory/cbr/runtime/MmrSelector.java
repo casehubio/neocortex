@@ -1,7 +1,7 @@
 package io.casehub.neocortex.memory.cbr.runtime;
 
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,12 +11,12 @@ public final class MmrSelector {
     private MmrSelector() {}
 
     @FunctionalInterface
-    public interface PairwiseSimilarity<C extends CbrCase> {
-        double similarity(ScoredCbrCase<C> a, ScoredCbrCase<C> b);
+    public interface PairwiseSimilarity<C extends CbrRecord> {
+        double similarity(CbrMatch<C> a, CbrMatch<C> b);
     }
 
-    public static <C extends CbrCase> List<ScoredCbrCase<C>> select(
-            List<ScoredCbrCase<C>> candidates,
+    public static <C extends CbrRecord> List<CbrMatch<C>> select(
+            List<CbrMatch<C>> candidates,
             int topK,
             double lambda,
             PairwiseSimilarity<C> similarity) {
@@ -27,7 +27,7 @@ public final class MmrSelector {
         }
 
         var remaining = new ArrayList<>(candidates);
-        var selected = new ArrayList<ScoredCbrCase<C>>(topK);
+        var selected = new ArrayList<CbrMatch<C>>(topK);
 
         remaining.sort((a, b) -> Double.compare(b.score(), a.score()));
         selected.add(remaining.remove(0));
@@ -37,10 +37,10 @@ public final class MmrSelector {
             int bestIdx = 0;
 
             for (int i = 0; i < remaining.size(); i++) {
-                ScoredCbrCase<C> candidate = remaining.get(i);
-                double relevance = candidate.score();
+                CbrMatch<C> candidate = remaining.get(i);
+                double      relevance = candidate.score();
                 double maxSim = 0.0;
-                for (ScoredCbrCase<C> sel : selected) {
+                for (CbrMatch<C> sel : selected) {
                     maxSim = Math.max(maxSim,
                         similarity.similarity(candidate, sel));
                 }

@@ -34,7 +34,7 @@ No new modules. No SPI changes. No CbrQuery changes.
 
 **Embedding `CategoricalTable` directly in `EditDistanceSpec`:** Rejected — `CategoricalTable` is a `SimilaritySpec` variant. Embedding one spec inside another creates confusing nesting. `EditDistanceSpec` carries its own `Map<String, Map<String, Double>>` with the same mirror-validation semantics.
 
-**Full `SimilarityBreakdown` return type from the scorer:** Deferred to #84 — producing the alignment data (this issue) is separate from surfacing it through scorer → ScoredCbrCase → ExplanationRenderer (#84's scope).
+**Full `SimilarityBreakdown` return type from the scorer:** Deferred to #84 — producing the alignment data (this issue) is separate from surfacing it through scorer → CbrMatch → ExplanationRenderer (#84's scope).
 
 ## Design
 
@@ -340,7 +340,7 @@ The performance criterion (1000×50 < 500ms) is met with margin.
 | `memory-api` tests | DTW: windowed computation, alignment path correctness, window clamping for unequal lengths, edge cases. EditDistance: weighted substitution costs, fractional distances, alignment path correctness. SimilaritySpec: DtwSpec/EditDistanceSpec validation. FeatureField: spec acceptance/rejection on temporal fields. |
 | `memory-testing` | Contract test additions: windowed DTW retrieval, weighted edit distance retrieval, SimilaritySpec on temporal fields affects ranking. |
 
-No changes to: `memory-cbr-inmem`, `memory-qdrant`, `memory-cbr-embedding`, `memory-cbr-crossencoder`, `CbrQuery`, `ScoredCbrCase`, `CbrCaseMemoryStore` SPI.
+No changes to: `memory-cbr-inmem`, `memory-qdrant`, `memory-cbr-embedding`, `memory-cbr-crossencoder`, `CbrQuery`, `CbrMatch`, `CbrRecordStore` SPI.
 
 ## Out of scope
 
@@ -352,7 +352,7 @@ No changes to: `memory-cbr-inmem`, `memory-qdrant`, `memory-cbr-embedding`, `mem
 
 ## Contract tests
 
-~15 new tests in `CbrCaseMemoryStoreContractTest`:
+~15 new tests in `CbrRecordStoreContractTest`:
 
 **Windowed DTW:**
 - `temporal_timeSeries_windowedDtw_similarResult`

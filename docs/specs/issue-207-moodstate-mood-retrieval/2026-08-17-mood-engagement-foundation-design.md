@@ -150,7 +150,7 @@ Extends the scoring formula from `PersonalityWeightedRetrieval` (D6, D10):
 - `moodInfluence` in [0.0, 1.0] — controls bias strength. 0.0 = no mood effect (identical to `PersonalityWeightedRetrieval`), 1.0 = full effect
 - Missing PAD dimensions on a memory are treated as 0.0 (neutral) for distance computation
 
-**Scope:** `CaseMemoryStore` retrieval only. CBR retrieval (`CbrCaseMemoryStore`) is not mood-modulated — CBR is structured feature-vector similarity search where mood-congruent recall bias has no psychological justification (D10).
+**Scope:** `CaseMemoryStore` retrieval only. CBR retrieval (`CbrRecordStore`) is not mood-modulated — CBR is structured feature-vector similarity search where mood-congruent recall bias has no psychological justification (D10).
 
 ### Memory PAD annotation convention
 
@@ -264,7 +264,7 @@ CDI wiring in **memory** (runtime module):
 |---------|-------|
 | `io.casehub.neocortex.memory.engagement` | `EngagementRecorded`, `EngagementStream`, `EngagementStoreResult`, `EngagementStoreFailure` |
 
-No new SPI methods on `CaseMemoryStore` or `CbrCaseMemoryStore`. All types flow through existing `store(MemoryInput)`.
+No new SPI methods on `CaseMemoryStore` or `CbrRecordStore`. All types flow through existing `store(MemoryInput)`.
 
 No new modules. No new Maven artifacts. No Flyway migrations.
 

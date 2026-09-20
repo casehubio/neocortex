@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.CbrCaseSummary
+# io.casehub.neocortex.memory.cbr.CbrRecordSummary
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -34,7 +34,7 @@
 
 ## Constructors
 
-### `public CbrCaseSummary(java.lang.String caseId, java.lang.String entityId, java.lang.String caseType, java.lang.String producerAgentId, java.lang.Double trustScore, java.time.Instant storedAt)`
+### `public CbrRecordSummary(java.lang.String caseId, java.lang.String entityId, java.lang.String caseType, java.lang.String producerAgentId, java.lang.Double trustScore, java.time.Instant storedAt)`
 
 #### Parameters
 

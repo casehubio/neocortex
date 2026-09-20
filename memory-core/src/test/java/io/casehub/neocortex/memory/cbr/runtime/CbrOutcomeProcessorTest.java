@@ -4,13 +4,13 @@ import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
 import io.casehub.neocortex.memory.cbr.CbrPath;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -77,17 +77,17 @@ class CbrOutcomeProcessorTest {
 
     record RecordedOutcome(String caseId, String tenantId, CbrOutcome outcome) {}
 
-    static class CapturingStore implements CbrCaseMemoryStore {
+    static class CapturingStore implements CbrRecordStore {
         final List<RecordedOutcome> recorded;
         CapturingStore(List<RecordedOutcome> recorded) { this.recorded = recorded; }
 
         @Override public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {
             recorded.add(new RecordedOutcome(caseId, tenantId, outcome));
         }
-        @Override public void registerSchema(CbrFeatureSchema s) {}
-        @Override public String store(CbrCase c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return ""; }
-        @Override public <C extends CbrCase> List<ScoredCbrCase<C>> retrieveSimilar(CbrQuery q, Class<C> cl) { return List.of(); }
-        @Override public Integer erase(EraseRequest r) { return 0; }
+        @Override public void registerSchema(CbrRecordSchema s)                                                                                         {}
+        @Override public String store(CbrRecord c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return ""; }
+        @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> cl)                                               { return List.of(); }
+        @Override public Integer erase(EraseRequest r)                                                                                                  { return 0; }
         @Override public Integer eraseEntity(String e, String t) { return 0; }
         @Override public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
         @Override public Integer purge(CbrRetentionPolicy p) { return 0; }

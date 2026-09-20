@@ -1,7 +1,7 @@
 package io.casehub.neocortex.examples.cbr;
 
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +13,7 @@ class LifeContractorDemoTest {
 
     @Test
     void plumbingHvacQueryReturnsMatchingCases() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = LifeContractorDemo.run(store);
 
         assertThat(results).isNotEmpty();
@@ -22,8 +22,8 @@ class LifeContractorDemoTest {
         var topResults = results.stream().limit(4).toList();
         assertThat(topResults).allSatisfy(r -> {
             assertThat(r.scored().score()).isEqualTo(1.0);
-            assertThat(r.scored().cbrCase()).isInstanceOf(FeatureVectorCbrCase.class);
-            var c = (FeatureVectorCbrCase) r.scored().cbrCase();
+            assertThat(r.scored().cbrRecord()).isInstanceOf(CbrFeatureRecord.class);
+            var c = (CbrFeatureRecord) r.scored().cbrRecord();
             assertThat(c.problem()).isNotBlank();
             assertThat(c.solution()).isNotBlank();
             assertThat(c.features().get("job_type")).isEqualTo(string("PLUMBING"));
@@ -33,7 +33,7 @@ class LifeContractorDemoTest {
 
     @Test
     void resultCountMatchesSeedData() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = LifeContractorDemo.run(store);
         // With graded similarity, all cases are returned (filtered by identity: tenant, domain, caseType)
         // The query returns all 10 seed cases, with matching cases scoring highest
@@ -45,10 +45,10 @@ class LifeContractorDemoTest {
 
     @Test
     void outcomesIncludeCompletedAndDelayed() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = LifeContractorDemo.run(store);
         var outcomes = results.stream()
-            .map(r -> ((FeatureVectorCbrCase) r.scored().cbrCase()).outcome())
+            .map(r -> ((CbrFeatureRecord) r.scored().cbrRecord()).outcome())
             .toList();
         assertThat(outcomes).contains("COMPLETED_ON_TIME", "DELAYED");
     }

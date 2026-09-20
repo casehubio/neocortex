@@ -16,7 +16,7 @@ StrategyLearning is the fifth social cognition orchestrator. It evaluates engage
 |-----------|--------|------|
 | `ReflectionOrchestrator` | neocortex-memory-api | Generates reflective insights from accumulated memories (tier 3) |
 | `ContentSummariser<EngagementSignal>` | blocks/summarisation | Textual summary of per-conversation engagement (tier 2) |
-| `CbrCaseMemoryStore` | neocortex-memory-api | Stores engagement evidence cases with features + dimensional snapshots |
+| `CbrRecordStore` | neocortex-memory-api | Stores engagement evidence cases with features + dimensional snapshots |
 | `TrendAnalyzer` | neocortex-memory-api | Cross-case engagement trend detection (tier 3) |
 | `AgentProvider` | platform-agent-api | LLM synthesis for strategy profile updates (tier 3) |
 | `EngagementEvent` | neocortex-memory-api | Engagement signal data (responded, responseTimeMs, sentimentShift, etc.) |
@@ -224,8 +224,8 @@ public interface StrategyStore {
 }
 ```
 
-`CbrStrategyStore` (`@DefaultBean`) backs onto `CbrCaseMemoryStore`:
-- Profile stored as CbrCase: guidelines as problem text, dimensions as features, placeholder solution (`"-"`)
+`CbrStrategyStore` (`@DefaultBean`) backs onto `CbrRecordStore`:
+- Profile stored as CbrRecord: guidelines as problem text, dimensions as features, placeholder solution (`"-"`)
 - `subjectInsights()` queries engagement CBR cases filtered by subjectId (via `CbrFilter.contains("subjectId", subjectId)`), extracts engagement features, formats as template-based text: `"With {subjectId}: engagement rate {continuationRate}, avg response length {avgResponseLength}, sentiment trend {meanSentimentShift}"`
 - `eraseSubject()` queries engagement CBR cases by subjectId feature filter, erases matching cases via `cbrStore.erase()`. Provides GDPR Art.17 erasure for subject data.
 
@@ -237,7 +237,7 @@ Four entry points: `record()`, `tick()`, `reflect()`, `currentStrategy()`.
 
 **Constructor dependencies:**
 - `StrategyStore strategyStore`
-- `CbrCaseMemoryStore cbrStore` — for engagement evidence cases
+- `CbrRecordStore cbrStore` — for engagement evidence cases
 - `ReflectionOrchestrator reflectionOrchestrator` — tier 3 reflection
 - `AgentProvider agentProvider` — tier 3 LLM synthesis
 - `@Nullable ContentSummariser<EngagementSignal> summariser` — optional tier 2 text summary
@@ -288,8 +288,8 @@ Cheap. Runs tiers 1-2 under per-agent `ReentrantLock`.
    - `turnCount`: number of matched signals
    - `conversationTimestamp`: epoch millis of first signal (for temporal ordering)
 4. Optionally run `ContentSummariser<EngagementSignal>` for text summary (stored as StringVal feature)
-5. Store CbrCase via `cbrStore.store()` with:
-   - cbrCase: FeatureVectorCbrCase(problem=conversationSummary, solution="-", features=extracted, producerAgentId=agentId)
+5. Store CbrRecord via `cbrStore.store()` with:
+   - cbrCase: CbrFeatureRecord(problem=conversationSummary, solution="-", features=extracted, producerAgentId=agentId)
    - caseType: `config.engagementCaseType()`
    - domain: `config.memoryDomain()`
    - scope: `Path.root()`
@@ -346,7 +346,7 @@ Returns in-memory profile if loaded, otherwise queries `strategyStore.lookup()`.
 
 Engagement evidence cases use flat `FeatureField.Numeric` fields (NOT `FeatureField.TimeSeries` — the cases are flat records, not embedded time series). Cross-case trend analysis constructs a programmatic TimeSeries schema in reflect().
 
-Package-private `EngagementCaseSchema` class defines the `CbrFeatureSchema`:
+Package-private `EngagementCaseSchema` class defines the `CbrRecordSchema`:
 
 | Feature | Type | Range | Purpose |
 |---------|------|-------|---------|
@@ -423,7 +423,7 @@ String systemPrompt = strategy + subjectContext + baseSystemPrompt;
 | `StrategyLearningTick` | sealed interface | tick() outcome: NoChange, Observed, Learned |
 | `StrategyReflection` | sealed interface | reflect() outcome: NoChange, Reflected |
 | `StrategyStore` | interface (SPI) | Strategy profile + subject erasure persistence |
-| `CbrStrategyStore` | class (@DefaultBean) | CbrCaseMemoryStore-backed StrategyStore |
+| `CbrStrategyStore` | class (@DefaultBean) | CbrRecordStore-backed StrategyStore |
 | `StrategyLearningOrchestrator` | class | Composition root: record() + tick() + reflect() + currentStrategy() |
 
 8 new types. ~500 lines of production code estimated.
@@ -479,7 +479,7 @@ String systemPrompt = strategy + subjectContext + baseSystemPrompt;
 - ContentSummariser (blocks: `io.casehub.blocks.summarisation`)
 - UserModelOrchestrator (blocks: `io.casehub.blocks.agentic.social`) — tiered pattern precedent
 - MemoryHygieneScheduler (blocks: `io.casehub.blocks.memory`) — tick()+maintain() dual-cadence precedent
-- CbrUserProfileStore / CbrMentalModelStore — CbrCase adapter pattern precedent
+- CbrUserProfileStore / CbrMentalModelStore — CbrRecord adapter pattern precedent
 - GE-20260820-c19b68 (producerAgentId post-filtering)
 - GE-20260804-eb75e0 (scan() returns summaries — use retrieveSimilar)
 - GE-20260820-d4e011 (non-blank solution placeholder)

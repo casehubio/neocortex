@@ -1,4 +1,4 @@
-# io.casehub.neocortex.memory.cbr.CbrFeatureValidator
+# io.casehub.neocortex.memory.cbr.CbrRecordValidator
 
 **Package:** `io.casehub.neocortex.memory.cbr`
 
@@ -6,15 +6,15 @@
 
 ## Constructors
 
-### `private CbrFeatureValidator()`
+### `private CbrRecordValidator()`
 
 ## Methods
 
-### `public static io.casehub.neocortex.memory.cbr.FeatureField findField(io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema, java.lang.String name)`
+### `public static io.casehub.neocortex.memory.cbr.FeatureField findField(io.casehub.neocortex.memory.cbr.CbrRecordSchema schema, java.lang.String name)`
 
 #### Parameters
 
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 - `name` (`java.lang.String`)
 
 ### `private static void requireCategoricalList(java.lang.String name, io.casehub.neocortex.memory.cbr.FeatureField field)`
@@ -47,12 +47,12 @@
 - `fieldName` (`java.lang.String`)
 - `value` (`io.casehub.neocortex.memory.cbr.FeatureValue`)
 
-### `public static void validateFilters(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.CbrFilter> filters, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public static void validateFilters(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.CbrFilter> filters, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
 - `filters` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.CbrFilter>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
 ### `private static void validateHasMatchSubFields(java.lang.String fieldName, io.casehub.neocortex.memory.cbr.CbrFilter.HasMatch hm, java.util.List<io.casehub.neocortex.memory.cbr.FeatureField> innerFields)`
 
@@ -70,12 +70,12 @@
 - `map` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `innerFields` (`java.util.List<io.casehub.neocortex.memory.cbr.FeatureField>`)
 
-### `public static void validateQueryFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public static void validateQueryFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
 ### `private static void validateSingleFilter(java.lang.String name, io.casehub.neocortex.memory.cbr.CbrFilter filter, io.casehub.neocortex.memory.cbr.FeatureField field)`
 
@@ -85,12 +85,12 @@
 - `filter` (`io.casehub.neocortex.memory.cbr.CbrFilter`)
 - `field` (`io.casehub.neocortex.memory.cbr.FeatureField`)
 
-### `public static void validateStoreFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public static void validateStoreFeatures(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> features, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
 - `features` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
 ### `private static void validateTimeSeries(java.lang.String fieldName, io.casehub.neocortex.memory.cbr.FeatureValue value, io.casehub.neocortex.memory.cbr.FeatureField.TimeSeries ts)`
 

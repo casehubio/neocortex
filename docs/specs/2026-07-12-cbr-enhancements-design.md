@@ -161,12 +161,12 @@ case CbrFilter.ContainsRange cr ->
 |------|--------|
 | `memory-api` FeatureField.java | Add NumericList variant + factory method + validateFlatFields rejection |
 | `memory-api` CbrFilter.java | Add ContainsRange variant + factory method |
-| `memory-api` CbrFeatureValidator.java | Store/query/filter validation for NumericList + ContainsRange. New `requireNumericList()` helper (parallel to `requireCategoricalList()`) validates field is NumericList |
+| `memory-api` CbrRecordValidator.java | Store/query/filter validation for NumericList + ContainsRange. New `requireNumericList()` helper (parallel to `requireCategoricalList()`) validates field is NumericList |
 | `memory-api` CbrSimilarityScorer.java | Skip NumericList (like CategoricalList) |
-| `memory-cbr-inmem` InMemoryCbrCaseMemoryStore.java | Filter evaluation for ContainsRange |
+| `memory-cbr-inmem` InMemoryCbrRecordStore.java | Filter evaluation for ContainsRange |
 | `memory-qdrant` CbrQueryTranslator.java | `toFilter()`: add NumericList case (throws — filter-only field). `applyStructuralFilters()`: ContainsRange → range condition on array field |
 | `memory-qdrant` CbrCollectionManager.java | `registerSchemaIndexes()`: float payload index for NumericList fields |
-| `memory-qdrant` QdrantCbrCaseMemoryStore.java | `buildTextOverrides()`: add NumericList case (empty handler — no text semantics) |
+| `memory-qdrant` QdrantCbrRecordStore.java | `buildTextOverrides()`: add NumericList case (empty handler — no text semantics) |
 | `memory-testing` contract tests | NumericList store/retrieve/filter tests |
 
 ---
@@ -214,8 +214,8 @@ case CbrFilter.NotContainsAny nca ->
 | File | Change |
 |------|--------|
 | `memory-api` CbrFilter.java | Add NotContains, NotContainsAny + factory methods |
-| `memory-api` CbrFeatureValidator.java | Extend requireCategoricalList dispatch |
-| `memory-cbr-inmem` InMemoryCbrCaseMemoryStore.java | Filter evaluation |
+| `memory-api` CbrRecordValidator.java | Extend requireCategoricalList dispatch |
+| `memory-cbr-inmem` InMemoryCbrRecordStore.java | Filter evaluation |
 | `memory-qdrant` CbrQueryTranslator.java | must_not conditions |
 | `memory-testing` contract tests | Negation filter tests |
 
@@ -251,8 +251,8 @@ Each inner filter is dispatched through the standard per-filter-type translation
 | File | Change |
 |------|--------|
 | `memory-api` CbrFilter.java | Add AllOf + factory method |
-| `memory-api` CbrFeatureValidator.java | Recursive validation into AllOf |
-| `memory-cbr-inmem` InMemoryCbrCaseMemoryStore.java | All-match evaluation |
+| `memory-api` CbrRecordValidator.java | Recursive validation into AllOf |
+| `memory-cbr-inmem` InMemoryCbrRecordStore.java | All-match evaluation |
 | `memory-qdrant` CbrQueryTranslator.java | Multi-condition translation |
 | `memory-testing` contract tests | AllOf tests with various inner filter combos |
 

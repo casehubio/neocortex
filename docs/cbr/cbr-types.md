@@ -2,13 +2,13 @@
 
 Case-Based Reasoning retrieves similar past cases to inform decisions on new ones.
 CaseHub supports three CBR paradigms, each suited to different reasoning needs.
-All three share the same SPI (`CbrCaseMemoryStore`) and the same four-step cycle
+All three share the same SPI (`CbrRecordStore`) and the same four-step cycle
 (Retain → Retrieve → Reuse → Revise) — they differ in what knowledge they capture
 and what signal they provide.
 
 ## Textual CBR
 
-**Java type:** `ResolutionGuide` · **Discriminator:** `"textual"`
+**Java type:** `CbrGuidanceRecord` · **Discriminator:** `"textual"`
 
 Pure natural-language similarity. No structured features — the entire reasoning
 surface is the text of `problem()` and `solution()`. Retrieval is semantic:
@@ -43,7 +43,7 @@ considered similar beyond "the embeddings were close."
 
 ## Feature-Vector CBR
 
-**Java type:** `FeatureVectorCbrCase` · **Discriminator:** `"feature-vector"`
+**Java type:** `CbrFeatureRecord` · **Discriminator:** `"feature-vector"`
 
 Structured similarity over declared feature schemas. Cases have typed feature
 maps — categorical (exact match), numeric (range), text (keyword). Retrieval
@@ -94,7 +94,7 @@ same jurisdiction."
 
 ## Plan-Based CBR
 
-**Java type:** `ResolvedCase` · **Discriminator:** `"plan"`
+**Java type:** `CbrPlanRecord` · **Discriminator:** `"plan"`
 
 Everything Feature-Vector does, plus a full execution trace — the ordered
 sequence of steps that constituted the plan. This is CHEF-style case-based
@@ -109,9 +109,9 @@ planning: retrieve a similar past plan, then adapt it for the current situation.
 | `outcome` | String (nullable) | Result label |
 | `confidence` | Double (nullable) | Confidence in the outcome, [0, 1] |
 | `features` | Map\<String, Object\> | Structured feature map (same as Feature-Vector) |
-| `resolutionStep` | List\<PlanTrace\> | Ordered execution trace |
+| `cbrPlanStep` | List\<PlanTrace\> | Ordered execution trace |
 
-Each `ResolutionStep` step:
+Each `CbrPlanStep` step:
 
 | Field | Type | Purpose |
 |-------|------|---------|

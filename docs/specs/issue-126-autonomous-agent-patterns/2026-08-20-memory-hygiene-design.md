@@ -9,7 +9,7 @@
 Manages memory lifecycle for agents with persistent CBR memory stores: consolidation (merging related memories), forgetting (eviction of low-value memories), importance scoring, temporal versioning (invalidate-not-delete), cross-linking (consolidation provenance), and integrity checking (structural + semantic escalation).
 
 Composes existing infrastructure — no new persistence layers:
-- **neocortex**: `CbrCaseMemoryStore`, `CbrRetentionPolicy`, `TemporalDecay`, `ScopeDecay`, `ReflectionOrchestrator`
+- **neocortex**: `CbrRecordStore`, `CbrRetentionPolicy`, `TemporalDecay`, `ScopeDecay`, `ReflectionOrchestrator`
 - **blocks/summarisation**: `ContentSummariser<T>`, `TieredContentSummariser<T>`
 
 ## Architecture
@@ -31,7 +31,7 @@ The orchestrator has a single entry point (`tick()`), consistent with `Personali
 │  1. Score importance    ImportanceScorer × each memory       │
 │  2. Evict              Composite score < threshold → erase  │
 │  3. Consolidate (P1)   Merge similar survivors via          │
-│     └─ ContentSummariser → FeatureVectorCbrCase             │
+│     └─ ContentSummariser → CbrFeatureRecord             │
 │     └─ Supersede sources, annotate source_cases feature     │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
@@ -51,7 +51,7 @@ The orchestrator has a single entry point (`tick()`), consistent with `Personali
 
 MemoryHygiene **replaces** `CbrRetentionScheduler` for agents that use it. The orchestrator implements its own scan-and-evict loop via `retrieveSimilar` + `erase` — it cannot use `CbrRetentionPolicy.purge()` because purge uses simple filter criteria (maxAgeDays, maxCasesPerType, minTrustScore), not weighted composite scores.
 
-Retrieval-time decay (`TemporalDecayCbrCaseMemoryStore` decorator) and eviction-time decay serve different purposes: retrieval decay modulates ranking during queries; eviction decay determines whether a memory is worth keeping at all. These are independent and intentionally separate.
+Retrieval-time decay (`TemporalDecayCbrRecordStore` decorator) and eviction-time decay serve different purposes: retrieval decay modulates ranking during queries; eviction decay determines whether a memory is worth keeping at all. These are independent and intentionally separate.
 
 Agents using MemoryHygiene should disable `CbrRetentionScheduler` for the same domain to avoid conflicting retention decisions.
 
@@ -61,9 +61,9 @@ Agents using MemoryHygiene should disable `CbrRetentionScheduler` for the same d
 
 | Type | Kind | Description |
 |------|------|-------------|
-| `ImportanceScorer` | `@FunctionalInterface` | `double score(ScoredCbrCase<? extends CbrCase> memory, Instant now)` → [0,1]. Input is the full scored case with text (`problem()`, `solution()`) and `features()`. |
-| `ArousalScorer` | class, `@DefaultBean` | Heuristic approximation: word-list sentiment intensity from `CbrCase.problem()` + `CbrCase.solution()` text. Zero LLM cost. Production override with LLM-backed implementation for psychological fidelity. |
-| `SurpriseScorer` | class, `@DefaultBean` | Heuristic approximation: information entropy of `CbrCase.features()` relative to agent's typical feature distribution. Zero LLM cost. |
+| `ImportanceScorer` | `@FunctionalInterface` | `double score(CbrMatch<? extends CbrRecord> memory, Instant now)` → [0,1]. Input is the full scored case with text (`problem()`, `solution()`) and `features()`. |
+| `ArousalScorer` | class, `@DefaultBean` | Heuristic approximation: word-list sentiment intensity from `CbrRecord.problem()` + `CbrRecord.solution()` text. Zero LLM cost. Production override with LLM-backed implementation for psychological fidelity. |
+| `SurpriseScorer` | class, `@DefaultBean` | Heuristic approximation: information entropy of `CbrRecord.features()` relative to agent's typical feature distribution. Zero LLM cost. |
 | `CompositeImportanceScorer` | class | Weighted combination: `score = Σ(scorer_i.score() × weight_i) / Σ(weight_i)`. Constructor takes `List<WeightedScorer>`. |
 | `WeightedScorer` | record | `(ImportanceScorer scorer, double weight)` — entry in the composite. Weight validated > 0. |
 
@@ -78,16 +78,16 @@ Agents using MemoryHygiene should disable `CbrRetentionScheduler` for the same d
 ### Consolidation
 
 Consolidation is a two-step process:
-1. **Text synthesis** — `ContentSummariser<ScoredCbrCase<? extends CbrCase>>` produces a `SummaryResult` (text + annotations) from a group of related memories.
-2. **Case construction** — The orchestrator builds a `FeatureVectorCbrCase` from the `SummaryResult.text()` (as `problem`), merged features (union of source features), and `source_cases` provenance annotation (as `StringListVal`). This produces a storable `CbrCase`.
+1. **Text synthesis** — `ContentSummariser<CbrMatch<? extends CbrRecord>>` produces a `SummaryResult` (text + annotations) from a group of related memories.
+2. **Case construction** — The orchestrator builds a `CbrFeatureRecord` from the `SummaryResult.text()` (as `problem`), merged features (union of source features), and `source_cases` provenance annotation (as `StringListVal`). This produces a storable `CbrRecord`.
 
-Sources are superseded via `CbrCaseMemoryStore.supersede(sourceId, mergedId, "hygiene-consolidation")`.
+Sources are superseded via `CbrRecordStore.supersede(sourceId, mergedId, "hygiene-consolidation")`.
 
-The tick uses `TieredContentSummariser` dispatch: small groups (≤5) get heuristic merging (feature union, text concatenation), larger groups get LLM-backed synthesis. `FeatureVectorCbrCase` supports `withFeatures()`, so cross-link annotations work without issues.
+The tick uses `TieredContentSummariser` dispatch: small groups (≤5) get heuristic merging (feature union, text concatenation), larger groups get LLM-backed synthesis. `CbrFeatureRecord` supports `withFeatures()`, so cross-link annotations work without issues.
 
 ### Reflection Storage
 
-Reflections from `ReflectionOrchestrator.reflect()` are `List<String>` — abstract insights that don't fit the CbrCase contract (problem/solution/outcome). Stored as lightweight records:
+Reflections from `ReflectionOrchestrator.reflect()` are `List<String>` — abstract insights that don't fit the CbrRecord contract (problem/solution/outcome). Stored as lightweight records:
 
 | Type | Kind | Description |
 |------|------|-------------|
@@ -104,16 +104,16 @@ Reflections from `ReflectionOrchestrator.reflect()` are `List<String>` — abstr
 | `ViolationType` | enum | `ORPHANED_SUPERSESSION` (superseded case points to non-existent superseding case), `DUPLICATE_CASE` (same content stored twice), `MISSING_FEATURES` (required feature keys absent), `UNPROCESSED_STALE` (old memory never reviewed by hygiene pipeline), `SEMANTIC_CONFLICT` (contradictory memories — semantic checker only) |
 | `SemanticIntegrityChecker` | `@FunctionalInterface` | `List<IntegrityViolation> checkSemantic(List<IntegrityViolation> flagged, String agentId, String tenantId)` |
 | `NoOpSemanticIntegrityChecker` | class, `@DefaultBean` | Returns empty list. Consumers override with LLM-backed implementation. |
-| `DefaultIntegrityChecker` | class, `@ApplicationScoped` | Structural checks via `CbrCaseMemoryStore.scan()` + `findSupersededCases()`. Sets `escalateToSemantic=true` on anomalies with high feature overlap but contradictory outcomes. Delegates flagged items to injected `SemanticIntegrityChecker`. |
+| `DefaultIntegrityChecker` | class, `@ApplicationScoped` | Structural checks via `CbrRecordStore.scan()` + `findSupersededCases()`. Sets `escalateToSemantic=true` on anomalies with high feature overlap but contradictory outcomes. Delegates flagged items to injected `SemanticIntegrityChecker`. |
 
 ### Orchestrator & Scheduler
 
 | Type | Kind | Description |
 |------|------|-------------|
-| `MemoryHygieneOrchestrator` | `@ApplicationScoped` | Single entry: `HygieneTick tick(String agentId, String tenantId)`. Per-agent `ReentrantLock` for tick serialisation. Injects: `CbrCaseMemoryStore`, `ImportanceScorer`, `TemporalDecay`, `ScopeDecay`, `ContentSummariser`, `MemoryHygieneConfig`. |
+| `MemoryHygieneOrchestrator` | `@ApplicationScoped` | Single entry: `HygieneTick tick(String agentId, String tenantId)`. Per-agent `ReentrantLock` for tick serialisation. Injects: `CbrRecordStore`, `ImportanceScorer`, `TemporalDecay`, `ScopeDecay`, `ContentSummariser`, `MemoryHygieneConfig`. |
 | `HygieneTick` | sealed interface | `Idle(String reason)` — nothing to do (no memories, or below batch threshold). `Completed(int consolidated, int evicted, int totalScored, List<RetentionScore> scores)` — full audit. `Failed(String reason)` — pipeline error. |
 | `MaintenanceTick` | sealed interface | `Completed(HygieneTick hygiene, int reflectionsGenerated, int crossLinksCreated, List<IntegrityViolation> violations)`. `Failed(String stage, String reason)` — which stage failed. |
-| `MemoryHygieneScheduler` | class (not CDI) | Constructor: `(MemoryHygieneOrchestrator, ReflectionOrchestrator, ReflectionStore, IntegrityChecker, CbrCaseMemoryStore, MemoryHygieneConfig)`. `MaintenanceTick maintain(String agentId, String tenantId)` — composes: tick() + reflect + cross-link + integrity. Consumer constructs and wires into their scheduler. |
+| `MemoryHygieneScheduler` | class (not CDI) | Constructor: `(MemoryHygieneOrchestrator, ReflectionOrchestrator, ReflectionStore, IntegrityChecker, CbrRecordStore, MemoryHygieneConfig)`. `MaintenanceTick maintain(String agentId, String tenantId)` — composes: tick() + reflect + cross-link + integrity. Consumer constructs and wires into their scheduler. |
 
 ## Tick Pipeline Detail
 
@@ -132,7 +132,7 @@ for (var caseType : config.caseTypes()) {
             Map.of(), config.consolidationBatchSize())
         .withMinSimilarity(0.0)
         .withProducerAgentId(agentId);
-    var memories = store.retrieveSimilar(query, CbrCase.class);
+    var memories = store.retrieveSimilar(query, CbrRecord.class);
 
     // Score each memory
     var scored = memories.stream()
@@ -171,7 +171,7 @@ Group high-similarity survivors and merge:
 
 1. Identify groups of similar memories (connected components above `crossLinkSimilarityThreshold`)
 2. For each group: run `ContentSummariser` → produces `SummaryResult`
-3. Build `FeatureVectorCbrCase` from `SummaryResult.text()` + merged features + `source_cases` `StringListVal`
+3. Build `CbrFeatureRecord` from `SummaryResult.text()` + merged features + `source_cases` `StringListVal`
 4. Store consolidated case, supersede sources: `store.supersede(sourceId, mergedId, "hygiene-consolidation")`
 5. `SupersessionStatus.supersededAt` provides temporal context for when the original memory was valid
 
@@ -200,7 +200,7 @@ Consolidation provenance (`source_cases` feature) is written during Step 3 as pa
 
 ### Step 6: Integrity Checking
 
-`DefaultIntegrityChecker` gracefully degrades when `CbrCaseMemoryStore.scan()` is unsupported — it catches `UnsupportedOperationException` and skips scan-dependent checks (DUPLICATE_CASE, MISSING_FEATURES), logging a warning. Supersession-based checks (ORPHANED_SUPERSESSION) use `findSupersededCases()` which is a required method. UNPROCESSED_STALE detection uses `retrieveSimilar` with broad queries.
+`DefaultIntegrityChecker` gracefully degrades when `CbrRecordStore.scan()` is unsupported — it catches `UnsupportedOperationException` and skips scan-dependent checks (DUPLICATE_CASE, MISSING_FEATURES), logging a warning. Supersession-based checks (ORPHANED_SUPERSESSION) use `findSupersededCases()` which is a required method. UNPROCESSED_STALE detection uses `retrieveSimilar` with broad queries.
 
 ```java
 var violations = integrityChecker.check(agentId, tenantId, domain);
@@ -225,7 +225,7 @@ Consumers wire the event sink to their observability infrastructure (platform Ev
 
 ## Dependencies
 
-**Compile:** `casehub-neocortex-memory-api` (CbrCaseMemoryStore, TemporalDecay, ScopeDecay, CbrRetentionPolicy, ReflectionOrchestrator, MemoryDomain, CbrCase, CbrQuery, FeatureValue, SupersessionStatus, EraseRequest)
+**Compile:** `casehub-neocortex-memory-api` (CbrRecordStore, TemporalDecay, ScopeDecay, CbrRetentionPolicy, ReflectionOrchestrator, MemoryDomain, CbrRecord, CbrQuery, FeatureValue, SupersessionStatus, EraseRequest)
 **Compile:** `casehub-blocks` (ContentSummariser, TieredContentSummariser, SummarisationRunner — same module, different package)
 **Provided:** `casehub-platform-agent-api` (AgentProvider — for LLM-backed implementations)
 **Test:** JUnit 5, Mockito, AssertJ
@@ -250,10 +250,10 @@ Plain JUnit 5 with Mockito — no Quarkus runtime (consistent with blocks test c
 - MemGPT / Letta: "Sleeptime Agents" (ICLR 2024; Letta 2025)
 - ACT-R memory activation model — power-law decay (recency × frequency)
 - Memory OS of AI Agent (EMNLP 2025)
-- GE-20260804-eb75e0 — scan() returns CbrCaseSummary without features
+- GE-20260804-eb75e0 — scan() returns CbrRecordSummary without features
 - GE-20260716-f292d3 — score-replacing decorators discard pre-applied decay
 - GE-20260720-b7a8b9 — eraseEntity() is not domain-scoped
-- CbrCaseMemoryStore (neocortex-memory-api)
+- CbrRecordStore (neocortex-memory-api)
 - TemporalDecay, ScopeDecay (neocortex-memory-api)
 - ReflectionOrchestrator (neocortex-memory-api)
 - ContentSummariser, TieredContentSummariser (blocks/summarisation)

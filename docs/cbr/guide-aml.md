@@ -17,7 +17,7 @@ the specifics that matter.
 ## Feature Schema
 
 ```java
-CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("aml-investigation",
+CbrRecordSchema SCHEMA = CbrRecordSchema.of("aml-investigation",
     FeatureField.categorical("transaction_pattern"),   // STRUCTURING, LAYERING, SMURFING, ROUND_TRIP
     FeatureField.categorical("entity_risk_tier"),      // LOW, MEDIUM, HIGH, PEP
     FeatureField.categorical("jurisdiction"),           // ISO 3166-1 alpha-2
@@ -43,10 +43,10 @@ When an investigation closes, retain the case:
 @ApplicationScoped
 public class InvestigationOutcomeObserver {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     void onInvestigationClosed(@Observes InvestigationClosedEvent event) {
-        var cbrCase = new FeatureVectorCbrCase(
+        var cbrCase = new CbrFeatureRecord(
             event.narrative(),                              // problem
             formatSolution(event),                          // solution summary
             event.disposition().name(),                     // SAR_FILED, CLEARED, ESCALATED
@@ -78,9 +78,9 @@ When a new alert triggers an investigation:
 @ApplicationScoped
 public class InvestigationAssistant {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    public List<FeatureVectorCbrCase> findSimilarInvestigations(Alert alert) {
+    public List<CbrFeatureRecord> findSimilarInvestigations(Alert alert) {
         var query = CbrQuery.of(
             alert.tenantId(),
             AML_DOMAIN,
@@ -91,7 +91,7 @@ public class InvestigationAssistant {
                 "jurisdiction", alert.jurisdiction()),
             10);
 
-        return cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        return cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
     }
 }
 ```

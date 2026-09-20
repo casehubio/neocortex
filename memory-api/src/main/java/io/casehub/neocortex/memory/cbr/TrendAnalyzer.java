@@ -48,7 +48,7 @@ public final class TrendAnalyzer {
     }
 
     public static Map<String, FeatureValue> enrichFeatures(Map<String, FeatureValue> features,
-                                                           CbrFeatureSchema schema) {
+                                                           CbrRecordSchema schema) {
         Map<String, FeatureValue> additions = null;
         for (FeatureField field : schema.fields()) {
             if (field instanceof FeatureField.TimeSeries ts && ts.trendSpec() != null) {
@@ -67,7 +67,7 @@ public final class TrendAnalyzer {
         return additions != null ? Map.copyOf(additions) : features;
     }
 
-    public static CbrFeatureSchema expandSchema(CbrFeatureSchema schema) {
+    public static CbrRecordSchema expandSchema(CbrRecordSchema schema) {
         List<FeatureField> additional = new ArrayList<>();
         Set<String> existingNames = new java.util.HashSet<>();
         for (FeatureField f : schema.fields()) {
@@ -109,7 +109,7 @@ public final class TrendAnalyzer {
 
         List<FeatureField> allFields = new ArrayList<>(schema.fields());
         allFields.addAll(additional);
-        return new CbrFeatureSchema(schema.caseType(), allFields, schema.learningRate());
+        return new CbrRecordSchema(schema.caseType(), allFields, schema.learningRate());
     }
 
     // -- Algorithm implementations --

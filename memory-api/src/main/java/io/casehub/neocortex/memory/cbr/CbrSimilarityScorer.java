@@ -42,14 +42,14 @@ public final class CbrSimilarityScorer {
     public static double score(Map<String, FeatureValue> queryFeatures,
                                Map<String, FeatureValue> caseFeatures,
                                Map<String, Double> weights,
-                               CbrFeatureSchema schema) {
+                               CbrRecordSchema schema) {
         return score(queryFeatures, caseFeatures, weights, schema, Map.of());
     }
 
     public static double score(Map<String, FeatureValue> queryFeatures,
                                Map<String, FeatureValue> caseFeatures,
                                Map<String, Double> weights,
-                               CbrFeatureSchema schema,
+                               CbrRecordSchema schema,
                                Map<String, LocalSimilarityFunction> overrides) {
         return scoreDetailed(queryFeatures, caseFeatures, weights, schema, overrides).score();
     }
@@ -57,7 +57,7 @@ public final class CbrSimilarityScorer {
     public static SimilarityBreakdown scoreDetailed(Map<String, FeatureValue> queryFeatures,
                                                     Map<String, FeatureValue> caseFeatures,
                                                     Map<String, Double> weights,
-                                                    CbrFeatureSchema schema,
+                                                    CbrRecordSchema schema,
                                                     Map<String, LocalSimilarityFunction> overrides) {
         Objects.requireNonNull(overrides, "overrides");
         if (queryFeatures.isEmpty()) {return new SimilarityBreakdown(1.0, Map.of());}
@@ -95,7 +95,7 @@ public final class CbrSimilarityScorer {
     public static SimilarityBreakdown scoreDetailed(Map<String, FeatureValue> queryFeatures,
                                                     Map<String, FeatureValue> caseFeatures,
                                                     Map<String, Double> weights,
-                                                    CbrFeatureSchema schema,
+                                                    CbrRecordSchema schema,
                                                     Map<String, LocalSimilarityFunction> overrides,
                                                     double dtwAbandonCostThreshold) {
         Objects.requireNonNull(overrides, "overrides");
@@ -333,7 +333,7 @@ public final class CbrSimilarityScorer {
     }
 
 
-    private static FeatureField findField(CbrFeatureSchema schema, String name) {
+    private static FeatureField findField(CbrRecordSchema schema, String name) {
         for (FeatureField f : schema.fields()) {
             if (f.name().equals(name)) return f;
         }

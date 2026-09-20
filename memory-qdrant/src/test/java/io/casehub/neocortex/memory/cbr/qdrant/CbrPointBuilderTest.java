@@ -2,8 +2,8 @@ package io.casehub.neocortex.memory.cbr.qdrant;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import dev.langchain4j.data.embedding.Embedding;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.ResolutionGuide;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
 import io.qdrant.client.grpc.JsonWithInt.Value;
 import io.qdrant.client.grpc.Points.PointStruct;
 import org.junit.jupiter.api.Test;
@@ -35,8 +35,8 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_textualCase_payloadFields() {
-        var cbrCase = new ResolutionGuide("problem text", "solution text", "WIN", Confidence.unknown(0.9), null, null);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "game",
+        var cbrRecord = new CbrGuidanceRecord("problem text", "solution text", "WIN", Confidence.unknown(0.9), null, null);
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "game",
             "entity-1", "cbr", "tenant-1", "case-1", null, "dense");
 
         Map<String, Value> payload = point.getPayloadMap();
@@ -56,9 +56,9 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_featureVectorCase_withFeatures() {
-        var cbrCase = new FeatureVectorCbrCase("Zerg rush", "early attack", null, null,
-            Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "game",
+        var cbrRecord = new CbrFeatureRecord("Zerg rush", "early attack", null, null,
+                                           Map.of("opponent_race", string("Zerg"), "army_size_ratio", number(0.7)), null, null);
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "game",
             "entity-1", "cbr", "tenant-1", "case-2", null, "dense");
 
         Map<String, Value> payload = point.getPayloadMap();
@@ -71,10 +71,10 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_withEmbedding_hasVectors() {
-        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
+        var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
         float[] vector = {0.1f, 0.2f, 0.3f, 0.4f};
         Embedding embedding = Embedding.from(vector);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
             "e1", "d1", "t1", "c1", embedding, "dense");
 
         assertThat(point.hasVectors()).isTrue();
@@ -83,8 +83,8 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_nullOptionalFields() {
-        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
             "e1", "d1", "t1", "c1", null, "dense");
 
         Map<String, Value> payload = point.getPayloadMap();
@@ -94,13 +94,13 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_stores_cbr_type_discriminator() {
-        var textual = new ResolutionGuide("problem", "solution", null, null, null, null);
+        var textual = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
         PointStruct point = CbrPointBuilder.buildPoint(textual, "game",
             "e1", "cbr", "t1", "c1", null, "dense");
         assertThat(point.getPayloadMap().get("_cbr_type").getStringValue()).isEqualTo("textual");
         assertThat(point.getPayloadMap()).doesNotContainKey("_case_class");
 
-        var fv = new FeatureVectorCbrCase("p", "s", null, null, Map.of("race", string("Zerg")), null, null);
+        var fv = new CbrFeatureRecord("p", "s", null, null, Map.of("race", string("Zerg")), null, null);
         PointStruct fvPoint = CbrPointBuilder.buildPoint(fv, "game",
             "e1", "cbr", "t1", "c2", null, "dense");
         assertThat(fvPoint.getPayloadMap().get("_cbr_type").getStringValue()).isEqualTo("feature-vector");
@@ -108,7 +108,7 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_featureVectorCase_emptyFeatures_still_writes_features_json() {
-        var fv = new FeatureVectorCbrCase("p", "s", null, null, Map.of(), null, null);
+        var fv = new CbrFeatureRecord("p", "s", null, null, Map.of(), null, null);
         PointStruct point = CbrPointBuilder.buildPoint(fv, "game",
             "e1", "cbr", "t1", "c1", null, "dense");
         assertThat(point.getPayloadMap().get("_features_json").getStringValue()).isEqualTo("{}");
@@ -117,8 +117,8 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_includes_stored_at_timestamp() {
-        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
             "e1", "d1", "t1", "c1", null, "dense");
 
         Map<String, Value> payload = point.getPayloadMap();
@@ -136,9 +136,9 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_withSparseEmbedding_includesSparseVector() {
-        var                 cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
+        var                 cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
         Map<Integer, Float> sparse  = Map.of(5, 0.8f, 12, 0.3f);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
                                                        "e1", "d1", "t1", "c1", null, "dense",
                                                        sparse, "sparse", null, null, null, "");
 
@@ -151,8 +151,8 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_withBm25Text_includesBm25Vector() {
-        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
                                                        "e1", "d1", "t1", "c1", null, "dense",
                                                        null, null, "expanded bm25 text", "bm25", "Qdrant/bm25", "");
 
@@ -165,11 +165,11 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_withDenseAndSparseAndBm25_allVectorsPresent() {
-        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
+        var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
         float[] vector = {0.1f, 0.2f, 0.3f, 0.4f};
         Embedding embedding = Embedding.from(vector);
         Map<Integer, Float> sparse = Map.of(5, 0.8f, 12, 0.3f);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
                                                        "e1", "d1", "t1", "c1", embedding, "dense",
                                                        sparse, "sparse", "expanded text", "bm25", "Qdrant/bm25", "");
 
@@ -185,8 +185,8 @@ class CbrPointBuilderTest {
 
     @Test
     void buildPoint_withoutSparseOrBm25_noExtraVectors() {
-        var cbrCase = new ResolutionGuide("problem", "solution", null, null, null, null);
-        PointStruct point = CbrPointBuilder.buildPoint(cbrCase, "type",
+        var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
+        PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
                                                        "e1", "d1", "t1", "c1", null, "dense",
                                                        null, null, null, null, null, "");
 

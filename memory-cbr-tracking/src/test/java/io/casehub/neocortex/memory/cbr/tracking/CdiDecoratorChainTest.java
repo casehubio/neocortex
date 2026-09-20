@@ -5,16 +5,16 @@ import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.inmem.InMemoryInferenceModel;
 import io.casehub.neocortex.inference.tasks.CrossEncoderReranker;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalRecorded;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTrace;
 import io.casehub.neocortex.memory.cbr.CbrRetrievalTracker;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.platform.api.path.Path;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,7 +38,7 @@ class CdiDecoratorChainTest {
     private static final MemoryDomain CBR = new MemoryDomain("cbr");
 
     @Inject
-    CbrCaseMemoryStore store;
+    CbrRecordStore store;
 
     @Inject
     EventCollector eventCollector;
@@ -52,14 +52,14 @@ class CdiDecoratorChainTest {
 
     @Test
     void trackingCapturesPostWeightedPostRerankedScores() {
-        store.registerSchema(new CbrFeatureSchema("default",
-                List.of(new FeatureField.Numeric("severity", 0.0, 10.0, null)),
-                null));
+        store.registerSchema(new CbrRecordSchema("default",
+                                                 List.of(new FeatureField.Numeric("severity", 0.0, 10.0, null)),
+                                                 null));
 
-        var c1 = new FeatureVectorCbrCase("problem-alpha", "summary1", null, Confidence.unknown(0.5),
-                Map.of("severity", FeatureValue.number(3.0)), null, null);
-        var c2 = new FeatureVectorCbrCase("problem-beta", "summary2", null, Confidence.unknown(1.0),
-                Map.of("severity", FeatureValue.number(7.0)), null, null);
+        var c1 = new CbrFeatureRecord("problem-alpha", "summary1", null, Confidence.unknown(0.5),
+                                      Map.of("severity", FeatureValue.number(3.0)), null, null);
+        var c2 = new CbrFeatureRecord("problem-beta", "summary2", null, Confidence.unknown(1.0),
+                                      Map.of("severity", FeatureValue.number(7.0)), null, null);
         store.store(c1, "default", "e1", CBR, "t1", "case1", Path.root());
         store.store(c2, "default", "e1", CBR, "t1", "case2", Path.root());
 
@@ -67,8 +67,8 @@ class CdiDecoratorChainTest {
                 Map.of("severity", FeatureValue.number(5.0)), 10)
                 .withProblem("problem-alpha");
 
-        List<ScoredCbrCase<FeatureVectorCbrCase>> results =
-                store.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        List<CbrMatch<CbrFeatureRecord>> results =
+                store.retrieveSimilar(query, CbrFeatureRecord.class);
 
         assertThat(results).isNotEmpty();
 
@@ -85,7 +85,7 @@ class CdiDecoratorChainTest {
                     .isCloseTo(results.get(i).score(), offset(0.001));
         }
 
-        assertThat(results.stream().anyMatch(ScoredCbrCase::reranked))
+        assertThat(results.stream().anyMatch(CbrMatch::reranked))
                 .as("reranking decorator should have marked results as reranked")
                 .isTrue();
     }

@@ -5,14 +5,14 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCase;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
-import io.casehub.neocortex.memory.cbr.ResolutionGuide;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.QdrantGrpcClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +42,7 @@ class QdrantCbrDenseSearchTest {
     private static final AtomicInteger TEST_COUNTER = new AtomicInteger();
     private static final int DIM = 4;
 
-    private CbrCaseMemoryStore store;
+    private       CbrRecordStore              store;
     private final DeterministicEmbeddingModel embeddingModel = new DeterministicEmbeddingModel();
 
     @BeforeEach
@@ -65,39 +65,39 @@ class QdrantCbrDenseSearchTest {
         };
 
         CbrCollectionManager collectionManager = new CbrCollectionManager(client, config);
-        store = new QdrantCbrCaseMemoryStore(collectionManager, embeddingModel, config, null, null);
+        store = new QdrantCbrRecordStore(collectionManager, embeddingModel, config, null, null);
 
-        store.registerSchema(CbrFeatureSchema.of("starcraft-game",
-            FeatureField.categorical("opponent_race"),
-            FeatureField.numeric("army_size_ratio", 0.0, 3.0)));
+        store.registerSchema(CbrRecordSchema.of("starcraft-game",
+                                                FeatureField.categorical("opponent_race"),
+                                                FeatureField.numeric("army_size_ratio", 0.0, 3.0)));
     }
 
     @Test
     void denseSearch_ranksResultsBySimilarity() {
         // "alpha" embeds to [1,0,0,0], "alpha-ish" to [0.9,0.436,0,0], "beta" to [0,1,0,0]
-        store.store(new ResolutionGuide("alpha", "solution-a", null, null, null, null),
+        store.store(new CbrGuidanceRecord("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new ResolutionGuide("beta", "solution-b", null, null, null, null),
+        store.store(new CbrGuidanceRecord("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-beta", io.casehub.platform.api.path.Path.root());
-        store.store(new ResolutionGuide("alpha-ish", "solution-c", null, null, null, null),
+        store.store(new CbrGuidanceRecord("alpha-ish", "solution-c", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-alpha-ish", io.casehub.platform.api.path.Path.root());
 
         var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10)
             .withProblem("alpha");
 
-        var results = store.retrieveSimilar(query, CbrCase.class);
+        var results = store.retrieveSimilar(query, CbrRecord.class);
 
         assertThat(results).hasSizeGreaterThanOrEqualTo(2);
         // "alpha" should rank first (exact match), then "alpha-ish" (high similarity)
-        assertThat(results.get(0).cbrCase().problem()).isEqualTo("alpha");
+        assertThat(results.get(0).cbrRecord().problem()).isEqualTo("alpha");
         assertThat(results.get(0).score()).isGreaterThan(results.get(1).score());
     }
 
     @Test
     void denseSearch_minSimilarity_filtersLowScoreResults() {
-        store.store(new ResolutionGuide("alpha", "solution-a", null, null, null, null),
+        store.store(new CbrGuidanceRecord("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new ResolutionGuide("beta", "solution-b", null, null, null, null),
+        store.store(new CbrGuidanceRecord("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-filter-beta", io.casehub.platform.api.path.Path.root());
 
         // SEMANTIC_ONLY + high threshold — "beta" should be excluded (cos≈0.0)
@@ -106,26 +106,26 @@ class QdrantCbrDenseSearchTest {
             .withRetrievalMode(RetrievalMode.SEMANTIC_ONLY)
             .withMinSimilarity(0.5);
 
-        var results = store.retrieveSimilar(query, CbrCase.class);
+        var results = store.retrieveSimilar(query, CbrRecord.class);
 
         // "alpha" should pass (cos=1.0), "beta" should be filtered (cos≈0.0)
         assertThat(results).allSatisfy(r -> assertThat(r.score()).isGreaterThanOrEqualTo(0.5));
-        assertThat(results.stream().map(r -> r.cbrCase().problem()))
+        assertThat(results.stream().map(r -> r.cbrRecord().problem()))
             .contains("alpha")
             .doesNotContain("beta");
     }
 
     @Test
     void denseSearch_fallsBackToFilterOnly_whenProblemNull() {
-        store.store(new ResolutionGuide("alpha", "solution-a", null, null, null, null),
+        store.store(new CbrGuidanceRecord("alpha", "solution-a", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-alpha", io.casehub.platform.api.path.Path.root());
-        store.store(new ResolutionGuide("beta", "solution-b", null, null, null, null),
+        store.store(new CbrGuidanceRecord("beta", "solution-b", null, null, null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-fallback-beta", io.casehub.platform.api.path.Path.root());
 
         // problem=null → filter-only mode, all results score 1.0
         var query = CbrQuery.of(TENANT, CBR, io.casehub.platform.api.path.Path.root(), "starcraft-game", Map.of(), 10);
 
-        var results = store.retrieveSimilar(query, CbrCase.class);
+        var results = store.retrieveSimilar(query, CbrRecord.class);
 
         assertThat(results).hasSize(2);
         assertThat(results).allSatisfy(r -> assertThat(r.score()).isEqualTo(1.0f));
@@ -133,11 +133,11 @@ class QdrantCbrDenseSearchTest {
 
     @Test
     void denseSearch_withPayloadFilters_combinesVectorAndFeatureScoring() {
-        store.store(new FeatureVectorCbrCase("alpha", "sol-a", null, null,
-                Map.of("opponent_race", string("Zerg")), null, null),
+        store.store(new CbrFeatureRecord("alpha", "sol-a", null, null,
+                                         Map.of("opponent_race", string("Zerg")), null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-combo-zerg", io.casehub.platform.api.path.Path.root());
-        store.store(new FeatureVectorCbrCase("alpha", "sol-b", null, null,
-                Map.of("opponent_race", string("Protoss")), null, null),
+        store.store(new CbrFeatureRecord("alpha", "sol-b", null, null,
+                                         Map.of("opponent_race", string("Protoss")), null, null),
             "starcraft-game", ENTITY, CBR, TENANT, "case-combo-protoss", io.casehub.platform.api.path.Path.root());
 
         // Dense search for "alpha" + graded scoring for Zerg
@@ -147,10 +147,10 @@ class QdrantCbrDenseSearchTest {
                 Map.of("opponent_race", string("Zerg")), 10)
             .withProblem("alpha");
 
-        var results = store.retrieveSimilar(query, FeatureVectorCbrCase.class);
+        var results = store.retrieveSimilar(query, CbrFeatureRecord.class);
 
         assertThat(results).hasSize(2);
-        assertThat(results.get(0).cbrCase().features().get("opponent_race")).isEqualTo(string("Zerg"));
+        assertThat(results.get(0).cbrRecord().features().get("opponent_race")).isEqualTo(string("Zerg"));
         assertThat(results.get(0).score()).isGreaterThanOrEqualTo(results.get(1).score());
     }
 

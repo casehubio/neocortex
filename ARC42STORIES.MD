@@ -315,26 +315,26 @@ classDiagram
     CbrCaseMemoryStore <|.. QdrantCbrCaseMemoryStore
 ```
 
-**Backend selection:** CDI `@Alternative` + `@Priority` ladder. Only one backend is active per deployment — the highest-priority alternative on the classpath wins. `NoOpCbrCaseMemoryStore` is `@DefaultBean` (fallback when no backend module is on the classpath).
+**Backend selection:** CDI `@Alternative` + `@Priority` ladder. Only one backend is active per deployment — the highest-priority alternative on the classpath wins. `NoOpCbrRecordStore` is `@DefaultBean` (fallback when no backend module is on the classpath).
 
 **Decorator chain** wraps the active backend via CDI `@Decorator` + `@Priority` (highest fires outermost):
 
 | Priority | Decorator | Module | Gate |
 |----------|-----------|--------|------|
-| 90 | `TrendEnrichmentCbrCaseMemoryStore` | memory | always |
-| 85 | `ScopeDecayCbrCaseMemoryStore` | memory | `ScopeDecay` on query |
-| 80 | `TemporalDecayCbrCaseMemoryStore` | memory | `TemporalDecay` on query |
-| 75 | `RerankingCbrCaseMemoryStore` | memory-cbr-crossencoder | `casehub.cbr.reranking.enabled` |
-| 65 | `OutcomeWeightingCbrCaseMemoryStore` | memory | `casehub.cbr.outcome-weighting.enabled` |
-| 60 | `TrustWeightedCbrCaseMemoryStore` | memory | `casehub.cbr.trust-weighting.enabled` |
-| 50 | `TrackingCbrCaseMemoryStore` | memory-cbr-tracking | `casehub.cbr.tracking.enabled` |
-| 45 | `ErasureNotificationCbrCaseMemoryStore` | memory | always |
+| 90 | `TrendEnrichmentCbrRecordStore` | memory | always |
+| 85 | `ScopeDecayCbrRecordStore` | memory | `ScopeDecay` on query |
+| 80 | `TemporalDecayCbrRecordStore` | memory | `TemporalDecay` on query |
+| 75 | `RerankingCbrRecordStore` | memory-cbr-crossencoder | `casehub.cbr.reranking.enabled` |
+| 65 | `OutcomeWeightingCbrRecordStore` | memory | `casehub.cbr.outcome-weighting.enabled` |
+| 60 | `TrustWeightedCbrRecordStore` | memory | `casehub.cbr.trust-weighting.enabled` |
+| 50 | `TrackingCbrRecordStore` | memory-cbr-tracking | `casehub.cbr.tracking.enabled` |
+| 45 | `ErasureNotificationCbrRecordStore` | memory | always |
 
 Decorators are classpath + config activated — adding the module to the classpath enables the decorator; the config property gates whether it fires at runtime.
 
 #### FeatureField Schema Model
 
-`CbrFeatureSchema` defines the feature space for a case type. Each field is a `FeatureField` — a sealed interface with nine variants divided into flat and structured types.
+`CbrRecordSchema` defines the feature space for a case type. Each field is a `FeatureField` — a sealed interface with nine variants divided into flat and structured types.
 
 **Flat fields** carry a single value:
 
@@ -402,7 +402,7 @@ The scorer returns a `SimilarityBreakdown` — `double score` (weighted average)
 
 #### Qdrant Payload Mapping and Indexing
 
-`QdrantCbrCaseMemoryStore` maps CBR concepts to Qdrant primitives:
+`QdrantCbrRecordStore` maps CBR concepts to Qdrant primitives:
 
 **Payload storage** (`CbrPointBuilder`):
 - Flat fields → native Qdrant payload values (string, double, list)
@@ -437,14 +437,14 @@ Hybrid fusion uses CC (Convex Combination) with weight renormalisation among act
 
 #### ScoredCbrCase
 
-`ScoredCbrCase<C>` (record, generic over `CbrCase` subtype) carries the retrieval result through the decorator chain:
+`ScoredCbrCase<C>` (record, generic over `CbrRecord` subtype) carries the retrieval result through the decorator chain:
 
 - **`score`** — similarity score in [-1, 1], updated by each decorator
-- **`reranked`** — boolean guard set by `RerankingCbrCaseMemoryStore` after cross-encoder rescoring; prevents double-reranking if multiple decorators are stacked
+- **`reranked`** — boolean guard set by `RerankingCbrRecordStore` after cross-encoder rescoring; prevents double-reranking if multiple decorators are stacked
 - **`featureSimilarities`** — per-feature weighted contributions from `CbrSimilarityScorer`
 - **`storedAt`** — timestamp for temporal-decay decorators
 - **`scope`** — hierarchical scope path for scope-decay decorators
-- **`trustTrajectory`** — trust delta attached by `TrustWeightedCbrCaseMemoryStore`
+- **`trustTrajectory`** — trust delta attached by `TrustWeightedCbrRecordStore`
 
 ---
 
@@ -904,7 +904,7 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 
 **Journey:** J5 — CBR Platform Capability (Phases 2–7)
 
-**What:** Case-Based Reasoning memory with outcome learning (Revise step), confidence scoring, retrieval traceability, plan adaptation, and hierarchical scoping. Decorator-driven architecture: each concern (@Priority-ordered) composes independently via CDI `@Decorator` on `CbrCaseMemoryStore`.
+**What:** Case-Based Reasoning memory with outcome learning (Revise step), confidence scoring, retrieval traceability, plan adaptation, and hierarchical scoping. Decorator-driven architecture: each concern (@Priority-ordered) composes independently via CDI `@Decorator` on `CbrRecordStore`.
 
 **Decorator chain (by @Priority, highest = outermost):**
 
@@ -918,9 +918,9 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 | 50 | CBR retrieval tracking | Records retrieval events, fires CDI events |
 | 45 | ErasureNotificationCbrCaseMemoryStore | Fires CbrCasesErased CDI events after erasure |
 
-**Outcome learning (CBR Revise):** `CbrOutcome` records success/failure against retrieved cases. `recordOutcome()` on `CbrCaseMemoryStore` updates per-case confidence via exponential moving average (EMA, configurable learning rate). `OutcomeWeightingCbrCaseMemoryStore` uses confidence at retrieval time: `score * (1 - α + α * confidence)`.
+**Outcome learning (CBR Revise):** `CbrOutcome` records success/failure against retrieved cases. `recordOutcome()` on `CbrRecordStore` updates per-case confidence via exponential moving average (EMA, configurable learning rate). `OutcomeWeightingCbrRecordStore` uses confidence at retrieval time: `score * (1 - α + α * confidence)`.
 
-**Retrieval traceability:** `CbrRetrievalTracker` SPI records every `retrieveSimilar()` as a `CbrRetrievalTrace` (traceId, query, scored cases, timestamp). `TrackingPlanAdapter` records plan adaptation events. `TrackingPlanEnsembleAnalyzer` records ensemble analysis events. SQLite-backed implementation with WAL + Flyway. Retention scheduler purges records older than configurable threshold.
+**Retrieval traceability:** `CbrRetrievalTracker` SPI records every `retrieveSimilar()` as a `CbrRetrievalTrace` (traceId, query, scored cases, timestamp). `TrackingCbrPlanAdapter` records plan adaptation events. `TrackingCbrPlanEnsembleAnalyzer` records ensemble analysis events. SQLite-backed implementation with WAL + Flyway. Retention scheduler purges records older than configurable threshold.
 
 **Why decorator chain:** Each concern is independently deployable (classpath + config activation), testable in isolation, and composable without the core store knowing about any of them. The three-tier CDI priority ladder (`@Alternative` for backends, `@Decorator` for cross-cutting, `@DefaultBean` for fallbacks) avoids bean resolution ambiguity.
 

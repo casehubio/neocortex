@@ -6,7 +6,7 @@
 
 ## Problem
 
-`ReactiveCaseMemoryStore`, `ReactiveCbrCaseMemoryStore`, and `ReactiveCorpusStore` are
+`ReactiveCaseMemoryStore`, `ReactiveCbrRecordStore`, and `ReactiveCorpusStore` are
 only implemented by `BlockingToReactive*Bridge` wrappers. No backend implements the
 reactive SPI natively — the bridge wraps blocking calls in
 `Uni.createFrom().item(() -> delegate.method()).runSubscriptionOn(workerPool)`.
@@ -65,15 +65,15 @@ Applied to neocortex:
     `@Alternative` resolution issues, per engine convention)
   - Every method: `Uni.createFrom().item(delegate.method())` — no `runSubscriptionOn()`
 
-**CbrCaseMemoryStore (memory-cbr-inmem):**
+**CbrRecordStore (memory-cbr-inmem):**
 
-- `InMemoryCbrCaseMemoryStore` stays as-is — blocking canonical, `@Alternative @Priority(2)`
-- New `ReactiveInMemoryCbrCaseMemoryStore implements ReactiveCbrCaseMemoryStore`
+- `InMemoryCbrRecordStore` stays as-is — blocking canonical, `@Alternative @Priority(2)`
+- New `ReactiveInMemoryCbrRecordStore implements ReactiveCbrRecordStore`
   - `@Alternative @Priority(2)` — displaces `BlockingToReactiveCbrBridge @DefaultBean`
-  - Injects `CbrCaseMemoryStore` by SPI interface
+  - Injects `CbrRecordStore` by SPI interface
   - Same wrapping pattern, no worker pool
 
-**Note:** Issue #162 (`InMemoryCbrCaseMemoryStore.retrieveSimilar()` returns empty in
+**Note:** Issue #162 (`InMemoryCbrRecordStore.retrieveSimilar()` returns empty in
 `@QuarkusTest`) is a pre-existing CDI wiring/initialization issue in a consumer project.
 The reactive wrapper delegates to the blocking store via SPI injection — if the blocking
 store has a bug, fixing the blocking store fixes both paths. Resolution is independent of
@@ -155,14 +155,14 @@ private static <T> Uni<T> toUni(ListenableFuture<T> future) {
 ```
 
 `Futures` and `MoreExecutors` are already on the classpath (transitive via `io.qdrant:client`).
-This helper is a private method in `ReactiveQdrantCbrCaseMemoryStore`.
+This helper is a private method in `ReactiveQdrantCbrRecordStore`.
 
-- New `ReactiveQdrantCbrCaseMemoryStore implements ReactiveCbrCaseMemoryStore`
+- New `ReactiveQdrantCbrRecordStore implements ReactiveCbrRecordStore`
   - `@ApplicationScoped` — displaces `BlockingToReactiveCbrBridge @DefaultBean`
   - All logic moves here — multi-pass search, hybrid fusion, batch operations
   - Canonical implementation
-- `QdrantCbrCaseMemoryStore` simplified to thin delegate:
-  - Injects `ReactiveQdrantCbrCaseMemoryStore`
+- `QdrantCbrRecordStore` simplified to thin delegate:
+  - Injects `ReactiveQdrantCbrRecordStore`
   - Reactive methods: `reactiveStore.method().await().indefinitely()`
   - Synchronous methods (`capabilities()`, `requireCapability()`): delegate directly
 
@@ -216,7 +216,7 @@ for each other.
 
 `CbrCollectionManager` (269 lines) uses blocking `.get()` on `ListenableFuture` throughout.
 When the reactive store becomes canonical, all `CbrCollectionManager` usage moves from
-`QdrantCbrCaseMemoryStore` (now a thin delegate) to `ReactiveQdrantCbrCaseMemoryStore`.
+`QdrantCbrRecordStore` (now a thin delegate) to `ReactiveQdrantCbrRecordStore`.
 The manager gets async method variants using the `toUni()` helper:
 
 - `ensureCollectionAsync(caseType, vectorDimension)` → `Uni<Void>` — chains
@@ -227,7 +227,7 @@ The manager gets async method variants using the `toUni()` helper:
 - `deleteByFilterAsync(collection, filter)` → `Uni<Integer>` — chains scroll + delete
   via `toUni()`.
 
-Original blocking methods remain until `QdrantCbrCaseMemoryStore` is verified as a thin
+Original blocking methods remain until `QdrantCbrRecordStore` is verified as a thin
 delegate (then dead code, removable). `createBasePayloadIndexes` becomes a private async
 helper chaining `toUni()` calls.
 
@@ -252,7 +252,7 @@ The non-canonical direction does NOT carry `@Timed` — it would double-count:
   for JPA and SQLite
 - `BlockingToReactiveCbrBridge` — remains as `@DefaultBean` fallback for JPA and SQLite
 - All reactive decorators (temporal decay, scope decay, trend enrichment, outcome
-  weighting, tracking, reranking) — untouched, they decorate `ReactiveCbrCaseMemoryStore`
+  weighting, tracking, reranking) — untouched, they decorate `ReactiveCbrRecordStore`
   regardless of which implementation sits underneath
 - `BridgedCbrStore` marker interface and double-recording guards in tracking decorators —
   still needed for JPA/SQLite bridge path
@@ -265,10 +265,10 @@ Each reactive implementation matches the priority of its blocking counterpart:
 | Reactive bean | Priority | Displaces |
 |---------------|----------|-----------|
 | `ReactiveInMemoryMemoryStore` | `@Alternative @Priority(10)` | `BlockingToReactiveBridge @DefaultBean` |
-| `ReactiveInMemoryCbrCaseMemoryStore` | `@Alternative @Priority(2)` | `BlockingToReactiveCbrBridge @DefaultBean` |
+| `ReactiveInMemoryCbrRecordStore` | `@Alternative @Priority(2)` | `BlockingToReactiveCbrBridge @DefaultBean` |
 | `ReactiveMem0CaseMemoryStore` | `@Alternative @Priority(1)` | `BlockingToReactiveBridge @DefaultBean` |
 | `ReactiveGraphitiCaseMemoryStore` | `@Alternative @Priority(2)` | `BlockingToReactiveBridge @DefaultBean` (for both `ReactiveCaseMemoryStore` and `ReactiveGraphCaseMemoryStore`) |
-| `ReactiveQdrantCbrCaseMemoryStore` | `@ApplicationScoped` | `BlockingToReactiveCbrBridge @DefaultBean` |
+| `ReactiveQdrantCbrRecordStore` | `@ApplicationScoped` | `BlockingToReactiveCbrBridge @DefaultBean` |
 
 Classpath-based activation: test modules include `memory-cbr-inmem`, production includes
 `memory-qdrant`. The `@Alternative` with any `@Priority` beats a `@DefaultBean`.
@@ -277,11 +277,11 @@ Classpath-based activation: test modules include `memory-cbr-inmem`, production 
 
 **Contract tests:**
 
-- In-memory reactive: subclass `CbrCaseMemoryStoreContractTest` (142 tests), provide the
+- In-memory reactive: subclass `CbrRecordStoreContractTest` (142 tests), provide the
   reactive wrapper. Verifies behavioral parity through the reactive path.
 - Mem0/Graphiti reactive: existing tests retargeted to the reactive canonical
   implementation. Blocking delegate tests verify delegation only.
-- Qdrant reactive: existing `QdrantCbrCaseMemoryStoreTest` (Testcontainers) migrated to
+- Qdrant reactive: existing `QdrantCbrRecordStoreTest` (Testcontainers) migrated to
   test the reactive store directly.
 
 **Threading verification:**
@@ -309,10 +309,10 @@ Per-module `@QuarkusTest` verifying:
 ## Cross-Repo Impact
 
 Engine consumes neocortex memory SPIs via Maven SNAPSHOT. Once reactive backends are
-native, engine callers injecting `ReactiveCbrCaseMemoryStore` get true non-blocking I/O
+native, engine callers injecting `ReactiveCbrRecordStore` get true non-blocking I/O
 without code changes — the bridge disappears from the chain transparently.
 
-No API changes to `ReactiveCaseMemoryStore` or `ReactiveCbrCaseMemoryStore` interfaces.
+No API changes to `ReactiveCaseMemoryStore` or `ReactiveCbrRecordStore` interfaces.
 One new interface: `ReactiveGraphCaseMemoryStore extends ReactiveCaseMemoryStore` in
 `memory-api` (see §3). Existing consumers injecting `ReactiveCaseMemoryStore` are unaffected.
 Consumers needing reactive `graphQuery()` inject the new subtype.

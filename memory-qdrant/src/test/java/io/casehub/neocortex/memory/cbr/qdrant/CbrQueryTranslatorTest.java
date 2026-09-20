@@ -2,7 +2,7 @@ package io.casehub.neocortex.memory.cbr.qdrant;
 
 import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
@@ -23,10 +23,10 @@ class CbrQueryTranslatorTest {
 
     private static final MemoryDomain CBR = new MemoryDomain("cbr");
 
-    private final CbrFeatureSchema schema = CbrFeatureSchema.of("starcraft-game",
-        FeatureField.categorical("opponent_race"),
-        FeatureField.numeric("army_size_ratio", 0.0, 3.0),
-        FeatureField.text("notes"));
+    private final CbrRecordSchema schema = CbrRecordSchema.of("starcraft-game",
+                                                              FeatureField.categorical("opponent_race"),
+                                                              FeatureField.numeric("army_size_ratio", 0.0, 3.0),
+                                                              FeatureField.text("notes"));
 
     @Test
     void validateQueryFeatures_categoricalRequiresString() {

@@ -72,7 +72,7 @@ class CbrOutcomeConsumerCdiTest {
     @Alternative
     @Singleton
     @jakarta.annotation.Priority(100)
-    public static class CapturingCbrStore extends NoOpCbrCaseMemoryStore {
+    public static class CapturingCbrStore extends NoOpCbrRecordStore {
         final List<RecordedOutcome> recorded = new ArrayList<>();
 
         @Override

@@ -13,7 +13,7 @@ adapt it for the current situation.
 **Feature-Vector → Plan-Based CBR.** Structured features (domain-specific attributes)
 filter the candidate set. The plan trace captures the full execution chain:
 binding → capability → worker → outcome. This is the only CaseHub app that uses
-`ResolvedCase` — all others use `FeatureVectorCbrCase`.
+`CbrPlanRecord` — all others use `CbrFeatureRecord`.
 
 Plan-Based CBR goes beyond "find similar cases" to "find similar plans and show me
 how they were structured." The plan trace enables adaptation: "4 out of 5 similar
@@ -25,7 +25,7 @@ Feature schemas are domain-specific — each case type defines its own features.
 QuarkMind (StarCraft II) is the reference example:
 
 ```java
-CbrFeatureSchema SCHEMA = CbrFeatureSchema.of("starcraft-game",
+CbrRecordSchema SCHEMA = CbrRecordSchema.of("starcraft-game",
     FeatureField.categorical("opponent_race"),     // ZERG, PROTOSS, TERRAN
     FeatureField.categorical("detected_build"),    // ROACH_RUSH, ZEALOT_RUSH, etc.
     FeatureField.numeric("army_size_ratio", 0.0, 3.0),
@@ -38,7 +38,7 @@ classification, numeric fields for continuous state.
 
 ## PlanTrace
 
-`ResolutionStep` captures one step of plan execution:
+`CbrPlanStep` captures one step of plan execution:
 
 ```java
 public record PlanTrace(
@@ -54,14 +54,14 @@ A plan case contains the full execution chain as `List<PlanTrace>`.
 
 ## Retain — Storing Plan Outcomes
 
-At case close, the `CaseOutcomeObserver` builds a `ResolvedCase` from the plan
+At case close, the `CaseOutcomeObserver` builds a `CbrPlanRecord` from the plan
 execution trace:
 
 ```java
 @ApplicationScoped
 public class PlanOutcomeObserver {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
     void onCaseOutcome(@Observes CaseOutcomeEvent event) {
         List<PlanTrace> traces = event.planSteps().stream()
@@ -74,7 +74,7 @@ public class PlanOutcomeObserver {
                 step.parameters()))
             .toList();
 
-        var cbrCase = new PlanCbrCase(
+        var cbrCase = new PlanCbrRecord(
             describeProblem(event),                         // NL problem description
             describeSolution(event),                        // NL solution summary
             event.outcomeLabel(),                           // WIN, LOSS, TIMEOUT, etc.
@@ -102,12 +102,12 @@ At plan creation, query for similar past plans:
 @ApplicationScoped
 public class PlanAdvisor {
 
-    @Inject CbrCaseMemoryStore cbrStore;
+    @Inject CbrRecordStore cbrStore;
 
-    public List<PlanCbrCase> findSimilarPlans(String caseType, Map<String, Object> features,
+    public List<PlanCbrRecord> findSimilarPlans(String caseType, Map<String, Object> features,
                                                String tenantId) {
         var query = CbrQuery.of(tenantId, PLAN_DOMAIN, caseType, features, 5);
-        return cbrStore.retrieveSimilar(query, PlanCbrCase.class);
+        return cbrStore.retrieveSimilar(query, PlanCbrRecord.class);
     }
 }
 ```
@@ -117,7 +117,7 @@ public class PlanAdvisor {
 Retrieved plan traces enable CHEF-style adaptation:
 
 ```java
-List<PlanCbrCase> similar = planAdvisor.findSimilarPlans("starcraft-game",
+List<PlanCbrRecord> similar = planAdvisor.findSimilarPlans("starcraft-game",
     Map.of("opponent_race", "Zerg", "detected_build", "ROACH_RUSH"), tenantId);
 
 // Analyse retrieved plans

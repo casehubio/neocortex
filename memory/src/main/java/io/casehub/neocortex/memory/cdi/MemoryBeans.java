@@ -3,12 +3,10 @@ package io.casehub.neocortex.memory.cdi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.memory.cbr.CbrEventTypes;
 import io.casehub.neocortex.memory.cbr.CbrOutcomeData;
-import io.casehub.memory.runtime.CaseEnrichmentPipeline;
 import io.casehub.memory.runtime.MemoryEmitterCore;
-import io.casehub.neocortex.memory.CaseEnrichmentStep;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.cbr.AgentTrustProvider;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.ExplanationRenderer;
 import io.casehub.neocortex.memory.cbr.OutcomeWeightingFunction;
 import io.casehub.neocortex.memory.cbr.TrustWeightingFunction;
@@ -45,8 +43,6 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
-
-import java.util.Comparator;
 
 @ApplicationScoped
 public class MemoryBeans {
@@ -123,14 +119,14 @@ public class MemoryBeans {
 
     @Produces
     @ApplicationScoped
-    public CbrRetentionPurger cbrRetentionPurger(CbrCaseMemoryStore store) {
+    public CbrRetentionPurger cbrRetentionPurger(CbrRecordStore store) {
         return new CbrRetentionPurger(store);
     }
 
     @Produces
     @ApplicationScoped
-    public TrustRetentionPurger trustRetentionPurger(CbrCaseMemoryStore store,
-                                                      Instance<AgentTrustProvider> trustProviderInstance) {
+    public TrustRetentionPurger trustRetentionPurger(CbrRecordStore store,
+                                                     Instance<AgentTrustProvider> trustProviderInstance) {
         AgentTrustProvider trustProvider = trustProviderInstance.isResolvable()
                 ? trustProviderInstance.get() : null;
         return new TrustRetentionPurger(store, trustProvider);
@@ -138,7 +134,7 @@ public class MemoryBeans {
 
     @Produces
     @ApplicationScoped
-    public CbrOutcomeProcessor cbrOutcomeProcessor(CbrCaseMemoryStore store) {
+    public CbrOutcomeProcessor cbrOutcomeProcessor(CbrRecordStore store) {
         return new CbrOutcomeProcessor(store);
     }
 

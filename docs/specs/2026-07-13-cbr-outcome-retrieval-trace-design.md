@@ -33,7 +33,7 @@ traceability is a compliance requirement.
 - All 6 implementations, 9 contract tests
 
 **Prerequisite API change:**
-- Add `String caseId` to `ScoredCbrCase` — the record currently has no case
+- Add `String caseId` to `CbrMatch` — the record currently has no case
   identifier. Without it, `TracedCase.caseId` can't be populated, and callers
   receiving retrieval results have no way to reference matched cases for
   outcome correlation, audit trails, or display. All store implementations
@@ -91,7 +91,7 @@ query the tracker.
 
 ```java
 public interface CbrRetrievalTracker {
-    String record(CbrQuery query, List<ScoredCbrCase<?>> results);
+    String record(CbrQuery query, List<CbrMatch<?>> results);
     List<CbrRetrievalTrace> findTraces(String caseType, String tenantId,
                                         MemoryDomain domain,
                                         Instant since, Instant until);
@@ -103,13 +103,13 @@ Three methods: record, query, purge. `findTraces` filters by `domain` because
 the same `caseType` can exist in different memory domains — a compliance audit
 for a specific domain (e.g., clinical) must not return traces from other domains.
 No feedback method — outcome feedback is already handled by
-`CbrCaseMemoryStore.recordOutcome` (the Revise step from #140).
+`CbrRecordStore.recordOutcome` (the Revise step from #140).
 
 #### ReactiveCbrRetrievalTracker (SPI)
 
 ```java
 public interface ReactiveCbrRetrievalTracker {
-    Uni<String> record(CbrQuery query, List<ScoredCbrCase<?>> results);
+    Uni<String> record(CbrQuery query, List<CbrMatch<?>> results);
     Uni<List<CbrRetrievalTrace>> findTraces(String caseType, String tenantId,
                                              MemoryDomain domain,
                                              Instant since, Instant until);
@@ -173,7 +173,7 @@ reactive parity.
 
 ### Outcome Weighting Decorator (memory module)
 
-`io.casehub.neocortex.memory.cbr.runtime.OutcomeWeightingCbrCaseMemoryStore`
+`io.casehub.neocortex.memory.cbr.runtime.OutcomeWeightingCbrRecordStore`
 
 ```
 @Decorator @Priority(65)
@@ -182,7 +182,7 @@ reactive parity.
 
 Behavior:
 1. Delegates `retrieveSimilar` to inner chain
-2. For each `ScoredCbrCase`: reads `cbrCase().confidence()`, applies
+2. For each `CbrMatch`: reads `cbrCase().confidence()`, applies
    `OutcomeWeightingFunction`
 3. Null confidence → treat as 1.0 (new cases, no penalty)
 4. Re-sorts by weighted score, preserves `featureSimilarities` and `reranked`
@@ -193,11 +193,11 @@ Default `OutcomeWeightingFunction` (`@DefaultBean`):
 - α from config: `casehub.cbr.outcome-weighting.influence` (default 0.3)
 - At α=0: pure similarity (backward compatible). At α=1: full multiplication.
 
-Reactive variant: `ReactiveOutcomeWeightingCbrCaseMemoryStore`
+Reactive variant: `ReactiveOutcomeWeightingCbrRecordStore`
 
 ### Tracking Decorator (memory-cbr-tracking module — new)
 
-`io.casehub.neocortex.memory.cbr.tracking.TrackingCbrCaseMemoryStore`
+`io.casehub.neocortex.memory.cbr.tracking.TrackingCbrRecordStore`
 
 ```
 @Decorator @Priority(50)
@@ -211,7 +211,7 @@ Behavior:
 4. Returns results unchanged (tracking is observation, not mutation)
 5. Tracker failure never breaks retrieval (warn + return results)
 
-Reactive variant: `ReactiveTrackingCbrCaseMemoryStore` — uses `Event.fireAsync()`
+Reactive variant: `ReactiveTrackingCbrRecordStore` — uses `Event.fireAsync()`
 for non-blocking event delivery on the Vert.x event loop.
 
 **Double-recording guard.** When `BlockingToReactiveCbrBridge` is active, a
@@ -221,7 +221,7 @@ including the blocking tracking decorator. Without a guard, both decorators
 record the same retrieval.
 
 The CBR guard uses bridge-detection rather than RAG's metadata-stamp approach
-(CBR's `ScoredCbrCase` record has no metadata map, unlike RAG's `RetrievedChunk`).
+(CBR's `CbrMatch` record has no metadata map, unlike RAG's `RetrievedChunk`).
 A marker interface `BridgedCbrStore` in memory-api indicates that the delegate
 is a blocking-to-reactive bridge. `BlockingToReactiveCbrBridge` in the memory
 module implements it. The reactive tracking decorator checks
@@ -232,7 +232,7 @@ memory-cbr-tracking to the memory module).
 
 When the bridge is active, the blocking decorator handles all tracking since
 every call (blocking or reactive via bridge) traverses the blocking chain.
-When a native reactive `ReactiveCbrCaseMemoryStore` implementation displaces
+When a native reactive `ReactiveCbrRecordStore` implementation displaces
 the bridge, each path has exactly one tracking decorator — no guard needed,
 no skipping.
 
@@ -258,7 +258,7 @@ uses `FeatureValue.of(Object)` to reconstruct from the raw value round-trip.
 `resultsJson` stores `List<TracedCase>` — all fields are primitives
 (`String`, `double`, `boolean`, `Map<String, Double>`, `Double`), no sealed
 hierarchy or generics involved. The `record()` method extracts `TracedCase`
-projections from `ScoredCbrCase<?>` before serializing, avoiding the generic
+projections from `CbrMatch<?>` before serializing, avoiding the generic
 type erasure problem entirely.
 
 Dependencies: sqlite-jdbc, hikaricp, flyway-core, quarkus-scheduler.
@@ -288,7 +288,7 @@ memory-api          ← new SPIs + value types (zero new deps)
                       CbrRetrievalTrace, CbrRetrievalRecorded,
                       OutcomeWeightingFunction, ExplanationRenderer,
                       BridgedCbrStore (marker interface)
-                      ScoredCbrCase — add String caseId field
+                      CbrMatch — add String caseId field
 memory              ← outcome weighting decorator + default function
                       + DefaultExplanationRenderer (no new deps)
 memory-cbr-tracking ← tracking decorator + SQLite tracker
@@ -319,13 +319,13 @@ memory-testing      ← InMemoryCbrRetrievalTracker + contract test base
 ### Unit Tests
 
 **Outcome weighting:**
-- `OutcomeWeightingCbrCaseMemoryStoreTest` — weighting math, null confidence,
+- `OutcomeWeightingCbrRecordStoreTest` — weighting math, null confidence,
   re-sorting, pass-through, custom function injection
 - `DefaultOutcomeWeightingFunctionTest` — formula correctness, edge cases
   (confidence 0/1, α 0/1), score range validity
 
 **Tracking:**
-- `TrackingCbrCaseMemoryStoreTest` — tracker called correctly, CDI event fired,
+- `TrackingCbrRecordStoreTest` — tracker called correctly, CDI event fired,
   tracker failure is non-fatal, results unchanged
 
 **Explanation:**
@@ -355,7 +355,7 @@ decorators being in the call chain. Also tests the native-reactive path
 
 ### Outcome Weighting Integration
 
-Tested via `OutcomeWeightingCbrCaseMemoryStoreTest` (decorator unit test, not
+Tested via `OutcomeWeightingCbrRecordStoreTest` (decorator unit test, not
 contract test — the contract test exercises the base store, not the decorator
 chain). Tests use a mock delegate and verify weighting behavior in isolation:
 - `successfulCaseRanksHigher` — equal similarity, different confidence → order

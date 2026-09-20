@@ -69,7 +69,7 @@ public class NoOpQueryExpander implements QueryExpander {
 - `@DefaultBean` — displaced by any `@ApplicationScoped` implementation (when mode is set) or `@Alternative` (InMemoryQueryExpander in tests)
 - Returns the query unchanged — pass-through
 - Located in `rag-expansion/` (CDI wiring module), not `rag-api/` — only needed when the decorator is active
-- Follows `NoOpCbrCaseMemoryStore` pattern in `memory/`
+- Follows `NoOpCbrRecordStore` pattern in `memory/`
 
 **4. Add startup misconfiguration warning**
 

@@ -1,7 +1,7 @@
 package io.casehub.neocortex.examples.cbr;
 
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +13,7 @@ class QuarkmindBattleDemoTest {
 
     @Test
     void zergRoachRushQueryReturnsMatchingGames() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = QuarkmindBattleDemo.run(store);
 
         assertThat(results).isNotEmpty();
@@ -22,8 +22,8 @@ class QuarkmindBattleDemoTest {
         var topResults = results.stream().limit(5).toList();
         assertThat(topResults).allSatisfy(r -> {
             assertThat(r.scored().score()).isEqualTo(1.0);
-            assertThat(r.scored().cbrCase()).isInstanceOf(ResolvedCase.class);
-            var c = r.scored().cbrCase();
+            assertThat(r.scored().cbrRecord()).isInstanceOf(CbrPlanRecord.class);
+            var c = r.scored().cbrRecord();
             assertThat(c.features().get("opponent_race")).isEqualTo(string("ZERG"));
             assertThat(c.features().get("detected_build")).isEqualTo(string("ROACH_RUSH"));
         });
@@ -31,7 +31,7 @@ class QuarkmindBattleDemoTest {
 
     @Test
     void resultCountMatchesSeedData() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = QuarkmindBattleDemo.run(store);
         // With graded similarity, all cases are returned (filtered by identity: tenant, domain, caseType)
         // The query returns all 10 seed cases, with matching cases scoring highest
@@ -43,12 +43,12 @@ class QuarkmindBattleDemoTest {
 
     @Test
     void planTracesArePreserved() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = QuarkmindBattleDemo.run(store);
         assertThat(results).allSatisfy(r -> {
-            var c = r.scored().cbrCase();
-            assertThat(c.resolutionStep()).isNotEmpty();
-            assertThat(c.resolutionStep()).allSatisfy(t -> {
+            var c = r.scored().cbrRecord();
+            assertThat(c.cbrPlanStep()).isNotEmpty();
+            assertThat(c.cbrPlanStep()).allSatisfy(t -> {
                 assertThat(t.bindingName()).isNotBlank();
                 assertThat(t.capabilityName()).isNotBlank();
                 assertThat(t.priority()).isGreaterThanOrEqualTo(0);
@@ -58,12 +58,12 @@ class QuarkmindBattleDemoTest {
 
     @Test
     void planAnalysisShowsScoutCorrelation() {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         var results = QuarkmindBattleDemo.run(store);
         // Games with "scout" binding should correlate with wins
         long winsWithScout = results.stream()
-            .filter(r -> "WIN".equals(r.scored().cbrCase().outcome()))
-            .filter(r -> r.scored().cbrCase().resolutionStep().stream()
+            .filter(r -> "WIN".equals(r.scored().cbrRecord().outcome()))
+            .filter(r -> r.scored().cbrRecord().cbrPlanStep().stream()
                           .anyMatch(t -> "scout".equals(t.bindingName())))
             .count();
         assertThat(winsWithScout).isGreaterThanOrEqualTo(3);

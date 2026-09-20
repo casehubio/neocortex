@@ -17,7 +17,7 @@ The pattern does NOT duplicate eidos's JPAF evaluation logic. It fills the gap b
 1. **DispositionSignalStore** (eidos-api) — accumulates activation counts per cognitive function per agent, with decay support
 2. **DefaultDispositionHealth.probe()** (eidos-runtime) — computes effective weights from `baseWeight + activationCount × Δw`, detects evolution thresholds (auxiliary surpasses dominant, shadow surpasses primary, structural reorganization)
 3. **DefaultDispositionEvolution.evaluate()** (eidos-runtime) — applies 4 JPAF decision rules (dominant swap, dominant replacement, auxiliary replacement, structural reorganization) and normalizes weights
-4. **CbrCaseMemoryStore** (neocortex-memory-api) — stores and retrieves CBR cases with outcome weighting, similarity-based retrieval, and supersession support
+4. **CbrRecordStore** (neocortex-memory-api) — stores and retrieves CBR cases with outcome weighting, similarity-based retrieval, and supersession support
 5. **PersonalityTransitionSchema** (neocortex-memory-api) — pre-defined CBR schema for personality transition cases: agent_id, old/new dominant, old/new auxiliary, trigger_type, outcome
 6. **TrendAnalyzer** (neocortex-memory-api) — detects trends (slope, volatility, acceleration, change points) in time-series data within CBR cases
 
@@ -107,7 +107,7 @@ public class PersonalityEvolutionOrchestrator {
         DispositionHealth health,
         DispositionEvolution evolution,
         DispositionProfileStore profileStore,
-        CbrCaseMemoryStore cbrStore,
+        CbrRecordStore cbrStore,
         Instance<TraitPressureSource<?>> pressureSources);
 
     <E> void record(E event, AgentDescriptor descriptor);
@@ -197,7 +197,7 @@ Consuming apps construct the context — the orchestrator passes it through to `
 When `tick()` produces an `Evolved` result, the orchestrator records the transition as a CBR case:
 
 ```java
-CbrCase transitionCase = CbrCase.of(PersonalityTransitionSchema.schema(), Map.of(
+CbrRecord transitionCase = CbrRecord.of(PersonalityTransitionSchema.schema(), Map.of(
     "agent_id", FeatureValue.categorical(descriptor.agentId()),
     "old_dominant", FeatureValue.categorical(evolved.previousTypeLabel()),
     "new_dominant", FeatureValue.categorical(evolved.newTypeLabel()),
@@ -357,7 +357,7 @@ All tests are plain JUnit 5 + Mockito (no Quarkus runtime).
 - `DispositionSignalStore.java` (eidos) — activation signal accumulation SPI
 - `VocabularyTerm.opposite()` (eidos-api) — vocabulary-generic structural navigation
 - `SummarisationRunner.tick()` (blocks) — periodic caller-driven processing pattern
-- `CbrCaseMemoryStore` (neocortex-memory-api) — CBR case storage and retrieval
+- `CbrRecordStore` (neocortex-memory-api) — CBR case storage and retrieval
 - `PersonalityTransitionSchema` (neocortex-memory-api) — pre-defined transition case schema
 - `TrendAnalyzer` (neocortex-memory-api) — trend detection for time-series CBR data
 - `GE-20260811-e941cc` — AgentDisposition vs DispositionProfile type distinction

@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.List;
 
 public interface CbrRetrievalTracker {
-    String record(CbrQuery query, List<ScoredCbrCase<?>> results);
+    String record(CbrQuery query, List<CbrMatch<?>> results);
 
     List<CbrRetrievalTrace> findTraces(String caseType, String tenantId,
                                         MemoryDomain domain,

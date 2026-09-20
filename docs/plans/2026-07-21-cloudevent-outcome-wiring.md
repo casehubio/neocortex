@@ -42,7 +42,7 @@ Quarkus (`@QuarkusTest`)
 - Test: `memory/src/test/java/io/casehub/neocortex/memory/cbr/runtime/CbrOutcomeConsumerTest.java`
 
 **Interfaces:**
-- Consumes: `CbrCaseMemoryStore.recordOutcome(String caseId, String tenantId, CbrOutcome outcome)`, `CbrEventTypes.CBR_OUTCOME`, `@CloudEventType` annotation, `CloudEvent` (CloudEvents SDK), `ObjectMapper` (Jackson)
+- Consumes: `CbrRecordStore.recordOutcome(String caseId, String tenantId, CbrOutcome outcome)`, `CbrEventTypes.CBR_OUTCOME`, `@CloudEventType` annotation, `CloudEvent` (CloudEvents SDK), `ObjectMapper` (Jackson)
 - Produces: `CbrOutcomeConsumer.onCloudEvent(CloudEvent)` — CDI observer method dispatched by `CloudEventTypeDispatcher`
 
 - [ ] **Step 1: Add jackson-databind to memory/pom.xml**
@@ -184,7 +184,7 @@ void onCloudEvent_storeThrows_propagates() throws Exception {
 Add `ThrowingStore` inner class:
 
 ```java
-static class ThrowingStore extends NoOpCbrCaseMemoryStore {
+static class ThrowingStore extends NoOpCbrRecordStore {
     @Override
     public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {
         throw new RuntimeException("store failure");
@@ -213,7 +213,7 @@ package io.casehub.neocortex.memory.cbr.runtime;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.desiredstate.api.CbrEventTypes;
 import io.casehub.desiredstate.api.CbrOutcomeData;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.platform.api.event.CloudEventType;
 import io.cloudevents.CloudEvent;
@@ -230,11 +230,11 @@ public class CbrOutcomeConsumer {
 
     private static final Logger LOG = Logger.getLogger(CbrOutcomeConsumer.class);
 
-    private final CbrCaseMemoryStore store;
+    private final CbrRecordStore store;
     private final ObjectMapper objectMapper;
 
     @Inject
-    public CbrOutcomeConsumer(CbrCaseMemoryStore store, ObjectMapper objectMapper) {
+    public CbrOutcomeConsumer(CbrRecordStore store, ObjectMapper objectMapper) {
         this.store = store;
         this.objectMapper = objectMapper;
     }
@@ -314,7 +314,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.desiredstate.api.CbrEventTypes;
 import io.casehub.desiredstate.api.CbrOutcomeData;
 import io.casehub.desiredstate.api.CbrPath;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.platform.event.CloudEventTypeLiteral;
 import io.cloudevents.CloudEvent;
@@ -384,7 +384,7 @@ class CbrOutcomeConsumerCdiTest {
     @Alternative
     @Singleton
     @jakarta.annotation.Priority(100)
-    public static class CapturingCbrStore extends NoOpCbrCaseMemoryStore {
+    public static class CapturingCbrStore extends NoOpCbrRecordStore {
         final List<RecordedOutcome> recorded = new ArrayList<>();
 
         @Override
@@ -457,9 +457,9 @@ git -C /Users/mdproctor/claude/casehub/neocortex commit -m "test(#142): CDI wiri
 
 - [ ] **Step 1: Update CLAUDE.md memory/ module description**
 
-In CLAUDE.md, find the `memory/` module line and add the CloudEvent observation note. The line currently starts with `memory/             — MemoryEmitter`. Add to the description after `CbrOutcomeConsumer (bridges io.casehub.cbr.outcome CloudEvents to CbrCaseMemoryStore.recordOutcome — depends on casehub-desiredstate-api)`:
+In CLAUDE.md, find the `memory/` module line and add the CloudEvent observation note. The line currently starts with `memory/             — MemoryEmitter`. Add to the description after `CbrOutcomeConsumer (bridges io.casehub.cbr.outcome CloudEvents to CbrRecordStore.recordOutcome — depends on casehub-desiredstate-api)`:
 
-Update to: `CbrOutcomeConsumer (@ObservesAsync @CloudEventType(CbrEventTypes.CBR_OUTCOME) — deserializes CloudEvent data to CbrOutcomeData, bridges to CbrCaseMemoryStore.recordOutcome; depends on casehub-desiredstate-api + jackson-databind provided)`
+Update to: `CbrOutcomeConsumer (@ObservesAsync @CloudEventType(CbrEventTypes.CBR_OUTCOME) — deserializes CloudEvent data to CbrOutcomeData, bridges to CbrRecordStore.recordOutcome; depends on casehub-desiredstate-api + jackson-databind provided)`
 
 - [ ] **Step 2: Commit**
 

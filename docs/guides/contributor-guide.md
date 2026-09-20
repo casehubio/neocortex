@@ -49,7 +49,7 @@
 
 | Module | artifactId | Type | Purpose |
 |--------|-----------|------|---------|
-| `memory-api/` | `casehub-neocortex-memory-api` | Pure Java | `CaseMemoryStore` SPI (store, query, erase, eraseEntity, eraseById, eraseEntityAcrossTenants, scan, purge, discoverTenants, storeAll); `DelegatingCaseMemoryStore` (forwarding base class for CaseMemoryStore decorators — parallels `DelegatingCbrCaseMemoryStore`); `GraphCaseMemoryStore` SPI; `MemoryInput` (with `Confidence` field — origin + value [0.0-1.0]); `Memory`; `MemoryQuery`; `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE); `MemoryRetentionPolicy` (tenantId + domain + maxAgeDays + minConfidence); `MemoryScanRequest`; `MemoryCapability` enum (incl. DISCOVER_TENANTS, SCAN, PURGE); `CaseEnrichmentStep` SPI; `MemoryDomain`; `MemoryAttributeKeys`; `EraseRequest`; `StoreAllResult`; `StoreFailure` |
+| `memory-api/` | `casehub-neocortex-memory-api` | Pure Java | `CaseMemoryStore` SPI (store, query, erase, eraseEntity, eraseById, eraseEntityAcrossTenants, scan, purge, discoverTenants, storeAll); `DelegatingCaseMemoryStore` (forwarding base class for CaseMemoryStore decorators — parallels `DelegatingCbrRecordStore`); `GraphCaseMemoryStore` SPI; `MemoryInput` (with `Confidence` field — origin + value [0.0-1.0]); `Memory`; `MemoryQuery`; `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE); `MemoryRetentionPolicy` (tenantId + domain + maxAgeDays + minConfidence); `MemoryScanRequest`; `MemoryCapability` enum (incl. DISCOVER_TENANTS, SCAN, PURGE); `CaseEnrichmentStep` SPI; `MemoryDomain`; `MemoryAttributeKeys`; `EraseRequest`; `StoreAllResult`; `StoreFailure` |
 | `memory-core/` | `casehub-neocortex-memory-core` | Pure Java | Framework-neutral memory runtime POJOs — zero CDI. `EventRecorderCore<E, R, F, S>` (abstract base for typed event recording with shared `record()`/`recordAll()` batch logic); `ExperienceRecorderCore` (extends EventRecorderCore, implements ExperienceRecorder); `EngagementRecorderCore` (extends EventRecorderCore); `RelationshipProcessor`; `ReflectionOrchestratorCore`; `MemoryEmitterCore`; `CbrOutcomeProcessor` |
 | `memory/` | `casehub-neocortex-memory` | CDI module | `MemoryEmitter` (@ApplicationScoped fire-and-forget wrapper — error isolation, SecurityException propagates); `NoOpCaseMemoryStore` @DefaultBean; `CaseEnrichmentDecorator` (@Decorator); `ErasureNotificationCaseMemoryStore` (@Decorator @Priority(45) extends `DelegatingCaseMemoryStore`); `MemoryRetentionScheduler` (scheduled confidence-based purge across discovered tenants) |
 | `memory-inmem/` | `casehub-neocortex-memory-inmem` | Backend | @Alternative @Priority(10) volatile ConcurrentHashMap — test + ephemeral + discoverTenants + scan + purge |
@@ -57,20 +57,20 @@
 | `memory-sqlite/` | `casehub-neocortex-memory-sqlite` | Backend | @Alternative @Priority(1) SQLite + HikariCP WAL + FTS5 + discoverTenants |
 | `memory-mem0/` | `casehub-neocortex-memory-mem0` | Backend | @Alternative @Priority(1) Mem0 REST client adapter — blocking direct REST |
 | `memory-graphiti/` | `casehub-neocortex-memory-graphiti` | Backend | @Alternative @Priority(2) Graphiti REST GraphCaseMemoryStore — blocking direct REST, incl. graphQuery() |
-| `memory-testing/` | `casehub-neocortex-memory-testing` | Test library | `CbrCaseMemoryStoreContractTest` abstract base (164 tests); `CbrRetrievalTrackerContractTest` (10 tests); `PlanEnsembleAnalyzerContractTest` (7 tests); `InMemoryCbrRetrievalTracker`; test stubs for memory SPIs |
+| `memory-testing/` | `casehub-neocortex-memory-testing` | Test library | `CbrRecordStoreContractTest` abstract base (164 tests); `CbrRetrievalTrackerContractTest` (10 tests); `CbrCbrPlanEnsembleAnalyzerContractTest` (7 tests); `InMemoryCbrRetrievalTracker`; test stubs for memory SPIs |
 
 ### CBR Memory Modules
 
 | Module | artifactId | Type | Purpose |
 |--------|-----------|------|---------|
-| `memory-api/` | (same artifact) | Pure Java | `CbrCaseMemoryStore` SPI (composite extending CbrCaseStore + CbrCaseRetriever + CbrCaseLifecycle + CbrCaseAdmin ISP sub-interfaces); `DelegatingCbrCaseMemoryStore` (forwarding base class for decorators); `CbrCase` hierarchy (TextualCbrCase, FeatureVectorCbrCase, PlanCbrCase); `ResolutionGuide` (with features `Map<String, FeatureValue>` + `List<GuidanceStep>` structured steps); `CbrQuery` (CaseTypeScope sealed: Specific/AllInDomain for cross-type retrieval, weights, vectorWeight, RetrievalMode, FusionStrategy, filters, TemporalDecay, scope Path, ScopeDecay, withFeatures(), crossType() factory); `CbrFilter` sealed hierarchy (8 variants); `FeatureValue` sealed (7 types); `FeatureField` sealed (9 types); `SimilaritySpec` sealed (6 types); `CbrSimilarityScorer`; `CbrFeatureValidator`; `CbrFeatureSchema` (with optional learningRate); `DtwSimilarity` + `LbKeogh` (O(n) lower-bound pruning); `EditDistanceSimilarity`; `WarpingConstraint` sealed; `TrendAnalyzer`, `TrendSpec`, `TrendType`, `TrendProfile`, `TrendFieldNaming`; `TemporalDecay` sealed (3 types); `ScopeDecay` sealed (3 types); `PlanAdapter` SPI; `PlanEnsembleAnalyzer` SPI; `CbrOutcome`; `CbrRetentionPolicy` (with minTrustScore); `CbrScanRequest`; `CbrCaseSummary`; `SupersessionStatus`; `AgentTrustProvider` SPI; `TrustWeightingFunction` SPI; `OutcomeWeightingFunction` SPI; `ExplanationRenderer` SPI; `CbrRetrievalTracker` SPI (record, findTraces, purgeOlderThan, feedback with `CbrFeedbackOutcome` and `CbrRetrievalFeedback`); `PersonalityTransitionSchema`; `FeatureStatistics`; `CbrSuggestions`; CDI events: `CbrRetrievalRecorded`, `CbrAdaptationRecorded`, `CbrEnsembleRecorded`, `CbrCasesErased` (sealed: ByRequest, ByEntity, ByScope), `CbrCasesSuperseded` (sealed: ByCase, ByFilter, ByIds), `CbrCasesReinstated` (sealed: ByCase, ByFilter, ByIds) |
-| `memory/` | (same artifact) | CDI module | CBR decorator chain (all @Decorator on CbrCaseMemoryStore): `TrendEnrichmentCbrCaseMemoryStore` (@Priority(90) — enriches TimeSeries features with derived trend metrics on store/retrieve); `ScopeDecayCbrCaseMemoryStore` (@Priority(85) — scope-distance score decay); `TemporalDecayCbrCaseMemoryStore` (@Priority(80) — temporal decay post-scoring); `OutcomeWeightingCbrCaseMemoryStore` (@Priority(65) — confidence-based score modulation, @IfBuildProperty); `TrustWeightedCbrCaseMemoryStore` (@Priority(60) — trust authority + trajectory scoring, @IfBuildProperty); `TrackingCbrCaseMemoryStore` in memory-cbr-tracking (@Priority(50) — retrieval tracking); `ErasureNotificationCbrCaseMemoryStore` (@Priority(45) — fires CbrCasesErased CDI events). Plus: `NoOpCbrCaseMemoryStore` @DefaultBean; `CbrOutcomeConsumer` (@ObservesAsync @CloudEventType — bridges CloudEvent to recordOutcome); `CbrRetentionScheduler` (scheduled age+count+trust purge); `TrustRetentionService` (trust-trajectory-based purge via AgentTrustProvider); `DefaultOutcomeWeightingFunction` (linear interpolation); `DefaultTrustWeightingFunction` (authority + trajectory); `DefaultExplanationRenderer`; `NoOpPlanAdapter` @DefaultBean; `NoOpPlanEnsembleAnalyzer` @DefaultBean |
+| `memory-api/` | (same artifact) | Pure Java | `CbrRecordStore` SPI (composite extending CbrRecordOps + CbrRecordRetrieval + CbrRecordLifecycle + CbrRecordAdmin ISP sub-interfaces); `DelegatingCbrRecordStore` (forwarding base class for decorators); `CbrRecord` hierarchy (TextualCbrRecord, CbrFeatureRecord, PlanCbrRecord); `CbrGuidanceRecord` (with features `Map<String, FeatureValue>` + `List<CbrGuidanceStep>` structured steps); `CbrQuery` (CaseTypeScope sealed: Specific/AllInDomain for cross-type retrieval, weights, vectorWeight, RetrievalMode, FusionStrategy, filters, TemporalDecay, scope Path, ScopeDecay, withFeatures(), crossType() factory); `CbrFilter` sealed hierarchy (8 variants); `FeatureValue` sealed (7 types); `FeatureField` sealed (9 types); `SimilaritySpec` sealed (6 types); `CbrSimilarityScorer`; `CbrRecordValidator`; `CbrRecordSchema` (with optional learningRate); `DtwSimilarity` + `LbKeogh` (O(n) lower-bound pruning); `EditDistanceSimilarity`; `WarpingConstraint` sealed; `TrendAnalyzer`, `TrendSpec`, `TrendType`, `TrendProfile`, `TrendFieldNaming`; `TemporalDecay` sealed (3 types); `ScopeDecay` sealed (3 types); `CbrCbrPlanAdapter` SPI; `CbrCbrPlanEnsembleAnalyzer` SPI; `CbrOutcome`; `CbrRetentionPolicy` (with minTrustScore); `CbrScanRequest`; `CbrRecordSummary`; `SupersessionStatus`; `AgentTrustProvider` SPI; `TrustWeightingFunction` SPI; `OutcomeWeightingFunction` SPI; `ExplanationRenderer` SPI; `CbrRetrievalTracker` SPI (record, findTraces, purgeOlderThan, feedback with `CbrFeedbackOutcome` and `CbrRetrievalFeedback`); `PersonalityTransitionSchema`; `FeatureStatistics`; `CbrSuggestions`; CDI events: `CbrRetrievalRecorded`, `CbrAdaptationRecorded`, `CbrEnsembleRecorded`, `CbrRecordErased` (sealed: ByRequest, ByEntity, ByScope), `CbrRecordSuperseded` (sealed: ByCase, ByFilter, ByIds), `CbrRecordReinstated` (sealed: ByCase, ByFilter, ByIds) |
+| `memory/` | (same artifact) | CDI module | CBR decorator chain (all @Decorator on CbrRecordStore): `TrendEnrichmentCbrRecordStore` (@Priority(90) — enriches TimeSeries features with derived trend metrics on store/retrieve); `ScopeDecayCbrRecordStore` (@Priority(85) — scope-distance score decay); `TemporalDecayCbrRecordStore` (@Priority(80) — temporal decay post-scoring); `OutcomeWeightingCbrRecordStore` (@Priority(65) — confidence-based score modulation, @IfBuildProperty); `TrustWeightedCbrRecordStore` (@Priority(60) — trust authority + trajectory scoring, @IfBuildProperty); `TrackingCbrRecordStore` in memory-cbr-tracking (@Priority(50) — retrieval tracking); `ErasureNotificationCbrRecordStore` (@Priority(45) — fires CbrRecordErased CDI events). Plus: `NoOpCbrRecordStore` @DefaultBean; `CbrOutcomeConsumer` (@ObservesAsync @CloudEventType — bridges CloudEvent to recordOutcome); `CbrRetentionScheduler` (scheduled age+count+trust purge); `TrustRetentionService` (trust-trajectory-based purge via AgentTrustProvider); `DefaultOutcomeWeightingFunction` (linear interpolation); `DefaultTrustWeightingFunction` (authority + trajectory); `DefaultExplanationRenderer`; `NoOpCbrCbrPlanAdapter` @DefaultBean; `NoOpCbrCbrPlanEnsembleAnalyzer` @DefaultBean |
 | `memory-cbr-inmem/` | `casehub-neocortex-memory-cbr-inmem` | Backend | @Alternative @Priority(2) — in-memory stub for tests, clearCases() for isolation (clears cases, preserves schemas) |
-| `memory-cbr-jpa/` | `casehub-neocortex-memory-cbr-jpa` | Backend | @Alternative @Priority(3) JPA/PostgreSQL. `CbrCaseEntity` with JSONB features (`Map<String, FeatureValue>`), plan traces, outcome tracking, supersession metadata. Flyway migrations |
-| `memory-qdrant/` | `casehub-neocortex-memory-qdrant` | Backend | @ApplicationScoped gRPC client. `QdrantCbrCaseMemoryStore` — payload filters (categorical/numeric/text + structured: CategoricalList/NestedObject/ObjectList with dot-notation) + dense vector search + SPLADE sparse embeddings + BM25 server-side inference + dynamic 2-4 leg hybrid fusion (CC weight renormalization) + notBefore temporal filtering + per-inner-field payload indexes + dimension validation + collection schema evolution. `CbrReconciliationService` (three-phase: orphan cleanup + reindex + vector enrichment backfill, Micrometer metrics). `CbrPointBuilder` (structured value serialization). Two-pass retrieveSimilar() with batch precompute for semantic text fields |
+| `memory-cbr-jpa/` | `casehub-neocortex-memory-cbr-jpa` | Backend | @Alternative @Priority(3) JPA/PostgreSQL. `CbrRecordEntity` with JSONB features (`Map<String, FeatureValue>`), plan traces, outcome tracking, supersession metadata. Flyway migrations |
+| `memory-qdrant/` | `casehub-neocortex-memory-qdrant` | Backend | @ApplicationScoped gRPC client. `QdrantCbrRecordStore` — payload filters (categorical/numeric/text + structured: CategoricalList/NestedObject/ObjectList with dot-notation) + dense vector search + SPLADE sparse embeddings + BM25 server-side inference + dynamic 2-4 leg hybrid fusion (CC weight renormalization) + notBefore temporal filtering + per-inner-field payload indexes + dimension validation + collection schema evolution. `CbrReconciliationService` (three-phase: orphan cleanup + reindex + vector enrichment backfill, Micrometer metrics). `CbrPointBuilder` (structured value serialization). Two-pass retrieveSimilar() with batch precompute for semantic text fields |
 | `memory-cbr-embedding/` | `casehub-neocortex-memory-cbr-embedding` | Backend | `EmbeddingTextSimilarity` — `LocalSimilarityFunction` for semantic text field cosine similarity, batch `precompute()` via `embedAll()`, cache-backed `compute()`. Depends on memory-api + langchain4j-core only |
-| `memory-cbr-crossencoder/` | `casehub-neocortex-memory-cbr-crossencoder` | Backend | `RerankingCbrCaseMemoryStore` (@Decorator @Priority(75)). Sigmoid-normalized scores. Double-reranking guard via `ScoredCbrCase.reranked()`. Config: `casehub.cbr.reranking.enabled` |
-| `memory-cbr-tracking/` | `casehub-neocortex-memory-cbr-tracking` | Backend | `TrackingCbrCaseMemoryStore` (@Decorator @Priority(50) — records retrieval via CbrRetrievalTracker). `SqliteCbrRetrievalTracker` (SQLite + HikariCP WAL + Flyway). `TrackingPlanAdapter` (@Decorator @Priority(50) — fires CbrAdaptationRecorded after adaptation, `casehub.cbr.adaptation-tracking.enabled`). `TrackingPlanEnsembleAnalyzer` (@Decorator @Priority(50) — fires CbrEnsembleRecorded, `casehub.cbr.ensemble-tracking.enabled`). @Scheduled retention purge. Config: `casehub.cbr.tracking.enabled=true` |
+| `memory-cbr-crossencoder/` | `casehub-neocortex-memory-cbr-crossencoder` | Backend | `RerankingCbrRecordStore` (@Decorator @Priority(75)). Sigmoid-normalized scores. Double-reranking guard via `CbrMatch.reranked()`. Config: `casehub.cbr.reranking.enabled` |
+| `memory-cbr-tracking/` | `casehub-neocortex-memory-cbr-tracking` | Backend | `TrackingCbrRecordStore` (@Decorator @Priority(50) — records retrieval via CbrRetrievalTracker). `SqliteCbrRetrievalTracker` (SQLite + HikariCP WAL + Flyway). `TrackingCbrCbrPlanAdapter` (@Decorator @Priority(50) — fires CbrAdaptationRecorded after adaptation, `casehub.cbr.adaptation-tracking.enabled`). `TrackingCbrCbrPlanEnsembleAnalyzer` (@Decorator @Priority(50) — fires CbrEnsembleRecorded, `casehub.cbr.ensemble-tracking.enabled`). @Scheduled retention purge. Config: `casehub.cbr.tracking.enabled=true` |
 
 ### Examples and Evaluation
 
@@ -188,7 +188,7 @@ SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (De
 
 `CbrSimilarityScorer` — pure-Java per-field similarity with three-level precedence: caller override > field SimilaritySpec > type default. Centralized `NumericRange` via `computeNormalizedDistance`. Exhaustive switches at all dispatch sites. Structured fields participate via `LocalSimilarityFunction` overrides.
 
-`CbrFeatureValidator` — consolidated store-time, query-time, and filter validation. Temporal field validation: ascending timestamps, inner field types.
+`CbrRecordValidator` — consolidated store-time, query-time, and filter validation. Temporal field validation: ascending timestamps, inner field types.
 
 ### CBR Filters
 
@@ -206,35 +206,35 @@ SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (De
 - `Linear(int maxDepth)` — linear decay to zero at maxDepth
 - `Step(double beyondExact)` — flat penalty beyond exact scope match
 
-`ScopeDecayCbrCaseMemoryStore` (@Decorator @Priority(85)) applies scope-distance score multiplier, re-sorts, and filters by `minSimilarity` after decay. Null scopeDecay = pass-through.
+`ScopeDecayCbrRecordStore` (@Decorator @Priority(85)) applies scope-distance score multiplier, re-sorts, and filters by `minSimilarity` after decay. Null scopeDecay = pass-through.
 
 `eraseByScope(Path, tenantId)` — bulk scope-based erasure for operational cleanup (#158). Aggregate adjustment on entity erasure — recomputes higher-scope aggregates when source cases are erased (#159).
 
 ### CBR Plan Adaptation
 
-`PlanAdapter` SPI — `adapt(caseType, ScoredCbrCase<PlanCbrCase>, features)` returns `AdaptedPlan` (wrapping `List<AdaptedStep>`). `caseType` is a first-class parameter for type-specific adaptation rules. `AdaptedStep` carries `bindingName`, nullable `capabilityName`, `workerName`, `stepOutcome`, `priority`, `parameters`, `AdaptationAction`, `reason`. `AdaptationTrace` for audit with `retrievalTraceId` link. `ResolutionStep` record with optional `variantId` for variant tracking.
+`CbrCbrPlanAdapter` SPI — `adapt(caseType, CbrMatch<PlanCbrRecord>, features)` returns `AdaptedPlan` (wrapping `List<AdaptedStep>`). `caseType` is a first-class parameter for type-specific adaptation rules. `AdaptedStep` carries `bindingName`, nullable `capabilityName`, `workerName`, `stepOutcome`, `priority`, `parameters`, `AdaptationAction`, `reason`. `CbrCbrAdaptationTrace` for audit with `retrievalTraceId` link. `CbrPlanStep` record with optional `variantId` for variant tracking.
 
-`NoOpPlanAdapter` @DefaultBean — returns all steps RETAINED, zero behavioral change.
+`NoOpCbrCbrPlanAdapter` @DefaultBean — returns all steps RETAINED, zero behavioral change.
 
 ### CBR Plan Ensemble Analysis
 
-`PlanEnsembleAnalyzer` SPI — operates after per-plan `PlanAdapter` adaptation. `analyze(caseType, List<ScoredCbrCase<PlanCbrCase>>, List<AdaptedPlan>, features)` examines multiple adapted plans for consensus/divergence and synthesizes an `EnsemblePlan`. `StepConsensus` classifies per-step agreement as UNANIMOUS, CONSENSUS, CONTESTED, MINORITY, or UNIQUE — with worker/outcome/priority distributions. `EnsemblePlan` carries `ensembleConfidence` [0,1] and `inputPlanCount`.
+`CbrCbrPlanEnsembleAnalyzer` SPI — operates after per-plan `CbrCbrPlanAdapter` adaptation. `analyze(caseType, List<CbrMatch<PlanCbrRecord>>, List<AdaptedPlan>, features)` examines multiple adapted plans for consensus/divergence and synthesizes an `EnsemblePlan`. `StepConsensus` classifies per-step agreement as UNANIMOUS, CONSENSUS, CONTESTED, MINORITY, or UNIQUE — with worker/outcome/priority distributions. `EnsemblePlan` carries `ensembleConfidence` [0,1] and `inputPlanCount`.
 
-`NoOpPlanEnsembleAnalyzer` @DefaultBean — picks best-scoring plan, reports inputPlanCount=1 with UNANIMOUS agreement.
+`NoOpCbrCbrPlanEnsembleAnalyzer` @DefaultBean — picks best-scoring plan, reports inputPlanCount=1 with UNANIMOUS agreement.
 
-`PlanEnsembleAnalyzerContractTest` abstract base (7 tests) in `memory-testing`.
+`CbrCbrPlanEnsembleAnalyzerContractTest` abstract base (7 tests) in `memory-testing`.
 
 ### CBR Outcome Feedback and Weighting
 
-`CbrOutcome` — Outcome enum with EMA `adjustConfidence()` and `DEFAULT_LEARNING_RATE`. `CbrCaseMemoryStore.recordOutcome()` for CBR Revise feedback loop. `CbrFeatureSchema` supports optional `learningRate` (validated [0,1]) for per-caseType EMA speed.
+`CbrOutcome` — Outcome enum with EMA `adjustConfidence()` and `DEFAULT_LEARNING_RATE`. `CbrRecordStore.recordOutcome()` for CBR Revise feedback loop. `CbrRecordSchema` supports optional `learningRate` (validated [0,1]) for per-caseType EMA speed.
 
-`OutcomeWeightingCbrCaseMemoryStore` (@Decorator @Priority(65)) modulates retrieval scores by case confidence. `DefaultOutcomeWeightingFunction` — linear interpolation `score*(1-alpha+alpha*confidence)`. Config: `casehub.cbr.outcome-weighting.enabled`, `casehub.cbr.outcome-weighting.influence` (default 0.3).
+`OutcomeWeightingCbrRecordStore` (@Decorator @Priority(65)) modulates retrieval scores by case confidence. `DefaultOutcomeWeightingFunction` — linear interpolation `score*(1-alpha+alpha*confidence)`. Config: `casehub.cbr.outcome-weighting.enabled`, `casehub.cbr.outcome-weighting.influence` (default 0.3).
 
-`CbrOutcomeConsumer` — @ObservesAsync @CloudEventType(CbrEventTypes.CBR_OUTCOME). Deserializes CloudEvent data to `CbrOutcomeData`, bridges to `CbrCaseMemoryStore.recordOutcome()`. Depends on casehub-desiredstate-api.
+`CbrOutcomeConsumer` — @ObservesAsync @CloudEventType(CbrEventTypes.CBR_OUTCOME). Deserializes CloudEvent data to `CbrOutcomeData`, bridges to `CbrRecordStore.recordOutcome()`. Depends on casehub-desiredstate-api.
 
 ### CBR Trust-Weighted Retrieval
 
-`TrustWeightedCbrCaseMemoryStore` (@Decorator @Priority(60)) modulates retrieval scores by source trust authority + optional trust trajectory. Per-retrieval trajectory cache.
+`TrustWeightedCbrRecordStore` (@Decorator @Priority(60)) modulates retrieval scores by source trust authority + optional trust trajectory. Per-retrieval trajectory cache.
 
 `AgentTrustProvider` (@FunctionalInterface SPI) — `OptionalDouble currentTrustScore(agentId)`. Implemented by engine bridge to TrustScoreSource.
 
@@ -242,17 +242,17 @@ SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (De
 
 ### CBR Retention and Trust Purge
 
-`CbrRetentionPolicy` — record with `tenantId`, `domain`, `caseType`, `maxAgeDays`, `maxCasesPerType`, `minTrustScore`. `CbrCaseMemoryStore.purge(CbrRetentionPolicy)`.
+`CbrRetentionPolicy` — record with `tenantId`, `domain`, `caseType`, `maxAgeDays`, `maxCasesPerType`, `minTrustScore`. `CbrRecordStore.purge(CbrRetentionPolicy)`.
 
 `CbrRetentionScheduler` — @ApplicationScoped scheduled purge across discovered tenants and configured caseTypes.
 
-`TrustRetentionService` — evaluates agent trust trajectories via `AgentTrustProvider`. Paginated scan (`CbrScanRequest` / `CbrCaseSummary`) identifies cases from agents below `minCurrentTrust`, erases them. Config: `casehub.cbr.trust-retention.enabled`, `casehub.cbr.trust-retention.min-current-trust`.
+`TrustRetentionService` — evaluates agent trust trajectories via `AgentTrustProvider`. Paginated scan (`CbrScanRequest` / `CbrRecordSummary`) identifies cases from agents below `minCurrentTrust`, erases them. Config: `casehub.cbr.trust-retention.enabled`, `casehub.cbr.trust-retention.min-current-trust`.
 
 ### CBR Active Memory Management
 
-**Temporal decay:** `TemporalDecay` sealed interface with three implementations: `HalfLife(Duration)` (exponential), `Linear(Duration zeroAt)`, `Step(Duration cutoff, double afterCutoff)`. `TemporalDecayCbrCaseMemoryStore` (Decorator Priority 80) applies decay to retrieval scores based on case `storedAt`.
+**Temporal decay:** `TemporalDecay` sealed interface with three implementations: `HalfLife(Duration)` (exponential), `Linear(Duration zeroAt)`, `Step(Duration cutoff, double afterCutoff)`. `TemporalDecayCbrRecordStore` (Decorator Priority 80) applies decay to retrieval scores based on case `storedAt`.
 
-**Supersession:** `CbrCaseLifecycle` (sub-interface of `CbrCaseMemoryStore`) provides single-case and bulk supersession. Single: `boolean supersede(caseId, tenantId, supersedingCaseId, reason)` and `boolean reinstate(caseId, tenantId)` — return true only on state transition. Bulk: `supersedeMatching(tenantId, domain, caseType, filters, reason)`, `supersedeAll(caseIds, tenantId, reason)`, `reinstateMatching(tenantId, domain, caseType, filters)`, `reinstateAll(caseIds, tenantId)` — return count of affected cases. `findCaseIds(tenantId, domain, caseType, filters)` on `CbrCaseRetriever` for filter-based case lookup (non-superseded only). `getSupersessionStatus()` returns `SupersessionStatus` with audit metadata (wasReinstated() convenience). `findSupersededCases()` for audit queries. CDI events: `CbrCasesSuperseded` (sealed: ByCase, ByFilter, ByIds) and `CbrCasesReinstated` (sealed: ByCase, ByFilter, ByIds) fired by `SupersessionNotificationCbrCaseMemoryStore` (@Decorator @Priority(44)).
+**Supersession:** `CbrRecordLifecycle` (sub-interface of `CbrRecordStore`) provides single-case and bulk supersession. Single: `boolean supersede(caseId, tenantId, supersedingCaseId, reason)` and `boolean reinstate(caseId, tenantId)` — return true only on state transition. Bulk: `supersedeMatching(tenantId, domain, caseType, filters, reason)`, `supersedeAll(caseIds, tenantId, reason)`, `reinstateMatching(tenantId, domain, caseType, filters)`, `reinstateAll(caseIds, tenantId)` — return count of affected cases. `findCaseIds(tenantId, domain, caseType, filters)` on `CbrRecordRetrieval` for filter-based case lookup (non-superseded only). `getSupersessionStatus()` returns `SupersessionStatus` with audit metadata (wasReinstated() convenience). `findSupersededCases()` for audit queries. CDI events: `CbrRecordSuperseded` (sealed: ByCase, ByFilter, ByIds) and `CbrRecordReinstated` (sealed: ByCase, ByFilter, ByIds) fired by `SupersessionNotificationCbrRecordStore` (@Decorator @Priority(44)).
 
 ### Trend Detection
 
@@ -262,7 +262,7 @@ SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (De
 
 `TrendFieldNaming` — deterministic derived field naming: `{tsName}_{type}_{innerField}` for per-field, `{tsName}_{type}` for per-TimeSeries. Underscore separators avoid Qdrant dot-notation conflict.
 
-`TrendEnrichmentCbrCaseMemoryStore` (Decorator Priority 90) — intercepts registerSchema (expandSchema), store (enrichFeatures on case), retrieveSimilar (enrichFeatures on query). Schema-driven activation via TrendSpec presence, no @IfBuildProperty gate.
+`TrendEnrichmentCbrRecordStore` (Decorator Priority 90) — intercepts registerSchema (expandSchema), store (enrichFeatures on case), retrieveSimilar (enrichFeatures on query). Schema-driven activation via TrendSpec presence, no @IfBuildProperty gate.
 
 ### PersonalityTransitionSchema
 
@@ -281,7 +281,7 @@ Supports `reconcile(caseType, tenantId)`, `reconcileAll(caseType)`, `discoverTen
 
 ### Erasure Notification
 
-`ErasureNotificationCbrCaseMemoryStore` (@Decorator @Priority(45)) fires `CbrCasesErased` CDI events after erasure. `CbrCasesErased` is a sealed interface with three variants: `ByRequest`, `ByEntity`, `ByScope`. Clock injection for testability.
+`ErasureNotificationCbrRecordStore` (@Decorator @Priority(45)) fires `CbrRecordErased` CDI events after erasure. `CbrRecordErased` is a sealed interface with three variants: `ByRequest`, `ByEntity`, `ByScope`. Clock injection for testability.
 
 ### CDI Decorator Priority Chain Summary
 
@@ -299,18 +299,18 @@ Supports `reconcile(caseType, tenantId)`, `reconcileAll(caseType)`, `discoverTen
 |----------|-----------|--------|
 | 50 | `DedupEmbeddingIngestor` | rag |
 
-**CbrCaseMemoryStore chain (memory):**
+**CbrRecordStore chain (memory):**
 | Priority | Decorator | Module |
 |----------|-----------|--------|
-| 90 | `TrendEnrichmentCbrCaseMemoryStore` | memory |
-| 85 | `ScopeDecayCbrCaseMemoryStore` | memory |
-| 80 | `TemporalDecayCbrCaseMemoryStore` | memory |
-| 75 | `RerankingCbrCaseMemoryStore` | memory-cbr-crossencoder |
-| 65 | `OutcomeWeightingCbrCaseMemoryStore` | memory |
-| 60 | `TrustWeightedCbrCaseMemoryStore` | memory |
-| 50 | `TrackingCbrCaseMemoryStore` | memory-cbr-tracking |
-| 45 | `ErasureNotificationCbrCaseMemoryStore` | memory |
-| 44 | `SupersessionNotificationCbrCaseMemoryStore` | memory |
+| 90 | `TrendEnrichmentCbrRecordStore` | memory |
+| 85 | `ScopeDecayCbrRecordStore` | memory |
+| 80 | `TemporalDecayCbrRecordStore` | memory |
+| 75 | `RerankingCbrRecordStore` | memory-cbr-crossencoder |
+| 65 | `OutcomeWeightingCbrRecordStore` | memory |
+| 60 | `TrustWeightedCbrRecordStore` | memory |
+| 50 | `TrackingCbrRecordStore` | memory-cbr-tracking |
+| 45 | `ErasureNotificationCbrRecordStore` | memory |
+| 44 | `SupersessionNotificationCbrRecordStore` | memory |
 
 **MindMapStore chain (mindmap):**
 | Priority | Decorator | Module |
@@ -630,7 +630,7 @@ The `cognitive-index` module provides cross-store aggregation — derived views 
 
 **Merge:** All entries sorted chronologically via `TemporalEntry.compareTo()` (oldest first), truncated to `query.limit()`.
 
-**Key types:** `TemporalEntry(timestamp, source, tenantId, confidence)`. `TemporalSource` sealed: `FromMindMap(MindMapNode)`, `FromMemory(Memory)`, `FromCbr(ScoredCbrCase<?>)`. `TemporalQuery` with factory methods `since()`, `window()`, `upcoming()` + `withSources()`, `withEntityIds()`, `withCallerPrincipal()` wither methods.
+**Key types:** `TemporalEntry(timestamp, source, tenantId, confidence)`. `TemporalSource` sealed: `FromMindMap(MindMapNode)`, `FromMemory(Memory)`, `FromCbr(CbrMatch<?>)`. `TemporalQuery` with factory methods `since()`, `window()`, `upcoming()` + `withSources()`, `withEntityIds()`, `withCallerPrincipal()` wither methods.
 
 **Extension:** `TemporalRanker` `@FunctionalInterface` — `double score(TemporalEntry, Instant)`. Static factory `recency()` provides inverse-seconds-elapsed scoring. `rank()` default method re-orders a list.
 
@@ -1055,11 +1055,11 @@ Two public methods: `generate(Class<?>) → JsonNode`, `generateToYaml(Class<?>,
 
 ### CBR JPA Backend
 
-`JpaCbrCaseMemoryStore` — `@Alternative @Priority(3) @ApplicationScoped` in `memory-cbr-jpa/`. PostgreSQL-backed via `EntityManager`.
+`JpaCbrRecordStore` — `@Alternative @Priority(3) @ApplicationScoped` in `memory-cbr-jpa/`. PostgreSQL-backed via `EntityManager`.
 
-`CbrCaseEntity` — JPA `@Entity` with 18 columns. Features stored as JSON string via Jackson (not native JSONB operators) — deserializes to Java, scores via `CbrSimilarityScorer` in-memory. FEATURE_ONLY retrieval mode only — SEMANTIC_ONLY returns empty, HYBRID degrades to FEATURE_ONLY with log warning.
+`CbrRecordEntity` — JPA `@Entity` with 18 columns. Features stored as JSON string via Jackson (not native JSONB operators) — deserializes to Java, scores via `CbrSimilarityScorer` in-memory. FEATURE_ONLY retrieval mode only — SEMANTIC_ONLY returns empty, HYBRID degrades to FEATURE_ONLY with log warning.
 
-`cbrType` discriminator on load: `"plan"` → `ResolvedCase`, `"feature-vector"` → `FeatureVectorCbrCase`, `"textual"` → `ResolutionGuide`.
+`cbrType` discriminator on load: `"plan"` → `CbrPlanRecord`, `"feature-vector"` → `CbrFeatureRecord`, `"textual"` → `CbrGuidanceRecord`.
 
 ### CbrSuggestions and FeatureStatistics
 
@@ -1071,7 +1071,7 @@ Two public methods: `generate(Class<?>) → JsonNode`, `generateToYaml(Class<?>,
 
 `LocalSimilarityFunction` implementation in `memory-cbr-embedding/` for semantic text field cosine similarity. Plain Java (no CDI).
 
-`precompute(List<String>)` — batch embedding via `model.embedAll()`. Filters uncached texts, deduplicates, stores in `HashMap` cache. Called by `QdrantCbrCaseMemoryStore`'s two-pass retrieval to pre-embed all candidate text values in one batch.
+`precompute(List<String>)` — batch embedding via `model.embedAll()`. Filters uncached texts, deduplicates, stores in `HashMap` cache. Called by `QdrantCbrRecordStore`'s two-pass retrieval to pre-embed all candidate text values in one batch.
 
 `compute(FeatureValue, FeatureValue)` — extracts strings from `StringVal` pairs, embeds each (cache-backed), returns `max(0.0, CosineSimilarity.between())`. `CbrSimilarityScorer` uses this as a `LocalSimilarityFunction` override for `Text(semantic=true)` fields.
 

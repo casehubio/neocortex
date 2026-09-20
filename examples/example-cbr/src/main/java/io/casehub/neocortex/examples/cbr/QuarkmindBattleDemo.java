@@ -1,16 +1,16 @@
 package io.casehub.neocortex.examples.cbr;
 
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import static io.casehub.neocortex.memory.cbr.FeatureValue.*;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,17 +23,17 @@ public final class QuarkmindBattleDemo {
     static final String TENANT = "demo";
     static final String CASE_TYPE = "quarkmind-battle";
 
-    static final CbrFeatureSchema SCHEMA = CbrFeatureSchema.of(CASE_TYPE,
-        FeatureField.categorical("opponent_race"),
-        FeatureField.categorical("detected_build"),
-        FeatureField.numeric("army_size_ratio", 0.0, 3.0),
-        FeatureField.numeric("resource_advantage", -5000, 5000));
+    static final CbrRecordSchema SCHEMA = CbrRecordSchema.of(CASE_TYPE,
+                                                             FeatureField.categorical("opponent_race"),
+                                                             FeatureField.categorical("detected_build"),
+                                                             FeatureField.numeric("army_size_ratio", 0.0, 3.0),
+                                                             FeatureField.numeric("resource_advantage", -5000, 5000));
 
     record SeedCase(String problem, String solution, String outcome,
                     double confidence, Map<String, FeatureValue> features,
-                    List<ResolutionStep> resolutionStep) {}
+                    List<CbrPlanStep> cbrPlanStep) {}
 
-    public record Result(ScoredCbrCase<ResolvedCase> scored) {}
+    public record Result(CbrMatch<CbrPlanRecord> scored) {}
 
     static final List<SeedCase> SEED_CASES = List.of(
         // Game 1: WIN vs ZERG/ROACH_RUSH with scout
@@ -44,10 +44,10 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH"),
                    "army_size_ratio", number(0.75), "resource_advantage", number(-150)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "overlord-scout", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("assess-threat", "threat-analysis", "zerg-analyzer", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 3, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "marine-medivac", "SUCCESS", 4, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "overlord-scout", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("assess-threat", "threat-analysis", "zerg-analyzer", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 3, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "marine-medivac", "SUCCESS", 4, Map.of(), null)
             )),
 
         // Game 2: WIN vs ZERG/ROACH_RUSH with scout
@@ -58,11 +58,11 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH"),
                    "army_size_ratio", number(0.85), "resource_advantage", number(-300)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "reaper-scout", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("early-pressure", "offensive", "hellion-harass", "SUCCESS", 3, Map.of(), null),
-                new ResolutionStep("expand", "economy", "natural-expand", "SUCCESS", 4, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "bio-push", "SUCCESS", 5, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "reaper-scout", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("early-pressure", "offensive", "hellion-harass", "SUCCESS", 3, Map.of(), null),
+                new CbrPlanStep("expand", "economy", "natural-expand", "SUCCESS", 4, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "bio-push", "SUCCESS", 5, Map.of(), null)
             )),
 
         // Game 3: WIN vs ZERG/ROACH_RUSH with scout
@@ -73,9 +73,9 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH"),
                    "army_size_ratio", number(0.70), "resource_advantage", number(-100)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "scan-sweep", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "siege-tank-push", "SUCCESS", 3, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "scan-sweep", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "siege-tank-push", "SUCCESS", 3, Map.of(), null)
             )),
 
         // Game 4: WIN vs ZERG/ROACH_RUSH with scout (one failure step)
@@ -86,11 +86,11 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH"),
                    "army_size_ratio", number(0.90), "resource_advantage", number(100)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "overlord-scout", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("assess-threat", "threat-analysis", "zerg-analyzer", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("early-pressure", "offensive", "marine-pressure", "FAILURE", 3, Map.of(), null),
-                new ResolutionStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 4, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "bio-push", "SUCCESS", 5, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "overlord-scout", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("assess-threat", "threat-analysis", "zerg-analyzer", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("early-pressure", "offensive", "marine-pressure", "FAILURE", 3, Map.of(), null),
+                new CbrPlanStep("bunker-up", "static-defence", "bunker-wall", "SUCCESS", 4, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "bio-push", "SUCCESS", 5, Map.of(), null)
             )),
 
         // Game 5: LOSS vs ZERG/ROACH_RUSH — NO SCOUT, opened with economy
@@ -101,9 +101,9 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH"),
                    "army_size_ratio", number(0.65), "resource_advantage", number(-500)),
             List.of(
-                new ResolutionStep("expand", "economy", "natural-expand", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("macro-up", "economy", "double-refinery", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "marine-push", "FAILURE", 3, Map.of(), null)
+                new CbrPlanStep("expand", "economy", "natural-expand", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("macro-up", "economy", "double-refinery", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "marine-push", "FAILURE", 3, Map.of(), null)
             )),
 
         // Game 6: WIN vs PROTOSS/ZEALOT_RUSH
@@ -114,9 +114,9 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("PROTOSS"), "detected_build", string("ZEALOT_RUSH"),
                    "army_size_ratio", number(0.80), "resource_advantage", number(-200)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "marine-scout", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("bunker-up", "static-defence", "wall-bunker", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "marauder-push", "SUCCESS", 3, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "marine-scout", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("bunker-up", "static-defence", "wall-bunker", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "marauder-push", "SUCCESS", 3, Map.of(), null)
             )),
 
         // Game 7: WIN vs TERRAN/MARINE_PUSH
@@ -127,10 +127,10 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("TERRAN"), "detected_build", string("MARINE_PUSH"),
                    "army_size_ratio", number(0.95), "resource_advantage", number(50)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "reaper-scout", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("bunker-up", "static-defence", "siege-line", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "bio-counter", "SUCCESS", 3, Map.of(), null),
-                new ResolutionStep("expand", "economy", "third-base", "SUCCESS", 4, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "reaper-scout", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("bunker-up", "static-defence", "siege-line", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "bio-counter", "SUCCESS", 3, Map.of(), null),
+                new CbrPlanStep("expand", "economy", "third-base", "SUCCESS", 4, Map.of(), null)
             )),
 
         // Game 8: WIN vs ZERG/MACRO
@@ -141,10 +141,10 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("ZERG"), "detected_build", string("MACRO"),
                    "army_size_ratio", number(1.10), "resource_advantage", number(400)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "overlord-scout", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("expand", "economy", "fast-expand", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("macro-up", "economy", "three-base", "SUCCESS", 3, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "multi-prong", "SUCCESS", 4, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "overlord-scout", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("expand", "economy", "fast-expand", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("macro-up", "economy", "three-base", "SUCCESS", 3, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "multi-prong", "SUCCESS", 4, Map.of(), null)
             )),
 
         // Game 9: LOSS vs PROTOSS/UNKNOWN
@@ -155,9 +155,9 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("PROTOSS"), "detected_build", string("UNKNOWN"),
                    "army_size_ratio", number(0.60), "resource_advantage", number(-600)),
             List.of(
-                new ResolutionStep("bunker-up", "static-defence", "blind-wall", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("macro-up", "economy", "greedy-expand", "FAILURE", 2, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "desperate-push", "FAILURE", 3, Map.of(), null)
+                new CbrPlanStep("bunker-up", "static-defence", "blind-wall", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("macro-up", "economy", "greedy-expand", "FAILURE", 2, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "desperate-push", "FAILURE", 3, Map.of(), null)
             )),
 
         // Game 10: WIN vs TERRAN/MACRO
@@ -168,29 +168,29 @@ public final class QuarkmindBattleDemo {
             Map.of("opponent_race", string("TERRAN"), "detected_build", string("MACRO"),
                    "army_size_ratio", number(1.05), "resource_advantage", number(300)),
             List.of(
-                new ResolutionStep("scout", "reconnaissance", "scan-sweep", "SUCCESS", 1, Map.of(), null),
-                new ResolutionStep("expand", "economy", "dual-expand", "SUCCESS", 2, Map.of(), null),
-                new ResolutionStep("macro-up", "economy", "four-base", "SUCCESS", 3, Map.of(), null),
-                new ResolutionStep("early-pressure", "offensive", "drop-harass", "SUCCESS", 4, Map.of(), null),
-                new ResolutionStep("counter-push", "offensive", "max-out-push", "SUCCESS", 5, Map.of(), null)
+                new CbrPlanStep("scout", "reconnaissance", "scan-sweep", "SUCCESS", 1, Map.of(), null),
+                new CbrPlanStep("expand", "economy", "dual-expand", "SUCCESS", 2, Map.of(), null),
+                new CbrPlanStep("macro-up", "economy", "four-base", "SUCCESS", 3, Map.of(), null),
+                new CbrPlanStep("early-pressure", "offensive", "drop-harass", "SUCCESS", 4, Map.of(), null),
+                new CbrPlanStep("counter-push", "offensive", "max-out-push", "SUCCESS", 5, Map.of(), null)
             ))
     );
 
-    public static List<Result> run(CbrCaseMemoryStore store) {
+    public static List<Result> run(CbrRecordStore store) {
         store.registerSchema(SCHEMA);
 
         for (var seed : SEED_CASES) {
-            var cbrCase = new ResolvedCase(
+            var cbrRecord = new CbrPlanRecord(
                     seed.problem(), seed.solution(), seed.outcome(), io.casehub.neocortex.cognitive.Confidence.unknown(seed.confidence()),
-                    seed.features(), seed.resolutionStep(), null, null);
-            store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(),
+                    seed.features(), seed.cbrPlanStep(), null, null);
+            store.store(cbrRecord, CASE_TYPE, UUID.randomUUID().toString(),
                 DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 
         var query = CbrQuery.of(TENANT, DOMAIN, io.casehub.platform.api.path.Path.root(), CASE_TYPE,
             Map.of("opponent_race", string("ZERG"), "detected_build", string("ROACH_RUSH")), 10);
 
-        return store.retrieveSimilar(query, ResolvedCase.class).stream()
+        return store.retrieveSimilar(query, CbrPlanRecord.class).stream()
                     .map(Result::new)
                     .toList();
     }
@@ -204,7 +204,7 @@ public final class QuarkmindBattleDemo {
 
         // Print individual results with plan traces
         for (int i = 0; i < results.size(); i++) {
-            var c = results.get(i).scored().cbrCase();
+            var c = results.get(i).scored().cbrRecord();
             var features = c.features();
             System.out.printf("  #%d [%.2f] %s — vs %s, %s, army %.2f, resources %d%n",
                 i + 1, results.get(i).scored().score(), c.outcome(),
@@ -212,7 +212,7 @@ public final class QuarkmindBattleDemo {
                 features.get("army_size_ratio"),
                 ((int) ((FeatureValue.NumberVal) features.get("resource_advantage")).value()));
             System.out.println("     Plan trace:");
-            for (var trace : c.resolutionStep()) {
+            for (var trace : c.cbrPlanStep()) {
                 System.out.printf("       %d. %-15s → %-17s → %-17s → %s (pri %d)%n",
                     trace.priority(), trace.bindingName(), trace.capabilityName(),
                     trace.workerName(), trace.stepOutcome(), trace.priority());
@@ -223,17 +223,17 @@ public final class QuarkmindBattleDemo {
         // Plan analysis
         System.out.println("Plan analysis:");
 
-        long wins = results.stream().filter(r -> "WIN".equals(r.scored().cbrCase().outcome())).count();
-        long losses = results.stream().filter(r -> "LOSS".equals(r.scored().cbrCase().outcome())).count();
+        long wins = results.stream().filter(r -> "WIN".equals(r.scored().cbrRecord().outcome())).count();
+        long losses = results.stream().filter(r -> "LOSS".equals(r.scored().cbrRecord().outcome())).count();
         System.out.printf("  Win rate: %d%% (%d/%d). Opening binding breakdown:%n",
             results.isEmpty() ? 0 : wins * 100 / results.size(), wins, results.size());
 
         // Count binding appearances in winning vs losing games
         Map<String, long[]> bindingStats = new LinkedHashMap<>();
         for (var result : results) {
-            var c = result.scored().cbrCase();
+            var c = result.scored().cbrRecord();
             boolean isWin = "WIN".equals(c.outcome());
-            for (var trace : c.resolutionStep()) {
+            for (var trace : c.cbrPlanStep()) {
                 bindingStats.computeIfAbsent(trace.bindingName(), k -> new long[2]);
                 bindingStats.get(trace.bindingName())[isWin ? 0 : 1]++;
             }
@@ -259,8 +259,8 @@ public final class QuarkmindBattleDemo {
 
         // Identify losses that skipped scouting
         long lossesWithoutScout = results.stream()
-            .filter(r -> "LOSS".equals(r.scored().cbrCase().outcome()))
-            .filter(r -> r.scored().cbrCase().resolutionStep().stream()
+            .filter(r -> "LOSS".equals(r.scored().cbrRecord().outcome()))
+            .filter(r -> r.scored().cbrRecord().cbrPlanStep().stream()
                           .noneMatch(t -> "scout".equals(t.bindingName())))
             .count();
         if (lossesWithoutScout > 0) {
@@ -273,7 +273,7 @@ public final class QuarkmindBattleDemo {
     }
 
     public static void main(String[] args) {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         printResults(run(store));
     }
 }

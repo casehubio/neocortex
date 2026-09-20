@@ -39,13 +39,13 @@ These are characterizations of trajectories — derived numeric properties that
 should participate in CBR scoring and filtering alongside the raw DTW shape
 comparison.
 
-## Design Decision: No TemporalCbrCase
+## Design Decision: No TemporalCbrRecord
 
-The CbrCase type hierarchy discriminates by problem-solution reasoning paradigm:
-TextualCbrCase (text matching), FeatureVectorCbrCase (feature scoring),
-PlanCbrCase (plan adaptation). A TemporalCbrCase would discriminate by feature
-content — a category error. Cases with temporal fields remain FeatureVectorCbrCase
-(or PlanCbrCase) with TimeSeries fields alongside flat features.
+The CbrRecord type hierarchy discriminates by problem-solution reasoning paradigm:
+TextualCbrRecord (text matching), CbrFeatureRecord (feature scoring),
+PlanCbrRecord (plan adaptation). A TemporalCbrRecord would discriminate by feature
+content — a category error. Cases with temporal fields remain CbrFeatureRecord
+(or PlanCbrRecord) with TimeSeries fields alongside flat features.
 
 ## Architecture
 
@@ -192,9 +192,9 @@ public final class TrendAnalyzer {
         List<Map<String, FeatureValue>> observations, TimeSeries schema);
 
     public static Map<String, FeatureValue> enrichFeatures(
-        Map<String, FeatureValue> features, CbrFeatureSchema schema);
+        Map<String, FeatureValue> features, CbrRecordSchema schema);
 
-    public static CbrFeatureSchema expandSchema(CbrFeatureSchema schema);
+    public static CbrRecordSchema expandSchema(CbrRecordSchema schema);
 }
 ```
 
@@ -207,9 +207,9 @@ runs `analyze`, returns a **new map** containing the original features plus
 derived Numeric values. The input map is not mutated. If no TimeSeries values
 with TrendSpec are present, returns the input map unchanged.
 
-`expandSchema` — returns a new `CbrFeatureSchema` with derived Numeric fields
+`expandSchema` — returns a new `CbrRecordSchema` with derived Numeric fields
 appended for each TimeSeries field that has a non-null TrendSpec. The original
-schema is not modified. `CbrFeatureSchema` remains a pure value record with no
+schema is not modified. `CbrRecordSchema` remains a pure value record with no
 expansion logic in its constructor. **Idempotent:** if derived fields for a
 TimeSeries are already present in the schema (matching the naming pattern for
 the given TrendSpec), they are skipped. Calling `expandSchema` on an
@@ -218,7 +218,7 @@ already-expanded schema returns an identical schema without collision errors.
 **Observation ordering precondition:** all order-dependent metrics (DELTA,
 DURATION, ACCELERATION) assume observations are in ascending timestamp order.
 This is not validated by TrendAnalyzer — it is already enforced by
-`CbrFeatureValidator.validateTimeSeries()`, which rejects non-ascending
+`CbrRecordValidator.validateTimeSeries()`, which rejects non-ascending
 timestamps at both store and query time. DTW processing relies on the same
 ordering guarantee.
 
@@ -254,39 +254,39 @@ ordering guarantee.
 - Non-numeric inner fields → skipped
 - Missing field in an observation → observation skipped for that field
 
-#### CbrCase.withFeatures
+#### CbrRecord.withFeatures
 
-Add `withFeatures` to the `CbrCase` interface:
+Add `withFeatures` to the `CbrRecord` interface:
 
 ```java
-default CbrCase withFeatures(Map<String, FeatureValue> features) {
+default CbrRecord withFeatures(Map<String, FeatureValue> features) {
     throw new UnsupportedOperationException(
         getClass().getSimpleName() + " does not support withFeatures");
 }
 ```
 
-Overridden in `FeatureVectorCbrCase` and `ResolvedCase`:
+Overridden in `CbrFeatureRecord` and `CbrPlanRecord`:
 
 ```java
-// FeatureVectorCbrCase
+// CbrFeatureRecord
 @Override
-public CbrCase withFeatures(Map<String, FeatureValue> features) {
-    return new FeatureVectorCbrCase(problem(), solution(), outcome(),
+public CbrRecord withFeatures(Map<String, FeatureValue> features) {
+    return new CbrFeatureRecord(problem(), solution(), outcome(),
                                     confidence(), features);
 }
 
-// PlanCbrCase
+// PlanCbrRecord
 @Override
-public CbrCase withFeatures(Map<String, FeatureValue> features) {
-    return new PlanCbrCase(problem(), solution(), outcome(),
+public CbrRecord withFeatures(Map<String, FeatureValue> features) {
+    return new PlanCbrRecord(problem(), solution(), outcome(),
                            confidence(), features, planTrace());
 }
 ```
 
 This follows the existing `withOutcome` copy-with-modification pattern. The
 decorator uses it to construct enriched cases without instanceof dispatch.
-The default throws for case types without features (e.g., `ResolutionGuide`)
-— the decorator never reaches this path because TextualCbrCase cannot have
+The default throws for case types without features (e.g., `CbrGuidanceRecord`)
+— the decorator never reaches this path because TextualCbrRecord cannot have
 TimeSeries fields.
 
 #### CbrQuery.withFeatures
@@ -308,11 +308,11 @@ underlying store.
 
 #### TrendEnrichmentDecorator
 
-`@Decorator @Priority(90)` on CbrCaseMemoryStore. Intercepts three methods:
+`@Decorator @Priority(90)` on CbrRecordStore. Intercepts three methods:
 
 1. **`registerSchema()`** — calls `TrendAnalyzer.expandSchema(schema)` and
    delegates with the expanded schema. Maintains an internal
-   `ConcurrentHashMap<String, CbrFeatureSchema>` of caseType → expanded
+   `ConcurrentHashMap<String, CbrRecordSchema>` of caseType → expanded
    schema for use in store/query interception.
 
 2. **`store()`** — looks up the expanded schema for the caseType. If schema
@@ -337,7 +337,7 @@ Priority 90 places enrichment early — before outcome weighting (65),
 cross-encoder reranking (75), and tracking (50).
 
 **Activation:** classpath-activated, not `@IfBuildProperty`-gated. This
-departs from existing decorators (OutcomeWeightingCbrCaseMemoryStore uses
+departs from existing decorators (OutcomeWeightingCbrRecordStore uses
 `@IfBuildProperty`), but the departure is intentional: TrendSpec on the
 schema IS the declaration of intent. Config-gating would add a redundant
 toggle — consumers already opt in by declaring TrendSpec, and the decorator
@@ -364,7 +364,7 @@ The enrichment decorator adds derived features before any store sees the case.
 
 **Schema declaration:**
 ```java
-var schema = new CbrFeatureSchema("clinical-ae",
+var schema = new CbrRecordSchema("clinical-ae",
     FeatureField.categorical("drug"),
     FeatureField.numeric("age", 0, 120),
     FeatureField.timeSeries("vitals", "timestamp",
@@ -378,7 +378,7 @@ var schema = new CbrFeatureSchema("clinical-ae",
 
 **Store time (automatic via decorator):**
 ```java
-store.store(new FeatureVectorCbrCase(problem, solution, null, null,
+store.store(new CbrFeatureRecord(problem, solution, null, null,
     Map.of("drug", FeatureValue.string("pembrolizumab"),
            "age", FeatureValue.number(67),
            "vitals", FeatureValue.structList(observations))),
@@ -421,7 +421,7 @@ and adjust empirically based on domain-specific relevance.
 - `expandSchema` rejects name collisions between declared and derived fields
 - `expandSchema` is idempotent — double-expansion returns identical schema
 
-### Contract tests (memory-testing, CbrCaseMemoryStoreContractTest)
+### Contract tests (memory-testing, CbrRecordStoreContractTest)
 
 Schema + validation:
 - `trend_schemaWithTrendSpec_expandsDerivedFields`
@@ -451,17 +451,17 @@ Edge cases:
 - `trendEnrichment_retrievePassesThrough` (non-retrieveSimilar methods)
 - Reactive parity tests
 
-### CbrCase / CbrQuery tests (memory-api)
+### CbrRecord / CbrQuery tests (memory-api)
 
-- `withFeatures_featureVectorCbrCase_returnsNewInstance`
-- `withFeatures_planCbrCase_preservesPlanTrace`
-- `withFeatures_textualCbrCase_throwsUnsupportedOperation`
+- `withFeatures_featureVectorCbrRecord_returnsNewInstance`
+- `withFeatures_planCbrRecord_preservesPlanTrace`
+- `withFeatures_textualCbrRecord_throwsUnsupportedOperation`
 - `cbrQuery_withFeatures_returnsNewQueryWithUpdatedFeatures`
 
 ## Scope boundary
 
 **In scope:** TrendSpec, TrendType, TrendProfile, TrendFieldNaming, TrendAnalyzer
-(analyze, enrichFeatures, expandSchema), CbrCase.withFeatures,
+(analyze, enrichFeatures, expandSchema), CbrRecord.withFeatures,
 CbrQuery.withFeatures, TrendEnrichmentDecorator
 (registerSchema/store/retrieveSimilar interception) + reactive parity,
 contract tests, TrendAnalyzer unit tests.
@@ -473,12 +473,12 @@ implementation clarity):
 |------|--------|----------------|
 | `FeatureField.TimeSeries` | constructor | Add `trendSpec` parameter; validate TrendSpec independently (non-null types, non-empty set) |
 | `FeatureField` | `timeSeries()` factory | Add overload with `TrendSpec` parameter; existing overloads pass `null` |
-| `CbrFeatureValidator` | `validateStoreFeatures()` | No change — derived fields are Numeric, handled by existing Numeric branch |
-| `CbrFeatureValidator` | `validateQueryFeatures()` | No change — derived fields are Numeric (NumberVal or RangeVal) |
+| `CbrRecordValidator` | `validateStoreFeatures()` | No change — derived fields are Numeric, handled by existing Numeric branch |
+| `CbrRecordValidator` | `validateQueryFeatures()` | No change — derived fields are Numeric (NumberVal or RangeVal) |
 | `CbrSimilarityScorer` | `localSimilarity()` | No change — derived fields are Numeric, dispatched to existing `numericSimilarity` |
-| `CbrCase` | interface | Add `withFeatures()` default method |
-| `FeatureVectorCbrCase` | record | Add `withFeatures()` override |
-| `ResolvedCase` | record | Add `withFeatures()` override |
+| `CbrRecord` | interface | Add `withFeatures()` default method |
+| `CbrFeatureRecord` | record | Add `withFeatures()` override |
+| `CbrPlanRecord` | record | Add `withFeatures()` override |
 | `CbrQuery` | record | Add `withFeatures()` method |
 
 **Out of scope (future work):**

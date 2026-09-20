@@ -3,9 +3,9 @@
 **Choice:** Define a `GraduationScorer` @FunctionalInterface SPI in memory-api (package `io.casehub.neocortex.memory.experience`). @DefaultBean in mindmap-intelligence returns the memory's confidence (or 0.5 if null). Blocks or application code provides richer scoring (surprise, arousal, etc.).
 **Alternatives:**
 - Inline pure Java — hardcode composite score directly in the phase. No extension point for downstream consumers.
-- Reuse ConfidenceScorer from blocks — requires extracting the interface to a shared module. Wrong input type (ScoredCbrCase vs Memory).
-**Rationale:** Blocks scorers operate on `ScoredCbrCase<CbrCase>`, not `Memory`. Dependency direction is blocks → neocortex, so neocortex can't import blocks types. An SPI in neocortex lets blocks provide a rich implementation while the default works standalone.
-**Trade-offs:** Slightly more surface area than inline scoring, but matches the established neocortex SPI pattern (ReflectionSynthesizer, PlanAdapter, QueryExpander).
+- Reuse ConfidenceScorer from blocks — requires extracting the interface to a shared module. Wrong input type (CbrMatch vs Memory).
+**Rationale:** Blocks scorers operate on `CbrMatch<CbrRecord>`, not `Memory`. Dependency direction is blocks → neocortex, so neocortex can't import blocks types. An SPI in neocortex lets blocks provide a rich implementation while the default works standalone.
+**Trade-offs:** Slightly more surface area than inline scoring, but matches the established neocortex SPI pattern (ReflectionSynthesizer, CbrPlanAdapter, QueryExpander).
 **Sources:** blocks/memory/SurpriseScorer.java, blocks/memory/ArousalScorer.java, blocks/memory/ConfidenceScorer.java, memory-api MemoryInput/Memory types
 **Exploration:** quick
 **Status:** captured
@@ -93,6 +93,6 @@
 - No SPI, all inline — simplest but no extension point for blocks/wacky-manor
 **Rationale:** Two independent SPIs give independent extensibility. Blocks can provide a rich scorer (surprise/arousal/confidence composite) without touching classification, and vice versa. Matches the neocortex pattern exactly.
 **Trade-offs:** Two SPIs is slightly more surface area than one.
-**Sources:** ReflectionSynthesizer (SPI pattern), PlanAdapter (SPI pattern), QueryExpander (SPI pattern)
+**Sources:** ReflectionSynthesizer (SPI pattern), CbrPlanAdapter (SPI pattern), QueryExpander (SPI pattern)
 **Exploration:** quick
 **Status:** captured

@@ -41,4 +41,4 @@ decisions: "last time this agent shifted dominant function, what happened?"
 
 ## Methods
 
-### `public static io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema()`
+### `public static io.casehub.neocortex.memory.cbr.CbrRecordSchema schema()`

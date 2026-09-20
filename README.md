@@ -141,12 +141,12 @@ Semantic text fields use `EmbeddingTextSimilarity` (`memory-cbr-embedding`) for 
 | `memory-mem0/` | Mem0 REST + vector embeddings |
 | `memory-graphiti/` | Graphiti REST temporal knowledge graph |
 | **Memory — CBR** | |
-| `memory-api/` | `CbrCaseMemoryStore`, `CbrCase` hierarchy, `CbrQuery`, `CbrFeatureSchema`, `FeatureField` (sealed), `SimilaritySpec` (sealed), `CbrSimilarityScorer`, `LocalSimilarityFunction` |
-| `memory/` | `NoOpCbrCaseMemoryStore` default, `BlockingToReactiveCbrBridge` |
+| `memory-api/` | `CbrRecordStore`, `CbrRecord` hierarchy, `CbrQuery`, `CbrRecordSchema`, `FeatureField` (sealed), `SimilaritySpec` (sealed), `CbrSimilarityScorer`, `LocalSimilarityFunction` |
+| `memory/` | `NoOpCbrRecordStore` default, `BlockingToReactiveCbrBridge` |
 | `memory-cbr-inmem/` | In-memory stub — categorical exact match, scorer-based ranking |
 | `memory-cbr-embedding/` | `EmbeddingTextSimilarity` — cosine similarity for semantic text fields |
 | `memory-qdrant/` | Qdrant payload filters + dense vector + two-pass semantic text. Reconciliation service. |
-| `memory-testing/` | `CbrCaseMemoryStoreContractTest` — 37-test contract suite |
+| `memory-testing/` | `CbrRecordStoreContractTest` — 37-test contract suite |
 | **Examples** | |
 | `examples/example-text-analysis/` | NLI, classification, scoring, reranking, SPLADE demos |
 | `examples/example-rag-pipeline/` | Corpus ingestion + hybrid search (requires Qdrant) |

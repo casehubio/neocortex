@@ -73,11 +73,11 @@ and configurable per-field weights.
 - `queryVal` (`io.casehub.neocortex.memory.cbr.FeatureValue`)
 - `caseVal` (`io.casehub.neocortex.memory.cbr.FeatureValue`)
 
-### `private static io.casehub.neocortex.memory.cbr.FeatureField findField(io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema, java.lang.String name)`
+### `private static io.casehub.neocortex.memory.cbr.FeatureField findField(io.casehub.neocortex.memory.cbr.CbrRecordSchema schema, java.lang.String name)`
 
 #### Parameters
 
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 - `name` (`java.lang.String`)
 
 ### `private static double localSimilarity(io.casehub.neocortex.memory.cbr.FeatureField field, io.casehub.neocortex.memory.cbr.FeatureValue queryVal, io.casehub.neocortex.memory.cbr.FeatureValue caseVal, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides)`
@@ -131,43 +131,43 @@ and configurable per-field weights.
 - `queryVal` (`io.casehub.neocortex.memory.cbr.FeatureValue`)
 - `caseVal` (`io.casehub.neocortex.memory.cbr.FeatureValue`)
 
-### `public static double score(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema)`
+### `public static double score(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema)`
 
 #### Parameters
 
 - `queryFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `caseFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `weights` (`java.util.Map<java.lang.String,java.lang.Double>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 
-### `public static double score(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides)`
+### `public static double score(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides)`
 
 #### Parameters
 
 - `queryFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `caseFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `weights` (`java.util.Map<java.lang.String,java.lang.Double>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 - `overrides` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction>`)
 
-### `public static io.casehub.neocortex.memory.cbr.CbrSimilarityScorer.SimilarityBreakdown scoreDetailed(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides)`
+### `public static io.casehub.neocortex.memory.cbr.CbrSimilarityScorer.SimilarityBreakdown scoreDetailed(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides)`
 
 #### Parameters
 
 - `queryFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `caseFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `weights` (`java.util.Map<java.lang.String,java.lang.Double>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 - `overrides` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction>`)
 
-### `public static io.casehub.neocortex.memory.cbr.CbrSimilarityScorer.SimilarityBreakdown scoreDetailed(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrFeatureSchema schema, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides, double dtwAbandonCostThreshold)`
+### `public static io.casehub.neocortex.memory.cbr.CbrSimilarityScorer.SimilarityBreakdown scoreDetailed(java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> queryFeatures, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue> caseFeatures, java.util.Map<java.lang.String,java.lang.Double> weights, io.casehub.neocortex.memory.cbr.CbrRecordSchema schema, java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction> overrides, double dtwAbandonCostThreshold)`
 
 #### Parameters
 
 - `queryFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `caseFeatures` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.FeatureValue>`)
 - `weights` (`java.util.Map<java.lang.String,java.lang.Double>`)
-- `schema` (`io.casehub.neocortex.memory.cbr.CbrFeatureSchema`)
+- `schema` (`io.casehub.neocortex.memory.cbr.CbrRecordSchema`)
 - `overrides` (`java.util.Map<java.lang.String,io.casehub.neocortex.memory.cbr.LocalSimilarityFunction>`)
 - `dtwAbandonCostThreshold` (`double`)
 

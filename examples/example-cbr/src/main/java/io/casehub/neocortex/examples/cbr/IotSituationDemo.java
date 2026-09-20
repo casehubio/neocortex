@@ -1,15 +1,16 @@
 package io.casehub.neocortex.examples.cbr;
 
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.cbr.CbrCaseMemoryStore;
-import io.casehub.neocortex.memory.cbr.CbrFeatureSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.FeatureVectorCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import static io.casehub.neocortex.memory.cbr.FeatureValue.*;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
-import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrCaseMemoryStore;
+
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 
 import java.util.List;
 import java.util.Map;
@@ -21,18 +22,18 @@ public final class IotSituationDemo {
     static final String TENANT = "demo";
     static final String CASE_TYPE = "iot-situation";
 
-    static final CbrFeatureSchema SCHEMA = CbrFeatureSchema.of(CASE_TYPE,
-        FeatureField.categorical("situation_type"),
-        FeatureField.categorical("device_class"),
-        FeatureField.categorical("room_type"),
-        FeatureField.categorical("time_of_day"),
-        FeatureField.categorical("severity"),
-        FeatureField.text("situation_description"));
+    static final CbrRecordSchema SCHEMA = CbrRecordSchema.of(CASE_TYPE,
+                                                             FeatureField.categorical("situation_type"),
+                                                             FeatureField.categorical("device_class"),
+                                                             FeatureField.categorical("room_type"),
+                                                             FeatureField.categorical("time_of_day"),
+                                                             FeatureField.categorical("severity"),
+                                                             FeatureField.text("situation_description"));
 
     record SeedCase(String problem, String solution, String outcome,
                     double confidence, Map<String, FeatureValue> features) {}
 
-    public record Result(ScoredCbrCase<FeatureVectorCbrCase> scored) {}
+    public record Result(CbrMatch<CbrFeatureRecord> scored) {}
 
     static final List<SeedCase> SEED_CASES = List.of(
         new SeedCase(
@@ -107,21 +108,21 @@ public final class IotSituationDemo {
                    "situation_description", string("Grid fault, 2-hour outage")))
     );
 
-    public static List<Result> run(CbrCaseMemoryStore store) {
+    public static List<Result> run(CbrRecordStore store) {
         store.registerSchema(SCHEMA);
 
         for (var seed : SEED_CASES) {
-            var cbrCase = new FeatureVectorCbrCase(
+            var cbrRecord = new CbrFeatureRecord(
                     seed.problem(), seed.solution(), seed.outcome(), io.casehub.neocortex.cognitive.Confidence.unknown(seed.confidence()), seed.features(), null, null);
-            store.store(cbrCase, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
+            store.store(cbrRecord, CASE_TYPE, UUID.randomUUID().toString(), DOMAIN, TENANT, UUID.randomUUID().toString(), io.casehub.platform.api.path.Path.root());
         }
 
         var query = CbrQuery.of(TENANT, DOMAIN, io.casehub.platform.api.path.Path.root(), CASE_TYPE,
             Map.of("situation_type", string("TEMPERATURE_ANOMALY"), "room_type", string("KITCHEN")), 10);
 
-        return store.retrieveSimilar(query, FeatureVectorCbrCase.class).stream()
-            .map(Result::new)
-            .toList();
+        return store.retrieveSimilar(query, CbrFeatureRecord.class).stream()
+                    .map(Result::new)
+                    .toList();
     }
 
     static void printResults(List<Result> results) {
@@ -132,7 +133,7 @@ public final class IotSituationDemo {
             results.size(), SEED_CASES.size());
 
         for (int i = 0; i < results.size(); i++) {
-            var c = results.get(i).scored().cbrCase();
+            var c = results.get(i).scored().cbrRecord();
             var timeOfDay = c.features().get("time_of_day");
             var severity = c.features().get("severity");
             System.out.printf("  #%d [%.2f] %s — %s, %s%n", i + 1,
@@ -142,11 +143,11 @@ public final class IotSituationDemo {
         }
 
         long dismissedCount = results.stream()
-            .filter(r -> "OPERATOR_DISMISSED".equals(r.scored().cbrCase().outcome()))
+            .filter(r -> "OPERATOR_DISMISSED".equals(r.scored().cbrRecord().outcome()))
             .count();
         long genuineCount = results.stream()
-            .filter(r -> "WORK_ITEM_CREATED".equals(r.scored().cbrCase().outcome()) ||
-                         "ESCALATED".equals(r.scored().cbrCase().outcome()))
+            .filter(r -> "WORK_ITEM_CREATED".equals(r.scored().cbrRecord().outcome()) ||
+                         "ESCALATED".equals(r.scored().cbrRecord().outcome()))
             .count();
 
         int falsePositiveRate = results.isEmpty() ? 0 : (int) (dismissedCount * 100 / results.size());
@@ -164,7 +165,7 @@ public final class IotSituationDemo {
     }
 
     public static void main(String[] args) {
-        var store = new InMemoryCbrCaseMemoryStore();
+        var store = new InMemoryCbrRecordStore();
         printResults(run(store));
     }
 }

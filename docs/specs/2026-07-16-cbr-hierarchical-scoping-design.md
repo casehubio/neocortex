@@ -18,7 +18,7 @@ Clinical and multi-scope domains need a hierarchy: entity-level cases (patient),
 
 3. **Blended retrieval with scope decay.** Cases from all ancestor scopes are included in results. A `ScopeDecay` function (on `CbrQuery`, like `TemporalDecay`) applies a score multiplier based on depth distance. Store-level filtering prevents child-scope cases from leaking upward.
 
-4. **Aggregates are regular cases.** Cross-scope aggregation (e.g., "3 of 5 sites show AE rate above threshold") is the domain's responsibility. The domain creates a regular `CbrCase` at a higher scope with provenance tracked via feature fields. No aggregation SPI. **Aggregate integrity after entity erasure** is also the domain's responsibility — scope isolation guarantees that `eraseEntity()` does not cascade to aggregate-scope cases (different scope, different entityId), but the domain must recompute aggregates when source data changes. See #159 for the reactive notification mechanism.
+4. **Aggregates are regular cases.** Cross-scope aggregation (e.g., "3 of 5 sites show AE rate above threshold") is the domain's responsibility. The domain creates a regular `CbrRecord` at a higher scope with provenance tracked via feature fields. No aggregation SPI. **Aggregate integrity after entity erasure** is also the domain's responsibility — scope isolation guarantees that `eraseEntity()` does not cascade to aggregate-scope cases (different scope, different entityId), but the domain must recompute aggregates when source data changes. See #159 for the reactive notification mechanism.
 
 5. **No scope-based erasure in this issue.** `entityId` remains the GDPR Art.17 anchor. Scope-based bulk erasure (`eraseByScope`) filed as #158 for follow-on.
 
@@ -57,12 +57,12 @@ A case is visible to a query if the case's scope equals the query scope OR is an
 
 ## API Changes
 
-### CbrCaseMemoryStore
+### CbrRecordStore
 
 Add `Path scope` as the last parameter to `store()`:
 
 ```java
-String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain domain,
+String store(CbrRecord cbrCase, String caseType, String entityId, MemoryDomain domain,
              String tenantId, String caseId, Path scope);
 ```
 
@@ -72,7 +72,7 @@ String store(CbrCase cbrCase, String caseType, String entityId, MemoryDomain dom
 
 **Root query semantics:** A query with `Path.root()` sees only root-scope cases — not all cases. Root has no ancestors, and child-scope cases don't leak upward. This is correct by the visibility model but is a semantic shift for callers: pre-scope queries saw all cases; post-scope root queries see only root-scope cases. Since the Flyway migration defaults existing rows to root scope (see §JPA Migration below), existing callers see all their existing cases. New cases stored at non-root scopes are deliberately invisible to root queries. Scope-agnostic listing (e.g., for admin or diagnostics) is outside the `retrieveSimilar` contract and handled by direct store access.
 
-`ReactiveCbrCaseMemoryStore` — same change, returns `Uni<String>`.
+`ReactiveCbrRecordStore` — same change, returns `Uni<String>`.
 
 No changes to `erase()`, `eraseEntity()`, `recordOutcome()`, `purge()`, `supersede()`, `reinstate()`.
 
@@ -112,12 +112,12 @@ public static CbrQuery of(String tenantId, MemoryDomain domain, Path scope,
 
 New methods: `withScope(Path)`, `withScopeDecay(ScopeDecay)`.
 
-### ScoredCbrCase
+### CbrMatch
 
 Add `Path scope`:
 
 ```java
-public record ScoredCbrCase<C extends CbrCase>(
+public record CbrMatch<C extends CbrRecord>(
     C cbrCase, String caseId, double score, boolean reranked,
     Map<String, Double> featureSimilarities, Instant storedAt,
     Path scope
@@ -181,9 +181,9 @@ Root-scope cases are visible everywhere — `Path.root().isAncestorOf(anyNonRoot
 
 ### Per-store implementation notes
 
-- **InMemoryCbrCaseMemoryStore** — one predicate added to the retrieval loop. `StoredCase` record gains a `Path scope` field.
-- **QdrantCbrCaseMemoryStore** — scope stored as a keyword payload field (`scope` = `Path.value()`, e.g. `""` for root, `"trial-alpha/site-north"` for a site scope). At query time, `CbrQueryTranslator.toIdentityFilter()` enumerates all ancestor scope values from the query scope and uses `ConditionFactory.matchKeywords("scope", ancestorScopes)` — Qdrant's match-any filter. For query scope `trial-alpha/site-north/patient-42`, the filter matches scope IN `["", "trial-alpha", "trial-alpha/site-north", "trial-alpha/site-north/patient-42"]`. Ancestor enumeration is bounded by depth (typically ≤5) and must be constructed by iterating `Path.segments()` — not by walking `Path.parent()`, which returns `null` at depth 1 (not `Path.root()`), so parent-chain traversal misses root.
-- **JpaCbrCaseMemoryStore** — scope stored as a VARCHAR column. SQL: `scope_value = '' OR scope_value = :queryScope OR :queryScope LIKE scope_value || '/%'`.
+- **InMemoryCbrRecordStore** — one predicate added to the retrieval loop. `StoredCase` record gains a `Path scope` field.
+- **QdrantCbrRecordStore** — scope stored as a keyword payload field (`scope` = `Path.value()`, e.g. `""` for root, `"trial-alpha/site-north"` for a site scope). At query time, `CbrQueryTranslator.toIdentityFilter()` enumerates all ancestor scope values from the query scope and uses `ConditionFactory.matchKeywords("scope", ancestorScopes)` — Qdrant's match-any filter. For query scope `trial-alpha/site-north/patient-42`, the filter matches scope IN `["", "trial-alpha", "trial-alpha/site-north", "trial-alpha/site-north/patient-42"]`. Ancestor enumeration is bounded by depth (typically ≤5) and must be constructed by iterating `Path.segments()` — not by walking `Path.parent()`, which returns `null` at depth 1 (not `Path.root()`), so parent-chain traversal misses root.
+- **JpaCbrRecordStore** — scope stored as a VARCHAR column. SQL: `scope_value = '' OR scope_value = :queryScope OR :queryScope LIKE scope_value || '/%'`.
 
 ### JPA Migration
 
@@ -200,7 +200,7 @@ Migration is two parts:
 
 ## ScopeDecay Decorator
 
-`ScopeDecayCbrCaseMemoryStore` `@Decorator` `@Priority(85)` — between TrendEnrichment (90) and TemporalDecay (80).
+`ScopeDecayCbrRecordStore` `@Decorator` `@Priority(85)` — between TrendEnrichment (90) and TemporalDecay (80).
 
 1. Delegates to get results (store already filtered to visible scopes)
 2. If `query.scopeDecay() == null` → returns results unchanged
@@ -209,7 +209,7 @@ Migration is two parts:
 5. Filters results below `minSimilarity`, re-sorts by score descending
 6. Returns
 
-Reactive parity: `ReactiveScopeDecayCbrCaseMemoryStore` `@Decorator` `@Priority(85)`.
+Reactive parity: `ReactiveScopeDecayCbrRecordStore` `@Decorator` `@Priority(85)`.
 
 ### Full decorator chain
 
@@ -226,27 +226,27 @@ Reactive parity: `ReactiveScopeDecayCbrCaseMemoryStore` `@Decorator` `@Priority(
 
 | Module | What changes |
 |---|---|
-| **memory-api** | `CbrCaseMemoryStore.store()` + `ReactiveCbrCaseMemoryStore.store()` gain `Path scope`. `CbrQuery` gains `scope` + `scopeDecay`. `ScoredCbrCase` gains `scope`. New `ScopeDecay` sealed interface. |
-| **memory/** | New `ScopeDecayCbrCaseMemoryStore` @Decorator @Priority(85) + reactive parity. All existing decorators update `store()` pass-through to forward `scope`. |
-| **memory-cbr-inmem** | `InMemoryCbrCaseMemoryStore` — `StoredCase` gains `scope`, retrieval adds visibility predicate. |
-| **memory-cbr-jpa** | `JpaCbrCaseMemoryStore` — new `scope` column, Flyway migration, scope-aware SQL. |
-| **memory-qdrant** | `QdrantCbrCaseMemoryStore` — scope payload field, scope-aware filter construction. |
-| **memory-testing** | `CbrCaseMemoryStoreContractTest` — new scope tests. |
+| **memory-api** | `CbrRecordStore.store()` + `ReactiveCbrRecordStore.store()` gain `Path scope`. `CbrQuery` gains `scope` + `scopeDecay`. `CbrMatch` gains `scope`. New `ScopeDecay` sealed interface. |
+| **memory/** | New `ScopeDecayCbrRecordStore` @Decorator @Priority(85) + reactive parity. All existing decorators update `store()` pass-through to forward `scope`. |
+| **memory-cbr-inmem** | `InMemoryCbrRecordStore` — `StoredCase` gains `scope`, retrieval adds visibility predicate. |
+| **memory-cbr-jpa** | `JpaCbrRecordStore` — new `scope` column, Flyway migration, scope-aware SQL. |
+| **memory-qdrant** | `QdrantCbrRecordStore` — scope payload field, scope-aware filter construction. |
+| **memory-testing** | `CbrRecordStoreContractTest` — new scope tests. |
 | **memory-cbr-crossencoder** | Pass-through update for `store()` signature. |
 | **memory-cbr-tracking** | Pass-through update for `store()` signature. |
 
 ## Contract Tests
 
-Added to `CbrCaseMemoryStoreContractTest`:
+Added to `CbrRecordStoreContractTest`:
 
 1. **Cascade visibility** — store at root, mid, and leaf scope depths. Query from leaf → all three visible.
 2. **No upward leakage** — store at child scope, query from parent → not returned.
 3. **Root visibility** — store at root, query from any scope → visible.
 4. **Branch isolation** — store at `trial-alpha/site-north`, query at `trial-beta/site-south` → not returned.
-5. **Scope round-trip** — store with scope, retrieve → `ScoredCbrCase.scope()` matches.
+5. **Scope round-trip** — store with scope, retrieve → `CbrMatch.scope()` matches.
 6. **Root-scope query isolation** — store at `trial-alpha/site-north`, query from `Path.root()` → case NOT returned. Validates no-upward-leakage at the root boundary.
 
-Decorator unit tests (`ScopeDecayCbrCaseMemoryStoreTest`):
+Decorator unit tests (`ScopeDecayCbrRecordStoreTest`):
 
 7. **Null scopeDecay** — pass-through.
 8. **Exponential decay** — exact=1.0, parent=0.5, grandparent=0.25.

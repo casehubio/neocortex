@@ -22,9 +22,9 @@
 
 - `cutoff` (`java.time.Instant`)
 
-### `public abstract java.lang.String record(io.casehub.neocortex.memory.cbr.CbrQuery query, java.util.List<io.casehub.neocortex.memory.cbr.ScoredCbrCase<?>> results)`
+### `public abstract java.lang.String record(io.casehub.neocortex.memory.cbr.CbrQuery query, java.util.List<io.casehub.neocortex.memory.cbr.CbrMatch<?>> results)`
 
 #### Parameters
 
 - `query` (`io.casehub.neocortex.memory.cbr.CbrQuery`)
-- `results` (`java.util.List<io.casehub.neocortex.memory.cbr.ScoredCbrCase<?>>`)
+- `results` (`java.util.List<io.casehub.neocortex.memory.cbr.CbrMatch<?>>`)

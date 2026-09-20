@@ -15,8 +15,8 @@ most similar adverse events your team has already handled and what they did abou
 
 | Step | What it does | SPI |
 |------|-------------|-----|
-| **Retain** | Store a solved case with structured features | `CbrCaseMemoryStore.store()` |
-| **Retrieve** | Find similar past cases | `CbrCaseMemoryStore.retrieveSimilar()` |
+| **Retain** | Store a solved case with structured features | `CbrRecordStore.store()` |
+| **Retrieve** | Find similar past cases | `CbrRecordStore.retrieveSimilar()` |
 | **Reuse** | Apply retrieved solutions to the new case | Application-layer |
 | **Revise** | Adapt retrieved solutions when they don't fit directly | Future: plan-based adaptation |
 
@@ -35,14 +35,14 @@ vector is the recall.
 
 ## Case Types
 
-Three `CbrCase` implementations cover different reasoning paradigms. All share
-`problem()`, `solution()`, `outcome()`, `confidence()`, and `cbrType()`.
+Three `CbrRecord` implementations cover different reasoning paradigms. All share
+`problem()`, `solution()`, `outcome()`, `confidence()`, and `recordType()`.
 
 | Type | Discriminator | When to use |
 |------|--------------|-------------|
-| `ResolutionGuide` | `"textual"` | No structured features. Pure NL similarity on problem text. |
-| `FeatureVectorCbrCase` | `"feature-vector"` | Structured categorical/numeric/text features. Most applications. |
-| `ResolvedCase` | `"plan"` | Feature-Vector plus ordered execution traces. CHEF-style case-based planning. |
+| `CbrGuidanceRecord` | `"textual"` | No structured features. Pure NL similarity on problem text. |
+| `CbrFeatureRecord` | `"feature-vector"` | Structured categorical/numeric/text features. Most applications. |
+| `CbrPlanRecord` | `"plan"` | Feature-Vector plus ordered execution traces. CHEF-style case-based planning. |
 
 See [CBR Types](cbr-types.md) for a detailed explanation of each type, its inputs/outputs,
 and how they layer for routing.
@@ -53,7 +53,7 @@ Schemas declare the shape of features per case type. They drive Qdrant index cre
 query validation, and similarity scoring.
 
 ```java
-CbrFeatureSchema schema = CbrFeatureSchema.of("aml-investigation",
+CbrRecordSchema schema = CbrRecordSchema.of("aml-investigation",
     FeatureField.categorical("transaction_pattern"),
     FeatureField.categorical("risk_tier", SimilaritySpec.categoricalTableBuilder()
         .add("LOW", "MEDIUM", 0.6)
@@ -156,7 +156,7 @@ CbrQuery query = CbrQuery.of(tenantId, domain, "aml-investigation",
 
 ```java
 // Store
-var cbrCase = new FeatureVectorCbrCase(
+var cbrCase = new CbrFeatureRecord(
     "Suspicious structuring across three accounts",
     "Filed SAR, escalated to compliance",
     "SAR_FILED", 0.95,
@@ -165,8 +165,8 @@ var cbrCase = new FeatureVectorCbrCase(
 String id = cbrStore.store(cbrCase, "aml-investigation", entityId, domain, tenantId, caseId);
 
 // Retrieve
-List<ScoredCbrCase<FeatureVectorCbrCase>> similar =
-    cbrStore.retrieveSimilar(query, FeatureVectorCbrCase.class);
+List<CbrMatch<CbrFeatureRecord>> similar =
+    cbrStore.retrieveSimilar(query, CbrFeatureRecord.class);
 ```
 
 ## Case Enrichment
@@ -184,7 +184,7 @@ the store. Each step declares `appliesTo()`, `enrich()`, `priority()`, and `requ
 
 ### Qdrant Backend — two-pass retrieval
 
-The Qdrant backend (`QdrantCbrCaseMemoryStore`) runs a two-pass retrieve when semantic
+The Qdrant backend (`QdrantCbrRecordStore`) runs a two-pass retrieve when semantic
 text fields are present:
 
 1. **First pass:** Qdrant payload filters (categorical/numeric/text) + optional dense vector
@@ -217,7 +217,7 @@ casehub.memory.cbr.qdrant.max-retries=3
 
 ## Testing
 
-`CbrCaseMemoryStoreContractTest` (in `memory-testing`) provides a 37-test contract suite
+`CbrRecordStoreContractTest` (in `memory-testing`) provides a 37-test contract suite
 that every backend must pass. Covers store/retrieve round-trip, schema registration,
 query validation, erase, feature filtering, and type hierarchy.
 

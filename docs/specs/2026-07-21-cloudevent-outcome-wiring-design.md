@@ -53,7 +53,7 @@ Stream processor (AMQP/Kafka/Poll)
 
 **`@RequestScoped` constraint:** `@ObservesAsync` observers run on a managed
 thread pool where `@RequestScoped` context is not propagated (platform
-ARC42STORIES §8). `CbrOutcomeConsumer` and the `CbrCaseMemoryStore` decorator
+ARC42STORIES §8). `CbrOutcomeConsumer` and the `CbrRecordStore` decorator
 chain (OutcomeWeighting, TemporalDecay, ErasureNotification, ScopeDecay) must
 not inject `@RequestScoped` beans. Currently safe — `tenantId` is passed as a
 method parameter, not resolved from `CurrentPrincipal`. Violation would cause

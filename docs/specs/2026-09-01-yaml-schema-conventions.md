@@ -186,7 +186,7 @@ Java runtime validation (AllOf rejects <2 filters) catches structural errors.
 | `{key: val}` (mapping) | StructVal |
 | `[{k: v}, {k: v}]` (list of mappings) | StructListVal |
 
-**Ambiguity resolution:** A 2-element number array is ambiguous (RangeVal vs NumberListVal). The CbrFeatureSchema's field type resolves this:
+**Ambiguity resolution:** A 2-element number array is ambiguous (RangeVal vs NumberListVal). The CbrRecordSchema's field type resolves this:
 - Field declared as `Numeric` → RangeVal (`[0.5, 1.0]` = `min: 0.5, max: 1.0`)
 - Field declared as `NumericList` → NumberListVal
 
@@ -269,7 +269,7 @@ outcomeWeighting: linear
 # References @Named("noop") ReflectionSynthesizer
 reflectionSynthesizer: noop
 
-# References @Named("myCustomAdapter") PlanAdapter
+# References @Named("myCustomAdapter") CbrPlanAdapter
 planAdapter: myCustomAdapter
 ```
 
@@ -282,8 +282,8 @@ Pre-built default names:
 | OutcomeWeightingFunction | `linear` | DefaultOutcomeWeightingFunction |
 | TrustWeightingFunction | `default` | DefaultTrustWeightingFunction |
 | ReflectionSynthesizer | `noop` | NoOpReflectionSynthesizer |
-| PlanAdapter | `noop` | NoOpPlanAdapter |
-| PlanEnsembleAnalyzer | `noop` | NoOpPlanEnsembleAnalyzer |
+| CbrPlanAdapter | `noop` | NoOpCbrPlanAdapter |
+| CbrPlanEnsembleAnalyzer | `noop` | NoOpCbrPlanEnsembleAnalyzer |
 | ExplanationRenderer | `default` | DefaultExplanationRenderer |
 | LocalSimilarityFunction | `exactMatch` | EXACT_MATCH constant |
 | TemporalRanker | (none — functional interface, composed at call site) | — |
@@ -372,7 +372,7 @@ Symmetric matrix — the parser mirrors entries (`red→blue: 0.3` implies `blue
 
 ## §8 Complete YAML Examples
 
-### §8.1 CbrFeatureSchema
+### §8.1 CbrRecordSchema
 
 ```yaml
 caseType: incident

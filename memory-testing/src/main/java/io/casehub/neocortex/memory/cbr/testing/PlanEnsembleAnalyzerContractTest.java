@@ -5,10 +5,10 @@ import io.casehub.neocortex.memory.cbr.AdaptationAction;
 import io.casehub.neocortex.memory.cbr.AdaptedPlan;
 import io.casehub.neocortex.memory.cbr.AdaptedStep;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.ResolvedCase;
-import io.casehub.neocortex.memory.cbr.PlanEnsembleAnalyzer;
-import io.casehub.neocortex.memory.cbr.ResolutionStep;
-import io.casehub.neocortex.memory.cbr.ScoredCbrCase;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanEnsembleAnalyzer;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -20,16 +20,16 @@ import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 public abstract class PlanEnsembleAnalyzerContractTest {
 
-    protected abstract PlanEnsembleAnalyzer analyzer();
+    protected abstract CbrPlanEnsembleAnalyzer analyzer();
 
-    private static ScoredCbrCase<ResolvedCase> scored(String caseId, double score, String... bindings) {
-        var traces = new java.util.ArrayList<ResolutionStep>();
+    private static CbrMatch<CbrPlanRecord> scored(String caseId, double score, String... bindings) {
+        var traces = new java.util.ArrayList<CbrPlanStep>();
         for (String b : bindings) {
-            traces.add(new ResolutionStep(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
+            traces.add(new CbrPlanStep(b, "cap-" + b, "worker-" + b, "COMPLETED", 0, Map.of(), null));
         }
-        var plan = new ResolvedCase("problem", "solution", "COMPLETED", Confidence.unknown(score),
-                                    Map.of("f", FeatureValue.string("v")), traces, null, null);
-        return new ScoredCbrCase<>(plan, caseId, "test-type", score);
+        var plan = new CbrPlanRecord("problem", "solution", "COMPLETED", Confidence.unknown(score),
+                                     Map.of("f", FeatureValue.string("v")), traces, null, null);
+        return new CbrMatch<>(plan, caseId, "test-type", score);
     }
 
     private static AdaptedPlan adapted(String... bindings) {

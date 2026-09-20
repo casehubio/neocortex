@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.cdi;
 
 import io.casehub.neocortex.memory.MemoryEntityErased;
-import io.casehub.neocortex.memory.cbr.CbrCasesErased;
+import io.casehub.neocortex.memory.cbr.CbrRecordErased;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.runtime.NodeRefCleanupProcessor;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +22,7 @@ public class MindMapBeans {
         processor.removeRefs("memory", event.subject().id(), event.tenantId());
     }
 
-    void onCbrCasesErased(@Observes CbrCasesErased.ByEntity event,
+    void onCbrRecordErased(@Observes CbrRecordErased.ByEntity event,
                            NodeRefCleanupProcessor processor) {
         processor.removeRefs("cbr", event.subject().id(), event.tenantId());
     }
