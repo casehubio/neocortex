@@ -38,7 +38,7 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `rag-api` | `casehub-neocortex-rag-api` | `EmbeddingIngestor`, `CaseRetriever`, `RetrievalTracker`, `RelevanceEvaluator`, `QueryExpander`, `RetrievalAnalyzer` SPIs — pure Java |
+| `rag-api` | `casehub-neocortex-rag-api` | `EmbeddingIngestor`, `CaseRetriever`, `RetrievalTracker`, `RelevanceEvaluator`, `QueryExpander`, `RetrievalAnalyzer` SPIs; `CaseContextRetriever` (multi-corpus retrieval with dedup and per-corpus error isolation) — pure Java |
 | `rag` | `casehub-neocortex-rag` | LangChain4j pipeline, Qdrant, three-leg hybrid search, `MatryoshkaEmbeddingModel`, `DenseQuantization`, `DedupEmbeddingIngestor`, `PayloadBoostCaseRetriever` |
 | `rag-tika` | `casehub-neocortex-rag-tika` | Apache Tika document parser — extracts text + metadata from binary documents (PDF, DOCX) for RAG ingestion |
 | `rag-crossencoder` | `casehub-neocortex-rag-crossencoder` | Corrective RAG quality-gating + cross-encoder reranking. Config-gated decorators |
@@ -56,7 +56,7 @@ Four related capabilities in one repo:
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `memory-api` | `casehub-neocortex-memory-api` | `CaseMemoryStore`, `GraphCaseMemoryStore` SPIs, `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE), `MemoryInput` with confidence, `MemoryRetentionPolicy`, `MemoryScanRequest` — pure Java |
+| `memory-api` | `casehub-neocortex-memory-api` | `CaseMemoryStore`, `GraphCaseMemoryStore` SPIs, `DelegatingCaseMemoryStore` (forwarding base for decorators), `MemoryOrder` (CHRONOLOGICAL, RELEVANCE, SALIENCE), `MemoryInput` with confidence, `MemoryRetentionPolicy`, `MemoryScanRequest` — pure Java |
 | `memory` | `casehub-neocortex-memory` | CDI wiring, `MemoryEmitter` fire-and-forget wrapper, `CaseEnrichmentDecorator`, `MemoryRetentionScheduler` |
 | `memory-inmem` | `casehub-neocortex-memory-inmem` | In-memory volatile backend — test + ephemeral |
 | `memory-jpa` | `casehub-neocortex-memory-jpa` | PostgreSQL + Flyway + FTS via `websearch_to_tsquery` |

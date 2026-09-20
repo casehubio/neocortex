@@ -179,7 +179,7 @@ C4Container
   }
 
   Container_Boundary(b_rag_spi, "Layer: RAG SPI") {
-    Container(rag_api, "rag-api", "Pure Java", "EmbeddingIngestor SPI, CaseRetriever SPI, RetrievedChunk, CorpusRef")
+    Container(rag_api, "rag-api", "Pure Java", "EmbeddingIngestor SPI, CaseRetriever SPI, CaseContextRetriever, RetrievedChunk, CorpusRef")
     Container(rag_testing, "rag-testing", "Pure Java", "In-memory EmbeddingIngestor + CaseRetriever stubs")
   }
 
@@ -220,12 +220,13 @@ C4Container
   Rel(rag_expansion, fusion_api, "ScoreFusion for multi-query merge")
 
   Container_Boundary(b_memory_spi, "Layer: Memory SPI") {
-    Container(memory_api, "memory-api", "Pure Java", "CaseMemoryStore, CbrCaseMemoryStore, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter SPIs")
+    Container(memory_api, "memory-api", "Pure Java", "CaseMemoryStore, DelegatingCaseMemoryStore, CbrCaseMemoryStore, DelegatingCbrCaseMemoryStore, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter SPIs")
     Container(memory_testing, "memory-testing", "Pure Java", "CbrCaseMemoryStoreContractTest, InMemoryCbrRetrievalTracker")
   }
 
   Container_Boundary(b_memory_rt, "Layer: Memory Runtime") {
-    Container(memory, "memory", "CDI library", "CaseEnrichmentDecorator, OutcomeWeightingCbrCaseMemoryStore, TrustWeightedCbrCaseMemoryStore, ScopeDecayCbrCaseMemoryStore, TrendEnrichmentCbrCaseMemoryStore — decorator chain via @Priority")
+    Container(memory_core, "memory-core", "Pure Java", "EventRecorderCore — abstract base for typed event recording; ExperienceRecorderCore, EngagementRecorderCore, RelationshipProcessor, ReflectionOrchestratorCore")
+    Container(memory, "memory", "CDI library", "CaseEnrichmentDecorator, ErasureNotificationCaseMemoryStore (extends DelegatingCaseMemoryStore), OutcomeWeightingCbrCaseMemoryStore, TrustWeightedCbrCaseMemoryStore, ScopeDecayCbrCaseMemoryStore, TrendEnrichmentCbrCaseMemoryStore — decorator chain via @Priority")
     Container(memory_cbr_inmem, "memory-cbr-inmem", "Pure Java", "InMemoryCbrCaseMemoryStore @Alternative — test stubs")
   }
 
@@ -241,6 +242,8 @@ C4Container
     Container(memory_cbr_embedding, "memory-cbr-embedding", "CDI library", "EmbeddingTextSimilarity — semantic text field cosine similarity")
   }
 
+  Rel(memory_core, memory_api, "uses CaseMemoryStore SPI")
+  Rel(memory, memory_core, "CDI wires ExperienceRecorderCore, EngagementRecorderCore")
   Rel(memory, memory_api, "implements + decorates CbrCaseMemoryStore")
   Rel(memory_qdrant, memory_api, "implements CbrCaseMemoryStore")
   Rel(memory_qdrant, fusion_api, "ScoreFusion for hybrid retrieval")
@@ -266,7 +269,7 @@ C4Container
 | L10 CRAG | `rag-crossencoder` | CDI library, classpath + config activated | ✅ yes |
 | L11 Query Expansion | `rag-expansion` | CDI library, classpath + config activated | ✅ yes |
 | L12 Memory SPI | `memory-api`, `memory-testing` | Pure Java, zero deps | casehub only |
-| L13 Memory Runtime | `memory`, `memory-cbr-inmem` | CDI library | casehub only |
+| L13 Memory Runtime | `memory-core`, `memory`, `memory-cbr-inmem` | Pure Java + CDI library | casehub only |
 | L14 Memory Backends | `memory-qdrant`, `memory-jpa`, `memory-sqlite` | Backend-specific | casehub only |
 | L15 CBR Decorators | `memory-cbr-crossencoder`, `memory-cbr-tracking`, `memory-cbr-embedding` | CDI library, classpath + config activated | casehub only |
 
