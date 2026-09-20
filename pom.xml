@@ -56,10 +56,12 @@
     <module>memory-cbr-tracking</module>
     <module>memory-cbr-jpa-common</module>
     <module>memory-cbr-jpa</module>
+    <module>memory-cbr-spring-jpa</module>
     <module>memory-qdrant</module>
     <module>memory-inmem</module>
     <module>memory-jpa-common</module>
     <module>memory-jpa</module>
+    <module>memory-spring-jpa</module>
     <module>memory-sqlite</module>
     <module>memory-mem0</module>
     <module>memory-graphiti</module>
