@@ -1,15 +1,9 @@
 package io.casehub.neocortex.memory.runtime;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.DelegatingCaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
-import io.casehub.neocortex.memory.Memory;
-import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryEntityErased;
-import io.casehub.neocortex.memory.MemoryInput;
-import io.casehub.neocortex.memory.MemoryQuery;
-import io.casehub.neocortex.memory.MemoryRetentionPolicy;
-import io.casehub.neocortex.memory.MemoryScanRequest;
-import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.Subject;
 import jakarta.annotation.Priority;
 import jakarta.decorator.Decorator;
@@ -20,16 +14,13 @@ import jakarta.inject.Inject;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 
 @Decorator
 @Priority(45)
-public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
+public class ErasureNotificationCaseMemoryStore extends DelegatingCaseMemoryStore {
     private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(ErasureNotificationCaseMemoryStore.class.getName());
 
-
-    private final CaseMemoryStore delegate;
     private final Event<MemoryEntityErased.ByRequest> byRequestEvent;
     private final Event<MemoryEntityErased.ByEntity> byEntityEvent;
     private final Event<MemoryEntityErased.CrossTenant> crossTenantEvent;
@@ -50,7 +41,7 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
             Event<MemoryEntityErased.ByEntity> byEntityEvent,
             Event<MemoryEntityErased.CrossTenant> crossTenantEvent,
             Clock clock) {
-        this.delegate = delegate;
+        super(delegate);
         this.byRequestEvent = byRequestEvent;
         this.byEntityEvent = byEntityEvent;
         this.crossTenantEvent = crossTenantEvent;
@@ -109,16 +100,6 @@ public class ErasureNotificationCaseMemoryStore implements CaseMemoryStore {
         }
         return count;
     }
-
-    @Override public String store(MemoryInput input) { return delegate.store(input); }
-    @Override public StoreAllResult storeAll(List<MemoryInput> inputs) { return delegate.storeAll(inputs); }
-    @Override public List<Memory> query(MemoryQuery query) { return delegate.query(query); }
-    @Override public void eraseById(String memoryId, Subject subject, String tenantId) { delegate.eraseById(memoryId, subject, tenantId); }
-    @Deprecated(forRemoval = true) @Override public void eraseById(String memoryId, String entityId, String tenantId) { delegate.eraseById(memoryId, entityId, tenantId); }
-    @Override public Set<MemoryCapability> capabilities() { return delegate.capabilities(); }
-    @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }
-    @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }
-    @Override public Set<String> discoverTenants(String attributeKey, String attributeValue) { return delegate.discoverTenants(attributeKey, attributeValue); }
 
     private static <T> void safeFire(Event<T> event, T payload) {
         try {

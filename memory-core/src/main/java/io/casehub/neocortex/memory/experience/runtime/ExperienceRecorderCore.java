@@ -1,62 +1,29 @@
 package io.casehub.neocortex.memory.experience.runtime;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
-import io.casehub.neocortex.memory.StoreAllResult;
+import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.experience.ExperienceEvent;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.experience.ExperienceRecorded;
 import io.casehub.neocortex.memory.experience.ExperienceRecorder;
 import io.casehub.neocortex.memory.experience.ExperienceStoreFailure;
 import io.casehub.neocortex.memory.experience.ExperienceStoreResult;
+import io.casehub.neocortex.memory.runtime.EventRecorderCore;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ExperienceRecorderCore implements ExperienceRecorder {
-
-    private final CaseMemoryStore store;
-    private final Consumer<ExperienceRecorded> recorded;
+public class ExperienceRecorderCore
+        extends EventRecorderCore<ExperienceEvent, ExperienceRecorded, ExperienceStoreFailure, ExperienceStoreResult>
+        implements ExperienceRecorder {
 
     public ExperienceRecorderCore(CaseMemoryStore store, Consumer<ExperienceRecorded> recorded) {
-        this.store = store;
-        this.recorded = recorded;
+        super(store, recorded);
     }
 
-    @Override
-    public String record(ExperienceEvent event) {
-        var input = ExperienceEvents.toMemoryInput(event);
-        var memoryId = store.store(input);
-        recorded.accept(new ExperienceRecorded(event, memoryId));
-        return memoryId;
-    }
-
-    @Override
-    public ExperienceStoreResult recordAll(List<ExperienceEvent> events) {
-        if (events.isEmpty()) { return ExperienceStoreResult.empty(); }
-
-        var inputs = events.stream()
-                           .map(ExperienceEvents::toMemoryInput)
-                           .toList();
-
-        StoreAllResult storeResult = store.storeAll(inputs);
-
-        var failedIndices = new HashSet<Integer>();
-        var failures = new ArrayList<ExperienceStoreFailure>();
-        for (var sf : storeResult.failures()) {
-            failedIndices.add(sf.inputIndex());
-            failures.add(new ExperienceStoreFailure(sf.inputIndex(), events.get(sf.inputIndex()), sf.cause()));
-        }
-
-        int storedIdx = 0;
-        for (int i = 0; i < events.size(); i++) {
-            if (!failedIndices.contains(i)) {
-                recorded.accept(new ExperienceRecorded(events.get(i), storeResult.stored().get(storedIdx)));
-                storedIdx++;
-            }
-        }
-
-        return new ExperienceStoreResult(storeResult.stored(), failures);
-    }
+    @Override protected MemoryInput toInput(ExperienceEvent event) { return ExperienceEvents.toMemoryInput(event); }
+    @Override protected ExperienceRecorded toRecorded(ExperienceEvent event, String memoryId) { return new ExperienceRecorded(event, memoryId); }
+    @Override protected ExperienceStoreFailure toFailure(int inputIndex, ExperienceEvent event, RuntimeException cause) { return new ExperienceStoreFailure(inputIndex, event, cause); }
+    @Override protected ExperienceStoreResult toResult(List<String> stored, List<ExperienceStoreFailure> failures) { return new ExperienceStoreResult(stored, failures); }
+    @Override protected ExperienceStoreResult emptyResult() { return ExperienceStoreResult.empty(); }
 }

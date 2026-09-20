@@ -1,61 +1,29 @@
 package io.casehub.neocortex.memory.engagement.runtime;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
-import io.casehub.neocortex.memory.StoreAllResult;
+import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.memory.engagement.EngagementEvents;
 import io.casehub.neocortex.memory.engagement.EngagementRecorded;
 import io.casehub.neocortex.memory.engagement.EngagementStoreFailure;
 import io.casehub.neocortex.memory.engagement.EngagementStoreResult;
+import io.casehub.neocortex.memory.runtime.EventRecorderCore;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class EngagementRecorderCore {
+public class EngagementRecorderCore
+        extends EventRecorderCore<EngagementEvent, EngagementRecorded, EngagementStoreFailure, EngagementStoreResult> {
 
-    private final CaseMemoryStore store;
-    private final Consumer<EngagementRecorded> recorded;
+    protected EngagementRecorderCore() { super(); }
 
     public EngagementRecorderCore(CaseMemoryStore store, Consumer<EngagementRecorded> recorded) {
-        this.store = store;
-        this.recorded = recorded;
+        super(store, recorded);
     }
 
-    public String record(EngagementEvent event) {
-        var input = EngagementEvents.toMemoryInput(event);
-        var memoryId = store.store(input);
-        recorded.accept(new EngagementRecorded(event, memoryId));
-        return memoryId;
-    }
-
-    public EngagementStoreResult recordAll(List<EngagementEvent> events) {
-        if (events.isEmpty()) return EngagementStoreResult.empty();
-
-        var inputs = events.stream()
-            .map(EngagementEvents::toMemoryInput)
-            .toList();
-
-        StoreAllResult storeResult = store.storeAll(inputs);
-
-        var failedIndices = new HashSet<Integer>();
-        var failures = new ArrayList<EngagementStoreFailure>();
-        for (var sf : storeResult.failures()) {
-            failedIndices.add(sf.inputIndex());
-            failures.add(new EngagementStoreFailure(sf.inputIndex(),
-                events.get(sf.inputIndex()), sf.cause()));
-        }
-
-        int storedIdx = 0;
-        for (int i = 0; i < events.size(); i++) {
-            if (!failedIndices.contains(i)) {
-                recorded.accept(new EngagementRecorded(events.get(i),
-                    storeResult.stored().get(storedIdx)));
-                storedIdx++;
-            }
-        }
-
-        return new EngagementStoreResult(storeResult.stored(), failures);
-    }
+    @Override protected MemoryInput toInput(EngagementEvent event) { return EngagementEvents.toMemoryInput(event); }
+    @Override protected EngagementRecorded toRecorded(EngagementEvent event, String memoryId) { return new EngagementRecorded(event, memoryId); }
+    @Override protected EngagementStoreFailure toFailure(int inputIndex, EngagementEvent event, RuntimeException cause) { return new EngagementStoreFailure(inputIndex, event, cause); }
+    @Override protected EngagementStoreResult toResult(List<String> stored, List<EngagementStoreFailure> failures) { return new EngagementStoreResult(stored, failures); }
+    @Override protected EngagementStoreResult emptyResult() { return EngagementStoreResult.empty(); }
 }
