@@ -63,6 +63,8 @@ Four related capabilities in one repo:
 | `memory-sqlite` | `casehub-neocortex-memory-sqlite` | SQLite + HikariCP WAL + FTS5 |
 | `memory-mem0` | `casehub-neocortex-memory-mem0` | Mem0 REST adapter — vector embeddings + semantic search |
 | `memory-graphiti` | `casehub-neocortex-memory-graphiti` | Graphiti REST adapter — temporal knowledge graph |
+| `memory-spring` | `casehub-neocortex-memory-spring` | Spring Boot auto-configuration for memory core beans (enrichment, retention, CBR runtime) |
+| `memory-spring-jpa` | `casehub-neocortex-memory-spring-jpa` | Spring Data JPA `CaseMemoryStore` — PostgreSQL + Flyway + FTS. Configure: `casehub.memory.jpa.fts.enabled` (default `true`), `casehub.memory.jpa.fts.language` (default `english`) |
 | `memory-testing` | `casehub-neocortex-memory-testing` | Test stubs for memory SPIs |
 
 ### CBR Memory
@@ -76,6 +78,7 @@ Four related capabilities in one repo:
 | `memory-qdrant` | `casehub-neocortex-memory-qdrant` | Qdrant vector store backend + multi-leg hybrid fusion + `CbrReconciliationService` |
 | `memory-cbr-embedding` | `casehub-neocortex-memory-cbr-embedding` | `EmbeddingTextSimilarity` — LangChain4j `EmbeddingModel`-based semantic text similarity for CBR fields |
 | `memory-cbr-crossencoder` | `casehub-neocortex-memory-cbr-crossencoder` | Cross-encoder reranking for CBR retrieval. Config-gated decorator |
+| `memory-cbr-spring-jpa` | `casehub-neocortex-memory-cbr-spring-jpa` | Spring Data JPA `CbrCaseMemoryStore` — PostgreSQL + Flyway, shared filter matching via `CbrCaseFilterMatcher` |
 | `memory-cbr-tracking` | `casehub-neocortex-memory-cbr-tracking` | SQLite-backed CBR retrieval tracking + plan adaptation tracking + ensemble tracking |
 
 ### Knowledge Model
