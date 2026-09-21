@@ -59,7 +59,7 @@ class CaseContextRetrieverTest {
     @Test void nullQueryTextReturnsEmpty() {
         CaseRetriever delegate = (q, c, max, f) -> fail("should not be called");
         var retriever = new CaseContextRetriever(delegate);
-        assertTrue(retriever.retrieve(null, List.of(CORPUS_A), 10).isEmpty());
+        assertTrue(retriever.retrieve((String) null, List.of(CORPUS_A), 10).isEmpty());
     }
 
     @Test void blankQueryTextReturnsEmpty() {
@@ -100,6 +100,60 @@ class CaseContextRetrieverTest {
         assertEquals("doc-42", map.get("sourceDocumentId"));
         assertEquals(0.85, (double) map.get("relevanceScore"), 0.001);
         assertEquals("wiki", map.get("source"));
+    }
+
+    @Test void strategyExtractsQueryAndRetrievesResults() {
+        CaseRetriever delegate = (q, c, max, f) -> {
+            assertEquals("alert-rule technique-1", q.text());
+            return List.of(chunk("d1", "threat intel", 0.9));
+        };
+        var retriever = new CaseContextRetriever(delegate);
+        QueryExtractionStrategy strategy = ctx -> {
+            String alert = (String) ctx.getOrDefault("alert", "");
+            String technique = (String) ctx.getOrDefault("technique", "");
+            return RetrievalQuery.of(alert + " " + technique);
+        };
+        var context = Map.<String, Object>of("alert", "alert-rule", "technique", "technique-1");
+        var results = retriever.retrieve(context, strategy, List.of(CORPUS_A), 10);
+        assertEquals(1, results.size());
+        assertEquals("d1", results.getFirst().sourceDocumentId());
+    }
+
+    @Test void strategyReturningNullYieldsEmpty() {
+        CaseRetriever delegate = (q, c, max, f) -> fail("should not be called");
+        var retriever = new CaseContextRetriever(delegate);
+        QueryExtractionStrategy strategy = ctx -> null;
+        var results = retriever.retrieve(Map.of("alert", "test"), strategy, List.of(CORPUS_A), 10);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test void strategyWithEmptyCorporaReturnsEmpty() {
+        CaseRetriever delegate = (q, c, max, f) -> fail("should not be called");
+        var retriever = new CaseContextRetriever(delegate);
+        QueryExtractionStrategy strategy = ctx -> fail("should not be called");
+        var results = retriever.retrieve(Map.of(), strategy, List.of(), 10);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test void retrievalQueryOverloadBehavesSameAsStringOverload() {
+        CaseRetriever delegate = (q, c, max, f) -> List.of(chunk("d1", "text", 0.9));
+        var retriever = new CaseContextRetriever(delegate);
+        var stringResults = retriever.retrieve("query", List.of(CORPUS_A), 10);
+        var queryResults = retriever.retrieve(RetrievalQuery.of("query"), List.of(CORPUS_A), 10);
+        assertEquals(stringResults.size(), queryResults.size());
+        assertEquals(stringResults.getFirst().sourceDocumentId(), queryResults.getFirst().sourceDocumentId());
+    }
+
+    @Test void strategyCanSetWeightMultipliers() {
+        CaseRetriever delegate = (q, c, max, f) -> {
+            assertEquals(2.0, q.weightMultipliers().get("bm25"), 0.001);
+            return List.of(chunk("d1", "text", 0.9));
+        };
+        var retriever = new CaseContextRetriever(delegate);
+        QueryExtractionStrategy strategy = ctx ->
+                RetrievalQuery.of("query").withBm25Boost(2.0);
+        var results = retriever.retrieve(Map.of(), strategy, List.of(CORPUS_A), 10);
+        assertEquals(1, results.size());
     }
 
     @Test void allCorporaFailReturnsEmpty() {

@@ -18,10 +18,9 @@ public class CaseContextRetriever {
         this.caseRetriever = caseRetriever;
     }
 
-    public List<RetrievedChunk> retrieve(String queryText, List<CorpusRef> corpora, int maxResults) {
-        if (queryText == null || queryText.isBlank() || corpora.isEmpty()) return List.of();
+    public List<RetrievedChunk> retrieve(RetrievalQuery query, List<CorpusRef> corpora, int maxResults) {
+        if (corpora.isEmpty()) return List.of();
 
-        var query = RetrievalQuery.of(queryText);
         var byDocId = new LinkedHashMap<String, RetrievedChunk>();
 
         for (var corpus : corpora) {
@@ -39,6 +38,22 @@ public class CaseContextRetriever {
                 .sorted(Comparator.comparingDouble(RetrievedChunk::relevanceScore).reversed())
                 .limit(maxResults)
                 .toList();
+    }
+
+    public List<RetrievedChunk> retrieve(String queryText, List<CorpusRef> corpora, int maxResults) {
+        if (queryText == null || queryText.isBlank()) return List.of();
+        return retrieve(RetrievalQuery.of(queryText), corpora, maxResults);
+    }
+
+    public List<RetrievedChunk> retrieve(
+            Map<String, Object> caseContext,
+            QueryExtractionStrategy strategy,
+            List<CorpusRef> corpora,
+            int maxResults) {
+        if (corpora.isEmpty()) return List.of();
+        RetrievalQuery query = strategy.extractQuery(caseContext);
+        if (query == null) return List.of();
+        return retrieve(query, corpora, maxResults);
     }
 
     public static Map<String, Object> toMap(RetrievedChunk chunk) {
