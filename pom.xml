@@ -115,6 +115,15 @@
     </repository>
   </repositories>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>github</id>
+      <name>casehubio GitHub Packages</name>
+      <url>https://maven.pkg.github.com/casehubio/*</url>
+      <snapshots><enabled>true</enabled></snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
   <properties>
     <quarkus.version>3.32.2</quarkus.version>
     <langchain4j.version>1.14.1</langchain4j.version>
