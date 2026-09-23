@@ -4,7 +4,7 @@ import io.casehub.neocortex.cognitive.index.EntityKnowledge;
 import io.casehub.platform.api.mcp.McpDomain;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
-@McpDomain("cognition")
+@McpDomain(value = "cognition", app = "neocortex")
 public interface CognitionApi {
 
     @PlatformQuery("Aggregate stats: node/edge counts per subgraph, confidence distribution, trait summary")
