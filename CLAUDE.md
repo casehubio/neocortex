@@ -127,6 +127,7 @@ memory-graphiti/    — GraphitiCaseMemoryStore @Alternative @Priority(2) implem
 examples/
   example-text-analysis/  — standalone demos: NLI, zero-shot classification, scoring, reranking, SPLADE — no Quarkus
   example-rag-pipeline/   — Quarkus demos: corpus ingestion (flat + zip), hybrid search, CDI wiring — requires Qdrant
+  example-goal-cognition/ — walkthrough: progressive resolution, affect, prioritization, recognition, retrieval modulation across four scenarios (research, product, personal, game NPC)
 evaluation/
   code_domain_embeddings/  — Python evaluation scripts for #49: tokenizer analysis, embedding discrimination, benchmark runner, deployment check. Requires own venv (not Maven). Run with `python3 -m evaluation.code_domain_embeddings.<script>`.
   strategy_classifier/   — Python ML pipeline for #75/#76: MSC dataset download, fog-of-war simulation, hybrid labelling, CNN-Attention model training, ONNX export, evaluation. Requires own venv. Run with `python3 -m evaluation.strategy_classifier.<script>`.
@@ -194,6 +195,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Memory Graphiti | `casehub-neocortex-memory-graphiti` |
 | Example Text Analysis | `casehub-neocortex-example-text-analysis` |
 | Example RAG Pipeline | `casehub-neocortex-example-rag-pipeline` |
+| Example Goal Cognition | `casehub-neocortex-example-goal-cognition` |
 | Root Java package (thing) | `io.casehub.neocortex.thing` |
 | Root Java package (inference) | `io.casehub.neocortex.inference` |
 | Root Java package (fusion) | `io.casehub.neocortex.fusion` |
