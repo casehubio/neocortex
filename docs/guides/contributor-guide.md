@@ -825,19 +825,27 @@ Computes anticipated affect (PAD dimensions) on goal nodes based on status and u
 - **Completed:** positive pleasure (satisfaction)
 - **Dormant:** reduced arousal, neutral pleasure/dominance
 
-Updates PAD via `store.updateNode()`. `AffectTrajectoryDecorator` captures changes as domain="affect" memories.
+Uses dynamic urgency from `target-date` property when present (via `GoalUrgency`), falling back to the static `urgency` property. Updates PAD via `store.updateNode()`. `AffectTrajectoryDecorator` captures changes as domain="affect" memories.
 
 #### GoalPrioritizationPhase (Priority 38)
 
-Computes composite `priority` property (0.0–1.0) on active goal nodes:
+Two steps execute in order: **Prioritize** then **Decay**.
+
+**Prioritize** computes composite `priority` property (0.0–1.0) on active goal nodes:
 
 ```
 priority = 0.3 × urgency + 0.2 × feasibility + 0.2 × affective_valence + 0.3 × importance
 ```
 
-Where `affective_valence = (pleasure + dominance + 2) / 4` (neutral PAD → 0.5) and `importance` = inbound `contributes-to` + `enables` edges normalized by max across active goals.
+Where `affective_valence = (pleasure + dominance + 2) / 4` (neutral PAD → 0.5) and `importance` = inbound `contributes-to` + `enables` edges normalized by max across active goals. Uses dynamic urgency from `target-date` via `GoalUrgency` when present.
 
-Only processes active goals — completed/dormant/abandoned goals don't receive priority scores.
+**Decay** detects inactive goals (confidence below threshold + non-positive pleasure) and transitions them:
+- **Standalone goals** (no `eidos-goal-name`): status → `dormant` (confidence < 0.4) or `abandoned` with `abandonment-reason` (confidence < 0.2 and negative pleasure)
+- **Linked goals** (have `eidos-goal-name`): `decay-signal` property set to `dormant` or `abandon` — does NOT write `status` directly (eidos is authoritative). GoalResolutionPhase's Sync step clears `decay-signal` after importing eidos state.
+
+#### GoalUrgency (package-private utility)
+
+Static utility used by both GoalAffectPhase and GoalPrioritizationPhase. When `target-date` property is present, computes `1.0 - (remaining_time / horizon_budget)` clamped to [0, 1]. Horizon budget mapped from the `horizon` property: immediate=4h, short=1d, medium=7d (default), long=30d, aspirational=365d. When `target-date` is absent, falls back to the static `urgency` property value. Parses both ISO-8601 date (`2026-12-31`) and datetime (`2026-12-31T23:59:59Z`) formats.
 
 #### CuriosityRefreshPhase (Priority 40)
 
