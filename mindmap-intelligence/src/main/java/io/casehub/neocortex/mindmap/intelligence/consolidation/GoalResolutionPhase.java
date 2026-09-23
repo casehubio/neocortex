@@ -47,7 +47,7 @@ public class GoalResolutionPhase implements ConsolidationPhase {
         this.lifecycleProvider = lifecycleProvider.isResolvable() ? lifecycleProvider.get() : null;
     }
 
-    GoalResolutionPhase(MindMapStore store,
+    public GoalResolutionPhase(MindMapStore store,
                          CognitiveGoalDecomposer decomposer,
                          GoalLifecycleProvider lifecycleProvider) {
         this.store = store;

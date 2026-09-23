@@ -39,7 +39,7 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
         this.recognizer = recognizer.isResolvable() ? recognizer.get() : null;
     }
 
-    GoalRecognitionPhase(MindMapStore mindMapStore,
+    public GoalRecognitionPhase(MindMapStore mindMapStore,
                           CaseMemoryStore memoryStore,
                           CognitiveGoalRecognizer recognizer) {
         this.mindMapStore = mindMapStore;

@@ -26,7 +26,7 @@ public class GoalAffectPhase implements ConsolidationPhase {
         this.store = store.isResolvable() ? store.get() : null;
     }
 
-    GoalAffectPhase(MindMapStore store) {
+    public GoalAffectPhase(MindMapStore store) {
         this.store = store;
     }
 

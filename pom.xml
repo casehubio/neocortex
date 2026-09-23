@@ -547,6 +547,7 @@
         <module>examples/example-cbr-advanced</module>
         <module>examples/example-rag-analytics</module>
         <module>examples/example-mindmap-intelligence</module>
+        <module>examples/example-goal-cognition</module>
       </modules>
     </profile>
     <profile>
@@ -561,6 +562,7 @@
         <module>examples/example-cbr-advanced</module>
         <module>examples/example-rag-analytics</module>
         <module>examples/example-mindmap-intelligence</module>
+        <module>examples/example-goal-cognition</module>
       </modules>
     </profile>
   </profiles>

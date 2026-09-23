@@ -34,7 +34,7 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
         this.store = store.isResolvable() ? store.get() : null;
     }
 
-    GoalPrioritizationPhase(MindMapStore store) {
+    public GoalPrioritizationPhase(MindMapStore store) {
         this.store = store;
     }
 
