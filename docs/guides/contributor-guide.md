@@ -805,9 +805,57 @@ K-core clustering + summary generation with hash-based invalidation.
 
 `maxPerPass = 5`. `AgentProvider` injected for future LLM-based title generation.
 
+#### GoalResolutionPhase (Priority 35)
+
+Progressive resolution of the cognitive goal graph. Runs 5 steps in order:
+
+1. **Prune:** Distant goals (aspirational/long horizon, urgency ≤0.7) with decomposed sub-goals → collapse sub-goals, drop resolution to "low"
+2. **Expand:** Approaching goals (urgency >0.7, resolution != "high") → invoke `CognitiveGoalDecomposer` SPI, create sub-goal nodes with `decomposes-into` edges, update resolution to "high". No-op when decomposer is NoOp (standalone mode)
+3. **Merge:** Similar sub-goals across different parents (Jaro-Winkler ≥0.85) → merge via `store.mergeNodes()`, create `contributes-to` edges to both parents
+4. **Revise:** Blocked goals whose blockers are all completed/abandoned → unblock (status → active). Periodic cycle detection on blocks/requires/decomposes-into edges — removes one edge to break the cycle
+5. **Sync:** Linked goals (with `eidos-goal-name` property) → query `GoalLifecycleProvider` SPI grouped by `principalId`, update MindMap `status` to match eidos, clear `decay-signal` properties
+
+Always processes the GOAL subgraph regardless of `subgraphPriority`.
+
+#### GoalAffectPhase (Priority 37)
+
+Computes anticipated affect (PAD dimensions) on goal nodes based on status and urgency:
+- **Active:** arousal = urgency × 0.8, positive pleasure/dominance
+- **Blocked + urgent:** negative pleasure (frustration), high arousal
+- **Completed:** positive pleasure (satisfaction)
+- **Dormant:** reduced arousal, neutral pleasure/dominance
+
+Updates PAD via `store.updateNode()`. `AffectTrajectoryDecorator` captures changes as domain="affect" memories.
+
+#### GoalPrioritizationPhase (Priority 38)
+
+Computes composite `priority` property (0.0–1.0) on active goal nodes:
+
+```
+priority = 0.3 × urgency + 0.2 × feasibility + 0.2 × affective_valence + 0.3 × importance
+```
+
+Where `affective_valence = (pleasure + dominance + 2) / 4` (neutral PAD → 0.5) and `importance` = inbound `contributes-to` + `enables` edges normalized by max across active goals.
+
+Only processes active goals — completed/dormant/abandoned goals don't receive priority scores.
+
 #### CuriosityRefreshPhase (Priority 40)
 
 Thin delegator to `CuriositySignalGenerator.computeSignals(tenantId, emptySet)`. The full signal generation pipeline (structural, quality, temporal, centrality, proximity + category weights + affect dampening + topical distance dampening) runs inside the generator — see [CuriositySignalGenerator](#curiositysignalgenerator) above.
+
+#### GoalRecognitionPhase (Priority 45)
+
+Scans recent experience memories for goal-like content. Queries `CaseMemoryStore.scan()` for domain="experience", invokes `CognitiveGoalRecognizer` SPI with combined text. Creates goal nodes in GOAL subgraph, deduplicates by name against existing goals. NoOp recognizer returns empty list — standalone deployments get no automatic recognition.
+
+#### GoalRelevanceModulationFactor
+
+`ModulationFactor<Memory>` in `cognitive-index`. Weights retrieved memories by BFS graph proximity to active goal nodes:
+- 1 edge: 1.0 (full relevance)
+- 2 edges: 0.7
+- 3 edges: 0.4
+- 4+ edges: 0.0
+
+Active goals cached, refreshed via `refreshGoals()` (called from `@Observes ConsolidationCompleted`). Finds entity nodes by name lookup across non-GOAL subgraphs. Returns 1.0 (neutral) when no active goals exist or entity has no MindMap node.
 
 #### RetrievalAccessTracker
 
