@@ -116,7 +116,7 @@ class CognitiveLoaderTest {
 
         var subtypes = registry.subtypesOf("cognitive", "default");
         assertThat(subtypes).containsExactlyInAnyOrder(
-                "belief", "intention", "prediction", "judgment", "fear", "desire");
+                "belief", "goal", "prediction", "judgment", "fear");
     }
 
     @Test
@@ -127,11 +127,12 @@ class CognitiveLoaderTest {
         loader.init();
 
         assertThat(registry.javaClass("belief", "default")).contains(Belieflike.class);
-        assertThat(registry.javaClass("intention", "default")).contains(Intentionlike.class);
+        assertThat(registry.javaClass("goal", "default")).contains(Goallike.class);
+        assertThat(registry.javaClass("intention", "default")).contains(Goallike.class);
         assertThat(registry.javaClass("prediction", "default")).contains(Predictive.class);
         assertThat(registry.javaClass("judgment", "default")).contains(Evaluative.class);
         assertThat(registry.javaClass("fear", "default")).contains(Fearlike.class);
-        assertThat(registry.javaClass("desire", "default")).contains(Desirelike.class);
+        assertThat(registry.javaClass("desire", "default")).contains(Goallike.class);
     }
 
     @Test
@@ -144,4 +145,56 @@ class CognitiveLoaderTest {
         var schema = registry.schemaFor("belief", "default");
         assertThat(schema).containsKeys("subject", "status", "basis");
     }
+
+    @Test
+    void goalTypeRegisteredUnderCognitive() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        assertThat(registry.typeExists("goal", "default")).isTrue();
+        assertThat(registry.subtypesOf("cognitive", "default")).contains("goal");
+        assertThat(registry.javaClass("goal", "default")).contains(Goallike.class);
+    }
+
+    @Test
+    void intentionAndDesireAreSubtypesOfGoal() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        assertThat(registry.subtypesOf("goal", "default"))
+                .containsExactlyInAnyOrder("intention", "desire");
+        assertThat(registry.javaClass("intention", "default")).contains(Goallike.class);
+        assertThat(registry.javaClass("desire", "default")).contains(Goallike.class);
+    }
+
+    @Test
+    void goalVocabularyRegistered() {
+        var store  = new InMemoryMindMapStore();
+        var loader = new CognitiveLoader(store, null, List.of());
+        loader.init();
+
+        // Goal vocabulary already registered — conflicting alias should throw
+        var conflict = new MindMapVocabulary(List.of(
+                new EdgeTypeDefinition("other", Set.of("unblocks"), null)));
+        assertThatThrownBy(() -> store.registerVocabulary(conflict))
+                .isInstanceOf(VocabularyConflictException.class);
+    }
+
+    @Test
+    void goalSchemaDerivesFromGoallikeInterface() {
+        var store    = new InMemoryMindMapStore();
+        var registry = new TypeRegistry(store);
+        var loader   = new CognitiveLoader(store, registry, List.of());
+        loader.init();
+
+        var schema = registry.schemaFor("goal", "default");
+        assertThat(schema).containsKeys("description", "status", "horizon",
+                                        "origin", "resolution", "urgency", "feasibility");
+    }
+
+
 }

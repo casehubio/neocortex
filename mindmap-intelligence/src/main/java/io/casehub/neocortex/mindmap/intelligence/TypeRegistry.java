@@ -35,14 +35,16 @@ public class TypeRegistry {
         SubgraphTypes.PROJECT, Projectlike.class,
         SubgraphTypes.ORGANISATION, Organisational.class
     );
-    static final         Map<String, Class<?>> COGNITIVE_TYPES = Map.of(
+    static final Map<String, Class<?>> COGNITIVE_TYPES = Map.of(
             "belief", Belieflike.class,
-            "intention", Intentionlike.class,
+            "goal", Goallike.class,
+            "intention", Goallike.class,
             "prediction", Predictive.class,
             "judgment", Evaluative.class,
             "fear", Fearlike.class,
-            "desire", Desirelike.class
-                                                                       );
+            "desire", Goallike.class
+                                                               );
+    static final java.util.Set<String> GOAL_SUBTYPES   = java.util.Set.of("intention", "desire");
 
 
     private final MindMapStore store;
