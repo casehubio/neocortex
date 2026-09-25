@@ -13,7 +13,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CognitiveAttentionAccumulatorTest {
 
@@ -178,4 +179,137 @@ class CognitiveAttentionAccumulatorTest {
                 "n2", "G2", 2.0, "r")));
         assertEquals(1, fired.size(), "below threshold after drain — no second fire");
     }
+
+
+    @Test
+    void affect_recorded_with_large_pad_delta_creates_signal() {
+        var fired    = new ArrayList<CognitiveAttentionRequired>();
+        var store    = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a"));
+        var acc = new CognitiveAttentionAccumulator(
+                registry, store, fired::add, Clock.systemUTC(), 1.0, 0);
+
+        var sg = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("People", "person", null), "t1");
+        var nodeId = store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Test entity", sg)
+                                                                         .withProperty("agent-id", "a")
+                                                                         .withPleasure(0.8).withArousal(0.2).withDominance(0.5), "t1");
+
+        // First observation primes cache
+        acc.onAffectRecorded(new io.casehub.neocortex.memory.mood.AffectRecorded(nodeId, "t1", "mem-1"));
+        assertTrue(fired.isEmpty(), "first observation primes cache, no signal");
+
+        // Update PAD to significantly different values
+        store.updateNode(nodeId, io.casehub.neocortex.mindmap.NodeUpdate.empty()
+                                                                        .withPad(-0.5, 0.9, 0.1), "t1");
+
+        acc.onAffectRecorded(new io.casehub.neocortex.memory.mood.AffectRecorded(nodeId, "t1", "mem-2"));
+        assertEquals(1, fired.size());
+        assertEquals(SignalCategory.AFFECT_CHANGE, fired.get(0).briefing().signals().get(0).category());
+    }
+
+    @Test
+    void affect_recorded_with_small_pad_delta_no_signal() {
+        var fired    = new ArrayList<CognitiveAttentionRequired>();
+        var store    = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a"));
+        var acc = new CognitiveAttentionAccumulator(
+                registry, store, fired::add, Clock.systemUTC(), 5.0, 0);
+
+        var sg = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("People", "person", null), "t1");
+        var nodeId = store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Stable entity", sg)
+                                                                         .withProperty("agent-id", "a")
+                                                                         .withPleasure(0.5).withArousal(0.3).withDominance(0.4), "t1");
+
+        acc.onAffectRecorded(new io.casehub.neocortex.memory.mood.AffectRecorded(nodeId, "t1", "mem-1"));
+
+        // Small PAD change
+        store.updateNode(nodeId, io.casehub.neocortex.mindmap.NodeUpdate.empty()
+                                                                        .withPad(0.55, 0.35, 0.45), "t1");
+
+        acc.onAffectRecorded(new io.casehub.neocortex.memory.mood.AffectRecorded(nodeId, "t1", "mem-2"));
+        assertTrue(fired.isEmpty(), "small delta should not create signal");
+    }
+
+    @Test
+    void experience_recorded_with_goal_metadata_creates_signal() {
+        var fired    = new ArrayList<CognitiveAttentionRequired>();
+        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-x"));
+        var acc = new CognitiveAttentionAccumulator(
+                registry, null, fired::add, Clock.systemUTC(), 1.0, 0);
+
+        var event = new io.casehub.neocortex.memory.experience.Observation(
+                "agent-x", "t1", null, "turn-1",
+                Instant.now(), "Made progress on goal", null,
+                java.util.Map.of("goal-node-id", "goal-42"), "entity-1");
+        acc.onExperienceRecorded(new io.casehub.neocortex.memory.experience.ExperienceRecorded(event, "m1"));
+
+        assertEquals(1, fired.size());
+        assertEquals("agent-x", fired.get(0).briefing().principalId());
+        assertEquals("goal-42", fired.get(0).briefing().signals().get(0).sourceNodeId());
+    }
+
+    @Test
+    void experience_recorded_without_goal_metadata_no_signal() {
+        var fired    = new ArrayList<CognitiveAttentionRequired>();
+        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-x"));
+        var acc = new CognitiveAttentionAccumulator(
+                registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
+
+        var event = new io.casehub.neocortex.memory.experience.Observation(
+                "agent-x", "t1", null, "turn-1",
+                Instant.now(), "Routine observation", null,
+                java.util.Map.of(), "entity-1");
+        acc.onExperienceRecorded(new io.casehub.neocortex.memory.experience.ExperienceRecorded(event, "m1"));
+
+        assertTrue(fired.isEmpty(), "no goal metadata — no signal");
+    }
+
+
+    @Test
+    void pad_cache_entries_expire_after_interval() {
+        var fired    = new ArrayList<CognitiveAttentionRequired>();
+        var store    = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a"));
+
+        // Use a mutable clock to control time
+        var baseInstant = Instant.parse("2026-01-01T00:00:00Z");
+        var mutableClock = new java.time.Clock() {
+            volatile Instant now = baseInstant;
+
+            @Override
+            public java.time.ZoneId getZone()                      {return java.time.ZoneOffset.UTC;}
+
+            @Override
+            public java.time.Clock withZone(java.time.ZoneId zone) {return this;}
+
+            @Override
+            public Instant instant()                               {return now;}
+        };
+
+        var acc = new CognitiveAttentionAccumulator(
+                registry, store, fired::add, mutableClock, 1.0, 0, 600);
+
+        var sg = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("People", "person", null), "t1");
+        var nodeId = store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Entity", sg)
+                                                                         .withProperty("agent-id", "a")
+                                                                         .withPleasure(0.5).withArousal(0.3).withDominance(0.4), "t1");
+
+        // Prime the cache at t=0
+        acc.onAffectRecorded(new io.casehub.neocortex.memory.mood.AffectRecorded(nodeId, "t1", "m1"));
+
+        // Advance clock past expiry (>600s)
+        mutableClock.now = baseInstant.plusSeconds(700);
+
+        // Now change PAD significantly
+        store.updateNode(nodeId, io.casehub.neocortex.mindmap.NodeUpdate.empty()
+                                                                        .withPad(-0.5, 0.9, 0.1), "t1");
+
+        // This should prime the cache again (expired entry removed), not produce a signal
+        acc.onAffectRecorded(new io.casehub.neocortex.memory.mood.AffectRecorded(nodeId, "t1", "m2"));
+        assertTrue(fired.isEmpty(), "expired cache entry should be treated as first observation");
+    }
+
 }

@@ -220,4 +220,68 @@ class ConsolidationSchedulerTest {
         // No exception thrown — accumulator is null, signals collected but discarded
     }
 
+
+    @Test
+    void runPhases_updates_urgency_p75_on_accumulator() {
+        var firedEvents = new java.util.ArrayList<io.casehub.neocortex.mindmap.CognitiveAttentionRequired>();
+        var registry = io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry.forTesting(
+                io.casehub.neocortex.cognitive.index.CognitiveDefaults.empty("agent-a"));
+        var accumulator = new CognitiveAttentionAccumulator(
+                registry, null, firedEvents::add, java.time.Clock.systemUTC(), 10.0, 0);
+
+        var phase = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "urgency-phase";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+
+            @Override
+            public java.util.List<io.casehub.neocortex.mindmap.AttentionSignal> signals() {
+                return java.util.List.of(
+                        new io.casehub.neocortex.mindmap.AttentionSignal(
+                                "agent-a", "t1", io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE,
+                                "n1", "Goal 1", 0.9, "high urgency"),
+                        new io.casehub.neocortex.mindmap.AttentionSignal(
+                                "agent-a", "t1", io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE,
+                                "n2", "Goal 2", 0.5, "medium urgency"),
+                        new io.casehub.neocortex.mindmap.AttentionSignal(
+                                "agent-a", "t1", io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE,
+                                "n3", "Goal 3", 0.8, "high urgency"),
+                        new io.casehub.neocortex.mindmap.AttentionSignal(
+                                "agent-a", "t1", io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE,
+                                "n4", "Goal 4", 0.3, "low urgency")
+                                        );
+            }
+        };
+
+        var schedulerWithAccumulator = new ConsolidationScheduler(
+                java.util.List.of(phase), idleTracker, memoryStore, null,
+                e -> {}, 5, null, accumulator);
+
+        schedulerWithAccumulator.consolidateNow("t1");
+
+        // After consolidation, urgencyP75 should be computed and set.
+        // With values [0.3, 0.5, 0.8, 0.9], P75 = 0.8 (nearest rank).
+        // Now add a signal just below threshold * (1 - (0.8 - 0.6)) = 10 * 0.8 = 8.0
+        // But floor is 10 * 0.6 = 6.0
+        accumulator.addSignals(java.util.List.of(
+                new io.casehub.neocortex.mindmap.AttentionSignal(
+                        "agent-a", "t1", io.casehub.neocortex.mindmap.SignalCategory.PRIORITY_SHIFT,
+                        "n5", "Test", 7.0, "test")));
+
+        // With P75=0.8, adjusted threshold = 10 * (1 - 0.2) = 8.0
+        // 7.0 < 8.0, so should NOT fire if P75 was updated
+        // Without P75 update, threshold = 10.0, still no fire (7 < 10)
+        // But let's verify by pushing over the adjusted threshold
+        accumulator.addSignals(java.util.List.of(
+                new io.casehub.neocortex.mindmap.AttentionSignal(
+                        "agent-a", "t1", io.casehub.neocortex.mindmap.SignalCategory.DECAY_DETECTED,
+                        "n6", "Test2", 1.5, "test")));
+
+        // 7.0 + 1.5 = 8.5 > 8.0 (adjusted) — should fire with P75
+        // Without P75 update: 8.5 < 10.0 — would NOT fire
+        assertThat(firedEvents).hasSize(1);
+    }
+
 }

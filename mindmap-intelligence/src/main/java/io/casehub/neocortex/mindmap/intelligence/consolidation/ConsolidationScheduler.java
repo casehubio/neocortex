@@ -2,7 +2,9 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryCapability;
+import io.casehub.neocortex.memory.cbr.FeatureStatistics;
 import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MutationContext;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignal;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignalGenerator;
@@ -178,10 +180,27 @@ public class ConsolidationScheduler {
             }
         }
         if (attentionAccumulator != null && !allSignals.isEmpty()) {
+            refreshUrgencyP75(allSignals);
             attentionAccumulator.addSignals(allSignals);
         }
         completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
     }
+
+    private void refreshUrgencyP75(List<AttentionSignal> signals) {
+        var byPrincipal = new java.util.HashMap<String, List<Double>>();
+        for (var signal : signals) {
+            if (signal.category() == SignalCategory.URGENCY_SPIKE && signal.principalId() != null) {
+                byPrincipal.computeIfAbsent(signal.principalId(), k -> new ArrayList<>())
+                           .add(signal.significance());
+            }
+        }
+        for (var entry : byPrincipal.entrySet()) {
+            double[] values = entry.getValue().stream().mapToDouble(Double::doubleValue).toArray();
+            double   p75    = FeatureStatistics.compute(values).p75();
+            attentionAccumulator.updateUrgencyP75(entry.getKey(), p75);
+        }
+    }
+
 
     private void beginTickAllPhases() {
         if (significanceAccumulator != null) {
