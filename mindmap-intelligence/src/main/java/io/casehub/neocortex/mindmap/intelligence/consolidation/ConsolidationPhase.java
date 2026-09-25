@@ -1,5 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.mindmap.AttentionSignal;
+
 import java.util.List;
 
 public interface ConsolidationPhase {
@@ -7,5 +9,8 @@ public interface ConsolidationPhase {
     void run(String tenantId, List<String> subgraphPriority);
 
     default void beginTick() {}
+
+    default List<AttentionSignal> signals() {return List.of();}
+
 
 }

@@ -120,4 +120,20 @@ class CognitiveDefaultsRegistryTest {
         assertThat(defaults.traitRules()).isNull();
         assertThat(defaults.derivedEdgeRules()).isNull();
     }
+
+    @Test
+    void allAgentIds_returnsRegisteredAgents() {
+        var defaults1 = CognitiveDefaults.empty("agent-a");
+        var defaults2 = CognitiveDefaults.empty("agent-b");
+        var registry  = CognitiveDefaultsRegistry.forTesting(defaults1, defaults2);
+        var ids       = registry.allAgentIds();
+        assertThat(ids).containsExactlyInAnyOrder("agent-a", "agent-b");
+    }
+
+    @Test
+    void allAgentIds_returnsEmptyWhenNoProfiles() {
+        var registry = CognitiveDefaultsRegistry.forTesting();
+        assertThat(registry.allAgentIds()).isEmpty();
+    }
+
 }

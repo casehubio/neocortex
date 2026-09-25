@@ -22,14 +22,18 @@ final class GoalUrgency {
     static double computeUrgency(MindMapNode node, Instant now) {
         String targetDateStr = node.property("target-date").orElse(null);
         if (targetDateStr == null) {
-            return node.property("urgency").map(Double::parseDouble).orElse(0.0);
+            return node.property("urgency")
+                .map(v -> Math.max(0.0, Math.min(1.0, Double.parseDouble(v))))
+                .orElse(0.0);
         }
 
         Instant deadline;
         try {
             deadline = parseTargetDate(targetDateStr);
         } catch (DateTimeParseException e) {
-            return node.property("urgency").map(Double::parseDouble).orElse(0.0);
+            return node.property("urgency")
+                .map(v -> Math.max(0.0, Math.min(1.0, Double.parseDouble(v))))
+                .orElse(0.0);
         }
         long remainingMs = Duration.between(now, deadline).toMillis();
         if (remainingMs <= 0) {return 1.0;}

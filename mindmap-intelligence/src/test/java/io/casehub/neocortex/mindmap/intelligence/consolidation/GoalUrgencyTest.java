@@ -160,4 +160,38 @@ class GoalUrgencyTest {
 
         assertThat(urgency).isEqualTo(0.0);
     }
+
+    @Test
+    void fallbackUrgency_clampedToUnitInterval_upperBound() {
+        Instant now = Instant.parse("2026-09-23T12:00:00Z");
+        String goalId = store.addNode(NodeInput.of("Over-urgent", goalSubgraphId)
+                                               .withProperties(Map.of("urgency", "2.0")), TENANT);
+
+        double urgency = GoalUrgency.computeUrgency(store.getNode(goalId, TENANT), now);
+
+        assertThat(urgency).isEqualTo(1.0);
+    }
+
+    @Test
+    void fallbackUrgency_clampedToUnitInterval_lowerBound() {
+        Instant now = Instant.parse("2026-09-23T12:00:00Z");
+        String goalId = store.addNode(NodeInput.of("Negative", goalSubgraphId)
+                                               .withProperties(Map.of("urgency", "-0.5")), TENANT);
+
+        double urgency = GoalUrgency.computeUrgency(store.getNode(goalId, TENANT), now);
+
+        assertThat(urgency).isEqualTo(0.0);
+    }
+
+    @Test
+    void malformedDate_fallbackUrgency_clampedToUnitInterval() {
+        Instant now = Instant.parse("2026-09-23T12:00:00Z");
+        String goalId = store.addNode(NodeInput.of("Bad date over", goalSubgraphId)
+                                               .withProperties(Map.of("target-date", "not-a-date", "urgency", "5.0")), TENANT);
+
+        double urgency = GoalUrgency.computeUrgency(store.getNode(goalId, TENANT), now);
+
+        assertThat(urgency).isEqualTo(1.0);
+    }
+
 }

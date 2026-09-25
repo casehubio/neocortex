@@ -71,6 +71,11 @@ public class CognitiveDefaultsRegistry {
         return profiles.values();
     }
 
+    public java.util.Set<String> allAgentIds() {
+        return profiles.keySet();
+    }
+
+
     void reload(Map<String, CognitiveDefaults> newProfiles) {
         this.profiles = Map.copyOf(newProfiles);
     }

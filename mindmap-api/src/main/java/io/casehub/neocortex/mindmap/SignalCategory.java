@@ -1,0 +1,15 @@
+package io.casehub.neocortex.mindmap;
+
+public enum SignalCategory {
+    URGENCY_SPIKE,
+    DECAY_DETECTED,
+    GOAL_RECOGNIZED,
+    BLOCKER_RESOLVED,
+    PRIORITY_SHIFT,
+    AFFECT_CHANGE,
+    MERGE_CANDIDATE,
+    EXPERIENCE_GRADUATED,
+    DRIVE_SHIFT,
+    RELATIONSHIP_STAGE,
+    BELIEF_REVISED
+}
