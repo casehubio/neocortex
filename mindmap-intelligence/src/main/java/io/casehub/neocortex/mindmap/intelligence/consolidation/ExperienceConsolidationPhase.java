@@ -9,6 +9,8 @@ import io.casehub.neocortex.memory.experience.GraduationClassifier;
 import io.casehub.neocortex.memory.experience.GraduationContext;
 import io.casehub.neocortex.memory.experience.GraduationResult;
 import io.casehub.neocortex.memory.experience.GraduationScorer;
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -45,6 +47,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
 
     private final CaseMemoryStore memoryStore;
     private final MindMapStore mindMapStore;
+    private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     private final GraduationScorer scorer;
     private final GraduationClassifier classifier;
     private final double threshold;
@@ -96,6 +99,18 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
     @Override
     public String name() {
         return "experience-consolidation";
+    }
+
+    @Override
+    public void beginTick() {
+        pendingSignals.clear();
+    }
+
+    @Override
+    public List<AttentionSignal> signals() {
+        var result = List.copyOf(pendingSignals);
+        pendingSignals.clear();
+        return result;
     }
 
     @Override
@@ -175,6 +190,13 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
 
         if (!graduatedInputs.isEmpty()) {
             mindMapStore.addNodes(graduatedInputs, tenantId);
+            for (NodeInput input : graduatedInputs) {
+                pendingSignals.add(new AttentionSignal(
+                    input.properties().get("agent-id"), tenantId,
+                    SignalCategory.EXPERIENCE_GRADUATED,
+                    null, input.name(), 0.6,
+                    "experience graduated to " + input.properties().getOrDefault("cognitiveKind", "unknown")));
+            }
         }
 
         if (lastProcessedId != null && !lastProcessedId.equals(cursor)) {

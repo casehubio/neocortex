@@ -1,5 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
@@ -11,8 +13,8 @@ import jakarta.inject.Inject;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ public class MergeDetectionPhase implements ConsolidationPhase {
 
     final MindMapStore store;
     final Object embeddingModel;
+    private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     final double nameThreshold;
     final double neighborThreshold;
     final double autoMergeThreshold;
@@ -58,6 +61,18 @@ public class MergeDetectionPhase implements ConsolidationPhase {
     }
 
     @Override
+    public void beginTick() {
+        pendingSignals.clear();
+    }
+
+    @Override
+    public List<AttentionSignal> signals() {
+        var result = List.copyOf(pendingSignals);
+        pendingSignals.clear();
+        return result;
+    }
+
+    @Override
     public void run(String tenantId, List<String> subgraphPriority) {
         List<String> subgraphIds = orderedSubgraphs(tenantId, subgraphPriority);
         int mergeCount = 0;
@@ -75,12 +90,23 @@ public class MergeDetectionPhase implements ConsolidationPhase {
                         String removeId = keepId.equals(candidate.nodeId1())
                             ? candidate.nodeId2() : candidate.nodeId1();
                         store.mergeNodes(keepId, removeId, tenantId);
+                        MindMapNode kept = store.getNode(keepId, tenantId);
+                        pendingSignals.add(new AttentionSignal(
+                            null, tenantId, SignalCategory.MERGE_CANDIDATE,
+                            keepId, kept != null ? kept.name() : keepId,
+                            candidate.score(),
+                            "auto-merged (score " + String.format("%.2f", candidate.score()) + ")"));
                         mergeCount++;
                     } catch (Exception e) {
                         LOG.warning("Merge failed: " + e.getMessage());
                     }
                 } else if (candidate.score() >= 0.7) {
                     flagCandidate(candidate, tenantId);
+                    pendingSignals.add(new AttentionSignal(
+                        null, tenantId, SignalCategory.MERGE_CANDIDATE,
+                        candidate.nodeId1(), candidate.nodeId1(),
+                        candidate.score(),
+                        "flagged for review (score " + String.format("%.2f", candidate.score()) + ")"));
                 }
             }
         }

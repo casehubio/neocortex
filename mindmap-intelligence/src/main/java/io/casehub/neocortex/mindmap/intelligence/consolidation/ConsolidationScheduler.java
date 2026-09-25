@@ -2,6 +2,8 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryCapability;
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.MutationContext;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignal;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignalGenerator;
 import io.casehub.neocortex.mindmap.runtime.IdleTracker;
@@ -12,8 +14,6 @@ import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-import io.casehub.neocortex.mindmap.MutationContext;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -43,6 +43,7 @@ public class ConsolidationScheduler {
     private final CuriositySignalGenerator curiosityGenerator;
     private final Consumer<ConsolidationCompleted> completionSink;
     private final SignificanceAccumulator significanceAccumulator;
+    private final CognitiveAttentionAccumulator attentionAccumulator;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
     private volatile ScheduledExecutorService executor;
@@ -53,6 +54,7 @@ public class ConsolidationScheduler {
                            CaseMemoryStore memoryStore,
                            Instance<CuriositySignalGenerator> curiosityGenerator,
                            Instance<SignificanceAccumulator> significanceAccumulator,
+                           Instance<CognitiveAttentionAccumulator> attentionAccumulator,
                            Event<ConsolidationCompleted> completionEvent,
                            @ConfigProperty(name = "casehub.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
@@ -67,7 +69,8 @@ public class ConsolidationScheduler {
             curiosityGenerator.isResolvable() ? curiosityGenerator.get() : null,
             completionEvent::fire,
             intervalMinutes,
-            significanceAccumulator.isResolvable() ? significanceAccumulator.get() : null);
+            significanceAccumulator.isResolvable() ? significanceAccumulator.get() : null,
+            attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null);
     }
 
     ConsolidationScheduler(List<ConsolidationPhase> phases,
@@ -76,7 +79,8 @@ public class ConsolidationScheduler {
                            CuriositySignalGenerator curiosityGenerator,
                            Consumer<ConsolidationCompleted> completionSink,
                            long intervalMinutes,
-                           SignificanceAccumulator significanceAccumulator) {
+                           SignificanceAccumulator significanceAccumulator,
+                           CognitiveAttentionAccumulator attentionAccumulator) {
         this.phases = phases;
         this.idleTracker = idleTracker;
         this.memoryStore = memoryStore;
@@ -84,13 +88,14 @@ public class ConsolidationScheduler {
         this.completionSink = completionSink;
         this.intervalMinutes = intervalMinutes;
         this.significanceAccumulator = significanceAccumulator;
+        this.attentionAccumulator = attentionAccumulator;
     }
 
     ConsolidationScheduler(List<ConsolidationPhase> phases,
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            CuriositySignalGenerator curiosityGenerator) {
-        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5, null);
+        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5, null, null);
     }
 
     @PostConstruct
@@ -154,13 +159,15 @@ public class ConsolidationScheduler {
 
 
     private void runPhases(String tenantId) {
-        List<String>      priority     = subgraphPriority(tenantId);
-        List<PhaseResult> phaseResults = new ArrayList<>();
+        List<String>          priority     = subgraphPriority(tenantId);
+        List<PhaseResult>     phaseResults = new ArrayList<>();
+        List<AttentionSignal> allSignals   = new ArrayList<>();
         for (ConsolidationPhase phase : phases) {
             Instant phaseStart = Instant.now();
             MutationContext.set("consolidation:" + phase.name());
             try {
                 phase.run(tenantId, priority);
+                allSignals.addAll(phase.signals());
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
             } catch (Exception e) {
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
@@ -169,6 +176,9 @@ public class ConsolidationScheduler {
             } finally {
                 MutationContext.clear();
             }
+        }
+        if (attentionAccumulator != null && !allSignals.isEmpty()) {
+            attentionAccumulator.addSignals(allSignals);
         }
         completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
     }

@@ -115,7 +115,7 @@ class ConsolidationSchedulerTest {
 
         var schedulerWithAccumulator = new ConsolidationScheduler(
                 List.of(), idleTracker, memoryStore, null, e -> {},
-                5, accumulator);
+                5, accumulator, null);
 
         var event = new io.casehub.neocortex.memory.experience.ExperienceRecorded(
                 new io.casehub.neocortex.memory.experience.Observation("a1", "tenant-1", null, "t1",
@@ -136,7 +136,7 @@ class ConsolidationSchedulerTest {
 
         var schedulerWithAccumulator = new ConsolidationScheduler(
                 List.of(), idleTracker, memoryStore, null, e -> {},
-                5, accumulator);
+                5, accumulator, null);
 
         var event = new io.casehub.neocortex.memory.experience.ExperienceRecorded(
                 new io.casehub.neocortex.memory.experience.Observation("a1", "tenant-1", null, "t1",
@@ -149,4 +149,75 @@ class ConsolidationSchedulerTest {
         SignificanceSnapshot snapshot = accumulator.swapAndReset();
         assertThat(snapshot.perTenant()).isEmpty();
     }
+
+
+    @Test
+    void runPhases_collects_signals_and_feeds_accumulator() {
+        var firedEvents = new java.util.ArrayList<io.casehub.neocortex.mindmap.CognitiveAttentionRequired>();
+        var registry = io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry.forTesting(
+                io.casehub.neocortex.cognitive.index.CognitiveDefaults.empty("agent-a"));
+        var accumulator = new CognitiveAttentionAccumulator(
+                registry, null, firedEvents::add, java.time.Clock.systemUTC(), 3.0, 0);
+
+        var signalPhase = new ConsolidationPhase() {
+            private final java.util.List<io.casehub.neocortex.mindmap.AttentionSignal> pending = new java.util.ArrayList<>();
+
+            @Override
+            public String name()    {return "signal-phase";}
+
+            @Override
+            public void beginTick() {pending.clear();}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {
+                pending.add(new io.casehub.neocortex.mindmap.AttentionSignal(
+                        "agent-a", tenantId, io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE,
+                        "n1", "Urgent goal", 4.0, "urgency 0.9"));
+            }
+
+            @Override
+            public java.util.List<io.casehub.neocortex.mindmap.AttentionSignal> signals() {
+                var result = java.util.List.copyOf(pending);
+                pending.clear();
+                return result;
+            }
+        };
+
+        var schedulerWithAccumulator = new ConsolidationScheduler(
+                java.util.List.of(signalPhase), idleTracker, memoryStore, null,
+                e -> {}, 5, null, accumulator);
+
+        schedulerWithAccumulator.consolidateNow("tenant-1");
+
+        assertThat(firedEvents).hasSize(1);
+        assertThat(firedEvents.get(0).briefing().principalId()).isEqualTo("agent-a");
+        assertThat(firedEvents.get(0).briefing().signals()).hasSize(1);
+        assertThat(firedEvents.get(0).briefing().signals().get(0).category())
+                .isEqualTo(io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE);
+    }
+
+    @Test
+    void runPhases_without_accumulator_does_not_fail() {
+        var signalPhase = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "signal-phase";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+
+            @Override
+            public java.util.List<io.casehub.neocortex.mindmap.AttentionSignal> signals() {
+                return java.util.List.of(new io.casehub.neocortex.mindmap.AttentionSignal(
+                        "a", "t", io.casehub.neocortex.mindmap.SignalCategory.URGENCY_SPIKE,
+                        "n1", "G1", 5.0, "r"));
+            }
+        };
+
+        var schedulerNoAccumulator = new ConsolidationScheduler(
+                java.util.List.of(signalPhase), idleTracker, memoryStore, null);
+
+        schedulerNoAccumulator.consolidateNow("tenant-1");
+        // No exception thrown — accumulator is null, signals collected but discarded
+    }
+
 }

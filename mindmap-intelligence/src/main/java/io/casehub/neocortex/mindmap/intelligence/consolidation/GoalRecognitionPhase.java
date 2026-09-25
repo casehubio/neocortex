@@ -1,5 +1,10 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryScanRequest;
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.CognitiveGoalRecognizer;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -7,14 +12,12 @@ import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.RecognizedGoal;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
-import io.casehub.neocortex.memory.CaseMemoryStore;
-import io.casehub.neocortex.memory.Memory;
-import io.casehub.neocortex.memory.MemoryScanRequest;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,7 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;
     private final CognitiveGoalRecognizer recognizer;
+    private final List<AttentionSignal> pendingSignals = new ArrayList<>();
 
     @Inject
     public GoalRecognitionPhase(Instance<MindMapStore> mindMapStore,
@@ -50,6 +54,18 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
     @Override
     public String name() {
         return "goal-recognition";
+    }
+
+    @Override
+    public void beginTick() {
+        pendingSignals.clear();
+    }
+
+    @Override
+    public List<AttentionSignal> signals() {
+        var result = List.copyOf(pendingSignals);
+        pendingSignals.clear();
+        return result;
     }
 
     @Override
@@ -90,8 +106,12 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
             if (goal.origin() != null) props.put("origin", goal.origin());
             if (goal.suggestedHorizon() != null) props.put("horizon", goal.suggestedHorizon());
 
-            mindMapStore.addNode(NodeInput.of(goal.description(), goalSgId)
+            String newNodeId = mindMapStore.addNode(NodeInput.of(goal.description(), goalSgId)
                     .withProperties(props), tenantId);
+            pendingSignals.add(new AttentionSignal(
+                null, tenantId, SignalCategory.GOAL_RECOGNIZED,
+                newNodeId, goal.description(), goal.confidence(),
+                "recognized from experience — origin: " + goal.origin()));
             LOG.fine("Created recognized goal: " + goal.description());
         }
     }

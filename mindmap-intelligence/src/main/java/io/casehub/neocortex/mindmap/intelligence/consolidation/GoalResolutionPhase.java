@@ -1,5 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.CognitiveGoalDecomposer;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.GoalDecompositionResult;
@@ -7,8 +9,8 @@ import io.casehub.neocortex.mindmap.GoalLifecycleProvider;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
-import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
+import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import jakarta.annotation.Priority;
@@ -37,6 +39,7 @@ public class GoalResolutionPhase implements ConsolidationPhase {
     private final MindMapStore store;
     private final CognitiveGoalDecomposer decomposer;
     private final GoalLifecycleProvider lifecycleProvider;
+    private final List<AttentionSignal> pendingSignals = new ArrayList<>();
 
     @Inject
     public GoalResolutionPhase(Instance<MindMapStore> store,
@@ -58,6 +61,18 @@ public class GoalResolutionPhase implements ConsolidationPhase {
     @Override
     public String name() {
         return "goal-resolution";
+    }
+
+    @Override
+    public void beginTick() {
+        pendingSignals.clear();
+    }
+
+    @Override
+    public List<AttentionSignal> signals() {
+        var result = List.copyOf(pendingSignals);
+        pendingSignals.clear();
+        return result;
     }
 
     @Override
@@ -237,6 +252,10 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                 store.updateNode(node.id(),
                         NodeUpdate.empty().withPropertiesToSet(Map.of("status", "active")),
                         tenantId);
+                pendingSignals.add(new AttentionSignal(
+                    node.property("agent-id").orElse(null), tenantId,
+                    SignalCategory.BLOCKER_RESOLVED, node.id(), node.name(),
+                    0.8, "all blockers resolved — goal unblocked"));
                 LOG.fine("Unblocked goal: " + node.name());
             }
         }

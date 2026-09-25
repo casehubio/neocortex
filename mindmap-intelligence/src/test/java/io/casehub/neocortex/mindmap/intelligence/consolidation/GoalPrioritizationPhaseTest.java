@@ -1,8 +1,10 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
@@ -239,6 +241,145 @@ class GoalPrioritizationPhaseTest {
         MindMapNode goal = store.getNode(goalId, TENANT);
         assertThat(goal.property("status")).contains("active");
         assertThat(goal.property("decay-signal")).isEmpty();
+    }
+
+
+    @Test
+    void emits_urgency_spike_signal_when_urgency_exceeds_threshold() {
+        java.time.Clock clock = java.time.Clock.fixed(
+                java.time.Instant.parse("2026-09-24T20:00:00Z"),
+                java.time.ZoneOffset.UTC);
+        var phase = new GoalPrioritizationPhase(store, clock);
+
+        store.addNode(NodeInput.of("Urgent task", goalSubgraphId)
+                               .withProperties(Map.of("description", "test",
+                                                      "status", "active",
+                                                      "target-date", "2026-09-25",
+                                                      "horizon", "short",
+                                                      "agent-id", "agent-1",
+                                                      "feasibility", "0.5")), TENANT);
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        List<AttentionSignal> signals = phase.signals();
+        assertThat(signals).anyMatch(
+                s -> s.category() == SignalCategory.URGENCY_SPIKE
+                     && "agent-1".equals(s.principalId()));
+    }
+
+    @Test
+    void emits_decay_detected_signal_when_goal_becomes_dormant() {
+        var phase = new GoalPrioritizationPhase(store);
+
+        store.addNode(NodeInput.of("Stale goal", goalSubgraphId)
+                               .withConfidence(io.casehub.neocortex.cognitive.Confidence.stated(
+                                       0.3, java.time.Instant.parse("2026-08-01T00:00:00Z")))
+                               .withProperties(Map.of("description", "stale",
+                                                      "status", "active",
+                                                      "agent-id", "agent-2"))
+                               .withPleasure(0.0), TENANT);
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        List<AttentionSignal> signals = phase.signals();
+        assertThat(signals).anyMatch(
+                s -> s.category() == SignalCategory.DECAY_DETECTED
+                     && "agent-2".equals(s.principalId()));
+    }
+
+    @Test
+    void emits_priority_shift_signal_when_priority_changes_significantly() {
+        var phase = new GoalPrioritizationPhase(store);
+
+        String goalId = store.addNode(NodeInput.of("Shifting goal", goalSubgraphId)
+                                               .withProperties(Map.of("description", "test",
+                                                                      "status", "active",
+                                                                      "urgency", "0.3",
+                                                                      "feasibility", "0.3",
+                                                                      "priority", "0.2",
+                                                                      "agent-id", "agent-3")), TENANT);
+
+        // Add importance edges to boost priority significantly
+        String helper1 = store.addNode(NodeInput.of("Helper 1", goalSubgraphId)
+                                                .withProperties(Map.of("description", "h1", "status", "active",
+                                                                       "urgency", "0.1", "feasibility", "0.1")), TENANT);
+        String helper2 = store.addNode(NodeInput.of("Helper 2", goalSubgraphId)
+                                                .withProperties(Map.of("description", "h2", "status", "active",
+                                                                       "urgency", "0.1", "feasibility", "0.1")), TENANT);
+        store.addEdge(EdgeInput.of(helper1, goalId, "contributes-to"), TENANT);
+        store.addEdge(EdgeInput.of(helper2, goalId, "enables"), TENANT);
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        List<AttentionSignal> signals = phase.signals();
+        assertThat(signals).anyMatch(
+                s -> s.category() == SignalCategory.PRIORITY_SHIFT
+                     && "agent-3".equals(s.principalId()));
+    }
+
+    @Test
+    void signals_drained_after_read() {
+        var phase = new GoalPrioritizationPhase(store);
+
+        store.addNode(NodeInput.of("Stale goal", goalSubgraphId)
+                               .withConfidence(io.casehub.neocortex.cognitive.Confidence.stated(
+                                       0.3, java.time.Instant.parse("2026-08-01T00:00:00Z")))
+                               .withProperties(Map.of("description", "stale",
+                                                      "status", "active"))
+                               .withPleasure(0.0), TENANT);
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        List<AttentionSignal> first = phase.signals();
+        assertThat(first).isNotEmpty();
+
+        List<AttentionSignal> second = phase.signals();
+        assertThat(second).isEmpty();
+    }
+
+    @Test
+    void no_signal_when_urgency_below_threshold() {
+        var phase = new GoalPrioritizationPhase(store);
+
+        store.addNode(NodeInput.of("Low urgency", goalSubgraphId)
+                               .withProperties(Map.of("description", "test",
+                                                      "status", "active",
+                                                      "urgency", "0.3",
+                                                      "feasibility", "0.5")), TENANT);
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        List<AttentionSignal> signals = phase.signals();
+        assertThat(signals.stream().filter(
+                s -> s.category() == SignalCategory.URGENCY_SPIKE)).isEmpty();
+    }
+
+    @Test
+    void null_principalId_when_no_agent_id_property() {
+        java.time.Clock clock = java.time.Clock.fixed(
+                java.time.Instant.parse("2026-09-24T20:00:00Z"),
+                java.time.ZoneOffset.UTC);
+        var phase = new GoalPrioritizationPhase(store, clock);
+
+        store.addNode(NodeInput.of("Unowned urgent", goalSubgraphId)
+                               .withProperties(Map.of("description", "test",
+                                                      "status", "active",
+                                                      "target-date", "2026-09-25",
+                                                      "horizon", "short",
+                                                      "feasibility", "0.5")), TENANT);
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        List<AttentionSignal> signals = phase.signals();
+        assertThat(signals).anyMatch(
+                s -> s.category() == SignalCategory.URGENCY_SPIKE
+                     && s.principalId() == null);
     }
 
 }

@@ -3,6 +3,8 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.mindmap.AppraisalContext;
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -16,6 +18,7 @@ import jakarta.inject.Inject;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -29,6 +32,7 @@ public class GoalAffectPhase implements ConsolidationPhase {
     private final MindMapStore  store;
     private final Clock         clock;
     private final GoalAppraisal appraisal;
+    private final List<AttentionSignal> pendingSignals = new ArrayList<>();
 
     @Inject
     public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal) {
@@ -54,6 +58,18 @@ public class GoalAffectPhase implements ConsolidationPhase {
     @Override
     public String name() {
         return "goal-affect";
+    }
+
+    @Override
+    public void beginTick() {
+        pendingSignals.clear();
+    }
+
+    @Override
+    public List<AttentionSignal> signals() {
+        var result = List.copyOf(pendingSignals);
+        pendingSignals.clear();
+        return result;
     }
 
     @Override
@@ -98,6 +114,11 @@ public class GoalAffectPhase implements ConsolidationPhase {
                                  dominant.pad().arousal(),
                                  dominant.pad().dominance()),
                          tenantId);
+
+        pendingSignals.add(new AttentionSignal(
+                node.property("agent-id").orElse(null), tenantId, SignalCategory.AFFECT_CHANGE,
+                node.id(), node.name(), dominant.intensity(),
+                dominant.type() + " (intensity " + String.format("%.2f", dominant.intensity()) + ")"));
     }
 
     private void applyLegacyPad(MindMapNode node, String tenantId, Instant now) {
@@ -138,9 +159,19 @@ public class GoalAffectPhase implements ConsolidationPhase {
         }
 
         if (pleasure != null) {
+            Double oldPleasure = node.pleasure();
+            double delta = oldPleasure != null
+                ? Math.abs(pleasure - oldPleasure)
+                : Math.abs(pleasure);
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPad(pleasure, arousal, dominance),
                              tenantId);
+            if (delta > 0.3) {
+                pendingSignals.add(new AttentionSignal(
+                    node.property("agent-id").orElse(null), tenantId,
+                    SignalCategory.AFFECT_CHANGE, node.id(), node.name(), delta,
+                    status + " — pleasure delta " + String.format("%.2f", delta)));
+            }
         }
     }
 
