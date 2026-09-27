@@ -3,6 +3,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.mindmap.AppraisalContext;
+import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
@@ -98,7 +99,8 @@ public class GoalAffectPhase implements ConsolidationPhase {
         Instant lastSurfaced    = lastSurfacedStr != null ? parseInstant(lastSurfacedStr) : null;
 
         var ctx = new AppraisalContext(tenantId, "consolidation",
-                                       PadProjection.NEUTRAL, surfacingCount, lastProgress, lastSurfaced, Map.of());
+                                       PadProjection.NEUTRAL, surfacingCount, lastProgress, lastSurfaced, Map.of(),
+                                       AppraisalWeights.NEUTRAL);
 
         var emotions = appraisal.appraise(node, ctx);
         if (emotions.isEmpty()) {return;}

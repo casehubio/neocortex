@@ -17,6 +17,7 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
+import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 import org.junit.jupiter.api.Test;
 
@@ -535,5 +536,98 @@ class CognitiveDerivationEngineTest {
 
         assertThat(result.extractionBias().relationshipBias()).isCloseTo(2.0, within(0.01));
         assertThat(result.extractionBias().affectSensitivity()).isCloseTo(0.5, within(0.01));
+    }
+
+    // --- Appraisal Weights ---
+
+    @Test
+    void deriveAppraisalWeights_nullProfile_returnsNull() {
+        assertThat(CognitiveDerivationEngine.deriveAppraisalWeights(null)).isNull();
+    }
+
+    @Test
+    void deriveAppraisalWeights_emptyProfile_returnsNull() {
+        assertThat(CognitiveDerivationEngine.deriveAppraisalWeights(List.of())).isNull();
+    }
+
+    @Test
+    void deriveAppraisalWeights_infj() {
+        var profile = List.of(
+            new WeightedTerm("ni", 0.35), new WeightedTerm("fe", 0.25),
+            new WeightedTerm("ti", 0.22), new WeightedTerm("se", 0.18));
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+
+        assertThat(w).isNotNull();
+        assertThat(w.urgencyWeight()).isCloseTo(1.105, within(0.01));
+        assertThat(w.relationshipWeight()).isCloseTo(1.045, within(0.01));
+        assertThat(w.fearOnsetThreshold()).isCloseTo(0.745, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_estp() {
+        var profile = List.of(
+            new WeightedTerm("se", 0.35), new WeightedTerm("ti", 0.25),
+            new WeightedTerm("fe", 0.22), new WeightedTerm("ni", 0.18));
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+
+        assertThat(w).isNotNull();
+        assertThat(w.urgencyWeight()).isCloseTo(0.805, within(0.01));
+        assertThat(w.relationshipWeight()).isCloseTo(0.955, within(0.01));
+        assertThat(w.fearOnsetThreshold()).isCloseTo(1.255, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_entj() {
+        var profile = List.of(
+            new WeightedTerm("te", 0.35), new WeightedTerm("ni", 0.25),
+            new WeightedTerm("se", 0.22), new WeightedTerm("fi", 0.18));
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+
+        assertThat(w).isNotNull();
+        assertThat(w.urgencyWeight()).isCloseTo(1.195, within(0.01));
+        assertThat(w.relationshipWeight()).isCloseTo(0.831, within(0.02));
+        assertThat(w.fearOnsetThreshold()).isCloseTo(0.955, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_singleFunction_clampsToFloor() {
+        var profile = List.of(new WeightedTerm("ni", 1.0));
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+
+        assertThat(w).isNotNull();
+        assertThat(w.urgencyWeight()).isCloseTo(1.0, within(0.001));
+        assertThat(w.relationshipWeight()).isCloseTo(1.0, within(0.001));
+        assertThat(w.fearOnsetThreshold()).isCloseTo(0.1, within(0.001));
+    }
+
+    @Test
+    void deriveAppraisalWeights_balanced_nearNeutral() {
+        var profile = List.of(
+            new WeightedTerm("ni", 0.125), new WeightedTerm("ne", 0.125),
+            new WeightedTerm("si", 0.125), new WeightedTerm("se", 0.125),
+            new WeightedTerm("ti", 0.125), new WeightedTerm("te", 0.125),
+            new WeightedTerm("fi", 0.125), new WeightedTerm("fe", 0.125));
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+
+        assertThat(w).isNotNull();
+        assertThat(w.urgencyWeight()).isCloseTo(1.0, within(0.001));
+        assertThat(w.relationshipWeight()).isCloseTo(1.0, within(0.001));
+        assertThat(w.fearOnsetThreshold()).isCloseTo(1.0, within(0.001));
+    }
+
+    @Test
+    void deriveAndMerge_explicitAppraisalWeightsWins() {
+        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var explicit = CognitiveDefaults.empty("test")
+                .withAppraisalWeights(new AppraisalWeights(1.2, 0.9, 0.8))
+                .withDescriptor(new DescriptorView("test", axes,
+                    List.of(new WeightedTerm("ni", 0.35), new WeightedTerm("fe", 0.25),
+                            new WeightedTerm("ti", 0.22), new WeightedTerm("se", 0.18)),
+                    List.of()));
+        var merged = CognitiveDerivationEngine.deriveAndMerge(explicit);
+
+        assertThat(merged.appraisalWeights().urgencyWeight()).isCloseTo(1.2, within(0.001));
+        assertThat(merged.appraisalWeights().relationshipWeight()).isCloseTo(0.9, within(0.001));
+        assertThat(merged.appraisalWeights().fearOnsetThreshold()).isCloseTo(0.8, within(0.001));
     }
 }

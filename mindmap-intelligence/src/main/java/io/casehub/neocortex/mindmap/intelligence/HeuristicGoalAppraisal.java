@@ -29,7 +29,7 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
         switch (status) {
             case "active" -> appraiseActive(goal, context, emotions,
                     priority, urgency, feasibility, surfacingCount, now);
-            case "blocked" -> appraiseBlocked(goal, emotions,
+            case "blocked" -> appraiseBlocked(goal, context, emotions,
                     priority, urgency, feasibility, now);
             case "completed" -> appraiseCompleted(goal, emotions, priority, now);
             case "abandoned" -> appraiseAbandoned(goal, emotions, priority, now);
@@ -47,26 +47,30 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
                                  double priority, double urgency, double feasibility,
                                  int surfacingCount, Instant now) {
         double surfacingGapFactor = surfacingCount / (surfacingCount + 1.0);
+        double uw = context.weights().urgencyWeight();
 
-        double hopeIntensity = clampIntensity(priority * feasibility * (1 - urgency * 0.5));
+        double hopeIntensity = clampIntensity(priority * feasibility * (1 - urgency * 0.5 * uw));
         if (hopeIntensity > 0.05) {
             emotions.add(emotion(EmotionType.HOPE, hopeIntensity, goal.id(), now));
         }
 
-        if (urgency > 0.3 || surfacingCount > 0) {
+        double threshold = 0.3 * context.weights().fearOnsetThreshold();
+        if (urgency > threshold || surfacingCount > 0) {
             double fearIntensity = clampIntensity(
-                    priority * urgency * Math.max(surfacingGapFactor, 0.3));
+                    priority * urgency * uw * Math.max(surfacingGapFactor, 0.3));
             if (fearIntensity > 0.05) {
                 emotions.add(emotion(EmotionType.FEAR, fearIntensity, goal.id(), now));
             }
         }
     }
 
-    private void appraiseBlocked(MindMapNode goal, List<CognitiveEmotion> emotions,
+    private void appraiseBlocked(MindMapNode goal, AppraisalContext context,
+                                  List<CognitiveEmotion> emotions,
                                   double priority, double urgency, double feasibility,
                                   Instant now) {
+        double uw = context.weights().urgencyWeight();
         double distressIntensity = clampIntensity(
-                priority * urgency * (1 - feasibility));
+                priority * urgency * uw * (1 - feasibility));
         if (distressIntensity > 0.05) {
             emotions.add(emotion(EmotionType.DISTRESS, distressIntensity, goal.id(), now));
         }
@@ -102,7 +106,8 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
         if (relationshipScore == null || relationshipScore <= 0) return;
 
         double negativeProspect = urgency * (1 - feasibility);
-        double pityIntensity = clampIntensity(relationshipScore * negativeProspect);
+        double rw = context.weights().relationshipWeight();
+        double pityIntensity = clampIntensity(relationshipScore * rw * negativeProspect);
         if (pityIntensity > 0.1) {
             emotions.add(new CognitiveEmotion(
                     EmotionType.PITY, pityIntensity, affectedEntity.get(), now,

@@ -219,7 +219,8 @@ class GoalEmotionalProgressionTest {
 
         return new AppraisalContext(TENANT, "test-agent",
                 io.casehub.neocortex.cognitive.PadProjection.NEUTRAL,
-                surfacingCount, lastProgress, lastSurfaced, Map.of());
+                surfacingCount, lastProgress, lastSurfaced, Map.of(),
+                io.casehub.neocortex.mindmap.AppraisalWeights.NEUTRAL);
     }
 
     private void recordSurfacing(String goalNodeId) {

@@ -19,6 +19,7 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.mood.MoodBaseline;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
+import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 
 import java.util.HashMap;
@@ -129,6 +130,7 @@ public final class CognitiveDerivationEngine {
         SocialCognitionDefaults socialCognition  = deriveSocialCognition(descriptor.disposition());
         GraphStructureDefaults  graphStructure   = deriveGraphStructure(descriptor.dispositionProfile());
         ExtractionBiasDefaults  extractionBias   = deriveExtractionBias(descriptor.dispositionProfile());
+        AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile());
 
         return CognitiveDefaults.empty(descriptor.agentId())
                 .withPersonality(personality)
@@ -138,7 +140,8 @@ public final class CognitiveDerivationEngine {
                 .withCbrStrategy(cbrStrategy)
                 .withSocialCognition(socialCognition)
                 .withGraphStructure(graphStructure)
-                .withExtractionBias(extractionBias);
+                .withExtractionBias(extractionBias)
+                .withAppraisalWeights(appraisal);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
@@ -156,6 +159,7 @@ public final class CognitiveDerivationEngine {
                 .withSocialCognition(explicit.socialCognition() != null ? explicit.socialCognition() : derived.socialCognition())
                 .withGraphStructure(explicit.graphStructure() != null ? explicit.graphStructure() : derived.graphStructure())
                 .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
+                .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
                 .withVocabulary(explicit.vocabulary())
                 .withServices(explicit.services())
                 .withTraitRules(explicit.traitRules())
@@ -322,6 +326,52 @@ public final class CognitiveDerivationEngine {
         double affectSensitivity = 0.8 + 0.6 * (empatheticWeight / totalWeight);
 
         return new ExtractionBiasDefaults(relationshipBias, affectSensitivity);
+    }
+
+    private static final double SCALE_FACTOR = 1.5;
+
+    private static final Map<String, Double> URGENCY_CONTRIBUTION = Map.of(
+        "te", 1.0,  "fe", 1.0,
+        "ne", -1.0, "se", -1.0
+    );
+
+    private static final Map<String, Double> RELATIONSHIP_CONTRIBUTION = Map.of(
+        "fe", 1.0,   "fi", 0.665,
+        "ti", -1.0,  "te", -0.665
+    );
+
+    private static final Map<String, Double> FEAR_CONTRIBUTION = Map.of(
+        "ni", -1.0,  "ne", -0.747,
+        "si", 0.747,  "se", 1.0
+    );
+
+    static AppraisalWeights deriveAppraisalWeights(List<WeightedTerm> profile) {
+        if (profile == null || profile.isEmpty()) return null;
+
+        double urgencyRaw = 0.0, relRaw = 0.0, fearRaw = 0.0;
+        double totalWeight = 0.0;
+
+        for (WeightedTerm term : profile) {
+            String fn = term.term().toLowerCase();
+            double w = term.weight();
+            totalWeight += w;
+
+            urgencyRaw += w * URGENCY_CONTRIBUTION.getOrDefault(fn, 0.0);
+            relRaw     += w * RELATIONSHIP_CONTRIBUTION.getOrDefault(fn, 0.0);
+            fearRaw    += w * FEAR_CONTRIBUTION.getOrDefault(fn, 0.0);
+        }
+
+        if (totalWeight == 0.0) return null;
+
+        urgencyRaw /= totalWeight;
+        relRaw     /= totalWeight;
+        fearRaw    /= totalWeight;
+
+        return new AppraisalWeights(
+            Math.max(1.0 + urgencyRaw * SCALE_FACTOR, 0.1),
+            Math.max(1.0 + relRaw * SCALE_FACTOR, 0.1),
+            Math.max(1.0 + fearRaw * SCALE_FACTOR, 0.1)
+        );
     }
 
     private static String lower(String s) {

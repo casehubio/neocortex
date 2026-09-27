@@ -712,7 +712,7 @@ Package-private pure static utility. Lightweight Dynamic Time Warping for multi-
 
 #### CognitiveDerivationEngine
 
-Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId, `DispositionAxes`, disposition profile as `List<WeightedTerm>`, goals) via 8 derivation pathways:
+Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId, `DispositionAxes`, disposition profile as `List<WeightedTerm>`, goals) via 9 derivation pathways:
 
 | Pathway | Input | Output |
 |---------|-------|--------|
@@ -724,6 +724,7 @@ Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId,
 | Social cognition | Social orient + conflict | Trust rate, conflict interpretation |
 | Graph structure | Disposition profile | CONNECTIVE/CATEGORICAL/BALANCED |
 | Extraction bias | Function weight ratios | Relationship bias, affect sensitivity |
+| Appraisal weights | Disposition profile | urgencyWeight, relationshipWeight, fearOnsetThreshold |
 
 **`deriveAndMerge()`** overlays explicit `CognitiveDefaults` fields (from YAML profile) on the derived base. Explicit non-null fields win. Primary integration point — YAML profiles can override any derived value.
 
@@ -1173,7 +1174,7 @@ All inference, RAG, CBR, agent memory, MindMap, and cognitive subsystem modules 
 | Agent Memory | Five backends (in-memory, JPA, SQLite, Mem0, Graphiti); `MemoryEmitter` fire-and-forget wrapper; `MemoryOrder.SALIENCE` (recency x confidence); unified `Confidence` record (origin + value); confidence-based retention purge; five event streams (experience, relationship, reflection, mood, engagement); `CaseEnrichmentStep` SPI; erasure notification |
 | MindMap | Thing/MindMapNode hierarchy; TypeRegistry with lazy per-tenant bootstrap; trait system (programmatic + declarative rules); 5-deep CDI decorator chain (DerivedEdge @80, TraitApplication @70, AffectTrajectory @65, ConfidenceDecay @55, IdleTracker @30); graph analysis (MindMapAnalyzer — orphans, centrality, k-cores, contradictions); merge with conflict reporting; supersession/reinstatement; capability-gated operations |
 | MindMap Intelligence | MindMapExtractor (LLM entity/relationship extraction — parse/apply decomposition, public ParsedExtraction types, optional PrincipalId); ConversationBridge (fast segmentation + async enrichment pipeline, PrincipalId + ConfidenceOrigin params); CognitiveLoader (vocabulary from YAML profiles); CuriositySignalGenerator (5-category signals with affect dampening); RecurrenceRule/Generator |
-| Cognitive Index | TemporalIndex (cross-store chronological aggregation); AffectTrajectoryAnalyzer (3-axis slope + volatility); TemporalFocus (proximity/recency + affect modifiers); CognitiveProfile (cross-store entity resolution + perspective-aware resolve + multi-agent compare); SocialComparison (PAD distance matrix, signed pairwise differences, 3D trajectory alignment); DomainActivation (cross-domain DTW correlation with time-bucketed 3D PAD); PerspectivalMerge (public static utility) + PerspectivalResolver (package-private, internalized in CognitiveProfile); CognitiveDefaults/Registry (YAML per-agent config); CognitiveDerivationEngine (8 derivation pathways from eidos identity); DeclarativeRuleRegistry; Modulation framework (profiles + factors + retrieval modulator) |
+| Cognitive Index | TemporalIndex (cross-store chronological aggregation); AffectTrajectoryAnalyzer (3-axis slope + volatility); TemporalFocus (proximity/recency + affect modifiers); CognitiveProfile (cross-store entity resolution + perspective-aware resolve + multi-agent compare); SocialComparison (PAD distance matrix, signed pairwise differences, 3D trajectory alignment); DomainActivation (cross-domain DTW correlation with time-bucketed 3D PAD); PerspectivalMerge (public static utility) + PerspectivalResolver (package-private, internalized in CognitiveProfile); CognitiveDefaults/Registry (YAML per-agent config); CognitiveDerivationEngine (9 derivation pathways from eidos identity); DeclarativeRuleRegistry; Modulation framework (profiles + factors + retrieval modulator) |
 | Consolidation | ConsolidationScheduler (idle-gated, curiosity-driven priority); 4-phase pipeline (AccessFrequency, MergeDetection, CommunitySummary, CuriosityRefresh); RetrievalAccessTracker + Bjork's dual-strength model |
 | Corpus | Append-only zip archives, flat filesystem, composite multi-backend; chain manifest; change tracking; compaction; integrity checks with recovery |
 | Score Fusion | `fusion-api` tier-1 module — weighted RRF + CC algorithms, `CamelCaseExpander` for BM25 preprocessing. Shared by RAG and CBR |

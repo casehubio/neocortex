@@ -5,6 +5,7 @@ import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.mindmap.AppraisalContext;
+import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 class HeuristicGoalAppraisalTest {
 
@@ -109,7 +111,8 @@ class HeuristicGoalAppraisalTest {
         var node = createGoalWithAffectedEntity("active", 0.85, 0.9, 0.3, "daughter-node");
         var ctx = new AppraisalContext("t1", "agent-1",
                                        PadProjection.NEUTRAL, 5, null, null,
-                                       Map.of("daughter-node", 0.8));
+                                       Map.of("daughter-node", 0.8),
+                                       AppraisalWeights.NEUTRAL);
         var emotions = appraisal.appraise(node, ctx);
         assertThat(emotions).anyMatch(e ->
                                               e.type() == EmotionType.PITY && e.source() == EmotionSource.EMPATHIC);
@@ -147,7 +150,8 @@ class HeuristicGoalAppraisalTest {
 
     private AppraisalContext ctx(int surfacingCount, Instant lastProgressAt) {
         return new AppraisalContext(TENANT, "agent-1",
-                                    PadProjection.NEUTRAL, surfacingCount, lastProgressAt, null, Map.of());
+                                    PadProjection.NEUTRAL, surfacingCount, lastProgressAt, null, Map.of(),
+                                    AppraisalWeights.NEUTRAL);
     }
 
     private MindMapNode createGoal(String status, double priority,
@@ -174,5 +178,107 @@ class HeuristicGoalAppraisalTest {
                                                    "feasibility", String.valueOf(feasibility),
                                                    "affected-entity", affectedEntity)), TENANT);
         return store.getNode(id, TENANT);
+    }
+
+    private AppraisalContext ctxWithWeights(int surfacingCount, Instant lastProgressAt,
+                                             AppraisalWeights weights) {
+        return new AppraisalContext(TENANT, "agent-1",
+                                    PadProjection.NEUTRAL, surfacingCount, lastProgressAt, null, Map.of(),
+                                    weights);
+    }
+
+    // --- Personality-modulated tests ---
+
+    @Test
+    void urgencyWeight_modulatesHope() {
+        var goal = createGoal("active", 0.7, 0.5, 0.6);
+
+        var highUw = ctxWithWeights(0, null, new AppraisalWeights(1.3, 1.0, 1.0));
+        var highHope = appraisal.appraise(goal, highUw).stream()
+                .filter(e -> e.type() == EmotionType.HOPE).findFirst().orElseThrow();
+
+        var lowUw = ctxWithWeights(0, null, new AppraisalWeights(0.7, 1.0, 1.0));
+        var lowHope = appraisal.appraise(goal, lowUw).stream()
+                .filter(e -> e.type() == EmotionType.HOPE).findFirst().orElseThrow();
+
+        assertThat(lowHope.intensity()).isGreaterThan(highHope.intensity());
+    }
+
+    @Test
+    void urgencyWeight_modulatesFearIntensity() {
+        var goal = createGoal("active", 0.7, 0.5, 0.6);
+
+        var highUw = ctxWithWeights(2, null, new AppraisalWeights(1.3, 1.0, 1.0));
+        var highFear = appraisal.appraise(goal, highUw).stream()
+                .filter(e -> e.type() == EmotionType.FEAR).findFirst().orElseThrow();
+
+        var lowUw = ctxWithWeights(2, null, new AppraisalWeights(0.7, 1.0, 1.0));
+        var lowFear = appraisal.appraise(goal, lowUw).stream()
+                .filter(e -> e.type() == EmotionType.FEAR).findFirst().orElseThrow();
+
+        assertThat(highFear.intensity()).isGreaterThan(lowFear.intensity());
+    }
+
+    @Test
+    void fearOnsetThreshold_lowersGate() {
+        var goal = createGoal("active", 0.7, 0.25, 0.6);
+
+        var niCtx = ctxWithWeights(0, null, new AppraisalWeights(1.0, 1.0, 0.7));
+        var niEmotions = appraisal.appraise(goal, niCtx);
+        assertThat(niEmotions).anyMatch(e -> e.type() == EmotionType.FEAR);
+
+        var seCtx = ctxWithWeights(0, null, new AppraisalWeights(1.0, 1.0, 1.3));
+        var seEmotions = appraisal.appraise(goal, seCtx);
+        assertThat(seEmotions).noneMatch(e -> e.type() == EmotionType.FEAR);
+    }
+
+    @Test
+    void relationshipWeight_modulatesPity() {
+        var goal = createGoalWithAffectedEntity("active", 0.7, 0.5, 0.4, "dana");
+
+        var highRw = new AppraisalContext(TENANT, "agent-1", PadProjection.NEUTRAL,
+                0, null, null, Map.of("dana", 0.8), new AppraisalWeights(1.0, 1.4, 1.0));
+        var highPity = appraisal.appraise(goal, highRw).stream()
+                .filter(e -> e.type() == EmotionType.PITY).findFirst().orElseThrow();
+
+        var lowRw = new AppraisalContext(TENANT, "agent-1", PadProjection.NEUTRAL,
+                0, null, null, Map.of("dana", 0.8), new AppraisalWeights(1.0, 0.7, 1.0));
+        var lowPity = appraisal.appraise(goal, lowRw).stream()
+                .filter(e -> e.type() == EmotionType.PITY).findFirst().orElseThrow();
+
+        assertThat(highPity.intensity()).isGreaterThan(lowPity.intensity());
+    }
+
+    @Test
+    void blockedGoal_urgencyWeightModulatesDistress() {
+        var goal = createGoal("blocked", 0.7, 0.8, 0.2);
+
+        var highUw = ctxWithWeights(0, null, new AppraisalWeights(1.3, 1.0, 1.0));
+        var highDistress = appraisal.appraise(goal, highUw).stream()
+                .filter(e -> e.type() == EmotionType.DISTRESS).findFirst().orElseThrow();
+
+        var lowUw = ctxWithWeights(0, null, new AppraisalWeights(0.7, 1.0, 1.0));
+        var lowDistress = appraisal.appraise(goal, lowUw).stream()
+                .filter(e -> e.type() == EmotionType.DISTRESS).findFirst().orElseThrow();
+
+        assertThat(highDistress.intensity()).isGreaterThan(lowDistress.intensity());
+    }
+
+    @Test
+    void neutralWeights_identicalToLegacyBehavior() {
+        var goal = createGoal("active", 0.7, 0.5, 0.6);
+
+        var neutralCtx = ctxWithWeights(2, null, AppraisalWeights.NEUTRAL);
+        var legacyCtx = ctx(2, null);
+
+        var neutralEmotions = appraisal.appraise(goal, neutralCtx);
+        var legacyEmotions = appraisal.appraise(goal, legacyCtx);
+
+        assertThat(neutralEmotions).hasSameSizeAs(legacyEmotions);
+        for (int i = 0; i < neutralEmotions.size(); i++) {
+            assertThat(neutralEmotions.get(i).type()).isEqualTo(legacyEmotions.get(i).type());
+            assertThat(neutralEmotions.get(i).intensity())
+                .isCloseTo(legacyEmotions.get(i).intensity(), within(0.001));
+        }
     }
 }

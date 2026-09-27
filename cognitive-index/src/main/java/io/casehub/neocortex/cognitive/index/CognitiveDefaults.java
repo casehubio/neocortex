@@ -17,6 +17,7 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.memory.mood.MoodBaseline;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
+import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 import io.casehub.neocortex.mindmap.DeclarativeDerivedEdgeRule;
 import io.casehub.neocortex.mindmap.DeclarativeTraitRule;
@@ -41,7 +42,8 @@ public record CognitiveDefaults(
         Map<String, String> services,
         List<DeclarativeTraitRule> traitRules,
         List<DeclarativeDerivedEdgeRule> derivedEdgeRules,
-        DescriptorView descriptor
+        DescriptorView descriptor,
+        AppraisalWeights appraisalWeights
 ) {
     public CognitiveDefaults {
         Objects.requireNonNull(agentId, "agentId required");
@@ -51,62 +53,66 @@ public record CognitiveDefaults(
     }
 
     public static CognitiveDefaults empty(String agentId) {
-        return new CognitiveDefaults(agentId, null, null, null, null, null, null, null, null, null, null, Map.of(), null, null, null);
+        return new CognitiveDefaults(agentId, null, null, null, null, null, null, null, null, null, null, Map.of(), null, null, null, null);
     }
 
     public CognitiveDefaults withTenantId(String tenantId) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withPersonality(PersonalityWeights personality) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withMoodBaseline(MoodBaseline moodBaseline) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withCuriosity(CuriosityConfig curiosity) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withTemporalFocus(TemporalFocusConfig temporalFocus) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withCbrStrategy(CbrStrategyDefaults cbrStrategy) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withSocialCognition(SocialCognitionDefaults socialCognition) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withGraphStructure(GraphStructureDefaults graphStructure) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withExtractionBias(ExtractionBiasDefaults extractionBias) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withVocabulary(MindMapVocabulary vocabulary) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withServices(Map<String, String> services) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withTraitRules(List<DeclarativeTraitRule> traitRules) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withDerivedEdgeRules(List<DeclarativeDerivedEdgeRule> derivedEdgeRules) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 
     public CognitiveDefaults withDescriptor(DescriptorView descriptor) {
-        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor);
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
+    }
+
+    public CognitiveDefaults withAppraisalWeights(AppraisalWeights appraisalWeights) {
+        return new CognitiveDefaults(agentId, tenantId, personality, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights);
     }
 }

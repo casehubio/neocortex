@@ -13,12 +13,14 @@ public record AppraisalContext(
         int surfacingCount,
         Instant lastProgressAt,
         Instant lastSurfacedAt,
-        Map<String, Double> relationshipScores
+        Map<String, Double> relationshipScores,
+        AppraisalWeights weights
 ) {
     public AppraisalContext {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(agentId, "agentId required");
         Objects.requireNonNull(moodBaseline, "moodBaseline required");
         relationshipScores = Map.copyOf(relationshipScores);
+        if (weights == null) weights = AppraisalWeights.NEUTRAL;
     }
 }
