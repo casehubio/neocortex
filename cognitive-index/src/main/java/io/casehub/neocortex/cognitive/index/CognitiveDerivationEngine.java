@@ -130,7 +130,7 @@ public final class CognitiveDerivationEngine {
         SocialCognitionDefaults socialCognition  = deriveSocialCognition(descriptor.disposition());
         GraphStructureDefaults  graphStructure   = deriveGraphStructure(descriptor.dispositionProfile());
         ExtractionBiasDefaults  extractionBias   = deriveExtractionBias(descriptor.dispositionProfile());
-        AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile());
+        AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile(), descriptor.disposition());
 
         return CognitiveDefaults.empty(descriptor.agentId())
                 .withPersonality(personality)
@@ -345,32 +345,58 @@ public final class CognitiveDerivationEngine {
         "si", 0.747,  "se", 1.0
     );
 
-    static AppraisalWeights deriveAppraisalWeights(List<WeightedTerm> profile) {
-        if (profile == null || profile.isEmpty()) return null;
+    static AppraisalWeights deriveAppraisalWeights(List<WeightedTerm> profile, DispositionAxes axes) {
+        if (profile == null || profile.isEmpty()) {return null;}
 
-        double urgencyRaw = 0.0, relRaw = 0.0, fearRaw = 0.0;
+        double urgencyRaw  = 0.0, relRaw = 0.0, fearRaw = 0.0;
         double totalWeight = 0.0;
 
         for (WeightedTerm term : profile) {
             String fn = term.term().toLowerCase();
-            double w = term.weight();
+            double w  = term.weight();
             totalWeight += w;
 
             urgencyRaw += w * URGENCY_CONTRIBUTION.getOrDefault(fn, 0.0);
-            relRaw     += w * RELATIONSHIP_CONTRIBUTION.getOrDefault(fn, 0.0);
-            fearRaw    += w * FEAR_CONTRIBUTION.getOrDefault(fn, 0.0);
+            relRaw += w * RELATIONSHIP_CONTRIBUTION.getOrDefault(fn, 0.0);
+            fearRaw += w * FEAR_CONTRIBUTION.getOrDefault(fn, 0.0);
         }
 
-        if (totalWeight == 0.0) return null;
+        if (totalWeight == 0.0) {return null;}
 
         urgencyRaw /= totalWeight;
-        relRaw     /= totalWeight;
-        fearRaw    /= totalWeight;
+        relRaw /= totalWeight;
+        fearRaw /= totalWeight;
+
+        double selfStrictness  = 1.0;
+        double otherStrictness = 1.0;
+
+        if (axes != null) {
+            if (axes.ruleFollowing() != null) {
+                switch (axes.ruleFollowing()) {
+                    case "strict" -> {selfStrictness  = 1.6;
+                                      otherStrictness = 1.4;
+                    }
+                    case "flexible" -> {selfStrictness  = 0.7;
+                                        otherStrictness = 0.6;
+                    }
+                    default -> {}
+                }
+            }
+            if (axes.socialOrient() != null) {
+                switch (axes.socialOrient()) {
+                    case "cooperative" -> otherStrictness -= 0.2;
+                    case "competitive" -> otherStrictness += 0.2;
+                    default -> {}
+                }
+            }
+        }
 
         return new AppraisalWeights(
-            Math.max(1.0 + urgencyRaw * SCALE_FACTOR, 0.1),
-            Math.max(1.0 + relRaw * SCALE_FACTOR, 0.1),
-            Math.max(1.0 + fearRaw * SCALE_FACTOR, 0.1)
+                Math.max(1.0 + urgencyRaw * SCALE_FACTOR, 0.1),
+                Math.max(1.0 + relRaw * SCALE_FACTOR, 0.1),
+                Math.max(1.0 + fearRaw * SCALE_FACTOR, 0.1),
+                Math.clamp(selfStrictness, 0.5, 2.0),
+                Math.clamp(otherStrictness, 0.5, 2.0)
         );
     }
 

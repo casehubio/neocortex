@@ -31,7 +31,7 @@ class AppraisalWeightsTest {
 
     @Test
     void validWeights_accepted() {
-        var w = new AppraisalWeights(1.3, 0.7, 0.85);
+        var w = new AppraisalWeights(1.3, 0.7, 0.85, 1.0, 1.0);
         assertEquals(1.3, w.urgencyWeight());
         assertEquals(0.7, w.relationshipWeight());
         assertEquals(0.85, w.fearOnsetThreshold());
@@ -40,18 +40,43 @@ class AppraisalWeightsTest {
     @Test
     void zeroUrgencyWeight_rejected() {
         assertThrows(IllegalArgumentException.class,
-            () -> new AppraisalWeights(0.0, 1.0, 1.0));
+            () -> new AppraisalWeights(0.0, 1.0, 1.0, 1.0, 1.0));
     }
 
     @Test
     void negativeRelationshipWeight_rejected() {
         assertThrows(IllegalArgumentException.class,
-            () -> new AppraisalWeights(1.0, -0.5, 1.0));
+            () -> new AppraisalWeights(1.0, -0.5, 1.0, 1.0, 1.0));
     }
 
     @Test
     void negativeFearOnsetThreshold_rejected() {
         assertThrows(IllegalArgumentException.class,
-            () -> new AppraisalWeights(1.0, 1.0, -0.1));
+            () -> new AppraisalWeights(1.0, 1.0, -0.1, 1.0, 1.0));
+    }
+
+    @Test
+    void standardsStrictnessFieldsAccepted() {
+        var w = new AppraisalWeights(1.0, 1.0, 1.0, 1.5, 0.8);
+        assertEquals(1.5, w.selfStandardsStrictness());
+        assertEquals(0.8, w.otherStandardsStrictness());
+    }
+
+    @Test
+    void selfStandardsStrictnessBelowMinThrows() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> new AppraisalWeights(1.0, 1.0, 1.0, 0.4, 1.0));
+    }
+
+    @Test
+    void otherStandardsStrictnessAboveMaxThrows() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> new AppraisalWeights(1.0, 1.0, 1.0, 1.0, 2.1));
+    }
+
+    @Test
+    void neutralIncludesStandardsStrictness() {
+        assertEquals(1.0, AppraisalWeights.NEUTRAL.selfStandardsStrictness());
+        assertEquals(1.0, AppraisalWeights.NEUTRAL.otherStandardsStrictness());
     }
 }

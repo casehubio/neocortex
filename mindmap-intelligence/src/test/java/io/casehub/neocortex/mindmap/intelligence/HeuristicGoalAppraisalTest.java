@@ -193,11 +193,11 @@ class HeuristicGoalAppraisalTest {
     void urgencyWeight_modulatesHope() {
         var goal = createGoal("active", 0.7, 0.5, 0.6);
 
-        var highUw = ctxWithWeights(0, null, new AppraisalWeights(1.3, 1.0, 1.0));
+        var highUw = ctxWithWeights(0, null, new AppraisalWeights(1.3, 1.0, 1.0, 1.0, 1.0));
         var highHope = appraisal.appraise(goal, highUw).stream()
                 .filter(e -> e.type() == EmotionType.HOPE).findFirst().orElseThrow();
 
-        var lowUw = ctxWithWeights(0, null, new AppraisalWeights(0.7, 1.0, 1.0));
+        var lowUw = ctxWithWeights(0, null, new AppraisalWeights(0.7, 1.0, 1.0, 1.0, 1.0));
         var lowHope = appraisal.appraise(goal, lowUw).stream()
                 .filter(e -> e.type() == EmotionType.HOPE).findFirst().orElseThrow();
 
@@ -208,11 +208,11 @@ class HeuristicGoalAppraisalTest {
     void urgencyWeight_modulatesFearIntensity() {
         var goal = createGoal("active", 0.7, 0.5, 0.6);
 
-        var highUw = ctxWithWeights(2, null, new AppraisalWeights(1.3, 1.0, 1.0));
+        var highUw = ctxWithWeights(2, null, new AppraisalWeights(1.3, 1.0, 1.0, 1.0, 1.0));
         var highFear = appraisal.appraise(goal, highUw).stream()
                 .filter(e -> e.type() == EmotionType.FEAR).findFirst().orElseThrow();
 
-        var lowUw = ctxWithWeights(2, null, new AppraisalWeights(0.7, 1.0, 1.0));
+        var lowUw = ctxWithWeights(2, null, new AppraisalWeights(0.7, 1.0, 1.0, 1.0, 1.0));
         var lowFear = appraisal.appraise(goal, lowUw).stream()
                 .filter(e -> e.type() == EmotionType.FEAR).findFirst().orElseThrow();
 
@@ -223,11 +223,11 @@ class HeuristicGoalAppraisalTest {
     void fearOnsetThreshold_lowersGate() {
         var goal = createGoal("active", 0.7, 0.25, 0.6);
 
-        var niCtx = ctxWithWeights(0, null, new AppraisalWeights(1.0, 1.0, 0.7));
+        var niCtx = ctxWithWeights(0, null, new AppraisalWeights(1.0, 1.0, 0.7, 1.0, 1.0));
         var niEmotions = appraisal.appraise(goal, niCtx);
         assertThat(niEmotions).anyMatch(e -> e.type() == EmotionType.FEAR);
 
-        var seCtx = ctxWithWeights(0, null, new AppraisalWeights(1.0, 1.0, 1.3));
+        var seCtx = ctxWithWeights(0, null, new AppraisalWeights(1.0, 1.0, 1.3, 1.0, 1.0));
         var seEmotions = appraisal.appraise(goal, seCtx);
         assertThat(seEmotions).noneMatch(e -> e.type() == EmotionType.FEAR);
     }
@@ -237,12 +237,12 @@ class HeuristicGoalAppraisalTest {
         var goal = createGoalWithAffectedEntity("active", 0.7, 0.5, 0.4, "dana");
 
         var highRw = new AppraisalContext(TENANT, "agent-1", PadProjection.NEUTRAL,
-                0, null, null, Map.of("dana", 0.8), new AppraisalWeights(1.0, 1.4, 1.0));
+                0, null, null, Map.of("dana", 0.8), new AppraisalWeights(1.0, 1.4, 1.0, 1.0, 1.0));
         var highPity = appraisal.appraise(goal, highRw).stream()
                 .filter(e -> e.type() == EmotionType.PITY).findFirst().orElseThrow();
 
         var lowRw = new AppraisalContext(TENANT, "agent-1", PadProjection.NEUTRAL,
-                0, null, null, Map.of("dana", 0.8), new AppraisalWeights(1.0, 0.7, 1.0));
+                0, null, null, Map.of("dana", 0.8), new AppraisalWeights(1.0, 0.7, 1.0, 1.0, 1.0));
         var lowPity = appraisal.appraise(goal, lowRw).stream()
                 .filter(e -> e.type() == EmotionType.PITY).findFirst().orElseThrow();
 
@@ -253,11 +253,11 @@ class HeuristicGoalAppraisalTest {
     void blockedGoal_urgencyWeightModulatesDistress() {
         var goal = createGoal("blocked", 0.7, 0.8, 0.2);
 
-        var highUw = ctxWithWeights(0, null, new AppraisalWeights(1.3, 1.0, 1.0));
+        var highUw = ctxWithWeights(0, null, new AppraisalWeights(1.3, 1.0, 1.0, 1.0, 1.0));
         var highDistress = appraisal.appraise(goal, highUw).stream()
                 .filter(e -> e.type() == EmotionType.DISTRESS).findFirst().orElseThrow();
 
-        var lowUw = ctxWithWeights(0, null, new AppraisalWeights(0.7, 1.0, 1.0));
+        var lowUw = ctxWithWeights(0, null, new AppraisalWeights(0.7, 1.0, 1.0, 1.0, 1.0));
         var lowDistress = appraisal.appraise(goal, lowUw).stream()
                 .filter(e -> e.type() == EmotionType.DISTRESS).findFirst().orElseThrow();
 

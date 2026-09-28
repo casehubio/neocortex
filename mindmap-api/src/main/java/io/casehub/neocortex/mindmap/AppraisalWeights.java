@@ -16,19 +16,24 @@
 package io.casehub.neocortex.mindmap;
 
 public record AppraisalWeights(
-    double urgencyWeight,
-    double relationshipWeight,
-    double fearOnsetThreshold
+        double urgencyWeight,
+        double relationshipWeight,
+        double fearOnsetThreshold,
+        double selfStandardsStrictness,
+        double otherStandardsStrictness
 ) {
     public static final AppraisalWeights NEUTRAL =
-        new AppraisalWeights(1.0, 1.0, 1.0);
+            new AppraisalWeights(1.0, 1.0, 1.0, 1.0, 1.0);
 
     public AppraisalWeights {
-        if (urgencyWeight <= 0.0)
-            throw new IllegalArgumentException("urgencyWeight must be positive");
-        if (relationshipWeight <= 0.0)
-            throw new IllegalArgumentException("relationshipWeight must be positive");
-        if (fearOnsetThreshold <= 0.0)
-            throw new IllegalArgumentException("fearOnsetThreshold must be positive");
+        if (urgencyWeight <= 0.0) {throw new IllegalArgumentException("urgencyWeight must be positive");}
+        if (relationshipWeight <= 0.0) {throw new IllegalArgumentException("relationshipWeight must be positive");}
+        if (fearOnsetThreshold <= 0.0) {throw new IllegalArgumentException("fearOnsetThreshold must be positive");}
+        if (selfStandardsStrictness < 0.5 || selfStandardsStrictness > 2.0) {
+            throw new IllegalArgumentException("selfStandardsStrictness must be in [0.5, 2.0]");
+        }
+        if (otherStandardsStrictness < 0.5 || otherStandardsStrictness > 2.0) {
+            throw new IllegalArgumentException("otherStandardsStrictness must be in [0.5, 2.0]");
+        }
     }
 }

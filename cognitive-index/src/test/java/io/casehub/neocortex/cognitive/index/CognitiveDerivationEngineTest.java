@@ -542,12 +542,12 @@ class CognitiveDerivationEngineTest {
 
     @Test
     void deriveAppraisalWeights_nullProfile_returnsNull() {
-        assertThat(CognitiveDerivationEngine.deriveAppraisalWeights(null)).isNull();
+        assertThat(CognitiveDerivationEngine.deriveAppraisalWeights(null, null)).isNull();
     }
 
     @Test
     void deriveAppraisalWeights_emptyProfile_returnsNull() {
-        assertThat(CognitiveDerivationEngine.deriveAppraisalWeights(List.of())).isNull();
+        assertThat(CognitiveDerivationEngine.deriveAppraisalWeights(List.of(), null)).isNull();
     }
 
     @Test
@@ -555,7 +555,7 @@ class CognitiveDerivationEngineTest {
         var profile = List.of(
             new WeightedTerm("ni", 0.35), new WeightedTerm("fe", 0.25),
             new WeightedTerm("ti", 0.22), new WeightedTerm("se", 0.18));
-        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile, null);
 
         assertThat(w).isNotNull();
         assertThat(w.urgencyWeight()).isCloseTo(1.105, within(0.01));
@@ -568,7 +568,7 @@ class CognitiveDerivationEngineTest {
         var profile = List.of(
             new WeightedTerm("se", 0.35), new WeightedTerm("ti", 0.25),
             new WeightedTerm("fe", 0.22), new WeightedTerm("ni", 0.18));
-        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile, null);
 
         assertThat(w).isNotNull();
         assertThat(w.urgencyWeight()).isCloseTo(0.805, within(0.01));
@@ -581,7 +581,7 @@ class CognitiveDerivationEngineTest {
         var profile = List.of(
             new WeightedTerm("te", 0.35), new WeightedTerm("ni", 0.25),
             new WeightedTerm("se", 0.22), new WeightedTerm("fi", 0.18));
-        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile, null);
 
         assertThat(w).isNotNull();
         assertThat(w.urgencyWeight()).isCloseTo(1.195, within(0.01));
@@ -592,7 +592,7 @@ class CognitiveDerivationEngineTest {
     @Test
     void deriveAppraisalWeights_singleFunction_clampsToFloor() {
         var profile = List.of(new WeightedTerm("ni", 1.0));
-        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile, null);
 
         assertThat(w).isNotNull();
         assertThat(w.urgencyWeight()).isCloseTo(1.0, within(0.001));
@@ -607,7 +607,7 @@ class CognitiveDerivationEngineTest {
             new WeightedTerm("si", 0.125), new WeightedTerm("se", 0.125),
             new WeightedTerm("ti", 0.125), new WeightedTerm("te", 0.125),
             new WeightedTerm("fi", 0.125), new WeightedTerm("fe", 0.125));
-        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile);
+        var w = CognitiveDerivationEngine.deriveAppraisalWeights(profile, null);
 
         assertThat(w).isNotNull();
         assertThat(w.urgencyWeight()).isCloseTo(1.0, within(0.001));
@@ -619,7 +619,7 @@ class CognitiveDerivationEngineTest {
     void deriveAndMerge_explicitAppraisalWeightsWins() {
         var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
         var explicit = CognitiveDefaults.empty("test")
-                .withAppraisalWeights(new AppraisalWeights(1.2, 0.9, 0.8))
+                .withAppraisalWeights(new AppraisalWeights(1.2, 0.9, 0.8, 1.0, 1.0))
                 .withDescriptor(new DescriptorView("test", axes,
                     List.of(new WeightedTerm("ni", 0.35), new WeightedTerm("fe", 0.25),
                             new WeightedTerm("ti", 0.22), new WeightedTerm("se", 0.18)),
@@ -629,5 +629,57 @@ class CognitiveDerivationEngineTest {
         assertThat(merged.appraisalWeights().urgencyWeight()).isCloseTo(1.2, within(0.001));
         assertThat(merged.appraisalWeights().relationshipWeight()).isCloseTo(0.9, within(0.001));
         assertThat(merged.appraisalWeights().fearOnsetThreshold()).isCloseTo(0.8, within(0.001));
+    }
+
+    @Test
+    void deriveAppraisalWeights_strictRuleFollowing_highStrictness() {
+        var profile = List.of(new WeightedTerm("fi", 1.0));
+        var axes    = new DispositionAxes("balanced", "strict", "moderate", "balanced", "collaborative");
+        var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
+        assertThat(w.selfStandardsStrictness()).isCloseTo(1.6, within(0.01));
+        assertThat(w.otherStandardsStrictness()).isCloseTo(1.4, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_flexibleRuleFollowing_lowStrictness() {
+        var profile = List.of(new WeightedTerm("fi", 1.0));
+        var axes    = new DispositionAxes("balanced", "flexible", "moderate", "balanced", "collaborative");
+        var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
+        assertThat(w.selfStandardsStrictness()).isCloseTo(0.7, within(0.01));
+        assertThat(w.otherStandardsStrictness()).isCloseTo(0.6, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_cooperativeSocialOrient_reducesOtherStrictness() {
+        var profile = List.of(new WeightedTerm("fi", 1.0));
+        var axes    = new DispositionAxes("cooperative", "strict", "moderate", "balanced", "collaborative");
+        var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
+        assertThat(w.selfStandardsStrictness()).isCloseTo(1.6, within(0.01));
+        assertThat(w.otherStandardsStrictness()).isCloseTo(1.2, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_competitiveSocialOrient_increasesOtherStrictness() {
+        var profile = List.of(new WeightedTerm("fi", 1.0));
+        var axes    = new DispositionAxes("competitive", "moderate", "moderate", "balanced", "collaborative");
+        var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
+        assertThat(w.otherStandardsStrictness()).isCloseTo(1.2, within(0.01));
+    }
+
+    @Test
+    void deriveAppraisalWeights_nullAxes_defaultsStrictness() {
+        var profile = List.of(new WeightedTerm("fi", 1.0));
+        var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, null);
+        assertThat(w.selfStandardsStrictness()).isEqualTo(1.0);
+        assertThat(w.otherStandardsStrictness()).isEqualTo(1.0);
+    }
+
+    @Test
+    void deriveAppraisalWeights_strictCompetitive_clampsToMax() {
+        var profile = List.of(new WeightedTerm("fi", 1.0));
+        var axes    = new DispositionAxes("competitive", "strict", "moderate", "balanced", "collaborative");
+        var w       = CognitiveDerivationEngine.deriveAppraisalWeights(profile, axes);
+        assertThat(w.otherStandardsStrictness()).isCloseTo(1.6, within(0.01));
+        assertThat(w.otherStandardsStrictness()).isLessThanOrEqualTo(2.0);
     }
 }
