@@ -724,7 +724,7 @@ Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId,
 | Social cognition | Social orient + conflict | Trust rate, conflict interpretation |
 | Graph structure | Disposition profile | CONNECTIVE/CATEGORICAL/BALANCED |
 | Extraction bias | Function weight ratios | Relationship bias, affect sensitivity |
-| Appraisal weights | Disposition profile | urgencyWeight, relationshipWeight, fearOnsetThreshold |
+| Appraisal weights | Disposition profile + axes | urgencyWeight, relationshipWeight, fearOnsetThreshold (from JPAF profile), selfStandardsStrictness, otherStandardsStrictness (from DispositionAxes: ruleFollowing + socialOrient) |
 
 **`deriveAndMerge()`** overlays explicit `CognitiveDefaults` fields (from YAML profile) on the derived base. Explicit non-null fields win. Primary integration point — YAML profiles can override any derived value.
 
@@ -820,13 +820,31 @@ Always processes the GOAL subgraph regardless of `subgraphPriority`.
 
 #### GoalAffectPhase (Priority 37)
 
-Computes anticipated affect (PAD dimensions) on goal nodes based on status and urgency:
+Computes anticipated affect (PAD dimensions) on goal nodes. Two paths:
+
+**OCC path** (when `GoalAppraisal` SPI is available): delegates to `HeuristicGoalAppraisal`, which produces typed OCC emotions (Hope, Fear, Satisfaction, Disappointment, Distress, Pity) from goal status, priority, urgency, feasibility, and relationship scores. The dominant emotion's PAD projection is written to the node. `AppraisalWeights` (personality-derived) modulate urgency sensitivity, relationship weight, and fear onset threshold.
+
+**Legacy path** (fallback): direct status → PAD mapping:
 - **Active:** arousal = urgency × 0.8, positive pleasure/dominance
 - **Blocked + urgent:** negative pleasure (frustration), high arousal
 - **Completed:** positive pleasure (satisfaction)
 - **Dormant:** reduced arousal, neutral pleasure/dominance
 
-Uses dynamic urgency from `target-date` property when present (via `GoalUrgency`), falling back to the static `urgency` property. Updates PAD via `store.updateNode()`. `AffectTrajectoryDecorator` captures changes as domain="affect" memories.
+Both paths use dynamic urgency from `target-date` property when present (via `GoalUrgency`), falling back to the static `urgency` property. Updates PAD via `store.updateNode()`. Emits `AFFECT_CHANGE` attention signals. `AffectTrajectoryDecorator` captures changes as domain="affect" memories.
+
+See `docs/research/2026-09-28-occ-emotion-appraisal-architecture.md` for the full OCC model.
+
+#### ActionAppraisalObserver (CDI real-time)
+
+Not a consolidation phase — fires in real-time via `@Observes ExperienceRecorded`, filtering for `Outcome` events. Produces OCC agent-based emotions (Pride, Shame, Admiration, Reproach) and compound emotions (Gratification, Remorse, Gratitude, Anger).
+
+**Dual-path logic:** Self-appraisal (own action → Pride/Shame) fires on every Outcome. Other-appraisal (another agent's action → Admiration/Reproach) fires when `TARGET_AGENT` metadata is present and differs from `agentId`.
+
+**Scoring:** Praiseworthiness = `outcomePolarity × |goalRelevance|`. Asymmetric thresholds from `AppraisalWeights.selfStandardsStrictness` / `otherStandardsStrictness` (derived from DispositionAxes). Strict agents feel Shame easily but require high achievements for Pride.
+
+**Compound detection (inline):** When base emotion + `|goalRelevance| > 0.3`, the compound is inferred from the same inputs without cross-phase coordination.
+
+Delegates scoring to `ActionAppraisal` SPI (`HeuristicActionAppraisal` implementation). `NoOpActionAppraisal` `@DefaultBean` when no implementation on classpath. Graceful degradation via `Instance<T>` for MindMapStore, ActionAppraisal, CognitiveDefaultsRegistry.
 
 #### GoalPrioritizationPhase (Priority 38)
 
