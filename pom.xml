@@ -73,6 +73,8 @@
     <module>mindmap-inmem</module>
     <module>mindmap-sqlite</module>
     <module>mindmap-intelligence</module>
+    <module>cognition-api</module>
+    <module>cognition</module>
     <module>schema-generator</module>
 
     <module>examples/example-text-analysis</module>
@@ -401,6 +403,16 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-mindmap-intelligence</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cognition-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cognition</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
