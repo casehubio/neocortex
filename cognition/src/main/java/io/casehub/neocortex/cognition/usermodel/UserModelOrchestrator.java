@@ -103,7 +103,7 @@ public class UserModelOrchestrator {
                      .toList();
     }
 
-    static double computeFamiliarity(int positive, int negative, int neutral,
+    public static double computeFamiliarity(int positive, int negative, int neutral,
                                      RelationshipStageConfig stageConfig,
                                      long ticksSinceLastInteraction) {
         int total = positive + negative + neutral;
