@@ -408,7 +408,7 @@ This is a follow-up enhancement, not part of the initial implementation. The pro
 | `RelationshipStageConfig` | Record: stage tiers, decay rate, signal weights |
 | `StageTier` | Record: `(String name, double threshold)` |
 | `UserProfileStore` | SPI: `store()`, `lookup()`, `findByAgent()`, `eraseSubject()` |
-| `CbrUserProfileStore` | `@DefaultBean`: CbrRecordStore-backed UserProfileStore |
+| `UserProfileMemory` | `@DefaultBean`: CbrRecordStore-backed UserProfileStore |
 | `UserProfileSchema` | Package-private: CbrRecordSchema for profile storage |
 | `SynthesisResult` | Package-private record: parsed LLM output |
 

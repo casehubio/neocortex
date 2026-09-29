@@ -224,7 +224,7 @@ public interface StrategyStore {
 }
 ```
 
-`CbrStrategyStore` (`@DefaultBean`) backs onto `CbrRecordStore`:
+`StrategyMemory` (`@DefaultBean`) backs onto `CbrRecordStore`:
 - Profile stored as CbrRecord: guidelines as problem text, dimensions as features, placeholder solution (`"-"`)
 - `subjectInsights()` queries engagement CBR cases filtered by subjectId (via `CbrFilter.contains("subjectId", subjectId)`), extracts engagement features, formats as template-based text: `"With {subjectId}: engagement rate {continuationRate}, avg response length {avgResponseLength}, sentiment trend {meanSentimentShift}"`
 - `eraseSubject()` queries engagement CBR cases by subjectId feature filter, erases matching cases via `cbrStore.erase()`. Provides GDPR Art.17 erasure for subject data.
@@ -423,7 +423,7 @@ String systemPrompt = strategy + subjectContext + baseSystemPrompt;
 | `StrategyLearningTick` | sealed interface | tick() outcome: NoChange, Observed, Learned |
 | `StrategyReflection` | sealed interface | reflect() outcome: NoChange, Reflected |
 | `StrategyStore` | interface (SPI) | Strategy profile + subject erasure persistence |
-| `CbrStrategyStore` | class (@DefaultBean) | CbrRecordStore-backed StrategyStore |
+| `StrategyMemory` | class (@DefaultBean) | CbrRecordStore-backed StrategyStore |
 | `StrategyLearningOrchestrator` | class | Composition root: record() + tick() + reflect() + currentStrategy() |
 
 8 new types. ~500 lines of production code estimated.
