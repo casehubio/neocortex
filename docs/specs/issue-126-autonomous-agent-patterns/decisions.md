@@ -265,7 +265,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D20: Profile storage — UserProfileStore SPI backed by CbrRecordStore
 
-**Choice:** `UserProfileStore` SPI with `store(UserProfile)`, `lookup(agentId, subjectId, tenantId) → Optional<UserProfile>`, `findByAgent(agentId, tenantId) → List<UserProfile>`, `eraseSubject(subjectId, tenantId)`. Default implementation (`CbrUserProfileStore`) backs onto `CbrRecordStore` internally — CbrRecord convention (profile summary as problem, fields as features, supersession for versioning) is contained in the adapter. Consumers get a profile-oriented API; the CbrRecord hack is hidden.
+**Choice:** `UserProfileStore` SPI with `store(UserProfile)`, `lookup(agentId, subjectId, tenantId) → Optional<UserProfile>`, `findByAgent(agentId, tenantId) → List<UserProfile>`, `eraseSubject(subjectId, tenantId)`. Default implementation (`UserProfileMemory`) backs onto `CbrRecordStore` internally — CbrRecord convention (profile summary as problem, fields as features, supersession for versioning) is contained in the adapter. Consumers get a profile-oriented API; the CbrRecord hack is hidden.
 **Alternatives:**
 - Raw CbrRecordStore — exposes CbrRecord semantics (problem/solution/features) that don't map naturally to profiles. Every consumer must post-filter by producerAgentId AND caseType. Erasure by subjectId is impossible without scanning all cases. The "similarity search across profiles" benefit is secondary analytics, not a core retrieval pattern.
 - In-memory only — lost on restart. Too limiting for long-term relationships.

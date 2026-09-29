@@ -209,7 +209,7 @@ record MentalModelSnapshot(
 
 Uses `AttributedState` directly — no separate `SnapshotBelief` type needed since `AttributedState` already carries entrenchment, confidence, and timestamp.
 
-### `CbrMentalModelStore` — `@DefaultBean` adapter
+### `MentalModelMemory` — `@DefaultBean` adapter
 
 Backs onto `CbrRecordStore`. Mental model snapshot stored as a CbrRecord:
 - `problem` = serialized BDI summary text
@@ -217,7 +217,7 @@ Backs onto `CbrRecordStore`. Mental model snapshot stored as a CbrRecord:
 - Features: agentId, subjectId, tenantId (for lookup), BDI entries as JSON StringVal
 - Supersession for versioning (each tick that persists supersedes the previous snapshot)
 
-Same adapter pattern as `CbrUserProfileStore` (D20). Known limitation: lookup uses `retrieveSimilar` with feature-match query — this is a similarity search pretending to be an exact-key lookup. Acceptable for the same reason as UserProfileStore: the alternative is a new persistence SPI at the neocortex level, which is premature. If lookup becomes a bottleneck, the in-memory state (ConcurrentHashMap) serves most reads — the store is only consulted on cold-start reload.
+Same adapter pattern as `UserProfileMemory` (D20). Known limitation: lookup uses `retrieveSimilar` with feature-match query — this is a similarity search pretending to be an exact-key lookup. Acceptable for the same reason as UserProfileStore: the alternative is a new persistence SPI at the neocortex level, which is premature. If lookup becomes a bottleneck, the in-memory state (ConcurrentHashMap) serves most reads — the store is only consulted on cold-start reload.
 
 ## Configuration
 
@@ -273,7 +273,7 @@ sealed interface MentalModelTick {
 | `MentalModelTick` | Sealed interface | Tick outcome: Unchanged, Updated, Inferred |
 | `MentalModelSnapshot` | Record | Persisted BDI state |
 | `MentalModelStore` | Interface (SPI) | Persistence: store, lookup, findByAgent, eraseSubject |
-| `CbrMentalModelStore` | `@DefaultBean @ApplicationScoped` | CbrRecordStore adapter |
+| `MentalModelMemory` | `@DefaultBean @ApplicationScoped` | CbrRecordStore adapter |
 | `MentalModelConfig` | Record | Configuration: decay rates, thresholds, cooldowns |
 
 11 types total (6 new records/enums, 2 sealed interfaces, 1 CDI bean, 1 SPI interface, 1 default bean).
