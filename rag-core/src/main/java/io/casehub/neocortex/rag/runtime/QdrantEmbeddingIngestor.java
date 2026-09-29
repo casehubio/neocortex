@@ -50,7 +50,7 @@ public class QdrantEmbeddingIngestor implements EmbeddingIngestor {
 
     private final Set<String> knownCollections = ConcurrentHashMap.newKeySet();
 
-    QdrantEmbeddingIngestor(
+    public QdrantEmbeddingIngestor(
             QdrantClient client,
             MultiModalEmbedder embedder,
             TenantGuard tenantGuard,

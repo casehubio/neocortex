@@ -6,17 +6,23 @@ import io.casehub.neocortex.inference.MultiModalEmbedder;
 import io.casehub.neocortex.rag.CursorStore;
 import io.casehub.neocortex.rag.EmbeddingIngestor;
 import io.casehub.neocortex.rag.MetadataExtractor;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.splade.SparseEmbedder;
 import io.casehub.neocortex.rag.runtime.BM25IndexRegistry;
 import io.casehub.neocortex.rag.runtime.CorpusIngestionService;
 import io.casehub.neocortex.rag.runtime.DenseQuantization;
 import io.casehub.neocortex.rag.runtime.FileCursorStore;
 import io.casehub.neocortex.rag.runtime.HybridCaseRetriever;
+import io.casehub.neocortex.rag.runtime.QdrantEmbeddingIngestor;
 import io.casehub.neocortex.rag.runtime.RagConfig;
+import io.casehub.neocortex.rag.runtime.SeparateModelEmbedder;
 import io.casehub.neocortex.rag.runtime.TenancyStrategy;
 import io.casehub.neocortex.rag.runtime.TenantGuard;
 import io.casehub.neocortex.rag.runtime.YamlFrontmatterExtractor;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.qdrant.client.QdrantClient;
+import io.qdrant.client.QdrantGrpcClient;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -125,5 +131,42 @@ public class RagAutoConfiguration {
     public CorpusIngestionService corpusIngestionService(EmbeddingIngestor ingestor,
                                                           CursorStore cursorStore) {
         return new CorpusIngestionService(ingestor, cursorStore);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public QdrantClient qdrantClient(RagConfig config) {
+        var grpcBuilder = QdrantGrpcClient.newBuilder(
+                config.qdrant().host(),
+                config.qdrant().port(),
+                config.qdrant().useTls());
+        config.qdrant().apiKey().ifPresent(grpcBuilder::withApiKey);
+        return new QdrantClient(grpcBuilder.build());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public MultiModalEmbedder multiModalEmbedder(
+            EmbeddingModel denseModel,
+            ObjectProvider<SparseEmbedder> sparseEmbedder,
+            RagConfig config) {
+        int maxSeqLen = config.maxSequenceLength().orElse(512);
+        SparseEmbedder sparse = sparseEmbedder.getIfAvailable();
+        if (sparse != null) {
+            return new SeparateModelEmbedder(denseModel, sparse, maxSeqLen);
+        }
+        return new SeparateModelEmbedder(denseModel, maxSeqLen);
+    }
+
+    @Bean
+    public QdrantEmbeddingIngestor qdrantEmbeddingIngestor(
+            QdrantClient client,
+            MultiModalEmbedder embedder,
+            ObjectProvider<CurrentPrincipal> currentPrincipal,
+            RagConfig config) {
+        return new QdrantEmbeddingIngestor(client,
+                MatryoshkaMultiModalEmbedder.wrapIfNeeded(embedder, config.matryoshka().dimension()),
+                TenantGuard.of(currentPrincipal.getIfAvailable()),
+                config);
     }
 }
