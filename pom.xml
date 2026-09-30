@@ -73,6 +73,7 @@
     <module>mindmap-inmem</module>
     <module>mindmap-sqlite</module>
     <module>mindmap-intelligence</module>
+    <module>summarisation</module>
     <module>cognition-api</module>
     <module>cognition</module>
     <module>schema-generator</module>
