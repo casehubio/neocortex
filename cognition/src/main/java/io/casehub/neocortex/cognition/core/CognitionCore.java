@@ -3,6 +3,7 @@ package io.casehub.neocortex.cognition.core;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.NeedTierMappingProvider;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
+import io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator;
 import io.casehub.neocortex.cognition.memory.MemoryHygieneOrchestrator;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator;
 import io.casehub.neocortex.cognition.mentalmodel.MentalStateSignal;
@@ -11,6 +12,22 @@ import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
+import io.casehub.neocortex.cognition.prompt.AttentionPromptSection;
+import io.casehub.neocortex.cognition.prompt.CharacterDrivePromptSection;
+import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
+import io.casehub.neocortex.cognition.prompt.ConsolidationPromptSection;
+import io.casehub.neocortex.cognition.prompt.ConstraintPromptSection;
+import io.casehub.neocortex.cognition.prompt.DirectiveSection;
+import io.casehub.neocortex.cognition.prompt.DrivePromptSection;
+import io.casehub.neocortex.cognition.prompt.EmergentGoalPromptSection;
+import io.casehub.neocortex.cognition.prompt.MentalModelPromptSection;
+import io.casehub.neocortex.cognition.prompt.MoodPromptSection;
+import io.casehub.neocortex.cognition.prompt.NarrativePromptSection;
+import io.casehub.neocortex.cognition.prompt.NeedsPyramidPromptSection;
+import io.casehub.neocortex.cognition.prompt.ReflectionPromptSection;
+import io.casehub.neocortex.cognition.prompt.StrategyPromptSection;
+import io.casehub.neocortex.cognition.prompt.TemporalFocusPromptSection;
+import io.casehub.neocortex.cognition.prompt.UserModelPromptSection;
 import io.casehub.neocortex.cognition.strategy.EngagementSignal;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningOrchestrator;
 import io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator;
@@ -20,20 +37,25 @@ import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.memory.relationship.QualitySignal;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
+import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.eidos.api.ConstraintSeverity;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 public class CognitionCore {
@@ -80,9 +102,13 @@ public class CognitionCore {
     private final @Nullable Consumer<EngagementEvent> engagementPersister;
     private final @Nullable TemporalFocusOrchestrator temporalFocus;
     private final @Nullable ReflectionRetrievalOrchestrator reflectionOrchestrator;
+    private final @Nullable InnerLifeOrchestrator innerLife;
+    private final @Nullable ConsolidationMediator consolidationMediator;
 
     private volatile @Nullable AttentionBriefing lastBriefing;
     private volatile @Nullable AgentDescriptor lastDescriptor;
+    private volatile @Nullable List<ConsolidationArtifact> lastConsolidationArtifacts;
+    private UnaryOperator<List<CognitionPromptRenderer>> sectionCustomizer;
 
     public CognitionCore(MoodOrchestrator mood,
                          DriveOrchestrator drives,
@@ -93,7 +119,7 @@ public class CognitionCore {
                          @Nullable GoalProposalOrchestrator goals,
                          @Nullable MemoryHygieneOrchestrator memoryHygiene) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
-             goals, memoryHygiene, null, CognitionConfig.all());
+             goals, memoryHygiene, null, null, CognitionConfig.all());
     }
 
     public CognitionCore(MoodOrchestrator mood,
@@ -104,10 +130,11 @@ public class CognitionCore {
                          @Nullable NarrativeOrchestrator narrative,
                          @Nullable GoalProposalOrchestrator goals,
                          @Nullable MemoryHygieneOrchestrator memoryHygiene,
+                         @Nullable InnerLifeOrchestrator innerLife,
                          @Nullable AgentProvider agentProvider,
                          CognitionConfig config) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
-             goals, memoryHygiene, agentProvider, config, null, null, null, null, null, null);
+             goals, memoryHygiene, innerLife, agentProvider, config, null, null, null, null, null, null, null);
     }
 
     public CognitionCore(MoodOrchestrator mood,
@@ -118,6 +145,7 @@ public class CognitionCore {
                          @Nullable NarrativeOrchestrator narrative,
                          @Nullable GoalProposalOrchestrator goals,
                          @Nullable MemoryHygieneOrchestrator memoryHygiene,
+                         @Nullable InnerLifeOrchestrator innerLife,
                          @Nullable AgentProvider agentProvider,
                          CognitionConfig config,
                          @Nullable MindMapStore mindMapStore,
@@ -125,7 +153,8 @@ public class CognitionCore {
                          @Nullable CognitiveAttentionMediator attentionMediator,
                          @Nullable Consumer<EngagementEvent> engagementPersister,
                          @Nullable TemporalFocusOrchestrator temporalFocus,
-                         @Nullable ReflectionRetrievalOrchestrator reflectionOrchestrator) {
+                         @Nullable ReflectionRetrievalOrchestrator reflectionOrchestrator,
+                         @Nullable ConsolidationMediator consolidationMediator) {
         this.mood = mood;
         this.drives = drives;
         this.userModel = userModel;
@@ -134,6 +163,7 @@ public class CognitionCore {
         this.narrative = narrative;
         this.goals = goals;
         this.memoryHygiene = memoryHygiene;
+        this.innerLife = innerLife;
         this.agentProvider = agentProvider;
         this.config = config;
         this.mindMapStore = mindMapStore;
@@ -142,6 +172,7 @@ public class CognitionCore {
         this.engagementPersister = engagementPersister;
         this.temporalFocus = temporalFocus;
         this.reflectionOrchestrator = reflectionOrchestrator;
+        this.consolidationMediator = consolidationMediator;
     }
 
     public void tick(String agentId, String tenantId,
@@ -153,6 +184,13 @@ public class CognitionCore {
             var briefing = attentionMediator.drainAttention(agentId);
             if (config.attentionEnabled()) {
                 this.lastBriefing = briefing.orElse(null);
+            }
+        }
+        this.lastConsolidationArtifacts = null;
+        if (consolidationMediator != null && config.consolidationEnabled()) {
+            var artifacts = consolidationMediator.drainForAgent(agentId, tenantId);
+            if (!artifacts.isEmpty()) {
+                this.lastConsolidationArtifacts = artifacts;
             }
         }
         if (config.temporalFocusEnabled() && temporalFocus != null) {
@@ -400,8 +438,91 @@ public class CognitionCore {
     public @Nullable NarrativeOrchestrator narrative() { return narrative; }
     public @Nullable GoalProposalOrchestrator goals() { return goals; }
     public @Nullable MemoryHygieneOrchestrator memoryHygiene() { return memoryHygiene; }
+    public @Nullable InnerLifeOrchestrator innerLife() { return innerLife; }
     public @Nullable AttentionBriefing lastBriefing() { return lastBriefing; }
     public @Nullable AgentDescriptor lastDescriptor() { return lastDescriptor; }
+
+    public List<CognitionPromptRenderer> promptSections() {
+        var sections = new ArrayList<CognitionPromptRenderer>();
+        var desc     = lastDescriptor;
+        if (desc != null && desc.constraints() != null && !desc.constraints().isEmpty()) {
+            var softConstraints = desc.constraints().stream()
+                                      .filter(c -> c.severity() != ConstraintSeverity.HARD)
+                                      .toList();
+            if (!softConstraints.isEmpty()) {
+                sections.add(new ConstraintPromptSection(softConstraints));
+            }
+        }
+        if (isEnabled(config.moodEnabled(), AttentionRelevance.MOOD)) {
+            sections.add(new MoodPromptSection(mood));
+        }
+        if (isEnabled(config.drivesEnabled(), AttentionRelevance.DRIVES)) {
+            sections.add(new DrivePromptSection(drives));
+        }
+        if (config.narrativeEnabled() && narrative != null) {
+            sections.add(new NarrativePromptSection(narrative));
+        }
+        if (isEnabled(config.userModelEnabled(), AttentionRelevance.USER_MODEL) && userModel != null) {
+            sections.add(new UserModelPromptSection(userModel));
+        }
+        if (isEnabled(config.mentalModelEnabled(), AttentionRelevance.MENTAL_MODEL) && mentalModel != null) {
+            sections.add(new MentalModelPromptSection(mentalModel));
+        }
+        if (config.strategyEnabled() && strategy != null) {
+            sections.add(new StrategyPromptSection(strategy));
+        }
+        if (isEnabled(config.goalsEnabled(), AttentionRelevance.GOALS) && goals != null) {
+            sections.add(new EmergentGoalPromptSection(goals));
+        }
+        if (config.characterDrivesEnabled() && mindMapStore != null) {
+            sections.add(new CharacterDrivePromptSection(mindMapStore));
+        }
+        if (config.needsPyramidEnabled() && mindMapStore != null) {
+            sections.add(new NeedsPyramidPromptSection(mindMapStore, needTierMapping));
+        }
+        if (config.attentionEnabled() && lastBriefing != null) {
+            sections.add(new AttentionPromptSection(lastBriefing));
+        }
+        if (config.consolidationEnabled() && lastConsolidationArtifacts != null
+            && !lastConsolidationArtifacts.isEmpty()) {
+            sections.add(new ConsolidationPromptSection(lastConsolidationArtifacts));
+        }
+        if (config.temporalFocusEnabled() && temporalFocus != null) {
+            var items = temporalFocus.lastFocus();
+            if (!items.isEmpty()) {
+                sections.add(new TemporalFocusPromptSection(items));
+            }
+        }
+        if (config.reflectionEnabled() && reflectionOrchestrator != null) {
+            var reflections = reflectionOrchestrator.lastReflections();
+            if (!reflections.isEmpty()) {
+                sections.add(new ReflectionPromptSection(reflections));
+            }
+        }
+        if (sectionCustomizer != null) {
+            sections = new ArrayList<>(sectionCustomizer.apply(sections));
+        }
+        if (config.directivePrompts()) {
+            return sections.stream().map(DirectiveSection::wrap).toList();
+        }
+        return sections;
+    }
+
+    public void setSectionCustomizer(UnaryOperator<List<CognitionPromptRenderer>> customizer) {
+        this.sectionCustomizer = customizer;
+    }
+
+    public void chainSectionCustomizer(UnaryOperator<List<CognitionPromptRenderer>> next) {
+        var prev = this.sectionCustomizer;
+        this.sectionCustomizer = prev == null
+                                 ? next
+                                 : sections -> next.apply(new ArrayList<>(prev.apply(sections)));
+    }
+
+    private boolean isEnabled(boolean configFlag, Set<SignalCategory> relevance) {
+        return configFlag || (lastBriefing != null && config.attentionEnabled()
+                              && AttentionRelevance.overrides(lastBriefing, relevance));
+    }
 
     public void addParticipant(CognitionPhase phase, CognitionTickParticipant participant) {
         if (phase == CognitionPhase.SOURCE_PER_SUBJECT) {
