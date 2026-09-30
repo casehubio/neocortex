@@ -14,7 +14,10 @@ public class NarrativeStateStore implements StateStore<NarrativeState> {
     @Override
     public @Nullable NarrativeState load(String partitionKey) {
         var parts = partitionKey.split(":", 2);
-        return memory.load(parts[0], parts[1]);
+        if (parts.length == 2) {
+            return memory.load(parts[0], parts[1]);
+        }
+        return memory.load(partitionKey, partitionKey);
     }
 
     @Override
