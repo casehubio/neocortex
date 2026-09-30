@@ -183,7 +183,7 @@ public class ConsolidationScheduler {
             refreshUrgencyP75(allSignals);
             attentionAccumulator.addSignals(allSignals);
         }
-        completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults));
+        completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults, List.of()));
     }
 
     private void refreshUrgencyP75(List<AttentionSignal> signals) {

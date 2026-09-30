@@ -30,7 +30,7 @@ class SnapshotCaptureServiceTest {
             new PhaseResult("MergeDetectionPhase",
                 Instant.now().minusSeconds(3), Instant.now(), true, null));
 
-        service.onConsolidationCompleted(new ConsolidationCompleted("t1", phaseResults));
+        service.onConsolidationCompleted(new ConsolidationCompleted("t1", phaseResults, List.of()));
 
         var entries = snapshotStore.findAuditEntries("t1",
             Instant.now().minusSeconds(60), Instant.now().plusSeconds(60));
@@ -57,7 +57,7 @@ class SnapshotCaptureServiceTest {
                 Instant.now(), "test"));
         }
 
-        service.onConsolidationCompleted(new ConsolidationCompleted("t1", List.of()));
+        service.onConsolidationCompleted(new ConsolidationCompleted("t1", List.of(), List.of()));
 
         var keyframe = snapshotStore.latestKeyframe("t1", sgId);
         assertTrue(keyframe.isPresent());
@@ -78,7 +78,7 @@ class SnapshotCaptureServiceTest {
             new Confidence(ConfidenceOrigin.STATED, 0.9, null),
             Instant.now(), "test"));
 
-        service.onConsolidationCompleted(new ConsolidationCompleted("t1", List.of()));
+        service.onConsolidationCompleted(new ConsolidationCompleted("t1", List.of(), List.of()));
 
         var keyframe = snapshotStore.latestKeyframe("t1", sgId);
         assertFalse(keyframe.isPresent());
@@ -93,7 +93,7 @@ class SnapshotCaptureServiceTest {
             new PhaseResult("BrokenPhase",
                 Instant.now().minusSeconds(2), Instant.now(), false, "NPE in phase"));
 
-        service.onConsolidationCompleted(new ConsolidationCompleted("t1", phaseResults));
+        service.onConsolidationCompleted(new ConsolidationCompleted("t1", phaseResults, List.of()));
 
         var entries = snapshotStore.findAuditEntries("t1",
             Instant.now().minusSeconds(60), Instant.now().plusSeconds(60));

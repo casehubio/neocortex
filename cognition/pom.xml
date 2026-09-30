@@ -18,6 +18,10 @@
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-summarisation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-cognitive-api</artifactId>
     </dependency>
     <dependency>
