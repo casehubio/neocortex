@@ -1,5 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryScanRequest;
@@ -10,7 +11,6 @@ import io.casehub.neocortex.memory.experience.GraduationContext;
 import io.casehub.neocortex.memory.experience.GraduationResult;
 import io.casehub.neocortex.memory.experience.GraduationScorer;
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -18,6 +18,7 @@ import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import jakarta.annotation.Priority;
@@ -53,6 +54,8 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
     private final double threshold;
     private final int maxPerPass;
     private final int minCorroboration;
+    private final TextSimilarityCorroborator textSimilarity;
+
 
     @Inject
     public ExperienceConsolidationPhase(
@@ -60,15 +63,25 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
             MindMapStore mindMapStore,
             Instance<GraduationScorer> scorer,
             Instance<GraduationClassifier> classifier,
-            Instance<ExperienceConsolidationConfig> config) {
-        this.memoryStore = memoryStore;
+            Instance<ExperienceConsolidationConfig> config,
+            Instance<EmbeddingModel> embeddingModel) {
+        this.memoryStore  = memoryStore;
         this.mindMapStore = mindMapStore;
-        this.scorer = scorer.isResolvable() ? scorer.get() : new DefaultGraduationScorer();
-        this.classifier = classifier.isResolvable() ? classifier.get() : new DefaultGraduationClassifier();
+        this.scorer       = scorer.isResolvable() ? scorer.get() : new DefaultGraduationScorer();
+        this.classifier   = classifier.isResolvable() ? classifier.get() : new DefaultGraduationClassifier();
         ExperienceConsolidationConfig c = config.isResolvable() ? config.get() : null;
-        this.threshold = c != null ? c.threshold() : 0.5;
-        this.maxPerPass = c != null ? c.maxPerPass() : 20;
+        this.threshold        = c != null ? c.threshold() : 0.5;
+        this.maxPerPass       = c != null ? c.maxPerPass() : 20;
         this.minCorroboration = c != null ? c.minCorroboration() : 3;
+        boolean tsEnabled = c != null && c.textSimilarity() != null && c.textSimilarity().enabled();
+        if (tsEnabled) {
+            double         embThreshold = c.textSimilarity().embeddingThreshold();
+            double         kwThreshold  = c.textSimilarity().keywordThreshold();
+            EmbeddingModel model        = embeddingModel.isResolvable() ? embeddingModel.get() : null;
+            this.textSimilarity = new TextSimilarityCorroborator(model, embThreshold, kwThreshold);
+        } else {
+            this.textSimilarity = null;
+        }
     }
 
     ExperienceConsolidationPhase(CaseMemoryStore memoryStore,
@@ -81,20 +94,33 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
     }
 
     ExperienceConsolidationPhase(CaseMemoryStore memoryStore,
-                                  MindMapStore mindMapStore,
-                                  GraduationScorer scorer,
-                                  GraduationClassifier classifier,
-                                  double threshold,
-                                  int maxPerPass,
-                                  int minCorroboration) {
-        this.memoryStore = memoryStore;
-        this.mindMapStore = mindMapStore;
-        this.scorer = scorer;
-        this.classifier = classifier;
-        this.threshold = threshold;
-        this.maxPerPass = maxPerPass;
-        this.minCorroboration = minCorroboration;
+                                 MindMapStore mindMapStore,
+                                 GraduationScorer scorer,
+                                 GraduationClassifier classifier,
+                                 double threshold,
+                                 int maxPerPass,
+                                 int minCorroboration) {
+        this(memoryStore, mindMapStore, scorer, classifier, threshold, maxPerPass, minCorroboration, null);
     }
+
+    ExperienceConsolidationPhase(CaseMemoryStore memoryStore,
+                                 MindMapStore mindMapStore,
+                                 GraduationScorer scorer,
+                                 GraduationClassifier classifier,
+                                 double threshold,
+                                 int maxPerPass,
+                                 int minCorroboration,
+                                 TextSimilarityCorroborator textSimilarity) {
+        this.memoryStore      = memoryStore;
+        this.mindMapStore     = mindMapStore;
+        this.scorer           = scorer;
+        this.classifier       = classifier;
+        this.threshold        = threshold;
+        this.maxPerPass       = maxPerPass;
+        this.minCorroboration = minCorroboration;
+        this.textSimilarity   = textSimilarity;
+    }
+
 
     @Override
     public String name() {
@@ -210,13 +236,17 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         Map<String, GraduationContext> map = new HashMap<>();
         for (Memory m : experiences) {
             String observed = m.attributes().get(ExperienceAttributeKeys.SUBJECT);
-            if (observed == null || map.containsKey(observed)) continue;
+            if (observed == null || map.containsKey(observed)) {continue;}
             var scan = new MemoryScanRequest(tenantId,
-                ExperienceEvents.DOMAIN.name(),
-                ExperienceAttributeKeys.SUBJECT, observed,
-                minCorroboration, null);
-            int count = memoryStore.scan(scan).size();
-            map.put(observed, new GraduationContext(count, tenantId));
+                                             ExperienceEvents.DOMAIN.name(),
+                                             ExperienceAttributeKeys.SUBJECT, observed,
+                                             minCorroboration, null);
+            int count        = memoryStore.scan(scan).size();
+            int textSimCount = 0;
+            if (textSimilarity != null && count < minCorroboration) {
+                textSimCount = textSimilarity.countSimilar(m, experiences);
+            }
+            map.put(observed, new GraduationContext(count, textSimCount, tenantId));
         }
         return map;
     }

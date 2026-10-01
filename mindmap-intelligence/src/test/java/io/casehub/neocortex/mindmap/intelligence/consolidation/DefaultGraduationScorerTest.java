@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DefaultGraduationScorerTest {
 
@@ -56,4 +56,31 @@ class DefaultGraduationScorerTest {
         assertEquals(0.0, scorer.score(memory(0.9),
             new GraduationContext(0, "t1")));
     }
+
+    @Test
+    void textSimilarityAboveThreshold_returnsConfidence() {
+        assertEquals(0.9, scorer.score(memory(0.9),
+                                       new GraduationContext(1, 4, "t1")));
+    }
+
+    @Test
+    void textSimilarityBelowThreshold_returnsZero() {
+        assertEquals(0.0, scorer.score(memory(0.9),
+                                       new GraduationContext(1, 2, "t1")));
+    }
+
+    @Test
+    void bothBelowThreshold_returnsZero() {
+        assertEquals(0.0, scorer.score(memory(0.9),
+                                       new GraduationContext(2, 2, "t1")));
+    }
+
+    @Test
+    void eitherAboveThreshold_passes() {
+        assertEquals(0.7, scorer.score(memory(0.7),
+                                       new GraduationContext(3, 0, "t1")));
+        assertEquals(0.7, scorer.score(memory(0.7),
+                                       new GraduationContext(0, 3, "t1")));
+    }
+
 }

@@ -30,7 +30,8 @@ public class DefaultGraduationScorer implements GraduationScorer {
 
     @Override
     public double score(Memory memory, GraduationContext context) {
-        if (context.corroboratingCount() < minCorroboration) return 0.0;
+        int effectiveCorroboration = Math.max(context.corroboratingCount(), context.textSimilarityCount());
+        if (effectiveCorroboration < minCorroboration) {return 0.0;}
         if (memory.confidence() != null) {
             return memory.confidence().value();
         }
