@@ -26,9 +26,9 @@ public class ExpansionConfigValidator {
 
     void onStartup(@Observes StartupEvent event) {
         if (config.mode().isEmpty()) {
-            LOG.warning("Query expansion is enabled but no mode is set"
-                        + " — queries will pass through unchanged."
-                        + " Set casehub.rag.expansion.mode to llm, template, or step-back.");
+            throw new IllegalStateException(
+                    "casehub.rag.expansion.enabled=true but no mode is set."
+                    + " Set casehub.rag.expansion.mode to llm, template, or step-back.");
         }
 
         ExpansionConfig.DriftConfig drift = config.drift();

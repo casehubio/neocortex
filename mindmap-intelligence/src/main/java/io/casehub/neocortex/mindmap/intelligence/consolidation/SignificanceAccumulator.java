@@ -35,7 +35,7 @@ public class SignificanceAccumulator {
     SignificanceAccumulator(Instance<SignificanceExtractor> extractor,
                             Instance<ConsolidationScheduler> scheduler,
                             @ConfigProperty(
-                                name = "casehub.consolidation.significance-threshold",
+                                name = "casehub.mindmap.consolidation.significance-threshold",
                                 defaultValue = "10.0") double threshold) {
         this(extractor.isResolvable() ? extractor.get() : e -> 1.0,
              threshold,

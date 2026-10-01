@@ -752,7 +752,7 @@ Background knowledge graph maintenance in `mindmap-intelligence/consolidation/`.
 
 #### ConsolidationScheduler
 
-`@ApplicationScoped`. Single `ScheduledExecutorService` daemon thread, default 5-minute interval (`casehub.consolidation.interval-minutes`).
+`@ApplicationScoped`. Single `ScheduledExecutorService` daemon thread, default 5-minute interval (`casehub.mindmap.consolidation.interval-minutes`).
 
 **Tick gates (all must pass):**
 1. `ReentrantLock.tryLock()` — skips if previous tick still running
@@ -1151,6 +1151,32 @@ Two public methods: `generate(Class<?>) → JsonNode`, `generateToYaml(Class<?>,
 `precompute(List<String>)` — batch embedding via `model.embedAll()`. Filters uncached texts, deduplicates, stores in `HashMap` cache. Called by `QdrantCbrRecordStore`'s two-pass retrieval to pre-embed all candidate text values in one batch.
 
 `compute(FeatureValue, FeatureValue)` — extracts strings from `StringVal` pairs, embeds each (cache-backed), returns `max(0.0, CosineSimilarity.between())`. `CbrSimilarityScorer` uses this as a `LocalSimilarityFunction` override for `Text(semantic=true)` fields.
+
+---
+
+## Configuration Conventions
+
+### Naming
+
+All config properties use the `casehub.<subsystem>.*` prefix, where `<subsystem>` is the owning module group: `rag`, `cbr`, `mindmap`, `memory`. Consolidation config lives under `casehub.mindmap.consolidation.*` because the consolidation pipeline is owned by `mindmap-intelligence`.
+
+### Feature gating
+
+| Pattern | When to use | Example |
+|---|---|---|
+| `@IfBuildProperty` | Classpath-activated features — decorators and beans that should not exist at all unless opted in | `casehub.rag.expansion.enabled`, `casehub.cbr.reranking.enabled` |
+| `@ConfigMapping` with `enabled()` | Runtime toggles for features that are always on the classpath but may be disabled per environment | `casehub.rag.expansion.drift.enabled`, `casehub.memory.retention.enabled` |
+| `@ConfigProperty` boolean | Simple one-off runtime flags that don't warrant a config group | `casehub.rag.reranking.colbert-fallback` |
+
+Do not combine `@IfBuildProperty` and `@ConfigMapping enabled()` for the same feature — the build-time gate is sufficient.
+
+### Fail-fast
+
+When a required companion property is missing (e.g., `mode` when `enabled=true`), throw `IllegalStateException` at startup — do not log a warning and continue with no-op behavior.
+
+### REST client timeouts
+
+All MicroProfile REST Client interfaces must have `connect-timeout` and `read-timeout` defaults in their module's `application.properties`. Framework defaults may be infinite.
 
 ---
 

@@ -117,7 +117,7 @@ public interface SignificanceExtractor {
 
 **`DefaultSignificanceExtractor`** @DefaultBean returns 1.0 (pure event count). When #339 lands, a new `@Alternative` extractor reads importance from `event.event().metadata().get("importance")`.
 
-**Threshold** configurable via `casehub.consolidation.significance-threshold` (default 10.0 — equivalent to 10 events with the default extractor).
+**Threshold** configurable via `casehub.mindmap.consolidation.significance-threshold` (default 10.0 — equivalent to 10 events with the default extractor).
 
 **Integration with `ConsolidationScheduler`:** Add `SignificanceAccumulator` as an optional dependency (via `Instance<SignificanceAccumulator>`). At the start of each `tick()`, call `accumulator.swapAndReset()` to reset the counter. The accumulator doesn't need to know about the timer — it resets when consolidation runs, regardless of trigger source.
 

@@ -75,7 +75,7 @@
 
 ## D7: Max 20 graduated nodes per pass
 
-**Choice:** Configurable via `casehub.consolidation.graduation.max-per-pass`, default 20.
+**Choice:** Configurable via `casehub.mindmap.consolidation.graduation.max-per-pass`, default 20.
 **Alternatives:**
 - Max 10 — conservative, same as MergeDetection. Multiple ticks to clear backlog.
 - No cap — graduate everything above threshold. Could create large bursts.

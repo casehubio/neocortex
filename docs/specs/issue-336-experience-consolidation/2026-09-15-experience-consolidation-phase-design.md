@@ -276,7 +276,7 @@ No additional wiring needed — `TraitApplicationDecorator` (@Priority 70) inter
 
 ## 6. Rate Limiting (D7)
 
-Configurable max-per-pass cap, default 20: `casehub.consolidation.graduation.max-per-pass`.
+Configurable max-per-pass cap, default 20: `casehub.mindmap.consolidation.graduation.max-per-pass`.
 
 The scan to CaseMemoryStore uses `limit=maxPerPass` to bound the result set. Events beyond the cap are processed in subsequent ticks. The cursor only advances to the last event actually processed, so unprocessed events remain in the scan window.
 
@@ -418,13 +418,13 @@ The upfront query uses `MindMapStore.search(MindMapQuery.of(tenantId, 1000).with
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `casehub.consolidation.graduation.threshold` | `0.5` | Minimum score for graduation |
-| `casehub.consolidation.graduation.max-per-pass` | `20` | Maximum nodes created per pass |
+| `casehub.mindmap.consolidation.graduation.threshold` | `0.5` | Minimum score for graduation |
+| `casehub.mindmap.consolidation.graduation.max-per-pass` | `20` | Maximum nodes created per pass |
 
 Configuration follows the `SchemaDiscoveryConfig` pattern — an optional `@ConfigMapping` interface with `Instance<>` graceful degradation.
 
 ```java
-@ConfigMapping(prefix = "casehub.consolidation.graduation")
+@ConfigMapping(prefix = "casehub.mindmap.consolidation.graduation")
 public interface ExperienceConsolidationConfig {
     @WithDefault("0.5") double threshold();
     @WithDefault("20") int maxPerPass();

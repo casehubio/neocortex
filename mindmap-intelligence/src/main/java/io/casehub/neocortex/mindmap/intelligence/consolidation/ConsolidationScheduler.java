@@ -58,7 +58,7 @@ public class ConsolidationScheduler {
                            Instance<SignificanceAccumulator> significanceAccumulator,
                            Instance<CognitiveAttentionAccumulator> attentionAccumulator,
                            Event<ConsolidationCompleted> completionEvent,
-                           @ConfigProperty(name = "casehub.consolidation.interval-minutes",
+                           @ConfigProperty(name = "casehub.mindmap.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
         this(phases.stream()
                 .sorted(Comparator.comparingInt(p ->

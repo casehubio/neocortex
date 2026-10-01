@@ -17,11 +17,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ExpansionConfigValidatorTest {
 
     @Test
-    void warnsWhenModeIsEmpty() {
+    void failsWhenModeIsEmpty() {
         var validator = validatorWith(stubConfig(Optional.empty(), stubDriftConfig(false, 0.7)), emptyInstance());
-        var record    = captureWarning(validator);
-        assertThat(record).isNotNull();
-        assertThat(record.getMessage()).contains("no mode is set");
+        assertThatThrownBy(() -> validator.onStartup(new StartupEvent()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("no mode is set");
     }
 
     @Test
