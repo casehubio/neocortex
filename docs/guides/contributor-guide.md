@@ -414,7 +414,7 @@ The trait name must be PascalCase, matching the Java interface simple name.
 
 **Declarative rules.** `DeclarativeTraitRule` wraps a `RuleCondition` tree — a sealed interface with 11 variants: `HasProperty`, `PropertyEquals`, `PropertyIn`, `NotHasProperty`, `HasEdgeType`, `HasEdgeTypes`, `HasAnyEdge`, `InSubgraphType`, `AnyOf`, `AllOf`, `Not`. Declared in YAML cognitive profiles, deserialized by `DeclarativeTraitRuleDeserializer`, loaded by `DeclarativeRuleRegistry` — global rules from `rules/*.yaml` + per-agent overrides (name-based merge: local rule with same name suppresses global).
 
-**How traits get applied.** `TraitApplicationDecorator` (@Decorator @Priority(70)) intercepts `addNode`, `updateNode`, `addEdge`, and `removeEdge`. After the delegate operation completes, it evaluates all rules (programmatic + declarative) against the affected node. If any rule matches a trait not yet present, the trait is added via `NodeUpdate`. If no rule matches a previously present trait, it is removed. A `ThreadLocal` reentrancy guard prevents infinite recursion (trait update triggers `updateNode` which would re-evaluate). When a `PrincipalId` is available, per-agent declarative rules are resolved; otherwise all rules fire.
+**How traits get applied.** `TraitApplicationDecorator` (@Decorator @Priority(70)) intercepts `addNode`, `updateNode`, `addEdge`, and `removeEdge`. After the delegate operation completes, it evaluates all rules (programmatic + declarative) against the affected node. If any rule matches a trait not yet present, the trait is added via `NodeUpdate`. If no rule matches a previously present trait, it is removed. A `ThreadLocal` reentrancy guard prevents infinite recursion (trait update triggers `updateNode` which would re-evaluate). When a `PrincipalId` is available, per-agent declarative rules are resolved via `RuleResolver`; otherwise all rules fire.
 
 #### ThingProxyHandler — Adding Return Type Coercions
 
@@ -478,13 +478,13 @@ The MindMapStore decorator chain applies cross-cutting concerns to all store ope
 
 Forward-chaining rule engine for automatic edge derivation. Intercepts `addEdge`, `removeEdge`, `eraseNode`, `eraseSubgraph`.
 
-**On addEdge:** After the delegate stores the trigger edge, evaluates all `DerivedEdgeRule` implementations (programmatic CDI beans + declarative from `DeclarativeRuleRegistry`). Each rule returns zero or more `EdgeInput`s. Derived edges carry provenance properties (`mindmap.derived=true`, `mindmap.derived.trigger-edge-id`, `mindmap.derived.rule-name`). Derived edges are added via recursive `this.addEdge()` — forward chaining through the full decorator chain.
+**On addEdge:** After the delegate stores the trigger edge, evaluates all `DerivedEdgeRule` implementations (programmatic CDI beans + declarative via `RuleResolver`). Each rule returns zero or more `EdgeInput`s. Derived edges carry provenance properties (`mindmap.derived=true`, `mindmap.derived.trigger-edge-id`, `mindmap.derived.rule-name`). Derived edges are added via recursive `this.addEdge()` — forward chaining through the full decorator chain.
 
 **Cycle prevention:** `ThreadLocal<Integer>` derivation depth counter, stops at `DEFAULT_MAX_DEPTH = 3`.
 
 **Truth maintenance on removeEdge:** `ConcurrentHashMap<String, Set<String>>` maps trigger edge IDs to derived edge IDs. When a trigger edge is removed, all derived edges are recursively removed first.
 
-**Per-principal rule resolution:** With a `PrincipalId`, resolves per-agent declarative rules via `DeclarativeRuleRegistry.derivedEdgeRules(principalId)`. Without, all rules fire.
+**Per-principal rule resolution:** With a `PrincipalId`, resolves per-agent declarative rules via `RuleResolver.derivedEdgeRules(principalId)`. Without, all rules fire.
 
 **DerivedEdgeRule SPI:** Implement `name()` + `derive(sourceNode, trigger, store) → List<EdgeInput>`. Register as `@ApplicationScoped` CDI bean. `DeclarativeDerivedEdgeRule` provides a YAML-driven alternative with `triggerEdgeTypes` filter, optional `TraversalSpec` (follow edges with depth limit + cycle guard), and `EdgeDerivation` templates.
 
@@ -728,9 +728,11 @@ Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId,
 
 **`deriveAndMerge()`** overlays explicit `CognitiveDefaults` fields (from YAML profile) on the derived base. Explicit non-null fields win. Primary integration point — YAML profiles can override any derived value.
 
-#### DeclarativeRuleRegistry
+#### RuleResolver SPI and DeclarativeRuleRegistry
 
-`@ApplicationScoped`. Two-layer rule loading: global `rules/*.yaml` at `@PostConstruct` + per-agent overrides from `CognitiveDefaultsRegistry`.
+`RuleResolver` (in `mindmap-api`) — SPI for agent-scoped rule resolution. Four methods: `traitRules(agentId)`, `allTraitRules()`, `derivedEdgeRules(agentId)`, `allDerivedEdgeRules()`. Used by `TraitApplicationDecorator` and `DerivedEdgeDecorator` — decouples mindmap from cognitive-index.
+
+`DeclarativeRuleRegistry` (`@ApplicationScoped` in `cognitive-index`) implements `RuleResolver`. Two-layer rule loading: global `rules/*.yaml` at `@PostConstruct` + per-agent overrides from `CognitiveDefaultsRegistry`.
 
 **Merge semantics:** `LinkedHashMap` keyed by rule name. Global rules loaded first; per-agent rules overwrite by key — local rule with same name suppresses global. `traitRules(agentId)` and `derivedEdgeRules(agentId)` return merged lists. `allTraitRules()` / `allDerivedEdgeRules()` merge across all profiles.
 
