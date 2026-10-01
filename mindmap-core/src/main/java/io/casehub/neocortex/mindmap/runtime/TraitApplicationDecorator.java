@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.runtime;
 
-import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
+import io.casehub.neocortex.mindmap.RuleResolver;
 import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapEdge;
@@ -24,14 +24,14 @@ public class TraitApplicationDecorator extends AbstractForwardingMindMapStore {
             ThreadLocal.withInitial(() -> false);
 
     private final List<TraitRule>         programmaticRules;
-    private final DeclarativeRuleRegistry registry;
+    private final RuleResolver registry;
 
     public TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules) {
         this(delegate, rules, null);
     }
 
     public TraitApplicationDecorator(MindMapStore delegate, List<TraitRule> rules,
-                                     DeclarativeRuleRegistry registry) {
+                                     RuleResolver registry) {
         super(delegate);
         this.programmaticRules = List.copyOf(rules);
         this.registry          = registry;

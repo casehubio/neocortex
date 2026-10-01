@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.cdi;
 
-import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
+import io.casehub.neocortex.mindmap.RuleResolver;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.TraitRule;
 import io.casehub.neocortex.mindmap.runtime.TraitApplicationDecorator;
@@ -18,7 +18,7 @@ public class TraitApplicationCdiDecorator extends TraitApplicationDecorator {
     @Inject
     public TraitApplicationCdiDecorator(@Delegate @Any MindMapStore delegate,
                                         Instance<TraitRule> rules,
-                                        Instance<DeclarativeRuleRegistry> registry) {
+                                        Instance<RuleResolver> registry) {
         super(delegate,
               rules.stream().toList(),
               registry.isResolvable() ? registry.get() : null);

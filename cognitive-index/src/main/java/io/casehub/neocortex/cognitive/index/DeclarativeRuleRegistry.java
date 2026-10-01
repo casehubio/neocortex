@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.mindmap.DeclarativeDerivedEdgeRule;
 import io.casehub.neocortex.mindmap.DeclarativeTraitRule;
 import io.casehub.neocortex.mindmap.DerivedEdgeRule;
+import io.casehub.neocortex.mindmap.RuleResolver;
 import io.casehub.neocortex.mindmap.TraitRule;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-public class DeclarativeRuleRegistry {
+public class DeclarativeRuleRegistry implements RuleResolver {
     record GlobalRules(List<DeclarativeTraitRule> traitRules,
                        List<DeclarativeDerivedEdgeRule> derivedEdgeRules) {}
 
@@ -87,6 +88,7 @@ public class DeclarativeRuleRegistry {
     }
 
 
+    @Override
     public List<TraitRule> traitRules(String agentId) {
         var         merged   = new LinkedHashMap<String, TraitRule>();
         GlobalRules snapshot = globalRules;
@@ -101,6 +103,7 @@ public class DeclarativeRuleRegistry {
         return List.copyOf(merged.values());
     }
 
+    @Override
     public List<TraitRule> allTraitRules() {
         var         merged   = new LinkedHashMap<String, TraitRule>();
         GlobalRules snapshot = globalRules;
@@ -115,6 +118,7 @@ public class DeclarativeRuleRegistry {
         return List.copyOf(merged.values());
     }
 
+    @Override
     public List<DerivedEdgeRule> derivedEdgeRules(String agentId) {
         var         merged   = new LinkedHashMap<String, DerivedEdgeRule>();
         GlobalRules snapshot = globalRules;
@@ -129,6 +133,7 @@ public class DeclarativeRuleRegistry {
         return List.copyOf(merged.values());
     }
 
+    @Override
     public List<DerivedEdgeRule> allDerivedEdgeRules() {
         var         merged   = new LinkedHashMap<String, DerivedEdgeRule>();
         GlobalRules snapshot = globalRules;

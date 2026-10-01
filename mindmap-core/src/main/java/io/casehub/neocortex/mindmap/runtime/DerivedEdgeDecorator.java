@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.runtime;
 
-import io.casehub.neocortex.cognitive.index.DeclarativeRuleRegistry;
+import io.casehub.neocortex.mindmap.RuleResolver;
 import io.casehub.neocortex.mindmap.AbstractForwardingMindMapStore;
 import io.casehub.neocortex.mindmap.DerivedEdgeRule;
 import io.casehub.neocortex.mindmap.EdgeInput;
@@ -21,7 +21,7 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
     private static final ThreadLocal<Integer> derivationDepth   = ThreadLocal.withInitial(() -> 0);
 
     private final List<DerivedEdgeRule>     programmaticRules;
-    private final DeclarativeRuleRegistry   registry;
+    private final RuleResolver   registry;
     private final int                       maxDepth;
     private final Map<String, List<String>> triggerToDerived = new ConcurrentHashMap<>();
 
@@ -34,7 +34,7 @@ public class DerivedEdgeDecorator extends AbstractForwardingMindMapStore {
     }
 
     public DerivedEdgeDecorator(MindMapStore delegate, List<DerivedEdgeRule> rules, int maxDepth,
-                                DeclarativeRuleRegistry registry) {
+                                RuleResolver registry) {
         super(delegate);
         this.programmaticRules = List.copyOf(rules);
         this.maxDepth          = maxDepth;
