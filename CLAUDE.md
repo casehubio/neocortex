@@ -47,7 +47,7 @@ Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/
 
 ## What This Project Is
 
-`casehub-neocortex` provides four capability areas for the casehubio platform:
+`casehub-neocortex` provides five capability areas for the casehubio platform:
 
 ### 1. Neural Text Inference (`inference-*` modules)
 
@@ -75,6 +75,16 @@ Tracks `casehubio/neocortex#20`, `casehubio/neocortex#56`, `casehubio/parent#227
 Structural knowledge graph SPI for cognitive subsystem integration. `MindMapNode` extends `Thing` (from `thing-api`) — the consumer-facing semantic knowledge representation base with `is()`/`as()` trait support. `MindMapStore` SPI provides tenant-isolated graph operations: nodes (name, traits, external refs via `NodeRef`, temporal validity, PAD emotional dimensions, arbitrary properties), typed edges (`EdgeTypeDefinition` with canonical names + aliases + optional decay half-life, `ValidationTier` REGISTERED/UNVALIDATED), and subgraphs (dynamic string types via `SubgraphTypes` constants: PERSON/PROJECT/RESEARCH_AREA/ORGANISATION/CONCEPT/GENERAL/TYPE_SYSTEM). `Confidence(origin, value, decayReference)` unified record from `cognitive-api` with `ConfidenceOrigin` (STATED/INFERRED/SPECULATED/UNKNOWN). `MindMapConfidenceDefaults` provides origin-based default values. `ConfidenceDecayDecorator` applies exponential half-life decay via `confidence().decayReference()`. `MindMapVocabulary` registers edge type vocabularies with alias normalization via `VocabularyNormalizationDecorator`. Graph operations: node CRUD + alias resolution + merge (`MergeResult` with property conflict reporting), edge CRUD, subgraph CRUD, typed/untyped neighbor traversal, bridge edges, search (`MindMapQuery` — tenant, subgraph, text, edgeType, traits, minConfidence, confidenceOrigin, includeSuperseded, limit), supersession/reinstatement (`SupersessionStatus`), erasure (node/subgraph/entity/cross-tenant). Capability-gated via `MindMapCapability` enum (TRAVERSAL, MERGE, VOCABULARY, ALIAS, SUBGRAPH, SEARCH, SUPERSESSION, ERASE_NODE, ERASE_SUBGRAPH, ERASE_ENTITY, CROSS_TENANT_ERASE, GRAPH_ANALYSIS). Backends: SQLite (production, HikariCP WAL + FTS5), in-memory (tests). `NoOpMindMapStore` @DefaultBean when no backend on classpath.
 
 Tracks `casehubio/neocortex#211`.
+
+### 5. Cognition (`cognition-api`, `cognition` modules)
+
+Single-agent cognitive stack — the complete cognitive processing pipeline migrated from blocks. `cognition-api` defines SPIs and value types; `cognition` provides the runtime.
+
+**cognition-api:** `CognitionPromptRenderer` (@FunctionalInterface SPI — renders cognitive state into prompt sections), `CognitionRenderContext` (agentId/tenantId/subjectId), `CognitionConfig` (feature flags for each cognitive subsystem), `CognitionPhase` enum (FOUNDATION/SOURCE/DERIVED/TERMINAL), `CognitionTickParticipant` (extension point for custom tick logic), `SubjectResolver` (@FunctionalInterface — resolves active subjects per agent/tenant). Orchestrator SPIs: `MoodOrchestrator` (PAD mood tracking), `DriveOrchestrator` (4-axis motivational drives — curiosity/competence/affiliation/autonomy), `MentalModelOrchestrator` (BDI theory of mind per subject), `UserModelOrchestrator` (per-subject interaction profiles), `StrategyLearningOrchestrator` (engagement-driven strategy adaptation with CBR), `NarrativeOrchestrator` (identity narrative composition), `GoalProposalOrchestrator` (drive→goal formation with escalation), `InnerLifeOrchestrator` (proactive speech, reflection), `MemoryHygieneOrchestrator` (knowledge gap detection), `TemporalFocusOrchestrator`, `ReflectionRetrievalOrchestrator`. Memory types: `MentalModelMemory`, `UserProfileMemory`, `StrategyMemory`, `NarrativeMemory` (CbrRecordStore-backed cognitive stores replacing the old dedicated Store SPIs). Config records: `MoodConfig`, `DriveConfig`, `MentalModelConfig`, `UserModelConfig`, `StrategyLearningConfig`, `NarrativeConfig`, `InnerLifeConfig`, `PersonalityEvolutionConfig`, `GoalProposalConfig`, `GoalEscalationConfig`, `CognitiveGoalConfig`, `NormDetectionConfig`, `MoodCongruenceConfig`. Prompt sections: 21 renderers (MoodPromptSection, DrivePromptSection, NarrativePromptSection, MentalModelPromptSection, UserModelPromptSection, StrategyPromptSection, AttentionPromptSection, EmergentGoalPromptSection, ConstraintPromptSection, ReflectionPromptSection, TemporalFocusPromptSection, ConsolidationPromptSection, CharacterDrivePromptSection, NeedsPyramidPromptSection, DirectiveSection, EntityKnowledgePromptSection, SocialComparisonPromptSection, DomainActivationPromptSection, CognitivePreambleGenerator, CognitiveSystemPromptRenderer, ProactiveSpeechSupport).
+
+**cognition:** `CognitionCore` (composition root — wires all orchestrators, manages tick lifecycle across phases, builds prompt sections, records interactions with LLM-based mood appraisal and BDI extraction). `CognitiveAttentionMediator` (drains attention signals from neocortex consolidation). `ConsolidationMediator` (drains consolidation artifacts). `CognitiveGoalOrchestrator` (progressive goal management with MindMap integration). `CognitiveProfileParticipant` (resolves entity knowledge from CognitiveProfile during ticks, perspectival comparison). `DomainActivationParticipant` (cross-subgraph affect correlation during ticks). `CognitionDefaultBeans` (16 @DefaultBean @Singleton producers for configs + SPIs). Personality: `PersonalityEvolutionOrchestrator`, `RelationshipPressureSource`, `TraitPressureSource`. Emergence: `SocialNorm`, `NormDetectionConfig`, `NormFilter`, `CollectiveGoalConfig`. Consolidation phases: `BeliefRevisionPhase`, `RelationshipStagePhase`. Narrative: `NarrativePipeline`, `NarrativeContentSummariser`. Drive: `CuriosityDrive`, `CompetenceDrive`, `AffiliationDrive`, `AutonomyDrive` (individual DriveSource implementations). Goal: `GoalProposalOrchestrator`, `CognitiveGoalOrchestrator`, `GoalEmotionMoodBridge`, drive→goal mappers. Reflection: `LlmReflectionSynthesizer`.
+
+Tracks `casehubio/blocks#303`.
 
 ---
 
@@ -124,6 +134,9 @@ memory-inmem/       — InMemoryMemoryStore @Alternative @Priority(10) — volat
 memory-sqlite/      — SqliteMemoryStore @Alternative @Priority(1) — SQLite + HikariCP WAL + FTS5 + discoverTenants
 memory-mem0/        — Mem0CaseMemoryStore @Alternative @Priority(1) — REST client adapter for Mem0 vector memory service
 memory-graphiti/    — GraphitiCaseMemoryStore @Alternative @Priority(2) implements GraphCaseMemoryStore — REST client adapter for Graphiti temporal knowledge graph, incl. graphQuery()
+cognition-api/      — Cognitive pipeline SPIs and value types: CognitionPromptRenderer, CognitionConfig, CognitionPhase, CognitionTickParticipant, SubjectResolver, orchestrator interfaces (Mood, Drive, MentalModel, UserModel, Strategy, Narrative, Goal, InnerLife, MemoryHygiene, TemporalFocus, ReflectionRetrieval), Memory types (MentalModelMemory, UserProfileMemory, StrategyMemory, NarrativeMemory), 13 config records, 21 prompt section renderers, drive types (DriveAxis, DriveSource, DriveIntensity, DriveProfile), goal types (CognitiveGoalConfig, DriveGoalMapper, GoalEscalationPolicy), emergence types (SocialNorm, NormDetectionConfig), personality types, relationship types
+cognition/          — CognitionCore (composition root), CognitiveAttentionMediator, ConsolidationMediator, CognitiveGoalOrchestrator, CognitiveProfileParticipant, DomainActivationParticipant, CognitionDefaultBeans (16 @DefaultBean producers), orchestrator implementations (MoodOrchestrator, DriveOrchestrator, MentalModelOrchestrator, UserModelOrchestrator, StrategyLearningOrchestrator, NarrativeOrchestrator, GoalProposalOrchestrator, InnerLifeOrchestrator, PersonalityEvolutionOrchestrator), drive sources (CuriosityDrive, CompetenceDrive, AffiliationDrive, AutonomyDrive), NarrativePipeline + NarrativeContentSummariser, LlmReflectionSynthesizer, BeliefRevisionPhase, RelationshipStagePhase, GoalEmotionMoodBridge
+summarisation/      — SummarisationPipelineFactory SPI and keyed summarisation framework
 examples/
   example-text-analysis/  — standalone demos: NLI, zero-shot classification, scoring, reranking, SPLADE — no Quarkus
   example-rag-pipeline/   — Quarkus demos: corpus ingestion (flat + zip), hybrid search, CDI wiring — requires Qdrant
@@ -157,6 +170,8 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Fusion API | `casehub-neocortex-fusion-api` |
 | Cognitive API | `casehub-neocortex-cognitive-api` |
 | Cognitive Index | `casehub-neocortex-cognitive-index` |
+| Cognition API | `casehub-neocortex-cognition-api` |
+| Cognition | `casehub-neocortex-cognition` |
 | RAG API | `casehub-neocortex-rag-api` |
 | RAG | `casehub-neocortex-rag` |
 | RAG Tika | `casehub-neocortex-rag-tika` |
@@ -201,6 +216,8 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Root Java package (fusion) | `io.casehub.neocortex.fusion` |
 | Root Java package (cognitive) | `io.casehub.neocortex.cognitive` |
 | Root Java package (cognitive-index) | `io.casehub.neocortex.cognitive.index` |
+| Root Java package (cognition-api) | `io.casehub.neocortex.cognition` |
+| Root Java package (cognition) | `io.casehub.neocortex.cognition` |
 | Root Java package (rag) | `io.casehub.neocortex.rag` |
 | Root Java package (examples) | `io.casehub.neocortex.examples.analysis`, `io.casehub.neocortex.examples.rag` |
 | Root Java package (rag-crossencoder) | `io.casehub.neocortex.rag.crossencoder` |
