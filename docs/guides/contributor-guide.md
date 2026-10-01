@@ -500,7 +500,7 @@ Read-side CDI decorator (`@Decorator @Priority(55)` in `mindmap/` module). Inter
 
 #### Vocabulary Normalization
 
-Edge type alias resolution is handled by store implementations directly via `MindMapStore.registerVocabulary()`. `EdgeTypeDefinition` declares a canonical name, a set of aliases, and an optional decay half-life. Edges whose type matches a registered vocabulary entry receive `ValidationTier.REGISTERED`; others get `UNVALIDATED`. Note: `VocabularyNormalizationDecorator` in `mindmap-core` is an empty stub — normalization is implemented in `InMemoryMindMapStore` and `SqliteMindMapStore`.
+Edge type alias resolution is handled by store implementations directly via `MindMapStore.registerVocabulary()`. `EdgeTypeDefinition` declares a canonical name, a set of aliases, and an optional decay half-life. Edges whose type matches a registered vocabulary entry receive `ValidationTier.REGISTERED`; others get `UNVALIDATED`. Normalization is implemented in `InMemoryMindMapStore` and `SqliteMindMapStore`.
 
 #### AffectTrajectoryDecorator (Priority 65)
 

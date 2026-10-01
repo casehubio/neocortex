@@ -88,7 +88,7 @@ Four related capabilities in one repo:
 | `thing-api` | `casehub-neocortex-thing-api` | `Thing` interface — id, name, type, properties, traits, `is()`/`as()`. Zero deps. Consumer-facing module |
 | `cognitive-api` | `casehub-neocortex-cognitive-api` | `Confidence` record, `ConfidenceOrigin` enum, `TemporalMark` sealed hierarchy — cross-cutting cognitive types. Zero deps |
 | `mindmap-api` | `casehub-neocortex-mindmap-api` | `MindMapStore` SPI, `MindMapNode` (extends Thing with confidence, PAD, temporal bounds), `MindMapQuery`, `SubgraphTypes`, `SchemaField`, `NodeRef`, `EdgeTypeDefinition` |
-| `mindmap` | `casehub-neocortex-mindmap` | CDI wiring, `ConfidenceDecayDecorator`, `VocabularyNormalizationDecorator`, `DerivedEdgeDecorator`, `MindMapAnalyzer` graph analytics |
+| `mindmap` | `casehub-neocortex-mindmap` | CDI wiring, `ConfidenceDecayDecorator`, `DerivedEdgeDecorator`, `MindMapAnalyzer` graph analytics |
 | `mindmap-inmem` | `casehub-neocortex-mindmap-inmem` | In-memory `MindMapStore` for tests |
 | `mindmap-sqlite` | `casehub-neocortex-mindmap-sqlite` | SQLite + HikariCP WAL + FTS5 — production backend for single-node deployments |
 | `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params) |
