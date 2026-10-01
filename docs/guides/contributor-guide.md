@@ -1180,6 +1180,359 @@ All MicroProfile REST Client interfaces must have `connect-timeout` and `read-ti
 
 ---
 
+## Configuration Reference
+
+Complete property reference for all neocortex modules. Properties marked with `†` are **build-time** (`@IfBuildProperty`). The [consumer guide](consumer-guide.md#configuration) has a curated subset for app builders.
+
+### Inference (inference-quarkus)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.inference.models.<name>.model-path` | *(required)* | Path to ONNX model file |
+| `casehub.inference.models.<name>.tokenizer-path` | *(required)* | Path to HuggingFace tokenizer JSON |
+| `casehub.inference.models.<name>.max-sequence-length` | `512` | Maximum input token length |
+| `casehub.inference.models.<name>.intra-op-threads` | `0` | ONNX Runtime intra-op parallelism (0 = auto) |
+| `casehub.inference.models.<name>.inter-op-threads` | `0` | ONNX Runtime inter-op parallelism (0 = auto) |
+
+### RAG — Qdrant Connection (rag)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.qdrant.host` | `localhost` | Qdrant gRPC host |
+| `casehub.rag.qdrant.port` | `6334` | Qdrant gRPC port |
+| `casehub.rag.qdrant.api-key` | — | Qdrant API key |
+| `casehub.rag.qdrant.use-tls` | `false` | Enable TLS for Qdrant connection |
+
+### RAG — Vector Configuration (rag)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.tenancy-strategy` | `SEPARATE_COLLECTIONS` | Tenant isolation strategy |
+| `casehub.rag.dense-vector-name` | `dense` | Qdrant named vector space for dense embeddings |
+| `casehub.rag.sparse-vector-name` | `sparse` | Qdrant named vector space for SPLADE embeddings |
+| `casehub.rag.bm25-vector-name` | `bm25` | Qdrant named vector space for BM25 |
+| `casehub.rag.colbert-vector-name` | `colbert` | Qdrant named vector space for ColBERT multi-vectors |
+| `casehub.rag.bm25-enabled` | `true` | Enable BM25 as third retrieval leg |
+| `casehub.rag.embedding-batch-size` | `100` | Batch size for embedding operations |
+| `casehub.rag.max-multivector-floats` | `1000000` | Maximum floats for ColBERT multi-vector storage |
+| `casehub.rag.max-sequence-length` | — | Maximum token length for embedders |
+| `casehub.rag.matryoshka.dimension` | — | Matryoshka truncation dimension (disabled if unset) |
+| `casehub.rag.quantization.type` | `NONE` | Dense quantization: `NONE`, `BINARY`, `SCALAR` |
+| `casehub.rag.quantization.always-ram` | `true` | Keep quantized dense vectors in RAM |
+| `casehub.rag.quantization.oversampling` | — | Oversampling factor for quantized dense search |
+| `casehub.rag.colbert-quantization.type` | `NONE` | ColBERT quantization: `NONE`, `BINARY`, `SCALAR` |
+| `casehub.rag.colbert-quantization.always-ram` | `true` | Keep quantized ColBERT vectors in RAM |
+| `casehub.rag.embedder.enabled` | `true` | `†` Enable multi-modal embedder producer |
+
+### RAG — Retrieval (rag)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.retrieval.fusion-strategy` | `RRF` | Fusion strategy: `RRF`, `DBSF`, or `CC` |
+| `casehub.rag.retrieval.dense-top-k` | `40` | Dense leg candidate count |
+| `casehub.rag.retrieval.sparse-top-k` | `40` | Sparse leg candidate count |
+| `casehub.rag.retrieval.bm25-top-k` | `40` | BM25 leg candidate count |
+| `casehub.rag.retrieval.rrf-k` | `60` | RRF smoothing constant |
+| `casehub.rag.retrieval.rerank-enabled` | `true` | Enable internal reranking pass |
+| `casehub.rag.retrieval.rerank-top-n` | `10` | Number of results after reranking |
+| `casehub.rag.retrieval.quality-payload-field` | — | Qdrant payload field for quality boost |
+| `casehub.rag.retrieval.quality-max` | `10.0` | Maximum quality payload value for normalization |
+| `casehub.rag.retrieval.weights.dense` | `1.0` | Dense leg weight for fusion |
+| `casehub.rag.retrieval.weights.sparse` | `1.0` | Sparse leg weight for fusion |
+| `casehub.rag.retrieval.weights.bm25` | `1.0` | BM25 leg weight for fusion |
+| `casehub.rag.retrieval.weights.quality` | `0.0` | Quality/payload boost weight |
+
+### RAG — Ingestion (rag)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.ingestion.interval` | `30s` | Polling interval for corpus ingestion |
+| `casehub.rag.ingestion.cursor-dir` | `${java.io.tmpdir}/casehub-ingestion-cursors` | Directory for ingestion cursor persistence |
+| `casehub.rag.ingestion.cursor-checkpoint-interval` | `5m` | Cursor checkpoint flush interval |
+| `casehub.rag.ingestion.corpora.<name>.mode` | `AUTO` | Ingestion mode per corpus |
+| `casehub.rag.ingestion.corpora.<name>.tenant-id` | *(required)* | Tenant ID for corpus |
+| `casehub.rag.ingestion.corpora.<name>.corpus-name` | *(required)* | Corpus name in Qdrant |
+| `casehub.rag.ingestion.corpora.<name>.chunking` | `none` | Chunking strategy |
+| `casehub.rag.ingestion.corpora.<name>.chunking-max-size` | — | Maximum chunk size in tokens |
+| `casehub.rag.ingestion.corpora.<name>.chunking-overlap-size` | — | Chunk overlap in tokens |
+| `casehub.rag.ingestion.dedup.enabled` | `true` | Enable pre-ingestion dedup gate |
+| `casehub.rag.ingestion.dedup.threshold` | `0.95` | Cosine similarity threshold for dedup |
+
+### RAG — Corpus Storage (rag)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.corpus.corpora.<name>.source` | *(required)* | Filesystem path to corpus source |
+| `casehub.corpus.corpora.<name>.mode` | `FLAT` | Storage mode: `FLAT` or `ZIP` |
+| `casehub.corpus.corpora.<name>.max-zip-size` | `104857600` | Maximum ZIP archive size (100 MB) |
+
+### RAG — Corrective RAG (rag-crossencoder)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.crag.enabled` | `false` | `†` Enable corrective RAG quality-gating |
+| `casehub.rag.crag.correct-threshold` | `0.7` | Cross-encoder score threshold for CORRECT grade |
+| `casehub.rag.crag.incorrect-threshold` | `0.3` | Cross-encoder score threshold for INCORRECT grade |
+| `casehub.rag.crag.expansion-multiplier` | `3` | Candidate expansion factor for CRAG |
+| `casehub.rag.crag.colbert.correct-threshold` | `0.55` | ColBERT fallback CORRECT threshold |
+| `casehub.rag.crag.colbert.incorrect-threshold` | `0.35` | ColBERT fallback INCORRECT threshold |
+| `casehub.rag.reranking.colbert-fallback` | `false` | Use ColBERT evaluator when cross-encoder unavailable |
+
+### RAG — Cross-Encoder Reranking (rag-crossencoder)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.reranking.enabled` | `false` | `†` Enable cross-encoder reranking decorator |
+| `casehub.rag.reranking.rerank-pool-size` | `30` | Candidate pool size for reranking |
+
+### RAG — Query Expansion (rag-expansion)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.expansion.enabled` | `false` | `†` Enable query expansion decorator |
+| `casehub.rag.expansion.mode` | — | `†` Expansion mode: `llm`, `step-back`, or `template` |
+| `casehub.rag.expansion.hypothetical-count` | `1` | Number of hypothetical documents (HyDE) |
+| `casehub.rag.expansion.prompt-template` | — | Custom prompt template for LLM expansion |
+| `casehub.rag.expansion.template` | — | Template string for template-mode expansion |
+| `casehub.rag.expansion.step-back-prompt-template` | — | Custom prompt for step-back reformulation |
+| `casehub.rag.expansion.drift.enabled` | `false` | Enable semantic drift detection |
+| `casehub.rag.expansion.drift.threshold` | `0.7` | Cosine similarity threshold for drift |
+| `casehub.rag.expansion.drift.action` | `OBSERVE` | Drift action: `OBSERVE` or `DROP` |
+
+### RAG — Retrieval Tracking (rag-tracking)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.tracking.enabled` | — | `†` Enable retrieval tracking decorator |
+| `casehub.rag.tracking.retention.days` | `90` | Tracking trace retention period (days) |
+| `casehub.rag.tracking.sqlite.path` | *(required)* | SQLite database path for tracking |
+| `casehub.rag.tracking.sqlite.pool.max-size` | `5` | HikariCP maximum pool size |
+| `casehub.rag.tracking.sqlite.busy-timeout-ms` | `5000` | SQLite busy timeout (ms) |
+
+### RAG — Tika Document Parsing (rag-tika)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.tika.chunk-size` | `512` | Chunk size in tokens for Tika-parsed documents |
+| `casehub.rag.tika.chunk-overlap` | `64` | Chunk overlap in tokens |
+
+### RAG — Embedding Cache (rag-cache)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.embedding-cache.enabled` | `false` | Enable embedding cache |
+| `casehub.rag.embedding-cache.path` | — | Cache storage directory |
+| `casehub.rag.embedding-cache.version-suffix` | — | Cache version suffix for invalidation |
+
+### Agent Memory — SQLite Backend (memory-sqlite)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.sqlite.path` | *(required)* | SQLite database path |
+| `casehub.memory.sqlite.pool.max-size` | `5` | HikariCP maximum pool size |
+| `casehub.memory.sqlite.busy-timeout-ms` | `5000` | SQLite busy timeout (ms) |
+| `casehub.memory.sqlite.fts.enabled` | `true` | Enable FTS5 full-text search |
+
+### Agent Memory — JPA/PostgreSQL Backend (memory-jpa)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.jpa.fts.enabled` | `true` | Enable PostgreSQL full-text search |
+| `casehub.memory.jpa.fts.language` | `english` | PostgreSQL text search configuration |
+
+### Agent Memory — Mem0 Backend (memory-mem0)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.mem0.api-key` | *(required)* | Mem0 API bearer token |
+| `casehub.memory.mem0.infer` | `false` | Enable Mem0 LLM extraction mode |
+| `casehub.memory.mem0.since-search-top-k` | `500` | Top-K for time-bounded search |
+| `casehub.memory.mem0.search-threshold` | `0.1` | Minimum similarity threshold |
+| `casehub.memory.mem0.store-all-concurrency` | `4` | Concurrent store operations |
+
+### Agent Memory — Graphiti Backend (memory-graphiti)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.graphiti.api-key` | — | Graphiti API bearer token |
+| `casehub.memory.graphiti.known-domains` | — | Known memory domains (required for `eraseEntity()`) |
+
+### Agent Memory — Retention (memory)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.retention.enabled` | `false` | Enable scheduled confidence-based retention purge |
+| `casehub.memory.retention.domain` | — | Memory domain to purge |
+| `casehub.memory.retention.max-age-days` | — | Maximum age before purge eligibility |
+| `casehub.memory.retention.min-confidence` | — | Minimum confidence to retain |
+
+### CBR — Qdrant Backend (memory-qdrant)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.cbr.qdrant.host` | `localhost` | Qdrant gRPC host |
+| `casehub.memory.cbr.qdrant.port` | `6334` | Qdrant gRPC port |
+| `casehub.memory.cbr.qdrant.api-key` | — | Qdrant API key |
+| `casehub.memory.cbr.qdrant.use-tls` | `false` | Enable TLS for Qdrant connection |
+| `casehub.memory.cbr.qdrant.collection-prefix` | `cbr` | Qdrant collection name prefix |
+| `casehub.memory.cbr.qdrant.dense-vector-name` | `dense` | Dense vector space name |
+| `casehub.memory.cbr.qdrant.max-retries` | `3` | gRPC call retry count |
+| `casehub.memory.cbr.qdrant.allow-dimension-migration` | `false` | Allow collection recreation on dimension change |
+| `casehub.memory.cbr.qdrant.allow-sparse-vector-migration` | `false` | Allow collection recreation for sparse vectors |
+| `casehub.memory.cbr.qdrant.oversample-factor` | `3` | Quantized search oversampling factor |
+| `casehub.memory.cbr.qdrant.over-fetch-limit` | `200` | Maximum candidates before client-side scoring |
+| `casehub.memory.cbr.qdrant.splade-enabled` | `false` | Enable SPLADE sparse embeddings for CBR |
+| `casehub.memory.cbr.qdrant.splade-vector-name` | `sparse` | SPLADE vector space name |
+| `casehub.memory.cbr.qdrant.splade-top-k` | `0` | SPLADE candidate count (0 = disabled) |
+| `casehub.memory.cbr.qdrant.bm25-enabled` | `false` | Enable BM25 server-side inference for CBR |
+| `casehub.memory.cbr.qdrant.bm25-vector-name` | `bm25` | BM25 vector space name |
+| `casehub.memory.cbr.qdrant.bm25-model` | `Qdrant/bm25` | Qdrant BM25 inference model |
+| `casehub.memory.cbr.qdrant.bm25-top-k` | `0` | BM25 candidate count (0 = disabled) |
+| `casehub.memory.cbr.qdrant.cc-weights.dense` | `0.6` | Convex combination weight for dense leg |
+| `casehub.memory.cbr.qdrant.cc-weights.sparse` | `0.2` | Convex combination weight for sparse leg |
+| `casehub.memory.cbr.qdrant.cc-weights.bm25` | `0.2` | Convex combination weight for BM25 leg |
+
+### CBR — Cross-Encoder Reranking (memory-cbr-crossencoder)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.reranking.enabled` | `false` | `†` Enable cross-encoder reranking for CBR retrieval |
+| `casehub.cbr.reranking.rerank-pool-size` | `30` | Candidate pool size for reranking |
+
+### CBR — Retrieval Tracking (memory-cbr-tracking)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.tracking.enabled` | — | `†` Enable CBR retrieval tracking |
+| `casehub.cbr.tracking.retention-days` | `90` | CBR tracking trace retention period (days) |
+| `casehub.cbr.tracking.sqlite.path` | *(required)* | SQLite database path for CBR tracking |
+| `casehub.cbr.tracking.sqlite.pool-max-size` | `5` | HikariCP maximum pool size |
+| `casehub.cbr.tracking.sqlite.busy-timeout-ms` | `5000` | SQLite busy timeout (ms) |
+| `casehub.cbr.adaptation-tracking.enabled` | — | `†` Enable plan adaptation tracking |
+| `casehub.cbr.ensemble-tracking.enabled` | — | `†` Enable ensemble analysis tracking |
+
+### CBR — Diversity (memory)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.diversity.enabled` | `false` | `†` Enable MMR diversity injection |
+| `casehub.cbr.diversity.lambda` | `0.7` | MMR lambda (1.0 = pure relevance, 0.0 = pure diversity) |
+| `casehub.cbr.diversity.over-fetch-factor` | `3.0` | Over-fetch multiplier for diversity candidate pool |
+
+### CBR — Outcome Weighting (memory)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.outcome-weighting.enabled` | `false` | `†` Enable outcome-based score modulation |
+| `casehub.cbr.outcome-weighting.influence` | `0.3` | Outcome weighting influence factor (0.0–1.0) |
+
+### CBR — Trust Weighting (memory)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.trust-weighting.enabled` | `false` | `†` Enable trust-based score modulation |
+| `casehub.cbr.trust-weighting.influence` | `0.3` | Trust weighting influence factor (0.0–1.0) |
+| `casehub.cbr.trust-weighting.trajectory-sensitivity` | `0.5` | Declining trust trajectory penalty sensitivity |
+
+### CBR — Retention (memory)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.retention.enabled` | `false` | Enable scheduled CBR retention purge |
+| `casehub.cbr.retention.interval` | `24h` | Purge scheduling interval |
+| `casehub.cbr.retention.domain` | — | CBR domain to purge |
+| `casehub.cbr.retention.case-types` | — | Case types subject to retention |
+| `casehub.cbr.retention.max-age-days` | — | Maximum case age before purge |
+| `casehub.cbr.retention.max-cases-per-type` | — | Maximum cases per type per tenant |
+| `casehub.cbr.retention.min-trust-score` | — | Minimum trust score to retain |
+
+### CBR — Trust-Based Retention (memory)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.trust-retention.enabled` | `false` | Enable trust-trajectory-based purge |
+| `casehub.cbr.trust-retention.interval` | `24h` | Purge scheduling interval |
+| `casehub.cbr.trust-retention.min-current-trust` | `0.3` | Minimum current trust score threshold |
+| `casehub.cbr.trust-retention.domain` | — | CBR domain scope |
+| `casehub.cbr.trust-retention.case-types` | — | Case types scope |
+
+### MindMap — SQLite Backend (mindmap-sqlite)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.mindmap.sqlite.path` | *(required)* | SQLite database path |
+| `casehub.mindmap.sqlite.pool.max-size` | `5` | HikariCP maximum pool size |
+| `casehub.mindmap.sqlite.busy-timeout-ms` | `5000` | SQLite busy timeout (ms) |
+
+### MindMap — Confidence Decay (mindmap)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.mindmap.confidence.half-life-days` | `30` | Confidence decay half-life (days) |
+
+### MindMap — Consolidation (mindmap-intelligence)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.mindmap.consolidation.interval-minutes` | `5` | Consolidation scheduler interval (minutes) |
+| `casehub.mindmap.consolidation.significance-threshold` | `10.0` | Event significance threshold for triggering consolidation |
+
+### MindMap — Experience Graduation (mindmap-intelligence)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.mindmap.consolidation.graduation.threshold` | `0.5` | Graduation worthiness score threshold |
+| `casehub.mindmap.consolidation.graduation.max-per-pass` | `20` | Maximum graduations per consolidation pass |
+| `casehub.mindmap.consolidation.graduation.min-corroboration` | `3` | Minimum corroborating observations for graduation |
+| `casehub.mindmap.consolidation.graduation.text-similarity.enabled` | `false` | Enable text-similarity as second corroboration signal |
+| `casehub.mindmap.consolidation.graduation.text-similarity.embedding-threshold` | `0.8` | Embedding cosine similarity threshold |
+| `casehub.mindmap.consolidation.graduation.text-similarity.keyword-threshold` | `0.5` | Jaccard keyword overlap threshold (fallback) |
+
+### MindMap — Schema Discovery (mindmap-intelligence)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.mindmap.schema-discovery.threshold` | `0.8` | Property occurrence threshold for schema inclusion |
+| `casehub.mindmap.schema-discovery.min-samples` | `5` | Minimum entity samples for schema inference |
+| `casehub.mindmap.schema-discovery.required-threshold` | `0.95` | Threshold for marking a schema field as required |
+
+### Cognitive Index (cognitive-index)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cognitive.profiles-dir` | — | Directory to watch for cognitive profile YAML files |
+| `casehub.cognitive.rules-dir` | — | Directory to watch for rule YAML files |
+
+### Cognition — Drive Adaptation (cognition)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.drive-adaptation.learning-rate` | `0.05` | EMA learning rate for drive intensity adaptation |
+| `casehub.drive-adaptation.arousal-weight` | `0.3` | Arousal contribution to drive updates |
+| `casehub.drive-adaptation.min-intensity` | `0.1` | Minimum drive intensity floor |
+| `casehub.drive-adaptation.max-intensity` | `1.0` | Maximum drive intensity ceiling |
+| `casehub.drive-adaptation.max-per-pass` | `20` | Maximum drive updates per adaptation pass |
+
+### Cognition — Needs Pyramid (cognition)
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.needs-pyramid.satisfaction-increment` | `0.05` | Per-interaction satisfaction increase |
+| `casehub.needs-pyramid.dissatisfaction-increment` | `0.05` | Per-interaction dissatisfaction increase |
+| `casehub.needs-pyramid.initial-satisfaction` | `0.5` | Initial satisfaction level for all needs |
+| `casehub.needs-pyramid.decay.safety` | `0.15` | Safety need decay rate per tick |
+| `casehub.needs-pyramid.decay.tasks` | `0.10` | Task need decay rate per tick |
+| `casehub.needs-pyramid.decay.social` | `0.08` | Social need decay rate per tick |
+| `casehub.needs-pyramid.decay.self-expression` | `0.05` | Self-expression need decay rate per tick |
+| `casehub.needs-pyramid.decay.understanding` | `0.03` | Understanding need decay rate per tick |
+| `casehub.needs-pyramid.resting.safety` | `0.6` | Safety need resting satisfaction level |
+| `casehub.needs-pyramid.resting.tasks` | `0.3` | Task need resting satisfaction level |
+| `casehub.needs-pyramid.resting.social` | `0.4` | Social need resting satisfaction level |
+| `casehub.needs-pyramid.resting.self-expression` | `0.4` | Self-expression need resting satisfaction level |
+| `casehub.needs-pyramid.resting.understanding` | `0.4` | Understanding need resting satisfaction level |
+
+---
+
 ## Dependencies
 
 ### Depends On

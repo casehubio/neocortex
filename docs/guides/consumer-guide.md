@@ -536,55 +536,130 @@ The C2 native image gate passed (ONNX Runtime JNI + HuggingFace Tokenizers JNI b
 
 ## Configuration
 
-### RAG Configuration
+Properties marked with `†` are **build-time** (`@IfBuildProperty`) — they gate CDI bean activation and cannot be changed at runtime. All others are runtime properties. For the full reference including internal tuning parameters, see the [contributor guide](contributor-guide.md#configuration-reference).
+
+### Inference
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `casehub.rag.retrieval.fusion-strategy` | `RRF` | Fusion strategy: RRF, DBSF, or CC |
+| `casehub.inference.models.<name>.model-path` | *(required)* | Path to ONNX model file |
+| `casehub.inference.models.<name>.tokenizer-path` | *(required)* | Path to HuggingFace tokenizer JSON |
+| `casehub.inference.models.<name>.max-sequence-length` | `512` | Maximum input token length |
+
+### RAG — Connection and Storage
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.qdrant.host` | `localhost` | Qdrant gRPC host |
+| `casehub.rag.qdrant.port` | `6334` | Qdrant gRPC port |
+| `casehub.rag.qdrant.api-key` | — | Qdrant API key |
+| `casehub.rag.qdrant.use-tls` | `false` | Enable TLS for Qdrant connection |
+| `casehub.corpus.corpora.<name>.source` | *(required)* | Filesystem path to corpus source |
+| `casehub.corpus.corpora.<name>.mode` | `FLAT` | Storage mode: `FLAT` or `ZIP` |
+
+### RAG — Retrieval
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.retrieval.fusion-strategy` | `RRF` | Fusion strategy: `RRF`, `DBSF`, or `CC` |
 | `casehub.rag.retrieval.weights.dense` | `1.0` | Dense leg weight for fusion |
 | `casehub.rag.retrieval.weights.sparse` | `1.0` | Sparse leg weight for fusion |
 | `casehub.rag.retrieval.weights.bm25` | `1.0` | BM25 leg weight for fusion |
-| `casehub.rag.retrieval.weights.quality` | `1.0` | Quality/payload boost weight |
+| `casehub.rag.retrieval.weights.quality` | `0.0` | Quality/payload boost weight |
+| `casehub.rag.bm25-enabled` | `true` | Enable BM25 as third retrieval leg |
 | `casehub.rag.matryoshka.dimension` | — | Matryoshka truncation dimension (disabled if unset) |
-| `casehub.rag.quantization.type` | `NONE` | Dense quantization: NONE, BINARY, SCALAR |
-| `casehub.rag.quantization.always-ram` | `true` | Keep quantized vectors in RAM |
-| `casehub.rag.quantization.oversampling` | — | Oversampling factor for quantized search |
-| `casehub.rag.bm25.enabled` | `true` | Enable BM25 as third retrieval leg |
-| `casehub.rag.crag.enabled` | — | Enable corrective RAG quality-gating |
-| `casehub.rag.reranking.enabled` | — | Enable cross-encoder reranking |
-| `casehub.rag.tracking.enabled` | — | Enable retrieval tracking |
-| `casehub.rag.tracking.retention.days` | `90` | Tracking trace retention period |
-| `casehub.rag.expansion.mode` | — | Query expansion mode: llm, step-back, template |
+| `casehub.rag.quantization.type` | `NONE` | Dense quantization: `NONE`, `BINARY`, `SCALAR` |
+
+### RAG — Feature Toggles
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.rag.crag.enabled` | `false` | `†` Enable corrective RAG quality-gating |
+| `casehub.rag.reranking.enabled` | `false` | `†` Enable cross-encoder reranking |
+| `casehub.rag.expansion.enabled` | `false` | `†` Enable query expansion |
+| `casehub.rag.expansion.mode` | — | `†` Expansion mode: `llm`, `step-back`, or `template` |
+| `casehub.rag.tracking.enabled` | — | `†` Enable retrieval tracking |
+| `casehub.rag.tracking.retention.days` | `90` | Tracking trace retention period (days) |
+| `casehub.rag.embedding-cache.enabled` | `false` | Enable embedding cache |
 | `casehub.rag.ingestion.dedup.enabled` | `true` | Enable pre-ingestion dedup gate |
 | `casehub.rag.ingestion.dedup.threshold` | `0.95` | Cosine similarity threshold for dedup |
 
-### Agent Memory Configuration
+### RAG — Ingestion
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `casehub.memory.retention.enabled` | — | Enable scheduled confidence-based retention purge |
-| `casehub.memory.retention.domain` | — | Memory domain for retention scheduling |
+| `casehub.rag.ingestion.interval` | `30s` | Polling interval for corpus ingestion |
+| `casehub.rag.ingestion.corpora.<name>.tenant-id` | *(required)* | Tenant ID for corpus |
+| `casehub.rag.ingestion.corpora.<name>.corpus-name` | *(required)* | Corpus name in Qdrant |
+| `casehub.rag.ingestion.corpora.<name>.chunking` | `none` | Chunking strategy |
+| `casehub.rag.tika.chunk-size` | `512` | Tika document chunk size in tokens |
+| `casehub.rag.tika.chunk-overlap` | `64` | Tika chunk overlap in tokens |
+
+### Agent Memory — Backend Selection
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.sqlite.path` | *(required)* | SQLite backend: database path |
+| `casehub.memory.sqlite.fts.enabled` | `true` | SQLite backend: enable FTS5 full-text search |
+| `casehub.memory.jpa.fts.enabled` | `true` | JPA/PostgreSQL backend: enable full-text search |
+| `casehub.memory.jpa.fts.language` | `english` | JPA/PostgreSQL backend: FTS language |
+| `casehub.memory.mem0.api-key` | *(required)* | Mem0 backend: API bearer token |
+| `casehub.memory.graphiti.api-key` | — | Graphiti backend: API bearer token |
+
+### Agent Memory — Retention
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.memory.retention.enabled` | `false` | Enable scheduled confidence-based retention purge |
+| `casehub.memory.retention.domain` | — | Memory domain to purge |
 | `casehub.memory.retention.max-age-days` | — | Maximum age before purge eligibility |
 | `casehub.memory.retention.min-confidence` | — | Minimum confidence to retain |
 
-### CBR Configuration
+### CBR — Connection
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `casehub.cbr.reranking.enabled` | — | Enable cross-encoder reranking for CBR |
-| `casehub.cbr.tracking.enabled` | — | Enable CBR retrieval tracking |
-| `casehub.cbr.tracking.retention.days` | `90` | CBR tracking trace retention period |
-| `casehub.cbr.adaptation-tracking.enabled` | — | Enable plan adaptation tracking |
-| `casehub.cbr.ensemble-tracking.enabled` | — | Enable ensemble analysis tracking |
-| `casehub.cbr.outcome-weighting.enabled` | — | Enable outcome-based score modulation |
-| `casehub.cbr.outcome-weighting.influence` | `0.3` | Outcome weighting influence factor |
-| `casehub.cbr.trust-weighting.enabled` | — | Enable trust-based score modulation |
-| `casehub.cbr.trust-weighting.influence` | `0.3` | Trust weighting influence factor |
-| `casehub.cbr.retention.enabled` | — | Enable scheduled CBR retention purge |
-| `casehub.cbr.retention.domain` | — | CBR domain for retention scheduling |
+| `casehub.memory.cbr.qdrant.host` | `localhost` | Qdrant gRPC host for CBR |
+| `casehub.memory.cbr.qdrant.port` | `6334` | Qdrant gRPC port for CBR |
+| `casehub.memory.cbr.qdrant.api-key` | — | Qdrant API key |
+| `casehub.memory.cbr.qdrant.use-tls` | `false` | Enable TLS for Qdrant connection |
+| `casehub.memory.cbr.qdrant.collection-prefix` | `cbr` | Qdrant collection name prefix |
+
+### CBR — Feature Toggles
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.reranking.enabled` | `false` | `†` Enable cross-encoder reranking for CBR |
+| `casehub.cbr.tracking.enabled` | — | `†` Enable CBR retrieval tracking |
+| `casehub.cbr.tracking.retention-days` | `90` | CBR tracking trace retention period (days) |
+| `casehub.cbr.adaptation-tracking.enabled` | — | `†` Enable plan adaptation tracking |
+| `casehub.cbr.ensemble-tracking.enabled` | — | `†` Enable ensemble analysis tracking |
+| `casehub.cbr.diversity.enabled` | `false` | `†` Enable MMR diversity injection |
+| `casehub.cbr.outcome-weighting.enabled` | `false` | `†` Enable outcome-based score modulation |
+| `casehub.cbr.trust-weighting.enabled` | `false` | `†` Enable trust-based score modulation |
+
+### CBR — Retention
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cbr.retention.enabled` | `false` | Enable scheduled CBR retention purge |
+| `casehub.cbr.retention.domain` | — | CBR domain to purge |
 | `casehub.cbr.retention.case-types` | — | Case types subject to retention |
 | `casehub.cbr.retention.max-age-days` | — | Maximum case age before purge |
 | `casehub.cbr.retention.max-cases-per-type` | — | Maximum cases per type per tenant |
-| `casehub.cbr.retention.min-trust-score` | — | Minimum trust score to retain |
-| `casehub.cbr.trust-retention.enabled` | — | Enable trust-trajectory-based purge |
-| `casehub.cbr.trust-retention.min-current-trust` | — | Minimum current trust score threshold |
+| `casehub.cbr.trust-retention.enabled` | `false` | Enable trust-trajectory-based purge |
+| `casehub.cbr.trust-retention.min-current-trust` | `0.3` | Minimum current trust score threshold |
+
+### MindMap
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.mindmap.sqlite.path` | *(required)* | SQLite database path |
+| `casehub.mindmap.confidence.half-life-days` | `30` | Confidence decay half-life (days) |
+
+### Cognitive
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `casehub.cognitive.profiles-dir` | — | Directory to watch for cognitive profile YAML files |
+| `casehub.cognitive.rules-dir` | — | Directory to watch for rule YAML files |
