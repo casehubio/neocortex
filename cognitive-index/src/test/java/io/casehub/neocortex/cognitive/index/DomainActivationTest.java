@@ -2,14 +2,11 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
-import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.mood.MoodAttributeKeys;
 import io.casehub.neocortex.memory.mood.MoodEvents;
-import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
@@ -351,6 +348,90 @@ class DomainActivationTest {
             TENANT, null, null, null, Set.of(), null))
             .isInstanceOf(IllegalArgumentException.class);
     }
+
+
+    @Test
+    void threeSubgraphsOneEmptySkipsItAndCorrelatesRemaining() {
+        String sgA     = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB     = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String sgEmpty = mindMapStore.createSubgraph(new SubgraphInput("sgEmpty", "general", null), TENANT);
+
+        String entityA = mindMapStore.addNode(
+                new NodeInput("A", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        String entityB = mindMapStore.addNode(
+                new NodeInput("B", sgB, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        PrincipalId alice = PrincipalId.agent("alice");
+        for (int day = 0; day < 5; day++) {
+            Instant t = BASE.plus(Duration.ofDays(day));
+            double  v = 0.1 * day;
+            memoryStore.storeAt(entityA, v, v * 0.5, v * 0.3, t, TENANT);
+            memoryStore.storeAt(entityB, v * 0.9, v * 0.4, v * 0.2, t, TENANT);
+        }
+
+        var query = new DomainActivationQuery(alice, Set.of(sgA, sgB, sgEmpty),
+                                              TENANT, BASE, BASE.plus(Duration.ofDays(5)), null, Set.of(), null);
+        var result = domainActivation.correlate(query);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().domains()).hasSize(2);
+        assertThat(result.get().domains()).containsKey(sgA);
+        assertThat(result.get().domains()).containsKey(sgB);
+        assertThat(result.get().domains()).doesNotContainKey(sgEmpty);
+        assertThat(result.get().correlations()).hasSize(1);
+    }
+
+    @Test
+    void threeSubgraphsOneHasEntitiesButNoMemoriesSkipsIt() {
+        String sgA     = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB     = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String sgNoMem = mindMapStore.createSubgraph(new SubgraphInput("sgNoMem", "general", null), TENANT);
+
+        String entityA = mindMapStore.addNode(
+                new NodeInput("A", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        String entityB = mindMapStore.addNode(
+                new NodeInput("B", sgB, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+        mindMapStore.addNode(
+                new NodeInput("NoMem", sgNoMem, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        PrincipalId alice = PrincipalId.agent("alice");
+        for (int day = 0; day < 5; day++) {
+            Instant t = BASE.plus(Duration.ofDays(day));
+            double  v = 0.1 * day;
+            memoryStore.storeAt(entityA, v, v * 0.5, v * 0.3, t, TENANT);
+            memoryStore.storeAt(entityB, v * 0.9, v * 0.4, v * 0.2, t, TENANT);
+        }
+
+        var query = new DomainActivationQuery(alice, Set.of(sgA, sgB, sgNoMem),
+                                              TENANT, BASE, BASE.plus(Duration.ofDays(5)), null, Set.of(), null);
+        var result = domainActivation.correlate(query);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().domains()).hasSize(2);
+        assertThat(result.get().domains()).doesNotContainKey(sgNoMem);
+        assertThat(result.get().correlations()).hasSize(1);
+    }
+
+    @Test
+    void threeSubgraphsOnlyOneHasDataReturnsEmpty() {
+        String sgA = mindMapStore.createSubgraph(new SubgraphInput("sgA", "general", null), TENANT);
+        String sgB = mindMapStore.createSubgraph(new SubgraphInput("sgB", "general", null), TENANT);
+        String sgC = mindMapStore.createSubgraph(new SubgraphInput("sgC", "general", null), TENANT);
+
+        String entityA = mindMapStore.addNode(
+                new NodeInput("A", sgA, CONF, null, null, null, null, null, null, null, null, Map.of()), TENANT);
+
+        PrincipalId alice = PrincipalId.agent("alice");
+        for (int day = 0; day < 5; day++) {
+            memoryStore.storeAt(entityA, 0.1 * day, 0.0, 0.0,
+                                BASE.plus(Duration.ofDays(day)), TENANT);
+        }
+
+        var query = new DomainActivationQuery(alice, Set.of(sgA, sgB, sgC),
+                                              TENANT, BASE, BASE.plus(Duration.ofDays(5)), null, Set.of(), null);
+        assertThat(domainActivation.correlate(query)).isEmpty();
+    }
+
 
     private void storeMoodAt(PrincipalId agent, double p, double a, double d,
                              Instant t, Set<String> contextIds) {

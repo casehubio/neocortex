@@ -26,7 +26,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @ApplicationScoped
 public class DomainActivation {
@@ -60,7 +59,7 @@ public class DomainActivation {
             List<MindMapNode> entities = mindMapStore.search(
                     MindMapQuery.of(query.tenantId(), 1000).withSubgraphId(sgId));
             if (entities.isEmpty()) {
-                return Optional.empty();
+                continue;
             }
 
             List<Memory> allMemories = new ArrayList<>();
@@ -83,7 +82,7 @@ public class DomainActivation {
             }
 
             if (allMemories.isEmpty()) {
-                return Optional.empty();
+                continue;
             }
 
             allMemories.sort(Comparator.comparing(
@@ -98,7 +97,14 @@ public class DomainActivation {
             padSeries.put(sgId, buckets);
         }
 
-        List<String>                       sgIds        = new ArrayList<>(query.subgraphIds());
+        if (signals.size() < 2 && query.contextDomains().isEmpty()) {
+            return Optional.empty();
+        }
+        if (signals.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<String>                       sgIds        = new ArrayList<>(signals.keySet());
         Map<DomainPair, DomainCorrelation> correlations = new LinkedHashMap<>();
         for (int i = 0; i < sgIds.size(); i++) {
             for (int j = i + 1; j < sgIds.size(); j++) {
@@ -123,7 +129,7 @@ public class DomainActivation {
         }
 
         Map<MemoryDomain, Map<String, DomainCorrelation>> contextCorrelations = new LinkedHashMap<>();
-        Map<MemoryDomain, Map<String, EventImpact>> eventImpacts = new LinkedHashMap<>();
+        Map<MemoryDomain, Map<String, EventImpact>>       eventImpacts        = new LinkedHashMap<>();
 
         if (!query.contextDomains().isEmpty()) {
             for (MemoryDomain domain : query.contextDomains()) {
