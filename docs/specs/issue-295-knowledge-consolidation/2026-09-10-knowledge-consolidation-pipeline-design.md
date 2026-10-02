@@ -281,7 +281,7 @@ public class ConsolidationScheduler {
             ? curiosityGenerator.get() : null;
     }
 
-    @Scheduled(every = "${casehub.mindmap.consolidation.interval:5m}")
+    @Scheduled(every = "${casehub.consolidation.interval:5m}")
     void tick() {
         if (!lock.tryLock()) return;
         try {
@@ -554,7 +554,7 @@ On each pass:
    - If exists and `memberHash` unchanged → skip (no LLM call)
    - If exists but `memberHash` changed → regenerate summary, update node
    - If not exists → create new summary node
-6. Cap at `casehub.mindmap.consolidation.summaries.max-per-pass` (default 5) new/regenerated summaries per pass
+6. Cap at `casehub.consolidation.summaries.max-per-pass` (default 5) new/regenerated summaries per pass
 7. Summary nodes:
    - Trait: `Summary` (distinguishes from factual nodes)
    - Properties: `coreHash`, `memberHash`, `memberCount`, `generatedAt`
@@ -632,7 +632,7 @@ On each pass:
 4. Run Layer 2 on uncertain candidates (if EmbeddingModel available)
 5. Auto-merge high-confidence candidates
 6. Flag medium-confidence candidates as node properties
-7. Cap at `casehub.mindmap.consolidation.merges.max-per-pass` (default 10) auto-merges per pass
+7. Cap at `casehub.consolidation.merges.max-per-pass` (default 10) auto-merges per pass
 
 ## 8. Test Strategy
 
@@ -655,16 +655,16 @@ All tests use `InMemoryMindMapStore` and `InMemoryMemoryStore`. No SQLite, no Do
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `casehub.mindmap.consolidation.interval` | `5m` | Scheduler tick interval |
-| `casehub.mindmap.consolidation.idle-threshold` | `1m` | Minimum idle time before running |
-| `casehub.mindmap.consolidation.access.retrieval-half-life-days` | `30` | Half-life for read-time retrieval strength decay (§5.6) |
-| `casehub.mindmap.consolidation.merge.name-threshold` | `0.85` | Jaro-Winkler minimum for Layer 1 |
-| `casehub.mindmap.consolidation.merge.neighbor-threshold` | `0.3` | Jaccard minimum for neighbor overlap |
-| `casehub.mindmap.consolidation.merge.auto-merge-threshold` | `0.9` | Combined score for automatic merge |
-| `casehub.mindmap.consolidation.merge.max-per-pass` | `10` | Maximum auto-merges per pass |
-| `casehub.mindmap.consolidation.summaries.k` | `3` | Minimum degree for k-core membership |
-| `casehub.mindmap.consolidation.summaries.min-cluster-size` | `4` | Minimum nodes to generate a summary |
-| `casehub.mindmap.consolidation.summaries.max-per-pass` | `5` | Maximum summaries generated per pass |
+| `casehub.consolidation.interval` | `5m` | Scheduler tick interval |
+| `casehub.consolidation.idle-threshold` | `1m` | Minimum idle time before running |
+| `casehub.consolidation.access.retrieval-half-life-days` | `30` | Half-life for read-time retrieval strength decay (§5.6) |
+| `casehub.consolidation.merge.name-threshold` | `0.85` | Jaro-Winkler minimum for Layer 1 |
+| `casehub.consolidation.merge.neighbor-threshold` | `0.3` | Jaccard minimum for neighbor overlap |
+| `casehub.consolidation.merge.auto-merge-threshold` | `0.9` | Combined score for automatic merge |
+| `casehub.consolidation.merge.max-per-pass` | `10` | Maximum auto-merges per pass |
+| `casehub.consolidation.summaries.k` | `3` | Minimum degree for k-core membership |
+| `casehub.consolidation.summaries.min-cluster-size` | `4` | Minimum nodes to generate a summary |
+| `casehub.consolidation.summaries.max-per-pass` | `5` | Maximum summaries generated per pass |
 
 ## 10. Issue Mapping
 
