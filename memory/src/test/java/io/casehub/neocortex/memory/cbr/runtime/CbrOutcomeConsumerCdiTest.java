@@ -76,7 +76,7 @@ class CbrOutcomeConsumerCdiTest {
         final List<RecordedOutcome> recorded = new ArrayList<>();
 
         @Override
-        public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {
+        public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
             recorded.add(new RecordedOutcome(caseId, tenantId, outcome));
         }
     }

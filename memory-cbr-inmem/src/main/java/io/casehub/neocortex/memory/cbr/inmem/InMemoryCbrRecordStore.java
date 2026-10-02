@@ -210,7 +210,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
 
 
     @Override
-    public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
         for (int i = 0; i < cases.size(); i++) {
             StoredCase stored = cases.get(i);
             if (caseId.equals(stored.caseId()) && tenantId.equals(stored.tenantId())) {
@@ -316,7 +316,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) {
+    public List<SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) {
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         java.util.Objects.requireNonNull(domain, "domain required");
         List<SupersessionStatus> result = new ArrayList<>();
@@ -331,7 +331,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+    public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) {
         Objects.requireNonNull(caseId, "caseId required");
         Objects.requireNonNull(tenantId, "tenantId required");
         for (int i = 0; i < cases.size(); i++) {
@@ -365,8 +365,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public List<String> findCaseIds(String tenantId, MemoryDomain domain,
-                                     String caseType, Map<String, CbrFilter> filters) {
+    public List<String> findCaseIds(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(domain, "domain required");
         Objects.requireNonNull(caseType, "caseType required");
@@ -394,8 +393,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters, String reason) {
+    public int supersedeMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason, String tenantId) {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(domain, "domain required");
         Objects.requireNonNull(caseType, "caseType required");
@@ -425,12 +423,12 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public int supersedeAll(Collection<String> caseIds, String tenantId, String reason) {
+    public int supersedeAll(Collection<String> caseIds, String reason, String tenantId) {
         Objects.requireNonNull(caseIds, "caseIds required");
         Objects.requireNonNull(tenantId, "tenantId required");
         int count = 0;
         for (String caseId : caseIds) {
-            if (supersede(caseId, tenantId, null, reason)) {
+            if (supersede(caseId, null, reason, tenantId)) {
                 count++;
             }
         }
@@ -438,8 +436,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters) {
+    public int reinstateMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(domain, "domain required");
         Objects.requireNonNull(caseType, "caseType required");

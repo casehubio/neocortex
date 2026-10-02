@@ -3,6 +3,7 @@ package io.casehub.neocortex.memory.cbr.runtime;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
@@ -13,6 +14,7 @@ import io.casehub.neocortex.memory.cbr.OutcomeWeightingFunction;
 import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -123,18 +125,18 @@ class OutcomeWeightingCbrRecordStoreTest {
             @Override public int erase(EraseRequest r) { return 0; }
             @Override public int eraseEntity(String e, String t) { return 0; }
             @Override public int eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
-            @Override public void recordOutcome(String c, String t, CbrOutcome o) {}
-            @Override public int purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return 0; }
-            @Override public boolean supersede(String c, String t, String s, String r) { return false; }
-            @Override public boolean reinstate(String c, String t) { return false; }
+            @Override public void recordOutcome(String c, CbrOutcome o, String t)                {}
+            @Override public int purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p)     { return 0; }
+            @Override public boolean supersede(String c, String s, String r, String t)       { return false; }
+            @Override public boolean reinstate(String c, String t)                           { return false; }
 
-        @Override public io.casehub.neocortex.memory.cbr.SupersessionStatus getSupersessionStatus(String caseId, String tenantId) { return io.casehub.neocortex.memory.cbr.SupersessionStatus.NOT_SUPERSEDED; }
-        @Override public java.util.List<io.casehub.neocortex.memory.cbr.SupersessionStatus> findSupersededCases(String tenantId, io.casehub.neocortex.memory.MemoryDomain domain) { return java.util.List.of(); }
-        @Override public java.util.List<String> findCaseIds(String t, io.casehub.neocortex.memory.MemoryDomain d, String ct, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> f) { return java.util.List.of(); }
-        @Override public int supersedeMatching(String t, io.casehub.neocortex.memory.MemoryDomain d, String ct, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> f, String r) { return 0; }
-        @Override public int supersedeAll(java.util.Collection<String> ids, String t, String r) { return 0; }
-        @Override public int reinstateMatching(String t, io.casehub.neocortex.memory.MemoryDomain d, String ct, java.util.Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> f) { return 0; }
-        @Override public int reinstateAll(java.util.Collection<String> ids, String t) { return 0; }
+        @Override public io.casehub.neocortex.memory.cbr.SupersessionStatus getSupersessionStatus(String caseId, String tenantId)                                                                { return io.casehub.neocortex.memory.cbr.SupersessionStatus.NOT_SUPERSEDED; }
+        @Override public java.util.List<io.casehub.neocortex.memory.cbr.SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) { return java.util.List.of(); }
+        @Override public java.util.List<String> findCaseIds(MemoryDomain d, String ct, Map<String, CbrFilter> f, String t)                            { return java.util.List.of(); }
+        @Override public int supersedeMatching(MemoryDomain d, String ct, Map<String, CbrFilter> f, String r, String t)                               { return 0; }
+        @Override public int supersedeAll(Collection<String> ids, String r, String t)                                   { return 0; }
+        @Override public int reinstateMatching(MemoryDomain d, String ct, Map<String, CbrFilter> filters, String t)     { return 0; }
+        @Override public int reinstateAll(java.util.Collection<String> ids, String t)                               { return 0; }
 
         };
     }

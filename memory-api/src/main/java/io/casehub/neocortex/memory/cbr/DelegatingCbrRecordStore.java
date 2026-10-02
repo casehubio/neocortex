@@ -21,18 +21,18 @@ public abstract class DelegatingCbrRecordStore implements CbrRecordStore {
     @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> ct)                { return delegate.retrieveSimilar(q, ct); }
     @Override public int erase(EraseRequest request)                                                             { return delegate.erase(request); }
     @Override public int eraseEntity(String entityId, String tenantId) { return delegate.eraseEntity(entityId, tenantId); }
-    @Override public int eraseByScope(Path scope, String tenantId) { return delegate.eraseByScope(scope, tenantId); }
-    @Override public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) { delegate.recordOutcome(caseId, tenantId, outcome); }
-    @Override public int purge(CbrRetentionPolicy policy) { return delegate.purge(policy); }
-    @Override public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) { return delegate.supersede(caseId, tenantId, supersedingCaseId, reason); }
-    @Override public boolean reinstate(String caseId, String tenantId) { return delegate.reinstate(caseId, tenantId); }
-    @Override public SupersessionStatus getSupersessionStatus(String caseId, String tenantId) { return delegate.getSupersessionStatus(caseId, tenantId); }
-    @Override public List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) { return delegate.findSupersededCases(tenantId, domain); }
-    @Override public Set<String> discoverTenants(MemoryDomain domain) { return delegate.discoverTenants(domain); }
-    @Override public CbrScanResult scan(CbrScanRequest request) { return delegate.scan(request); }
-    @Override public List<String> findCaseIds(String tenantId, MemoryDomain domain, String caseType, Map<String, CbrFilter> filters) { return delegate.findCaseIds(tenantId, domain, caseType, filters); }
-    @Override public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason) { return delegate.supersedeMatching(tenantId, domain, caseType, filters, reason); }
-    @Override public int supersedeAll(Collection<String> caseIds, String tenantId, String reason) { return delegate.supersedeAll(caseIds, tenantId, reason); }
-    @Override public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType, Map<String, CbrFilter> filters) { return delegate.reinstateMatching(tenantId, domain, caseType, filters); }
-    @Override public int reinstateAll(Collection<String> caseIds, String tenantId) { return delegate.reinstateAll(caseIds, tenantId); }
+    @Override public int eraseByScope(Path scope, String tenantId)                          { return delegate.eraseByScope(scope, tenantId); }
+    @Override public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) { delegate.recordOutcome(caseId, outcome, tenantId); }
+    @Override public int purge(CbrRetentionPolicy policy)                                   { return delegate.purge(policy); }
+    @Override public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) { return delegate.supersede(caseId, supersedingCaseId, reason, tenantId); }
+    @Override public boolean reinstate(String caseId, String tenantId)                                          { return delegate.reinstate(caseId, tenantId); }
+    @Override public SupersessionStatus getSupersessionStatus(String caseId, String tenantId)           { return delegate.getSupersessionStatus(caseId, tenantId); }
+    @Override public List<SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) { return delegate.findSupersededCases(domain, tenantId); }
+    @Override public Set<String> discoverTenants(MemoryDomain domain)                                   { return delegate.discoverTenants(domain); }
+    @Override public CbrScanResult scan(CbrScanRequest request)                                                                                  { return delegate.scan(request); }
+    @Override public List<String> findCaseIds(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId)             { return delegate.findCaseIds(domain, caseType, filters, tenantId); }
+    @Override public int supersedeMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason, String tenantId) { return delegate.supersedeMatching(domain, caseType, filters, reason, tenantId); }
+    @Override public int supersedeAll(Collection<String> caseIds, String reason, String tenantId)                                                { return delegate.supersedeAll(caseIds, reason, tenantId); }
+    @Override public int reinstateMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId)                { return delegate.reinstateMatching(domain, caseType, filters, tenantId); }
+    @Override public int reinstateAll(Collection<String> caseIds, String tenantId)                                                { return delegate.reinstateAll(caseIds, tenantId); }
 }

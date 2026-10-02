@@ -20,7 +20,7 @@ public class CbrOutcomeProcessor {
                 data.successRate(),
                 summarize(data.nodeOutcomes()),
                 data.observedAt());
-        store.recordOutcome(data.sourceId(), data.tenancyId(), outcome);
+        store.recordOutcome(data.sourceId(), outcome, data.tenancyId());
     }
 
     private static String summarize(Map<String, String> nodeOutcomes) {

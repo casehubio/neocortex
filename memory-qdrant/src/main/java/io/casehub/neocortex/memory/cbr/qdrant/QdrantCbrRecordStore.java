@@ -16,6 +16,7 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.cbr.CaseTypeScope;
+import io.casehub.neocortex.memory.cbr.CbrFilter;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
@@ -53,6 +54,7 @@ import jakarta.inject.Inject;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -679,7 +681,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
         for (String caseType : schemas.keySet()) {
             String collection = collectionManager.collectionName(caseType);
             boolean exists = awaitFuture(
@@ -723,7 +725,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+    public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) {
         java.util.Objects.requireNonNull(caseId, "caseId required");
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         for (String caseType : schemas.keySet()) {
@@ -796,8 +798,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public List<String> findCaseIds(String tenantId, MemoryDomain domain,
-                                     String caseType, Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters) {
+    public List<String> findCaseIds(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         java.util.Objects.requireNonNull(domain, "domain required");
         java.util.Objects.requireNonNull(caseType, "caseType required");
@@ -846,8 +847,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters, String reason) {
+    public int supersedeMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason, String tenantId) {
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         java.util.Objects.requireNonNull(domain, "domain required");
         java.util.Objects.requireNonNull(caseType, "caseType required");
@@ -906,12 +906,12 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public int supersedeAll(java.util.Collection<String> caseIds, String tenantId, String reason) {
+    public int supersedeAll(Collection<String> caseIds, String reason, String tenantId) {
         java.util.Objects.requireNonNull(caseIds, "caseIds required");
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         int count = 0;
         for (String caseId : caseIds) {
-            if (supersede(caseId, tenantId, null, reason)) {
+            if (supersede(caseId, null, reason, tenantId)) {
                 count++;
             }
         }
@@ -919,8 +919,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, io.casehub.neocortex.memory.cbr.CbrFilter> filters) {
+    public int reinstateMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         java.util.Objects.requireNonNull(domain, "domain required");
         java.util.Objects.requireNonNull(caseType, "caseType required");
@@ -1087,7 +1086,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) {
+    public List<SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) {
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         java.util.Objects.requireNonNull(domain, "domain required");
         List<SupersessionStatus> allResults = new ArrayList<>();

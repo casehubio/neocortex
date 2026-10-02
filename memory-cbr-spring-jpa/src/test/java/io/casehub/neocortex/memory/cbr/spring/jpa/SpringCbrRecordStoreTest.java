@@ -91,7 +91,7 @@ class SpringCbrRecordStoreTest {
                 "problem", "solution", null, null, Map.of(), null, null);
         store.store(cbrRecord, "test-type", "e1", new MemoryDomain("d"), "t1", "c1", Path.root());
 
-        assertTrue(store.supersede("c1", "t1", null, "outdated"));
+        assertTrue(store.supersede("c1", null, "outdated", "t1"));
         var status = store.getSupersessionStatus("c1", "t1");
         assertTrue(status.superseded());
 
@@ -117,7 +117,7 @@ class SpringCbrRecordStoreTest {
                 "problem", "solution", null, null,
                 Map.of("severity", new FeatureValue.StringVal("high")), null, null);
         store.store(cbrRecord, "incident", "e1", new MemoryDomain("ops"), "t1", "c1", Path.root());
-        store.supersede("c1", "t1", null, "outdated");
+        store.supersede("c1", null, "outdated", "t1");
 
         var results = store.retrieveSimilar(
                 CbrQuery.of("t1", new MemoryDomain("ops"), Path.root(), "incident",

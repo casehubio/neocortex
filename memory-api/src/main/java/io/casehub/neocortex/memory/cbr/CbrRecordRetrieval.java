@@ -12,6 +12,5 @@ public interface CbrRecordRetrieval {
                 "scan not supported by " + getClass().getSimpleName());
     }
 
-    List<String> findCaseIds(String tenantId, MemoryDomain domain,
-                             String caseType, Map<String, CbrFilter> filters);
+    List<String> findCaseIds(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId);
 }

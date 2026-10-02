@@ -48,8 +48,8 @@ public class SupersessionNotificationCbrRecordStore extends DelegatingCbrRecordS
     }
 
     @Override
-    public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
-        boolean result = delegate.supersede(caseId, tenantId, supersedingCaseId, reason);
+    public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) {
+        boolean result = delegate.supersede(caseId, supersedingCaseId, reason, tenantId);
         if (result) {
             safeFire(supersededEvent, new CbrRecordSuperseded.ByCase(
                     tenantId, caseId, supersedingCaseId, reason, Instant.now(clock)));
@@ -58,9 +58,8 @@ public class SupersessionNotificationCbrRecordStore extends DelegatingCbrRecordS
     }
 
     @Override
-    public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters, String reason) {
-        int count = delegate.supersedeMatching(tenantId, domain, caseType, filters, reason);
+    public int supersedeMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason, String tenantId) {
+        int count = delegate.supersedeMatching(domain, caseType, filters, reason, tenantId);
         if (count > 0) {
             safeFire(supersededEvent, new CbrRecordSuperseded.ByFilter(
                     tenantId, domain, caseType, filters, reason, count, Instant.now(clock)));
@@ -69,8 +68,8 @@ public class SupersessionNotificationCbrRecordStore extends DelegatingCbrRecordS
     }
 
     @Override
-    public int supersedeAll(Collection<String> caseIds, String tenantId, String reason) {
-        int count = delegate.supersedeAll(caseIds, tenantId, reason);
+    public int supersedeAll(Collection<String> caseIds, String reason, String tenantId) {
+        int count = delegate.supersedeAll(caseIds, reason, tenantId);
         if (count > 0) {
             safeFire(supersededEvent, new CbrRecordSuperseded.ByIds(
                     tenantId, caseIds, reason, count, Instant.now(clock)));
@@ -89,9 +88,8 @@ public class SupersessionNotificationCbrRecordStore extends DelegatingCbrRecordS
     }
 
     @Override
-    public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters) {
-        int count = delegate.reinstateMatching(tenantId, domain, caseType, filters);
+    public int reinstateMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
+        int count = delegate.reinstateMatching(domain, caseType, filters, tenantId);
         if (count > 0) {
             safeFire(reinstatedEvent, new CbrRecordReinstated.ByFilter(
                     tenantId, domain, caseType, filters, count, Instant.now(clock)));

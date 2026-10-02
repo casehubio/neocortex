@@ -54,7 +54,7 @@ public class NoOpCbrRecordStore implements CbrRecordStore {
 
 
     @Override
-    public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {}
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {}
 
     @Override
     public int purge(CbrRetentionPolicy policy) {
@@ -62,7 +62,7 @@ public class NoOpCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+    public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) {
         return false;
     }
 
@@ -77,30 +77,27 @@ public class NoOpCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public java.util.List<SupersessionStatus> findSupersededCases(String tenantId, io.casehub.neocortex.memory.MemoryDomain domain) {
+    public java.util.List<SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) {
         return java.util.List.of();
     }
 
     @Override
-    public List<String> findCaseIds(String tenantId, MemoryDomain domain,
-                                     String caseType, Map<String, CbrFilter> filters) {
+    public List<String> findCaseIds(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         return List.of();
     }
 
     @Override
-    public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters, String reason) {
+    public int supersedeMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason, String tenantId) {
         return 0;
     }
 
     @Override
-    public int supersedeAll(Collection<String> caseIds, String tenantId, String reason) {
+    public int supersedeAll(Collection<String> caseIds, String reason, String tenantId) {
         return 0;
     }
 
     @Override
-    public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters) {
+    public int reinstateMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         return 0;
     }
 

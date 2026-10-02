@@ -320,6 +320,44 @@ Supports `reconcile(caseType, tenantId)`, `reconcileAll(caseType)`, `discoverTen
 | 65 | `AffectTrajectoryDecorator` | mindmap |
 | 30 | `MindMapStoreIdleTracker` | mindmap |
 
+### Store SPI API Conventions
+
+Verb vocabulary and parameter conventions for the three store SPIs. New SPIs and methods should follow these conventions.
+
+**CRUD verb vocabulary:**
+
+| Operation | CaseMemoryStore | MindMapStore | CbrRecordStore |
+|-----------|----------------|--------------|----------------|
+| Create | `store` | `addNode/addEdge/addAlias`, `createSubgraph` | `store` |
+| Read (single) | — | `getNode/getEdge/getSubgraph` | `getSupersessionStatus` |
+| Read (search) | `query` (semantic), `scan` (paginated) | `search` (FTS), `nodesIn/neighbors/bridgeEdges` (traversal) | `retrieveSimilar` (similarity), `scan` (paginated), `findCaseIds` (ID lookup) |
+| Update | — (append-only) | `updateNode/updateSubgraph`, `mergeNodes` | `recordOutcome` |
+| Delete (bulk) | `erase` | `eraseNode/eraseSubgraph/eraseEntity` | `erase/eraseEntity/eraseByScope` |
+| Delete (single) | `eraseById` | `removeEdge/removeAlias` | — |
+| Purge | `purge` (retention) | — | `purge` (retention) |
+| Lifecycle | — | `supersede/reinstate` | `supersede/reinstate` |
+| Admin | `discoverTenants` | `registerVocabulary` | `registerSchema`, `discoverTenants` |
+
+**Verb conventions for new methods:**
+- **store** for create operations in memory/CBR stores (not `add`, `create`, `insert`)
+- **add** for graph entity creation in MindMap (node, edge, alias)
+- **create** for container creation in MindMap (subgraph)
+- **get** for single-entity retrieval by ID
+- **erase** for bulk deletion; **remove** for single-entity removal in MindMap
+- **purge** for retention-based bulk cleanup
+- **supersede/reinstate** for soft lifecycle transitions
+- **discover** for tenant enumeration; **register** for schema/vocabulary setup
+
+**Parameter ordering:**
+- `tenantId` is always the **last** explicit parameter, unless varargs occupies that slot
+- For methods that take an encapsulating request object (e.g., `EraseRequest`, `CbrQuery`), tenantId is inside the object — no explicit parameter
+- MindMapStore and CbrRecordStore both follow this convention; CaseMemoryStore embeds tenantId in input records
+
+**Return types:**
+- Bulk deletion/purge methods return primitive `int` (count of affected records), never boxed `Integer`
+- Single-entity deletion returns `void` (e.g., `removeEdge`, `eraseById`)
+- Lifecycle transitions return `boolean` (success) for single-case, `int` (count) for bulk
+
 ### Knowledge Model Internals
 
 #### Thing / MindMapNode Hierarchy

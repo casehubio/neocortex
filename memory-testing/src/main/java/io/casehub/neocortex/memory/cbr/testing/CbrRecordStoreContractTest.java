@@ -1824,8 +1824,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.8),
                                            Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-1", Path.root());
-        store().recordOutcome("case-ro-1", TENANT,
-                              CbrOutcome.of(1.0, "all nodes succeeded", Instant.now()));
+        store().recordOutcome("case-ro-1", CbrOutcome.of(1.0, "all nodes succeeded", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -1841,8 +1841,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.8),
                                            Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-2", Path.root());
-        store().recordOutcome("case-ro-2", TENANT,
-                              CbrOutcome.of(0.5, "2 of 4", Instant.now()));
+        store().recordOutcome("case-ro-2", CbrOutcome.of(0.5, "2 of 4", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -1857,8 +1857,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.8),
                                            Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-3", Path.root());
-        store().recordOutcome("case-ro-3", TENANT,
-                              CbrOutcome.of(0.0, "all failed", Instant.now()));
+        store().recordOutcome("case-ro-3", CbrOutcome.of(0.0, "all failed", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -1874,8 +1874,8 @@ public abstract class CbrRecordStoreContractTest {
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-4", Path.root());
         Instant base = Instant.parse("2026-07-13T10:00:00Z");
         for (int i = 0; i < 5; i++) {
-            store().recordOutcome("case-ro-4", TENANT,
-                                  CbrOutcome.of(1.0, null, base.plusSeconds(i + 1)));
+            store().recordOutcome("case-ro-4", CbrOutcome.of(1.0, null, base.plusSeconds(i + 1)), TENANT
+                                 );
         }
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
@@ -1896,8 +1896,8 @@ public abstract class CbrRecordStoreContractTest {
                                            Map.of("cat", string("a"), "val", number(50)), null, null),
                       "fast-learn", ENTITY, CBR, TENANT, "c-lr-1", Path.root());
 
-        store().recordOutcome("c-lr-1", TENANT,
-                              CbrOutcome.of(0.0, "fail", Instant.now()));
+        store().recordOutcome("c-lr-1", CbrOutcome.of(0.0, "fail", Instant.now()), TENANT
+                             );
 
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "fast-learn",
@@ -1915,8 +1915,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("prob", "sol", null, null,
                                            Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-5", Path.root());
-        store().recordOutcome("case-ro-5", TENANT,
-                              CbrOutcome.of(0.0, null, Instant.now()));
+        store().recordOutcome("case-ro-5", CbrOutcome.of(0.0, null, Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -1927,8 +1927,8 @@ public abstract class CbrRecordStoreContractTest {
 
     @Test
     void recordOutcome_unknownCaseId_silentlyIgnored() {
-        assertThatCode(() -> store().recordOutcome("nonexistent", TENANT,
-                                                   CbrOutcome.of(1.0, null, Instant.now())))
+        assertThatCode(() -> store().recordOutcome("nonexistent", CbrOutcome.of(1.0, null, Instant.now()), TENANT
+                                                  ))
                 .doesNotThrowAnyException();
     }
 
@@ -1938,8 +1938,8 @@ public abstract class CbrRecordStoreContractTest {
                                                     "army_size_ratio", number(0.7));
         store().store(new CbrFeatureRecord("my problem", "my solution", null, Confidence.unknown(0.8),
                                            features, null, null), "starcraft-game", ENTITY, CBR, TENANT, "case-ro-7", Path.root());
-        store().recordOutcome("case-ro-7", TENANT,
-                              CbrOutcome.of(1.0, "ok", Instant.now()));
+        store().recordOutcome("case-ro-7", CbrOutcome.of(1.0, "ok", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -1957,8 +1957,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.8),
                                            Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-8", Path.root());
-        store().recordOutcome("case-ro-8", TENANT,
-                              CbrOutcome.of(0.75, "3/4 nodes succeeded, 1 FAILED: node-xyz", Instant.now()));
+        store().recordOutcome("case-ro-8", CbrOutcome.of(0.75, "3/4 nodes succeeded, 1 FAILED: node-xyz", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -1974,10 +1974,10 @@ public abstract class CbrRecordStoreContractTest {
                                            Map.of("opponent_race", string("Zerg")), null, null),
                       "starcraft-game", ENTITY, CBR, TENANT, "case-ro-9", Path.root());
         Instant observed = Instant.parse("2026-07-13T10:00:00Z");
-        store().recordOutcome("case-ro-9", TENANT,
-                              CbrOutcome.of(1.0, null, observed));
-        store().recordOutcome("case-ro-9", TENANT,
-                              CbrOutcome.of(1.0, null, observed));
+        store().recordOutcome("case-ro-9", CbrOutcome.of(1.0, null, observed), TENANT
+                             );
+        store().recordOutcome("case-ro-9", CbrOutcome.of(1.0, null, observed), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 10)
@@ -2192,8 +2192,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("p", "s", "WIN", Confidence.unknown(0.5),
                                            Map.of("opponent_race", string("Zerg")), 0.85, "agent-1"),
                       "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-4", Path.root());
-        store().recordOutcome("trust-rt-4", TENANT,
-                              CbrOutcome.of(1.0, "validated", java.time.Instant.now()));
+        store().recordOutcome("trust-rt-4", CbrOutcome.of(1.0, "validated", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 5),
@@ -2229,8 +2229,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("p", "s", "WIN", Confidence.unknown(0.5),
                                            Map.of("opponent_race", string("Zerg")), 0.7, "agent-2"),
                       "starcraft-game", ENTITY, CBR, TENANT, "trust-rt-5", Path.root());
-        store().recordOutcome("trust-rt-5", TENANT,
-                              CbrOutcome.of(0.8, "good", java.time.Instant.now()));
+        store().recordOutcome("trust-rt-5", CbrOutcome.of(0.8, "good", Instant.now()), TENANT
+                             );
         var results = store().retrieveSimilar(
                 CbrQuery.of(TENANT, CBR, Path.root(), "starcraft-game",
                             Map.of("opponent_race", string("Zerg")), 5),
@@ -2529,7 +2529,7 @@ public abstract class CbrRecordStoreContractTest {
     void supersede_excludesFromRetrieval() {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c1");
-        assertThat(store().supersede("sup-c1", TENANT, null, null)).isTrue();
+        assertThat(store().supersede("sup-c1", null, null, TENANT)).isTrue();
         assertThat(querySupersession()).isEmpty();
     }
 
@@ -2537,7 +2537,7 @@ public abstract class CbrRecordStoreContractTest {
     void reinstate_restoresRetrievalVisibility() {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c2");
-        assertThat(store().supersede("sup-c2", TENANT, null, "overturned")).isTrue();
+        assertThat(store().supersede("sup-c2", null, "overturned", TENANT)).isTrue();
         assertThat(store().reinstate("sup-c2", TENANT)).isTrue();
         assertThat(querySupersession()).hasSize(1);
     }
@@ -2546,8 +2546,8 @@ public abstract class CbrRecordStoreContractTest {
     void supersede_alreadySuperseded_returnsFalse() {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c3");
-        assertThat(store().supersede("sup-c3", TENANT, null, "first")).isTrue();
-        assertThat(store().supersede("sup-c3", TENANT, "replacement", "second")).isFalse();
+        assertThat(store().supersede("sup-c3", null, "first", TENANT)).isTrue();
+        assertThat(store().supersede("sup-c3", "replacement", "second", TENANT)).isFalse();
         assertThat(querySupersession()).isEmpty();
     }
 
@@ -2562,14 +2562,14 @@ public abstract class CbrRecordStoreContractTest {
     @Test
     void supersede_nonExistentCase_returnsFalse() {
         registerSupersessionSchema();
-        assertThat(store().supersede("nonexistent", TENANT, null, null)).isFalse();
+        assertThat(store().supersede("nonexistent", null, null, TENANT)).isFalse();
     }
 
     @Test
     void supersede_eraseStillWorks() {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c5");
-        store().supersede("sup-c5", TENANT, null, null);
+        store().supersede("sup-c5", null, null, TENANT);
         int erased = store().erase(new io.casehub.neocortex.memory.EraseRequest(ENTITY, CBR, TENANT, "sup-c5"));
         assertThat(erased).isGreaterThanOrEqualTo(1);
     }
@@ -2578,9 +2578,9 @@ public abstract class CbrRecordStoreContractTest {
     void supersede_recordOutcomeStillWorks() {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c6");
-        store().supersede("sup-c6", TENANT, null, null);
-        assertThatCode(() -> store().recordOutcome("sup-c6", TENANT,
-                CbrOutcome.of(1.0, "ok", Instant.now())))
+        store().supersede("sup-c6", null, null, TENANT);
+        assertThatCode(() -> store().recordOutcome("sup-c6", CbrOutcome.of(1.0, "ok", Instant.now()), TENANT
+                                                  ))
                 .doesNotThrowAnyException();
     }
 
@@ -2588,7 +2588,7 @@ public abstract class CbrRecordStoreContractTest {
     void supersede_purgeStillApplies() {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c7");
-        store().supersede("sup-c7", TENANT, null, null);
+        store().supersede("sup-c7", null, null, TENANT);
         assertThatCode(() -> store().purge(new CbrRetentionPolicy(TENANT, CBR, "ss-type", null, 1, null)))
                 .doesNotThrowAnyException();
     }
@@ -2765,7 +2765,7 @@ public abstract class CbrRecordStoreContractTest {
         store().store(new CbrFeatureRecord("original", "s", null, null,
                                            Map.of("level", string("a")), null, null),
                       "scoped-erase8", ENTITY, CBR, TENANT, "c-1", Path.of("org"));
-        store().supersede("c-1", TENANT, "c-2", "better case available");
+        store().supersede("c-1", "c-2", "better case available", TENANT);
         int erased = store().eraseByScope(Path.of("org"), TENANT);
         assertThat(erased).isEqualTo(1);
     }
@@ -2815,7 +2815,7 @@ public abstract class CbrRecordStoreContractTest {
         store().store(
                 new CbrFeatureRecord("p", "s", null, null, Map.of("opponent_race", string("Zerg")), null, null),
                 "starcraft-game", ENTITY, CBR, TENANT, "sup-status-2", Path.root());
-        store().supersede("sup-status-2", TENANT, "new-case", "better data");
+        store().supersede("sup-status-2", "new-case", "better data", TENANT);
         var status = store().getSupersessionStatus("sup-status-2", TENANT);
         assertThat(status.superseded()).isTrue();
         assertThat(status.supersedingCaseId()).isEqualTo("new-case");
@@ -2829,7 +2829,7 @@ public abstract class CbrRecordStoreContractTest {
         store().store(
                 new CbrFeatureRecord("p", "s", null, null, Map.of("opponent_race", string("Zerg")), null, null),
                 "starcraft-game", ENTITY, CBR, TENANT, "sup-status-3", Path.root());
-        store().supersede("sup-status-3", TENANT, "new-case", "better data");
+        store().supersede("sup-status-3", "new-case", "better data", TENANT);
         store().reinstate("sup-status-3", TENANT);
         var status = store().getSupersessionStatus("sup-status-3", TENANT);
         assertThat(status.superseded()).isFalse();
@@ -2842,9 +2842,9 @@ public abstract class CbrRecordStoreContractTest {
         store().store(
                 new CbrFeatureRecord("p", "s", null, null, Map.of("opponent_race", string("Zerg")), null, null),
                 "starcraft-game", ENTITY, CBR, TENANT, "sup-status-4", Path.root());
-        store().supersede("sup-status-4", TENANT, "case-a", "first");
+        store().supersede("sup-status-4", "case-a", "first", TENANT);
         store().reinstate("sup-status-4", TENANT);
-        store().supersede("sup-status-4", TENANT, "case-b", "second");
+        store().supersede("sup-status-4", "case-b", "second", TENANT);
         var status = store().getSupersessionStatus("sup-status-4", TENANT);
         assertThat(status.superseded()).isTrue();
         assertThat(status.supersedingCaseId()).isEqualTo("case-b");
@@ -2859,8 +2859,8 @@ public abstract class CbrRecordStoreContractTest {
         store().store(
                 new CbrFeatureRecord("p2", "s2", null, null, Map.of("opponent_race", string("Terran")), null, null),
                 "starcraft-game", ENTITY, CBR, TENANT, "sup-find-2", Path.root());
-        store().supersede("sup-find-1", TENANT, "new", "reason");
-        var superseded = store().findSupersededCases(TENANT, CBR);
+        store().supersede("sup-find-1", "new", "reason", TENANT);
+        var superseded = store().findSupersededCases(CBR, TENANT);
         assertThat(superseded).hasSize(1);
         assertThat(superseded.getFirst().caseId()).isEqualTo("sup-find-1");
         assertThat(superseded.getFirst().superseded()).isTrue();
@@ -2895,8 +2895,8 @@ public abstract class CbrRecordStoreContractTest {
         storeBulkCase("bulk-c1", "TRENDING");
         storeBulkCase("bulk-c2", "VOLATILE");
 
-        int count = store().supersedeMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")), "regime changed");
+        int count = store().supersedeMatching(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), "regime changed", TENANT
+                                             );
 
         assertThat(count).isEqualTo(1);
         assertThat(store().getSupersessionStatus("bulk-c1", TENANT).superseded()).isTrue();
@@ -2911,8 +2911,8 @@ public abstract class CbrRecordStoreContractTest {
         storeBulkCase("bulk-mc2", "TRENDING");
         storeBulkCase("bulk-mc3", "VOLATILE");
 
-        int count = store().supersedeMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")), "regime shift");
+        int count = store().supersedeMatching(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), "regime shift", TENANT
+                                             );
 
         assertThat(count).isEqualTo(2);
     }
@@ -2921,10 +2921,10 @@ public abstract class CbrRecordStoreContractTest {
     void supersedeMatching_excludesAlreadySuperseded() {
         registerBulkSchema();
         storeBulkCase("bulk-as1", "TRENDING");
-        store().supersede("bulk-as1", TENANT, null, "first");
+        store().supersede("bulk-as1", null, "first", TENANT);
 
-        int count = store().supersedeMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")), "second");
+        int count = store().supersedeMatching(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), "second", TENANT
+                                             );
         assertThat(count).isEqualTo(0);
     }
 
@@ -2933,8 +2933,8 @@ public abstract class CbrRecordStoreContractTest {
         registerBulkSchema();
         storeBulkCase("bulk-er1", "TRENDING");
 
-        store().supersedeMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")), "regime changed");
+        store().supersedeMatching(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), "regime changed", TENANT
+                                 );
 
         assertThat(queryBulk("TRENDING")).isEmpty();
     }
@@ -2945,7 +2945,7 @@ public abstract class CbrRecordStoreContractTest {
         storeBulkCase("bulk-ai1", "TRENDING");
         storeBulkCase("bulk-ai2", "TRENDING");
 
-        int count = store().supersedeAll(List.of("bulk-ai1", "bulk-ai2", "nonexistent"), TENANT, "batch");
+        int count = store().supersedeAll(List.of("bulk-ai1", "bulk-ai2", "nonexistent"), "batch", TENANT);
 
         assertThat(count).isEqualTo(2);
         assertThat(store().getSupersessionStatus("bulk-ai1", TENANT).superseded()).isTrue();
@@ -2956,9 +2956,9 @@ public abstract class CbrRecordStoreContractTest {
     void supersedeAll_alreadySuperseded_noDoubleCount() {
         registerBulkSchema();
         storeBulkCase("bulk-dc1", "TRENDING");
-        store().supersede("bulk-dc1", TENANT, null, "first");
+        store().supersede("bulk-dc1", null, "first", TENANT);
 
-        int count = store().supersedeAll(List.of("bulk-dc1"), TENANT, "second");
+        int count = store().supersedeAll(List.of("bulk-dc1"), "second", TENANT);
         assertThat(count).isEqualTo(0);
     }
 
@@ -2967,11 +2967,11 @@ public abstract class CbrRecordStoreContractTest {
         registerBulkSchema();
         storeBulkCase("bulk-rm1", "TRENDING");
         storeBulkCase("bulk-rm2", "TRENDING");
-        store().supersedeMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")), "regime changed");
+        store().supersedeMatching(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), "regime changed", TENANT
+                                 );
 
-        int count = store().reinstateMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")));
+        int count = store().reinstateMatching(CBR, BULK_TYPE,
+                Map.of("regime", CbrFilter.contains("TRENDING")), TENANT);
 
         assertThat(count).isEqualTo(2);
         assertThat(queryBulk("TRENDING")).hasSize(2);
@@ -2982,10 +2982,10 @@ public abstract class CbrRecordStoreContractTest {
         registerBulkSchema();
         storeBulkCase("bulk-oas1", "TRENDING");
         storeBulkCase("bulk-oas2", "TRENDING");
-        store().supersede("bulk-oas1", TENANT, null, "first");
+        store().supersede("bulk-oas1", null, "first", TENANT);
 
-        int count = store().reinstateMatching(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")));
+        int count = store().reinstateMatching(CBR, BULK_TYPE,
+                Map.of("regime", CbrFilter.contains("TRENDING")), TENANT);
 
         assertThat(count).isEqualTo(1);
     }
@@ -2995,8 +2995,8 @@ public abstract class CbrRecordStoreContractTest {
         registerBulkSchema();
         storeBulkCase("bulk-ra1", "TRENDING");
         storeBulkCase("bulk-ra2", "TRENDING");
-        store().supersede("bulk-ra1", TENANT, null, "first");
-        store().supersede("bulk-ra2", TENANT, null, "first");
+        store().supersede("bulk-ra1", null, "first", TENANT);
+        store().supersede("bulk-ra2", null, "first", TENANT);
 
         int count = store().reinstateAll(List.of("bulk-ra1", "bulk-ra2"), TENANT);
 
@@ -3009,7 +3009,7 @@ public abstract class CbrRecordStoreContractTest {
         registerBulkSchema();
         storeBulkCase("bulk-ras1", "TRENDING");
         storeBulkCase("bulk-ras2", "TRENDING");
-        store().supersede("bulk-ras1", TENANT, null, "first");
+        store().supersede("bulk-ras1", null, "first", TENANT);
 
         int count = store().reinstateAll(List.of("bulk-ras1", "bulk-ras2"), TENANT);
 
@@ -3022,8 +3022,8 @@ public abstract class CbrRecordStoreContractTest {
         storeBulkCase("bulk-fc1", "TRENDING");
         storeBulkCase("bulk-fc2", "VOLATILE");
 
-        var ids = store().findCaseIds(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")));
+        var ids = store().findCaseIds(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), TENANT
+                                     );
 
         assertThat(ids).containsExactly("bulk-fc1");
     }
@@ -3033,10 +3033,10 @@ public abstract class CbrRecordStoreContractTest {
         registerBulkSchema();
         storeBulkCase("bulk-fs1", "TRENDING");
         storeBulkCase("bulk-fs2", "TRENDING");
-        store().supersede("bulk-fs1", TENANT, null, "gone");
+        store().supersede("bulk-fs1", null, "gone", TENANT);
 
-        var ids = store().findCaseIds(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("TRENDING")));
+        var ids = store().findCaseIds(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("TRENDING")), TENANT
+                                     );
 
         assertThat(ids).containsExactly("bulk-fs2");
     }
@@ -3048,8 +3048,8 @@ public abstract class CbrRecordStoreContractTest {
         storeBulkCase("bulk-cat2", "VOLATILE");
         storeBulkCase("bulk-cat3", "TRENDING");
 
-        var ids = store().findCaseIds(TENANT, CBR, BULK_TYPE,
-                Map.of("regime", CbrFilter.contains("VOLATILE")));
+        var ids = store().findCaseIds(CBR, BULK_TYPE, Map.of("regime", CbrFilter.contains("VOLATILE")), TENANT
+                                     );
 
         assertThat(ids).containsExactly("bulk-cat2");
     }

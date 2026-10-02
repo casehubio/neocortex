@@ -223,7 +223,7 @@ public class SpringCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
         var results = repo.findByCaseIdAndTenantId(caseId, tenantId);
         if (results.isEmpty()) { return; }
         CbrRecordEntity entity = results.getFirst();
@@ -304,7 +304,7 @@ public class SpringCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) {
+    public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) {
         Objects.requireNonNull(caseId, "caseId required");
         Objects.requireNonNull(tenantId, "tenantId required");
         var results = repo.findByCaseIdAndTenantId(caseId, tenantId);
@@ -351,7 +351,7 @@ public class SpringCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public List<SupersessionStatus> findSupersededCases(String tenantId, MemoryDomain domain) {
+    public List<SupersessionStatus> findSupersededCases(MemoryDomain domain, String tenantId) {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(domain, "domain required");
         var results = repo.findSuperseded(tenantId, domain.name());
@@ -360,8 +360,7 @@ public class SpringCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public List<String> findCaseIds(String tenantId, MemoryDomain domain,
-                                     String caseType, Map<String, CbrFilter> filters) {
+    public List<String> findCaseIds(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(domain, "domain required");
         Objects.requireNonNull(caseType, "caseType required");
@@ -388,33 +387,31 @@ public class SpringCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public int supersedeMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters, String reason) {
-        List<String> ids = findCaseIds(tenantId, domain, caseType, filters);
+    public int supersedeMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String reason, String tenantId) {
+        List<String> ids = findCaseIds(domain, caseType, filters, tenantId);
         if (ids.isEmpty()) return 0;
         int count = 0;
         for (String id : ids) {
-            if (supersede(id, tenantId, null, reason)) { count++; }
+            if (supersede(id, null, reason, tenantId)) { count++; }
         }
         return count;
     }
 
     @Override
     @Transactional
-    public int supersedeAll(Collection<String> caseIds, String tenantId, String reason) {
+    public int supersedeAll(Collection<String> caseIds, String reason, String tenantId) {
         Objects.requireNonNull(caseIds, "caseIds required");
         Objects.requireNonNull(tenantId, "tenantId required");
         int count = 0;
         for (String caseId : caseIds) {
-            if (supersede(caseId, tenantId, null, reason)) { count++; }
+            if (supersede(caseId, null, reason, tenantId)) { count++; }
         }
         return count;
     }
 
     @Override
     @Transactional
-    public int reinstateMatching(String tenantId, MemoryDomain domain, String caseType,
-                                  Map<String, CbrFilter> filters) {
+    public int reinstateMatching(MemoryDomain domain, String caseType, Map<String, CbrFilter> filters, String tenantId) {
         Objects.requireNonNull(tenantId, "tenantId required");
         Objects.requireNonNull(domain, "domain required");
         Objects.requireNonNull(caseType, "caseType required");
