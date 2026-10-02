@@ -174,7 +174,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
         return Collections.unmodifiableList(new ArrayList<>(results));}
 
     @Override
-    public Integer erase(EraseRequest request) {
+    public int erase(EraseRequest request) {
         int before = cases.size();
         cases.removeIf(sc ->
                                sc.subjectId().equals(request.subject().id())
@@ -185,7 +185,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer eraseEntity(String entityId, String tenantId) {
+    public int eraseEntity(String entityId, String tenantId) {
         int before = cases.size();
         cases.removeIf(sc ->
                                sc.subjectId().equals(entityId) && sc.tenantId().equals(tenantId));
@@ -193,13 +193,13 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
+    public int eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
         return eraseEntity(subject.id(), tenantId);
     }
 
 
     @Override
-    public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
+    public int eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
         java.util.Objects.requireNonNull(scope, "scope required");
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         int before = cases.size();
@@ -235,7 +235,7 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
         }}
 
     @Override
-    public Integer purge(CbrRetentionPolicy policy) {
+    public int purge(CbrRetentionPolicy policy) {
         int before = cases.size();
         if (policy.maxAgeDays() != null) {
             Instant cutoff = Instant.now().minus(java.time.Duration.ofDays(policy.maxAgeDays()));

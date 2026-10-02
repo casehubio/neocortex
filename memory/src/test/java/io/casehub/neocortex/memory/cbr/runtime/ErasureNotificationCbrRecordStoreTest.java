@@ -159,11 +159,11 @@ class ErasureNotificationCbrRecordStoreTest {
         @Override public void registerSchema(CbrRecordSchema schema)                                                     {}
         @Override public String store(CbrRecord c, String ct, String e, MemoryDomain d, String t, String ci, Path scope) { return ""; }
         @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> ct)                { return List.of(); }
-        @Override public Integer erase(EraseRequest request)                                                             { return eraseReturnValue; }
-        @Override public Integer eraseEntity(String entityId, String tenantId) { return eraseEntityReturnValue; }
-        @Override public Integer eraseByScope(Path scope, String tenantId) { return eraseByScopeReturnValue; }
+        @Override public int erase(EraseRequest request)                                                             { return eraseReturnValue; }
+        @Override public int eraseEntity(String entityId, String tenantId) { return eraseEntityReturnValue; }
+        @Override public int eraseByScope(Path scope, String tenantId) { return eraseByScopeReturnValue; }
         @Override public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {}
-        @Override public Integer purge(CbrRetentionPolicy policy) { return purgeReturnValue; }
+        @Override public int purge(CbrRetentionPolicy policy) { return purgeReturnValue; }
         @Override public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) { return false; }
         @Override public boolean reinstate(String caseId, String tenantId) { return false; }
 

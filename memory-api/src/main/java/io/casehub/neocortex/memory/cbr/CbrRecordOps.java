@@ -19,12 +19,12 @@ public interface CbrRecordOps {
         return store(cbrRecord, caseType, subject.id(), domain, tenantId, caseId, scope);
     }
 
-    Integer erase(EraseRequest request);
-    Integer eraseEntity(String entityId, String tenantId);
+    int erase(EraseRequest request);
+    int eraseEntity(String entityId, String tenantId);
 
-    default Integer eraseSubject(Subject subject, String tenantId) {
+    default int eraseSubject(Subject subject, String tenantId) {
         return eraseEntity(subject.id(), tenantId);
     }
 
-    Integer eraseByScope(Path scope, String tenantId);
+    int eraseByScope(Path scope, String tenantId);
 }

@@ -2570,7 +2570,7 @@ public abstract class CbrRecordStoreContractTest {
         registerSupersessionSchema();
         storeSupersessionCase("sup-c5");
         store().supersede("sup-c5", TENANT, null, null);
-        Integer erased = store().erase(new io.casehub.neocortex.memory.EraseRequest(ENTITY, CBR, TENANT, "sup-c5"));
+        int erased = store().erase(new io.casehub.neocortex.memory.EraseRequest(ENTITY, CBR, TENANT, "sup-c5"));
         assertThat(erased).isGreaterThanOrEqualTo(1);
     }
 

@@ -583,7 +583,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer erase(EraseRequest request) {
+    public int erase(EraseRequest request) {
         int delegateCount = (delegate != null) ? delegate.erase(request) : 0;
 
         Filter.Builder builder = Filter.newBuilder()
@@ -600,7 +600,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer eraseEntity(String entityId, String tenantId) {
+    public int eraseEntity(String entityId, String tenantId) {
         int delegateCount = (delegate != null) ? delegate.eraseEntity(entityId, tenantId) : 0;
 
         Filter filter = Filter.newBuilder()
@@ -627,7 +627,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
+    public int eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
         java.util.Objects.requireNonNull(scope, "scope required");
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
 
@@ -990,7 +990,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer purge(CbrRetentionPolicy policy) {
+    public int purge(CbrRetentionPolicy policy) {
         List<String> targetTypes = policy.caseType() != null
             ? List.of(policy.caseType())
             : List.copyOf(schemas.keySet());

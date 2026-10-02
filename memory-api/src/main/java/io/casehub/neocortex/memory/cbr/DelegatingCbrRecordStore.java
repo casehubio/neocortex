@@ -19,11 +19,11 @@ public abstract class DelegatingCbrRecordStore implements CbrRecordStore {
     @Override public void registerSchema(CbrRecordSchema schema)                                                     { delegate.registerSchema(schema); }
     @Override public String store(CbrRecord c, String ct, String e, MemoryDomain d, String t, String ci, Path scope) { return delegate.store(c, ct, e, d, t, ci, scope); }
     @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> ct)                { return delegate.retrieveSimilar(q, ct); }
-    @Override public Integer erase(EraseRequest request)                                                             { return delegate.erase(request); }
-    @Override public Integer eraseEntity(String entityId, String tenantId) { return delegate.eraseEntity(entityId, tenantId); }
-    @Override public Integer eraseByScope(Path scope, String tenantId) { return delegate.eraseByScope(scope, tenantId); }
+    @Override public int erase(EraseRequest request)                                                             { return delegate.erase(request); }
+    @Override public int eraseEntity(String entityId, String tenantId) { return delegate.eraseEntity(entityId, tenantId); }
+    @Override public int eraseByScope(Path scope, String tenantId) { return delegate.eraseByScope(scope, tenantId); }
     @Override public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) { delegate.recordOutcome(caseId, tenantId, outcome); }
-    @Override public Integer purge(CbrRetentionPolicy policy) { return delegate.purge(policy); }
+    @Override public int purge(CbrRetentionPolicy policy) { return delegate.purge(policy); }
     @Override public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) { return delegate.supersede(caseId, tenantId, supersedingCaseId, reason); }
     @Override public boolean reinstate(String caseId, String tenantId) { return delegate.reinstate(caseId, tenantId); }
     @Override public SupersessionStatus getSupersessionStatus(String caseId, String tenantId) { return delegate.getSupersessionStatus(caseId, tenantId); }

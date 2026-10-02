@@ -9,5 +9,5 @@ public interface CbrRecordAdmin {
                 "discoverTenants not supported by " + getClass().getSimpleName());
     }
 
-    Integer purge(CbrRetentionPolicy policy);
+    int purge(CbrRetentionPolicy policy);
 }

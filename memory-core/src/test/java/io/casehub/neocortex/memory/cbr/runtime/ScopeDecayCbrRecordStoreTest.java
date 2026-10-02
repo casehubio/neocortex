@@ -93,11 +93,11 @@ class ScopeDecayCbrRecordStoreTest {
         @Override public String store(CbrRecord c, String ct, String e, MemoryDomain d, String t, String ci, Path scope) { return ""; }
         @Override @SuppressWarnings("unchecked")
         public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> t) { return (List<CbrMatch<C>>) (List<?>) results; }
-        @Override public Integer erase(EraseRequest r) { return 0; }
-        @Override public Integer eraseEntity(String e, String t) { return 0; }
-        @Override public Integer eraseByScope(Path scope, String t) { return 0; }
+        @Override public int erase(EraseRequest r) { return 0; }
+        @Override public int eraseEntity(String e, String t) { return 0; }
+        @Override public int eraseByScope(Path scope, String t) { return 0; }
         @Override public void recordOutcome(String ci, String t, CbrOutcome o) {}
-        @Override public Integer purge(CbrRetentionPolicy p) { return 0; }
+        @Override public int purge(CbrRetentionPolicy p) { return 0; }
         @Override public boolean supersede(String ci, String t, String s, String r) { return false; }
         @Override public boolean reinstate(String ci, String t) { return false; }
         @Override public io.casehub.neocortex.memory.cbr.SupersessionStatus getSupersessionStatus(String caseId, String tenantId) { return io.casehub.neocortex.memory.cbr.SupersessionStatus.NOT_SUPERSEDED; }

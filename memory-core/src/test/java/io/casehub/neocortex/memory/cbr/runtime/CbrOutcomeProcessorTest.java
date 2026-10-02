@@ -87,10 +87,10 @@ class CbrOutcomeProcessorTest {
         @Override public void registerSchema(CbrRecordSchema s)                                                                                         {}
         @Override public String store(CbrRecord c, String t, String e, MemoryDomain d, String tid, String cid, io.casehub.platform.api.path.Path scope) { return ""; }
         @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> cl)                                               { return List.of(); }
-        @Override public Integer erase(EraseRequest r)                                                                                                  { return 0; }
-        @Override public Integer eraseEntity(String e, String t) { return 0; }
-        @Override public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
-        @Override public Integer purge(CbrRetentionPolicy p) { return 0; }
+        @Override public int erase(EraseRequest r)                                                                                                  { return 0; }
+        @Override public int eraseEntity(String e, String t) { return 0; }
+        @Override public int eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
+        @Override public int purge(CbrRetentionPolicy p) { return 0; }
         @Override public boolean supersede(String c, String t, String s, String r) { return false; }
         @Override public boolean reinstate(String c, String t) { return false; }
         @Override public io.casehub.neocortex.memory.cbr.SupersessionStatus getSupersessionStatus(String caseId, String tenantId) { return io.casehub.neocortex.memory.cbr.SupersessionStatus.NOT_SUPERSEDED; }

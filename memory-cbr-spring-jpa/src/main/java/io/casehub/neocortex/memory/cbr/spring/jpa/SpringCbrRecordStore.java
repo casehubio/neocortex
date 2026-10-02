@@ -189,7 +189,7 @@ public class SpringCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer erase(EraseRequest request) {
+    public int erase(EraseRequest request) {
         if (request.caseId() != null) {
             return repo.eraseByEntityDomainTenantCase(
                     request.entityId(), request.domain().name(), request.tenantId(), request.caseId());
@@ -200,13 +200,13 @@ public class SpringCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer eraseEntity(String entityId, String tenantId) {
+    public int eraseEntity(String entityId, String tenantId) {
         return repo.eraseEntity(entityId, tenantId);
     }
 
     @Override
     @Transactional
-    public Integer eraseByScope(Path scope, String tenantId) {
+    public int eraseByScope(Path scope, String tenantId) {
         Objects.requireNonNull(scope, "scope required");
         Objects.requireNonNull(tenantId, "tenantId required");
         if (scope.segments().isEmpty()) {
@@ -245,7 +245,7 @@ public class SpringCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer purge(CbrRetentionPolicy policy) {
+    public int purge(CbrRetentionPolicy policy) {
         int deleted = 0;
         String caseTypeFilter = policy.caseType() != null ? " AND e.caseType = :ct" : "";
         if (policy.maxAgeDays() != null) {

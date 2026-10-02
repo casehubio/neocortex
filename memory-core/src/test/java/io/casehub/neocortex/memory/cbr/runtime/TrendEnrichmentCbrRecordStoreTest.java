@@ -145,17 +145,17 @@ class TrendEnrichmentCbrRecordStoreTest {
             }
 
             @Override
-            public Integer erase(EraseRequest request) { return 0; }
+            public int erase(EraseRequest request) { return 0; }
 
             @Override
-            public Integer eraseEntity(String entityId, String tenantId) { return 0; }
-            @Override public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) { return 0; }
+            public int eraseEntity(String entityId, String tenantId) { return 0; }
+            @Override public int eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) { return 0; }
 
             @Override
             public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {}
 
             @Override
-            public Integer purge(CbrRetentionPolicy policy) { return 0; }
+            public int purge(CbrRetentionPolicy policy) { return 0; }
 
             @Override
             public boolean supersede(String caseId, String tenantId, String supersedingCaseId, String reason) { return false; }

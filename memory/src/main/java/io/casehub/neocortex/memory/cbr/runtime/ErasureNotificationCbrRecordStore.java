@@ -49,7 +49,7 @@ public class ErasureNotificationCbrRecordStore extends DelegatingCbrRecordStore 
     }
 
     @Override
-    public Integer erase(EraseRequest request) {
+    public int erase(EraseRequest request) {
         int count = delegate.erase(request);
         if (count > 0) {
             safeFire(byRequestEvent, new CbrRecordErased.ByRequest(
@@ -61,7 +61,7 @@ public class ErasureNotificationCbrRecordStore extends DelegatingCbrRecordStore 
     }
 
     @Override
-    public Integer eraseEntity(String entityId, String tenantId) {
+    public int eraseEntity(String entityId, String tenantId) {
         int count = delegate.eraseEntity(entityId, tenantId);
         if (count > 0) {
             safeFire(byEntityEvent, new CbrRecordErased.ByEntity(
@@ -71,7 +71,7 @@ public class ErasureNotificationCbrRecordStore extends DelegatingCbrRecordStore 
     }
 
     @Override
-    public Integer eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
+    public int eraseSubject(io.casehub.neocortex.memory.Subject subject, String tenantId) {
         int count = delegate.eraseSubject(subject, tenantId);
         if (count > 0) {
             safeFire(byEntityEvent, new CbrRecordErased.ByEntity(
@@ -82,7 +82,7 @@ public class ErasureNotificationCbrRecordStore extends DelegatingCbrRecordStore 
 
 
     @Override
-    public Integer eraseByScope(Path scope, String tenantId) {
+    public int eraseByScope(Path scope, String tenantId) {
         int count = delegate.eraseByScope(scope, tenantId);
         if (count > 0) {
             safeFire(byScopeEvent, new CbrRecordErased.ByScope(

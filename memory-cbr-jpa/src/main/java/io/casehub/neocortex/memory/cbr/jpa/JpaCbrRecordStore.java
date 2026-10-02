@@ -184,7 +184,7 @@ public class JpaCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer erase(EraseRequest request) {
+    public int erase(EraseRequest request) {
         String jpql = "DELETE FROM CbrRecordEntity e WHERE e.entityId = :eid AND e.domain = :d AND e.tenantId = :t";
         if (request.caseId() != null) {
             jpql += " AND e.caseId = :cid";
@@ -201,7 +201,7 @@ public class JpaCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer eraseEntity(String entityId, String tenantId) {
+    public int eraseEntity(String entityId, String tenantId) {
         return em.createQuery("DELETE FROM CbrRecordEntity e WHERE e.entityId = :eid AND e.tenantId = :t")
                  .setParameter("eid", entityId)
                  .setParameter("t", tenantId)
@@ -210,7 +210,7 @@ public class JpaCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
+    public int eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
         java.util.Objects.requireNonNull(scope, "scope required");
         java.util.Objects.requireNonNull(tenantId, "tenantId required");
         if (scope.segments().isEmpty()) {
@@ -256,7 +256,7 @@ public class JpaCbrRecordStore implements CbrRecordStore {
 
     @Override
     @Transactional
-    public Integer purge(CbrRetentionPolicy policy) {
+    public int purge(CbrRetentionPolicy policy) {
         int    deleted        = 0;
         String caseTypeFilter = policy.caseType() != null ? " AND e.caseType = :ct" : "";
         if (policy.maxAgeDays() != null) {

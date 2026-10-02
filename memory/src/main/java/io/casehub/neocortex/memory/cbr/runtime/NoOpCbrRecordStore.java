@@ -38,17 +38,17 @@ public class NoOpCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public Integer erase(EraseRequest request) {
+    public int erase(EraseRequest request) {
         return 0;
     }
 
     @Override
-    public Integer eraseEntity(String entityId, String tenantId) {
+    public int eraseEntity(String entityId, String tenantId) {
         return 0;
     }
 
     @Override
-    public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
+    public int eraseByScope(io.casehub.platform.api.path.Path scope, String tenantId) {
         return 0;
     }
 
@@ -57,7 +57,7 @@ public class NoOpCbrRecordStore implements CbrRecordStore {
     public void recordOutcome(String caseId, String tenantId, CbrOutcome outcome) {}
 
     @Override
-    public Integer purge(CbrRetentionPolicy policy) {
+    public int purge(CbrRetentionPolicy policy) {
         return 0;
     }
 

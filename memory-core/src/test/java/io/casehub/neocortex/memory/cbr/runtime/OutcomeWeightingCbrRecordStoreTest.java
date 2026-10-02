@@ -120,11 +120,11 @@ class OutcomeWeightingCbrRecordStoreTest {
             @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> cl) {
                 return (List<CbrMatch<C>>) (List<?>) results;
             }
-            @Override public Integer erase(EraseRequest r) { return 0; }
-            @Override public Integer eraseEntity(String e, String t) { return 0; }
-            @Override public Integer eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
+            @Override public int erase(EraseRequest r) { return 0; }
+            @Override public int eraseEntity(String e, String t) { return 0; }
+            @Override public int eraseByScope(io.casehub.platform.api.path.Path scope, String t) { return 0; }
             @Override public void recordOutcome(String c, String t, CbrOutcome o) {}
-            @Override public Integer purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return 0; }
+            @Override public int purge(io.casehub.neocortex.memory.cbr.CbrRetentionPolicy p) { return 0; }
             @Override public boolean supersede(String c, String t, String s, String r) { return false; }
             @Override public boolean reinstate(String c, String t) { return false; }
 
