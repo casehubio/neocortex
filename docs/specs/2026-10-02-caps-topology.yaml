@@ -1,0 +1,483 @@
+# CAPS Network Topology — Starter Configuration
+# Source: casehubio/neocortex#407 research spec
+# This file defines the species-level network topology for the
+# cause-effect behavioral inference system. All agents share this
+# structure; per-agent differences are in connection weights and
+# activation thresholds, stored by the #408 graph engine.
+#
+# Format: nodes define the network vertices; connections define
+# weighted edges; disposition_modifiers define how DispositionAxes
+# scale connection weights per character.
+
+version: 1
+spec_issue: 407
+parent_epic: 406
+
+nodes:
+  input:
+    relationship:
+      - secure_attachment
+      - inconsistent_care
+      - rejection
+      - betrayal
+      - abandonment
+      - neglect
+    threat:
+      - physical_threat
+      - social_threat
+      - psychological_threat
+      - unpredictable_danger
+    achievement:
+      - mastery
+      - failure
+      - performance_judged
+      - competence_recognition
+    social:
+      - acceptance
+      - exclusion
+      - dominance
+      - submission
+      - modeling_observed
+    resource:
+      - scarcity
+      - abundance
+      - competition
+      - sharing
+    autonomy:
+      - agency_granted
+      - controlled
+      - choice_available
+      - powerlessness
+    consequence:
+      - reward
+      - punishment
+      - reward_removal
+      - aversive_removal
+
+  mediating:
+    self_model:
+      - name: self_worth
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "worthless / helpless / incompetent"
+        positive_pole: "worthy / competent / capable"
+        source_models: [attachment, cbt, bandura]
+      - name: self_efficacy
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "incompetent / incapable"
+        positive_pole: "capable / competent"
+        source_models: [bandura, cbt]
+    other_model:
+      - name: other_reliability
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "hostile / unreliable"
+        positive_pole: "supportive / reliable"
+        source_models: [attachment, cbt]
+      - name: other_safety
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "dangerous / judgmental"
+        positive_pole: "safe / accepting"
+        source_models: [attachment, cbt]
+    world_model:
+      - name: world_predictability
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "dangerous / unfair"
+        positive_pole: "safe / fair"
+        source_models: [cbt]
+      - name: future_outlook
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "hopeless"
+        positive_pole: "hopeful"
+        source_models: [cbt]
+    affect_systems:
+      - name: BAS_activation
+        type: unipolar
+        range: [0, 1]
+        source_models: [bis_bas, operant]
+      - name: BIS_activation
+        type: unipolar
+        range: [0, 1]
+        source_models: [bis_bas]
+      - name: FFFS_activation
+        type: unipolar
+        range: [0, 1]
+        source_models: [bis_bas, trauma]
+      - name: arousal_level
+        type: unipolar
+        range: [0, 1]
+        source_models: [bis_bas, trauma, attachment]
+    threat_processing:
+      - name: threat_sensitivity
+        type: unipolar
+        range: [0, 1]
+        source_models: [trauma, bis_bas]
+      - name: autonomic_activation
+        type: unipolar
+        range: [0, 1]
+        source_models: [trauma]
+      - name: escape_assessment
+        type: unipolar
+        range: [0, 1]
+        source_models: [trauma, bis_bas]
+    response_outcome:
+      - name: reinforcement_expectation
+        type: bipolar
+        range: [-1, 1]
+        negative_pole: "punishment expected"
+        positive_pole: "reward expected"
+        source_models: [operant, cbt, bandura]
+      - name: punishment_expectation
+        type: unipolar
+        range: [0, 1]
+        source_models: [operant]
+    social_cognition:
+      - name: model_attention
+        type: unipolar
+        range: [0, 1]
+        source_models: [bandura]
+      - name: behavior_schema
+        type: unipolar
+        range: [0, 1]
+        source_models: [bandura]
+      - name: behavior_attempt
+        type: unipolar
+        range: [0, 1]
+        source_models: [bandura]
+      - name: behavior_persistence
+        type: unipolar
+        range: [0, 1]
+        source_models: [bandura]
+      - name: vicarious_learning
+        type: unipolar
+        range: [0, 1]
+        source_models: [bandura]
+      - name: social_comparison
+        type: unipolar
+        range: [0, 1]
+        source_models: [bandura]
+
+  output:
+    approach_avoidance:
+      - approach
+      - withdraw
+      - cautious_approach
+    social:
+      - trust
+      - distrust
+      - proximity_seek
+      - distance_maintain
+    conflict:
+      - fight
+      - flight
+      - freeze
+      - fawn
+      - assert
+      - submit
+    achievement:
+      - persist
+      - abandon
+      - perfectionism
+      - risk_take
+    autonomy:
+      - comply
+      - rebel
+      - self_direct
+      - depend
+    learning:
+      - explore
+      - consolidate
+      - generalize
+      - discriminate
+
+# Key connections with initial weights and provenance.
+# Format: source -> target, weight, provenance (empirical/consensus/estimated)
+# Full connection matrix is defined by the #408 graph engine;
+# this file provides the psychologically grounded starting points.
+connections:
+  # Attachment chains
+  - from: secure_attachment
+    to: self_worth
+    weight: 0.30
+    provenance: empirical
+    source: "van IJzendoorn 1995, r=.24-.32"
+  - from: inconsistent_care
+    to: other_reliability
+    weight: -0.30
+    provenance: empirical
+    source: "van IJzendoorn 1995"
+  - from: inconsistent_care
+    to: proximity_seek
+    weight: 0.40
+    provenance: consensus
+    source: "anxious attachment pattern"
+  - from: rejection
+    to: other_reliability
+    weight: -0.35
+    provenance: consensus
+    source: "avoidant attachment formation"
+  - from: rejection
+    to: distance_maintain
+    weight: 0.35
+    provenance: consensus
+    source: "avoidant attachment pattern"
+  - from: self_worth
+    to: trust
+    weight: 0.40
+    provenance: empirical
+    source: "Zhang et al. 2022, r=.42 anxiety→mental health"
+  - from: other_reliability
+    to: trust
+    weight: 0.45
+    provenance: empirical
+    source: "Zhang et al. 2022, r=.28 avoidance→mental health"
+
+  # BIS/BAS chains
+  - from: reward
+    to: BAS_activation
+    weight: 0.50
+    provenance: consensus
+    source: "Gray RST dopaminergic RPE"
+  - from: punishment
+    to: FFFS_activation
+    weight: 0.50
+    provenance: consensus
+    source: "Gray RST aversive system"
+  - from: BAS_activation
+    to: approach
+    weight: 0.60
+    provenance: empirical
+    source: "Carver & White BAS scales"
+  - from: BIS_activation
+    to: cautious_approach
+    weight: 0.55
+    provenance: empirical
+    source: "BIS→anxiety g=1.21 meta-analysis"
+  - from: BIS_activation
+    to: withdraw
+    weight: 0.40
+    provenance: empirical
+    source: "BIS→depression g=0.99"
+  - from: FFFS_activation
+    to: fight
+    weight: 0.35
+    provenance: consensus
+    source: "defensive distance: proximate threat"
+  - from: FFFS_activation
+    to: flight
+    weight: 0.40
+    provenance: consensus
+    source: "defensive distance: intermediate"
+  - from: FFFS_activation
+    to: freeze
+    weight: 0.30
+    provenance: consensus
+    source: "defensive distance: distant/uncertain"
+  - from: escape_assessment
+    to: flight
+    weight: 0.35
+    provenance: consensus
+    source: "escapability modulates FFFS response"
+  - from: escape_assessment
+    to: freeze
+    weight: -0.30
+    provenance: consensus
+    source: "inescapable → freeze over flight"
+
+  # CBT chains
+  - from: self_worth
+    to: withdraw
+    weight: -0.35
+    provenance: empirical
+    source: "CBT vs controls g=0.51"
+  - from: future_outlook
+    to: persist
+    weight: 0.40
+    provenance: consensus
+    source: "hopelessness → behavioral withdrawal"
+  - from: world_predictability
+    to: threat_sensitivity
+    weight: -0.30
+    provenance: consensus
+    source: "dangerous world → heightened threat detection"
+
+  # Trauma chains
+  - from: physical_threat
+    to: threat_sensitivity
+    weight: 0.50
+    provenance: empirical
+    source: "ACE 4+ OR=4.6 depressed mood"
+  - from: physical_threat
+    to: FFFS_activation
+    weight: 0.55
+    provenance: empirical
+    source: "ACE 4+ OR=12.2 suicide attempt"
+  - from: threat_sensitivity
+    to: arousal_level
+    weight: 0.50
+    provenance: consensus
+    source: "kindling model: sensitization"
+  - from: powerlessness
+    to: freeze
+    weight: 0.40
+    provenance: consensus
+    source: "Walker 4F: inescapable threat"
+  - from: powerlessness
+    to: fawn
+    weight: 0.35
+    provenance: consensus
+    source: "Walker 4F: threat from attachment figure"
+
+  # Operant chains (weight update — these define the learning signal)
+  - from: reward
+    to: reinforcement_expectation
+    weight: 0.50
+    provenance: empirical
+    source: "Rescorla-Wagner, beta=0.1-0.5"
+  - from: punishment
+    to: punishment_expectation
+    weight: 0.50
+    provenance: empirical
+    source: "Rescorla-Wagner"
+  - from: reinforcement_expectation
+    to: approach
+    weight: 0.45
+    provenance: consensus
+    source: "positive reinforcement → approach"
+  - from: punishment_expectation
+    to: withdraw
+    weight: 0.40
+    provenance: consensus
+    source: "punishment → avoidance"
+
+  # Bandura chains
+  - from: modeling_observed
+    to: model_attention
+    weight: 0.40
+    provenance: consensus
+    source: "model salience factors"
+  - from: model_attention
+    to: behavior_schema
+    weight: 0.35
+    provenance: consensus
+    source: "attention → retention"
+  - from: behavior_schema
+    to: behavior_attempt
+    weight: 0.30
+    provenance: consensus
+    source: "retention → reproduction, gated by self_efficacy"
+  - from: self_efficacy
+    to: behavior_attempt
+    weight: 0.50
+    provenance: empirical
+    source: "Multon et al. 1991, 14% variance"
+  - from: behavior_attempt
+    to: behavior_persistence
+    weight: 0.35
+    provenance: consensus
+    source: "motivation from vicarious/direct reinforcement"
+
+  # Composition bridges
+  - from: BIS_activation
+    to: threat_sensitivity
+    weight: 0.40
+    provenance: empirical
+    source: "childhood neglect→BIS rho=0.24, Tamada 2025"
+  - from: self_worth
+    to: self_efficacy
+    weight: 0.35
+    provenance: consensus
+    source: "attachment IWM → self-efficacy (shared node bridge)"
+  - from: arousal_level
+    to: BIS_activation
+    weight: 0.30
+    provenance: consensus
+    source: "window of tolerance: hyperarousal → BIS"
+  - from: arousal_level
+    to: FFFS_activation
+    weight: 0.35
+    provenance: consensus
+    source: "window of tolerance: extreme arousal → FFFS"
+
+# Disposition modulation — how DispositionAxes scale connection weights
+disposition_modifiers:
+  socialOrient:
+    independent:
+      social_input_to_self_worth: 0.5
+      mastery_to_self_worth: 1.3
+    cooperative:
+      acceptance_to_self_worth: 1.3
+      other_reliability_to_trust: 1.2
+    competitive:
+      performance_judged_to_self_worth: 1.3
+      BAS_activation_to_approach: 1.2
+
+  ruleFollowing:
+    flexible:
+      punishment_to_behavioral_suppression: 0.7
+      schema_rigidity: 0.8
+    moderate:
+      _default: 1.0
+    strict:
+      norm_violation_to_guilt: 1.4
+      rule_formation: 1.3
+      schema_rigidity: 1.3
+
+  riskAppetite:
+    conservative:
+      BIS_connections: 1.3
+      threat_sensitivity_threshold: 1.2
+      BAS_connections: 0.7
+    calculated:
+      BIS_connections: 1.05
+      BAS_connections: 0.95
+    bold:
+      BAS_connections: 1.3
+      threat_sensitivity_threshold: 0.7
+      BIS_connections: 0.7
+
+  autonomy:
+    low:
+      compliance_connections: 1.3
+      agency_to_satisfaction: 0.6
+    moderate:
+      _default: 1.0
+    high:
+      self_direction_connections: 1.3
+      external_control_to_compliance: 0.6
+
+  conflictMode:
+    cooperative:
+      fawn_accommodate_pathways: 1.3
+    competitive:
+      fight_assert_pathways: 1.3
+    analytical:
+      cautious_approach: 1.3
+      delay_response: 1.2
+    avoidant:
+      flight_freeze_withdraw_pathways: 1.3
+
+# Weight update parameters (from §5)
+weight_update:
+  rescorla_wagner:
+    alpha_range: [0.01, 0.25]
+    beta_range: [0.1, 0.5]
+    temporal_discount: 0.95
+  schedule_modifiers:
+    continuous: 1.0
+    fixed_ratio: 1.5
+    variable_ratio: 3.0
+    fixed_interval: 1.2
+    variable_interval: 2.0
+  vicarious_discount: 0.20
+  convergence:
+    max_iterations: 100
+    epsilon: 0.001
+    activation_clamp: [-1, 1]
+    effective_weight_cap: [-2.0, 2.0]
+    compound_distortion_cap: [0.1, 3.0]
+    saturation_warning_threshold: 0.60
