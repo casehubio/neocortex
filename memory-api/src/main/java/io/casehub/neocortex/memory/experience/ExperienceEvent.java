@@ -3,7 +3,7 @@ package io.casehub.neocortex.memory.experience;
 import java.time.Instant;
 import java.util.Map;
 
-public sealed interface ExperienceEvent permits Observation, Action, Outcome {
+public sealed interface ExperienceEvent permits Observation, Action, Outcome, FormativeExperience {
     String agentId();
     String tenantId();
     String caseId();

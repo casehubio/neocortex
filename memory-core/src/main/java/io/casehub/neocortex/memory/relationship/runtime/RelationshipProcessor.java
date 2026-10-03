@@ -4,6 +4,7 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.experience.Action;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
 import io.casehub.neocortex.memory.experience.ExperienceEvent;
+import io.casehub.neocortex.memory.experience.FormativeExperience;
 import io.casehub.neocortex.memory.experience.ExperienceRecorded;
 import io.casehub.neocortex.memory.experience.Observation;
 import io.casehub.neocortex.memory.experience.Outcome;
@@ -54,9 +55,10 @@ public class RelationshipProcessor {
 
     private static String sourceEventType(ExperienceEvent exp) {
         return switch (exp) {
-            case Observation o -> "observation";
-            case Action a      -> "action";
-            case Outcome o     -> "outcome";
+            case Observation o         -> "observation";
+            case Action a              -> "action";
+            case Outcome o             -> "outcome";
+            case FormativeExperience f -> "formative";
         };
     }
 }
