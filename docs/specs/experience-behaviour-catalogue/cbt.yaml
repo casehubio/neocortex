@@ -1,0 +1,464 @@
+# Experience-to-Behaviour Catalogue — Cognitive Model
+# Source: Beck's CBT
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+entries:
+  - id: cbt-negative-self
+    model: cbt
+    clinical_name: Negative self-schema
+    description: >
+      Core belief "I am worthless/incompetent/helpless" activated by
+      failure or criticism. Part of Beck's cognitive triad. Self-
+      reinforcing through selective attention to confirming evidence.
+    triggers:
+      - node: failure
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: rejection
+        intensity: [0.4, 0.7]
+        repetition: moderate
+      - node: performance_judged
+        intensity: [0.5, 0.8]
+        repetition: high
+    narratives:
+      - "Repeated experiences of falling short convinced you at a deep
+         level that you are fundamentally inadequate."
+      - "Criticism landed harder than praise — each failure confirmed
+         what you already suspected about yourself."
+    expected_outcomes:
+      - node: self_worth
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: abandon
+        direction: positive
+        strength: [0.2, 0.5]
+      - node: depend
+        direction: positive
+        strength: [0.2, 0.4]
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+    related:
+      - cbt-negative-other
+      - cbt-negative-world
+      - attachment-anxious
+      - bandura-efficacy-gate
+    sources:
+      - ref: "Beck & Haigh 2014"
+        data: "Generic cognitive model: schema activation continuum"
+        provenance: empirical
+      - ref: "Hofmann et al. 2012"
+        data: "CBT vs controls (anxiety) g=0.51"
+        provenance: empirical
+
+  - id: cbt-negative-other
+    model: cbt
+    clinical_name: Negative other-schema
+    description: >
+      Core belief "Others are hostile/unreliable/judgmental." Activated
+      by interpersonal threat or betrayal. Produces distrust, social
+      withdrawal, and hypervigilance to social cues.
+    triggers:
+      - node: rejection
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: betrayal
+        intensity: [0.5, 0.8]
+        repetition: moderate
+      - node: exclusion
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "People consistently let you down, criticised you unfairly, or
+         turned hostile without warning."
+      - "You learned to expect the worst from others because that
+         expectation was so often confirmed."
+    expected_outcomes:
+      - node: other_reliability
+        direction: negative
+        strength: [0.3, 0.6]
+      - node: other_safety
+        direction: negative
+        strength: [0.3, 0.6]
+      - node: distrust
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: distance_maintain
+        direction: positive
+        strength: [0.3, 0.6]
+    modulating_axes:
+      socialOrient:
+        independent: amplify
+    related:
+      - cbt-negative-self
+      - attachment-dismissive
+      - attachment-trust-erosion
+    sources:
+      - ref: "Beck & Haigh 2014"
+        data: "Cognitive triad: self, others, world"
+        provenance: empirical
+      - ref: "Collins & Read 1990"
+        data: "Hierarchical IWM = schema hierarchy"
+        provenance: consensus
+
+  - id: cbt-negative-world
+    model: cbt
+    clinical_name: Hopelessness schema (negative world/future)
+    description: >
+      Core beliefs "The world is dangerous/unfair" and "The future is
+      hopeless." Produces behavioural withdrawal, abandonment of goals,
+      and loss of persistence. Strongest predictor of suicidal ideation
+      among the cognitive triad elements.
+    triggers:
+      - node: failure
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: unpredictable_danger
+        intensity: [0.4, 0.7]
+        repetition: moderate
+      - node: scarcity
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "No matter what you tried, the world seemed stacked against you
+         — unfair and unpredictable."
+      - "The future felt like more of the same, with no path to anything
+         better."
+    expected_outcomes:
+      - node: world_predictability
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: future_outlook
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: abandon
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: persist
+        direction: negative
+        strength: [0.4, 0.7]
+    related:
+      - cbt-negative-self
+      - bisbas-learned-helplessness
+      - trauma-kindling
+    sources:
+      - ref: "Beck & Haigh 2014"
+        data: "Cognitive triad: world/future pole"
+        provenance: empirical
+      - ref: "#407 spec §4.3"
+        data: "future_outlook → persist weight 0.40"
+        provenance: consensus
+
+  - id: cbt-positive-self
+    model: cbt
+    clinical_name: Positive self-schema (resilience)
+    description: >
+      Core belief "I am worthy/competent/capable" built through
+      consistent mastery experiences and positive recognition. Provides
+      cognitive resilience — buffers against schema activation by
+      negative events.
+    triggers:
+      - node: mastery
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+      - node: competence_recognition
+        intensity: [0.5, 0.7]
+        repetition: moderate
+      - node: acceptance
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "Consistent experiences of succeeding at things that mattered
+         built a deep sense of your own competence."
+      - "People around you reliably recognised your contributions,
+         reinforcing your sense of worth."
+    expected_outcomes:
+      - node: self_worth
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: persist
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: approach
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: self_direct
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      socialOrient:
+        competitive: amplify
+    related:
+      - cbt-negative-self
+      - bandura-mastery-efficacy
+      - attachment-secure
+    sources:
+      - ref: "Beck & Haigh 2014"
+        data: "Continuity of adaptive and maladaptive function"
+        provenance: empirical
+
+  - id: cbt-catastrophising
+    model: cbt
+    clinical_name: Catastrophising distortion pattern
+    description: >
+      Cognitive distortion that amplifies negative predictions (×1.5-2.0
+      weight multiplier on threat pathways). Activated when parent schema
+      exceeds threshold. Compounds with trauma sensitisation through the
+      shared threat_sensitivity node.
+    triggers:
+      - node: unpredictable_danger
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: failure
+        intensity: [0.5, 0.8]
+        repetition: high
+    narratives:
+      - "Minor setbacks felt like catastrophes — your mind always went
+         to the worst possible outcome."
+      - "A small sign of trouble triggered an avalanche of worst-case
+         thinking that felt completely real."
+    expected_outcomes:
+      - node: withdraw
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: freeze
+        direction: positive
+        strength: [0.2, 0.5]
+    modulating_axes:
+      riskAppetite:
+        conservative: amplify
+        bold: dampen
+    related:
+      - cbt-overgeneralisation
+      - cbt-schema-rigidity
+      - trauma-kindling
+    sources:
+      - ref: "#407 spec §4.3"
+        data: "Catastrophizing multiplier ×1.5-2.0, base threshold 0.7"
+        provenance: consensus
+      - ref: "Beck & Haigh 2014"
+        data: "Cognitive distortions as weight multipliers"
+        provenance: empirical
+
+  - id: cbt-overgeneralisation
+    model: cbt
+    clinical_name: Overgeneralisation distortion pattern
+    description: >
+      Cognitive distortion that increases schema permeability — a single
+      negative event activates schemas across unrelated domains (+0.2-0.4
+      connection weight to previously unconnected inputs). Broadens the
+      triggers for existing negative schemas.
+    triggers:
+      - node: failure
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: rejection
+        intensity: [0.5, 0.8]
+        repetition: moderate
+    narratives:
+      - "One failure in one area spread to colour everything — if you
+         failed at this, you must be failing at everything."
+      - "A single rejection felt like proof of a universal pattern."
+    expected_outcomes:
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: abandon
+        direction: positive
+        strength: [0.3, 0.5]
+    related:
+      - cbt-catastrophising
+      - cbt-negative-self
+    sources:
+      - ref: "#407 spec §4.3"
+        data: "Overgeneralization +0.2-0.4 to unrelated inputs, base threshold 0.5"
+        provenance: consensus
+
+  - id: cbt-schema-rigidity
+    model: cbt
+    clinical_name: Schema rigidity (cognitive inflexibility)
+    description: >
+      All-or-nothing thinking pattern (×1.5-2.0 multiplier amplifying
+      extreme poles). Produces rigid, binary evaluation. Disposition-
+      dependent: ruleFollowing=strict amplifies "should" distortions
+      and schema rigidity.
+    triggers:
+      - node: performance_judged
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: controlled
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "Things were either perfect or complete failures — there was
+         no acceptable middle ground."
+      - "Rules and standards were absolute. Partial success was
+         indistinguishable from failure."
+    expected_outcomes:
+      - node: perfectionism
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: comply
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      ruleFollowing:
+        strict: amplify
+        flexible: dampen
+    related:
+      - cbt-catastrophising
+      - cbt-sudden-gains
+    sources:
+      - ref: "#407 spec §4.3"
+        data: "All-or-nothing multiplier ×1.5-2.0, base threshold 0.6"
+        provenance: consensus
+      - ref: "#407 spec §3.3"
+        data: "ruleFollowing=strict → schema_rigidity ×1.3"
+        provenance: consensus
+
+  - id: cbt-sudden-gains
+    model: cbt
+    clinical_name: Sudden gains (schema phase transition)
+    description: >
+      Accumulated disconfirming evidence reaches tipping point where
+      negative schema flips to competing positive attractor state.
+      Occurs in 40-50% of depression cases. Smith et al.: most effective
+      change induces uncertainty first (weakens schema precision) before
+      strengthening competitor.
+    triggers:
+      - node: mastery
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+      - node: acceptance
+        intensity: [0.5, 0.7]
+        repetition: high
+    narratives:
+      - "After many corrective experiences, something shifted — the old
+         negative belief suddenly lost its hold."
+      - "It wasn't gradual. One day the evidence just outweighed the
+         schema, and you saw yourself differently."
+    expected_outcomes:
+      - node: approach
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: persist
+        direction: positive
+        strength: [0.3, 0.6]
+    related:
+      - cbt-negative-self
+      - cbt-positive-self
+      - attachment-earned-security
+    sources:
+      - ref: "Aderka et al. 2012"
+        data: "Sudden gains g=0.61-0.68, frequency 40-50% of patients"
+        provenance: empirical
+      - ref: "Smith et al. 2021"
+        data: "Most effective change induces uncertainty (P=0.5) first"
+        provenance: empirical
+
+  - id: cbt-positive-other
+    model: cbt
+    clinical_name: Positive other-schema
+    description: >
+      Core belief "Others are generally trustworthy, supportive, and
+      well-intentioned." Part of Beck's cognitive triad — the positive
+      pole of the other dimension. Produces social approach, trust, and
+      comfort with interpersonal dependence.
+    triggers:
+      - node: acceptance
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+      - node: secure_attachment
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "People around you were consistently kind, reliable, and
+         supportive — teaching you that others can be trusted."
+      - "Positive social experiences built a deep expectation that
+         people are fundamentally well-intentioned."
+    expected_outcomes:
+      - node: other_reliability
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: other_safety
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: trust
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: proximity_seek
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+    related:
+      - cbt-negative-other
+      - attachment-secure
+      - cbt-positive-self
+    sources:
+      - ref: "Beck & Haigh 2014"
+        data: "Cognitive triad: continuity of adaptive and maladaptive function"
+        provenance: empirical
+      - ref: "Collins & Read 1990"
+        data: "Adult attachment and cognitive schema hierarchies"
+        provenance: empirical
+
+  - id: cbt-positive-world
+    model: cbt
+    clinical_name: Positive world/future schema (optimism)
+    description: >
+      Core beliefs "The world is generally fair and manageable" and
+      "The future holds positive possibilities." Part of Beck's
+      cognitive triad — the positive pole of the world/future dimension.
+      Produces persistence, goal-directed action, and resilience.
+    triggers:
+      - node: mastery
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+      - node: reward
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "The world consistently made sense — effort led to outcomes,
+         and fairness was the norm rather than the exception."
+      - "You grew up expecting the future to hold good things, because
+         past experience confirmed this over and over."
+    expected_outcomes:
+      - node: world_predictability
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: future_outlook
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: persist
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: approach
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: explore
+        direction: positive
+        strength: [0.3, 0.5]
+    related:
+      - cbt-negative-world
+      - cbt-positive-self
+      - operant-positive-reinforcement
+    sources:
+      - ref: "Beck & Haigh 2014"
+        data: "Cognitive triad: world/future pole — adaptive function"
+        provenance: empirical
+      - ref: "Seligman 2006"
+        data: "Learned optimism: explanatory style shapes future expectations"
+        provenance: empirical

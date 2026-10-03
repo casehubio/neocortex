@@ -1,0 +1,307 @@
+# Experience-to-Behaviour Catalogue — Attachment Theory
+# Source: Bowlby/Ainsworth
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+entries:
+  - id: attachment-secure
+    model: attachment
+    clinical_name: Secure attachment
+    description: >
+      Consistent caregiver responsiveness builds positive internal working
+      models of self and other, producing comfort with intimacy and balanced
+      autonomy.
+    triggers:
+      - node: secure_attachment
+        intensity: [0.6, 0.9]
+        repetition: high
+        schedule: continuous
+    narratives:
+      - "When you were distressed, your caregiver noticed and responded
+         warmly and reliably."
+      - "You learned that reaching out for comfort produced a predictable,
+         soothing response."
+    expected_outcomes:
+      - node: self_worth
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: other_reliability
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: other_safety
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: trust
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: proximity_seek
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: self_direct
+        direction: positive
+        strength: [0.3, 0.5]
+    developmental_period: infancy
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+    related:
+      - attachment-anxious
+      - attachment-dismissive
+      - attachment-fearful
+    sources:
+      - ref: "van IJzendoorn 1995"
+        data: "r=.24-.32 caregiver sensitivity → security"
+        provenance: empirical
+      - ref: "Madigan et al. 2024"
+        data: "caregiver sensitivity meta-analysis update"
+        provenance: empirical
+
+  - id: attachment-anxious
+    model: attachment
+    clinical_name: Anxious-preoccupied attachment
+    description: >
+      Variable-ratio reinforcement from inconsistent caregiver produces
+      hypervigilant proximity-seeking with high extinction resistance.
+      Internal working model: negative/uncertain self, uncertain other.
+    triggers:
+      - node: inconsistent_care
+        intensity: [0.6, 0.9]
+        repetition: high
+        schedule: variable_ratio
+      - node: rejection
+        intensity: [0.3, 0.5]
+        repetition: moderate
+    narratives:
+      - "Your caregiver was sometimes warm and attentive, sometimes cold
+         and dismissive, with no predictable pattern."
+      - "You never knew whether reaching out would be met with comfort
+         or rejection, so you learned to reach out harder."
+    expected_outcomes:
+      - node: proximity_seek
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: other_reliability
+        direction: negative
+        strength: [0.3, 0.6]
+      - node: self_worth
+        direction: negative
+        strength: [0.2, 0.4]
+      - node: trust
+        direction: negative
+        strength: [0.2, 0.4]
+    developmental_period: infancy
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+        independent: dampen
+      conflictMode:
+        avoidant: amplify
+    related:
+      - attachment-secure
+      - attachment-dismissive
+      - operant-vr-extinction-resistance
+    sources:
+      - ref: "van IJzendoorn 1995"
+        data: "r=.24-.32 caregiver sensitivity → security"
+        provenance: empirical
+      - ref: "Zhang et al. 2022"
+        data: "r=.42 attachment anxiety → negative mental health, N=79,722"
+        provenance: empirical
+
+  - id: attachment-dismissive
+    model: attachment
+    clinical_name: Dismissive-avoidant attachment
+    description: >
+      Rejecting or emotionally unavailable caregiver produces negative
+      other-model with defensive positive self-model. Suppresses attachment
+      needs in favour of self-reliance and emotional distancing.
+    triggers:
+      - node: rejection
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: neglect
+        intensity: [0.4, 0.7]
+        repetition: high
+    narratives:
+      - "When you expressed needs or emotions, they were consistently
+         dismissed or ignored."
+      - "You learned that relying on others led to disappointment, so
+         you stopped showing vulnerability."
+    expected_outcomes:
+      - node: distance_maintain
+        direction: positive
+        strength: [0.5, 0.7]
+      - node: other_reliability
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: self_direct
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: distrust
+        direction: positive
+        strength: [0.3, 0.5]
+    developmental_period: infancy
+    modulating_axes:
+      socialOrient:
+        independent: amplify
+        cooperative: dampen
+    related:
+      - attachment-secure
+      - attachment-anxious
+    sources:
+      - ref: "Zhang et al. 2022"
+        data: "r=.28 attachment avoidance → negative mental health"
+        provenance: empirical
+      - ref: "Griffin & Bartholomew 1994"
+        data: "Big Five → self-model 48%, other-model 27% variance"
+        provenance: empirical
+
+  - id: attachment-fearful
+    model: attachment
+    clinical_name: Fearful-avoidant attachment
+    description: >
+      Frightening caregiver who is simultaneously source of safety and
+      threat produces contradictory internal working models. No coherent
+      strategy — oscillation between approach and avoidance, dissociation
+      under stress.
+    triggers:
+      - node: inconsistent_care
+        intensity: [0.6, 0.9]
+        repetition: high
+        schedule: variable_ratio
+      - node: betrayal
+        intensity: [0.5, 0.8]
+        repetition: moderate
+      - node: physical_threat
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "The person you depended on for safety was also the source of
+         your fear."
+      - "You could neither approach safely nor withdraw completely —
+         caught between needing closeness and fearing harm."
+    expected_outcomes:
+      - node: proximity_seek
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: distance_maintain
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: self_worth
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: other_reliability
+        direction: negative
+        strength: [0.5, 0.8]
+      - node: other_safety
+        direction: negative
+        strength: [0.5, 0.8]
+      - node: freeze
+        direction: positive
+        strength: [0.2, 0.4]
+    developmental_period: infancy
+    modulating_axes:
+      conflictMode:
+        avoidant: amplify
+    related:
+      - attachment-anxious
+      - attachment-dismissive
+      - trauma-chronic-fawn
+    sources:
+      - ref: "van IJzendoorn 1995"
+        data: "disorganized attachment in frightening caregiver context"
+        provenance: empirical
+      - ref: "Deneault et al. 2021"
+        data: "d=.37 insecure → externalizing behavior"
+        provenance: empirical
+
+  - id: attachment-earned-security
+    model: attachment
+    clinical_name: Earned secure attachment
+    description: >
+      Transition from insecure to secure through repeated corrective
+      relational experiences. Old attractor weakens but persists — earned-
+      secure adults show slightly elevated risk vs continuously-secure.
+      Requires low learning rate and high repetition.
+    triggers:
+      - node: secure_attachment
+        intensity: [0.5, 0.7]
+        repetition: high
+        schedule: continuous
+      - node: acceptance
+        intensity: [0.5, 0.7]
+        repetition: high
+    narratives:
+      - "Over time, you encountered relationships where trust was
+         consistently rewarded — gradually revising earlier models."
+      - "New corrective experiences didn't erase the old patterns but
+         built competing pathways strong enough to predominate."
+    expected_outcomes:
+      - node: trust
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: other_reliability
+        direction: positive
+        strength: [0.2, 0.5]
+    developmental_period: adult
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+    related:
+      - attachment-secure
+      - attachment-anxious
+      - attachment-dismissive
+    sources:
+      - ref: "#407 spec §4.1"
+        data: "Earned security update rules: slow, asymmetric, context-dependent"
+        provenance: consensus
+      - ref: "Roisman et al. 2002"
+        data: "earned-secure vs continuous-secure: elevated but lower risk"
+        provenance: empirical
+
+  - id: attachment-trust-erosion
+    model: attachment
+    clinical_name: Attachment-based trust erosion
+    description: >
+      Betrayal by a trusted figure produces rapid negative shift in
+      other-model. Asymmetric update: single betrayal undoes years of
+      trust-building. High decay resistance on the negative connection.
+    triggers:
+      - node: betrayal
+        intensity: [0.7, 1.0]
+        repetition: low
+      - node: abandonment
+        intensity: [0.5, 0.8]
+        repetition: low
+    narratives:
+      - "Someone you trusted deeply broke that trust in a way that
+         felt irreparable."
+      - "The betrayal was so unexpected that it rewrote your assumptions
+         about whether people can be relied upon."
+    expected_outcomes:
+      - node: distrust
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: other_reliability
+        direction: negative
+        strength: [0.5, 0.8]
+      - node: other_safety
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: distance_maintain
+        direction: positive
+        strength: [0.3, 0.6]
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+        independent: dampen
+    related:
+      - attachment-dismissive
+      - attachment-fearful
+    sources:
+      - ref: "#407 spec §4.1"
+        data: "Negative experiences update faster than positive (asymmetric)"
+        provenance: consensus
+      - ref: "Zhang et al. 2022"
+        data: "r=.28 avoidance → negative mental health"
+        provenance: empirical

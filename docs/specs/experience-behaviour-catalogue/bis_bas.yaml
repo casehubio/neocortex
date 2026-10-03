@@ -1,0 +1,299 @@
+# Experience-to-Behaviour Catalogue — Reinforcement Sensitivity Theory
+# Source: Gray's BIS/BAS/FFFS
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+entries:
+  - id: bisbas-approach-dominance
+    model: bis_bas
+    clinical_name: BAS-dominant approach motivation
+    description: >
+      Repeated reward experiences strengthen BAS approach pathways.
+      Dopaminergic reward prediction error drives goal-directed action,
+      positive affect, and persistence toward reward cues.
+    triggers:
+      - node: reward
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: variable_ratio
+      - node: competence_recognition
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "Your efforts were frequently and unpredictably rewarded, building
+         strong approach motivation."
+      - "Success came often enough to keep you reaching for more."
+    expected_outcomes:
+      - node: approach
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: persist
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: risk_take
+        direction: positive
+        strength: [0.2, 0.4]
+    modulating_axes:
+      riskAppetite:
+        bold: amplify
+        conservative: dampen
+    related:
+      - operant-positive-reinforcement
+      - bisbas-inhibition
+    sources:
+      - ref: "Carver & White 1994"
+        data: "BAS scales predict approach behaviour"
+        provenance: empirical
+      - ref: "Gray & McNaughton 2000"
+        data: "BAS dopaminergic RPE mechanism"
+        provenance: consensus
+
+  - id: bisbas-inhibition
+    model: bis_bas
+    clinical_name: BIS anxiety and behavioral inhibition
+    description: >
+      Goal conflict (simultaneous BAS and FFFS activation, or competing
+      goals) strengthens BIS inhibition. Produces anxiety, cautious
+      approach, and passive avoidance. Not fear — anxiety from unresolved
+      conflict.
+    triggers:
+      - node: social_threat
+        intensity: [0.4, 0.7]
+        repetition: high
+      - node: punishment
+        intensity: [0.3, 0.6]
+        repetition: moderate
+    narratives:
+      - "You often faced situations where both approach and avoidance
+         seemed risky — leaving you stuck in anxious indecision."
+      - "Uncertain outcomes made you cautious, always assessing risk
+         before acting."
+    expected_outcomes:
+      - node: cautious_approach
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      riskAppetite:
+        conservative: amplify
+        bold: dampen
+    related:
+      - bisbas-approach-dominance
+      - bisbas-fffs-freeze
+    sources:
+      - ref: "Bijttebier et al. 2009"
+        data: "BIS→anxiety g=1.21, 204 studies"
+        provenance: empirical
+      - ref: "Bijttebier et al. 2009"
+        data: "BIS→depression g=0.99"
+        provenance: empirical
+
+  - id: bisbas-fffs-fight
+    model: bis_bas
+    clinical_name: FFFS fight response
+    description: >
+      Proximate threat with perceived capacity to overpower activates
+      FFFS fight pathway. Defensive aggression — not predatory. Defensive
+      distance determines fight vs flight vs freeze selection.
+    triggers:
+      - node: physical_threat
+        intensity: [0.6, 0.9]
+        repetition: moderate
+      - node: dominance
+        intensity: [0.3, 0.5]
+        repetition: moderate
+    narratives:
+      - "When threatened at close range, you learned that fighting back
+         was effective — the threat backed down."
+      - "You discovered you had the capacity to overpower threats, and
+         this response became habitual."
+    expected_outcomes:
+      - node: fight
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: assert
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      riskAppetite:
+        bold: amplify
+        conservative: dampen
+      conflictMode:
+        competitive: amplify
+    related:
+      - bisbas-fffs-flight
+      - bisbas-fffs-freeze
+      - trauma-chronic-fight
+    sources:
+      - ref: "Gray & McNaughton 2000"
+        data: "FFFS defensive distance: proximate → fight"
+        provenance: consensus
+
+  - id: bisbas-fffs-flight
+    model: bis_bas
+    clinical_name: FFFS flight response
+    description: >
+      Intermediate-distance escapable threat activates FFFS flight pathway.
+      Escape assessment gates the response — flight requires perceived
+      escape route.
+    triggers:
+      - node: physical_threat
+        intensity: [0.5, 0.8]
+        repetition: moderate
+      - node: unpredictable_danger
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "When threatened, escape was possible and you learned to take it
+         — removing yourself from danger quickly."
+      - "Running was effective. The threat couldn't follow."
+    expected_outcomes:
+      - node: flight
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      autonomy:
+        high: amplify
+        low: dampen
+    related:
+      - bisbas-fffs-fight
+      - bisbas-fffs-freeze
+      - trauma-chronic-flight
+    sources:
+      - ref: "Gray & McNaughton 2000"
+        data: "FFFS defensive distance: intermediate → flight"
+        provenance: consensus
+
+  - id: bisbas-fffs-freeze
+    model: bis_bas
+    clinical_name: FFFS freeze response
+    description: >
+      Distant or uncertain threat with no perceived escape activates
+      FFFS freeze pathway. Immobilisation, tonic inhibition. Escape
+      assessment gates: inescapable → freeze over flight.
+    triggers:
+      - node: unpredictable_danger
+        intensity: [0.5, 0.8]
+        repetition: moderate
+      - node: powerlessness
+        intensity: [0.5, 0.8]
+        repetition: moderate
+    narratives:
+      - "The threat was overwhelming and there was no way out. You
+         shut down — going still and silent."
+      - "You learned that when escape was impossible, freezing was
+         the safest option."
+    expected_outcomes:
+      - node: freeze
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      autonomy:
+        low: amplify
+        high: dampen
+      conflictMode:
+        avoidant: amplify
+    related:
+      - bisbas-fffs-fight
+      - bisbas-fffs-flight
+      - trauma-chronic-freeze
+    sources:
+      - ref: "Gray & McNaughton 2000"
+        data: "FFFS defensive distance: distant/uncertain → freeze"
+        provenance: consensus
+
+  - id: bisbas-learned-helplessness
+    model: bis_bas
+    clinical_name: Learned helplessness (BAS decrease)
+    description: >
+      Severe trauma (ACE ≥ 6/7) produces threshold BAS decrease —
+      anhedonia. Lower severity does not reduce BAS. This is a
+      qualitative shift, not proportional: the BAS system partially
+      shuts down under extreme adversity.
+    triggers:
+      - node: physical_threat
+        intensity: [0.8, 1.0]
+        repetition: high
+      - node: powerlessness
+        intensity: [0.8, 1.0]
+        repetition: high
+      - node: punishment
+        intensity: [0.7, 1.0]
+        repetition: high
+    narratives:
+      - "Repeated overwhelming experiences where nothing you did made
+         any difference left you unable to feel motivation or pleasure."
+      - "The capacity for joy and drive gradually went dark — not
+         sadness, but absence."
+    expected_outcomes:
+      - node: approach
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: abandon
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: persist
+        direction: negative
+        strength: [0.3, 0.6]
+    modulating_axes:
+      riskAppetite:
+        conservative: amplify
+    related:
+      - bisbas-inhibition
+      - trauma-chronic-freeze
+      - operant-learned-helplessness
+    sources:
+      - ref: "Miu et al. 2022"
+        data: "Severe trauma (ACE ≥ 6/7) → BAS decrease, threshold effect"
+        provenance: empirical
+      - ref: "Bijttebier et al. 2009"
+        data: "BAS → depression g=−0.21"
+        provenance: empirical
+
+  - id: bisbas-conflict-resolution
+    model: bis_bas
+    clinical_name: BIS decrease through conflict resolution
+    description: >
+      Successful resolution of goal conflict reduces BIS weight.
+      The approach-avoidance conflict that drives BIS activation is
+      resolved, reducing anxiety and enabling decisive action.
+    triggers:
+      - node: mastery
+        intensity: [0.5, 0.8]
+        repetition: moderate
+      - node: choice_available
+        intensity: [0.5, 0.7]
+        repetition: moderate
+    narratives:
+      - "You faced a situation where both options seemed risky, but
+         chose decisively and it worked out."
+      - "Successfully navigating ambiguous situations taught you that
+         uncertainty doesn't require paralysis."
+    expected_outcomes:
+      - node: cautious_approach
+        direction: negative
+        strength: [0.2, 0.4]
+      - node: approach
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: self_direct
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - bisbas-inhibition
+      - bandura-mastery-efficacy
+    sources:
+      - ref: "#407 spec §4.2"
+        data: "Conflict resolution success → BIS weight decrease"
+        provenance: consensus
