@@ -173,6 +173,100 @@ class StandardTraitRulesTest {
         assertThat(rule.matches(node, List.of())).isTrue();
     }
 
+
+    @Test
+    void locatableRule_matchesLatLng() {
+        String id = store.addNode(new NodeInput("Ondine", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("lat", "55.9533", "lng", "-3.1883")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new LocatableTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Locatable");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void locatableRule_matchesAddress() {
+        String id = store.addNode(new NodeInput("Ondine", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("address", "2 George IV Bridge")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        assertThat(new LocatableTraitRule().matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void locatableRule_noMatch() {
+        String      id   = store.addNode(node("Widget"), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new LocatableTraitRule().matches(node, List.of())).isFalse();
+    }
+
+    @Test
+    void reviewableRule_matchesRating() {
+        String id = store.addNode(new NodeInput("Ondine", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("rating", "4.5")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new ReviewableTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Reviewable");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void reviewableRule_matchesPriceRange() {
+        String id = store.addNode(new NodeInput("Ondine", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("priceRange", "£££")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        assertThat(new ReviewableTraitRule().matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void reviewableRule_noMatch() {
+        String      id   = store.addNode(node("Widget"), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new ReviewableTraitRule().matches(node, List.of())).isFalse();
+    }
+
+    @Test
+    void temporalRule_matchesDate() {
+        String id = store.addNode(new NodeInput("Dinner", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("date", "2026-10-01")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        var rule = new TemporalTraitRule();
+        assertThat(rule.traitName()).isEqualTo("Temporal");
+        assertThat(rule.matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void temporalRule_matchesDuration() {
+        String id = store.addNode(new NodeInput("Run", subgraphId,
+                                                null, "test", null, null,
+                                                null, null, null, null, null,
+                                                Map.of("duration", "PT1H30M")), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+
+        assertThat(new TemporalTraitRule().matches(node, List.of())).isTrue();
+    }
+
+    @Test
+    void temporalRule_noMatch() {
+        String      id   = store.addNode(node("Widget"), "t1");
+        MindMapNode node = store.getNode(id, "t1");
+        assertThat(new TemporalTraitRule().matches(node, List.of())).isFalse();
+    }
+
     @Test
     void composability_scheduledAndNegative_isAppointableNotThreatening() {
         String id = store.addNode(new NodeInput("Funeral", subgraphId,
