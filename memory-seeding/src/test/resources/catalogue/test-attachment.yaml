@@ -1,0 +1,47 @@
+entries:
+  - id: attachment-secure
+    model: attachment
+    clinical_name: Secure attachment
+    description: >
+      Consistent caregiver responsiveness builds positive internal working
+      models of self and other.
+    triggers:
+      - node: secure_attachment
+        intensity: [0.6, 0.9]
+        repetition: high
+        schedule: continuous
+    narratives:
+      - "Your caregiver responded warmly and reliably."
+      - "Reaching out for comfort produced a predictable response."
+    expected_outcomes:
+      - node: self_worth
+        direction: positive
+        strength: [0.4, 0.7]
+    developmental_period: infancy
+    sources:
+      - ref: "van IJzendoorn 1995"
+        data: "r=.24-.32 caregiver sensitivity"
+        provenance: empirical
+  - id: attachment-anxious
+    model: attachment
+    clinical_name: Anxious-preoccupied attachment
+    description: >
+      Variable-ratio reinforcement from inconsistent caregiver produces
+      hypervigilant proximity-seeking.
+    triggers:
+      - node: inconsistent_care
+        intensity: [0.6, 0.9]
+        repetition: high
+        schedule: variable_ratio
+      - node: rejection
+        intensity: [0.3, 0.5]
+        repetition: moderate
+    expected_outcomes:
+      - node: proximity_seek
+        direction: positive
+        strength: [0.5, 0.8]
+    developmental_period: infancy
+    sources:
+      - ref: "Cassidy & Berlin 1994"
+        data: "ambivalent classification"
+        provenance: empirical
