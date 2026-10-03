@@ -115,6 +115,7 @@ public class MergeDetectionPhase implements ConsolidationPhase {
     List<MergeCandidate> detectCandidates(String subgraphId, String tenantId) {
         List<MindMapNode> nodes = store.nodesIn(subgraphId, tenantId).stream()
                                        .filter(n -> !n.traits().contains("Summary"))
+                                       .filter(n -> !n.traits().contains("CapsGenerated"))
                                        .toList();
 
         if (nodes.size() <= 1) {

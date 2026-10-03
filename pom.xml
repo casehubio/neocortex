@@ -74,6 +74,10 @@
     <module>mindmap-inmem</module>
     <module>mindmap-sqlite</module>
     <module>mindmap-intelligence</module>
+    <module>caps-api</module>
+    <module>caps-engine</module>
+    <module>caps-testing</module>
+    <module>caps-llm-classifier</module>
     <module>summarisation</module>
     <module>cognition-api</module>
     <module>cognition</module>
@@ -440,6 +444,36 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-mindmap-intelligence</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-caps-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-sqlite-support</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-memory-seeding</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-caps-engine</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-caps-testing</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-caps-llm-classifier</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
