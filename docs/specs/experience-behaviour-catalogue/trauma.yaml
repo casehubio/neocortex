@@ -1,0 +1,374 @@
+# Experience-to-Behaviour Catalogue — Trauma Response Models
+# Source: Walker 4F, ACE, Polyvagal Theory
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+entries:
+  - id: trauma-chronic-fight
+    model: trauma
+    clinical_name: Chronic fight response (Walker 4F)
+    description: >
+      Proximate threat with perceived capacity to overpower crystallises
+      into chronic controlling, narcissistic defenses. Fight is the
+      primary adaptive strategy — aggression as safety-seeking.
+    triggers:
+      - node: physical_threat
+        intensity: [0.6, 0.9]
+        repetition: high
+      - node: dominance
+        intensity: [0.3, 0.6]
+        repetition: moderate
+    narratives:
+      - "The only way to be safe was to be the most powerful person
+         in the room."
+      - "You learned early that aggression worked — threats backed
+         down when you pushed back harder."
+    expected_outcomes:
+      - node: fight
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: assert
+        direction: positive
+        strength: [0.4, 0.6]
+      - node: distrust
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      riskAppetite:
+        bold: amplify
+      conflictMode:
+        competitive: amplify
+    related:
+      - bisbas-fffs-fight
+      - trauma-chronic-fawn
+    sources:
+      - ref: "Walker 2013"
+        data: "4F model: fight → controlling, narcissistic defenses"
+        provenance: consensus
+
+  - id: trauma-chronic-flight
+    model: trauma
+    clinical_name: Chronic flight response (Walker 4F)
+    description: >
+      Escapable, moderate-intensity threat crystallises into workaholism
+      and compulsive busyness. Flight from internal distress manifests
+      as relentless activity to avoid sitting with difficult feelings.
+    triggers:
+      - node: psychological_threat
+        intensity: [0.4, 0.7]
+        repetition: high
+      - node: unpredictable_danger
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "Staying busy was how you stayed safe — if you stopped, the
+         anxiety would catch up."
+      - "You fled from feelings the same way you fled from danger —
+         by never standing still."
+    expected_outcomes:
+      - node: flight
+        direction: positive
+        strength: [0.5, 0.7]
+      - node: persist
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: perfectionism
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      riskAppetite:
+        conservative: amplify
+      ruleFollowing:
+        strict: amplify
+    related:
+      - bisbas-fffs-flight
+      - trauma-chronic-freeze
+    sources:
+      - ref: "Walker 2013"
+        data: "4F model: flight → workaholism, compulsive busyness"
+        provenance: consensus
+
+  - id: trauma-chronic-freeze
+    model: trauma
+    clinical_name: Chronic freeze response (Walker 4F)
+    description: >
+      Inescapable, overwhelming threat with no social recourse produces
+      dissociation and learned helplessness. Dorsal vagal shutdown
+      (polyvagal hierarchy tier 3). Chronic pattern: emotional numbing,
+      detachment from reality.
+    triggers:
+      - node: physical_threat
+        intensity: [0.7, 1.0]
+        repetition: high
+      - node: powerlessness
+        intensity: [0.7, 1.0]
+        repetition: high
+    narratives:
+      - "There was no fighting and no running. You shut down — went
+         somewhere else inside your head."
+      - "The world became distant and unreal. Feeling nothing was safer
+         than feeling everything."
+    expected_outcomes:
+      - node: freeze
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: withdraw
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: abandon
+        direction: positive
+        strength: [0.3, 0.6]
+    modulating_axes:
+      autonomy:
+        low: amplify
+      conflictMode:
+        avoidant: amplify
+    related:
+      - bisbas-fffs-freeze
+      - bisbas-learned-helplessness
+      - trauma-dissociation
+    sources:
+      - ref: "Walker 2013"
+        data: "4F model: freeze → dissociation, learned helplessness"
+        provenance: consensus
+      - ref: "Porges 2022"
+        data: "Dorsal vagal immobilization (polyvagal tier 3)"
+        provenance: consensus
+
+  - id: trauma-chronic-fawn
+    model: trauma
+    clinical_name: Chronic fawn response (Walker 4F)
+    description: >
+      Threat from attachment figure — the person you depend on is also
+      the source of danger. Fawn is BIS-mediated conflict resolution
+      co-opting BAS social-approach: people-pleasing as safety strategy.
+      Unique to attachment-based trauma.
+    triggers:
+      - node: physical_threat
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: powerlessness
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: inconsistent_care
+        intensity: [0.5, 0.8]
+        repetition: high
+    narratives:
+      - "The person who hurt you was also the person you needed. You
+         learned to make them happy to stay safe."
+      - "Reading the other person's mood became a survival skill —
+         anticipating what they wanted before they demanded it."
+    expected_outcomes:
+      - node: fawn
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: submit
+        direction: positive
+        strength: [0.4, 0.6]
+      - node: comply
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: depend
+        direction: positive
+        strength: [0.3, 0.5]
+    modulating_axes:
+      socialOrient:
+        cooperative: amplify
+      conflictMode:
+        cooperative: amplify
+    related:
+      - attachment-fearful
+      - trauma-chronic-freeze
+    sources:
+      - ref: "Walker 2013"
+        data: "4F model: fawn → people-pleasing, codependency"
+        provenance: consensus
+      - ref: "#407 spec §4.7"
+        data: "Fawn is BIS-mediated, co-opting BAS social-approach"
+        provenance: consensus
+
+  - id: trauma-dissociation
+    model: trauma
+    clinical_name: Dissociation under overwhelming threat
+    description: >
+      Extreme dorsal vagal shutdown beyond freeze — psychological
+      disconnection from experience. The world becomes unreal
+      (derealisation) or the self feels detached from the body
+      (depersonalisation). Polyvagal tier 3 at maximum intensity.
+      Distinct from freeze: freeze is motor immobilisation with
+      awareness; dissociation is loss of integrated awareness itself.
+    triggers:
+      - node: physical_threat
+        intensity: [0.8, 1.0]
+        repetition: high
+      - node: psychological_threat
+        intensity: [0.8, 1.0]
+        repetition: high
+      - node: powerlessness
+        intensity: [0.8, 1.0]
+        repetition: high
+    narratives:
+      - "The world went flat and distant, like watching yourself from
+         outside. Nothing felt real — not even your own body."
+      - "You learned to leave without leaving. When the pain was too
+         much, you simply stopped being there."
+    expected_outcomes:
+      - node: freeze
+        direction: positive
+        strength: [0.6, 0.9]
+      - node: withdraw
+        direction: positive
+        strength: [0.6, 0.8]
+      - node: distance_maintain
+        direction: positive
+        strength: [0.4, 0.7]
+    modulating_axes:
+      autonomy:
+        low: amplify
+      conflictMode:
+        avoidant: amplify
+    related:
+      - trauma-chronic-freeze
+      - trauma-window-narrowing
+    sources:
+      - ref: "Porges 2022"
+        data: "Dorsal vagal immobilisation — polyvagal tier 3 maximum"
+        provenance: consensus
+      - ref: "Siegel 1999"
+        data: "Window of tolerance: hypoarousal → dissociation"
+        provenance: consensus
+      - ref: "Walker 2013"
+        data: "Freeze/dissociation distinction in complex PTSD"
+        provenance: consensus
+
+  - id: trauma-kindling
+    model: trauma
+    clinical_name: Trauma sensitisation (kindling model)
+    description: >
+      Repeated sub-threshold stimulation progressively lowers activation
+      thresholds. Dose-response is multiplicative: each additional ACE
+      multiplies risk. Less intense triggers produce greater responses
+      over time. Threshold lowering is distinct from weight increase.
+    triggers:
+      - node: physical_threat
+        intensity: [0.5, 0.9]
+        repetition: high
+      - node: psychological_threat
+        intensity: [0.4, 0.8]
+        repetition: high
+    narratives:
+      - "Each stressful event made you more sensitive to the next. Small
+         triggers started producing outsized reactions."
+      - "Your alarm system was recalibrated by repeated activation —
+         it now fires at lower and lower thresholds."
+    expected_outcomes:
+      - node: freeze
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: flight
+        direction: positive
+        strength: [0.3, 0.6]
+    related:
+      - trauma-window-narrowing
+      - trauma-hypervigilance
+      - cbt-catastrophising
+    sources:
+      - ref: "Felitti et al. 1998"
+        data: "ACE 4+ OR=4.6 depressed mood, OR=12.2 suicide attempt"
+        provenance: empirical
+      - ref: "Dube et al. 2001"
+        data: "ACE 7+ OR=31.1 suicide attempt"
+        provenance: empirical
+      - ref: "#407 spec §4.4"
+        data: "Kindling: episode 1→50%, episode 2→70%, episode 3→90% recurrence"
+        provenance: empirical
+
+  - id: trauma-window-narrowing
+    model: trauma
+    clinical_name: Window of tolerance narrowing
+    description: >
+      Trauma narrows Siegel's window of tolerance — the activation range
+      within which flexible response selection is possible. Above:
+      hyperarousal (fight/flight). Below: hypoarousal (freeze/dissociation).
+      Recovery widens the window through active safety-building.
+    triggers:
+      - node: physical_threat
+        intensity: [0.6, 0.9]
+        repetition: high
+      - node: unpredictable_danger
+        intensity: [0.5, 0.8]
+        repetition: high
+    narratives:
+      - "Your emotional range narrowed — you were either overwhelmed
+         or shut down, with little room in between."
+      - "The zone of calm, flexible functioning got smaller and smaller
+         with each traumatic experience."
+    expected_outcomes:
+      - node: fight
+        direction: positive
+        strength: [0.2, 0.4]
+      - node: flight
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: freeze
+        direction: positive
+        strength: [0.3, 0.5]
+    related:
+      - trauma-kindling
+      - trauma-hypervigilance
+    sources:
+      - ref: "Siegel 1999"
+        data: "Window of tolerance model"
+        provenance: consensus
+      - ref: "#407 spec §4.4"
+        data: "Window IS the activation threshold range on arousal node"
+        provenance: consensus
+
+  - id: trauma-hypervigilance
+    model: trauma
+    clinical_name: Trauma-induced hypervigilance
+    description: >
+      Elevated threat_sensitivity from accumulated trauma experiences
+      produces chronic scanning for danger. Neuroception (subconscious
+      threat evaluation) biased by trauma history — false positives
+      increase.
+    triggers:
+      - node: physical_threat
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: social_threat
+        intensity: [0.4, 0.7]
+        repetition: moderate
+      - node: unpredictable_danger
+        intensity: [0.5, 0.8]
+        repetition: moderate
+    narratives:
+      - "You learned to scan every room for exits, watch every face
+         for signs of hostility."
+      - "Your threat detector became hypersensitive — seeing danger
+         in situations others found neutral."
+    expected_outcomes:
+      - node: cautious_approach
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: distrust
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: withdraw
+        direction: positive
+        strength: [0.2, 0.5]
+    modulating_axes:
+      riskAppetite:
+        conservative: amplify
+        bold: dampen
+    related:
+      - trauma-kindling
+      - bisbas-inhibition
+      - cbt-catastrophising
+    sources:
+      - ref: "Porges 2022"
+        data: "Neuroception: subconscious threat evaluation"
+        provenance: consensus
+      - ref: "Hughes et al. 2017"
+        data: "ACE 4+ resilience 29%→14% illness with resources"
+        provenance: empirical
