@@ -134,6 +134,7 @@ memory-inmem/       — InMemoryMemoryStore @Alternative @Priority(10) — volat
 memory-sqlite/      — SqliteMemoryStore @Alternative @Priority(1) — SQLite + HikariCP WAL + FTS5 + discoverTenants
 memory-mem0/        — Mem0CaseMemoryStore @Alternative @Priority(1) — REST client adapter for Mem0 vector memory service
 memory-graphiti/    — GraphitiCaseMemoryStore @Alternative @Priority(2) implements GraphCaseMemoryStore — REST client adapter for Graphiti temporal knowledge graph, incl. graphQuery()
+memory-seeding/     — Backstory seeding infrastructure: CatalogueLoader (Jackson YAML), BackstoryProfile, BackstorySeeder (catalogue → FormativeExperience events via ExperienceRecorder), FormativeGraduationScorer (@Alternative @Priority(1) — bypasses corroboration for formative events), FormativeGraduationClassifier (@Alternative @Priority(1) — classifies as 'formative-experience' with metadata propagation), SalienceDefaults (developmental period → multiplier), FormativeTimestampGenerator (epoch-relative period ordering), PadDeriver (CAPS node category → PAD values)
 cognition-api/      — Cognitive pipeline SPIs and value types: CognitionPromptRenderer, CognitionConfig, CognitionPhase, CognitionTickParticipant, SubjectResolver, orchestrator interfaces (Mood, Drive, MentalModel, UserModel, Strategy, Narrative, Goal, InnerLife, MemoryHygiene, TemporalFocus, ReflectionRetrieval), Memory types (MentalModelMemory, UserProfileMemory, StrategyMemory, NarrativeMemory), 13 config records, 21 prompt section renderers, drive types (DriveAxis, DriveSource, DriveIntensity, DriveProfile), goal types (CognitiveGoalConfig, DriveGoalMapper, GoalEscalationPolicy), emergence types (SocialNorm, NormDetectionConfig), personality types, relationship types
 cognition/          — CognitionCore (composition root), CognitiveAttentionMediator, ConsolidationMediator, CognitiveGoalOrchestrator, CognitiveProfileParticipant, DomainActivationParticipant, CognitionDefaultBeans (16 @DefaultBean producers), orchestrator implementations (MoodOrchestrator, DriveOrchestrator, MentalModelOrchestrator, UserModelOrchestrator, StrategyLearningOrchestrator, NarrativeOrchestrator, GoalProposalOrchestrator, InnerLifeOrchestrator, PersonalityEvolutionOrchestrator), drive sources (CuriosityDrive, CompetenceDrive, AffiliationDrive, AutonomyDrive), NarrativePipeline + NarrativeContentSummariser, LlmReflectionSynthesizer, BeliefRevisionPhase, RelationshipStagePhase, GoalEmotionMoodBridge
 summarisation/      — SummarisationPipelineFactory SPI and keyed summarisation framework
@@ -208,6 +209,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Memory SQLite | `casehub-neocortex-memory-sqlite` |
 | Memory Mem0 | `casehub-neocortex-memory-mem0` |
 | Memory Graphiti | `casehub-neocortex-memory-graphiti` |
+| Memory Seeding | `casehub-neocortex-memory-seeding` |
 | Example Text Analysis | `casehub-neocortex-example-text-analysis` |
 | Example RAG Pipeline | `casehub-neocortex-example-rag-pipeline` |
 | Example Goal Cognition | `casehub-neocortex-example-goal-cognition` |
@@ -243,6 +245,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Root Java package (memory-personality) | `io.casehub.neocortex.memory.personality` |
 | Root Java package (memory-mood) | `io.casehub.neocortex.memory.mood` |
 | Root Java package (memory-engagement) | `io.casehub.neocortex.memory.engagement` |
+| Root Java package (memory-seeding) | `io.casehub.neocortex.memory.seeding` |
 | Root Java package (memory-cbr) | `io.casehub.neocortex.memory.cbr` |
 | Root Java package (memory-cbr-embedding) | `io.casehub.neocortex.memory.cbr.embedding` |
 | Root Java package (memory-cbr-crossencoder) | `io.casehub.neocortex.memory.cbr.crossencoder` |
