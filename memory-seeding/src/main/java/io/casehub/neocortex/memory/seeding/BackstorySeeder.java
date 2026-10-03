@@ -1,8 +1,12 @@
 package io.casehub.neocortex.memory.seeding;
 
+import io.casehub.neocortex.cognition.need.NeedTier;
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.experience.ExperienceEvent;
 import io.casehub.neocortex.memory.experience.ExperienceRecorder;
 import io.casehub.neocortex.memory.experience.FormativeExperience;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.NodeInput;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -18,36 +22,49 @@ public class BackstorySeeder {
 
     private final CatalogueLoader catalogueLoader;
     private final ExperienceRecorder recorder;
+    private final MindMapStore mindMapStore;
     private final Path catalogueDir;
     private final Set<String> seededAgents = Collections.synchronizedSet(new HashSet<>());
 
     public BackstorySeeder(CatalogueLoader catalogueLoader,
                            ExperienceRecorder recorder,
+                           MindMapStore mindMapStore,
                            Path catalogueDir) {
         this.catalogueLoader = catalogueLoader;
         this.recorder = recorder;
+        this.mindMapStore = mindMapStore;
         this.catalogueDir = catalogueDir;
+    }
+
+    public BackstorySeeder(CatalogueLoader catalogueLoader,
+                           ExperienceRecorder recorder,
+                           Path catalogueDir) {
+        this(catalogueLoader, recorder, null, catalogueDir);
     }
 
     public void seed(BackstoryProfile profile) {
         if (!seededAgents.add(profile.agentId())) {
             throw new IllegalStateException(
-                "Agent " + profile.agentId() + " already has formative memories");
+                    "Agent " + profile.agentId() + " already has formative memories");
         }
 
         var entries = catalogueLoader.loadAll(catalogueDir);
-        var events = new ArrayList<FormativeExperience>();
+        var events  = new ArrayList<FormativeExperience>();
 
         for (var selection : profile.selections()) {
             var entry = catalogueLoader.findEntry(entries, selection.entryId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                    "Catalogue entry not found: " + selection.entryId()));
+                                       .orElseThrow(() -> new IllegalArgumentException(
+                                               "Catalogue entry not found: " + selection.entryId()));
             events.addAll(generateEvents(profile, entry, selection));
         }
 
         events.sort(Comparator.comparing(FormativeExperience::timestamp));
 
         recorder.recordAll(new ArrayList<>(events));
+
+        if (mindMapStore != null && !profile.needSatisfaction().isEmpty()) {
+            seedNeedSatisfaction(profile);
+        }
     }
 
     private List<FormativeExperience> generateEvents(
@@ -98,4 +115,25 @@ public class BackstorySeeder {
         }
         return "Experienced " + entry.clinicalName().toLowerCase() + " [" + trigger.node() + "]";
     }
+
+    private void seedNeedSatisfaction(BackstoryProfile profile) {
+        String  subgraphId = "beliefs-" + profile.agentId();
+        Instant now        = Instant.now();
+        for (var entry : profile.needSatisfaction().entrySet()) {
+            NeedTier tier         = entry.getKey();
+            double   satisfaction = entry.getValue();
+            mindMapStore.addNode(
+                    NodeInput.of("need-" + tier.name().toLowerCase(), subgraphId)
+                             .withConfidence(Confidence.stated(0.8, now))
+                             .withProvenance("need-satisfaction")
+                             .withProperties(Map.of(
+                                     "cognitiveKind", "need-satisfaction",
+                                     "agent-id", profile.agentId(),
+                                     "tier", tier.name(),
+                                     "satisfaction", String.valueOf(satisfaction),
+                                     "resting-level", String.valueOf(satisfaction))),
+                    profile.tenantId());
+        }
+    }
+
 }

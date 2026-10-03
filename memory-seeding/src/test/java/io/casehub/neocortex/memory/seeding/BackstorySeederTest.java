@@ -1,11 +1,15 @@
 package io.casehub.neocortex.memory.seeding;
 
+import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.memory.experience.ExperienceEvent;
 import io.casehub.neocortex.memory.experience.ExperienceRecorder;
 import io.casehub.neocortex.memory.experience.ExperienceStoreResult;
 import io.casehub.neocortex.memory.experience.FormativeExperience;
+import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.NodeInput;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -191,6 +195,40 @@ class BackstorySeederTest {
         assertThatThrownBy(() -> seeder.seed(profile))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("nonexistent-entry");
+    }
+
+    @Test
+    void seedNeedSatisfactionCreatesNodes(@TempDir Path tempDir) throws Exception {
+        writeCatalogueFixtures(tempDir);
+
+        var events = new ArrayList<ExperienceEvent>();
+        var recorder = capturingRecorder(events);
+        var mindMapStore = org.mockito.Mockito.mock(MindMapStore.class);
+        org.mockito.Mockito.when(mindMapStore.addNode(org.mockito.Mockito.any(), org.mockito.Mockito.any()))
+            .thenReturn("node-id");
+
+        var seeder = new BackstorySeeder(new CatalogueLoader(), recorder, mindMapStore, tempDir);
+
+        var profile = new BackstoryProfile("agent1", "tenant1",
+            List.of(new BackstoryProfile.CatalogueSelection(
+                "attachment-secure", null, 1)),
+            Map.of(NeedTier.SAFETY, 0.3, NeedTier.SOCIAL, 0.7));
+
+        seeder.seed(profile);
+
+        var captor = ArgumentCaptor.forClass(NodeInput.class);
+        org.mockito.Mockito.verify(mindMapStore, org.mockito.Mockito.times(2))
+            .addNode(captor.capture(), org.mockito.Mockito.eq("tenant1"));
+
+        var inputs = captor.getAllValues();
+        assertThat(inputs).hasSize(2);
+        assertThat(inputs).extracting(NodeInput::name)
+            .containsExactlyInAnyOrder("need-safety", "need-social");
+
+        var safetyNode = inputs.stream()
+            .filter(n -> n.name().equals("need-safety")).findFirst().orElseThrow();
+        assertThat(safetyNode.properties().get("satisfaction")).isEqualTo("0.3");
+        assertThat(safetyNode.properties().get("tier")).isEqualTo("SAFETY");
     }
 
     private ExperienceRecorder capturingRecorder(List<ExperienceEvent> events) {
