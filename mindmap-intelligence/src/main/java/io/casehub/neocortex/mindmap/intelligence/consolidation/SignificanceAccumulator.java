@@ -30,6 +30,8 @@ public class SignificanceAccumulator {
     private final Consumer<String> triggerAction;
     private final boolean async;
     private final java.util.concurrent.ExecutorService triggerExecutor;
+    private volatile boolean                           suspended;
+
 
     @Inject
     SignificanceAccumulator(Instance<SignificanceExtractor> extractor,
@@ -69,10 +71,11 @@ public class SignificanceAccumulator {
     }
 
     void onExperienceRecorded(@Observes ExperienceRecorded event) {
+        if (suspended) {return;}
         double significance = extractor.extract(event);
-        String tenantId = event.event().tenantId();
+        String tenantId     = event.event().tenantId();
         DoubleAdder adder = perTenant.computeIfAbsent(
-            tenantId, k -> new DoubleAdder());
+                tenantId, k -> new DoubleAdder());
         adder.add(significance);
         if (adder.sum() >= threshold && triggered.putIfAbsent(tenantId, Boolean.TRUE) == null) {
             if (triggerExecutor != null) {
@@ -81,8 +84,8 @@ public class SignificanceAccumulator {
                         triggerAction.accept(tenantId);
                     } catch (Exception e) {
                         LOG.log(Level.WARNING,
-                            "Significance-triggered consolidation failed for "
-                            + tenantId, e);
+                                "Significance-triggered consolidation failed for "
+                                + tenantId, e);
                     }
                 });
             } else {
@@ -100,4 +103,9 @@ public class SignificanceAccumulator {
         old.forEach((k, v) -> snapshot.put(k, v.sum()));
         return new SignificanceSnapshot(Map.copyOf(snapshot));
     }
+
+    public void suspend() {suspended = true;}
+
+    public void resume()  {suspended = false;}
+
 }
