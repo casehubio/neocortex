@@ -10,6 +10,8 @@ public final class SubgraphTypes {
     public static final String TYPE_SYSTEM = "type-system";
     public static final String COGNITIVE   = "cognitive";
     public static final String GOAL        = "goal";
+    public static final String ACTIVITY    = "activity";
+    public static final String PLACE       = "place";
 
 
     private SubgraphTypes() {}
