@@ -936,6 +936,24 @@ Pure static utility. `compute(lastAccessed, storageStrength, baseHalfLifeDays)` 
 
 Storage strength (how deeply encoded) modulates retrieval strength (how easy to recall). Higher `storageStrength` → slower decay. `log1p` provides diminishing returns — first few accesses extend half-life dramatically, subsequent ones less so.
 
+### Experience-to-Behaviour Catalogue
+
+The experience-to-behaviour catalogue is a set of YAML data files at `docs/specs/experience-behaviour-catalogue/` containing clinically-grounded entries that map formative experiences to behavioural tendencies through the CAPS network. Each entry represents a recognised clinical pattern (e.g., "anxious attachment", "learned helplessness") grounded in published psychology research.
+
+**Files:** `index.yaml` (metadata + shared-node map) + one YAML per psychological model (`attachment.yaml`, `bis_bas.yaml`, `cbt.yaml`, `trauma.yaml`, `operant.yaml`, `bandura.yaml`).
+
+**Entry schema:** Each entry has: `id` (kebab-case unique), `model`, `clinical_name`, `description`, `triggers` (CAPS input node refs with intensity/repetition/schedule), `narratives` (optional prose templates), `expected_outcomes` (CAPS output/mediating node refs with direction/strength ranges), `modulating_axes` (disposition amplify/dampen), `related` (cross-references), `sources` (published research with provenance).
+
+**Consumers:** #398 (memory seeding — translates entries into ExperienceEvents), #408 (graph engine — validates SituationClassifier covers trigger nodes), #402 (CognitiveEmergenceTest — uses expected_outcomes for validation targets).
+
+**Validation:** Run `python3 scripts/validate_catalogue.py` to check node ID consistency with the CAPS topology, cross-reference resolution, required fields, and enum validity.
+
+**Adding entries:** New entries must reference CAPS topology node IDs from `docs/specs/2026-10-02-caps-topology.yaml`, include published research citations, and pass the validation script. Run the script after any modification.
+
+**Version coupling:** The catalogue's `index.yaml` declares the CAPS topology version it was validated against. When the topology changes (node add/rename/split), catalogue entries referencing affected nodes must be updated.
+
+**Design spec:** `docs/specs/issue-407-psychology-cause-effect-models/` (CAPS architecture) and the spec workspace for #401 (catalogue design decisions and validation strategy).
+
 ### Agent Memory Event Streams
 
 Five domain-specific event streams layer typed agent experience on top of `CaseMemoryStore`. Each converts typed events into `MemoryInput` with a domain tag, stores them, and fires CDI events.
