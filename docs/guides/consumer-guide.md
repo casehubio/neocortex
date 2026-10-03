@@ -87,11 +87,11 @@ Four related capabilities in one repo:
 |--------|-----------|-------------|
 | `thing-api` | `casehub-neocortex-thing-api` | `Thing` interface — id, name, type, properties, traits, `is()`/`as()`. Zero deps. Consumer-facing module |
 | `cognitive-api` | `casehub-neocortex-cognitive-api` | `Confidence` record, `ConfidenceOrigin` enum, `TemporalMark` sealed hierarchy — cross-cutting cognitive types. Zero deps |
-| `mindmap-api` | `casehub-neocortex-mindmap-api` | `MindMapStore` SPI, `MindMapNode` (extends Thing with confidence, PAD, temporal bounds), `MindMapQuery`, `SubgraphTypes`, `SchemaField`, `NodeRef`, `EdgeTypeDefinition` |
+| `mindmap-api` | `casehub-neocortex-mindmap-api` | `MindMapStore` SPI, `MindMapNode` (extends Thing with confidence, PAD, temporal bounds), `MindMapQuery`, `SubgraphTypes`, `SchemaField`, `NodeRef`, `EdgeTypeDefinition`, `ActivityVocabulary` |
 | `mindmap` | `casehub-neocortex-mindmap` | CDI wiring, `ConfidenceDecayDecorator`, `DerivedEdgeDecorator`, `MindMapAnalyzer` graph analytics |
 | `mindmap-inmem` | `casehub-neocortex-mindmap-inmem` | In-memory `MindMapStore` for tests |
 | `mindmap-sqlite` | `casehub-neocortex-mindmap-sqlite` | SQLite + HikariCP WAL + FTS5 — production backend for single-node deployments |
-| `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params) |
+| `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`, `Locatable`, `Reviewable`, `Temporal`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params), `CheckInService` (activity recording), `ActivityQueryService` (CRM queries) |
 | `mindmap-testing` | `casehub-neocortex-mindmap-testing` | `MindMapStoreContractTest` abstract base (72 tests) |
 
 ### Cognitive Index
@@ -298,7 +298,7 @@ guest.dietary();    // Optional.of("nut allergy")
 guest.rsvpStatus(); // Optional.empty()
 ```
 
-The platform provides `Personable`, `Projectlike`, `Organisational`, and `Eventlike` in `mindmap-intelligence`. These are conveniences — consumers define domain-specific traits the same way.
+The platform provides `Personable`, `Projectlike`, `Organisational`, `Eventlike`, `Locatable`, `Reviewable`, and `Temporal` in `mindmap-intelligence`. These are conveniences — consumers define domain-specific traits the same way.
 
 **Convention:** trait names are PascalCase (matching Java interface simple names). Type names are lowercase. Traits come from code; types come from data.
 
@@ -317,6 +317,8 @@ Well-known types are constants in `SubgraphTypes`:
 | `CONCEPT` | `"concept"` |
 | `GENERAL` | `"general"` |
 | `TYPE_SYSTEM` | `"type-system"` |
+| `ACTIVITY` | `"activity"` |
+| `PLACE` | `"place"` |
 
 The LLM can discover new types at runtime without recompilation:
 
