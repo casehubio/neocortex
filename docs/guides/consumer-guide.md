@@ -9,7 +9,7 @@
 
 ## Purpose
 
-Four related capabilities in one repo:
+Five related capabilities in one repo:
 
 **Neural Text Inference** — a standalone, general-purpose ONNX inference layer for JVM projects. Zero casehub domain dependencies. Shared with Hortora. Fills the gap LangChain4j leaves: NLI, classification, regression, SPLADE sparse embeddings, cross-encoder reranking, and raw tensor classification.
 
@@ -18,6 +18,8 @@ Four related capabilities in one repo:
 **CBR Memory** — case-based reasoning with typed feature-vector similarity search over prior cases. `CbrRecordStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, Qdrant). Typed feature values (7 value types, 9 field types), weighted similarity scoring, plan adaptation, ensemble analysis, temporal decay, trust-weighted retrieval, hierarchical scoping, and outcome feedback loops.
 
 **Agent Memory** — queryable, permission-aware, persistent agent memory. `CaseMemoryStore` SPI with multiple backends (in-memory, JPA/PostgreSQL, SQLite, Mem0, Graphiti). Salience-based ranking, confidence-aware retention, fire-and-forget emission via `MemoryEmitter`.
+
+**Knowledge Pipeline** — external data source integration with SQLite-backed spatial cache, query subsumption, cross-source entity resolution, multi-session research orchestration, and entity promotion to MindMap. Fetches from `LocationPlatform` providers (connectors), caches with field-type TTLs, deduplicates across sources, and promotes user-selected entities to durable MindMap knowledge.
 
 ---
 
@@ -93,6 +95,13 @@ Four related capabilities in one repo:
 | `mindmap-sqlite` | `casehub-neocortex-mindmap-sqlite` | SQLite + HikariCP WAL + FTS5 — production backend for single-node deployments |
 | `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`, `Locatable`, `Reviewable`, `Temporal`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params), `CheckInService` (activity recording), `ActivityQueryService` (CRM queries) |
 | `mindmap-testing` | `casehub-neocortex-mindmap-testing` | `MindMapStoreContractTest` abstract base (72 tests) |
+
+### Knowledge Pipeline
+
+| Module | artifactId | What you get |
+|--------|-----------|-------------|
+| `knowledge-pipeline-api` | `casehub-neocortex-knowledge-pipeline-api` | `KnowledgePipelineService` SPI (search + promote), `SpatialCacheStore` SPI, `EntityMatcher<T>` SPI, `SubsumptionRule` SPI, `QueryNormalizer` SPI, `ResearchSessionService` SPI, `KnowledgeQuery` sealed hierarchy (TextSearch, NearbySearch, CategorySearch), value types |
+| `knowledge-pipeline` | `casehub-neocortex-knowledge-pipeline` | `KnowledgePipelineOrchestrator`, `SqliteSpatialCacheStore` (R*Tree), `InMemorySpatialCacheStore`, `SpatialSubsumptionRule`, `EntityResolutionEngine`, `PlaceMatcher`, `EntityPromoter`, `ResearchOrchestrator`, `CacheEvictionScheduler`, `CacheDecayPolicy`, `KnowledgePipelineMetrics` |
 
 ### Cognitive Index
 

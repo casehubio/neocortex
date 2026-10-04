@@ -4,6 +4,7 @@ import io.casehub.connectors.location.model.Coordinates;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 public interface SpatialCacheStore {
 
@@ -19,4 +20,8 @@ public interface SpatialCacheStore {
     void remove(String entityId, String tenantId);
 
     void expire(String entityId, Instant expiresAt, String tenantId);
+
+    List<String> findExpired(String tenantId, Instant now);
+
+    Set<String> discoverTenants();
 }

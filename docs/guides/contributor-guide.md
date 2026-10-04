@@ -72,6 +72,13 @@
 | `memory-cbr-crossencoder/` | `casehub-neocortex-memory-cbr-crossencoder` | Backend | `RerankingCbrRecordStore` (@Decorator @Priority(75)). Sigmoid-normalized scores. Double-reranking guard via `CbrMatch.reranked()`. Config: `casehub.cbr.reranking.enabled` |
 | `memory-cbr-tracking/` | `casehub-neocortex-memory-cbr-tracking` | Backend | `TrackingCbrRecordStore` (@Decorator @Priority(50) — records retrieval via CbrRetrievalTracker). `SqliteCbrRetrievalTracker` (SQLite + HikariCP WAL + Flyway). `TrackingCbrCbrPlanAdapter` (@Decorator @Priority(50) — fires CbrAdaptationRecorded after adaptation, `casehub.cbr.adaptation-tracking.enabled`). `TrackingCbrCbrPlanEnsembleAnalyzer` (@Decorator @Priority(50) — fires CbrEnsembleRecorded, `casehub.cbr.ensemble-tracking.enabled`). @Scheduled retention purge. Config: `casehub.cbr.tracking.enabled=true` |
 
+### Knowledge Pipeline Modules
+
+| Module | artifactId | Type | Purpose |
+|--------|-----------|------|---------|
+| `knowledge-pipeline-api/` | `casehub-neocortex-knowledge-pipeline-api` | Pure Java | `KnowledgePipelineService` SPI (search + promote + refreshStale), `SpatialCacheStore` SPI (set/get/nearby/within/remove/expire/findExpired/discoverTenants), `EntityMatcher<T>` SPI, `SubsumptionRule` SPI, `QueryNormalizer` SPI, `ResearchSessionService` SPI, `KnowledgeQuery` sealed hierarchy (TextSearch/NearbySearch/CategorySearch), `CachedEntity`, `NormalizedQuery`, `MatchResult`, `MatchTier`, `PromotionRequest`/`PromotionResult`, `ResearchSession`, `ResearchState`, `CacheFilter`, `SpatialBucket` (geohash), `BoundingBox` |
+| `knowledge-pipeline/` | `casehub-neocortex-knowledge-pipeline` | JVM library | `KnowledgePipelineOrchestrator` (end-to-end search + promote), `SqliteSpatialCacheStore` (SQLite + R*Tree spatial index), `InMemorySpatialCacheStore` (test stub), `SpatialSubsumptionRule` (spatial circle containment + category narrowing), `CacheDecayPolicy` (field-type TTLs), `CacheEvictionScheduler` (session-aware eviction), `EntityResolutionEngine` (blocking + matching + three-tier decision), `PlaceMatcher` (place-specific matching signals), `EntityPromoter` (three-stage MindMap promotion), `ResearchOrchestrator` (lifecycle with MindMap RESEARCH_AREA subgraphs), `DedupIndexStore`/`EntityMetadataStore`/`QueryCacheStore`/`ResearchSessionStore` (all SQLite via sqlite-support), `CacheKeyGenerator`, `CacheEntityIdGenerator`, `Haversine`, `PhoneNormalizer`, `KnowledgePipelineMetrics` (Micrometer) |
+
 ### Examples and Evaluation
 
 | Module | Type | Purpose |

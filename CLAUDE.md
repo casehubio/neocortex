@@ -136,6 +136,8 @@ memory-mem0/        — Mem0CaseMemoryStore @Alternative @Priority(1) — REST c
 memory-graphiti/    — GraphitiCaseMemoryStore @Alternative @Priority(2) implements GraphCaseMemoryStore — REST client adapter for Graphiti temporal knowledge graph, incl. graphQuery()
 cognition-api/      — Cognitive pipeline SPIs and value types: CognitionPromptRenderer, CognitionConfig, CognitionPhase, CognitionTickParticipant, SubjectResolver, orchestrator interfaces (Mood, Drive, MentalModel, UserModel, Strategy, Narrative, Goal, InnerLife, MemoryHygiene, TemporalFocus, ReflectionRetrieval), Memory types (MentalModelMemory, UserProfileMemory, StrategyMemory, NarrativeMemory), 13 config records, 21 prompt section renderers, drive types (DriveAxis, DriveSource, DriveIntensity, DriveProfile), goal types (CognitiveGoalConfig, DriveGoalMapper, GoalEscalationPolicy), emergence types (SocialNorm, NormDetectionConfig), personality types, relationship types
 cognition/          — CognitionCore (composition root), CognitiveAttentionMediator, ConsolidationMediator, CognitiveGoalOrchestrator, CognitiveProfileParticipant, DomainActivationParticipant, CognitionDefaultBeans (16 @DefaultBean producers), orchestrator implementations (MoodOrchestrator, DriveOrchestrator, MentalModelOrchestrator, UserModelOrchestrator, StrategyLearningOrchestrator, NarrativeOrchestrator, GoalProposalOrchestrator, InnerLifeOrchestrator, PersonalityEvolutionOrchestrator), drive sources (CuriosityDrive, CompetenceDrive, AffiliationDrive, AutonomyDrive), NarrativePipeline + NarrativeContentSummariser, LlmReflectionSynthesizer, BeliefRevisionPhase, RelationshipStagePhase, GoalEmotionMoodBridge
+knowledge-pipeline-api/ — KnowledgePipelineService SPI, SpatialCacheStore SPI, EntityMatcher SPI, SubsumptionRule SPI, QueryNormalizer SPI, ResearchSessionService SPI, KnowledgeQuery (sealed: TextSearch, NearbySearch, CategorySearch), CachedEntity, NormalizedQuery, MatchResult, MatchTier, PromotionRequest/Result, ResearchSession, ResearchState, CacheFilter, SpatialBucket, BoundingBox. Tier 1 pure Java, zero CDI.
+knowledge-pipeline/ — KnowledgePipelineOrchestrator (end-to-end search + promote), SqliteSpatialCacheStore (R*Tree spatial index), InMemorySpatialCacheStore (test stub), SpatialSubsumptionRule (spatial circle containment + category narrowing), CacheDecayPolicy (field-type TTLs), CacheEvictionScheduler (session-aware eviction), EntityResolutionEngine (blocking + matching + decision), PlaceMatcher (domain-specific place matching), EntityPromoter (three-stage MindMap promotion), ResearchOrchestrator (lifecycle with MindMap subgraphs), DedupIndexStore/EntityMetadataStore/QueryCacheStore/ResearchSessionStore (all SQLite), CacheKeyGenerator (geohash spatial rounding), Haversine, PhoneNormalizer, KnowledgePipelineMetrics (Micrometer)
 summarisation/      — SummarisationPipelineFactory SPI and keyed summarisation framework
 examples/
   example-text-analysis/  — standalone demos: NLI, zero-shot classification, scoring, reranking, SPLADE — no Quarkus
@@ -208,6 +210,8 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Memory SQLite | `casehub-neocortex-memory-sqlite` |
 | Memory Mem0 | `casehub-neocortex-memory-mem0` |
 | Memory Graphiti | `casehub-neocortex-memory-graphiti` |
+| Knowledge Pipeline API | `casehub-neocortex-knowledge-pipeline-api` |
+| Knowledge Pipeline | `casehub-neocortex-knowledge-pipeline` |
 | Example Text Analysis | `casehub-neocortex-example-text-analysis` |
 | Example RAG Pipeline | `casehub-neocortex-example-rag-pipeline` |
 | Example Goal Cognition | `casehub-neocortex-example-goal-cognition` |
@@ -248,6 +252,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Root Java package (memory-cbr-crossencoder) | `io.casehub.neocortex.memory.cbr.crossencoder` |
 | Root Java package (memory-cbr-tracking) | `io.casehub.neocortex.memory.cbr.tracking` |
 | Root Java package (memory-qdrant) | `io.casehub.neocortex.memory.cbr.qdrant` |
+| Root Java package (knowledge-pipeline) | `io.casehub.neocortex.knowledge` |
 
 ## Build Commands
 

@@ -78,6 +78,7 @@
     <module>cognition</module>
     <module>schema-generator</module>
     <module>knowledge-pipeline-api</module>
+    <module>knowledge-pipeline</module>
 
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
@@ -458,6 +459,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-schema-generator</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-sqlite-support</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
