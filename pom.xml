@@ -77,6 +77,7 @@
     <module>cognition-api</module>
     <module>cognition</module>
     <module>schema-generator</module>
+    <module>knowledge-pipeline-api</module>
 
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
@@ -142,6 +143,7 @@
     <download-maven-plugin.version>1.9.0</download-maven-plugin.version>
     <directory-watcher.version>0.19.1</directory-watcher.version>
     <casehub-platform-api.version>0.2-SNAPSHOT</casehub-platform-api.version>
+    <casehub-connectors.version>0.2-SNAPSHOT</casehub-connectors.version>
     <spring-boot.version>4.1.0</spring-boot.version>
   </properties>
 
@@ -190,6 +192,28 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-platform-schema-generator</artifactId>
+        <version>${casehub-platform-api.version}</version>
+      </dependency>
+
+      <!-- casehub-connectors -->
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-connectors-api</artifactId>
+        <version>${casehub-connectors.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-connectors-location-spi</artifactId>
+        <version>${casehub-connectors.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-connectors-location-ref</artifactId>
+        <version>${casehub-connectors.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-simulation-api</artifactId>
         <version>${casehub-platform-api.version}</version>
       </dependency>
 
@@ -434,6 +458,16 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-schema-generator</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-knowledge-pipeline-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-knowledge-pipeline</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
