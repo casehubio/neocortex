@@ -1,6 +1,7 @@
 package io.casehub.neocortex.cognition.drive;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -22,5 +23,19 @@ public record DriveProfile(
                     "compositeMotivation must be in [0.0, 1.0], got " + compositeMotivation);
         }
         drives = Map.copyOf(drives);
+    }
+
+    public List<io.casehub.neocortex.cognition.appraisal.Drive> allDrives() {
+        return drives.entrySet().stream()
+                     .map(e -> new io.casehub.neocortex.cognition.appraisal.Drive(
+                             e.getKey().name().toLowerCase(),
+                             io.casehub.neocortex.cognition.appraisal.DriveCategory.BASELINE,
+                             e.getValue().intensity(),
+                             e.getValue().trigger()))
+                     .toList();
+    }
+
+    public String dominantDriveName() {
+        return dominantDrive.name().toLowerCase();
     }
 }
