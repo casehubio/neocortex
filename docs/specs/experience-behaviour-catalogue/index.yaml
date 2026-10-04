@@ -1,0 +1,20 @@
+# Experience-to-Behaviour Catalogue — Index
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+version: "1.0.0"
+caps_topology_version: 1
+spec_issue: 401
+parent_epic: 406
+
+shared_node_map:
+  self_worth: [attachment, cbt, bandura]
+  self_efficacy: [bandura, cbt]
+  other_reliability: [attachment, cbt]
+  other_safety: [attachment, cbt]
+  threat_sensitivity: [bis_bas, trauma]
+  FFFS_activation: [bis_bas, trauma]
+  BAS_activation: [bis_bas, operant]
+  reinforcement_expectation: [operant, cbt, bandura]
+  arousal_level: [bis_bas, trauma, attachment]
+  escape_assessment: [trauma, bis_bas]

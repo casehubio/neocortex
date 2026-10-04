@@ -1,0 +1,277 @@
+# Experience-to-Behaviour Catalogue — Operant Conditioning
+# Source: Rescorla-Wagner, Behavioral Momentum
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+entries:
+  - id: operant-positive-reinforcement
+    model: operant
+    clinical_name: Positive reinforcement approach pattern
+    description: >
+      Consistent reward following a behaviour strengthens behaviour→outcome
+      connections. The Rescorla-Wagner prediction error rule drives learning:
+      weight change proportional to surprise (outcome minus prediction).
+      Continuous reinforcement produces fastest attractor formation but
+      lowest extinction resistance.
+    triggers:
+      - node: reward
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+    narratives:
+      - "Your actions reliably produced good outcomes — effort was
+         rewarded, and you learned to expect it."
+      - "The connection between what you did and what you got was
+         clear and consistent."
+    expected_outcomes:
+      - node: approach
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: persist
+        direction: positive
+        strength: [0.3, 0.6]
+    related:
+      - bisbas-approach-dominance
+      - operant-vr-extinction-resistance
+    sources:
+      - ref: "Rescorla & Wagner 1972"
+        data: "ΔW = α×β×(λ−ΣW), learning rate α×β = 0.01-0.25"
+        provenance: empirical
+
+  - id: operant-punishment-avoidance
+    model: operant
+    clinical_name: Punishment-based avoidance
+    description: >
+      Aversive consequences following a behaviour strengthen avoidance
+      connections. Produces behavioural suppression and withdrawal from
+      situations associated with punishment. Negative reinforcement
+      (aversive removal) strengthens escape behaviours.
+    triggers:
+      - node: punishment
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: social_threat
+        intensity: [0.3, 0.6]
+        repetition: moderate
+    narratives:
+      - "Actions that once seemed safe started having painful
+         consequences, and you learned to avoid them."
+      - "The safest strategy was inaction — doing nothing couldn't
+         be punished."
+    expected_outcomes:
+      - node: withdraw
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: comply
+        direction: positive
+        strength: [0.3, 0.5]
+      - node: submit
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - bisbas-inhibition
+      - operant-learned-helplessness
+    sources:
+      - ref: "Rescorla & Wagner 1972"
+        data: "Positive punishment: λ<0, weaken behaviour"
+        provenance: empirical
+
+  - id: operant-vr-extinction-resistance
+    model: operant
+    clinical_name: Variable-ratio extinction resistance
+    description: >
+      Variable-ratio reinforcement produces the highest extinction
+      resistance (2-4× continuous reinforcement). Connections formed
+      under VR schedules have the highest weight stability and lowest
+      decay rate. This is the mechanical basis for why anxious
+      attachment is so change-resistant.
+    triggers:
+      - node: reward
+        intensity: [0.4, 0.7]
+        repetition: high
+        schedule: variable_ratio
+    narratives:
+      - "Rewards came unpredictably — sometimes after two tries,
+         sometimes after twenty. You never stopped trying because
+         the next attempt might pay off."
+      - "The inconsistency itself became the hook — the uncertainty
+         drove relentless engagement."
+    expected_outcomes:
+      - node: persist
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: approach
+        direction: positive
+        strength: [0.4, 0.6]
+    related:
+      - attachment-anxious
+      - operant-positive-reinforcement
+    sources:
+      - ref: "Nevin & Grace 2000"
+        data: "VR extinction resistance 2-4× CRF (behavioral momentum)"
+        provenance: empirical
+      - ref: "#407 spec §4.5"
+        data: "schedule_modifier: variable_ratio=3.0"
+        provenance: empirical
+
+  - id: operant-learned-helplessness
+    model: operant
+    clinical_name: Learned helplessness (uncontrollable aversive)
+    description: >
+      Repeated uncontrollable aversive experiences produce failure of
+      instrumental learning — the organism stops attempting escape or
+      avoidance because outcomes appear independent of behaviour.
+      Strengthens freeze/withdraw, weakens approach/persist.
+    triggers:
+      - node: punishment
+        intensity: [0.6, 0.9]
+        repetition: high
+      - node: powerlessness
+        intensity: [0.7, 1.0]
+        repetition: high
+    narratives:
+      - "Nothing you did changed the outcome. Effort and passivity
+         produced the same result."
+      - "You stopped trying — not from laziness, but from the
+         rational conclusion that trying was pointless."
+    expected_outcomes:
+      - node: withdraw
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: abandon
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: approach
+        direction: negative
+        strength: [0.3, 0.6]
+      - node: persist
+        direction: negative
+        strength: [0.4, 0.7]
+    related:
+      - bisbas-learned-helplessness
+      - trauma-chronic-freeze
+    sources:
+      - ref: "Seligman 1975"
+        data: "Learned helplessness: uncontrollable aversive → motivational deficit"
+        provenance: empirical
+      - ref: "#407 spec §4.2"
+        data: "Repeated uncontrollable threat → FFFS freeze weights increase"
+        provenance: consensus
+
+  - id: operant-extinction-recovery
+    model: operant
+    clinical_name: Extinction with spontaneous recovery
+    description: >
+      Extinction creates a competing inhibitory overlay, not erasure of
+      the original weight. The inhibitory overlay decays faster than the
+      excitatory weight — producing spontaneous recovery, renewal, and
+      reinstatement. Dual-weight architecture per connection.
+    triggers:
+      - node: reward_removal
+        intensity: [0.5, 0.8]
+        repetition: moderate
+    narratives:
+      - "The behaviour that used to be rewarded stopped paying off. You
+         stopped doing it — but the urge never fully went away."
+      - "Months later, in a similar situation, the old behaviour
+         resurfaced as if it had never been extinguished."
+    expected_outcomes:
+      - node: approach
+        direction: negative
+        strength: [0.3, 0.5]
+      - node: discriminate
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - operant-positive-reinforcement
+      - operant-vr-extinction-resistance
+    sources:
+      - ref: "#407 spec §5.2"
+        data: "Dual-weight architecture: excitatory + inhibitory overlay"
+        provenance: consensus
+      - ref: "Rescorla & Wagner 1972"
+        data: "Extinction as inhibitory learning, not unlearning"
+        provenance: empirical
+
+  - id: operant-negative-reinforcement
+    model: operant
+    clinical_name: Negative reinforcement escape/avoidance pattern
+    description: >
+      Removal of an aversive stimulus following a behaviour strengthens
+      that behaviour (negative reinforcement). Produces escape and
+      avoidance responses. Mowrer's two-factor theory: fear conditioning
+      (classical) + escape learning (operant). One of four fundamental
+      operant quadrants — distinct from punishment-based avoidance.
+    triggers:
+      - node: aversive_removal
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: punishment
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "You discovered that certain actions could make the bad things
+         stop — and that discovery shaped everything."
+      - "Running, avoiding, escaping — whatever removed the discomfort
+         became your go-to strategy."
+    expected_outcomes:
+      - node: flight
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.5]
+    related:
+      - operant-punishment-avoidance
+      - bisbas-fffs-flight
+    sources:
+      - ref: "Mowrer 1947"
+        data: "Two-factor theory: fear conditioning + instrumental escape"
+        provenance: empirical
+      - ref: "Rescorla & Wagner 1972"
+        data: "Negative reinforcement: aversive removal strengthens escape"
+        provenance: empirical
+
+  - id: operant-autonomy-reinforcement
+    model: operant
+    clinical_name: Autonomy-contingent reinforcement
+    description: >
+      Positive outcomes contingent on autonomous action strengthen
+      self-directed behaviour. Autonomy support (agency granted) paired
+      with successful outcomes builds intrinsic motivation and
+      exploration. Integrates Deci & Ryan's self-determination theory
+      with operant contingency learning.
+    triggers:
+      - node: agency_granted
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+      - node: reward
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "When you were given freedom to choose your own path, good
+         things followed — reinforcing your instinct to act independently."
+      - "Autonomy was rewarded, not punished. You learned that your own
+         judgment could be trusted."
+    expected_outcomes:
+      - node: self_direct
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: explore
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: rebel
+        direction: positive
+        strength: [0.2, 0.4]
+    developmental_period: childhood
+    related:
+      - operant-positive-reinforcement
+      - bandura-mastery-efficacy
+    sources:
+      - ref: "Deci & Ryan 2000"
+        data: "SDT: autonomy support → intrinsic motivation, well-being"
+        provenance: empirical
+      - ref: "Grolnick & Ryan 1989"
+        data: "Parental autonomy support → self-regulation in children"
+        provenance: empirical

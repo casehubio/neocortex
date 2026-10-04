@@ -1,0 +1,222 @@
+# Experience-to-Behaviour Catalogue — Social Learning Theory
+# Source: Bandura
+# Spec: casehubio/neocortex#401
+# Topology: docs/specs/2026-10-02-caps-topology.yaml v1
+
+entries:
+  - id: bandura-mastery-efficacy
+    model: bandura
+    clinical_name: Mastery-based self-efficacy
+    description: >
+      Direct mastery experience is the strongest source of self-efficacy
+      (relative weight 1.0). Domain-specific: effect sizes are 2× larger
+      for domain-specific vs general self-efficacy measures. Successful
+      performance → self-efficacy → increased future attempt probability.
+      Recurrent feedback loop native to CAPS.
+    triggers:
+      - node: mastery
+        intensity: [0.5, 0.8]
+        repetition: high
+        schedule: continuous
+      - node: competence_recognition
+        intensity: [0.4, 0.7]
+        repetition: moderate
+    narratives:
+      - "You attempted something difficult and succeeded — then did it
+         again, and again. Each success built confidence in your own
+         capability."
+      - "The proof was in your own hands. You knew you could do it
+         because you had already done it."
+    expected_outcomes:
+      - node: self_efficacy
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: persist
+        direction: positive
+        strength: [0.5, 0.8]
+      - node: approach
+        direction: positive
+        strength: [0.4, 0.6]
+      - node: risk_take
+        direction: positive
+        strength: [0.2, 0.4]
+      - node: explore
+        direction: positive
+        strength: [0.3, 0.5]
+    related:
+      - cbt-positive-self
+      - bandura-efficacy-gate
+      - bandura-observational-learning
+    sources:
+      - ref: "Multon et al. 1991"
+        data: "Self-efficacy → performance ~14% variance"
+        provenance: empirical
+      - ref: "Sitzmann & Ely 2011"
+        data: "Domain-specific vs general SE: 2× effect"
+        provenance: empirical
+      - ref: "Bandura 1997"
+        data: "Mastery experience: relative weight 1.0 (reference)"
+        provenance: empirical
+
+  - id: bandura-vicarious-fear
+    model: bandura
+    clinical_name: Vicarious fear acquisition
+    description: >
+      Observing a model experience aversive consequences produces fear
+      learning at 15-25% the strength of direct experience. Effects
+      are temporary without subsequent direct reinforcement. Model
+      similarity modulates strength.
+    triggers:
+      - node: modeling_observed
+        intensity: [0.5, 0.8]
+        repetition: moderate
+      - node: social_threat
+        intensity: [0.3, 0.6]
+        repetition: moderate
+    narratives:
+      - "You watched someone else get hurt or punished for something,
+         and learned to fear it yourself — without ever experiencing
+         it directly."
+      - "Seeing someone you identified with suffer was enough to teach
+         you that situation was dangerous."
+    expected_outcomes:
+      - node: withdraw
+        direction: positive
+        strength: [0.2, 0.4]
+      - node: cautious_approach
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - bandura-observational-learning
+      - bisbas-inhibition
+    sources:
+      - ref: "Ollendick et al. 1983"
+        data: "Vicarious reinforcement durability studies"
+        provenance: empirical
+      - ref: "#407 spec §4.6"
+        data: "Vicarious 15-25% of direct, β_vicarious ≈ 0.3-0.5"
+        provenance: empirical
+
+  - id: bandura-observational-learning
+    model: bandura
+    clinical_name: Observational learning chain
+    description: >
+      Four-stage learning from observation: attention (model salience) →
+      retention (behavior_schema) → reproduction (gated by self-efficacy)
+      → motivation (vicarious/direct reinforcement). Successful
+      reproduction strengthens self-efficacy in a positive feedback loop.
+    triggers:
+      - node: modeling_observed
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: acceptance
+        intensity: [0.3, 0.6]
+        repetition: moderate
+    narratives:
+      - "You watched someone you admired handle a situation skillfully,
+         and absorbed the pattern — later finding you could do it too."
+      - "Learning came from observation first, then practice confirmed
+         you had picked up the skill."
+    expected_outcomes:
+      - node: approach
+        direction: positive
+        strength: [0.2, 0.4]
+      - node: persist
+        direction: positive
+        strength: [0.2, 0.4]
+      - node: generalize
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - bandura-mastery-efficacy
+      - bandura-vicarious-fear
+    sources:
+      - ref: "Bandura 1977"
+        data: "Social Learning Theory: attention→retention→reproduction→motivation"
+        provenance: empirical
+      - ref: "Mozahem 2022"
+        data: "Agent-based reciprocal determinism simulation"
+        provenance: empirical
+
+  - id: bandura-model-imitation
+    model: bandura
+    clinical_name: Model-based imitation
+    description: >
+      Learning behaviour patterns from high-salience models (high status,
+      similarity, warmth). Vicarious reinforcement at 15-25% direct
+      strength. Model_attention is modulated by model characteristics;
+      behaviour_schema stores the learned pattern.
+    triggers:
+      - node: modeling_observed
+        intensity: [0.6, 0.9]
+        repetition: high
+      - node: dominance
+        intensity: [0.3, 0.5]
+        repetition: moderate
+    narratives:
+      - "Someone powerful or admired showed you how they handled the
+         world, and you absorbed their patterns."
+      - "You modelled yourself on someone you respected, adopting their
+         strategies and mannerisms."
+    expected_outcomes:
+      - node: approach
+        direction: positive
+        strength: [0.2, 0.5]
+      - node: assert
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - bandura-observational-learning
+    sources:
+      - ref: "Bandura 1977"
+        data: "Model salience factors: status, similarity, warmth"
+        provenance: empirical
+      - ref: "#407 spec §4.6"
+        data: "model_attention → behavior_schema weight 0.35"
+        provenance: consensus
+
+  - id: bandura-efficacy-gate
+    model: bandura
+    clinical_name: Self-efficacy as behavioural gate
+    description: >
+      Self-efficacy mediates whether knowledge translates to action.
+      Low self-efficacy blocks behavioural reproduction regardless of
+      skill acquisition. Also gates recovery — positive experiences
+      don't update the network if the character doesn't attempt the
+      behaviours that would generate positive outcomes.
+    triggers:
+      - node: failure
+        intensity: [0.5, 0.8]
+        repetition: high
+      - node: performance_judged
+        intensity: [0.5, 0.8]
+        repetition: high
+    narratives:
+      - "You knew what to do but couldn't bring yourself to try —
+         past failures had convinced you it wouldn't work."
+      - "The knowledge was there but the confidence wasn't. The gap
+         between knowing and doing felt uncrossable."
+    expected_outcomes:
+      - node: self_efficacy
+        direction: negative
+        strength: [0.4, 0.7]
+      - node: abandon
+        direction: positive
+        strength: [0.4, 0.7]
+      - node: withdraw
+        direction: positive
+        strength: [0.3, 0.6]
+      - node: depend
+        direction: positive
+        strength: [0.2, 0.4]
+    related:
+      - bandura-mastery-efficacy
+      - cbt-negative-self
+      - operant-learned-helplessness
+    sources:
+      - ref: "Multon et al. 1991"
+        data: "Self-efficacy → performance ~14% variance"
+        provenance: empirical
+      - ref: "#407 spec §4.7"
+        data: "Self-efficacy gates recovery (cross-model bridge #3)"
+        provenance: consensus

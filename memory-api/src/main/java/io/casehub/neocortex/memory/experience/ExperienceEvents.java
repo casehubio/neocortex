@@ -50,6 +50,22 @@ public final class ExperienceEvents {
                     attrs.put(ExperienceAttributeKeys.CAPABILITY, o.capability());
                 }
             }
+            case FormativeExperience f -> {
+                reserved.add(FormativeAttributeKeys.CATALOGUE_ENTRY_ID);
+                attrs.put(FormativeAttributeKeys.CATALOGUE_ENTRY_ID, f.catalogueEntryId());
+                reserved.add(FormativeAttributeKeys.SITUATION_TYPES);
+                attrs.put(FormativeAttributeKeys.SITUATION_TYPES, String.join(",", f.situationTypes()));
+                reserved.add(FormativeAttributeKeys.SALIENCE_MULTIPLIER);
+                attrs.put(FormativeAttributeKeys.SALIENCE_MULTIPLIER, String.valueOf(f.salienceMultiplier()));
+                if (f.reinforcementSchedule() != null) {
+                    reserved.add(FormativeAttributeKeys.REINFORCEMENT_SCHEDULE);
+                    attrs.put(FormativeAttributeKeys.REINFORCEMENT_SCHEDULE, f.reinforcementSchedule());
+                }
+                if (f.developmentalPeriod() != null) {
+                    reserved.add(FormativeAttributeKeys.DEVELOPMENTAL_PERIOD);
+                    attrs.put(FormativeAttributeKeys.DEVELOPMENTAL_PERIOD, f.developmentalPeriod());
+                }
+            }
         }
 
         for (String key : event.metadata().keySet()) {
@@ -61,15 +77,20 @@ public final class ExperienceEvents {
 
         attrs.putAll(event.metadata());
 
+        Double pleasure = event instanceof FormativeExperience f ? f.pleasure() : null;
+        Double arousal = event instanceof FormativeExperience f2 ? f2.arousal() : null;
+        Double dominance = event instanceof FormativeExperience f3 ? f3.dominance() : null;
+
         return new MemoryInput(Subject.of("agent", event.agentId()), DOMAIN, event.tenantId(),
-                               event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null, null, null, null, PrincipalId.agent(event.agentId()), null);
+                               event.caseId(), event.description(), attrs, event.confidence() != null ? Confidence.unknown(event.confidence()) : null, pleasure, arousal, dominance, PrincipalId.agent(event.agentId()), null);
     }
 
     private static String eventTypeName(ExperienceEvent event) {
         return switch (event) {
-            case Observation o -> "observation";
-            case Action a      -> "action";
-            case Outcome o     -> "outcome";
+            case Observation o        -> "observation";
+            case Action a             -> "action";
+            case Outcome o            -> "outcome";
+            case FormativeExperience f -> "formative";
         };
     }
 }

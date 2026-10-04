@@ -12,7 +12,7 @@ public final class SubgraphTypes {
     public static final String GOAL        = "goal";
     public static final String ACTIVITY    = "activity";
     public static final String PLACE       = "place";
-
+    public static final String BEHAVIORAL  = "behavioral";
 
     private SubgraphTypes() {}
 }

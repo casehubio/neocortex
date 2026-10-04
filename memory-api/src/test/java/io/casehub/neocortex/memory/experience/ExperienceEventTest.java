@@ -119,18 +119,21 @@ class ExperienceEventTest {
             case Observation o -> "obs";
             case Action a -> "act";
             case Outcome o -> "out";
+            case FormativeExperience f -> "formative";
         });
 
         assertEquals("act", switch (act) {
             case Observation o -> "obs";
             case Action a -> "act";
             case Outcome o -> "out";
+            case FormativeExperience f -> "formative";
         });
 
         assertEquals("out", switch (out) {
             case Observation o -> "obs";
             case Action a -> "act";
             case Outcome o -> "out";
+            case FormativeExperience f -> "formative";
         });
     }
 }
