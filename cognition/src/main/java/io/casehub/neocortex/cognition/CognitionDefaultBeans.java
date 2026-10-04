@@ -107,4 +107,19 @@ public class CognitionDefaultBeans {
     NormFilter normFilter() {
         return (norms, agentId, tenantId) -> norms;
     }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy() {
+        return new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy() {
+        return new io.casehub.neocortex.cognition.appraisal.NoOpAppraisalStrategy();
+    }
+
 }
