@@ -1,4 +1,4 @@
-package io.casehub.neocortex.cognition.appraisal;
+package io.casehub.neocortex.cognitive;
 
 import java.util.Map;
 

@@ -7,6 +7,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
+import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -57,9 +58,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
 
         var defaults = defaultsRegistry != null
                 ? defaultsRegistry.forAgentOrDefaults(context.agentId()) : null;
-        var weights = defaults != null ? defaults.appraisalWeights() : null;
-        HabituationConfig habConfig = null; // wired by B5T1 via CognitiveDefaults.habituationConfig()
-        var habituation = habituationStates.getOrDefault(agentKey, HabituationState.empty());
+        var weights   = defaults != null ? defaults.appraisalWeights() : null;
+        var habConfig = defaults != null ? defaults.habituationConfig() : null;
+        var               habituation = habituationStates.getOrDefault(agentKey, HabituationState.empty());
 
         PerceivedSituation situation;
         if (config.salienceEnabled() && observation != null) {

@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.appraisal;
 
+import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import java.util.List;

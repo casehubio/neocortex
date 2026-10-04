@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.appraisal;
 
+import io.casehub.neocortex.cognitive.HabituationConfig;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
