@@ -7,5 +7,12 @@ public record CognitionTickContext(
         String agentId,
         String tenantId,
         @Nullable AgentDescriptor descriptor,
-        SubjectResolver resolver
-) {}
+        SubjectResolver resolver,
+        @Nullable String observation
+) {
+    public CognitionTickContext(String agentId, String tenantId,
+                                @Nullable AgentDescriptor descriptor,
+                                SubjectResolver resolver) {
+        this(agentId, tenantId, descriptor, resolver, null);
+    }
+}
