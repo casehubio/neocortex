@@ -17,15 +17,21 @@ import io.casehub.neocortex.cognition.narrative.NarrativeConfig;
 import io.casehub.neocortex.cognition.personality.PersonalityEvolutionConfig;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
+import io.casehub.platform.agent.AgentProvider;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.util.Set;
 
 @ApplicationScoped
 public class CognitionDefaultBeans {
+
+    @Inject
+    Instance<AgentProvider> agentProviderInstance;
 
     @Produces @DefaultBean @Singleton
     DriveConfig driveConfig() {
@@ -119,11 +125,24 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy() {
+        io.casehub.neocortex.cognition.appraisal.SecCheck implicationCheck;
+        io.casehub.neocortex.cognition.appraisal.SecCheck copingCheck;
+        io.casehub.neocortex.cognition.appraisal.SecCheck normativeCheck;
+
+        if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
+            var provider = agentProviderInstance.get();
+            implicationCheck = new io.casehub.neocortex.cognition.appraisal.LlmImplicationCheck(provider);
+            copingCheck      = new io.casehub.neocortex.cognition.appraisal.LlmCopingCheck(provider);
+            normativeCheck   = new io.casehub.neocortex.cognition.appraisal.LlmNormativeCheck(provider);
+        } else {
+            implicationCheck = new io.casehub.neocortex.cognition.appraisal.ImplicationCheck();
+            copingCheck      = new io.casehub.neocortex.cognition.appraisal.CopingCheck();
+            normativeCheck   = new io.casehub.neocortex.cognition.appraisal.NormativeCheck();
+        }
+
         return new io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy(
                 new io.casehub.neocortex.cognition.appraisal.RelevanceCheck(),
-                new io.casehub.neocortex.cognition.appraisal.ImplicationCheck(),
-                new io.casehub.neocortex.cognition.appraisal.CopingCheck(),
-                new io.casehub.neocortex.cognition.appraisal.NormativeCheck(),
+                implicationCheck, copingCheck, normativeCheck,
                 io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig.allEnabled());
     }
 
