@@ -125,24 +125,17 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy() {
-        io.casehub.neocortex.cognition.appraisal.SecCheck implicationCheck;
-        io.casehub.neocortex.cognition.appraisal.SecCheck copingCheck;
-        io.casehub.neocortex.cognition.appraisal.SecCheck normativeCheck;
-
         if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
-            var provider = agentProviderInstance.get();
-            implicationCheck = new io.casehub.neocortex.cognition.appraisal.LlmImplicationCheck(provider);
-            copingCheck      = new io.casehub.neocortex.cognition.appraisal.LlmCopingCheck(provider);
-            normativeCheck   = new io.casehub.neocortex.cognition.appraisal.LlmNormativeCheck(provider);
-        } else {
-            implicationCheck = new io.casehub.neocortex.cognition.appraisal.ImplicationCheck();
-            copingCheck      = new io.casehub.neocortex.cognition.appraisal.CopingCheck();
-            normativeCheck   = new io.casehub.neocortex.cognition.appraisal.NormativeCheck();
+            return new io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy(
+                    agentProviderInstance.get());
         }
 
+        // Fallback: 4-check Scherer pipeline with keyword-based checks
         return new io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy(
                 new io.casehub.neocortex.cognition.appraisal.RelevanceCheck(),
-                implicationCheck, copingCheck, normativeCheck,
+                new io.casehub.neocortex.cognition.appraisal.ImplicationCheck(),
+                new io.casehub.neocortex.cognition.appraisal.CopingCheck(),
+                new io.casehub.neocortex.cognition.appraisal.NormativeCheck(),
                 io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig.allEnabled());
     }
 

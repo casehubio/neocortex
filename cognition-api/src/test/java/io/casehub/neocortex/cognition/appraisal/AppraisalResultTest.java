@@ -81,6 +81,24 @@ class AppraisalResultTest {
     }
 
     @Test
+    void narrativeFieldPreserved() {
+        var result = new AppraisalResult(List.of(), List.of(), HabituationState.empty(),
+                "You feel a knot of dread in your stomach.");
+        assertThat(result.narrative()).isEqualTo("You feel a knot of dread in your stomach.");
+    }
+
+    @Test
+    void narrativeNullByDefault() {
+        var result = new AppraisalResult(List.of(), List.of(), HabituationState.empty());
+        assertThat(result.narrative()).isNull();
+    }
+
+    @Test
+    void emptyFactoryHasNullNarrative() {
+        assertThat(AppraisalResult.empty().narrative()).isNull();
+    }
+
+    @Test
     void appraisalStrategyFunctionalInterface() {
         AppraisalStrategy strategy = ctx -> AppraisalResult.empty();
         var situation = PerceivedSituation.passThrough("test");

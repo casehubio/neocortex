@@ -22,21 +22,25 @@ public class AppraisalPromptSection implements CognitionPromptRenderer {
     }
 
     private static @Nullable String renderEvocative(AppraisalResult result) {
+        if (result.narrative() != null && !result.narrative().isBlank()) {
+            return result.narrative().strip();
+        }
+
         var sb = new StringBuilder();
 
         if (!result.emotions().isEmpty()) {
             sb.append("You feel ");
             var emotions = result.emotions();
             for (int i = 0; i < emotions.size(); i++) {
-                if (i > 0) sb.append(i == emotions.size() - 1 ? " and " : ", ");
+                if (i > 0) {sb.append(i == emotions.size() - 1 ? " and " : ", ");}
                 sb.append(describeEmotion(emotions.get(i)));
             }
             sb.append(".\n");
         }
 
         result.actionTendencies().stream()
-                .filter(t -> t.intensity() > 0.3)
-                .forEach(t -> sb.append(describeTendency(t)).append("\n"));
+              .filter(t -> t.intensity() > 0.3)
+              .forEach(t -> sb.append(describeTendency(t)).append("\n"));
 
         return sb.isEmpty() ? null : sb.toString().strip();
     }

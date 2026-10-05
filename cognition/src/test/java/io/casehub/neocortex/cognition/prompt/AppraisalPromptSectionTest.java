@@ -88,6 +88,40 @@ class AppraisalPromptSectionTest {
         assertThat(rendered).contains("fear").contains("anger");
     }
 
+    @Test
+    void prefersNarrativeWhenPresent() {
+        var emotion = new CognitiveEmotion(
+                EmotionType.FEAR, 0.8, "dark-corridor", Instant.now(),
+                EmotionSource.INTRINSIC, new PadProjection(-0.6, 0.7, -0.4));
+        var result = new AppraisalResult(
+                List.of(emotion), List.of(), HabituationState.empty(),
+                "A cold knot tightens in your chest — something is wrong.");
+
+        var participant = participantReturning(Optional.of(result));
+        var section = new AppraisalPromptSection(participant);
+        var context = new CognitionRenderContext("a1", "t1", null);
+
+        var rendered = section.render(context);
+        assertThat(rendered)
+                .isEqualTo("A cold knot tightens in your chest — something is wrong.");
+    }
+
+    @Test
+    void fallsBackToTemplateWhenNoNarrative() {
+        var emotion = new CognitiveEmotion(
+                EmotionType.FEAR, 0.8, "corridor", Instant.now(),
+                EmotionSource.INTRINSIC, new PadProjection(-0.6, 0.7, -0.4));
+        var result = new AppraisalResult(
+                List.of(emotion), List.of(), HabituationState.empty());
+
+        var participant = participantReturning(Optional.of(result));
+        var section = new AppraisalPromptSection(participant);
+        var context = new CognitionRenderContext("a1", "t1", null);
+
+        var rendered = section.render(context);
+        assertThat(rendered).contains("fear");
+    }
+
     private AppraisalTickParticipant participantReturning(Optional<AppraisalResult> result) {
         return new AppraisalTickParticipant(
                 new NoOpSalienceStrategy(), new NoOpAppraisalStrategy(),
