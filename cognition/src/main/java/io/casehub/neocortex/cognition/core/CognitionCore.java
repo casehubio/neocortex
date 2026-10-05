@@ -1,17 +1,21 @@
 package io.casehub.neocortex.cognition.core;
 
+import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.eidos.api.ConstraintSeverity;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.NeedTierMappingProvider;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator;
 import io.casehub.neocortex.cognition.memory.MemoryHygieneOrchestrator;
+import io.casehub.neocortex.cognition.mentalmodel.CueType;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator;
 import io.casehub.neocortex.cognition.mentalmodel.MentalStateSignal;
-import io.casehub.neocortex.cognition.mentalmodel.CueType;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
+import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
+import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
 import io.casehub.neocortex.cognition.prompt.AttentionPromptSection;
 import io.casehub.neocortex.cognition.prompt.CharacterDrivePromptSection;
 import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
@@ -40,8 +44,6 @@ import io.casehub.neocortex.mindmap.AttentionBriefing;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.SignalCategory;
-import io.casehub.eidos.api.AgentDescriptor;
-import io.casehub.eidos.api.ConstraintSeverity;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
@@ -109,6 +111,8 @@ public class CognitionCore {
     private volatile @Nullable AgentDescriptor lastDescriptor;
     private volatile @Nullable List<ConsolidationArtifact> lastConsolidationArtifacts;
     private UnaryOperator<List<CognitionPromptRenderer>> sectionCustomizer;
+    private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
+
 
     public CognitionCore(MoodOrchestrator mood,
                          DriveOrchestrator drives,
@@ -474,7 +478,11 @@ public class CognitionCore {
         if (isEnabled(config.goalsEnabled(), AttentionRelevance.GOALS) && goals != null) {
             sections.add(new EmergentGoalPromptSection(goals));
         }
-        if (config.characterDrivesEnabled() && mindMapStore != null) {
+        var appraisalActive = config.appraisalEnabled() && appraisalParticipant != null;
+        if (appraisalActive) {
+            sections.add(new AppraisalPromptSection(appraisalParticipant));
+        }
+        if (config.characterDrivesEnabled() && !appraisalActive && mindMapStore != null) {
             sections.add(new CharacterDrivePromptSection(mindMapStore));
         }
         if (config.needsPyramidEnabled() && mindMapStore != null) {
@@ -518,6 +526,11 @@ public class CognitionCore {
                                  ? next
                                  : sections -> next.apply(new ArrayList<>(prev.apply(sections)));
     }
+
+    public void setAppraisalParticipant(AppraisalTickParticipant appraisalParticipant) {
+        this.appraisalParticipant = appraisalParticipant;
+    }
+
 
     private boolean isEnabled(boolean configFlag, Set<SignalCategory> relevance) {
         return configFlag || (lastBriefing != null && config.attentionEnabled()

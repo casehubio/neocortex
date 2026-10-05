@@ -107,4 +107,24 @@ public class CognitionDefaultBeans {
     NormFilter normFilter() {
         return (norms, agentId, tenantId) -> norms;
     }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy() {
+        return new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy() {
+        return new io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy(
+                new io.casehub.neocortex.cognition.appraisal.RelevanceCheck(),
+                new io.casehub.neocortex.cognition.appraisal.ImplicationCheck(),
+                new io.casehub.neocortex.cognition.appraisal.CopingCheck(),
+                new io.casehub.neocortex.cognition.appraisal.NormativeCheck(),
+                io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig.allEnabled());
+    }
+
 }

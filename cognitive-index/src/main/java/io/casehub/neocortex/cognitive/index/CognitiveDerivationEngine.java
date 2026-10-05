@@ -15,6 +15,7 @@
  */
 package io.casehub.neocortex.cognitive.index;
 
+import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.mood.MoodBaseline;
@@ -99,6 +100,22 @@ public final class CognitiveDerivationEngine {
         "calculated", 90,
         "bold", 180
     );
+    private static final Map<String, Double>  RISK_HABITUATION_RATE = Map.of(
+            "conservative", 0.1,
+            "calculated", 0.2,
+            "bold", 0.4
+                                                                            );
+    private static final Map<String, Double>  RISK_NOVELTY_THRESHOLD = Map.of(
+            "conservative", 0.2,
+            "calculated", 0.3,
+            "bold", 0.5
+                                                                             );
+    private static final Map<String, Double>  RULE_REPETITION_TOLERANCE = Map.of(
+            "flexible", 3.0,
+            "moderate", 5.0,
+            "strict", 8.0
+                                                                                );
+
 
     private static final Map<String, RetrievalMode> RULE_RETRIEVAL_MODE = Map.of(
         "flexible", RetrievalMode.SEMANTIC_ONLY,
@@ -131,6 +148,7 @@ public final class CognitiveDerivationEngine {
         GraphStructureDefaults  graphStructure   = deriveGraphStructure(descriptor.dispositionProfile());
         ExtractionBiasDefaults  extractionBias   = deriveExtractionBias(descriptor.dispositionProfile());
         AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile(), descriptor.disposition());
+        HabituationConfig       habituation      = deriveHabituationConfig(descriptor.disposition(), descriptor.goals());
 
         return CognitiveDefaults.empty(descriptor.agentId())
                 .withPersonality(personality)
@@ -141,7 +159,8 @@ public final class CognitiveDerivationEngine {
                 .withSocialCognition(socialCognition)
                 .withGraphStructure(graphStructure)
                 .withExtractionBias(extractionBias)
-                .withAppraisalWeights(appraisal);
+                .withAppraisalWeights(appraisal)
+                .withHabituationConfig(habituation);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
@@ -160,6 +179,7 @@ public final class CognitiveDerivationEngine {
                 .withGraphStructure(explicit.graphStructure() != null ? explicit.graphStructure() : derived.graphStructure())
                 .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
                 .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
+                .withHabituationConfig(explicit.habituationConfig() != null ? explicit.habituationConfig() : derived.habituationConfig())
                 .withVocabulary(explicit.vocabulary())
                 .withServices(explicit.services())
                 .withTraitRules(explicit.traitRules())
@@ -399,6 +419,34 @@ public final class CognitiveDerivationEngine {
                 Math.clamp(otherStrictness, 0.5, 2.0)
         );
     }
+
+    static HabituationConfig deriveHabituationConfig(DispositionAxes axes, List<String> goals) {
+        if (axes == null) {return null;}
+
+        double habRate = RISK_HABITUATION_RATE.getOrDefault(lower(axes.riskAppetite()), 0.2);
+        double novelty = RISK_NOVELTY_THRESHOLD.getOrDefault(lower(axes.riskAppetite()), 0.3);
+        double repTol  = RULE_REPETITION_TOLERANCE.getOrDefault(lower(axes.ruleFollowing()), 5.0);
+
+        if ("high".equalsIgnoreCase(axes.autonomy())) {
+            repTol -= 1.0;
+        }
+
+        Map<String, Double> domainMod = new HashMap<>();
+        if (goals != null) {
+            for (String goal : goals) {
+                if (goal == null) {continue;}
+                String lowerGoal = goal.toLowerCase();
+                for (var entry : GOAL_SUBGRAPH_MAPPING.entrySet()) {
+                    if (lowerGoal.contains(entry.getKey())) {
+                        domainMod.put(entry.getValue(), 0.5);
+                    }
+                }
+            }
+        }
+
+        return new HabituationConfig(habRate, novelty, Math.max(2.0, repTol), domainMod);
+    }
+
 
     private static String lower(String s) {
         return s != null ? s.toLowerCase() : "";
