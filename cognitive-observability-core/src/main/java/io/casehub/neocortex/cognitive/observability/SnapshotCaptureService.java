@@ -6,6 +6,10 @@ import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationCompleted;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.PhaseResult;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -14,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@ApplicationScoped
 public class SnapshotCaptureService {
 
     private final SnapshotStore snapshotStore;
@@ -22,15 +27,17 @@ public class SnapshotCaptureService {
     private final int retentionDays;
     private volatile Instant lastPurgeTime = Instant.EPOCH;
 
+    @Inject
     public SnapshotCaptureService(SnapshotStore snapshotStore, MindMapStore mindMapStore,
-                                   int keyframeInterval, int retentionDays) {
+                                   @ConfigProperty(name = "casehub.observability.keyframe-interval", defaultValue = "10") int keyframeInterval,
+                                   @ConfigProperty(name = "casehub.observability.retention-days", defaultValue = "30") int retentionDays) {
         this.snapshotStore = snapshotStore;
         this.mindMapStore = mindMapStore;
         this.keyframeInterval = keyframeInterval;
         this.retentionDays = retentionDays;
     }
 
-    public void onConsolidationCompleted(ConsolidationCompleted event) {
+    public void onConsolidationCompleted(@Observes ConsolidationCompleted event) {
         String tenantId = event.tenantId();
         List<PhaseResult> phaseResults = event.phaseResults();
 
