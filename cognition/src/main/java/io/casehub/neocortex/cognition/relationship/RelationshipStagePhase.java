@@ -9,6 +9,10 @@ import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationPhase;
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+@ApplicationScoped
 @Priority(18)
 public class RelationshipStagePhase implements ConsolidationPhase {
 
@@ -30,7 +35,22 @@ public class RelationshipStagePhase implements ConsolidationPhase {
     private final String peopleSubgraphName;
     private final long consolidationIntervalMs;
 
+    @Inject
     public RelationshipStagePhase(
+            MindMapStore mindMapStore,
+            CaseMemoryStore memoryStore,
+            Instance<RelationshipStageConfigProvider> configProvider,
+            @ConfigProperty(name = "casehub.cognition.relationship.subgraph",
+                            defaultValue = "person") String peopleSubgraphName,
+            @ConfigProperty(name = "casehub.cognition.relationship.interval-ms",
+                            defaultValue = "300000") long consolidationIntervalMs) {
+        this(mindMapStore, memoryStore,
+             configProvider.isResolvable() ? configProvider.get()
+                 : agentId -> RelationshipStageConfig.defaults(),
+             peopleSubgraphName, consolidationIntervalMs);
+    }
+
+    RelationshipStagePhase(
             MindMapStore mindMapStore,
             CaseMemoryStore memoryStore,
             RelationshipStageConfigProvider configProvider,
