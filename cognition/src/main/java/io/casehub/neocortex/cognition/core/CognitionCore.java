@@ -2,6 +2,7 @@ package io.casehub.neocortex.cognition.core;
 
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.ConstraintSeverity;
+import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.NeedTierMappingProvider;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
@@ -14,7 +15,6 @@ import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
-import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
 import io.casehub.neocortex.cognition.prompt.AttentionPromptSection;
 import io.casehub.neocortex.cognition.prompt.CharacterDrivePromptSection;
@@ -182,8 +182,15 @@ public class CognitionCore {
     public void tick(String agentId, String tenantId,
                      @Nullable AgentDescriptor descriptor,
                      SubjectResolver resolver) {
+        tick(agentId, tenantId, descriptor, resolver, null);
+    }
+
+    public void tick(String agentId, String tenantId,
+                     @Nullable AgentDescriptor descriptor,
+                     SubjectResolver resolver,
+                     @Nullable String observation) {
         this.lastDescriptor = descriptor;
-        this.lastBriefing = null;
+        this.lastBriefing   = null;
         if (attentionMediator != null) {
             var briefing = attentionMediator.drainAttention(agentId);
             if (config.attentionEnabled()) {
@@ -199,9 +206,9 @@ public class CognitionCore {
         }
         if (config.temporalFocusEnabled() && temporalFocus != null) {
             safeRun(() -> temporalFocus.tick(agentId, tenantId,
-                    resolver.relevantSubjects(agentId, tenantId)));
+                                             resolver.relevantSubjects(agentId, tenantId)));
         }
-        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver);
+        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation);
 
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
@@ -241,6 +248,7 @@ public class CognitionCore {
         }
         runCustomParticipants(CognitionPhase.TERMINAL, context);
     }
+
 
     public void recordInteraction(String agentId, String tenantId,
                                   @Nullable String subjectId,
@@ -529,6 +537,15 @@ public class CognitionCore {
 
     public void setAppraisalParticipant(AppraisalTickParticipant appraisalParticipant) {
         this.appraisalParticipant = appraisalParticipant;
+    }
+
+    public void configureAppraisal(
+            io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
+            io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
+            io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
+        this.appraisalParticipant = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config);
+        addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
     }
 
 
