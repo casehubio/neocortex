@@ -17,6 +17,7 @@ import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
 import io.casehub.neocortex.cognition.prompt.AttentionPromptSection;
+import io.casehub.neocortex.cognition.prompt.BehavioralPromptSection;
 import io.casehub.neocortex.cognition.prompt.CharacterDrivePromptSection;
 import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
 import io.casehub.neocortex.cognition.prompt.ConsolidationPromptSection;
@@ -495,6 +496,9 @@ public class CognitionCore {
         }
         if (config.needsPyramidEnabled() && mindMapStore != null) {
             sections.add(new NeedsPyramidPromptSection(mindMapStore, needTierMapping));
+        }
+        if (config.behavioralEnabled() && mindMapStore != null) {
+            sections.add(new BehavioralPromptSection(mindMapStore));
         }
         if (config.attentionEnabled() && lastBriefing != null) {
             sections.add(new AttentionPromptSection(lastBriefing));

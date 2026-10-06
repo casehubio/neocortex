@@ -32,7 +32,12 @@ public class DirectiveSection implements CognitionPromptRenderer {
                     + "in the conversation — steer discussion toward goal-relevant topics, ask questions "
                     + "that advance your goals, share insights that serve them:",
             "StrategyPromptSection",
-            "These are interaction strategies you have learned work well. Apply them:"
+            "These are interaction strategies you have learned work well. Apply them:",
+            "BehavioralPromptSection",
+            "These are your established behavioral patterns — deep tendencies shaped by "
+                    + "accumulated experience. They are not rules but dispositions. Strong patterns "
+                    + "should color your responses naturally; fading patterns can be overridden by "
+                    + "current context:"
     );
 
     private final CognitionPromptRenderer delegate;

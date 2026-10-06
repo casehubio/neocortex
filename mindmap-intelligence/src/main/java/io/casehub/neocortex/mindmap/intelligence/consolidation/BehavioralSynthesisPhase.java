@@ -1,9 +1,9 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.BehavioralAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
-import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognitive.EmotionType;
@@ -118,10 +118,13 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             try {
                 var result = capsEngine.settle(state, combinedActivations);
 
+                List<String> nodeNames = agentNodes.stream()
+                    .map(MindMapNode::name).toList();
+
                 for (BehavioralAttractor attractor : result.attractors()) {
                     createOrStrengthenAttractor(
                         tenantId, behavioralSgId, agentId, attractor,
-                        existingAttractors);
+                        existingAttractors, nodeNames);
                 }
 
                 AgentCapsState updated = state;
@@ -202,39 +205,63 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
     private void createOrStrengthenAttractor(String tenantId,
-                                              String behavioralSgId,
-                                              String agentId,
-                                              BehavioralAttractor attractor,
-                                              Set<String> existingAttractors) {
+                                             String behavioralSgId,
+                                             String agentId,
+                                             BehavioralAttractor attractor,
+                                             Set<String> existingAttractors,
+                                             List<String> sourceNodeNames) {
         Optional<MindMapNode> existing = store.search(
-            MindMapQuery.of(tenantId, 100).withType(SubgraphTypes.BEHAVIORAL))
-            .stream()
-            .filter(n -> attractor.nodeId().equals(n.property("caps-node-id").orElse(null)))
-            .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
-            .findFirst();
+                                                      MindMapQuery.of(tenantId, 100).withType(SubgraphTypes.BEHAVIORAL))
+                                              .stream()
+                                              .filter(n -> attractor.nodeId().equals(n.property("caps-node-id").orElse(null)))
+                                              .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
+                                              .findFirst();
 
         if (existing.isPresent()) {
             MindMapNode node = existing.get();
             double currentStrength = node.property("strength")
-                .map(Double::parseDouble).orElse(0.0);
+                                         .map(Double::parseDouble).orElse(0.0);
             double newStrength = Math.min(1.0,
-                currentStrength * 0.7 + attractor.strength() * 0.3);
+                                          currentStrength * 0.7 + attractor.strength() * 0.3);
+
+            int currentCount = node.property("source-count")
+                                   .map(Integer::parseInt).orElse(0);
+            String currentNames = node.property("source-names").orElse("");
+
+            List<String> namesList = new ArrayList<>(
+                    currentNames.isEmpty() ? List.of() :
+                    new ArrayList<>(List.of(currentNames.split(", "))));
+            namesList.addAll(sourceNodeNames);
+            while (namesList.size() > 5) {namesList.removeFirst();}
+            String cappedNames = String.join(", ", namesList);
+
+            var props = new HashMap<String, String>();
+            props.put("strength", String.valueOf(newStrength));
+            props.put("previous-strength", String.valueOf(currentStrength));
+            props.put("generation", String.valueOf(attractor.sourceGeneration()));
+            props.put("source-count", String.valueOf(currentCount + sourceNodeNames.size()));
+            props.put("source-names", cappedNames);
 
             store.updateNode(node.id(),
-                NodeUpdate.empty().withPropertiesToSet(Map.of(
-                    "strength", String.valueOf(newStrength),
-                    "generation", String.valueOf(attractor.sourceGeneration()))),
-                tenantId);
+                             NodeUpdate.empty().withPropertiesToSet(props),
+                             tenantId);
         } else {
+            String names = String.join(", ", sourceNodeNames);
+            if (names.length() > 500) {names = names.substring(0, 500);}
+
+            var props = new HashMap<String, String>();
+            props.put("caps-node-id", attractor.nodeId());
+            props.put("category", attractor.category());
+            props.put("strength", String.valueOf(attractor.strength()));
+            props.put("agent-id", agentId);
+            props.put("generation", String.valueOf(attractor.sourceGeneration()));
+            props.put("source-count", String.valueOf(sourceNodeNames.size()));
+            props.put("source-names", names);
+
             NodeInput input = NodeInput.of(attractor.nodeId(), behavioralSgId)
-                .withTraits(Set.of(CAPS_GENERATED_TRAIT))
-                .withProvenance("behavioral-synthesis")
-                .withProperties(Map.of(
-                    "caps-node-id", attractor.nodeId(),
-                    "category", attractor.category(),
-                    "strength", String.valueOf(attractor.strength()),
-                    "agent-id", agentId,
-                    "generation", String.valueOf(attractor.sourceGeneration())));
+                                       .withTraits(Set.of(CAPS_GENERATED_TRAIT))
+                                       .withProvenance("behavioral-synthesis")
+                                       .withProperties(props);
             store.addNode(input, tenantId);
             existingAttractors.add(attractor.nodeId());
         }

@@ -1,8 +1,22 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsConnection;
+import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.ConnectionWeight;
+import io.casehub.neocortex.caps.ConvergenceType;
+import io.casehub.neocortex.caps.SettlingResult;
+import io.casehub.neocortex.caps.SituationActivation;
+import io.casehub.neocortex.caps.SituationClassifier;
+import io.casehub.neocortex.caps.WeightProvenance;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -186,6 +200,90 @@ class BehavioralSynthesisPhaseTest {
         assertThat(emotionEngine.lastRegularUpdate).isNotNull();
         assertThat(emotionEngine.lastRegularUpdate.salienceMultiplier).isEqualTo(1.0);
     }
+
+    @Test
+    void newAttractorHasSourceCountAndSourceNames() {
+        store.addNode(NodeInput.of("Rewarded for helping others", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem1",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+
+        phase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral).hasSize(1);
+        var node = behavioral.getFirst();
+        assertThat(node.property("source-count")).hasValue("1");
+        assertThat(node.property("source-names")).isPresent();
+        assertThat(node.property("source-names").get()).contains("Rewarded for helping others");
+    }
+
+    @Test
+    void updatedAttractorTracksPreviousStrengthAndIncrementsSources() {
+        store.addNode(NodeInput.of("First experience", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem1",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.6")),
+                      TENANT);
+
+        phase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral1 = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral1).hasSize(1);
+        double firstStrength = Double.parseDouble(
+                behavioral1.getFirst().property("strength").orElse("0"));
+        assertThat(behavioral1.getFirst().property("previous-strength")).isNotPresent();
+
+        store.addNode(NodeInput.of("Second experience", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem2",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.8")),
+                      TENANT);
+
+        phase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral2 = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral2).hasSize(1);
+        var updated = behavioral2.getFirst();
+        assertThat(updated.property("previous-strength"))
+                .hasValue(String.valueOf(firstStrength));
+        assertThat(updated.property("source-count")).hasValue("2");
+        assertThat(updated.property("source-names").get()).contains("Second experience");
+    }
+
+    @Test
+    void sourceNamesCappedAtFive() {
+        for (int i = 1; i <= 7; i++) {
+            store.addNode(NodeInput.of("Experience " + i, cognitiveSubgraphId)
+                                   .withProperties(Map.of(
+                                           "source-memory-id", "mem" + i,
+                                           "agent-id", AGENT,
+                                           "event-type", "observation",
+                                           "graduation-score", "0.7")),
+                          TENANT);
+            phase.run(TENANT, List.of());
+        }
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral).hasSize(1);
+        String names = behavioral.getFirst().property("source-names").orElse("");
+        long   count = names.chars().filter(c -> c == ',').count() + 1;
+        assertThat(count).isLessThanOrEqualTo(5);
+        assertThat(names).contains("Experience 7");
+        assertThat(names).doesNotContain("Experience 1");
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();
