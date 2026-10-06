@@ -11,6 +11,7 @@ import io.casehub.neocortex.knowledge.cache.EntityMetadataStore;
 import io.casehub.neocortex.knowledge.cache.QueryCacheStore;
 import io.casehub.neocortex.knowledge.dedup.DedupIndexStore;
 import io.casehub.neocortex.knowledge.normalization.ExpansionStrategy;
+import io.casehub.neocortex.knowledge.resolution.SpatialBlockingStrategy;
 import io.casehub.neocortex.knowledge.promotion.EntityPromoter;
 import io.casehub.neocortex.knowledge.resolution.EntityResolutionEngine;
 
@@ -45,6 +46,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
     private final TermNormalizer normalizer;
     private final ExpansionStrategy expansionStrategy;
     private final int maxVariantQueries;
+    private final BlockingStrategy blockingStrategy;
     private       KnowledgePipelineMetrics metrics;
 
 
@@ -75,6 +77,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
         this.normalizer = normalizer;
         this.expansionStrategy = expansionStrategy;
         this.maxVariantQueries = maxVariantQueries;
+        this.blockingStrategy = new SpatialBlockingStrategy(cacheStore, 200);
     }
 
     void setMetrics(KnowledgePipelineMetrics metrics) {
@@ -159,7 +162,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
                 false));
         }
 
-        var resolution = resolutionEngine.resolve(entities, cacheStore, dedupStore, tenantId);
+        var resolution = resolutionEngine.resolve(entities, blockingStrategy, cacheStore, dedupStore, tenantId);
         List<CachedEntity> resolved = resolution.resolved();
 
         for (CachedEntity entity : resolved) {
