@@ -1,6 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 
 import java.util.List;
 
@@ -12,5 +13,5 @@ public interface ConsolidationPhase {
 
     default List<AttentionSignal> signals() {return List.of();}
 
-
+    default List<ConsolidationArtifact> artifacts() {return List.of();}
 }

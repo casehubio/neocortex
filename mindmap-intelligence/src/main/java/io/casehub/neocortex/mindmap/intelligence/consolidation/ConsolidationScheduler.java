@@ -4,6 +4,7 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.cbr.FeatureStatistics;
 import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MutationContext;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignal;
@@ -164,12 +165,14 @@ public class ConsolidationScheduler {
         List<String>          priority     = subgraphPriority(tenantId);
         List<PhaseResult>     phaseResults = new ArrayList<>();
         List<AttentionSignal> allSignals   = new ArrayList<>();
+        List<ConsolidationArtifact> allArtifacts = new ArrayList<>();
         for (ConsolidationPhase phase : phases) {
             Instant phaseStart = Instant.now();
             MutationContext.set("consolidation:" + phase.name());
             try {
                 phase.run(tenantId, priority);
                 allSignals.addAll(phase.signals());
+                allArtifacts.addAll(phase.artifacts());
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
             } catch (Exception e) {
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
@@ -183,7 +186,7 @@ public class ConsolidationScheduler {
             refreshUrgencyP75(allSignals);
             attentionAccumulator.addSignals(allSignals);
         }
-        completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults, List.of()));
+        completionSink.accept(new ConsolidationCompleted(tenantId, phaseResults, allArtifacts));
     }
 
     private void refreshUrgencyP75(List<AttentionSignal> signals) {
