@@ -4,7 +4,7 @@ public record CuriositySignal(
     SignalCategory category,
     double score,
     String targetNodeId,
-    String targetSubgraphId,
+    String targetSubgraphType,
     String question,
     String description
 ) {}

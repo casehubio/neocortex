@@ -14,7 +14,7 @@ class CuriositySignalTest {
         assertThat(signal.category()).isEqualTo(SignalCategory.STRUCTURAL);
         assertThat(signal.score()).isEqualTo(0.75);
         assertThat(signal.targetNodeId()).isEqualTo("node-1");
-        assertThat(signal.targetSubgraphId()).isEqualTo("sg-1");
+        assertThat(signal.targetSubgraphType()).isEqualTo("sg-1");
         assertThat(signal.question()).isEqualTo("What is Alice's connection?");
         assertThat(signal.description()).isEqualTo("Orphan node: Alice");
     }

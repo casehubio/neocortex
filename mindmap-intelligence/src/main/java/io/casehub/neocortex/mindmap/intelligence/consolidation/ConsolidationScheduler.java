@@ -214,7 +214,7 @@ public class ConsolidationScheduler {
     private List<String> subgraphPriority(String tenantId) {
         if (curiosityGenerator == null) return List.of();
         return curiosityGenerator.computeSignals(tenantId, Set.of()).stream()
-            .map(CuriositySignal::targetSubgraphId)
+            .map(CuriositySignal::targetSubgraphType)
             .filter(Objects::nonNull)
             .distinct()
             .toList();

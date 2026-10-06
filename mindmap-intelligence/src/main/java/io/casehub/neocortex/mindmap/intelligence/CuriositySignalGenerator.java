@@ -88,7 +88,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         for (var orphan : MindMapAnalyzer.orphanNodes(store, sg.id(), tenantId)) {
             signals.add(new CuriositySignal(
                 SignalCategory.STRUCTURAL, 1.0,
-                orphan.nodeId(), sg.id(),
+                orphan.nodeId(), sg.type(),
                 "What is " + orphan.name() + "'s connection to other entities?",
                 "Orphan node: " + orphan.name()));
         }
@@ -97,7 +97,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         if (density != null && density.density() < 0.1 && density.nodeCount() > 1) {
             signals.add(new CuriositySignal(
                 SignalCategory.STRUCTURAL, 1.0 - density.density(),
-                null, sg.id(),
+                null, sg.type(),
                 "What else is part of " + sg.name() + "?",
                 "Sparse subgraph: " + sg.name() + " (density " +
                     String.format("%.2f", density.density()) + ")"));
@@ -110,7 +110,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             String targets = String.join(" vs ", contradiction.conflictingTargets());
             signals.add(new CuriositySignal(
                 SignalCategory.QUALITY, 0.9,
-                contradiction.nodeId(), sg.id(),
+                contradiction.nodeId(), sg.type(),
                 "Is the information about " + contradiction.name() + " still accurate? "
                     + "Multiple " + contradiction.edgeType() + " targets: " + targets,
                 "Contradiction: " + contradiction.name() + " has " +
@@ -122,7 +122,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         if (lowConf != null && lowConf.ratio() > 0.5) {
             signals.add(new CuriositySignal(
                 SignalCategory.QUALITY, lowConf.ratio(),
-                null, sg.id(),
+                null, sg.type(),
                 "Much of the knowledge in " + sg.name() + " is uncertain. Can you confirm?",
                 "Low confidence cluster: " + lowConf.lowConfidence() +
                     "/" + lowConf.total() + " nodes below threshold"));
@@ -132,7 +132,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         if (unvalidated != null && unvalidated.ratio() > 0.3) {
             signals.add(new CuriositySignal(
                 SignalCategory.QUALITY, unvalidated.ratio(),
-                null, sg.id(),
+                null, sg.type(),
                 "Is the information about " + sg.name() + " still accurate? "
                     + unvalidated.unvalidated() + " unvalidated relationships",
                 "Unvalidated edge ratio: " + String.format("%.0f%%", unvalidated.ratio() * 100)));
@@ -147,7 +147,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             double score = Math.min(1.0, staleDays / 180.0);
             signals.add(new CuriositySignal(
                 SignalCategory.TEMPORAL, score,
-                stale.nodeId(), sg.id(),
+                stale.nodeId(), sg.type(),
                 "Is " + stale.name() + " still relevant? Last updated " +
                     stale.age().toDays() + " days ago.",
                 "Stale node: " + stale.name()));
@@ -163,7 +163,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             if (count >= config.topCentrality() || bc.score() <= 0) {break;}
             signals.add(new CuriositySignal(
                     SignalCategory.CENTRALITY, Math.min(1.0, bc.score()),
-                    bc.nodeId(), sg.id(),
+                    bc.nodeId(), sg.type(),
                     "Tell me more about " + bc.name() + " — it connects many areas of knowledge.",
                     "High betweenness centrality: " + bc.name()));
             count++;
@@ -175,7 +175,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             if (count >= config.topCentrality() || deg.degree() <= 1) {break;}
             signals.add(new CuriositySignal(
                     SignalCategory.CENTRALITY, Math.min(1.0, deg.degree() / 10.0),
-                    deg.nodeId(), sg.id(),
+                    deg.nodeId(), sg.type(),
                     "Tell me more about " + deg.name() + " — it has many connections.",
                     "High degree centrality: " + deg.name()));
             count++;
@@ -192,7 +192,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
                 double score = (1.0 / (1.0 + daysUntil / config.proximityScale())) * sgWeight;
                 signals.add(new CuriositySignal(
                     SignalCategory.PROXIMITY, score,
-                    node.id(), sg.id(),
+                    node.id(), sg.type(),
                     "What should I know about " + node.name() + " before it happens?",
                     "Approaching event: " + node.name()));
             }
@@ -200,7 +200,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             if (node.validUntil() != null && node.validUntil().isBefore(now)) {
                 signals.add(new CuriositySignal(
                     SignalCategory.TEMPORAL, 0.8,
-                    node.id(), sg.id(),
+                    node.id(), sg.type(),
                     "Did " + node.name() + " happen? What was the outcome?",
                     "Past event: " + node.name()));
             }
@@ -216,7 +216,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             if (weight != 1.0) {
                 signals.set(i, new CuriositySignal(
                         signal.category(), signal.score() * weight,
-                        signal.targetNodeId(), signal.targetSubgraphId(),
+                        signal.targetNodeId(), signal.targetSubgraphType(),
                         signal.question(), signal.description()));
             }
         }
@@ -236,7 +236,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
             if (factor != 1.0) {
                 signals.set(i, new CuriositySignal(
                         signal.category(), signal.score() * factor,
-                        signal.targetNodeId(), signal.targetSubgraphId(),
+                        signal.targetNodeId(), signal.targetSubgraphType(),
                         signal.question(), signal.description()));
             }
         }}
@@ -300,7 +300,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
                 double factor = 1.0 / (1.0 + distance);
                 signals.set(i, new CuriositySignal(
                     signal.category(), signal.score() * factor,
-                    signal.targetNodeId(), signal.targetSubgraphId(),
+                    signal.targetNodeId(), signal.targetSubgraphType(),
                     signal.question(), signal.description()));
             }
         }
