@@ -2,6 +2,7 @@ package io.casehub.neocortex.memory.cbr;
 
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.platform.api.path.Path;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +22,7 @@ public abstract class DelegatingCbrRecordStore implements CbrRecordStore {
     @Override public <C extends CbrRecord> List<CbrMatch<C>> retrieveSimilar(CbrQuery q, Class<C> ct)                { return delegate.retrieveSimilar(q, ct); }
     @Override public int erase(EraseRequest request)                                                             { return delegate.erase(request); }
     @Override public int eraseEntity(String entityId, String tenantId) { return delegate.eraseEntity(entityId, tenantId); }
+    @Override public int eraseSubject(Subject subject, String tenantId) { return delegate.eraseSubject(subject, tenantId); }
     @Override public int eraseByScope(Path scope, String tenantId)                          { return delegate.eraseByScope(scope, tenantId); }
     @Override public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) { delegate.recordOutcome(caseId, outcome, tenantId); }
     @Override public int purge(CbrRetentionPolicy policy)                                   { return delegate.purge(policy); }
