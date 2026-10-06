@@ -9,6 +9,12 @@ import io.casehub.neocortex.mindmap.CognitiveAttentionRequired;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.SignalCategory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -22,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
+@ApplicationScoped
 public class CognitiveAttentionAccumulator {
 
     private final ConcurrentHashMap<String, PrincipalAttention> perPrincipal =
@@ -44,7 +51,21 @@ public class CognitiveAttentionAccumulator {
         volatile double urgencyP75 = 0.0;
     }
 
+    @Inject
     public CognitiveAttentionAccumulator(
+            Instance<CognitiveDefaultsRegistry> registry,
+            Instance<MindMapStore> mindMapStore,
+            Event<CognitiveAttentionRequired> eventSink,
+            @ConfigProperty(name = "casehub.mindmap.attention.threshold", defaultValue = "5.0") double baseThreshold,
+            @ConfigProperty(name = "casehub.mindmap.attention.min-interval-seconds", defaultValue = "60") long minIntervalSeconds,
+            @ConfigProperty(name = "casehub.mindmap.attention.pad-cache-expiry-seconds", defaultValue = "600") long padCacheExpirySeconds) {
+        this(registry.isResolvable() ? registry.get() : null,
+             mindMapStore.isResolvable() ? mindMapStore.get() : null,
+             eventSink::fire, Clock.systemUTC(),
+             baseThreshold, minIntervalSeconds, padCacheExpirySeconds);
+    }
+
+    CognitiveAttentionAccumulator(
             CognitiveDefaultsRegistry registry,
             MindMapStore mindMapStore,
             Consumer<CognitiveAttentionRequired> eventSink,
@@ -54,7 +75,7 @@ public class CognitiveAttentionAccumulator {
         this(registry, mindMapStore, eventSink, clock, baseThreshold, minIntervalSeconds, 600);
     }
 
-    public CognitiveAttentionAccumulator(
+    CognitiveAttentionAccumulator(
             CognitiveDefaultsRegistry registry,
             MindMapStore mindMapStore,
             Consumer<CognitiveAttentionRequired> eventSink,
@@ -104,7 +125,7 @@ public class CognitiveAttentionAccumulator {
         pa.urgencyP75 = Math.min(1.0, urgencyP75);
     }
 
-    public void onAffectRecorded(AffectRecorded event) {
+    void onAffectRecorded(@Observes AffectRecorded event) {
         if (mindMapStore == null) {return;}
         MindMapNode node = mindMapStore.getNode(event.nodeId(), event.tenantId());
         if (node == null) {return;}
@@ -136,7 +157,7 @@ public class CognitiveAttentionAccumulator {
         }
     }
 
-    public void onExperienceRecorded(ExperienceRecorded event) {
+    void onExperienceRecorded(@Observes ExperienceRecorded event) {
         var metadata = event.event().metadata();
         if (metadata == null) {return;}
         String goalNodeId = metadata.get("goal-node-id");
