@@ -133,6 +133,60 @@ class BehavioralSynthesisPhaseTest {
         assertThat(genAfter).isGreaterThan(genBefore);
     }
 
+
+    @Test
+    void emotionBearingNodesUseTargetedReinforcement() {
+        var emotionEngine = new EmotionAwareStubCapsEngine();
+        emotionEngine.initializeAgent(TENANT, AGENT,
+                                      new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
+        SituationClassifier classifier = (desc, meta) ->
+                                                 List.of(new SituationActivation("reward", 0.8));
+        var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
+
+        store.addNode(NodeInput.of("OCC emotion: FEAR", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-e1",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "emotion-type", "FEAR",
+                                       "emotion-intensity", "0.7"))
+                               .withPad(-0.64, 0.60, -0.43),
+                      TENANT);
+
+        emotionPhase.run(TENANT, List.of());
+
+        assertThat(emotionEngine.lastEmotionUpdate).isNotNull();
+        assertThat(emotionEngine.lastEmotionUpdate.valence).isEqualTo(-1.0);
+        assertThat(emotionEngine.lastEmotionUpdate.intensity).isEqualTo(0.7);
+        assertThat(emotionEngine.lastEmotionUpdate.salienceMultiplier).isGreaterThan(1.0);
+        assertThat(emotionEngine.lastEmotionUpdate.activations).containsKey("punishment");
+    }
+
+    @Test
+    void nodesWithoutEmotionUsePadFallback() {
+        var emotionEngine = new EmotionAwareStubCapsEngine();
+        emotionEngine.initializeAgent(TENANT, AGENT,
+                                      new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
+        SituationClassifier classifier = (desc, meta) ->
+                                                 List.of(new SituationActivation("reward", 0.8));
+        var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
+
+        store.addNode(NodeInput.of("Generic experience", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-r1",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.5"))
+                               .withPad(0.3, 0.2, 0.1),
+                      TENANT);
+
+        emotionPhase.run(TENANT, List.of());
+
+        assertThat(emotionEngine.lastEmotionUpdate).isNull();
+        assertThat(emotionEngine.lastRegularUpdate).isNotNull();
+        assertThat(emotionEngine.lastRegularUpdate.salienceMultiplier).isEqualTo(1.0);
+    }
+
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();
 
@@ -180,6 +234,47 @@ class BehavioralSynthesisPhaseTest {
                                              String reinforcementSchedule) {
             return new AgentCapsState(state.agentId(), state.tenantId(),
                 state.generation() + 1, state.weights(), state.nodeStates());
+        }
+    }
+
+    record WeightUpdate(Map<String, Double> activations, double intensity, double valence, double salienceMultiplier) {}
+
+    static class EmotionAwareStubCapsEngine extends StubCapsEngine {
+        WeightUpdate lastEmotionUpdate;
+        WeightUpdate lastRegularUpdate;
+
+        @Override
+        public CapsTopology topology() {
+            return new CapsTopology(1, Map.of(), List.of(
+                    new CapsConnection("c1", "punishment", "FFFS_activation", 0.5,
+                                       WeightProvenance.EMPIRICAL, "caps-topology", List.of("threat")),
+                    new CapsConnection("c2", "arousal", "BIS_activation", 0.5,
+                                       WeightProvenance.EMPIRICAL, "caps-topology", List.of("bis")),
+                    new CapsConnection("c3", "reward", "BAS_activation", 0.5,
+                                       WeightProvenance.EMPIRICAL, "caps-topology", List.of("bas")),
+                    new CapsConnection("c4", "powerlessness", "freeze", 0.3,
+                                       WeightProvenance.EMPIRICAL, "caps-topology", List.of("compliance")),
+                    new CapsConnection("c5", "powerlessness", "fawn", 0.3,
+                                       WeightProvenance.EMPIRICAL, "caps-topology", List.of("fawn_accommodate")),
+                    new CapsConnection("c6", "FFFS_activation", "fight", 0.4,
+                                       WeightProvenance.EMPIRICAL, "caps-topology", List.of("fight_assert"))
+                                                        ), Map.of(), List.of(), null);
+        }
+
+        @Override
+        public AgentCapsState updateWeights(AgentCapsState state,
+                                            Map<String, Double> inputActivations,
+                                            double outcomeIntensity,
+                                            double outcomeValence,
+                                            double salienceMultiplier,
+                                            String reinforcementSchedule) {
+            var update = new WeightUpdate(inputActivations, outcomeIntensity, outcomeValence, salienceMultiplier);
+            if (salienceMultiplier != 1.0) {
+                lastEmotionUpdate = update;
+            } else {
+                lastRegularUpdate = update;
+            }
+            return super.updateWeights(state, inputActivations, outcomeIntensity, outcomeValence, salienceMultiplier, reinforcementSchedule);
         }
     }
 }

@@ -1,10 +1,12 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
+import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -122,10 +124,52 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                         existingAttractors);
                 }
 
-                AgentCapsState updated = capsEngine.updateWeights(
-                    state, combinedActivations,
-                    averageIntensity(agentNodes), averageValence(agentNodes),
-                    1.0, "continuous");
+                AgentCapsState updated = state;
+
+                List<MindMapNode> emotionNodes = agentNodes.stream()
+                    .filter(n -> n.property("emotion-type").isPresent())
+                    .toList();
+                List<MindMapNode> regularNodes = agentNodes.stream()
+                    .filter(n -> n.property("emotion-type").isEmpty())
+                    .toList();
+
+                if (!emotionNodes.isEmpty()) {
+                    Map<String, Set<String>> tagIndex = buildTagSourceIndex();
+                    for (MindMapNode eNode : emotionNodes) {
+                        EmotionType eType = EmotionType.valueOf(
+                            eNode.property("emotion-type").orElseThrow());
+                        var signal = EmotionReinforcementMapper.forEmotion(eType);
+                        double intensity = Double.parseDouble(
+                            eNode.property("emotion-intensity").orElse("0.5"));
+                        double arousal = eNode.arousal() != null
+                            ? Math.abs(eNode.arousal()) : 0.0;
+                        double salienceMultiplier = 1.0 + 0.3 * arousal;
+
+                        Map<String, Double> emotionActivations = new HashMap<>();
+                        for (String tag : signal.pathwayTags()) {
+                            Set<String> sources = tagIndex.getOrDefault(tag, Set.of());
+                            for (String src : sources) {
+                                emotionActivations.put(src, 1.0);
+                            }
+                        }
+
+                        if (!emotionActivations.isEmpty()) {
+                            updated = capsEngine.updateWeights(updated,
+                                emotionActivations, intensity,
+                                signal.lambdaSign(), salienceMultiplier,
+                                "continuous");
+                        }
+                    }
+                }
+
+                if (!regularNodes.isEmpty()) {
+                    updated = capsEngine.updateWeights(updated,
+                        combinedActivations,
+                        averageIntensity(regularNodes),
+                        averageValence(regularNodes),
+                        1.0, "continuous");
+                }
+
                 capsEngine.saveState(updated);
 
                 for (MindMapNode node : agentNodes) {
@@ -216,6 +260,17 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             .mapToDouble(n -> n.pleasure())
             .average().orElse(0.0);
     }
+
+    private Map<String, Set<String>> buildTagSourceIndex() {
+        var index = new HashMap<String, Set<String>>();
+        for (CapsConnection conn : capsEngine.topology().connections()) {
+            for (String tag : conn.tags()) {
+                index.computeIfAbsent(tag, k -> new HashSet<>()).add(conn.from());
+            }
+        }
+        return Map.copyOf(index);
+    }
+
 
     private Set<String> loadExistingAttractorNodeIds(String tenantId) {
         return store.search(
