@@ -20,7 +20,6 @@ import java.util.Objects;
 public class CognitiveProfileParticipant implements CognitionTickParticipant {
 
     private final CognitiveProfile profile;
-    private final @Nullable CognitiveAttentionMediator attentionMediator;
     private final @Nullable TemporalFocusOrchestrator temporalFocus;
     private final CognitionConfig config;
 
@@ -29,11 +28,9 @@ public class CognitiveProfileParticipant implements CognitionTickParticipant {
     private Map<String, PerspectivalComparison> lastSocialComparisons = Map.of();
 
     public CognitiveProfileParticipant(CognitiveProfile profile,
-                                       @Nullable CognitiveAttentionMediator attentionMediator,
                                        @Nullable TemporalFocusOrchestrator temporalFocus,
                                        CognitionConfig config) {
         this.profile = Objects.requireNonNull(profile);
-        this.attentionMediator = attentionMediator;
         this.temporalFocus = temporalFocus;
         this.config = config;
     }
@@ -91,15 +88,13 @@ public class CognitiveProfileParticipant implements CognitionTickParticipant {
             }
         }
 
-        if (attentionMediator != null) {
-            attentionMediator.drainAttention(context.agentId()).ifPresent(briefing -> {
-                for (var signal : briefing.signals()) {
-                    var nodeId = signal.sourceNodeId();
-                    if (nodeId != null && seen.add("id:" + nodeId)) {
-                        seeds.add(CognitiveProfileQuery.byId(nodeId, tenantId));
-                    }
+        if (context.briefing() != null) {
+            for (var signal : context.briefing().signals()) {
+                var nodeId = signal.sourceNodeId();
+                if (nodeId != null && seen.add("id:" + nodeId)) {
+                    seeds.add(CognitiveProfileQuery.byId(nodeId, tenantId));
                 }
-            });
+            }
         }
 
         if (temporalFocus != null) {

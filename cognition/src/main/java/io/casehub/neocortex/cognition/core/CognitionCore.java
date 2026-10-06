@@ -212,7 +212,7 @@ public class CognitionCore {
             safeRun(() -> temporalFocus.tick(agentId, tenantId,
                                              resolver.relevantSubjects(agentId, tenantId)));
         }
-        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation);
+        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing);
 
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
