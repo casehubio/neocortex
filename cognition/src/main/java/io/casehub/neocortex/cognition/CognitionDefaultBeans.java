@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition;
 
+import io.casehub.neocortex.cognition.belief.BeliefRevisionConfig;
 import io.casehub.neocortex.cognition.core.CognitiveImpact;
 import io.casehub.neocortex.cognition.core.InteractionMapper;
 import io.casehub.neocortex.cognition.core.SubjectResolver;
@@ -32,6 +33,11 @@ public class CognitionDefaultBeans {
 
     @Inject
     Instance<AgentProvider> agentProviderInstance;
+
+    @Produces @DefaultBean @Singleton
+    BeliefRevisionConfig beliefRevisionConfig() {
+        return BeliefRevisionConfig.defaults();
+    }
 
     @Produces @DefaultBean @Singleton
     DriveConfig driveConfig() {

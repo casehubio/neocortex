@@ -12,6 +12,10 @@ import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,6 +26,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@ApplicationScoped
 @Priority(16)
 public class BeliefRevisionPhase implements ConsolidationPhase {
 
@@ -38,11 +43,20 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
             """;
 
     private final MindMapStore mindMapStore;
-    private final AgentProvider agentProvider;
+    private final @Nullable AgentProvider agentProvider;
     private final BeliefRevisionConfig config;
 
-    public BeliefRevisionPhase(MindMapStore mindMapStore, AgentProvider agentProvider,
-                               BeliefRevisionConfig config) {
+    @Inject
+    public BeliefRevisionPhase(MindMapStore mindMapStore,
+                               Instance<AgentProvider> agentProvider,
+                               Instance<BeliefRevisionConfig> config) {
+        this(mindMapStore,
+             agentProvider.isResolvable() ? agentProvider.get() : null,
+             config.isResolvable() ? config.get() : BeliefRevisionConfig.defaults());
+    }
+
+    BeliefRevisionPhase(MindMapStore mindMapStore, @Nullable AgentProvider agentProvider,
+                        BeliefRevisionConfig config) {
         this.mindMapStore = mindMapStore;
         this.agentProvider = agentProvider;
         this.config = config;
@@ -55,6 +69,7 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
+        if (agentProvider == null) return;
         var subgraphs = mindMapStore.listSubgraphs(tenantId);
         var cognitiveSubgraphs = subgraphs.stream()
             .filter(sg -> "cognitive".equals(sg.type()))
