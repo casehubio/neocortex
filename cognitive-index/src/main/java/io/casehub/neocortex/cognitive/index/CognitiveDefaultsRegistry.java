@@ -17,11 +17,11 @@ package io.casehub.neocortex.cognitive.index;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
 import io.casehub.neocortex.mindmap.DeclarativeDerivedEdgeRule;
 import io.casehub.neocortex.mindmap.DeclarativeTraitRule;
 import io.casehub.neocortex.mindmap.RuleCondition;
+import io.casehub.yaml.jackson.YamlMappers;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -126,7 +126,7 @@ public class CognitiveDefaultsRegistry {
     }
 
     static ObjectMapper createMapper() {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory()).findAndRegisterModules();
+        ObjectMapper mapper = YamlMappers.create().findAndRegisterModules();
         SimpleModule module = new SimpleModule();
         module.addDeserializer(PersonalityWeights.class, new PersonalityWeightsDeserializer());
         module.addDeserializer(RuleCondition.class, new RuleConditionDeserializer());

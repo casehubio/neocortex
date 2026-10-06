@@ -187,6 +187,11 @@
       </dependency>
       <dependency>
         <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-yaml-jackson</artifactId>
+        <version>${casehub-platform-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
         <artifactId>casehub-eidos-api</artifactId>
         <version>${casehub-platform-api.version}</version>
       </dependency>

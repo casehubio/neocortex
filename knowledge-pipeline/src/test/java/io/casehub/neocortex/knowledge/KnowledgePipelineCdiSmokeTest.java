@@ -54,10 +54,19 @@ class KnowledgePipelineCdiSmokeTest {
         var metrics       = new KnowledgePipelineMetrics(io.micrometer.core.instrument.Metrics.globalRegistry);
 
         var noOpNormalizer = new io.casehub.neocortex.knowledge.normalization.NoOpTermNormalizer();
+        var spatialDomain = beans.spatialDomainSupport(
+                new EmptyInstance<>(), decayPolicy, subsumptionRule, matcher,
+                noOpNormalizer, config);
+        assertThat(spatialDomain).isNotNull();
+        assertThat(spatialDomain.domain()).isEqualTo("location");
+
+        var domainRegistry = beans.domainRegistry(new SingleInstance<>(spatialDomain));
+        assertThat(domainRegistry).isNotNull();
+
         var orchestrator = beans.knowledgePipelineOrchestrator(
-                new EmptyInstance<>(), cacheStore, queryCache, dedupStore,
+                domainRegistry, cacheStore, queryCache, dedupStore,
                 metadataStore, resolutionEngine, promoter, decayPolicy,
-                subsumptionRule, noOpNormalizer, config, metrics);
+                new EmptyInstance<>(), metrics);
         assertThat(orchestrator).isNotNull();
 
         var scheduler = beans.cacheEvictionScheduler(
@@ -149,6 +158,24 @@ class KnowledgePipelineCdiSmokeTest {
                 };
             }
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    static class SingleInstance<T> implements jakarta.enterprise.inject.Instance<T> {
+        private final T value;
+        SingleInstance(T value) { this.value = value; }
+        @Override public Instance<T> select(java.lang.annotation.Annotation... q) { return this; }
+        @Override public <U extends T> Instance<U> select(Class<U> s, java.lang.annotation.Annotation... q) { return (Instance<U>) this; }
+        @Override public <U extends T> Instance<U> select(jakarta.enterprise.util.TypeLiteral<U> s, java.lang.annotation.Annotation... q) { return (Instance<U>) this; }
+        @Override public boolean isUnsatisfied() { return false; }
+        @Override public boolean isAmbiguous() { return false; }
+        @Override public boolean isResolvable() { return true; }
+        @Override public void destroy(T instance) {}
+        @Override public Handle<T> getHandle() { return null; }
+        @Override public Iterable<? extends Handle<T>> handles() { return List.of(); }
+        @Override public T get() { return value; }
+        @Override public java.util.Iterator<T> iterator() { return List.of(value).iterator(); }
+        @Override public java.util.stream.Stream<T> stream() { return java.util.stream.Stream.of(value); }
     }
 
     @SuppressWarnings("unchecked")
