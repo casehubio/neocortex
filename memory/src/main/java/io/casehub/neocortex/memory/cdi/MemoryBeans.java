@@ -36,6 +36,7 @@ import io.casehub.neocortex.memory.runtime.MemoryRetentionPurger;
 import io.casehub.platform.api.event.CloudEventType;
 import io.cloudevents.CloudEvent;
 import io.quarkus.arc.DefaultBean;
+import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObservesAsync;
@@ -172,17 +173,20 @@ public class MemoryBeans {
     @Inject TrustRetentionPurger trustPurger;
     @Inject TrustRetentionConfig trustConfig;
 
+    @Scheduled(every = "${casehub.memory.retention.interval:24h}")
     void onMemoryRetentionTick() {
         retentionPurger.purgeExpired(retentionConfig.enabled(), retentionConfig.domain(),
                 retentionConfig.maxAgeDays(), retentionConfig.minConfidence());
     }
 
+    @Scheduled(every = "${casehub.cbr.retention.interval:24h}")
     void onCbrRetentionTick() {
         cbrPurger.purgeExpired(cbrConfig.enabled(), cbrConfig.domain(),
                 cbrConfig.caseTypes(), cbrConfig.maxAgeDays(),
                 cbrConfig.maxCasesPerType(), cbrConfig.minTrustScore());
     }
 
+    @Scheduled(every = "${casehub.trust.retention.interval:24h}")
     void onTrustRetentionTick() {
         trustPurger.evaluateTrajectories(trustConfig.enabled(), trustConfig.domain(),
                 trustConfig.caseTypes(), trustConfig.minCurrentTrust());
