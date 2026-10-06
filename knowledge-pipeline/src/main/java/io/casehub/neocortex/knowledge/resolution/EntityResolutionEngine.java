@@ -90,6 +90,6 @@ public class EntityResolutionEngine {
             primary.id(), primary.name(), primary.coordinates(),
             primary.category(), primary.source(), primary.externalId(),
             mergedProps, primary.fetchedAt(), primary.detailFetchedAt(), primary.expiresAt(),
-            primary.sessionIds(), primary.hasDetail() || existing.hasDetail());
+            primary.sessionIds(), primary.hasDetail() || existing.hasDetail(), primary.domain());
     }
 }

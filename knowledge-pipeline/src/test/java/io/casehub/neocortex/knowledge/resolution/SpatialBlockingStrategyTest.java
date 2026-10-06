@@ -32,7 +32,7 @@ class SpatialBlockingStrategyTest {
         var store = new InMemorySpatialCacheStore();
         var entity = new CachedEntity("e1", "Place A", null, null,
             "src", "ext1", Map.of(), Instant.now(), null,
-            Instant.now().plusSeconds(3600), Set.of(), false);
+            Instant.now().plusSeconds(3600), Set.of(), false, null);
 
         var strategy = new SpatialBlockingStrategy(store, 500);
         var candidates = strategy.findCandidates(entity, store, "t1");
@@ -56,6 +56,6 @@ class SpatialBlockingStrategyTest {
     private CachedEntity testEntity(String id, String name, double lat, double lng) {
         return new CachedEntity(id, name, new Coordinates(lat, lng), null,
             "src", id, Map.of(), Instant.now(), null,
-            Instant.now().plusSeconds(3600), Set.of(), false);
+            Instant.now().plusSeconds(3600), Set.of(), false, null);
     }
 }

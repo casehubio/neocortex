@@ -159,7 +159,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
                 entityId, place.name(), place.location(), category,
                 providerId, place.id(), props, now, null, expiresAt,
                 researchSessionId != null ? Set.of(researchSessionId) : Set.of(),
-                false));
+                false, "location"));
         }
 
         var resolution = resolutionEngine.resolve(entities, blockingStrategy, cacheStore, dedupStore, tenantId);
@@ -241,7 +241,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
                                         entity.id(), entity.name(), entity.coordinates(),
                                         entity.category(), entity.source(), entity.externalId(),
                                         props, entity.fetchedAt(), now, entity.expiresAt(),
-                                        entity.sessionIds(), true);
+                                        entity.sessionIds(), true, "location");
                                 cacheStore.set(updated, tenantId);
                                 refreshed++;
                             }

@@ -49,7 +49,7 @@ class SqliteSpatialCacheStoreTest extends SpatialCacheStoreContractTest {
             new Coordinates(55.9534, -3.1884), "restaurant",
             "google", "ext-e1", Map.of("phone", "0131 226 1888"),
             Instant.now(), null, Instant.now().plus(Duration.ofDays(30)),
-            Set.of(), true);
+            Set.of(), true, null);
         store.set(updated, "t1");
 
         var result = store.get("e1", "t1");
