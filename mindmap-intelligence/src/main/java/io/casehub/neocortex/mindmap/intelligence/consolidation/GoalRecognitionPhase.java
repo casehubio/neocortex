@@ -17,10 +17,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @ApplicationScoped
@@ -28,6 +32,8 @@ import java.util.logging.Logger;
 public class GoalRecognitionPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(GoalRecognitionPhase.class.getName());
+    private static final String SENTINEL_NAME = "goal-recognition-cursor";
+    private static final String CURSOR_PROPERTY = "lastProcessedMemoryId";
 
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;
@@ -75,8 +81,9 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
         String goalSgId = findGoalSubgraph(tenantId);
         if (goalSgId == null) return;
 
+        String cursor = loadCursor(tenantId);
         List<Memory> experiences = memoryStore.scan(
-                new MemoryScanRequest(tenantId, "experience", null, null, 100, null));
+                new MemoryScanRequest(tenantId, "experience", null, null, 100, cursor));
         if (experiences.isEmpty()) return;
 
         List<MindMapNode> existingGoals = mindMapStore.nodesIn(goalSgId, tenantId);
@@ -114,6 +121,48 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
                 "recognized from experience — origin: " + goal.origin()));
             LOG.fine("Created recognized goal: " + goal.description());
         }
+
+        if (!experiences.isEmpty()) {
+            saveCursor(tenantId, experiences.getLast().memoryId());
+        }
+    }
+
+    private String loadCursor(String tenantId) {
+        return findSentinelNode(tenantId)
+            .flatMap(n -> n.property(CURSOR_PROPERTY))
+            .orElse(null);
+    }
+
+    private void saveCursor(String tenantId, String memoryId) {
+        Optional<MindMapNode> sentinel = findSentinelNode(tenantId);
+        if (sentinel.isPresent()) {
+            mindMapStore.updateNode(sentinel.get().id(),
+                NodeUpdate.empty().withPropertiesToSet(Map.of(CURSOR_PROPERTY, memoryId)),
+                tenantId);
+        } else {
+            String sgId = findTypeSystemSubgraph(tenantId);
+            if (sgId == null) return;
+            mindMapStore.addNode(
+                NodeInput.of(SENTINEL_NAME, sgId)
+                    .withProperties(Map.of(CURSOR_PROPERTY, memoryId))
+                    .withProvenance("goal-recognition"),
+                tenantId);
+        }
+    }
+
+    private Optional<MindMapNode> findSentinelNode(String tenantId) {
+        return mindMapStore.search(
+                MindMapQuery.of(tenantId, 100).withType(SubgraphTypes.TYPE_SYSTEM))
+            .stream()
+            .filter(n -> SENTINEL_NAME.equals(n.name()))
+            .findFirst();
+    }
+
+    private String findTypeSystemSubgraph(String tenantId) {
+        for (MindMapSubgraph sg : mindMapStore.listSubgraphs(tenantId)) {
+            if (SubgraphTypes.TYPE_SYSTEM.equals(sg.type())) return sg.id();
+        }
+        return null;
     }
 
     private String findGoalSubgraph(String tenantId) {
