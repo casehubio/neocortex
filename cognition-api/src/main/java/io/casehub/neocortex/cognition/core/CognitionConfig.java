@@ -27,6 +27,8 @@ public record CognitionConfig(
 ) {
     public static CognitionConfig all()  {return new CognitionConfig(true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, false, false, false, false, false, false);}
 
+    public static CognitionConfig withAllSubsystems() {return new CognitionConfig(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);}
+
     public static CognitionConfig none() {return new CognitionConfig(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false);}
 
     public CognitionConfig withDirectives() {
