@@ -1,5 +1,8 @@
 package io.casehub.neocortex.cognition.prompt;
 
+import io.casehub.neocortex.cognition.gut.GutFeeling;
+import io.casehub.neocortex.cognition.gut.GutFeelingParticipant;
+import io.casehub.neocortex.cognition.gut.GutValence;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -8,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -195,4 +199,89 @@ class BehavioralPromptSectionTest {
         assertThat(rendered).contains("unnamed-pattern");
         assertThat(rendered).doesNotContain("rooted in");
     }
+
+    private static GutFeelingParticipant stubGutFeeling(
+            String agentId, String tenantId, GutFeeling feeling) {
+        return new GutFeelingParticipant(null, null) {
+            @Override
+            public Optional<GutFeeling> currentResult(String aId, String tId) {
+                if (agentId.equals(aId) && tenantId.equals(tId)) {return Optional.of(feeling);}
+                return Optional.empty();
+            }
+        };
+    }
+
+    @Test
+    void nullGutFeelingParticipantRendersNormally() {
+        var sgId = store.createSubgraph(
+                new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null), "t1");
+        store.addNode(NodeInput.of("pattern", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "pattern",
+                                       "category", "misc",
+                                       "strength", "0.60",
+                                       "agent-id", "agent1",
+                                       "source-count", "4")),
+                      "t1");
+
+        var sectionWithNull = new BehavioralPromptSection(store, null);
+        var rendered        = sectionWithNull.render(context);
+        assertThat(rendered).isNotNull();
+        assertThat(rendered).doesNotContain("transient");
+    }
+
+    @Test
+    void rendersGutFeelingAlongsideCrystallized() {
+        var sgId = store.createSubgraph(
+                new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null), "t1");
+        store.addNode(NodeInput.of("completionism", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "completionism",
+                                       "category", "achievement",
+                                       "strength", "0.80",
+                                       "agent-id", "agent1",
+                                       "source-count", "10")),
+                      "t1");
+
+        var gutParticipant = stubGutFeeling("agent1", "t1",
+                                            new GutFeeling(GutValence.AVOID, 0.6, "past authority criticism"));
+        var sectionWithGut = new BehavioralPromptSection(store, gutParticipant);
+        var rendered       = sectionWithGut.render(context);
+
+        assertThat(rendered).isNotNull();
+        assertThat(rendered).contains("completionism");
+        assertThat(rendered).contains("authority criticism");
+        assertThat(rendered).contains("transient");
+    }
+
+    @Test
+    void rendersGutFeelingAloneWhenNoAttractors() {
+        var gutParticipant = stubGutFeeling("agent1", "t1",
+                                            new GutFeeling(GutValence.CAUTIOUS, 0.4, "uncertain territory"));
+        var sectionWithGut = new BehavioralPromptSection(store, gutParticipant);
+        var rendered       = sectionWithGut.render(context);
+
+        assertThat(rendered).isNotNull();
+        assertThat(rendered).contains("cautious wariness");
+        assertThat(rendered).contains("transient");
+    }
+
+    @Test
+    void rendersApproachValence() {
+        var gut = stubGutFeeling("agent1", "t1",
+                                 new GutFeeling(GutValence.APPROACH, 0.5, "positive collaboration"));
+        var sectionWithGut = new BehavioralPromptSection(store, gut);
+        assertThat(sectionWithGut.render(context)).contains("drawn to engage");
+    }
+
+    @Test
+    void rendersAvoidValence() {
+        var gut = stubGutFeeling("agent1", "t1",
+                                 new GutFeeling(GutValence.AVOID, 0.7, "past negative encounters"));
+        var sectionWithGut = new BehavioralPromptSection(store, gut);
+        assertThat(sectionWithGut.render(context)).contains("pulling back");
+    }
+
 }

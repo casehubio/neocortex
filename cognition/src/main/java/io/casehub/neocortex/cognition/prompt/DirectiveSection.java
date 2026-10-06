@@ -34,10 +34,11 @@ public class DirectiveSection implements CognitionPromptRenderer {
             "StrategyPromptSection",
             "These are interaction strategies you have learned work well. Apply them:",
             "BehavioralPromptSection",
-            "These are your established behavioral patterns — deep tendencies shaped by "
-                    + "accumulated experience. They are not rules but dispositions. Strong patterns "
-                    + "should color your responses naturally; fading patterns can be overridden by "
-                    + "current context:"
+            "These are your behavioral patterns. Established patterns are deep "
+                    + "tendencies shaped by accumulated experience — let them color your "
+                    + "responses naturally. Transient signals are gut reactions to the "
+                    + "current situation — weaker, contextual, and may not apply. When they "
+                    + "conflict, established patterns take precedence:"
     );
 
     private final CognitionPromptRenderer delegate;

@@ -6,6 +6,7 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.NeedTierMappingProvider;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
+import io.casehub.neocortex.cognition.gut.GutFeelingParticipant;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator;
 import io.casehub.neocortex.cognition.memory.MemoryHygieneOrchestrator;
 import io.casehub.neocortex.cognition.mentalmodel.CueType;
@@ -39,6 +40,7 @@ import io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator;
 import io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator;
 import io.casehub.neocortex.cognition.usermodel.InteractionSignal;
 import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
+import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.memory.relationship.QualitySignal;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
@@ -113,6 +115,7 @@ public class CognitionCore {
     private volatile @Nullable List<ConsolidationArtifact> lastConsolidationArtifacts;
     private UnaryOperator<List<CognitionPromptRenderer>> sectionCustomizer;
     private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
+    private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
 
 
     public CognitionCore(MoodOrchestrator mood,
@@ -498,7 +501,7 @@ public class CognitionCore {
             sections.add(new NeedsPyramidPromptSection(mindMapStore, needTierMapping));
         }
         if (config.behavioralEnabled() && mindMapStore != null) {
-            sections.add(new BehavioralPromptSection(mindMapStore));
+            sections.add(new BehavioralPromptSection(mindMapStore, gutFeelingParticipant));
         }
         if (config.attentionEnabled() && lastBriefing != null) {
             sections.add(new AttentionPromptSection(lastBriefing));
@@ -550,6 +553,18 @@ public class CognitionCore {
         this.appraisalParticipant = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
                 salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config);
         addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
+    }
+
+    public void setGutFeelingParticipant(GutFeelingParticipant participant) {
+        this.gutFeelingParticipant = participant;
+    }
+
+    public void configureGutFeeling(
+            @Nullable CaseMemoryStore memoryStore,
+            @Nullable MoodOrchestrator moodOrchestrator) {
+        if (memoryStore == null) {return;}
+        this.gutFeelingParticipant = new GutFeelingParticipant(memoryStore, moodOrchestrator);
+        addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
 
 
