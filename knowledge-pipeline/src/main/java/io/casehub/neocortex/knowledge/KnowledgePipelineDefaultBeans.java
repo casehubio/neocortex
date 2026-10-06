@@ -5,6 +5,7 @@ import io.casehub.connectors.location.spi.LocationPlatform;
 import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.knowledge.cache.CacheDecayPolicy;
 import io.casehub.neocortex.knowledge.cache.CacheEvictionScheduler;
+import io.casehub.neocortex.knowledge.normalization.ExpansionStrategy;
 import io.casehub.neocortex.knowledge.cache.SpatialCacheKeyGenerator;
 import io.casehub.neocortex.knowledge.resolution.CompositeSearchableProvider;
 import io.casehub.neocortex.knowledge.resolution.SpatialBlockingStrategy;
@@ -23,7 +24,6 @@ import io.micrometer.core.instrument.Metrics;
 import io.quarkus.arc.DefaultBean;
 import jakarta.inject.Named;
 import java.util.List;
-import java.util.Set;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Disposes;
@@ -74,7 +74,7 @@ public class KnowledgePipelineDefaultBeans {
     @DefaultBean
     @ApplicationScoped
     KnowledgePipelineOrchestrator knowledgePipelineOrchestrator(
-            DomainRegistry domainRegistry,
+            Instance<LocationPlatform> providers,
             SpatialCacheStore cacheStore,
             QueryCacheStore queryCache,
             DedupIndexStore dedupStore,
@@ -82,12 +82,18 @@ public class KnowledgePipelineDefaultBeans {
             EntityResolutionEngine resolutionEngine,
             EntityPromoter promoter,
             CacheDecayPolicy decayPolicy,
-            Instance<LocationPlatform> locationProviders,
+            SubsumptionRule subsumptionRule,
+            TermNormalizer normalizer,
+            KnowledgePipelineConfig config,
             KnowledgePipelineMetrics metrics) {
+        Set<String> knownProviders = config.expansion().knownProviders()
+                .map(Set::copyOf).orElse(Set.of());
         var orch = new KnowledgePipelineOrchestrator(
-                domainRegistry, cacheStore, queryCache, dedupStore,
+                providers.stream().toList(), cacheStore, queryCache, dedupStore,
                 metadataStore, resolutionEngine, promoter, decayPolicy,
-                locationProviders.stream().toList());
+                subsumptionRule, config.geohashPrecision(),
+                normalizer, new ExpansionStrategy(knownProviders),
+                config.expansion().maxVariantQueries());
         orch.setMetrics(metrics);
         return orch;
     }
@@ -127,6 +133,7 @@ public class KnowledgePipelineDefaultBeans {
     @Named("location")
     DomainSupport spatialDomainSupport(
             Instance<LocationPlatform> platforms,
+            SpatialCacheStore spatialCacheStore,
             CacheDecayPolicy decayPolicy,
             SubsumptionRule subsumptionRule,
             EntityMatcher<CachedEntity> entityMatcher,
@@ -138,20 +145,14 @@ public class KnowledgePipelineDefaultBeans {
                         p, decayPolicy.coordinatesTtl()))
                 .toList();
 
-        SearchableProvider provider;
-        if (providers.isEmpty()) {
-            provider = DomainSupport.minimal("location",
-                    new io.casehub.neocortex.knowledge.NoOpSearchableProvider("location")).provider();
-        } else if (providers.size() == 1) {
-            provider = providers.get(0);
-        } else {
-            provider = new CompositeSearchableProvider("location", providers);
-        }
+        SearchableProvider provider = providers.size() == 1
+                ? providers.get(0)
+                : new CompositeSearchableProvider("location", providers);
 
         return new DomainSupport("location", provider,
                 new SpatialCacheKeyGenerator(config.geohashPrecision()),
                 subsumptionRule, entityMatcher,
-                new SpatialBlockingStrategy(null, 200),
+                new SpatialBlockingStrategy(spatialCacheStore, 200),
                 List.of(normalizer));
     }
 
