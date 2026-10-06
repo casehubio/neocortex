@@ -30,10 +30,16 @@ public class DefaultGraduationClassifier implements GraduationClassifier {
     }
 
     private GraduationResult classifyObservation(Memory memory) {
-        String subject = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
-        Map<String, String> props = new HashMap<>();
-        if (subject != null) props.put("subject", subject);
+        String              subject = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
+        Map<String, String> props   = new HashMap<>();
+        if (subject != null) {props.put("subject", subject);}
         props.put("status", "active");
+        String emotionType = memory.attributes().get("emotion-type");
+        if (emotionType != null) {
+            props.put("emotion-type", emotionType);
+            String emotionIntensity = memory.attributes().get("emotion-intensity");
+            if (emotionIntensity != null) {props.put("emotion-intensity", emotionIntensity);}
+        }
         return new GraduationResult("belief", ConfidenceOrigin.STATED, props);
     }
 

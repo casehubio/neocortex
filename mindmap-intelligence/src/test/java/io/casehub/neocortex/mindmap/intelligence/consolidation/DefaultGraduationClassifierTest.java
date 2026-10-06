@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class DefaultGraduationClassifierTest {
 
@@ -77,5 +78,23 @@ class DefaultGraduationClassifierTest {
             memory("action", Map.of()));
         assertEquals("intention", result.cognitiveKind());
         assertFalse(result.properties().containsKey("goal"));
+    }
+
+    @Test
+    void classify_observation_forwardsEmotionAttributes() {
+        GraduationResult result = classifier.classify(
+                memory("observation", Map.of("subject", "goal-1",
+                                             "emotion-type", "FEAR", "emotion-intensity", "0.7")));
+        assertEquals("belief", result.cognitiveKind());
+        assertEquals("FEAR", result.properties().get("emotion-type"));
+        assertEquals("0.7", result.properties().get("emotion-intensity"));
+    }
+
+    @Test
+    void classify_observation_withoutEmotionAttributes_doesNotAddThem() {
+        GraduationResult result = classifier.classify(
+                memory("observation", Map.of("subject", "goal-1")));
+        assertFalse(result.properties().containsKey("emotion-type"));
+        assertFalse(result.properties().containsKey("emotion-intensity"));
     }
 }
