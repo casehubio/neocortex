@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-public interface SpatialCacheStore {
+public interface SpatialCacheStore extends CacheStore {
 
     void set(CachedEntity entity, String tenantId);
 
