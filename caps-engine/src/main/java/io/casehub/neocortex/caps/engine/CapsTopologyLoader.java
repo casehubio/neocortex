@@ -2,17 +2,30 @@ package io.casehub.neocortex.caps.engine;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.CapsConnection;
+import io.casehub.neocortex.caps.CapsNode;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.DispositionModifier;
+import io.casehub.neocortex.caps.DistortionDefinition;
+import io.casehub.neocortex.caps.DistortionEffect;
+import io.casehub.neocortex.caps.NodeRange;
+import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.WeightProvenance;
+import io.casehub.neocortex.caps.WeightUpdateParameters;
+import io.casehub.yaml.jackson.YamlMappers;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CapsTopologyLoader {
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper mapper = YamlMappers.create();
 
     public CapsTopology loadFromClasspath(String resource) {
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(resource)) {

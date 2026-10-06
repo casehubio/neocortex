@@ -2,7 +2,7 @@ package io.casehub.neocortex.memory.seeding;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.casehub.yaml.jackson.YamlMappers;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 public class CatalogueLoader {
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper mapper = YamlMappers.create();
 
     public CatalogueIndex loadIndex(Path catalogueDir) {
         Path indexFile = catalogueDir.resolve("index.yaml");
