@@ -38,9 +38,6 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private static final Logger LOG = Logger.getLogger(
         BehavioralSynthesisPhase.class.getName());
     private static final String CAPS_GENERATED_TRAIT = "CapsGenerated";
-    private static final String SENTINEL_NAME = "_behavioral-synthesis-state";
-    private static final String CURSOR_PROPERTY = "synthesis-cursor";
-
     private final MindMapStore store;
     private final CapsEngine capsEngine;
     private final SituationClassifier classifier;
@@ -88,8 +85,6 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
         String behavioralSgId = findOrCreateBehavioralSubgraph(tenantId);
         Set<String> existingAttractors = loadExistingAttractorNodeIds(tenantId);
-        String lastProcessedId = null;
-
         for (var agentEntry : byAgent.entrySet()) {
             String agentId = agentEntry.getKey();
             List<MindMapNode> agentNodes = agentEntry.getValue();
@@ -110,7 +105,6 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                     combinedActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                 }
 
-                lastProcessedId = node.id();
             }
 
             if (combinedActivations.isEmpty()) continue;
@@ -187,9 +181,6 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             }
         }
 
-        if (lastProcessedId != null) {
-            saveCursor(tenantId, lastProcessedId);
-        }
     }
 
     private List<MindMapNode> findUnprocessedGraduated(String tenantId) {
@@ -318,43 +309,4 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 tenantId));
     }
 
-    private String loadCursor(String tenantId) {
-        return findSentinelNode(tenantId)
-            .flatMap(n -> n.property(CURSOR_PROPERTY))
-            .orElse(null);
-    }
-
-    private void saveCursor(String tenantId, String nodeId) {
-        Optional<MindMapNode> sentinel = findSentinelNode(tenantId);
-        if (sentinel.isPresent()) {
-            store.updateNode(sentinel.get().id(),
-                NodeUpdate.empty().withPropertiesToSet(Map.of(CURSOR_PROPERTY, nodeId)),
-                tenantId);
-        } else {
-            String sgId = findOrCreateTypeSystemSubgraph(tenantId);
-            store.addNode(
-                NodeInput.of(SENTINEL_NAME, sgId)
-                    .withProperties(Map.of(CURSOR_PROPERTY, nodeId))
-                    .withProvenance("behavioral-synthesis"),
-                tenantId);
-        }
-    }
-
-    private Optional<MindMapNode> findSentinelNode(String tenantId) {
-        return store.search(
-            MindMapQuery.of(tenantId, 100).withType(SubgraphTypes.TYPE_SYSTEM))
-            .stream()
-            .filter(n -> SENTINEL_NAME.equals(n.name()))
-            .findFirst();
-    }
-
-    private String findOrCreateTypeSystemSubgraph(String tenantId) {
-        return store.listSubgraphs(tenantId).stream()
-            .filter(sg -> SubgraphTypes.TYPE_SYSTEM.equals(sg.type()))
-            .map(MindMapSubgraph::id)
-            .findFirst()
-            .orElseGet(() -> store.createSubgraph(
-                new SubgraphInput("Type System", SubgraphTypes.TYPE_SYSTEM, null),
-                tenantId));
-    }
 }
