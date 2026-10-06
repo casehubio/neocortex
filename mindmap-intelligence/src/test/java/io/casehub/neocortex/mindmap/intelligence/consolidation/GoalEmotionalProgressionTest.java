@@ -162,7 +162,7 @@ class GoalEmotionalProgressionTest {
     @Test @Order(5)
     void day6_applyOccAffect_padReflectsWorry() {
         var node = mindMapStore.getNode(birthdayGoalId, TENANT);
-        var affectPhase = new GoalAffectPhase(mindMapStore, appraisal,
+        var affectPhase = new GoalAffectPhase(mindMapStore, appraisal, null,
                 Clock.fixed(Instant.parse("2026-09-23T10:00:00Z"), ZoneOffset.UTC));
         affectPhase.run(TENANT, List.of());
 

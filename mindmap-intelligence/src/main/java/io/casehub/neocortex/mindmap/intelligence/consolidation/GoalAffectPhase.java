@@ -2,15 +2,18 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.PadProjection;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.experience.ExperienceEvents;
+import io.casehub.neocortex.memory.experience.Observation;
 import io.casehub.neocortex.mindmap.AppraisalContext;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -20,6 +23,7 @@ import jakarta.inject.Inject;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -34,26 +38,30 @@ public class GoalAffectPhase implements ConsolidationPhase {
     private final Clock         clock;
     private final GoalAppraisal appraisal;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
+    private final CaseMemoryStore       memoryStore;
+
 
     @Inject
-    public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal) {
-        this.store     = store.isResolvable() ? store.get() : null;
-        this.appraisal = appraisal.isResolvable() ? appraisal.get() : null;
-        this.clock     = Clock.systemUTC();
+    public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal, Instance<CaseMemoryStore> memoryStore) {
+        this.store       = store.isResolvable() ? store.get() : null;
+        this.appraisal   = appraisal.isResolvable() ? appraisal.get() : null;
+        this.memoryStore = memoryStore.isResolvable() ? memoryStore.get() : null;
+        this.clock       = Clock.systemUTC();
     }
 
-    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal, Clock clock) {
-        this.store     = store;
-        this.appraisal = appraisal;
-        this.clock     = clock;
+    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal, CaseMemoryStore memoryStore, Clock clock) {
+        this.store       = store;
+        this.appraisal   = appraisal;
+        this.memoryStore = memoryStore;
+        this.clock       = clock;
     }
 
     public GoalAffectPhase(MindMapStore store, Clock clock) {
-        this(store, (GoalAppraisal) null, clock);
+        this(store, null, null, clock);
     }
 
     public GoalAffectPhase(MindMapStore store) {
-        this(store, null, Clock.systemUTC());
+        this(store, null, null, Clock.systemUTC());
     }
 
     @Override
@@ -117,8 +125,20 @@ public class GoalAffectPhase implements ConsolidationPhase {
                                  dominant.pad().dominance()),
                          tenantId);
 
+        String agentId = node.property("agent-id").orElse(null);
+        if (memoryStore != null && agentId != null) {
+            var metadata = new HashMap<String, String>();
+            metadata.put("emotion-type", dominant.type().name());
+            metadata.put("emotion-intensity", String.valueOf(dominant.intensity()));
+            var observation = new Observation(
+                    agentId, tenantId, null, null, now,
+                    "OCC emotion: " + dominant.type().name(),
+                    dominant.intensity(), metadata, node.name());
+            memoryStore.store(ExperienceEvents.toMemoryInput(observation));
+        }
+
         pendingSignals.add(new AttentionSignal(
-                node.property("agent-id").orElse(null), tenantId, SignalCategory.AFFECT_CHANGE,
+                agentId, tenantId, SignalCategory.AFFECT_CHANGE,
                 node.id(), node.name(), dominant.intensity(),
                 dominant.type() + " (intensity " + String.format("%.2f", dominant.intensity()) + ")"));
     }

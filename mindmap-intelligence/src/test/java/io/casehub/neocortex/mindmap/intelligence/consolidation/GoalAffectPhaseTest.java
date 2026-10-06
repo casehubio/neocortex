@@ -152,4 +152,88 @@ class GoalAffectPhaseTest {
         assertThat(goal.arousal()).isCloseTo(0.4, org.assertj.core.api.Assertions.within(0.01));
     }
 
+
+    @Test
+    void occAppraisalStoresEmotionExperienceEvent() {
+        var memoryStore = new io.casehub.neocortex.memory.inmem.InMemoryMemoryStore(new io.casehub.platform.api.identity.CurrentPrincipal() {
+            @Override public String actorId() { return "test"; }
+            @Override public java.util.Set<String> groups() { return java.util.Set.of(); }
+            @Override public String tenancyId() { return TENANT; }
+            @Override public boolean isCrossTenantAdmin() { return true; }
+        });
+        io.casehub.neocortex.mindmap.GoalAppraisal appraisal = (node, ctx) -> {
+            var emotion = new io.casehub.neocortex.cognitive.CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.FEAR, 0.7, node.id(),
+                    java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(io.casehub.neocortex.cognitive.EmotionType.FEAR, 0.7));
+            return java.util.List.of(emotion);
+        };
+        var phase = new GoalAffectPhase(store, appraisal, memoryStore,
+                                        java.time.Clock.systemUTC());
+
+        String goalId = store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Scary goal", goalSubgraphId)
+                                                                            .withProperties(Map.of("description", "scary", "status", "active", "agent-id", "agent-1")), TENANT);
+
+        phase.run(TENANT, List.of());
+
+        var query = io.casehub.neocortex.memory.MemoryQuery.forSubject(
+                io.casehub.neocortex.memory.Subject.of("agent", "agent-1"),
+                io.casehub.neocortex.memory.experience.ExperienceEvents.DOMAIN, TENANT);
+        var memories = memoryStore.query(query);
+        assertThat(memories).hasSize(1);
+        assertThat(memories.get(0).attributes().get("emotion-type")).isEqualTo("FEAR");
+        assertThat(memories.get(0).attributes().get("emotion-intensity")).isEqualTo("0.7");
+    }
+
+    @Test
+    void legacyPathDoesNotStoreEmotionEvent() {
+        var memoryStore = new io.casehub.neocortex.memory.inmem.InMemoryMemoryStore(new io.casehub.platform.api.identity.CurrentPrincipal() {
+            @Override public String actorId() { return "test"; }
+            @Override public java.util.Set<String> groups() { return java.util.Set.of(); }
+            @Override public String tenancyId() { return TENANT; }
+            @Override public boolean isCrossTenantAdmin() { return true; }
+        });
+        var phase = new GoalAffectPhase(store, null, memoryStore,
+                                        java.time.Clock.systemUTC());
+
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Simple goal", goalSubgraphId)
+                                                            .withProperties(Map.of("description", "simple", "status", "active", "agent-id", "agent-1")), TENANT);
+
+        phase.run(TENANT, List.of());
+
+        var query = io.casehub.neocortex.memory.MemoryQuery.forSubject(
+                io.casehub.neocortex.memory.Subject.of("agent", "agent-1"),
+                io.casehub.neocortex.memory.experience.ExperienceEvents.DOMAIN, TENANT);
+        var memories = memoryStore.query(query);
+        assertThat(memories).isEmpty();
+    }
+
+    @Test
+    void occAppraisalWithoutAgentIdDoesNotStoreEvent() {
+        var memoryStore = new io.casehub.neocortex.memory.inmem.InMemoryMemoryStore(new io.casehub.platform.api.identity.CurrentPrincipal() {
+            @Override public String actorId() { return "test"; }
+            @Override public java.util.Set<String> groups() { return java.util.Set.of(); }
+            @Override public String tenancyId() { return TENANT; }
+            @Override public boolean isCrossTenantAdmin() { return true; }
+        });
+        io.casehub.neocortex.mindmap.GoalAppraisal appraisal = (node, ctx) -> {
+            var emotion = new io.casehub.neocortex.cognitive.CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.JOY, 0.8, node.id(),
+                    java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(io.casehub.neocortex.cognitive.EmotionType.JOY, 0.8));
+            return java.util.List.of(emotion);
+        };
+        var phase = new GoalAffectPhase(store, appraisal, memoryStore,
+                                        java.time.Clock.systemUTC());
+
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Happy goal", goalSubgraphId)
+                                                            .withProperties(Map.of("description", "happy", "status", "active")), TENANT);
+
+        phase.run(TENANT, List.of());
+
+        // No agent-id on node → no emotion event stored (CAPS is per-agent)
+        var scan = memoryStore.scan(new io.casehub.neocortex.memory.MemoryScanRequest(
+                TENANT, "experience", null, null, 10, null));
+        assertThat(scan).isEmpty();
+    }
 }
