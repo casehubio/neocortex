@@ -56,21 +56,36 @@ public class ConfidenceDecayDecorator extends AbstractForwardingMindMapStore {
 
     @Override
     public List<MindMapEdge> neighbors(String nodeId, String tenantId) {
-        return delegate().neighbors(nodeId, tenantId).stream()
+        return neighbors(nodeId, tenantId, (PrincipalId) null);
+    }
+
+    @Override
+    public List<MindMapEdge> neighbors(String nodeId, String tenantId, PrincipalId callerPrincipal) {
+        return delegate().neighbors(nodeId, tenantId, callerPrincipal).stream()
                          .map(this::withDecayedConfidence)
                          .toList();
     }
 
     @Override
     public List<MindMapEdge> neighbors(String nodeId, String edgeType, String tenantId) {
-        return delegate().neighbors(nodeId, edgeType, tenantId).stream()
+        return neighbors(nodeId, edgeType, tenantId, (PrincipalId) null);
+    }
+
+    @Override
+    public List<MindMapEdge> neighbors(String nodeId, String edgeType, String tenantId, PrincipalId callerPrincipal) {
+        return delegate().neighbors(nodeId, edgeType, tenantId, callerPrincipal).stream()
                          .map(this::withDecayedConfidence)
                          .toList();
     }
 
     @Override
     public List<MindMapEdge> bridgeEdges(String subgraphId, String tenantId) {
-        return delegate().bridgeEdges(subgraphId, tenantId).stream()
+        return bridgeEdges(subgraphId, tenantId, (PrincipalId) null);
+    }
+
+    @Override
+    public List<MindMapEdge> bridgeEdges(String subgraphId, String tenantId, PrincipalId callerPrincipal) {
+        return delegate().bridgeEdges(subgraphId, tenantId, callerPrincipal).stream()
                          .map(this::withDecayedConfidence)
                          .toList();
     }
