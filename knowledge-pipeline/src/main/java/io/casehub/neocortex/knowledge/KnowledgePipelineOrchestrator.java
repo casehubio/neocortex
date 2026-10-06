@@ -179,6 +179,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
             case KnowledgeQuery.TextSearch ignored -> "TEXT";
             case KnowledgeQuery.NearbySearch ignored -> "NEARBY";
             case KnowledgeQuery.CategorySearch ignored -> "CATEGORY";
+            default -> "UNKNOWN";
         };
         Double lat = switch (query) {
             case KnowledgeQuery.NearbySearch n -> n.center().lat();
@@ -352,6 +353,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
             case KnowledgeQuery.TextSearch ignored -> "TEXT";
             case KnowledgeQuery.NearbySearch ignored -> "NEARBY";
             case KnowledgeQuery.CategorySearch ignored -> "CATEGORY";
+            default -> "UNKNOWN";
         };
     }
 
@@ -379,6 +381,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
                 search.searchNearby(n.center(), n.radiusMeters(), pageRequest);
             case KnowledgeQuery.CategorySearch c ->
                 search.searchByCategory(c.category(), c.center(), c.radiusMeters(), pageRequest);
+            default -> throw new UnsupportedOperationException("Unsupported query type: " + query.getClass().getName());
         };
     }
 
