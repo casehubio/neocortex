@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.gut;
 
+import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
@@ -18,17 +19,29 @@ public class GutFeelingParticipant implements CognitionTickParticipant {
 
     private final @Nullable CaseMemoryStore memoryStore;
     private final @Nullable MoodOrchestrator moodOrchestrator;
+    private final @Nullable CognitionConfig config;
     private final ConcurrentHashMap<String, GutFeeling> results = new ConcurrentHashMap<>();
+
+    public GutFeelingParticipant(
+            @Nullable CaseMemoryStore memoryStore,
+            @Nullable MoodOrchestrator moodOrchestrator,
+            CognitionConfig config) {
+        this.memoryStore = memoryStore;
+        this.moodOrchestrator = moodOrchestrator;
+        this.config = config;
+    }
 
     public GutFeelingParticipant(
             @Nullable CaseMemoryStore memoryStore,
             @Nullable MoodOrchestrator moodOrchestrator) {
         this.memoryStore = memoryStore;
         this.moodOrchestrator = moodOrchestrator;
+        this.config = null;
     }
 
     @Override
     public void tick(CognitionTickContext context) {
+        if (config != null && !config.behavioralEnabled()) return;
         var agentKey = context.agentId() + ":" + context.tenantId();
         results.remove(agentKey);
 

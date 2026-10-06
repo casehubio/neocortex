@@ -566,7 +566,7 @@ public class CognitionCore {
             @Nullable CaseMemoryStore memoryStore,
             @Nullable MoodOrchestrator moodOrchestrator) {
         if (memoryStore == null) {return;}
-        this.gutFeelingParticipant = new GutFeelingParticipant(memoryStore, moodOrchestrator);
+        this.gutFeelingParticipant = new GutFeelingParticipant(memoryStore, moodOrchestrator, config);
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
 
