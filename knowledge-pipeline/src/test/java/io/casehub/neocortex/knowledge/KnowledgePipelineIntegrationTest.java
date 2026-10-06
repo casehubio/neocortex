@@ -6,6 +6,7 @@ import io.casehub.connectors.location.model.Coordinates;
 import io.casehub.connectors.location.model.Place;
 import io.casehub.connectors.location.model.PriceLevel;
 import io.casehub.connectors.location.spi.LocationPlatform;
+import io.casehub.neocortex.knowledge.normalization.ExpansionStrategy;
 import io.casehub.neocortex.knowledge.cache.CacheDecayPolicy;
 import io.casehub.neocortex.knowledge.cache.CacheEvictionScheduler;
 import io.casehub.neocortex.knowledge.cache.EntityMetadataStore;
@@ -82,7 +83,9 @@ class KnowledgePipelineIntegrationTest {
             List.of(provider), cacheStore, queryCache, dedupStore,
             metadataStore, resolutionEngine, promoter,
             new CacheDecayPolicy(),
-            new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(), 6);
+            new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(), 6,
+            (term, domain) -> ExpandedTerm.passthrough(term),
+            new ExpansionStrategy(java.util.Set.of()), 10);
     }
 
     @AfterEach

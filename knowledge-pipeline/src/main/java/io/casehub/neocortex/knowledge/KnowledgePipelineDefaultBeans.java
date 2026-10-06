@@ -2,8 +2,10 @@ package io.casehub.neocortex.knowledge;
 
 import com.zaxxer.hikari.HikariDataSource;
 import io.casehub.connectors.location.spi.LocationPlatform;
+import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.knowledge.cache.CacheDecayPolicy;
 import io.casehub.neocortex.knowledge.cache.CacheEvictionScheduler;
+import io.casehub.neocortex.knowledge.normalization.ExpansionStrategy;
 import io.casehub.neocortex.knowledge.cache.EntityMetadataStore;
 import io.casehub.neocortex.knowledge.cache.QueryCacheStore;
 import io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule;
@@ -16,6 +18,7 @@ import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.quarkus.arc.DefaultBean;
+import java.util.Set;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Instance;
@@ -74,12 +77,17 @@ public class KnowledgePipelineDefaultBeans {
             EntityPromoter promoter,
             CacheDecayPolicy decayPolicy,
             SubsumptionRule subsumptionRule,
+            TermNormalizer normalizer,
             KnowledgePipelineConfig config,
             KnowledgePipelineMetrics metrics) {
+        Set<String> knownProviders = config.expansion().knownProviders()
+                .map(Set::copyOf).orElse(Set.of());
         var orch = new KnowledgePipelineOrchestrator(
                 providers.stream().toList(), cacheStore, queryCache, dedupStore,
                 metadataStore, resolutionEngine, promoter, decayPolicy,
-                subsumptionRule, config.geohashPrecision());
+                subsumptionRule, config.geohashPrecision(),
+                normalizer, new ExpansionStrategy(knownProviders),
+                config.expansion().maxVariantQueries());
         orch.setMetrics(metrics);
         return orch;
     }

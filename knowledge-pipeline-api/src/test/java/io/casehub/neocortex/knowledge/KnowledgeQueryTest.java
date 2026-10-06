@@ -10,7 +10,7 @@ class KnowledgeQueryTest {
 
     @Test
     void textSearchRequiresQuery() {
-        assertThatThrownBy(() -> new KnowledgeQuery.TextSearch(null))
+        assertThatThrownBy(() -> new KnowledgeQuery.TextSearch(null, null))
             .isInstanceOf(NullPointerException.class);
     }
 
@@ -31,7 +31,7 @@ class KnowledgeQueryTest {
 
     @Test
     void sealedHierarchyPermitsPatternMatch() {
-        KnowledgeQuery q = new KnowledgeQuery.TextSearch("pizza");
+        KnowledgeQuery q = new KnowledgeQuery.TextSearch("pizza", null);
         String result = switch (q) {
             case KnowledgeQuery.TextSearch t -> "text:" + t.query();
             case KnowledgeQuery.NearbySearch n -> "nearby";
@@ -39,4 +39,19 @@ class KnowledgeQueryTest {
         };
         assertThat(result).isEqualTo("text:pizza");
     }
+
+    @Test
+    void textSearchAcceptsDomain() {
+        var q = new KnowledgeQuery.TextSearch("dolly", KnowledgeDomain.THING);
+        assertThat(q.query()).isEqualTo("dolly");
+        assertThat(q.domain()).isEqualTo("thing");
+    }
+
+    @Test
+    void textSearchAcceptsNullDomain() {
+        var q = new KnowledgeQuery.TextSearch("pizza", null);
+        assertThat(q.query()).isEqualTo("pizza");
+        assertThat(q.domain()).isNull();
+    }
+
 }

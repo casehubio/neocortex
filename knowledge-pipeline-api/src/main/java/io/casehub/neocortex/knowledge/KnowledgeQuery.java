@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public sealed interface KnowledgeQuery {
 
-    record TextSearch(String query) implements KnowledgeQuery {
+    record TextSearch(String query, String domain) implements KnowledgeQuery {
         public TextSearch { Objects.requireNonNull(query); }
     }
 

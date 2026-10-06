@@ -12,6 +12,7 @@ import io.casehub.neocortex.knowledge.cache.EntityMetadataStore;
 import io.casehub.neocortex.knowledge.cache.InMemorySpatialCacheStore;
 import io.casehub.neocortex.knowledge.cache.QueryCacheStore;
 import io.casehub.neocortex.knowledge.dedup.DedupIndexStore;
+import io.casehub.neocortex.knowledge.normalization.ExpansionStrategy;
 import io.casehub.neocortex.knowledge.promotion.EntityPromoter;
 import io.casehub.neocortex.knowledge.research.ResearchOrchestrator;
 import io.casehub.neocortex.knowledge.research.ResearchSessionStore;
@@ -66,7 +67,10 @@ class KnowledgePipelineOrchestratorTest {
             promoter,
             new CacheDecayPolicy(),
             new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(),
-            6
+            6,
+            (term, domain) -> ExpandedTerm.passthrough(term),
+            new ExpansionStrategy(java.util.Set.of()),
+            10
         );
     }
 
@@ -120,12 +124,144 @@ class KnowledgePipelineOrchestratorTest {
         );
 
         var results = orchestrator.search(
-            new KnowledgeQuery.TextSearch("pizza"),
+            new KnowledgeQuery.TextSearch("pizza", null),
             "tenant-1");
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).name()).isEqualTo("Pizza Express");
     }
+
+    @Test
+    void variantDispatchFiresMultipleQueriesForUnknownProvider() {
+        locationPlatform.places = List.of(
+                new Place("g1", "Dolly Shop", "London", new Coordinates(51.5, -0.1),
+                          List.of("shop"), 4.0, 100, null, null, null)
+                                         );
+
+        TermNormalizer expander = (term, domain) -> {
+            if ("dolly".equals(term)) {
+                return new ExpandedTerm("doll", java.util.Set.of("doll", "dolly", "dolls"));
+            }
+            return ExpandedTerm.passthrough(term);
+        };
+
+        var expandingOrchestrator = new KnowledgePipelineOrchestrator(
+                List.of(locationPlatform), cacheStore, queryCache,
+                new io.casehub.neocortex.knowledge.dedup.DedupIndexStore(pipelineDs),
+                new io.casehub.neocortex.knowledge.cache.EntityMetadataStore(pipelineDs),
+                new io.casehub.neocortex.knowledge.resolution.EntityResolutionEngine(
+                        new io.casehub.neocortex.knowledge.resolution.PlaceMatcher()),
+                new io.casehub.neocortex.knowledge.promotion.EntityPromoter(
+                        new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore(),
+                        cacheStore,
+                        new io.casehub.neocortex.knowledge.dedup.DedupIndexStore(pipelineDs),
+                        new io.casehub.neocortex.knowledge.research.ResearchSessionStore(researchDs)),
+                new io.casehub.neocortex.knowledge.cache.CacheDecayPolicy(),
+                new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(),
+                6,
+                expander,
+                new ExpansionStrategy(java.util.Set.of()),
+                10
+        );
+
+        locationPlatform.fetchCount = 0;
+        locationPlatform.queriesReceived.clear();
+
+        expandingOrchestrator.search(
+                new KnowledgeQuery.TextSearch("dolly", KnowledgeDomain.THING), "tenant-1");
+
+        assertThat(locationPlatform.fetchCount).isGreaterThan(1);
+        assertThat(locationPlatform.queriesReceived).contains("doll", "dolly", "dolls");
+    }
+
+    @Test
+    void knownProviderSkipsVariantExpansion() {
+        locationPlatform.places = List.of(
+                new Place("g1", "Dolly Shop", "London", new Coordinates(51.5, -0.1),
+                          List.of("shop"), 4.0, 100, null, null, null)
+                                         );
+
+        TermNormalizer expander = (term, domain) -> {
+            if ("dolly".equals(term)) {
+                return new ExpandedTerm("doll", java.util.Set.of("doll", "dolly", "dolls"));
+            }
+            return ExpandedTerm.passthrough(term);
+        };
+
+        var knownProviderOrchestrator = new KnowledgePipelineOrchestrator(
+                List.of(locationPlatform), cacheStore, queryCache,
+                new io.casehub.neocortex.knowledge.dedup.DedupIndexStore(pipelineDs),
+                new io.casehub.neocortex.knowledge.cache.EntityMetadataStore(pipelineDs),
+                new io.casehub.neocortex.knowledge.resolution.EntityResolutionEngine(
+                        new io.casehub.neocortex.knowledge.resolution.PlaceMatcher()),
+                new io.casehub.neocortex.knowledge.promotion.EntityPromoter(
+                        new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore(),
+                        cacheStore,
+                        new io.casehub.neocortex.knowledge.dedup.DedupIndexStore(pipelineDs),
+                        new io.casehub.neocortex.knowledge.research.ResearchSessionStore(researchDs)),
+                new io.casehub.neocortex.knowledge.cache.CacheDecayPolicy(),
+                new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(),
+                6,
+                expander,
+                new ExpansionStrategy(java.util.Set.of("stub")),
+                10
+        );
+
+        locationPlatform.fetchCount = 0;
+        locationPlatform.queriesReceived.clear();
+
+        knownProviderOrchestrator.search(
+                new KnowledgeQuery.TextSearch("dolly", KnowledgeDomain.THING), "tenant-1");
+
+        assertThat(locationPlatform.fetchCount).isEqualTo(1);
+        assertThat(locationPlatform.queriesReceived).containsExactly("dolly");
+    }
+
+    @Test
+    void synonymQueriesHitSameCacheInOrchestrator() {
+        locationPlatform.places = List.of(
+                new Place("g1", "Italian Place", "London", new Coordinates(51.5, -0.1),
+                          List.of("restaurant"), 4.0, 100, null, null, null)
+                                         );
+
+        TermNormalizer expander = (term, domain) -> {
+            if ("eatery".equals(term) || "restaurant".equals(term)) {
+                return new ExpandedTerm("restaurant",
+                                        java.util.Set.of("restaurant", "eatery"));
+            }
+            return ExpandedTerm.passthrough(term);
+        };
+
+        var normOrchestrator = new KnowledgePipelineOrchestrator(
+                List.of(locationPlatform), cacheStore, queryCache,
+                new io.casehub.neocortex.knowledge.dedup.DedupIndexStore(pipelineDs),
+                new io.casehub.neocortex.knowledge.cache.EntityMetadataStore(pipelineDs),
+                new io.casehub.neocortex.knowledge.resolution.EntityResolutionEngine(
+                        new io.casehub.neocortex.knowledge.resolution.PlaceMatcher()),
+                new io.casehub.neocortex.knowledge.promotion.EntityPromoter(
+                        new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore(),
+                        cacheStore,
+                        new io.casehub.neocortex.knowledge.dedup.DedupIndexStore(pipelineDs),
+                        new io.casehub.neocortex.knowledge.research.ResearchSessionStore(researchDs)),
+                new io.casehub.neocortex.knowledge.cache.CacheDecayPolicy(),
+                new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(),
+                6,
+                expander,
+                new ExpansionStrategy(java.util.Set.of("stub")),
+                10
+        );
+
+        normOrchestrator.search(
+                new KnowledgeQuery.TextSearch("eatery", KnowledgeDomain.PLACE), "tenant-1");
+        int fetchAfterFirst = locationPlatform.fetchCount;
+
+        var results = normOrchestrator.search(
+                new KnowledgeQuery.TextSearch("restaurant", KnowledgeDomain.PLACE), "tenant-1");
+
+        assertThat(results).hasSize(1);
+        assertThat(locationPlatform.fetchCount).isEqualTo(fetchAfterFirst);
+    }
+
 
     @Test
     void promoteFlowDelegatesToPromoter() {
@@ -240,10 +376,13 @@ class KnowledgePipelineOrchestratorTest {
                         new ResearchSessionStore(researchDs)),
                 new CacheDecayPolicy(),
                 new io.casehub.neocortex.knowledge.cache.SpatialSubsumptionRule(),
-                6);
+                6,
+                (term, domain) -> ExpandedTerm.passthrough(term),
+                new ExpansionStrategy(java.util.Set.of()),
+                10);
 
         var results = multiOrchestrator.search(
-                new KnowledgeQuery.TextSearch("restaurant"), "tenant-1");
+                new KnowledgeQuery.TextSearch("restaurant", null), "tenant-1");
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).name()).isEqualTo("Working Place");
@@ -255,6 +394,7 @@ class KnowledgePipelineOrchestratorTest {
         int         fetchCount       = 0;
         boolean     detailsSupported = false;
         Place       detailPlace      = null;
+        List<String> queriesReceived = new java.util.ArrayList<>();
 
         @Override
         public String id() {return "stub";}
@@ -271,6 +411,7 @@ class KnowledgePipelineOrchestratorTest {
                 @Override
                 public Page<Place> searchByText(String query, PageRequest pagination) {
                     fetchCount++;
+                    queriesReceived.add(query);
                     return new Page<>(places, null, false);
                 }
 

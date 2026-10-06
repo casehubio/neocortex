@@ -53,10 +53,11 @@ class KnowledgePipelineCdiSmokeTest {
         var promoter      = new EntityPromoter(mindMap, cacheStore, dedupStore, sessionStore);
         var metrics       = new KnowledgePipelineMetrics(io.micrometer.core.instrument.Metrics.globalRegistry);
 
+        var noOpNormalizer = new io.casehub.neocortex.knowledge.normalization.NoOpTermNormalizer();
         var orchestrator = beans.knowledgePipelineOrchestrator(
                 new EmptyInstance<>(), cacheStore, queryCache, dedupStore,
                 metadataStore, resolutionEngine, promoter, decayPolicy,
-                subsumptionRule, config, metrics);
+                subsumptionRule, noOpNormalizer, config, metrics);
         assertThat(orchestrator).isNotNull();
 
         var scheduler = beans.cacheEvictionScheduler(
@@ -66,7 +67,7 @@ class KnowledgePipelineCdiSmokeTest {
         var producedMetrics = beans.knowledgePipelineMetrics(new EmptyInstance<>());
         assertThat(producedMetrics).isNotNull();
 
-        var results = orchestrator.search(new KnowledgeQuery.TextSearch("test"), "t1");
+        var results = orchestrator.search(new KnowledgeQuery.TextSearch("test", null), "t1");
         assertThat(results).isEmpty();
 
         var session = new ResearchOrchestrator(sessionStore, mindMap,
@@ -129,6 +130,22 @@ class KnowledgePipelineCdiSmokeTest {
 
                     @Override
                     public ResearchSqliteConfig sqlite()           {return () -> ":memory:";}
+                };
+            }
+
+            @Override
+            public NormalizationConfig normalization() {
+                return () -> true;
+            }
+
+            @Override
+            public ExpansionConfig expansion() {
+                return new ExpansionConfig() {
+                    @Override
+                    public java.util.Optional<java.util.List<String>> knownProviders() {return java.util.Optional.empty();}
+
+                    @Override
+                    public int maxVariantQueries() {return 10;}
                 };
             }
         };

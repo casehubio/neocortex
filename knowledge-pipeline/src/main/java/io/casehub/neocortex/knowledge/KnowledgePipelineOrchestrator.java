@@ -10,12 +10,14 @@ import io.casehub.neocortex.knowledge.cache.CacheKeyGenerator;
 import io.casehub.neocortex.knowledge.cache.EntityMetadataStore;
 import io.casehub.neocortex.knowledge.cache.QueryCacheStore;
 import io.casehub.neocortex.knowledge.dedup.DedupIndexStore;
+import io.casehub.neocortex.knowledge.normalization.ExpansionStrategy;
 import io.casehub.neocortex.knowledge.promotion.EntityPromoter;
 import io.casehub.neocortex.knowledge.resolution.EntityResolutionEngine;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +42,9 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
     private final CacheDecayPolicy decayPolicy;
     private final SubsumptionRule subsumptionRule;
     private final int geohashPrecision;
+    private final TermNormalizer normalizer;
+    private final ExpansionStrategy expansionStrategy;
+    private final int maxVariantQueries;
     private       KnowledgePipelineMetrics metrics;
 
 
@@ -53,7 +58,10 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
             EntityPromoter promoter,
             CacheDecayPolicy decayPolicy,
             SubsumptionRule subsumptionRule,
-            int geohashPrecision) {
+            int geohashPrecision,
+            TermNormalizer normalizer,
+            ExpansionStrategy expansionStrategy,
+            int maxVariantQueries) {
         this.providers = providers;
         this.cacheStore = cacheStore;
         this.queryCache = queryCache;
@@ -64,6 +72,9 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
         this.decayPolicy = decayPolicy;
         this.subsumptionRule = subsumptionRule;
         this.geohashPrecision = geohashPrecision;
+        this.normalizer = normalizer;
+        this.expansionStrategy = expansionStrategy;
+        this.maxVariantQueries = maxVariantQueries;
     }
 
     void setMetrics(KnowledgePipelineMetrics metrics) {
@@ -79,7 +90,8 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
     @Override
     public List<CachedEntity> search(KnowledgeQuery query, String tenantId,
                                       String researchSessionId) {
-        NormalizedQuery normalized = CacheKeyGenerator.generate(query, geohashPrecision);
+        var normResult = CacheKeyGenerator.generate(query, geohashPrecision, normalizer);
+        NormalizedQuery normalized = normResult.normalizedQuery();
 
         var cacheHit = queryCache.lookup(normalized.cacheKey(), tenantId);
         if (cacheHit.isPresent()) {
@@ -119,7 +131,7 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
 
         if (metrics != null) metrics.recordCacheMiss(queryType(query), tenantId);
 
-        List<ProviderPlace> fetched = fetchFromProviders(query, tenantId);
+        List<ProviderPlace> fetched = fetchFromProviders(query, tenantId, normResult.expansions());
         if (fetched.isEmpty()) return List.of();
 
         Instant now = Instant.now();
@@ -248,13 +260,25 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
 
     record ProviderPlace(String providerId, Place place) {}
 
-    private List<ProviderPlace> fetchFromProviders(KnowledgeQuery query, String tenantId) {
+    private List<ProviderPlace> fetchFromProviders(KnowledgeQuery query, String tenantId,
+                                                    Map<String, ExpandedTerm> expansions) {
         List<ProviderPlace> all = new ArrayList<>();
         for (LocationPlatform provider : providers) {
             if (!provider.supports(LocationPlatform.PlaceSearch.class)) continue;
             try {
                 var sample = metrics != null ? metrics.startProviderFetch() : null;
-                List<Place> providerResults = fetchAllPages(provider, query);
+                List<Place> providerResults;
+
+                if (expansions.isEmpty()
+                        || !(query instanceof KnowledgeQuery.TextSearch)
+                        || expansionStrategy.strategyFor(provider.id())
+                            == ExpansionStrategy.Mode.CANONICAL_ONLY) {
+                    providerResults = fetchAllPages(provider, query);
+                } else {
+                    providerResults = fetchWithVariants(provider, (KnowledgeQuery.TextSearch) query,
+                        expansions);
+                }
+
                 if (sample != null) metrics.recordProviderFetch(sample, provider.id(), tenantId);
                 providerResults.forEach(p -> all.add(new ProviderPlace(provider.id(), p)));
             } catch (Exception e) {
@@ -263,6 +287,61 @@ public class KnowledgePipelineOrchestrator implements KnowledgePipelineService {
             }
         }
         return all;
+    }
+
+    private List<Place> fetchWithVariants(LocationPlatform provider,
+                                           KnowledgeQuery.TextSearch query,
+                                           Map<String, ExpandedTerm> expansions) {
+        Set<String> seenIds = new HashSet<>();
+        List<Place> results = new ArrayList<>();
+
+        List<String> variantQueries = buildVariantQueries(query.query(), expansions);
+        int cap = Math.min(variantQueries.size(), maxVariantQueries);
+        if (cap < variantQueries.size()) {
+            LOG.warning("Truncating variant queries from " + variantQueries.size() + " to " + cap);
+        }
+
+        for (int i = 0; i < cap; i++) {
+            try {
+                var variantQuery = new KnowledgeQuery.TextSearch(variantQueries.get(i), query.domain());
+                List<Place> fetched = fetchAllPages(provider, variantQuery);
+                for (Place p : fetched) {
+                    if (p.id() != null && seenIds.add(p.id())) {
+                        results.add(p);
+                    } else if (p.id() == null) {
+                        results.add(p);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Variant query failed: " + variantQueries.get(i), e);
+            }
+        }
+        return results;
+    }
+
+    static List<String> buildVariantQueries(String originalQuery, Map<String, ExpandedTerm> expansions) {
+        String normalized = CacheKeyGenerator.normalizeText(originalQuery);
+        List<String> queries = new ArrayList<>();
+
+        String canonicalQuery = normalized;
+        for (var entry : expansions.entrySet()) {
+            String term = entry.getKey().toLowerCase().strip();
+            canonicalQuery = canonicalQuery.replace(term, entry.getValue().canonical());
+        }
+        queries.add(canonicalQuery);
+
+        for (var entry : expansions.entrySet()) {
+            String term = entry.getKey().toLowerCase().strip();
+            for (String variant : entry.getValue().variants()) {
+                if (variant.equals(entry.getValue().canonical())) continue;
+                String variantQuery = canonicalQuery.replace(entry.getValue().canonical(), variant);
+                if (!queries.contains(variantQuery)) {
+                    queries.add(variantQuery);
+                }
+            }
+        }
+
+        return queries;
     }
 
     private static String queryType(KnowledgeQuery query) {

@@ -36,7 +36,7 @@ public class QueryCacheStore {
         public NormalizedQuery toNormalizedQuery() {
             KnowledgeQuery query = switch (queryType) {
                 case "TEXT" -> new KnowledgeQuery.TextSearch(
-                    cacheKey.substring("TEXT:".length()));
+                    cacheKey.substring("TEXT:".length()), null);
                 case "NEARBY" -> new KnowledgeQuery.NearbySearch(
                     new Coordinates(lat, lng), radiusMeters, null);
                 case "CATEGORY" -> new KnowledgeQuery.CategorySearch(
