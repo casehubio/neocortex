@@ -14,6 +14,8 @@ import io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator;
 import io.casehub.neocortex.cognition.mentalmodel.MentalStateSignal;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
+import io.casehub.neocortex.cognition.mood.MoodTick;
+import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
@@ -116,6 +118,7 @@ public class CognitionCore {
     private UnaryOperator<List<CognitionPromptRenderer>> sectionCustomizer;
     private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
     private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
+    private volatile @Nullable Consumer<MoodState> moodPersister;
 
 
     public CognitionCore(MoodOrchestrator mood,
@@ -567,6 +570,9 @@ public class CognitionCore {
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
 
+    public void setMoodPersister(@Nullable Consumer<MoodState> moodPersister) {
+        this.moodPersister = moodPersister;
+    }
 
     private boolean isEnabled(boolean configFlag, Set<SignalCategory> relevance) {
         return configFlag || (lastBriefing != null && config.attentionEnabled()
@@ -593,7 +599,10 @@ public class CognitionCore {
             mood.record(new MoodSignal.InteractionAppraisal(0, 0, 0, "init"),
                         agentId, tenantId);
         }
-        mood.tick(agentId, tenantId);
+        var result = mood.tick(agentId, tenantId);
+        if (result instanceof MoodTick.Updated updated && moodPersister != null) {
+            moodPersister.accept(updated.moodState());
+        }
     }
 
     private void safeRun(Runnable action) {
