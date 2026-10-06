@@ -8,11 +8,16 @@ import io.casehub.neocortex.mindmap.AppraisalContext;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
 import io.casehub.neocortex.mindmap.MindMapNode;
 
+import io.quarkus.arc.DefaultBean;
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@DefaultBean
+@ApplicationScoped
 public class HeuristicGoalAppraisal implements GoalAppraisal {
 
     @Override
