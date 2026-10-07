@@ -1,17 +1,16 @@
 package io.casehub.neocortex.cognition.goal;
 
-import io.casehub.neocortex.cognition.drive.DriveAxis;
-import io.casehub.neocortex.cognition.drive.DriveIntensity;
-import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
-import io.casehub.neocortex.cognition.drive.DriveProfile;
-import io.casehub.neocortex.cognition.narrative.DerivedTheme;
-import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
-import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentGoal;
 import io.casehub.eidos.api.GoalOutcomeCounts;
 import io.casehub.eidos.api.GoalPriority;
 import io.casehub.eidos.api.GoalSignalStore;
+import io.casehub.neocortex.cognition.drive.DriveAxis;
+import io.casehub.neocortex.cognition.drive.DriveIntensity;
+import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
+import io.casehub.neocortex.cognition.drive.DriveProfile;
+import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
+import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Clock;
@@ -35,6 +34,7 @@ public class GoalProposalOrchestrator {
     private final DriveOrchestrator driveOrchestrator;
     private final List<DriveGoalMapper> mappers;
     private final @Nullable DriveGoalFormationStrategy formationStrategy;
+    private final @Nullable DeductiveGoalFormationStrategy deductiveStrategy;
     private final Optional<GoalSignalStore> goalSignalStore;
     private final GoalProposalConfig config;
     private final Clock clock;
@@ -50,6 +50,7 @@ public class GoalProposalOrchestrator {
             DriveOrchestrator driveOrchestrator,
             List<DriveGoalMapper> mappers,
             @Nullable DriveGoalFormationStrategy formationStrategy,
+            @Nullable DeductiveGoalFormationStrategy deductiveStrategy,
             Optional<GoalSignalStore> goalSignalStore,
             @Nullable NarrativeOrchestrator narrativeOrchestrator,
             @Nullable GoalEscalationPolicy escalationPolicy,
@@ -60,6 +61,7 @@ public class GoalProposalOrchestrator {
         this.driveOrchestrator      = driveOrchestrator;
         this.mappers                = List.copyOf(mappers);
         this.formationStrategy      = formationStrategy;
+        this.deductiveStrategy      = deductiveStrategy;
         this.goalSignalStore        = goalSignalStore;
         this.narrativeOrchestrator  = narrativeOrchestrator;
         this.escalationPolicy       = escalationPolicy;
@@ -69,13 +71,29 @@ public class GoalProposalOrchestrator {
         this.clock                  = clock;
     }
 
+    public GoalProposalOrchestrator(
+            DriveOrchestrator driveOrchestrator,
+            List<DriveGoalMapper> mappers,
+            @Nullable DriveGoalFormationStrategy formationStrategy,
+            Optional<GoalSignalStore> goalSignalStore,
+            @Nullable NarrativeOrchestrator narrativeOrchestrator,
+            @Nullable GoalEscalationPolicy escalationPolicy,
+            @Nullable CrossAxisGoalEnricher crossAxisEnricher,
+            GoalProposalConfig config,
+            GoalEscalationConfig escalationConfig,
+            Clock clock) {
+        this(driveOrchestrator, mappers, formationStrategy, null, goalSignalStore,
+             narrativeOrchestrator, escalationPolicy, crossAxisEnricher,
+             config, escalationConfig, clock);
+    }
+
     GoalProposalOrchestrator(
             DriveOrchestrator driveOrchestrator,
             List<DriveGoalMapper> mappers,
             Optional<GoalSignalStore> goalSignalStore,
             GoalProposalConfig config,
             Clock clock) {
-        this(driveOrchestrator, mappers, null, goalSignalStore,
+        this(driveOrchestrator, mappers, null, null, goalSignalStore,
              null, null, null, config, GoalEscalationConfig.defaults(), clock);
     }
 
@@ -86,7 +104,7 @@ public class GoalProposalOrchestrator {
             Optional<GoalSignalStore> goalSignalStore,
             GoalProposalConfig config,
             Clock clock) {
-        this(driveOrchestrator, mappers, formationStrategy, goalSignalStore,
+        this(driveOrchestrator, mappers, formationStrategy, null, goalSignalStore,
              null, null, null, config, GoalEscalationConfig.defaults(), clock);
     }
 
@@ -149,20 +167,27 @@ public class GoalProposalOrchestrator {
         }
 
         List<DriveGoalProposal> proposals = new ArrayList<>();
+        int totalCapacity = remainingCapacity;
         if (remainingCapacity > 0) {
-            proposals = evaluateMappers(agentId, tenantId, profile, state,
-                    descriptor, remainingCapacity);
+            var deductiveProposals = evaluateDeductive(agentId, tenantId, profile, descriptor, remainingCapacity);
+            proposals.addAll(deductiveProposals);
+            remainingCapacity -= deductiveProposals.size();
+        }
+        if (remainingCapacity > 0) {
+            proposals.addAll(evaluateMappers(agentId, tenantId, profile, state,
+                    descriptor, remainingCapacity));
 
             if (narrative != null) {
                 proposals.addAll(evaluateCrossAxis(agentId, tenantId, profile, narrative));
                 proposals = evaluateEscalation(proposals, narrative, profile,
                         descriptor, state, newSynthesis);
             }
-
+        }
+        if (!proposals.isEmpty()) {
             proposals.sort(Comparator.comparingDouble(DriveGoalProposal::driveIntensity).reversed()
                     .thenComparing(p -> p.axis().ordinal()));
-            if (proposals.size() > remainingCapacity) {
-                proposals = new ArrayList<>(proposals.subList(0, remainingCapacity));
+            if (proposals.size() > totalCapacity) {
+                proposals = new ArrayList<>(proposals.subList(0, totalCapacity));
             }
         }
 
@@ -204,6 +229,28 @@ public class GoalProposalOrchestrator {
         }
         return count;
     }
+
+    private List<DriveGoalProposal> evaluateDeductive(String agentId, String tenantId,
+                                                      DriveProfile profile,
+                                                      AgentDescriptor descriptor,
+                                                      int remainingCapacity) {
+        if (deductiveStrategy == null) {return List.of();}
+
+        var context = new DeductiveFormationContext(
+                agentId, tenantId, profile, null,
+                List.of(), List.of(), null,
+                descriptor.goals(), remainingCapacity);
+
+        try {
+            var proposals = deductiveStrategy.propose(context);
+            return proposals.stream()
+                            .map(DeductiveGoalProposal::toDriveGoalProposal)
+                            .toList();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
 
     private List<DriveGoalProposal> evaluateMappers(String agentId, String tenantId,
                                                     DriveProfile profile,

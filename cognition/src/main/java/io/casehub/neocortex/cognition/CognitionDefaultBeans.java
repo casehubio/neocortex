@@ -145,4 +145,16 @@ public class CognitionDefaultBeans {
                 io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig.allEnabled());
     }
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.goal.DeductiveGoalFormationStrategy deductiveGoalFormationStrategy() {
+        if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
+            return new io.casehub.neocortex.cognition.goal.LlmDeductiveGoalFormationStrategy(
+                    agentProviderInstance.get());
+        }
+        return new io.casehub.neocortex.cognition.goal.NoOpDeductiveGoalFormationStrategy();
+    }
+
+
 }

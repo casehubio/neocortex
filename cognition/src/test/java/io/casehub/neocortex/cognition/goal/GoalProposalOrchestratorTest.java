@@ -1,16 +1,15 @@
 package io.casehub.neocortex.cognition.goal;
 
-import io.casehub.neocortex.cognition.drive.DriveAxis;
-import io.casehub.neocortex.cognition.drive.DriveIntensity;
-import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
-import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentGoal;
 import io.casehub.eidos.api.GoalOutcomeCounts;
 import io.casehub.eidos.api.GoalPriority;
 import io.casehub.eidos.api.GoalSignalStore;
 import io.casehub.eidos.api.Visibility;
-
+import io.casehub.neocortex.cognition.drive.DriveAxis;
+import io.casehub.neocortex.cognition.drive.DriveIntensity;
+import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
+import io.casehub.neocortex.cognition.drive.DriveProfile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -423,4 +422,72 @@ class GoalProposalOrchestratorTest {
         assertThat(proposals.get().stream().map(DriveGoalProposal::goalName))
                 .contains("char-goal");
     }
+
+    @Test
+    void deductiveStrategyProposalsAppearInChanges() {
+        DeductiveGoalFormationStrategy deductive = ctx -> List.of(
+                new DeductiveGoalProposal("seize-inheritance",
+                                          "Eliminate benefactor", "greed + opportunity",
+                                          Map.of(DriveAxis.AUTONOMY, 0.9), null, null));
+
+        var orch = new GoalProposalOrchestrator(
+                driveOrchestrator, List.of(curiosityMapper), null, deductive,
+                Optional.empty(), null, null, null,
+                GoalProposalConfig.defaults(), GoalEscalationConfig.defaults(), clock);
+
+        setupDrives("a1", "t1", DriveAxis.CURIOSITY, 0.7);
+
+        var tick = orch.tick("a1", "t1", descriptorWithGoals());
+
+        assertThat(tick).isInstanceOf(GoalProposalTick.Changes.class);
+        var changes = (GoalProposalTick.Changes) tick;
+        assertThat(changes.newProposals().stream().map(DriveGoalProposal::goalName))
+                .contains("seize-inheritance");
+    }
+
+    @Test
+    void deductiveProposalsReduceCapacityForPerAxis() {
+        var config = new GoalProposalConfig(0.4, 0.2, 2, Duration.ofMinutes(120),
+                                            Duration.ofMinutes(60), 5);
+
+        DeductiveGoalFormationStrategy deductive = ctx -> List.of(
+                new DeductiveGoalProposal("deductive-goal-1", "d", "r",
+                                          Map.of(DriveAxis.AUTONOMY, 0.8), null, null),
+                new DeductiveGoalProposal("deductive-goal-2", "d", "r",
+                                          Map.of(DriveAxis.COMPETENCE, 0.7), null, null));
+
+        var orch = new GoalProposalOrchestrator(
+                driveOrchestrator, List.of(curiosityMapper), null, deductive,
+                Optional.empty(), null, null, null,
+                config, GoalEscalationConfig.defaults(), clock);
+
+        setupDrives("a1", "t1", DriveAxis.CURIOSITY, 0.8);
+        when(curiosityMapper.evaluate("a1", "t1", driveIntensity(DriveAxis.CURIOSITY, 0.8)))
+                .thenReturn(new DriveGoalProposal(
+                        DriveAxis.CURIOSITY, "per-axis-goal", "d", "r", 0.8));
+
+        var tick = orch.tick("a1", "t1", descriptorWithGoals());
+
+        assertThat(tick).isInstanceOf(GoalProposalTick.Changes.class);
+        var changes = (GoalProposalTick.Changes) tick;
+        assertThat(changes.newProposals().stream().map(DriveGoalProposal::goalName))
+                .contains("deductive-goal-1", "deductive-goal-2")
+                .doesNotContain("per-axis-goal");
+    }
+
+    @Test
+    void noDeductiveStrategyWorksAsBeforeWithExistingConstructor() {
+        setupDrives("a1", "t1", DriveAxis.CURIOSITY, 0.7);
+        when(curiosityMapper.evaluate("a1", "t1", driveIntensity(DriveAxis.CURIOSITY, 0.7)))
+                .thenReturn(new DriveGoalProposal(
+                        DriveAxis.CURIOSITY, "explore", "d", "r", 0.7));
+
+        var tick = orchestrator.tick("a1", "t1", descriptorWithGoals());
+
+        assertThat(tick).isInstanceOf(GoalProposalTick.Changes.class);
+        var changes = (GoalProposalTick.Changes) tick;
+        assertThat(changes.newProposals().get(0).goalName()).isEqualTo("explore");
+    }
+
+
 }
