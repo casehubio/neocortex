@@ -79,7 +79,7 @@ class GoalEmotionalProgressionTest {
                         .withProperties(Map.of(
                                 "description", "Buy a birthday gift for daughter",
                                 "status", "active",
-                                "priority", "0.85",
+                                "drive-intensity", "0.85",
                                 "urgency", "0.2",
                                 "feasibility", "0.8",
                                 "target-date", "2026-09-24T10:00:00Z",

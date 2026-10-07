@@ -157,12 +157,13 @@ class CognitiveGoalOrchestratorTest {
     private String createGoal(String status, double priority, double urgency, double feasibility) {
         return mindMapStore.addNode(
                 NodeInput.of("Test goal", goalSubgraphId)
-                        .withProperties(Map.of(
-                                "description", "test",
-                                "status", status,
-                                "priority", String.valueOf(priority),
-                                "urgency", String.valueOf(urgency),
-                                "feasibility", String.valueOf(feasibility))),
+                         .withProperties(Map.of(
+                                 "description", "test",
+                                 "status", status,
+                                 "priority", String.valueOf(priority),
+                                 "drive-intensity", String.valueOf(priority),
+                                 "urgency", String.valueOf(urgency),
+                                 "feasibility", String.valueOf(feasibility))),
                 TENANT);
     }
 

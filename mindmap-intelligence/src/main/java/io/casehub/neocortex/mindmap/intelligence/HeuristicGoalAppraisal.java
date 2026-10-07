@@ -22,23 +22,25 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
 
     @Override
     public List<CognitiveEmotion> appraise(MindMapNode goal, AppraisalContext context) {
-        String status = goal.property("status").orElse("active");
-        double priority = doubleProperty(goal, "priority", 0.5);
-        double urgency = doubleProperty(goal, "urgency", 0.0);
-        double feasibility = doubleProperty(goal, "feasibility", 0.5);
-        int surfacingCount = context.surfacingCount();
-        Instant now = Instant.now();
+        String  status         = goal.property("status").orElse("active");
+        double  importance     = doubleProperty(goal, "importance", 0.0);
+        double  driveIntensity = doubleProperty(goal, "drive-intensity", 0.0);
+        double  salience       = Math.max(importance, Math.max(driveIntensity, 0.3));
+        double  urgency        = doubleProperty(goal, "urgency", 0.0);
+        double  feasibility    = doubleProperty(goal, "feasibility", 0.5);
+        int     surfacingCount = context.surfacingCount();
+        Instant now            = Instant.now();
 
         var emotions = new ArrayList<CognitiveEmotion>();
 
         switch (status) {
             case "active" -> appraiseActive(goal, context, emotions,
-                    priority, urgency, feasibility, surfacingCount, now);
+                                            salience, urgency, feasibility, surfacingCount, now);
             case "blocked" -> appraiseBlocked(goal, context, emotions,
-                    priority, urgency, feasibility, now);
-            case "completed" -> appraiseCompleted(goal, emotions, priority, now);
-            case "abandoned" -> appraiseAbandoned(goal, emotions, priority, now);
-            case "dormant" -> appraiseDormant(goal, emotions, priority, now);
+                                              salience, urgency, feasibility, now);
+            case "completed" -> appraiseCompleted(goal, emotions, salience, now);
+            case "abandoned" -> appraiseAbandoned(goal, emotions, salience, now);
+            case "dormant" -> appraiseDormant(goal, emotions, salience, now);
             default -> {}
         }
 
@@ -48,13 +50,13 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
     }
 
     private void appraiseActive(MindMapNode goal, AppraisalContext context,
-                                 List<CognitiveEmotion> emotions,
-                                 double priority, double urgency, double feasibility,
-                                 int surfacingCount, Instant now) {
+                                List<CognitiveEmotion> emotions,
+                                double salience, double urgency, double feasibility,
+                                int surfacingCount, Instant now) {
         double surfacingGapFactor = surfacingCount / (surfacingCount + 1.0);
-        double uw = context.weights().urgencyWeight();
+        double uw                 = context.weights().urgencyWeight();
 
-        double hopeIntensity = clampIntensity(priority * feasibility * (1 - urgency * 0.5 * uw));
+        double hopeIntensity = clampIntensity(salience * feasibility * (1 - urgency * 0.5 * uw));
         if (hopeIntensity > 0.05) {
             emotions.add(emotion(EmotionType.HOPE, hopeIntensity, goal.id(), now));
         }
@@ -62,7 +64,7 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
         double threshold = 0.3 * context.weights().fearOnsetThreshold();
         if (urgency > threshold || surfacingCount > 0) {
             double fearIntensity = clampIntensity(
-                    priority * urgency * uw * Math.max(surfacingGapFactor, 0.3));
+                    salience * urgency * uw * Math.max(surfacingGapFactor, 0.3));
             if (fearIntensity > 0.05) {
                 emotions.add(emotion(EmotionType.FEAR, fearIntensity, goal.id(), now));
             }
@@ -70,32 +72,32 @@ public class HeuristicGoalAppraisal implements GoalAppraisal {
     }
 
     private void appraiseBlocked(MindMapNode goal, AppraisalContext context,
-                                  List<CognitiveEmotion> emotions,
-                                  double priority, double urgency, double feasibility,
-                                  Instant now) {
+                                 List<CognitiveEmotion> emotions,
+                                 double salience, double urgency, double feasibility,
+                                 Instant now) {
         double uw = context.weights().urgencyWeight();
         double distressIntensity = clampIntensity(
-                priority * urgency * uw * (1 - feasibility));
+                salience * urgency * uw * (1 - feasibility));
         if (distressIntensity > 0.05) {
             emotions.add(emotion(EmotionType.DISTRESS, distressIntensity, goal.id(), now));
         }
     }
 
     private void appraiseCompleted(MindMapNode goal, List<CognitiveEmotion> emotions,
-                                    double priority, Instant now) {
-        double satisfactionIntensity = clampIntensity(priority);
+                                   double salience, Instant now) {
+        double satisfactionIntensity = clampIntensity(salience);
         emotions.add(emotion(EmotionType.SATISFACTION, satisfactionIntensity, goal.id(), now));
     }
 
     private void appraiseAbandoned(MindMapNode goal, List<CognitiveEmotion> emotions,
-                                    double priority, Instant now) {
-        double disappointmentIntensity = clampIntensity(priority * 0.7);
+                                   double salience, Instant now) {
+        double disappointmentIntensity = clampIntensity(salience * 0.7);
         emotions.add(emotion(EmotionType.DISAPPOINTMENT, disappointmentIntensity, goal.id(), now));
     }
 
     private void appraiseDormant(MindMapNode goal, List<CognitiveEmotion> emotions,
-                                  double priority, Instant now) {
-        double distressIntensity = clampIntensity(priority * 0.15);
+                                 double salience, Instant now) {
+        double distressIntensity = clampIntensity(salience * 0.15);
         if (distressIntensity > 0.05) {
             emotions.add(emotion(EmotionType.DISTRESS, distressIntensity, goal.id(), now));
         }

@@ -134,7 +134,8 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
 
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPropertiesToSet(
-                                     Map.of("priority", Double.toString(priority))),
+                                     Map.of("priority", Double.toString(priority),
+                                            "importance", Double.toString(importance))),
                              tenantId);
         }
     }

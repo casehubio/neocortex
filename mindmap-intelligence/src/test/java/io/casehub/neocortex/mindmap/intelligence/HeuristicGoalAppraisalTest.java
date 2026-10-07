@@ -154,26 +154,26 @@ class HeuristicGoalAppraisalTest {
                                     AppraisalWeights.NEUTRAL);
     }
 
-    private MindMapNode createGoal(String status, double priority,
+    private MindMapNode createGoal(String status, double salience,
                                    double urgency, double feasibility) {
         String id = store.addNode(NodeInput.of("Goal-" + status, goalSubgraphId)
                                            .withProperties(Map.of(
                                                    "description", "test goal",
                                                    "status", status,
-                                                   "priority", String.valueOf(priority),
+                                                   "drive-intensity", String.valueOf(salience),
                                                    "urgency", String.valueOf(urgency),
                                                    "feasibility", String.valueOf(feasibility))), TENANT);
         return store.getNode(id, TENANT);
     }
 
-    private MindMapNode createGoalWithAffectedEntity(String status, double priority,
+    private MindMapNode createGoalWithAffectedEntity(String status, double salience,
                                                      double urgency, double feasibility,
                                                      String affectedEntity) {
         String id = store.addNode(NodeInput.of("Goal-" + status, goalSubgraphId)
                                            .withProperties(Map.of(
                                                    "description", "test goal",
                                                    "status", status,
-                                                   "priority", String.valueOf(priority),
+                                                   "drive-intensity", String.valueOf(salience),
                                                    "urgency", String.valueOf(urgency),
                                                    "feasibility", String.valueOf(feasibility),
                                                    "affected-entity", affectedEntity)), TENANT);
