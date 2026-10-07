@@ -24,8 +24,8 @@ public class ProjectHandler implements BiographyHandler {
 
     @Override
     public void handle(BiographyProfile profile, String agentId, String tenantId) {
+        String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PROJECT, tenantId);
         for (var entry : profile.projects()) {
-            String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PROJECT, tenantId);
 
             MindMapNode existing = store.resolveNode(entry.name(), subgraphId, tenantId);
             if (existing != null) continue;

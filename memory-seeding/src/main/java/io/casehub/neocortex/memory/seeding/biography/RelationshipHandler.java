@@ -1,6 +1,7 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
@@ -34,8 +35,8 @@ public class RelationshipHandler implements BiographyHandler {
 
     @Override
     public void handle(BiographyProfile profile, String agentId, String tenantId) {
+        String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, tenantId);
         for (var entry : profile.relationships()) {
-            String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, tenantId);
 
             MindMapNode existing = store.resolveNode(entry.name(), subgraphId, tenantId);
             if (existing != null) continue;
@@ -59,8 +60,9 @@ public class RelationshipHandler implements BiographyHandler {
 
             var traits = entry.traits() != null ? new HashSet<>(entry.traits()) : new HashSet<String>();
 
+            var origin = PlaceHandler.resolveOrigin(entry.confidenceOrigin());
             var input = NodeInput.of(entry.name(), subgraphId)
-                .withConfidence(Confidence.stated(0.8, Instant.now()))
+                .withConfidence(new Confidence(origin, 0.8, Instant.now()))
                 .withProvenance("biographical-import")
                 .withProperties(props)
                 .withTraits(traits);

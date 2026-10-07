@@ -1,6 +1,7 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -39,8 +40,9 @@ public class GoalHandler implements BiographyHandler {
             if (entry.tier() != null) props.put("tier", entry.tier());
             if (entry.horizon() != null) props.put("horizon", entry.horizon());
 
+            var origin = PlaceHandler.resolveOrigin(entry.confidenceOrigin());
             var input = NodeInput.of(entry.name(), subgraphId)
-                .withConfidence(Confidence.stated(0.8, Instant.now()))
+                .withConfidence(new Confidence(origin, 0.8, Instant.now()))
                 .withProvenance("biographical-import")
                 .withProperties(props);
 
