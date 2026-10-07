@@ -150,6 +150,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                                       maxPerPass,
                                       cursor));
 
+        LOG.info("Experience consolidation: cursor=" + cursor + " found=" + experiences.size() + " memories for tenant=" + tenantId);
         if (experiences.isEmpty()) {return;}
 
         String      subgraphId        = findOrCreateCognitiveSubgraph(tenantId);

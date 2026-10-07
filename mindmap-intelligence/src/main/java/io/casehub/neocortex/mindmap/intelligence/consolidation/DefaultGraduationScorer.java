@@ -11,6 +11,8 @@ import jakarta.inject.Inject;
 @DefaultBean
 @ApplicationScoped
 public class DefaultGraduationScorer implements GraduationScorer {
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(DefaultGraduationScorer.class.getName());
+
 
     private final int minCorroboration;
 
@@ -32,15 +34,19 @@ public class DefaultGraduationScorer implements GraduationScorer {
     public double score(Memory memory, GraduationContext context) {
         String eventType = memory.attributes().get(
                 io.casehub.neocortex.memory.experience.ExperienceAttributeKeys.EVENT_TYPE);
+        LOG.info("DefaultGraduationScorer.score() called: eventType=" + eventType + " subject=" + memory.subject());
 
         if ("formative".equals(eventType)) {
             double base = memory.confidence() != null ? memory.confidence().value() : 0.8;
             String salienceStr = memory.attributes().get(
                     io.casehub.neocortex.memory.experience.FormativeAttributeKeys.SALIENCE_MULTIPLIER);
             double salience = salienceStr != null ? Double.parseDouble(salienceStr) : 1.0;
-            return Math.min(1.0, base * salience);
+            double result = Math.min(1.0, base * salience);
+            LOG.info("Formative graduation: score=" + result + " text=" + (memory.text() != null ? memory.text().substring(0, Math.min(40, memory.text().length())) : "?"));
+            return result;
         }
 
+        LOG.fine("Non-formative event-type=" + eventType + " corroboration=" + context.corroboratingCount());
         int effectiveCorroboration = Math.max(context.corroboratingCount(), context.textSimilarityCount());
         if (effectiveCorroboration < minCorroboration) {return 0.0;}
         if (memory.confidence() != null) {
