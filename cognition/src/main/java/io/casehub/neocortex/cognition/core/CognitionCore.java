@@ -124,6 +124,7 @@ public class CognitionCore {
     private volatile String lastAgentId;
     private volatile String lastTenantId;
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
+    private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 
 
     public CognitionCore(MoodOrchestrator mood,
@@ -565,6 +566,17 @@ public class CognitionCore {
         addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
     }
 
+    /**
+     * Configures appraisal using the stored defaults registry (set via {@link #setDefaultsRegistry}).
+     * The registry provides disposition axes per-agent automatically.
+     */
+    public void configureAppraisal(
+            io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
+            io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy) {
+        configureAppraisal(appraisalStrategy, salienceStrategy, this.defaultsRegistry);
+    }
+
+
     public void setGutFeelingParticipant(GutFeelingParticipant participant) {
         this.gutFeelingParticipant = participant;
     }
@@ -583,6 +595,44 @@ public class CognitionCore {
                            new DriveGoalBridgeParticipant(goals, mindMapStore, termNormalizer, config));
         }
     }
+
+
+    /**
+     * Sets the cognitive defaults registry. When set, CognitionCore auto-configures:
+     * - Tier filtering: reads personalityDominance per-agent from the registry
+     * - Appraisal disposition: populates disposition axes per-agent in appraisal context
+     * <p>
+     * Call this once at setup. The core looks up the active agent's defaults
+     * at render time and tick time — no per-agent configure calls needed.
+     */
+    public void setDefaultsRegistry(io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry registry) {
+        this.defaultsRegistry = registry;
+        configureTierFilterFromRegistry();
+    }
+
+    private void configureTierFilterFromRegistry() {
+        if (defaultsRegistry == null) {return;}
+        if (tierFilter != null) {return;}
+        tierFilter = new io.casehub.neocortex.cognition.prompt.TierFilterCustomizer(
+                () -> {
+                    String aid = lastAgentId;
+                    String tid = lastTenantId;
+                    if (aid == null || tid == null) {return 0.0;}
+                    return mood.currentMood(aid, tid)
+                               .map(io.casehub.neocortex.memory.mood.MoodState::arousal)
+                               .orElse(0.0);
+                },
+                () -> {
+                    String aid = lastAgentId;
+                    if (aid == null || defaultsRegistry == null) {return 0.5;}
+                    return defaultsRegistry.forAgent(aid)
+                                           .map(io.casehub.neocortex.cognitive.index.CognitiveDefaults::personalityDominance)
+                                           .orElse(0.5);
+                }
+        );
+        chainSectionCustomizer(tierFilter);
+    }
+
 
     public void configureTierFilter(double personalityDominance) {
         if (tierFilter != null) {

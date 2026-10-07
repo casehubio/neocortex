@@ -42,11 +42,19 @@ public class TierFilterCustomizer implements UnaryOperator<List<CognitionPromptR
     );
 
     private final DoubleSupplier arousalSupplier;
+    private final DoubleSupplier personalityDominanceSupplier;
     private volatile double personalityDominance;
 
     public TierFilterCustomizer(DoubleSupplier arousalSupplier, double personalityDominance) {
         this.arousalSupplier = arousalSupplier;
+        this.personalityDominanceSupplier = null;
         this.personalityDominance = personalityDominance;
+    }
+
+    public TierFilterCustomizer(DoubleSupplier arousalSupplier, DoubleSupplier personalityDominanceSupplier) {
+        this.arousalSupplier = arousalSupplier;
+        this.personalityDominanceSupplier = personalityDominanceSupplier;
+        this.personalityDominance = 0.5;
     }
 
     public void setPersonalityDominance(double personalityDominance) {
@@ -56,7 +64,8 @@ public class TierFilterCustomizer implements UnaryOperator<List<CognitionPromptR
     @Override
     public List<CognitionPromptRenderer> apply(List<CognitionPromptRenderer> sections) {
         double arousal = arousalSupplier.getAsDouble();
-        double suppThreshold = 1.0 - personalityDominance;
+        double pd = personalityDominanceSupplier != null ? personalityDominanceSupplier.getAsDouble() : personalityDominance;
+        double suppThreshold = 1.0 - pd;
         double ctxThreshold = Math.min(suppThreshold + 0.3, 1.0);
 
         return sections.stream()
