@@ -75,6 +75,12 @@ public class CognitiveDefaultsRegistry {
         return profiles.keySet();
     }
 
+    public void register(CognitiveDefaults defaults) {
+        var updated = new java.util.LinkedHashMap<>(profiles);
+        updated.put(defaults.agentId(), defaults);
+        this.profiles = Map.copyOf(updated);
+    }
+
 
     void reload(Map<String, CognitiveDefaults> newProfiles) {
         this.profiles = Map.copyOf(newProfiles);
