@@ -4,8 +4,8 @@ import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.CognitiveGoalDecomposer;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.GoalDecompositionResult;
-import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.GoalLifecycleProvider;
+import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -91,6 +91,7 @@ public class GoalResolutionPhase implements ConsolidationPhase {
         merge(tenantId, goalSgId);
         revise(tenantId, goalSgId);
         sync(tenantId, goalSgId);
+        computeProgress(tenantId, goalSgId);
     }
 
     private void prune(List<MindMapNode> goalNodes, String tenantId) {
@@ -343,6 +344,62 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                 LOG.fine("Synced goal '" + node.name() + "' status to: " + newStatus);
             }
         }
+    }
+
+
+    private void computeProgress(String tenantId, String goalSgId) {
+        List<MindMapNode> goalNodes = store.nodesIn(goalSgId, tenantId);
+
+        Map<String, MindMapNode>  nodeMap     = new HashMap<>();
+        Map<String, List<String>> childrenMap = new HashMap<>();
+        for (MindMapNode node : goalNodes) {
+            nodeMap.put(node.id(), node);
+        }
+
+        for (MindMapNode node : goalNodes) {
+            List<MindMapEdge> decompEdges = store.neighbors(node.id(), "decomposes-into", tenantId)
+                                                 .stream()
+                                                 .filter(e -> e.sourceNodeId().equals(node.id()))
+                                                 .toList();
+            if (!decompEdges.isEmpty()) {
+                childrenMap.put(node.id(), decompEdges.stream()
+                                                      .map(MindMapEdge::targetNodeId)
+                                                      .toList());
+            }
+        }
+
+        if (childrenMap.isEmpty()) {return;}
+
+        Map<String, Double> cache = new HashMap<>();
+        for (String parentId : childrenMap.keySet()) {
+            double progress = effectiveProgress(parentId, childrenMap, nodeMap, cache, new HashSet<>());
+            store.updateNode(parentId,
+                             NodeUpdate.empty().withPropertiesToSet(Map.of("progress", String.format("%.2f", progress))),
+                             tenantId);
+        }
+    }
+
+    private double effectiveProgress(String nodeId, Map<String, List<String>> childrenMap,
+                                     Map<String, MindMapNode> nodeMap, Map<String, Double> cache,
+                                     Set<String> visited) {
+        if (cache.containsKey(nodeId)) {return cache.get(nodeId);}
+        if (!visited.add(nodeId)) {return 0.0;}
+
+        List<String> children = childrenMap.get(nodeId);
+        if (children == null || children.isEmpty()) {
+            MindMapNode node     = nodeMap.get(nodeId);
+            double      progress = node != null && "completed".equals(node.property("status").orElse(null)) ? 1.0 : 0.0;
+            cache.put(nodeId, progress);
+            return progress;
+        }
+
+        double sum = 0.0;
+        for (String childId : children) {
+            sum += effectiveProgress(childId, childrenMap, nodeMap, cache, visited);
+        }
+        double progress = sum / children.size();
+        cache.put(nodeId, progress);
+        return progress;
     }
 
     private String findGoalSubgraph(String tenantId) {

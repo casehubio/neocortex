@@ -316,6 +316,86 @@ class GoalResolutionPhaseTest {
         assertThat(contributesTo).isNotEmpty();
     }
 
+
+    // --- Progress computation ---
+
+    @Test
+    void computeProgress_twoOfThreeSubGoalsCompleted() {
+        String parentId = store.addNode(NodeInput.of("Ship MVP", goalSubgraphId)
+                                                 .withProperties(Map.of("status", "active")), TENANT);
+        String child1 = store.addNode(NodeInput.of("Write tests", goalSubgraphId)
+                                               .withProperties(Map.of("status", "completed")), TENANT);
+        String child2 = store.addNode(NodeInput.of("Deploy to prod", goalSubgraphId)
+                                               .withProperties(Map.of("status", "active")), TENANT);
+        String child3 = store.addNode(NodeInput.of("Update docs", goalSubgraphId)
+                                               .withProperties(Map.of("status", "completed")), TENANT);
+
+        store.addEdge(EdgeInput.of(parentId, child1, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(parentId, child2, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(parentId, child3, "decomposes-into"), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        MindMapNode parent = store.getNode(parentId, TENANT);
+        assertThat(parent.property("progress")).contains("0.67");
+    }
+
+    @Test
+    void computeProgress_recursivePropagation() {
+        String root = store.addNode(NodeInput.of("Root goal", goalSubgraphId)
+                                             .withProperties(Map.of("status", "active")), TENANT);
+        String mid = store.addNode(NodeInput.of("Mid goal", goalSubgraphId)
+                                            .withProperties(Map.of("status", "active")), TENANT);
+        String leaf1 = store.addNode(NodeInput.of("Write documentation", goalSubgraphId)
+                                              .withProperties(Map.of("status", "completed")), TENANT);
+        String leaf2 = store.addNode(NodeInput.of("Run benchmarks", goalSubgraphId)
+                                              .withProperties(Map.of("status", "active")), TENANT);
+        String directChild = store.addNode(NodeInput.of("Deploy service", goalSubgraphId)
+                                                    .withProperties(Map.of("status", "completed")), TENANT);
+
+        store.addEdge(EdgeInput.of(root, mid, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(root, directChild, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(mid, leaf1, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(mid, leaf2, "decomposes-into"), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        MindMapNode midNode = store.getNode(mid, TENANT);
+        assertThat(midNode.property("progress")).contains("0.50");
+
+        MindMapNode rootNode = store.getNode(root, TENANT);
+        assertThat(rootNode.property("progress")).contains("0.75");
+    }
+
+    @Test
+    void computeProgress_leafGoalsHaveNoProgressProperty() {
+        String leafId = store.addNode(NodeInput.of("Leaf goal", goalSubgraphId)
+                                               .withProperties(Map.of("status", "active")), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        MindMapNode leaf = store.getNode(leafId, TENANT);
+        assertThat(leaf.property("progress")).isEmpty();
+    }
+
+    @Test
+    void computeProgress_allCompleted() {
+        String parentId = store.addNode(NodeInput.of("Done goal", goalSubgraphId)
+                                                 .withProperties(Map.of("status", "active")), TENANT);
+        String child1 = store.addNode(NodeInput.of("Task A", goalSubgraphId)
+                                               .withProperties(Map.of("status", "completed")), TENANT);
+        String child2 = store.addNode(NodeInput.of("Task B", goalSubgraphId)
+                                               .withProperties(Map.of("status", "completed")), TENANT);
+
+        store.addEdge(EdgeInput.of(parentId, child1, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(parentId, child2, "decomposes-into"), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        MindMapNode parent = store.getNode(parentId, TENANT);
+        assertThat(parent.property("progress")).contains("1.00");
+    }
+
     @Test
     void runningWithNoGoalSubgraph_doesNothing() {
         var emptyStore = new InMemoryMindMapStore();
