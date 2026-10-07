@@ -25,8 +25,8 @@ public class ActivityHandler implements BiographyHandler {
 
     @Override
     public void handle(BiographyProfile profile, String agentId, String tenantId) {
+        String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.ACTIVITY, tenantId);
         for (var entry : profile.activities()) {
-            String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.ACTIVITY, tenantId);
 
             var props = new HashMap<String, String>();
             props.put("provenance", "biographical-import");

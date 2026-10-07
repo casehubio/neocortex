@@ -24,8 +24,8 @@ public class CulturalContextHandler implements BiographyHandler {
 
     @Override
     public void handle(BiographyProfile profile, String agentId, String tenantId) {
+        String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.CULTURAL, tenantId);
         for (var entry : profile.culturalContexts()) {
-            String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.CULTURAL, tenantId);
 
             MindMapNode existing = store.resolveNode(entry.description(), subgraphId, tenantId);
             if (existing != null) continue;

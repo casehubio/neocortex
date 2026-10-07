@@ -5,6 +5,7 @@ import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.experience.SubThoughtAttributeKeys;
+import io.casehub.neocortex.memory.experience.SubThoughtTypes;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -38,6 +39,7 @@ public class LifeEventHandler implements BiographyHandler {
                 attrs.put(SubThoughtAttributeKeys.COUNT, String.valueOf(entry.subThoughts().size()));
                 for (int i = 0; i < entry.subThoughts().size(); i++) {
                     var st = entry.subThoughts().get(i);
+                    SubThoughtTypes.validate(st.type());
                     attrs.put(SubThoughtAttributeKeys.type(i), st.type());
                     attrs.put(SubThoughtAttributeKeys.text(i), st.text());
                 }

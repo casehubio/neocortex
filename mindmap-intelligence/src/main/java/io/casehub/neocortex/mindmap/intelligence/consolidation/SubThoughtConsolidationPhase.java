@@ -20,11 +20,12 @@ import jakarta.inject.Inject;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 @ApplicationScoped
@@ -39,7 +40,7 @@ public class SubThoughtConsolidationPhase implements ConsolidationPhase {
     private final MindMapStore mindMapStore;
     private final int graduationThreshold;
 
-    private final Map<EntityTypePair, List<SubThoughtSource>> accumulation = new HashMap<>();
+    private final Map<EntityTypePair, List<SubThoughtSource>> accumulation = new ConcurrentHashMap<>();
 
     @Inject
     public SubThoughtConsolidationPhase(Instance<CaseMemoryStore> memoryStore,
@@ -76,7 +77,8 @@ public class SubThoughtConsolidationPhase implements ConsolidationPhase {
             if (countStr == null) continue;
             if ("biographical-import".equals(memory.attributes().get("provenance"))) continue;
 
-            int count = Integer.parseInt(countStr);
+            int count;
+            try { count = Integer.parseInt(countStr); } catch (NumberFormatException e) { continue; }
             for (int i = 0; i < count; i++) {
                 if ("true".equals(memory.attributes().get(SubThoughtAttributeKeys.graduated(i)))) continue;
 

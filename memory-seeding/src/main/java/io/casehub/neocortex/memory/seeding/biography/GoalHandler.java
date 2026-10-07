@@ -52,9 +52,9 @@ public class GoalHandler implements BiographyHandler {
 
             if (entry.subGoals() != null) {
                 for (var sub : entry.subGoals()) {
-                    var subProps = new HashMap<>(Map.of(
-                        "provenance", "biographical-import",
-                        "tier", sub.tier() != null ? sub.tier() : ""));
+                    var subProps = new HashMap<String, String>();
+                    subProps.put("provenance", "biographical-import");
+                    if (sub.tier() != null) subProps.put("tier", sub.tier());
                     String subGoalId = store.addNode(
                         NodeInput.of(sub.description(), subgraphId)
                             .withConfidence(Confidence.stated(0.7, Instant.now()))

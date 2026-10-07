@@ -26,8 +26,8 @@ public class PlaceHandler implements BiographyHandler {
 
     @Override
     public void handle(BiographyProfile profile, String agentId, String tenantId) {
+        String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PLACE, tenantId);
         for (var entry : profile.places()) {
-            String subgraphId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PLACE, tenantId);
 
             MindMapNode existing = store.resolveNode(entry.name(), subgraphId, tenantId);
             if (existing != null) continue;
