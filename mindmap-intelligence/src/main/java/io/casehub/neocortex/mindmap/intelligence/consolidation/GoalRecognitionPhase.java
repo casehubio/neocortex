@@ -4,8 +4,8 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.CognitiveGoalRecognizer;
+import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -34,6 +34,8 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
     private static final Logger LOG = Logger.getLogger(GoalRecognitionPhase.class.getName());
     private static final String SENTINEL_NAME = "goal-recognition-cursor";
     private static final String CURSOR_PROPERTY = "lastProcessedMemoryId";
+    private static final double JARO_WINKLER_THRESHOLD = 0.85;
+
 
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;
@@ -100,9 +102,7 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
                 combinedText.toString(), existingGoals, tenantId);
 
         for (RecognizedGoal goal : recognized) {
-            boolean duplicate = existingGoals.stream()
-                                             .anyMatch(n -> n.name().equalsIgnoreCase(goal.description()));
-            if (duplicate) {
+            if (findMatch(goal.description(), existingGoals) != null) {
                 LOG.fine("Skipping duplicate goal: " + goal.description());
                 continue;
             }
@@ -129,6 +129,21 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
         if (!experiences.isEmpty()) {
             saveCursor(tenantId, experiences.getLast().memoryId());
         }
+    }
+
+
+    private MindMapNode findMatch(String description, List<MindMapNode> existing) {
+        for (MindMapNode node : existing) {
+            if (description.equalsIgnoreCase(node.name())) {return node;}
+            String desc = node.properties().get("description");
+            if (desc != null && description.equalsIgnoreCase(desc)) {return node;}
+        }
+        for (MindMapNode node : existing) {
+            if (JaroWinkler.similarity(description, node.name()) >= JARO_WINKLER_THRESHOLD) {return node;}
+            String desc = node.properties().get("description");
+            if (desc != null && JaroWinkler.similarity(description, desc) >= JARO_WINKLER_THRESHOLD) {return node;}
+        }
+        return null;
     }
 
     private String loadCursor(String tenantId) {

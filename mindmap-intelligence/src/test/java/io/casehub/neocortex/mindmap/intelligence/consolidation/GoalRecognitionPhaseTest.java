@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class GoalRecognitionPhaseTest {
 
+
     private InMemoryMindMapStore mindMapStore;
     private InMemoryMemoryStore memoryStore;
     private String goalSubgraphId;
@@ -93,6 +94,45 @@ class GoalRecognitionPhaseTest {
         List<MindMapNode> goals = mindMapStore.nodesIn(goalSubgraphId, TENANT);
         assertThat(goals).hasSize(1);
     }
+
+    @Test
+    void deduplicatesViaJaroWinklerSimilarity() {
+        mindMapStore.addNode(NodeInput.of("learn quantum computing", goalSubgraphId)
+                                      .withProperties(Map.of("description", "learn quantum computing",
+                                                             "status", "active")), TENANT);
+
+        memoryStore.store(MemoryInput.of("agent-1", new MemoryDomain("experience"), TENANT,
+                                         "I want to study quantum computation"));
+
+        CognitiveGoalRecognizer recognizer = (text, existing, tid) ->
+                                                     List.of(new RecognizedGoal("learn quantum computation",
+                                                                                "conversation", "long", 0.8));
+
+        phase(recognizer).run(TENANT, List.of());
+
+        List<MindMapNode> goals = mindMapStore.nodesIn(goalSubgraphId, TENANT);
+        assertThat(goals).hasSize(1);
+    }
+
+    @Test
+    void deduplicatesAgainstExistingGoalDescription() {
+        mindMapStore.addNode(NodeInput.of("goal-node-1", goalSubgraphId)
+                                      .withProperties(Map.of("description", "improve physical fitness",
+                                                             "status", "active")), TENANT);
+
+        memoryStore.store(MemoryInput.of("agent-1", new MemoryDomain("experience"), TENANT,
+                                         "I want to get fit"));
+
+        CognitiveGoalRecognizer recognizer = (text, existing, tid) ->
+                                                     List.of(new RecognizedGoal("improve physical fitness",
+                                                                                "conversation", "medium", 0.9));
+
+        phase(recognizer).run(TENANT, List.of());
+
+        List<MindMapNode> goals = mindMapStore.nodesIn(goalSubgraphId, TENANT);
+        assertThat(goals).hasSize(1);
+    }
+
 
     @Test
     void noOpRecognizerCreatesNothing() {
