@@ -144,6 +144,12 @@ public interface CaseMemoryStore {
         throw new MemoryCapabilityException(MemoryCapability.PURGE, getClass());
     }
 
+    default void enrichAttributes(String memoryId, java.util.Map<String, String> additionalAttributes,
+                                  String tenantId) {
+        throw new MemoryCapabilityException(MemoryCapability.ENRICH_ATTRIBUTES, getClass());
+    }
+
+
     /**
      * Returns distinct tenantIds matching the given attribute filter.
      * Both null → all tenants. Both non-null → filtered. Mixed → IllegalArgumentException.

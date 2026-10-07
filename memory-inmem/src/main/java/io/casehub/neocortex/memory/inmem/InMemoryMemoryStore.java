@@ -6,11 +6,11 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.MemoryInput;
-import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryPermissions;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
+import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.platform.api.identity.CurrentPrincipal;
@@ -50,7 +50,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             MemoryCapability.CROSS_TENANT_ERASE,
             MemoryCapability.SCAN,
             MemoryCapability.DISCOVER_TENANTS,
-            MemoryCapability.PURGE
+            MemoryCapability.PURGE,
+            MemoryCapability.ENRICH_ATTRIBUTES
         );
     }
 
@@ -277,4 +278,32 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             removed += before - memories.size();
         }
         return removed;}
+
+    @Override
+    public void enrichAttributes(String memoryId, java.util.Map<String, String> additionalAttributes,
+                                 String tenantId) {
+        boolean found = false;
+        for (var entry : store.entrySet()) {
+            if (!entry.getKey().tenantId().equals(tenantId)) {continue;}
+            var memories = entry.getValue();
+            for (int i = 0; i < memories.size(); i++) {
+                var m = memories.get(i);
+                if (m.memoryId().equals(memoryId)) {
+                    var merged = new java.util.HashMap<>(m.attributes());
+                    merged.putAll(additionalAttributes);
+                    memories.set(i, new Memory(m.memoryId(), m.subject(), m.domain(),
+                                               m.tenantId(), m.caseId(), m.text(), merged, m.createdAt(),
+                                               m.confidence(), m.pleasure(), m.arousal(), m.dominance(),
+                                               m.principalId(), m.sharedWith()));
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {break;}
+        }
+        if (!found) {
+            throw new IllegalArgumentException("Memory not found: " + memoryId);
+        }
+    }
+
 }
