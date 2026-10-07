@@ -83,4 +83,58 @@ class DefaultGraduationScorerTest {
                                        new GraduationContext(0, 3, "t1")));
     }
 
+    private Memory formativeMemory(Double confidence, double salience) {
+        var attrs = Map.of(
+                "event-type", "formative",
+                "salience-multiplier", String.valueOf(salience),
+                "catalogue-entry-id", "test",
+                "situation-types", "formation");
+        return new Memory("m1", Subject.of("agent", "alice"),
+                          new MemoryDomain("experience"), "t1", null,
+                          "childhood experience", attrs, Instant.now(),
+                          confidence != null ? Confidence.unknown(confidence) : null,
+                          null, null, null, null, Set.of());
+    }
+
+    @Test
+    void formative_bypassesCorroboration() {
+        double score = scorer.score(
+                formativeMemory(0.9, 1.5),
+                new GraduationContext(0, "t1"));
+        assertEquals(1.0, score, 0.01, "min(1.0, 0.9 * 1.5) = 1.0");
+    }
+
+    @Test
+    void formative_scoreClampedToOne() {
+        double score = scorer.score(
+                formativeMemory(0.8, 1.5),
+                new GraduationContext(0, "t1"));
+        assertEquals(1.0, score, 0.01, "min(1.0, 0.8 * 1.5) clamped to 1.0");
+    }
+
+    @Test
+    void formative_lowConfidence_scalesWithSalience() {
+        double score = scorer.score(
+                formativeMemory(0.3, 1.5),
+                new GraduationContext(0, "t1"));
+        assertEquals(0.45, score, 0.01, "0.3 * 1.5 = 0.45");
+    }
+
+    @Test
+    void formative_nullConfidence_usesDefault08() {
+        double score = scorer.score(
+                formativeMemory(null, 1.5),
+                new GraduationContext(0, "t1"));
+        assertEquals(1.0, score, 0.01, "default 0.8 * 1.5 = 1.2 clamped to 1.0");
+    }
+
+    @Test
+    void formative_unitSalience_returnsConfidence() {
+        double score = scorer.score(
+                formativeMemory(0.7, 1.0),
+                new GraduationContext(0, "t1"));
+        assertEquals(0.7, score, 0.01, "0.7 * 1.0 = 0.7");
+    }
+
+
 }

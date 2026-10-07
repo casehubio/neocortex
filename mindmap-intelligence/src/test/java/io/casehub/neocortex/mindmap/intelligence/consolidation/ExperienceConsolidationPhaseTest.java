@@ -63,6 +63,24 @@ class ExperienceConsolidationPhaseTest {
             null, null, null, null, null));
     }
 
+    private String storeFormativeMemory(String agentId, String description,
+                                        Double confidence, double salience,
+                                        Double pleasure, Double arousal, Double dominance) {
+        var attrs = new HashMap<String, String>();
+        attrs.put(ExperienceAttributeKeys.EVENT_TYPE, "formative");
+        attrs.put(io.casehub.neocortex.memory.experience.FormativeAttributeKeys.SALIENCE_MULTIPLIER, String.valueOf(salience));
+        attrs.put(io.casehub.neocortex.memory.experience.FormativeAttributeKeys.CATALOGUE_ENTRY_ID, "test-entry");
+        attrs.put(io.casehub.neocortex.memory.experience.FormativeAttributeKeys.SITUATION_TYPES, "formation");
+        attrs.put(io.casehub.neocortex.memory.experience.FormativeAttributeKeys.DEVELOPMENTAL_PERIOD, "childhood");
+        return memoryStore.store(new MemoryInput(
+                Subject.of("agent", agentId),
+                ExperienceEvents.DOMAIN,
+                TENANT, null, description, attrs,
+                confidence != null ? Confidence.unknown(confidence) : null,
+                pleasure, arousal, dominance, null, null));
+    }
+
+
     private List<MindMapNode> cognitiveNodes() {
         return mindMapStore.search(
             MindMapQuery.of(TENANT, 1000).withType(SubgraphTypes.COGNITIVE));
@@ -310,4 +328,71 @@ class ExperienceConsolidationPhaseTest {
         freshPhase.run(TENANT, List.of());
         assertEquals(3, cognitiveNodes().size());
     }
+
+    @Test
+    void formativeMemory_graduatesAsCognitiveNode() {
+        storeFormativeMemory("a1", "childhood experience shaped distrust",
+                             0.9, 1.5, null, null, null);
+
+        phase.run(TENANT, List.of());
+
+        var nodes = cognitiveNodes();
+        assertEquals(1, nodes.size());
+        MindMapNode node = nodes.get(0);
+        assertTrue(node.property("source-memory-id").isPresent());
+        assertEquals("formative", node.property("event-type").orElse(""));
+        assertEquals("a1", node.property("agent-id").orElse(""));
+        assertEquals("belief", node.property("cognitiveKind").orElse(""));
+        assertEquals("experience-consolidation", node.provenance());
+    }
+
+    @Test
+    void formativeMemory_graduatesWithoutCorroboration() {
+        storeFormativeMemory("a1", "early loss experience",
+                             0.9, 1.5, null, null, null);
+
+        var strictPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, scorer, classifier, 0.5, 20, 3);
+        strictPhase.run(TENANT, List.of());
+
+        assertEquals(1, cognitiveNodes().size(),
+                     "Formative memories have no subject — corroboration is irrelevant");
+    }
+
+    @Test
+    void formativeMemory_padTransfersToNode() {
+        storeFormativeMemory("a1", "trauma with emotional valence",
+                             0.9, 1.5, -0.5, 0.3, -0.2);
+
+        phase.run(TENANT, List.of());
+
+        MindMapNode node = cognitiveNodes().get(0);
+        assertEquals(-0.5, node.pleasure(), 0.01);
+        assertEquals(0.3, node.arousal(), 0.01);
+        assertEquals(-0.2, node.dominance(), 0.01);
+    }
+
+    @Test
+    void multipleFormativeMemories_allGraduateIndependently() {
+        storeFormativeMemory("a1", "memory one", 0.8, 1.5, null, null, null);
+        storeFormativeMemory("a1", "memory two", 0.9, 1.5, null, null, null);
+        storeFormativeMemory("a2", "memory three", 0.7, 1.5, null, null, null);
+
+        phase.run(TENANT, List.of());
+
+        assertEquals(3, cognitiveNodes().size());
+    }
+
+    @Test
+    void formativeMemory_scoreDerivedFromConfidenceTimesSalience() {
+        storeFormativeMemory("a1", "high salience memory",
+                             0.8, 1.5, null, null, null);
+
+        phase.run(TENANT, List.of());
+
+        MindMapNode node  = cognitiveNodes().get(0);
+        double      score = Double.parseDouble(node.property("graduation-score").orElse("0"));
+        assertEquals(1.0, score, 0.01, "min(1.0, 0.8 * 1.5) = 1.0");
+    }
+
 }
