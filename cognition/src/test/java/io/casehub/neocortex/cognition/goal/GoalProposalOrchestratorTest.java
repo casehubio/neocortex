@@ -351,6 +351,27 @@ class GoalProposalOrchestratorTest {
     }
 
 
+    @Test
+    void registeredGoals_returnsOnlyRegisteredNotCached() {
+        var proposal = new DriveGoalProposal(
+                DriveAxis.CURIOSITY, "Learn AI",
+                "Study artificial intelligence fundamentals",
+                "High curiosity drive", 0.8);
+        orchestrator.registerGoals("agent1", "tenant1", List.of(proposal));
+
+        List<DriveGoalProposal> registered = orchestrator.registeredGoals("agent1", "tenant1");
+
+        assertThat(registered).hasSize(1);
+        assertThat(registered.getFirst().goalName()).isEqualTo("Learn AI");
+    }
+
+    @Test
+    void registeredGoals_returnsEmptyListWhenNoState() {
+        List<DriveGoalProposal> registered = orchestrator.registeredGoals("unknown", "tenant");
+
+        assertThat(registered).isEmpty();
+    }
+
     private void setupDrives(String agentId, String tenantId, DriveAxis axis, double intensity) {
         var profile = new DriveProfile(agentId, tenantId,
                 Map.of(axis, driveIntensity(axis, intensity)),

@@ -5,6 +5,7 @@ import io.casehub.eidos.api.ConstraintSeverity;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.NeedTierMappingProvider;
+import io.casehub.neocortex.cognition.goal.DriveGoalBridgeParticipant;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
 import io.casehub.neocortex.cognition.gut.GutFeelingParticipant;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator;
@@ -45,6 +46,7 @@ import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.memory.relationship.QualitySignal;
+import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -569,6 +571,14 @@ public class CognitionCore {
         this.gutFeelingParticipant = new GutFeelingParticipant(memoryStore, moodOrchestrator, config);
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
+
+    public void configureDriveGoalBridge(MindMapStore mindMapStore, TermNormalizer termNormalizer) {
+        if (config.goalsEnabled() && goals != null) {
+            addParticipant(CognitionPhase.TERMINAL,
+                           new DriveGoalBridgeParticipant(goals, mindMapStore, termNormalizer, config));
+        }
+    }
+
 
     public void setMoodPersister(@Nullable Consumer<MoodState> moodPersister) {
         this.moodPersister = moodPersister;

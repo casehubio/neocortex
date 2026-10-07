@@ -12,6 +12,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class EmergentGoalPromptSection implements CognitionPromptRenderer {
 
@@ -45,9 +46,14 @@ public class EmergentGoalPromptSection implements CognitionPromptRenderer {
         }
 
         if (cognitiveGoals != null) {
+            Set<String> driveNames = (driveGoals != null)
+                    ? driveGoals.registeredGoals(agentId, tenantId).stream()
+                            .map(DriveGoalProposal::goalName).collect(java.util.stream.Collectors.toSet())
+                    : Set.of();
             cognitiveGoals.currentState(agentId, tenantId)
-                          .ifPresent(state -> state.goals().forEach(ge ->
-                                  unified.add(UnifiedGoal.fromCognitive(ge, config.driveWeight()))));
+                          .ifPresent(state -> state.goals().stream()
+                                  .filter(ge -> !driveNames.contains(ge.goal().name()))
+                                  .forEach(ge -> unified.add(UnifiedGoal.fromCognitive(ge, config.driveWeight()))));
         }
 
         if (unified.isEmpty()) {return null;}

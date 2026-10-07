@@ -102,6 +102,12 @@ public class GoalProposalOrchestrator {
         state.registeredGoals = List.copyOf(goals);
     }
 
+
+    public List<DriveGoalProposal> registeredGoals(String agentId, String tenantId) {
+        GoalProposalState state = states.get(agentId + "|" + tenantId);
+        return state == null ? List.of() : List.copyOf(state.registeredGoals);
+    }
+
     public Optional<List<DriveGoalProposal>> currentProposals(String agentId, String tenantId) {
         GoalProposalState state = states.get(agentId + "|" + tenantId);
         if (state == null) return Optional.empty();
