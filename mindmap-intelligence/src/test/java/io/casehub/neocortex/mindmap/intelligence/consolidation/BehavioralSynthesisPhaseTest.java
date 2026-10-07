@@ -316,6 +316,34 @@ class BehavioralSynthesisPhaseTest {
         });
     }
 
+    @Test
+    void findUnprocessedGraduated_notMissedBySearchLimit() {
+        for (int sg = 0; sg < 20; sg++) {
+            String sgId = store.createSubgraph(
+                    new SubgraphInput("extra-" + sg, SubgraphTypes.COGNITIVE, null), TENANT);
+            for (int n = 0; n < 10; n++) {
+                store.addNode(NodeInput.of("filler-" + sg + "-" + n, sgId)
+                                       .withProperties(Map.of("agent-id", "filler-agent")), TENANT);
+            }
+        }
+
+        store.addNode(NodeInput.of("graduated memory", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-target",
+                                       "agent-id", AGENT,
+                                       "event-type", "formative",
+                                       "graduation-score", "1.0")),
+                      TENANT);
+
+        phase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral)
+                .as("Graduated node must be found despite 200+ other cognitive nodes")
+                .isNotEmpty();
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();

@@ -187,14 +187,14 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
     private List<MindMapNode> findUnprocessedGraduated(String tenantId) {
         List<MindMapNode> cognitive = store.search(
-            MindMapQuery.of(tenantId, maxPerPass * 2)
-                .withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000)
+                            .withType(SubgraphTypes.COGNITIVE));
 
         return cognitive.stream()
-            .filter(n -> n.property("source-memory-id").isPresent())
-            .filter(n -> !n.property("caps-processed").isPresent())
-            .limit(maxPerPass)
-            .toList();
+                        .filter(n -> n.property("source-memory-id").isPresent())
+                        .filter(n -> !n.property("caps-processed").isPresent())
+                        .limit(maxPerPass)
+                        .toList();
     }
 
     private void createOrStrengthenAttractor(String tenantId,
