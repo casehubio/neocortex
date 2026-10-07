@@ -30,6 +30,17 @@ public class DefaultGraduationScorer implements GraduationScorer {
 
     @Override
     public double score(Memory memory, GraduationContext context) {
+        String eventType = memory.attributes().get(
+                io.casehub.neocortex.memory.experience.ExperienceAttributeKeys.EVENT_TYPE);
+
+        if ("formative".equals(eventType)) {
+            double base = memory.confidence() != null ? memory.confidence().value() : 0.8;
+            String salienceStr = memory.attributes().get(
+                    io.casehub.neocortex.memory.experience.FormativeAttributeKeys.SALIENCE_MULTIPLIER);
+            double salience = salienceStr != null ? Double.parseDouble(salienceStr) : 1.0;
+            return Math.min(1.0, base * salience);
+        }
+
         int effectiveCorroboration = Math.max(context.corroboratingCount(), context.textSimilarityCount());
         if (effectiveCorroboration < minCorroboration) {return 0.0;}
         if (memory.confidence() != null) {
