@@ -55,7 +55,7 @@ class KnowledgePipelineCdiSmokeTest {
 
         var noOpNormalizer = new io.casehub.neocortex.knowledge.normalization.NoOpTermNormalizer();
         var spatialDomain = beans.spatialDomainSupport(
-                new EmptyInstance<>(), decayPolicy, subsumptionRule, matcher,
+                new EmptyInstance<>(), cacheStore, decayPolicy, subsumptionRule, matcher,
                 noOpNormalizer, config);
         assertThat(spatialDomain).isNotNull();
         assertThat(spatialDomain.domain()).isEqualTo("location");
@@ -145,17 +145,6 @@ class KnowledgePipelineCdiSmokeTest {
             @Override
             public NormalizationConfig normalization() {
                 return () -> true;
-            }
-
-            @Override
-            public ExpansionConfig expansion() {
-                return new ExpansionConfig() {
-                    @Override
-                    public java.util.Optional<java.util.List<String>> knownProviders() {return java.util.Optional.empty();}
-
-                    @Override
-                    public int maxVariantQueries() {return 10;}
-                };
             }
         };
     }

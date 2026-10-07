@@ -23,7 +23,6 @@ import io.micrometer.core.instrument.Metrics;
 import io.quarkus.arc.DefaultBean;
 import jakarta.inject.Named;
 import java.util.List;
-import java.util.Set;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Disposes;
@@ -127,6 +126,7 @@ public class KnowledgePipelineDefaultBeans {
     @Named("location")
     DomainSupport spatialDomainSupport(
             Instance<LocationPlatform> platforms,
+            SpatialCacheStore spatialCacheStore,
             CacheDecayPolicy decayPolicy,
             SubsumptionRule subsumptionRule,
             EntityMatcher<CachedEntity> entityMatcher,
@@ -151,7 +151,7 @@ public class KnowledgePipelineDefaultBeans {
         return new DomainSupport("location", provider,
                 new SpatialCacheKeyGenerator(config.geohashPrecision()),
                 subsumptionRule, entityMatcher,
-                new SpatialBlockingStrategy(null, 200),
+                new SpatialBlockingStrategy(spatialCacheStore, 200),
                 List.of(normalizer));
     }
 
