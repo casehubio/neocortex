@@ -70,6 +70,8 @@ class GoalRecognitionPhaseTest {
         assertThat(goals.get(0).property("horizon")).contains("long");
         assertThat(goals.get(0).property("status")).contains("active");
         assertThat(goals.get(0).property("need-tier")).contains("TASKS");
+        assertThat(goals.get(0).property("initial-emotion")).contains("HOPE");
+        assertThat(goals.get(0).property("initial-emotion-intensity")).contains("0.85");
     }
 
     @Test

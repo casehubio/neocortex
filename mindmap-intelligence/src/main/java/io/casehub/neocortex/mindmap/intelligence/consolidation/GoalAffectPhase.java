@@ -118,12 +118,27 @@ public class GoalAffectPhase implements ConsolidationPhase {
                                .orElse(null);
         if (dominant == null) {return;}
 
-        store.updateNode(node.id(),
-                         NodeUpdate.empty().withPad(
-                                 dominant.pad().pleasure(),
-                                 dominant.pad().arousal(),
-                                 dominant.pad().dominance()),
-                         tenantId);
+        var nodeUpdate = NodeUpdate.empty().withPad(
+                dominant.pad().pleasure(),
+                dominant.pad().arousal(),
+                dominant.pad().dominance());
+
+        String  status     = node.property("status").orElse("active");
+        boolean isTerminal = "completed".equals(status) || "abandoned".equals(status) || "dormant".equals(status);
+        if (isTerminal && node.property("outcome-emotion").isEmpty()) {
+            var outcomeProps = new HashMap<String, String>();
+            outcomeProps.put("outcome-emotion", dominant.type().name());
+            outcomeProps.put("outcome-emotion-intensity", String.format("%.2f", dominant.intensity()));
+            node.property("initial-emotion-intensity").ifPresent(initialStr -> {
+                try {
+                    double initial = Double.parseDouble(initialStr);
+                    outcomeProps.put("emotion-gap", String.format("%.2f", dominant.intensity() - initial));
+                } catch (NumberFormatException ignored) {}
+            });
+            nodeUpdate = nodeUpdate.withPropertiesToSet(outcomeProps);
+        }
+
+        store.updateNode(node.id(), nodeUpdate, tenantId);
 
         String agentId = node.property("agent-id").orElse(null);
         if (memoryStore != null && agentId != null) {

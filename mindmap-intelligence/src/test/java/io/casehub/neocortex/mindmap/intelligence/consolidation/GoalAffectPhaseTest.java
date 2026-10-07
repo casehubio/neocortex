@@ -236,4 +236,49 @@ class GoalAffectPhaseTest {
                 TENANT, "experience", null, null, 10, null));
         assertThat(scan).isEmpty();
     }
+
+    @Test
+    void occAppraisal_storesOutcomeEmotionOnTerminalStatus() {
+        io.casehub.neocortex.mindmap.GoalAppraisal appraisal = (node, ctx) -> {
+            var emotion = new io.casehub.neocortex.cognitive.CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.SATISFACTION, 0.72, node.id(),
+                    java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(io.casehub.neocortex.cognitive.EmotionType.SATISFACTION, 0.72));
+            return java.util.List.of(emotion);
+        };
+        var phase = new GoalAffectPhase(store, appraisal, null, java.time.Clock.systemUTC());
+
+        String goalId = store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Completed goal", goalSubgraphId)
+                                                                            .withProperties(Map.of("description", "done", "status", "completed",
+                                                                                                   "initial-emotion", "HOPE", "initial-emotion-intensity", "0.85")), TENANT);
+
+        phase.run(TENANT, List.of());
+
+        MindMapNode goal = store.getNode(goalId, TENANT);
+        assertThat(goal.property("outcome-emotion")).contains("SATISFACTION");
+        assertThat(goal.property("outcome-emotion-intensity")).contains("0.72");
+        assertThat(goal.property("emotion-gap")).contains("-0.13");
+    }
+
+    @Test
+    void occAppraisal_doesNotOverwriteExistingOutcomeEmotion() {
+        io.casehub.neocortex.mindmap.GoalAppraisal appraisal = (node, ctx) -> {
+            var emotion = new io.casehub.neocortex.cognitive.CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.SATISFACTION, 0.90, node.id(),
+                    java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(io.casehub.neocortex.cognitive.EmotionType.SATISFACTION, 0.90));
+            return java.util.List.of(emotion);
+        };
+        var phase = new GoalAffectPhase(store, appraisal, null, java.time.Clock.systemUTC());
+
+        String goalId = store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Already recorded", goalSubgraphId)
+                                                                            .withProperties(Map.of("description", "done", "status", "completed",
+                                                                                                   "outcome-emotion", "SATISFACTION", "outcome-emotion-intensity", "0.72")), TENANT);
+
+        phase.run(TENANT, List.of());
+
+        MindMapNode goal = store.getNode(goalId, TENANT);
+        assertThat(goal.property("outcome-emotion-intensity")).contains("0.72");
+    }
+
 }

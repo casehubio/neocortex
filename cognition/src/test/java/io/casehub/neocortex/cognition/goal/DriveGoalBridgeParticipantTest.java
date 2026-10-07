@@ -66,6 +66,8 @@ class DriveGoalBridgeParticipantTest {
         assertThat(node.properties().get("drive-intensity")).isEqualTo("0.85");
         assertThat(node.properties().get("agent-id")).isEqualTo("agent1");
         assertThat(node.properties().get("need-tier")).isEqualTo("UNDERSTANDING");
+        assertThat(node.properties().get("initial-emotion")).isEqualTo("HOPE");
+        assertThat(node.properties().get("initial-emotion-intensity")).isEqualTo("0.85");
     }
 
     @Test

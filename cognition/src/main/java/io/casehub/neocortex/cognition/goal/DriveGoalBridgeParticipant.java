@@ -1,9 +1,10 @@
 package io.casehub.neocortex.cognition.goal;
 
+import io.casehub.eidos.api.GoalPriority;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
-import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
+import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -14,7 +15,6 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.JaroWinkler;
 import io.casehub.platform.api.identity.PrincipalId;
-import io.casehub.eidos.api.GoalPriority;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -120,6 +120,8 @@ public final class DriveGoalBridgeParticipant implements CognitionTickParticipan
         props.put("drive-intensity", String.valueOf(proposal.driveIntensity()));
         props.put("agent-id", agentId);
         props.put("need-tier", NeedTier.fromDriveAxis(proposal.axis()).name());
+        props.put("initial-emotion", "HOPE");
+        props.put("initial-emotion-intensity", String.format("%.2f", proposal.driveIntensity()));
 
         NodeInput input = NodeInput.of(proposal.goalName(), subgraphId)
                                    .withProperties(props)

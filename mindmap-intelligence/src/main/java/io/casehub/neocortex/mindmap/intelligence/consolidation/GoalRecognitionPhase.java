@@ -111,6 +111,8 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
             props.put("description", goal.description());
             props.put("status", "active");
             props.put("need-tier", "TASKS");
+            props.put("initial-emotion", "HOPE");
+            props.put("initial-emotion-intensity", String.format("%.2f", goal.confidence()));
             if (goal.origin() != null) props.put("origin", goal.origin());
             if (goal.suggestedHorizon() != null) props.put("horizon", goal.suggestedHorizon());
 
