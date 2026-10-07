@@ -1,6 +1,7 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;

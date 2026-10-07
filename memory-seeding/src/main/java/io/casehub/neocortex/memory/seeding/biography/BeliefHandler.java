@@ -1,6 +1,8 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.ConfidenceOrigin;
+import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -38,13 +40,32 @@ public class BeliefHandler implements BiographyHandler {
             if (entry.properties() != null) props.putAll(entry.properties());
 
             double confidence = entry.confidence() != null ? entry.confidence() : 0.7;
+            var origin = PlaceHandler.resolveOrigin(entry.confidenceOrigin());
 
-            store.addNode(
+            String nodeId = store.addNode(
                 NodeInput.of(entry.description(), subgraphId)
-                    .withConfidence(Confidence.inferred(confidence, Instant.now()))
+                    .withConfidence(new Confidence(origin, confidence, Instant.now()))
                     .withProvenance("biographical-import")
                     .withProperties(props),
                 tenantId);
+
+            if (entry.entityRefs() != null) {
+                for (String entityRef : entry.entityRefs()) {
+                    String targetId = resolveAcrossSubgraphs(entityRef, tenantId);
+                    if (targetId != null) {
+                        store.addEdge(EdgeInput.of(nodeId, targetId, "evidence-for")
+                            .withProvenance("biographical-import"), tenantId);
+                    }
+                }
+            }
         }
+    }
+
+    private String resolveAcrossSubgraphs(String name, String tenantId) {
+        for (var sg : store.listSubgraphs(tenantId)) {
+            MindMapNode node = store.resolveNode(name, sg.id(), tenantId);
+            if (node != null) return node.id();
+        }
+        return null;
     }
 }
