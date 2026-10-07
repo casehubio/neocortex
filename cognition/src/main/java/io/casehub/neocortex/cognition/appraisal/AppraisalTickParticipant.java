@@ -58,9 +58,11 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
 
         var defaults = defaultsRegistry != null
                 ? defaultsRegistry.forAgentOrDefaults(context.agentId()) : null;
-        var weights   = defaults != null ? defaults.appraisalWeights() : null;
-        var habConfig = defaults != null ? defaults.habituationConfig() : null;
-        var               habituation = habituationStates.getOrDefault(agentKey, HabituationState.empty());
+        var weights      = defaults != null ? defaults.appraisalWeights() : null;
+        var habConfig    = defaults != null ? defaults.habituationConfig() : null;
+        var disposition  = defaults != null && defaults.descriptor() != null
+                ? defaults.descriptor().disposition() : null;
+        var habituation  = habituationStates.getOrDefault(agentKey, HabituationState.empty());
 
         PerceivedSituation situation;
         if (config.salienceEnabled() && observation != null) {
@@ -73,7 +75,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         }
 
         var result = appraisalStrategy.appraise(
-                new AppraisalContext(situation, drives, weights, habConfig, habituation, mood));
+                new AppraisalContext(situation, drives, weights, habConfig, habituation, mood, disposition));
 
         results.put(agentKey, result);
         habituationStates.put(agentKey, result.updatedHabituation());

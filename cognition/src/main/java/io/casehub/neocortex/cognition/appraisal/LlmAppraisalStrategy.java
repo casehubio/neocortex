@@ -26,6 +26,11 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
             - A list of drives (what this character cares about, each with an intensity)
             - The current situation (what just happened)
             - The character's current mood (if available)
+            - The character's disposition (personality axes that shape how they appraise events)
+
+            The disposition tells you WHO this character is — how they naturally react. \
+            An assertive risk-taker appraises threats differently than a cautious rule-follower. \
+            Let disposition colour intensity and direction, not override the drives.
 
             For each drive, consider: does this situation touch it? How? What does it \
             make the character want to do? Consider ALL drives, not just the strongest one.
@@ -139,8 +144,18 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
         if (context.currentMood() != null) {
             var m = context.currentMood();
             sb.append("\n\nCurrent mood: pleasure=").append(String.format("%.2f", m.pleasure()))
-                    .append(", arousal=").append(String.format("%.2f", m.arousal()))
-                    .append(", dominance=").append(String.format("%.2f", m.dominance()));
+              .append(", arousal=").append(String.format("%.2f", m.arousal()))
+              .append(", dominance=").append(String.format("%.2f", m.dominance()));
+        }
+
+        if (context.dispositionAxes() != null) {
+            var d = context.dispositionAxes();
+            sb.append("\n\nDisposition:");
+            if (d.socialOrient() != null) {sb.append("\n- Social orientation: ").append(d.socialOrient());}
+            if (d.ruleFollowing() != null) {sb.append("\n- Rule following: ").append(d.ruleFollowing());}
+            if (d.riskAppetite() != null) {sb.append("\n- Risk appetite: ").append(d.riskAppetite());}
+            if (d.autonomy() != null) {sb.append("\n- Autonomy: ").append(d.autonomy());}
+            if (d.conflictMode() != null) {sb.append("\n- Conflict mode: ").append(d.conflictMode());}
         }
 
         return sb.toString();

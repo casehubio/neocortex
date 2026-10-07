@@ -2,6 +2,7 @@ package io.casehub.neocortex.cognition.appraisal;
 
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.HabituationConfig;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
@@ -132,6 +133,73 @@ class LlmAppraisalStrategyTest {
         assertThat(result).isNotNull();
         assertThat(result.narrative()).isEqualTo("Uneasy calm.");
     }
+
+    @Test
+    void includesDispositionInPromptWhenAvailable() {
+        var capturedMessage = new String[1];
+        AgentProvider capturingProvider = new AgentProvider() {
+            @Override
+            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
+                capturedMessage[0] = config.userPrompt();
+                var json = """
+                           {
+                             "narrative": "A surge of defiance.",
+                             "dimensions": { "relevance": 0.7, "conduciveness": -0.3 }
+                           }""";
+                return Multi.createFrom().items(
+                        new AgentEvent.TextDelta(json), COMPLETE);
+            }
+
+            @Override
+            public AgentSession openSession(AgentSessionInit init) {
+                throw new UnsupportedOperationException();
+            }
+        };
+        var strategy = new LlmAppraisalStrategy(capturingProvider);
+        var disposition = new DispositionAxes(
+                "assertive", "low", "high", "high", "confrontational");
+        var ctx = new AppraisalContext(
+                PerceivedSituation.passThrough("a rival challenges authority"),
+                List.of(new Drive("dominance", DriveCategory.CHARACTER, 0.8, "")),
+                null, HabituationConfig.defaults(), HabituationState.empty(), null, disposition);
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).contains("Disposition:");
+        assertThat(capturedMessage[0]).contains("Social orientation: assertive");
+        assertThat(capturedMessage[0]).contains("Risk appetite: high");
+        assertThat(capturedMessage[0]).contains("Conflict mode: confrontational");
+    }
+
+    @Test
+    void omitsDispositionFromPromptWhenNull() {
+        var capturedMessage = new String[1];
+        AgentProvider capturingProvider = new AgentProvider() {
+            @Override
+            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
+                capturedMessage[0] = config.userPrompt();
+                var json = """
+                           {
+                             "narrative": "Calm.",
+                             "dimensions": { "relevance": 0.3, "conduciveness": 0.1 }
+                           }""";
+                return Multi.createFrom().items(
+                        new AgentEvent.TextDelta(json), COMPLETE);
+            }
+
+            @Override
+            public AgentSession openSession(AgentSessionInit init) {
+                throw new UnsupportedOperationException();
+            }
+        };
+        var strategy = new LlmAppraisalStrategy(capturingProvider);
+        var ctx      = context("a quiet morning", List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).doesNotContain("Disposition:");
+    }
+
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
         return new AppraisalContext(
