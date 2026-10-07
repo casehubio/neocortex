@@ -757,7 +757,7 @@ Package-private pure static utility. Lightweight Dynamic Time Warping for multi-
 
 #### CognitiveDerivationEngine
 
-Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId, `DispositionAxes`, disposition profile as `List<WeightedTerm>`, goals) via 9 derivation pathways:
+Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId, `DispositionAxes`, disposition profile as `List<WeightedTerm>`, goals, `FormationPadSummary`) via 10 derivation pathways:
 
 | Pathway | Input | Output |
 |---------|-------|--------|
@@ -770,6 +770,7 @@ Pure static utility. Derives `CognitiveDefaults` from `DescriptorView` (agentId,
 | Graph structure | Disposition profile | CONNECTIVE/CATEGORICAL/BALANCED |
 | Extraction bias | Function weight ratios | Relationship bias, affect sensitivity |
 | Appraisal weights | Disposition profile + axes | urgencyWeight, relationshipWeight, fearOnsetThreshold (from JPAF profile), selfStandardsStrictness, otherStandardsStrictness (from DispositionAxes: ruleFollowing + socialOrient) |
+| Personality dominance | FormationPadSummary | Dominance-weighted reward ratio → arousal thresholds for tier activation |
 
 **`deriveAndMerge()`** overlays explicit `CognitiveDefaults` fields (from YAML profile) on the derived base. Explicit non-null fields win. Primary integration point — YAML profiles can override any derived value.
 
