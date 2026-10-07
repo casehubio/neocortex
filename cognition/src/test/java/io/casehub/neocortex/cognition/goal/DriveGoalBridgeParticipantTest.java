@@ -1,17 +1,15 @@
 package io.casehub.neocortex.cognition.goal;
 
+import io.casehub.eidos.api.GoalPriority;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.knowledge.TermNormalizer;
-import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
-import io.casehub.eidos.api.GoalPriority;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +61,7 @@ class DriveGoalBridgeParticipantTest {
         assertThat(node.properties().get("status")).isEqualTo("active");
         assertThat(node.properties().get("description")).isEqualTo("Study the Spanish language to conversational fluency");
         assertThat(node.properties().get("horizon")).isEqualTo("long");
+        assertThat(node.properties().get("goal-tier")).isEqualTo("STRATEGIC");
         assertThat(node.properties().get("drive-intensity")).isEqualTo("0.85");
         assertThat(node.properties().get("agent-id")).isEqualTo("agent1");
         assertThat(node.properties().get("need-tier")).isEqualTo("UNDERSTANDING");

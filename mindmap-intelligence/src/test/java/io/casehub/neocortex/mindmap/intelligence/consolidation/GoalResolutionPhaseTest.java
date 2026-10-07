@@ -2,9 +2,9 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.mindmap.CognitiveGoalDecomposer;
 import io.casehub.neocortex.mindmap.EdgeInput;
-import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.GoalDecompositionResult;
 import io.casehub.neocortex.mindmap.GoalLifecycleProvider;
+import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
@@ -250,6 +250,14 @@ class GoalResolutionPhaseTest {
         assertThat(allGoals).hasSize(3);
         assertThat(allGoals.stream().map(MindMapNode::name))
                 .containsExactlyInAnyOrder("Ship MVP", "write tests", "deploy to prod");
+
+        MindMapNode writeTests = allGoals.stream().filter(n -> n.name().equals("write tests")).findFirst().orElseThrow();
+        assertThat(writeTests.property("goal-tier")).contains("TACTICAL");
+        assertThat(writeTests.property("horizon")).contains("short");
+
+        MindMapNode deployToProd = allGoals.stream().filter(n -> n.name().equals("deploy to prod")).findFirst().orElseThrow();
+        assertThat(deployToProd.property("goal-tier")).contains("TACTICAL");
+        assertThat(deployToProd.property("horizon")).contains("immediate");
     }
 
     @Test

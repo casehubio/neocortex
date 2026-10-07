@@ -1,5 +1,8 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.MemoryInput;
+import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
 import io.casehub.neocortex.mindmap.CognitiveGoalRecognizer;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -7,9 +10,6 @@ import io.casehub.neocortex.mindmap.RecognizedGoal;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
-import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.memory.MemoryInput;
-import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,11 +55,11 @@ class GoalRecognitionPhaseTest {
     @Test
     void recognizesGoalFromExperienceMemory() {
         memoryStore.store(MemoryInput.of("agent-1", new MemoryDomain("experience"), TENANT,
-                "I really want to learn quantum computing"));
+                                         "I really want to learn quantum computing"));
 
         CognitiveGoalRecognizer recognizer = (text, existing, tid) ->
-                List.of(new RecognizedGoal("learn quantum computing",
-                        "conversation", "long", 0.85));
+                                                     List.of(new RecognizedGoal("learn quantum computing",
+                                                                                "conversation", "long", 0.85));
 
         phase(recognizer).run(TENANT, List.of());
 
@@ -70,6 +70,7 @@ class GoalRecognitionPhaseTest {
         assertThat(goals.get(0).property("horizon")).contains("long");
         assertThat(goals.get(0).property("status")).contains("active");
         assertThat(goals.get(0).property("need-tier")).contains("TASKS");
+        assertThat(goals.get(0).property("goal-tier")).contains("STRATEGIC");
         assertThat(goals.get(0).property("initial-emotion")).contains("HOPE");
         assertThat(goals.get(0).property("initial-emotion-intensity")).contains("0.85");
     }

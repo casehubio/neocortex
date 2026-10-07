@@ -4,21 +4,21 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.SignalCategory;
+import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.CognitiveGoalRecognizer;
 import io.casehub.neocortex.mindmap.MindMapNode;
+import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.RecognizedGoal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-
-import io.casehub.neocortex.mindmap.MindMapQuery;
-import io.casehub.neocortex.mindmap.NodeUpdate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,15 +76,15 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (mindMapStore == null || memoryStore == null || recognizer == null) return;
+        if (mindMapStore == null || memoryStore == null || recognizer == null) {return;}
 
         String goalSgId = findGoalSubgraph(tenantId);
-        if (goalSgId == null) return;
+        if (goalSgId == null) {return;}
 
         String cursor = loadCursor(tenantId);
         List<Memory> experiences = memoryStore.scan(
                 new MemoryScanRequest(tenantId, "experience", null, null, 100, cursor));
-        if (experiences.isEmpty()) return;
+        if (experiences.isEmpty()) {return;}
 
         List<MindMapNode> existingGoals = mindMapStore.nodesIn(goalSgId, tenantId);
 
@@ -94,14 +94,14 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
                 combinedText.append(mem.text()).append("\n");
             }
         }
-        if (combinedText.isEmpty()) return;
+        if (combinedText.isEmpty()) {return;}
 
         List<RecognizedGoal> recognized = recognizer.recognize(
                 combinedText.toString(), existingGoals, tenantId);
 
         for (RecognizedGoal goal : recognized) {
             boolean duplicate = existingGoals.stream()
-                    .anyMatch(n -> n.name().equalsIgnoreCase(goal.description()));
+                                             .anyMatch(n -> n.name().equalsIgnoreCase(goal.description()));
             if (duplicate) {
                 LOG.fine("Skipping duplicate goal: " + goal.description());
                 continue;
@@ -113,15 +113,16 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
             props.put("need-tier", "TASKS");
             props.put("initial-emotion", "HOPE");
             props.put("initial-emotion-intensity", String.format("%.2f", goal.confidence()));
-            if (goal.origin() != null) props.put("origin", goal.origin());
-            if (goal.suggestedHorizon() != null) props.put("horizon", goal.suggestedHorizon());
+            if (goal.origin() != null) {props.put("origin", goal.origin());}
+            if (goal.suggestedHorizon() != null) {props.put("horizon", goal.suggestedHorizon());}
+            props.put("goal-tier", GoalTier.fromHorizon(goal.suggestedHorizon()).name());
 
             String newNodeId = mindMapStore.addNode(NodeInput.of(goal.description(), goalSgId)
-                    .withProperties(props), tenantId);
+                                                             .withProperties(props), tenantId);
             pendingSignals.add(new AttentionSignal(
-                null, tenantId, SignalCategory.GOAL_RECOGNIZED,
-                newNodeId, goal.description(), goal.confidence(),
-                "recognized from experience — origin: " + goal.origin()));
+                    null, tenantId, SignalCategory.GOAL_RECOGNIZED,
+                    newNodeId, goal.description(), goal.confidence(),
+                    "recognized from experience — origin: " + goal.origin()));
             LOG.fine("Created recognized goal: " + goal.description());
         }
 

@@ -6,6 +6,7 @@ import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.knowledge.TermNormalizer;
+import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
@@ -116,7 +117,9 @@ public final class DriveGoalBridgeParticipant implements CognitionTickParticipan
         props.put("origin", "drive-proposal");
         props.put("origin-drive", proposal.axis().name());
         props.put("formation-reason", proposal.formationReason());
-        props.put("horizon", mapHorizon(proposal.suggestedPriority()));
+        String horizon = mapHorizon(proposal.suggestedPriority());
+        props.put("horizon", horizon);
+        props.put("goal-tier", GoalTier.fromHorizon(horizon).name());
         props.put("drive-intensity", String.valueOf(proposal.driveIntensity()));
         props.put("agent-id", agentId);
         props.put("need-tier", NeedTier.fromDriveAxis(proposal.axis()).name());

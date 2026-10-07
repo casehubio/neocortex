@@ -1,10 +1,10 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.CognitiveGoalDecomposer;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.GoalDecompositionResult;
+import io.casehub.neocortex.mindmap.GoalTier;
 import io.casehub.neocortex.mindmap.GoalLifecycleProvider;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -12,6 +12,7 @@ import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -154,6 +155,7 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                 if (subGoal.suggestedHorizon() != null) {
                     props.put("horizon", subGoal.suggestedHorizon());
                 }
+                props.put("goal-tier", GoalTier.fromHorizon(subGoal.suggestedHorizon()).name());
 
                 String subId = store.addNode(NodeInput.of(subGoal.description(), goalSgId)
                                                       .withProperties(props), tenantId);
