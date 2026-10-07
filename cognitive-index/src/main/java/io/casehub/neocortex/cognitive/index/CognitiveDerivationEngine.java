@@ -149,6 +149,7 @@ public final class CognitiveDerivationEngine {
         ExtractionBiasDefaults  extractionBias   = deriveExtractionBias(descriptor.dispositionProfile());
         AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile(), descriptor.disposition());
         HabituationConfig       habituation      = deriveHabituationConfig(descriptor.disposition(), descriptor.goals());
+        double                  personalityDom   = derivePersonalityDominance(descriptor.formationPadSummary());
 
         return CognitiveDefaults.empty(descriptor.agentId())
                 .withPersonality(personality)
@@ -160,7 +161,8 @@ public final class CognitiveDerivationEngine {
                 .withGraphStructure(graphStructure)
                 .withExtractionBias(extractionBias)
                 .withAppraisalWeights(appraisal)
-                .withHabituationConfig(habituation);
+                .withHabituationConfig(habituation)
+                .withPersonalityDominance(personalityDom);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
@@ -180,6 +182,7 @@ public final class CognitiveDerivationEngine {
                 .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
                 .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
                 .withHabituationConfig(explicit.habituationConfig() != null ? explicit.habituationConfig() : derived.habituationConfig())
+                .withPersonalityDominance(explicit.personalityDominance() != null ? explicit.personalityDominance() : derived.personalityDominance())
                 .withVocabulary(explicit.vocabulary())
                 .withServices(explicit.services())
                 .withTraitRules(explicit.traitRules())
@@ -445,6 +448,14 @@ public final class CognitiveDerivationEngine {
         }
 
         return new HabituationConfig(habRate, novelty, Math.max(2.0, repTol), domainMod);
+    }
+
+    static double derivePersonalityDominance(FormationPadSummary summary) {
+        if (summary == null || summary.memoryCount() == 0 || summary.totalPositivePleasure() == 0.0) {
+            return 0.5;
+        }
+        double ratio = summary.dominanceWeightedReward() / summary.totalPositivePleasure();
+        return Math.clamp((ratio + 1.0) / 2.0, 0.0, 1.0);
     }
 
 
