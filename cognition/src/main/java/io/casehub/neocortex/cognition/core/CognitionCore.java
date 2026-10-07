@@ -16,7 +16,6 @@ import io.casehub.neocortex.cognition.mentalmodel.MentalStateSignal;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognition.mood.MoodTick;
-import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
@@ -43,10 +42,11 @@ import io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator;
 import io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator;
 import io.casehub.neocortex.cognition.usermodel.InteractionSignal;
 import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
+import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
+import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.memory.relationship.QualitySignal;
-import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -121,6 +121,9 @@ public class CognitionCore {
     private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
     private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
     private volatile @Nullable Consumer<MoodState> moodPersister;
+    private volatile String lastAgentId;
+    private volatile String lastTenantId;
+    private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
 
 
     public CognitionCore(MoodOrchestrator mood,
@@ -199,6 +202,8 @@ public class CognitionCore {
                      SubjectResolver resolver,
                      @Nullable String observation) {
         this.lastDescriptor = descriptor;
+        this.lastAgentId    = agentId;
+        this.lastTenantId   = tenantId;
         this.lastBriefing   = null;
         if (attentionMediator != null) {
             var briefing = attentionMediator.drainAttention(agentId);
@@ -577,6 +582,25 @@ public class CognitionCore {
             addParticipant(CognitionPhase.TERMINAL,
                            new DriveGoalBridgeParticipant(goals, mindMapStore, termNormalizer, config));
         }
+    }
+
+    public void configureTierFilter(double personalityDominance) {
+        if (tierFilter != null) {
+            tierFilter.setPersonalityDominance(personalityDominance);
+            return;
+        }
+        tierFilter = new io.casehub.neocortex.cognition.prompt.TierFilterCustomizer(
+                () -> {
+                    String aid = lastAgentId;
+                    String tid = lastTenantId;
+                    if (aid == null || tid == null) {return 0.0;}
+                    return mood.currentMood(aid, tid)
+                               .map(io.casehub.neocortex.memory.mood.MoodState::arousal)
+                               .orElse(0.0);
+                },
+                personalityDominance
+        );
+        chainSectionCustomizer(tierFilter);
     }
 
 

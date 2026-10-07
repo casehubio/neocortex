@@ -56,6 +56,11 @@ public class DirectiveSection implements CognitionPromptRenderer {
         return directive + "\n" + content;
     }
 
+    CognitionPromptRenderer delegate() {
+        return delegate;
+    }
+
+
     public static CognitionPromptRenderer wrap(CognitionPromptRenderer section) {
         var name = section.getClass().getSimpleName();
         var directive = DIRECTIVES.getOrDefault(name,
