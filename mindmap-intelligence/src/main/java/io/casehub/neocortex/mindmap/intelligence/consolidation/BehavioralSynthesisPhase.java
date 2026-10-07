@@ -91,8 +91,10 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             AgentCapsState state = capsEngine.loadState(tenantId, agentId);
             if (state == null) {
-                LOG.fine("No CAPS state for agent " + agentId + ", skipping");
-                continue;
+                state = capsEngine.initializeAgent(tenantId, agentId,
+                    new io.casehub.neocortex.cognitive.index.DispositionAxes(
+                        "cooperative", "moderate", "calculated", "moderate", "cooperative"));
+                LOG.info("Auto-initialized CAPS state for agent " + agentId);
             }
 
             Map<String, Double> combinedActivations = new HashMap<>();

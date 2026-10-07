@@ -284,6 +284,38 @@ class BehavioralSynthesisPhaseTest {
         assertThat(names).doesNotContain("Experience 1");
     }
 
+    @Test
+    void uninitializedAgent_autoInitializedAndProcessed() {
+        var freshEngine = new StubCapsEngine();
+        SituationClassifier classifier = (desc, meta) ->
+                                                 List.of(new SituationActivation("reward", 0.8));
+        var freshPhase = new BehavioralSynthesisPhase(store, freshEngine, classifier, 20);
+
+        store.addNode(NodeInput.of("Formative childhood experience", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-f1",
+                                       "agent-id", AGENT,
+                                       "event-type", "formative",
+                                       "graduation-score", "1.0")),
+                      TENANT);
+
+        freshPhase.run(TENANT, List.of());
+
+        assertThat(freshEngine.loadState(TENANT, AGENT))
+                .as("Agent should be auto-initialized when loadState returns null")
+                .isNotNull();
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral)
+                .as("Behavioral attractors should be created for auto-initialized agent")
+                .isNotEmpty();
+        assertThat(behavioral).anySatisfy(n -> {
+            assertThat(n.traits()).contains("CapsGenerated");
+            assertThat(n.property("agent-id")).hasValue(AGENT);
+        });
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();
