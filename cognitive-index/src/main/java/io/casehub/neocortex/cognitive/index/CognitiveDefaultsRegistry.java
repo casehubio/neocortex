@@ -44,7 +44,7 @@ public class CognitiveDefaultsRegistry {
 
     private volatile Map<String, CognitiveDefaults> profiles;
 
-    CognitiveDefaultsRegistry() {
+    public CognitiveDefaultsRegistry() {
         this.profiles = Map.of();
     }
 
