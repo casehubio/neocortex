@@ -69,6 +69,7 @@ class GoalRecognitionPhaseTest {
         assertThat(goals.get(0).property("origin")).contains("conversation");
         assertThat(goals.get(0).property("horizon")).contains("long");
         assertThat(goals.get(0).property("status")).contains("active");
+        assertThat(goals.get(0).property("need-tier")).contains("TASKS");
     }
 
     @Test

@@ -110,6 +110,7 @@ public class GoalRecognitionPhase implements ConsolidationPhase {
             Map<String, String> props = new HashMap<>();
             props.put("description", goal.description());
             props.put("status", "active");
+            props.put("need-tier", "TASKS");
             if (goal.origin() != null) props.put("origin", goal.origin());
             if (goal.suggestedHorizon() != null) props.put("horizon", goal.suggestedHorizon());
 

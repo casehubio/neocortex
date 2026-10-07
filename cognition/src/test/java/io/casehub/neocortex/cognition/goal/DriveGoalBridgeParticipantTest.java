@@ -65,6 +65,7 @@ class DriveGoalBridgeParticipantTest {
         assertThat(node.properties().get("horizon")).isEqualTo("long");
         assertThat(node.properties().get("drive-intensity")).isEqualTo("0.85");
         assertThat(node.properties().get("agent-id")).isEqualTo("agent1");
+        assertThat(node.properties().get("need-tier")).isEqualTo("UNDERSTANDING");
     }
 
     @Test
@@ -103,6 +104,7 @@ class DriveGoalBridgeParticipantTest {
         assertThat(node.properties().get("origin")).isEqualTo("recognized");
         assertThat(node.properties().get("origin-drive")).isEqualTo("CURIOSITY");
         assertThat(node.properties().get("formation-reason")).isEqualTo("curiosity about programming");
+        assertThat(node.properties().get("need-tier")).isEqualTo("UNDERSTANDING");
     }
 
     @Test

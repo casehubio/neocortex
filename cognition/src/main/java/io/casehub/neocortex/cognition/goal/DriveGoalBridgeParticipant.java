@@ -1,6 +1,7 @@
 package io.casehub.neocortex.cognition.goal;
 
 import io.casehub.neocortex.cognition.core.CognitionConfig;
+import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.knowledge.TermNormalizer;
@@ -108,7 +109,7 @@ public final class DriveGoalBridgeParticipant implements CognitionTickParticipan
     }
 
     private String createGoalNode(DriveGoalProposal proposal, String subgraphId,
-                                   String tenantId, String agentId) {
+                                  String tenantId, String agentId) {
         Map<String, String> props = new LinkedHashMap<>();
         props.put("description", proposal.goalDescription());
         props.put("status", "active");
@@ -118,10 +119,11 @@ public final class DriveGoalBridgeParticipant implements CognitionTickParticipan
         props.put("horizon", mapHorizon(proposal.suggestedPriority()));
         props.put("drive-intensity", String.valueOf(proposal.driveIntensity()));
         props.put("agent-id", agentId);
+        props.put("need-tier", NeedTier.fromDriveAxis(proposal.axis()).name());
 
         NodeInput input = NodeInput.of(proposal.goalName(), subgraphId)
-                .withProperties(props)
-                .withPrincipalId(PrincipalId.agent(agentId));
+                                   .withProperties(props)
+                                   .withPrincipalId(PrincipalId.agent(agentId));
         return store.addNode(input, tenantId);
     }
 
@@ -129,6 +131,7 @@ public final class DriveGoalBridgeParticipant implements CognitionTickParticipan
         Map<String, String> updates = new LinkedHashMap<>();
         updates.put("origin-drive", proposal.axis().name());
         updates.put("formation-reason", proposal.formationReason());
+        updates.put("need-tier", NeedTier.fromDriveAxis(proposal.axis()).name());
         store.updateNode(node.id(), NodeUpdate.empty().withPropertiesToSet(updates), tenantId);
     }
 
