@@ -1,0 +1,12 @@
+type: place
+entries:
+  - id: casa-azul
+    source_ref: "02-childhood.md#casa-azul"
+    name: "La Casa Azul"
+    properties:
+      address: "Londres 247, Del Carmen, Coyoacán"
+      significance: "Family home and primary studio"
+    pad:
+      pleasure: 0.6
+      arousal: 0.2
+      dominance: 0.5
