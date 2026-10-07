@@ -14,7 +14,7 @@ class CognitiveDerivationEngineHabituationTest {
     @Test
     void boldRisk_fastHabituation() {
         var axes = new DispositionAxes("cooperative", "moderate", "bold", "moderate", "cooperative");
-        var descriptor = new DescriptorView("agent-h1", axes, List.of(), List.of());
+        var descriptor = DescriptorView.of("agent-h1", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
 
@@ -25,7 +25,7 @@ class CognitiveDerivationEngineHabituationTest {
     @Test
     void conservativeRisk_slowHabituation() {
         var axes = new DispositionAxes("cooperative", "moderate", "conservative", "moderate", "cooperative");
-        var descriptor = new DescriptorView("agent-h2", axes, List.of(), List.of());
+        var descriptor = DescriptorView.of("agent-h2", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
 
@@ -36,7 +36,7 @@ class CognitiveDerivationEngineHabituationTest {
     @Test
     void flexibleRules_lowRepetitionTolerance() {
         var axes = new DispositionAxes("cooperative", "flexible", "calculated", "moderate", "cooperative");
-        var descriptor = new DescriptorView("agent-h3", axes, List.of(), List.of());
+        var descriptor = DescriptorView.of("agent-h3", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
 
@@ -47,7 +47,7 @@ class CognitiveDerivationEngineHabituationTest {
     @Test
     void strictRules_highRepetitionTolerance() {
         var axes = new DispositionAxes("cooperative", "strict", "calculated", "moderate", "cooperative");
-        var descriptor = new DescriptorView("agent-h4", axes, List.of(), List.of());
+        var descriptor = DescriptorView.of("agent-h4", axes, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
 
@@ -60,8 +60,8 @@ class CognitiveDerivationEngineHabituationTest {
         var axesHigh = new DispositionAxes("cooperative", "moderate", "calculated", "high", "cooperative");
         var axesMod = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
 
-        var high = CognitiveDerivationEngine.derive(new DescriptorView("agent-h5a", axesHigh, List.of(), List.of()));
-        var mod = CognitiveDerivationEngine.derive(new DescriptorView("agent-h5b", axesMod, List.of(), List.of()));
+        var high = CognitiveDerivationEngine.derive(DescriptorView.of("agent-h5a", axesHigh, List.of(), List.of()));
+        var mod = CognitiveDerivationEngine.derive(DescriptorView.of("agent-h5b", axesMod, List.of(), List.of()));
 
         assertThat(high.habituationConfig().repetitionTolerance())
                 .isLessThan(mod.habituationConfig().repetitionTolerance());
@@ -69,7 +69,7 @@ class CognitiveDerivationEngineHabituationTest {
 
     @Test
     void nullDisposition_noHabituationConfig() {
-        var descriptor = new DescriptorView("agent-h6", null, List.of(), List.of());
+        var descriptor = DescriptorView.of("agent-h6", null, List.of(), List.of());
 
         var result = CognitiveDerivationEngine.derive(descriptor);
 
@@ -79,7 +79,7 @@ class CognitiveDerivationEngineHabituationTest {
     @Test
     void goalsProduceDomainModulation() {
         var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
-        var descriptor = new DescriptorView("agent-h7", axes, List.of(), List.of("advance career"));
+        var descriptor = DescriptorView.of("agent-h7", axes, List.of(), List.of("advance career"));
 
         var result = CognitiveDerivationEngine.derive(descriptor);
 
@@ -95,7 +95,7 @@ class CognitiveDerivationEngineHabituationTest {
         var explicit = CognitiveDefaults.empty("agent-h8")
                 .withTenantId("t1")
                 .withHabituationConfig(explicitHab)
-                .withDescriptor(new DescriptorView("agent-h8", axes, List.of(), List.of()));
+                .withDescriptor(DescriptorView.of("agent-h8", axes, List.of(), List.of()));
 
         var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
 
@@ -107,7 +107,7 @@ class CognitiveDerivationEngineHabituationTest {
         var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
         var explicit = CognitiveDefaults.empty("agent-h9")
                 .withTenantId("t1")
-                .withDescriptor(new DescriptorView("agent-h9", axes, List.of(), List.of()));
+                .withDescriptor(DescriptorView.of("agent-h9", axes, List.of(), List.of()));
 
         var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
 

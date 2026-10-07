@@ -22,11 +22,17 @@ public record DescriptorView(
     String agentId,
     DispositionAxes disposition,
     List<WeightedTerm> dispositionProfile,
-    List<String> goals
+    List<String> goals,
+    FormationPadSummary formationPadSummary
 ) {
     public DescriptorView {
         Objects.requireNonNull(agentId, "agentId required");
         dispositionProfile = dispositionProfile != null ? List.copyOf(dispositionProfile) : List.of();
         goals = goals != null ? List.copyOf(goals) : List.of();
+    }
+
+    public static DescriptorView of(String agentId, DispositionAxes disposition,
+                                     List<WeightedTerm> dispositionProfile, List<String> goals) {
+        return new DescriptorView(agentId, disposition, dispositionProfile, goals, null);
     }
 }
