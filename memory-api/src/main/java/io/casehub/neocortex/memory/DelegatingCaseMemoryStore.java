@@ -21,6 +21,10 @@ public abstract class DelegatingCaseMemoryStore implements CaseMemoryStore {
     @Deprecated(forRemoval = true) @Override public void eraseById(String memoryId, String entityId, String tenantId) { delegate.eraseById(memoryId, entityId, tenantId); }
     @Override public int eraseSubjectAcrossTenants(Subject subject, Set<String> tenantIds) { return delegate.eraseSubjectAcrossTenants(subject, tenantIds); }
     @Deprecated(forRemoval = true) @Override public int eraseEntityAcrossTenants(String entityId, Set<String> tenantIds) { return delegate.eraseEntityAcrossTenants(entityId, tenantIds); }
+
+    @Override
+    public void enrichAttributes(String memoryId, java.util.Map<String, String> additionalAttributes, String tenantId) {delegate.enrichAttributes(memoryId, additionalAttributes, tenantId);}
+
     @Override public Set<MemoryCapability> capabilities() { return delegate.capabilities(); }
     @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }
     @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }

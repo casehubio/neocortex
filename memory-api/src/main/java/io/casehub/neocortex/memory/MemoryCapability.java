@@ -29,5 +29,7 @@ public enum MemoryCapability {
     SCAN,                // paginated attribute-filtered enumeration
     DISCOVER_TENANTS,
 
-    PURGE
+    PURGE,
+
+    ENRICH_ATTRIBUTES
 }
