@@ -36,12 +36,14 @@ public class BiographyImportRunner {
     }
 
     public void run(BiographyProfile profile, String agentId, String tenantId) {
-        if (!seededAgents.add(agentId)) {
+        if (seededAgents.contains(agentId)) {
             throw new IllegalStateException("Agent " + agentId + " already has biographical data");
         }
 
         for (BiographyHandler handler : handlers) {
             handler.handle(profile, agentId, tenantId);
         }
+
+        seededAgents.add(agentId);
     }
 }

@@ -102,6 +102,9 @@ public class BiographyLoader {
 
     private void validateIds(HashSet<String> seen, List<String> newIds) {
         for (String id : newIds) {
+            if (id == null) {
+                throw new IllegalStateException("Biography entry has null ID");
+            }
             if (!seen.add(id)) {
                 throw new IllegalStateException("Duplicate biography entry ID: " + id);
             }

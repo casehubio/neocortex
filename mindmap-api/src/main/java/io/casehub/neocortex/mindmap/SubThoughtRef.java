@@ -19,9 +19,14 @@ public final class SubThoughtRef {
 
     public static Optional<Integer> subThoughtIndex(MindMapNode node) {
         return node.refs().stream()
-            .filter(r -> SCHEME.equals(r.scheme()))
-            .map(r -> Integer.parseInt(r.qualifier()))
-            .findFirst();
+                   .filter(r -> SCHEME.equals(r.scheme()))
+                   .filter(r -> r.qualifier() != null)
+                   .findFirst()
+                   .flatMap(r -> {
+                       try {return Optional.of(Integer.parseInt(r.qualifier()));} catch (NumberFormatException e) {
+                           return Optional.empty();
+                       }
+                   });
     }
 
     private SubThoughtRef() {}
