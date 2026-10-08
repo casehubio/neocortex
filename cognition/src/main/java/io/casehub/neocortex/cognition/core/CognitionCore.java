@@ -537,7 +537,11 @@ public class CognitionCore {
             sections = new ArrayList<>(sectionCustomizer.apply(sections));
         }
         if (config.directivePrompts()) {
-            return sections.stream().map(DirectiveSection::wrap).toList();
+            return sections.stream()
+                .map(DirectiveSection::wrap)
+                .sorted(java.util.Comparator.comparingInt(s ->
+                    s.blockTag() != null ? s.blockTag().sortOrdinal() : 999))
+                .toList();
         }
         return sections;
     }
