@@ -92,7 +92,13 @@ public class CapsSettler {
                         prevPrev.get(entry.getKey())));
                 }
                 if (osc < params.epsilon()) {
-                    return buildResult(newActivations, activations,
+                    Map<String, Double> averaged = new HashMap<>(newActivations);
+                    for (var entry : topology.nodes().entrySet()) {
+                        if (entry.getValue().type() == NodeType.INPUT) continue;
+                        String key = entry.getKey();
+                        averaged.put(key, (newActivations.get(key) + activations.get(key)) / 2.0);
+                    }
+                    return buildResult(averaged, null,
                         iterations, ConvergenceType.OSCILLATION, state);
                 }
             }
@@ -163,11 +169,7 @@ public class CapsSettler {
 
         List<BehavioralAttractor> attractors = new ArrayList<>();
         extractAttractors(primaryState, attractors, highSat,
-            agentState.generation(), convergence == ConvergenceType.OSCILLATION ? 0.5 : 1.0);
-        if (secondaryState != null && convergence == ConvergenceType.OSCILLATION) {
-            extractAttractors(secondaryState, attractors, highSat,
-                agentState.generation(), 0.5);
-        }
+            agentState.generation(), 1.0);
 
         return new SettlingResult(primaryState, iterations,
             convergence, saturationRatio, List.copyOf(attractors));
