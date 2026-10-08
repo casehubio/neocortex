@@ -15,23 +15,23 @@ public final class SubThoughtModulation {
     public static Map<DriveAxis, Double> compute(SubThoughtResult subThoughts) {
         if (subThoughts.isEmpty()) {
             return Map.of(
-                DriveAxis.AFFILIATION, 0.0, DriveAxis.COMPETENCE, 0.0,
-                DriveAxis.CURIOSITY, 0.0, DriveAxis.AUTONOMY, 0.0
-            );
+                    DriveAxis.AFFILIATION, 0.0, DriveAxis.COMPETENCE, 0.0,
+                    DriveAxis.CURIOSITY, 0.0, DriveAxis.AUTONOMY, 0.0
+                         );
         }
 
-        int concern = 0, affect = 0, intention = 0, evaluative = 0;
-        int association = 0, causal = 0, selfReflection = 0;
+        double concern     = 0, affect = 0, intention = 0, evaluative = 0;
+        double association = 0, causal = 0, selfReflection = 0;
 
         for (var st : subThoughts.subThoughts()) {
             switch (st.type()) {
-                case SubThoughtTypes.CONCERN -> concern++;
-                case SubThoughtTypes.AFFECT_OBSERVATION -> affect++;
-                case SubThoughtTypes.INTENTION -> intention++;
-                case SubThoughtTypes.EVALUATIVE -> evaluative++;
-                case SubThoughtTypes.ASSOCIATION -> association++;
-                case SubThoughtTypes.CAUSAL_INFERENCE -> causal++;
-                case SubThoughtTypes.SELF_REFLECTION -> selfReflection++;
+                case SubThoughtTypes.CONCERN -> concern += st.confidence();
+                case SubThoughtTypes.AFFECT_OBSERVATION -> affect += st.confidence();
+                case SubThoughtTypes.INTENTION -> intention += st.confidence();
+                case SubThoughtTypes.EVALUATIVE -> evaluative += st.confidence();
+                case SubThoughtTypes.ASSOCIATION -> association += st.confidence();
+                case SubThoughtTypes.CAUSAL_INFERENCE -> causal += st.confidence();
+                case SubThoughtTypes.SELF_REFLECTION -> selfReflection += st.confidence();
                 default -> {}
             }
         }

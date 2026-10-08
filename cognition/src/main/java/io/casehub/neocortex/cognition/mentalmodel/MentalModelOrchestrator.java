@@ -206,12 +206,12 @@ public class MentalModelOrchestrator {
         var key = normalizeKey(cue.content());
         switch (cue.subThoughtType()) {
             case io.casehub.neocortex.memory.experience.SubThoughtTypes.AFFECT_OBSERVATION,
-                 io.casehub.neocortex.memory.experience.SubThoughtTypes.EVALUATIVE -> upsertBelief(state, key, cue.content(), 0.6);
+                 io.casehub.neocortex.memory.experience.SubThoughtTypes.EVALUATIVE -> upsertBelief(state, key, cue.content(), cue.confidence());
             case io.casehub.neocortex.memory.experience.SubThoughtTypes.CONCERN,
-                 io.casehub.neocortex.memory.experience.SubThoughtTypes.ASSOCIATION -> upsertState(state.desires, key, cue.content(), 0.6, BdiDimension.DESIRE, now);
-            case io.casehub.neocortex.memory.experience.SubThoughtTypes.INTENTION -> upsertState(state.intentions, key, cue.content(), 0.7, BdiDimension.INTENTION, now);
+                 io.casehub.neocortex.memory.experience.SubThoughtTypes.ASSOCIATION -> upsertState(state.desires, key, cue.content(), cue.confidence(), BdiDimension.DESIRE, now);
+            case io.casehub.neocortex.memory.experience.SubThoughtTypes.INTENTION -> upsertState(state.intentions, key, cue.content(), cue.confidence(), BdiDimension.INTENTION, now);
             case io.casehub.neocortex.memory.experience.SubThoughtTypes.CAUSAL_INFERENCE,
-                 io.casehub.neocortex.memory.experience.SubThoughtTypes.SELF_REFLECTION -> upsertBelief(state, key, cue.content(), 0.5);
+                 io.casehub.neocortex.memory.experience.SubThoughtTypes.SELF_REFLECTION -> upsertBelief(state, key, cue.content(), cue.confidence());
             default -> {}
         }
     }

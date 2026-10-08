@@ -598,6 +598,7 @@ public class CognitionCore {
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
 
+    /** Platform must call this during CognitionCore initialization to activate the sub-thought tick pipeline. */
     public void configureSubThoughts(io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant participant) {
         this.subThoughtParticipant = participant;
         addParticipant(CognitionPhase.FOUNDATION, participant);

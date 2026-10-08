@@ -186,4 +186,34 @@ class DriveComposerTest {
                     .isEqualTo(withZeroLayer.drives().get(axis).intensity());
         }
     }
+
+    @Test
+    void compose_multipleModulationLayers_bothContribute() {
+        var narrativeMod  = Map.of(DriveAxis.AFFILIATION, 0.4);
+        var subThoughtMod = Map.of(DriveAxis.CURIOSITY, 0.5, DriveAxis.AFFILIATION, 0.3);
+
+        var config = DriveConfig.defaults();
+        var layers = List.of(
+                new ModulationLayer(narrativeMod, config.narrativeModulationStrength(), "narrative"),
+                new ModulationLayer(subThoughtMod, config.subThoughtModulationStrength(), "sub-thought")
+                            );
+
+        var profile = composer.compose(uniformRaw(0.5), null, null, layers, config, "a", "t", now);
+
+        // AFFILIATION should get both narrative and sub-thought boosts
+        assertThat(profile.drives().get(DriveAxis.AFFILIATION).intensity())
+                .isGreaterThan(0.5);
+
+        // CURIOSITY should get sub-thought boost only
+        assertThat(profile.drives().get(DriveAxis.CURIOSITY).intensity())
+                .isGreaterThan(0.5);
+
+        // Both should be above baseline — multi-layer mechanism works
+        // (relative ordering depends on specific modulation values × strengths)
+
+        // COMPETENCE should be unchanged (no modulation)
+        assertThat(profile.drives().get(DriveAxis.COMPETENCE).intensity())
+                .isEqualTo(0.5);
+    }
+
 }

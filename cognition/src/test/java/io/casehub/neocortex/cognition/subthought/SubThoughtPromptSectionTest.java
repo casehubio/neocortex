@@ -58,4 +58,39 @@ class SubThoughtPromptSectionTest {
 
         assertNull(rendered);
     }
+
+    @Test
+    void truncatesAtMaxSubThoughtsKeepingHighestConfidence() {
+        var             extractor   = new RuleBasedSubThoughtExtractor();
+        SubjectResolver resolver    = (a, t) -> Set.of();
+        var             participant = new SubThoughtTickParticipant(extractor, null, resolver);
+
+        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+                "mem-1", "a1", "t1",
+                buildManySubThoughts(15)
+        );
+        participant.handleEnriched(enriched);
+
+        var context = new CognitionTickContext("a1", "t1", null, resolver, "The weather was nice.");
+        participant.tick(context);
+
+        var section  = new SubThoughtPromptSection(participant);
+        var rendered = section.render(new CognitionRenderContext("a1", "t1", null));
+
+        assertNotNull(rendered);
+        long lineCount = rendered.lines().filter(l -> l.startsWith("- ")).count();
+        assertTrue(lineCount <= 10, "Should truncate to MAX_SUB_THOUGHTS=10, got " + lineCount);
+        assertTrue(rendered.contains("high-conf-0"), "Highest-confidence items should survive truncation");
+    }
+
+    private static List<io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought> buildManySubThoughts(int count) {
+        var result = new java.util.ArrayList<io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought>();
+        for (int i = 0; i < count; i++) {
+            double conf = (count - i) / (double) count;
+            result.add(new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                    "evaluative", "high-conf-" + i, null, conf));
+        }
+        return List.copyOf(result);
+    }
+
 }

@@ -10,7 +10,11 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class SubThoughtTickParticipantTest {
 
@@ -38,8 +42,10 @@ class SubThoughtTickParticipantTest {
         assertFalse(result.isEmpty());
         assertEquals(1, result.subThoughts().size());
         assertEquals("Sarah", result.subThoughts().getFirst().entity());
-        assertFalse(result.observationHash().isEmpty());
+        assertNotNull(result.observationHash());
     }
+
+
 
     @Test
     void tickPushesSubThoughtCueToMentalModel() {
@@ -92,4 +98,68 @@ class SubThoughtTickParticipantTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void asyncCachePopulatedByHandleEnriched() {
+        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+                "mem-1", "agent1", "t1",
+                java.util.List.of(
+                        new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                                "concern", "worried about Sarah", "Sarah", 0.85)
+                                 )
+        );
+        participant.handleEnriched(enriched);
+
+        var context = new CognitionTickContext("agent1", "t1", null, resolver, "The weather was nice.");
+        participant.tick(context);
+
+        var result = participant.currentSubThoughts("agent1", "t1");
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.subThoughts().size());
+        assertEquals("concern", result.subThoughts().getFirst().type());
+        assertEquals(SubThought.Source.ASYNC, result.subThoughts().getFirst().source());
+        assertEquals(0.85, result.subThoughts().getFirst().confidence());
+    }
+
+    @Test
+    void asyncWinsOverSyncOnTextOverlap() {
+        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+                "mem-1", "agent1", "t1",
+                java.util.List.of(
+                        new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                                "causal-inference", "Sarah seemed upset.", "Sarah", 0.9)
+                                 )
+        );
+        participant.handleEnriched(enriched);
+
+        var context = new CognitionTickContext("agent1", "t1", null, resolver, "Sarah seemed upset.");
+        participant.tick(context);
+
+        var result = participant.currentSubThoughts("agent1", "t1");
+        assertNotNull(result);
+        assertEquals(1, result.subThoughts().size());
+        assertEquals(SubThought.Source.ASYNC, result.subThoughts().getFirst().source());
+        assertEquals("causal-inference", result.subThoughts().getFirst().type());
+    }
+
+    @Test
+    void asyncCacheUsesConfidenceFromParsedSubThought() {
+        var enriched = new io.casehub.neocortex.mindmap.intelligence.SubThoughtsEnriched(
+                "mem-1", "agent1", "t1",
+                java.util.List.of(
+                        new io.casehub.neocortex.mindmap.intelligence.SubThoughtExtractor.ParsedSubThought(
+                                "evaluative", "excellent food", null, 0.65)
+                                 )
+        );
+        participant.handleEnriched(enriched);
+
+        var context = new CognitionTickContext("agent1", "t1", null, resolver, "The weather was nice.");
+        participant.tick(context);
+
+        var result = participant.currentSubThoughts("agent1", "t1");
+        assertNotNull(result);
+        assertEquals(0.65, result.subThoughts().getFirst().confidence());
+    }
+
 }

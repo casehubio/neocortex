@@ -95,6 +95,84 @@ class SubThoughtExtractorTest {
             .hasMessageContaining("Unknown sub-thought type");
     }
 
+    @Test
+    void extractFromTextClassifiesAffect() {
+        var result = extractor.extractFromText("She seemed really upset today.");
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().type()).isEqualTo(SubThoughtTypes.AFFECT_OBSERVATION);
+        assertThat(result.getFirst().text()).isEqualTo("She seemed really upset today.");
+        assertThat(result.getFirst().confidence()).isEqualTo(0.8);
+    }
+
+    @Test
+    void extractFromTextClassifiesMultipleSentences() {
+        var result = extractor.extractFromText("She seemed sad. I should help her. The weather was nice.");
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).type()).isEqualTo(SubThoughtTypes.AFFECT_OBSERVATION);
+        assertThat(result.get(1).type()).isEqualTo(SubThoughtTypes.INTENTION);
+    }
+
+    @Test
+    void extractFromTextReturnsEmptyForNull() {
+        assertThat(extractor.extractFromText(null)).isEmpty();
+    }
+
+    @Test
+    void extractFromTextReturnsEmptyForBlank() {
+        assertThat(extractor.extractFromText("  ")).isEmpty();
+    }
+
+    @Test
+    void extractFromTextSkipsUnmatchedSentences() {
+        var result = extractor.extractFromText("The weather was nice. We walked to the park.");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void onExtractionRequestedEnrichesAndFiresEvent() {
+        String memoryId = memoryStore.store(MemoryInput.of(
+                SUBJECT, ExperienceEvents.DOMAIN, TENANT, "She seemed distracted."));
+
+        var recording          = new RecordingEvent<SubThoughtsEnriched>();
+        var enrichingExtractor = new SubThoughtExtractor(memoryStore, recording);
+
+        enrichingExtractor.onExtractionRequested(new SubThoughtExtractionRequested(
+                memoryId, TENANT, "She seemed distracted.",
+                io.casehub.platform.api.identity.PrincipalId.agent("a1")));
+
+        var memory = memoryStore.query(
+                MemoryQuery.forSubject(SUBJECT, ExperienceEvents.DOMAIN, TENANT)).getFirst();
+        assertThat(memory.attributes()).containsEntry(SubThoughtAttributeKeys.COUNT, "1");
+        assertThat(memory.attributes()).containsEntry(SubThoughtAttributeKeys.type(0), SubThoughtTypes.AFFECT_OBSERVATION);
+
+        assertThat(recording.fired).hasSize(1);
+        assertThat(recording.fired.getFirst().memoryId()).isEqualTo(memoryId);
+        assertThat(recording.fired.getFirst().agentId()).isEqualTo("a1");
+    }
+
+    private static class RecordingEvent<T> implements jakarta.enterprise.event.Event<T> {
+        final java.util.List<T> fired = new java.util.ArrayList<>();
+
+        @Override
+        public void fire(T event) {fired.add(event);}
+
+        @Override
+        public <U extends T> java.util.concurrent.CompletionStage<U> fireAsync(U event) {return java.util.concurrent.CompletableFuture.completedFuture(event);}
+
+        @Override
+        public <U extends T> java.util.concurrent.CompletionStage<U> fireAsync(U event, jakarta.enterprise.event.NotificationOptions options) {return java.util.concurrent.CompletableFuture.completedFuture(event);}
+
+        @Override
+        public jakarta.enterprise.event.Event<T> select(java.lang.annotation.Annotation... qualifiers) {return this;}
+
+        @Override
+        public <U extends T> jakarta.enterprise.event.Event<U> select(Class<U> subtype, java.lang.annotation.Annotation... qualifiers) {throw new UnsupportedOperationException();}
+
+        @Override
+        public <U extends T> jakarta.enterprise.event.Event<U> select(jakarta.enterprise.util.TypeLiteral<U> subtype, java.lang.annotation.Annotation... qualifiers) {throw new UnsupportedOperationException();}
+    }
+
+
     private static class NoOpEvent<T> implements jakarta.enterprise.event.Event<T> {
         @Override
         public void fire(T event)                                                                                                                                    {}

@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SubThoughtModulationTest {
 
@@ -78,9 +79,10 @@ class SubThoughtModulationTest {
     @Test
     void stepSizeIs015() {
         var result = new SubThoughtResult(List.of(
-            new SubThought("concern", "worried", null, 0.5, SubThought.Source.SYNC)
-        ), "hash");
+                new SubThought("concern", "worried", null, 0.5, SubThought.Source.SYNC)
+                                                 ), "hash");
         var mod = SubThoughtModulation.compute(result);
-        assertEquals(0.15, mod.get(DriveAxis.AFFILIATION), 0.001);
+// 0.5 confidence * 0.15 step = 0.075
+        assertEquals(0.075, mod.get(DriveAxis.AFFILIATION), 0.001);
     }
 }

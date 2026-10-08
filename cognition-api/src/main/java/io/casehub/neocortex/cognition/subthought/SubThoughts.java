@@ -25,7 +25,9 @@ public final class SubThoughts {
             if (type == null || text == null) continue;
             var entity = attrs.get(SubThoughtAttributeKeys.entity(i));
             var confStr = attrs.get(SubThoughtAttributeKeys.confidence(i));
-            double confidence = confStr != null ? Double.parseDouble(confStr) : 0.8;
+            double confidence;
+            try { confidence = confStr != null ? Double.parseDouble(confStr) : 0.8; }
+            catch (NumberFormatException e) { confidence = 0.8; }
             result.add(new SubThought(type, text, entity, confidence, SubThought.Source.ASYNC));
         }
         return List.copyOf(result);
