@@ -15,11 +15,12 @@ public class CognitionAutoConfiguration {
 
     @Bean
     public CognitionService cognitionService(MindMapStore store,
-                                              ObjectProvider<CognitiveProfile> cognitiveProfile,
-                                              ObjectProvider<SnapshotStore> snapshotStore) {
+                                             ObjectProvider<CognitiveProfile> cognitiveProfile,
+                                             ObjectProvider<SnapshotStore> snapshotStore) {
         return new CognitionService(
                 store,
                 cognitiveProfile.getIfAvailable(),
-                snapshotStore.getIfAvailable());
+                snapshotStore.getIfAvailable(),
+                null, null, null, null);
     }
 }
