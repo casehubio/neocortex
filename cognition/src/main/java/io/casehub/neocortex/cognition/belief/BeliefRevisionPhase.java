@@ -111,13 +111,15 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
         if (allBeliefs.isEmpty()) return;
 
         Instant latestTimestamp = lastProcessedAt;
+        boolean anyRevised = false;
         for (var agentId : allBeliefs.keySet()) {
             var beliefs = allBeliefs.get(agentId);
             var evidence = allEvidence.getOrDefault(agentId, List.of());
             var newEvidence = filterNewEvidence(evidence, lastProcessedAt);
             if (newEvidence.isEmpty()) continue;
 
-            processAgent(agentId, beliefs, newEvidence, tenantId);
+            boolean revised = processAgent(agentId, beliefs, newEvidence, tenantId);
+            if (revised) anyRevised = true;
 
             for (var ev : newEvidence) {
                 if (ev.createdAt() != null && (latestTimestamp == null || ev.createdAt().isAfter(latestTimestamp))) {
@@ -126,7 +128,7 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
             }
         }
 
-        if (latestTimestamp != null && !latestTimestamp.equals(lastProcessedAt)) {
+        if (!anyRevised && latestTimestamp != null && !latestTimestamp.equals(lastProcessedAt)) {
             saveCursor(cognitiveSubgraphs.get(0).id(), cursorSubgraphId,
                        cursorNodeId, latestTimestamp, tenantId);
         }
@@ -139,11 +141,11 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
             .toList();
     }
 
-    private void processAgent(String agentId, List<MindMapNode> beliefs,
-                              List<MindMapNode> evidence, String tenantId) {
+    private boolean processAgent(String agentId, List<MindMapNode> beliefs,
+                                 List<MindMapNode> evidence, String tenantId) {
         try {
             var contradictions = detectContradictions(agentId, beliefs, evidence);
-            if (contradictions.isEmpty()) return;
+            if (contradictions.isEmpty()) return false;
 
             for (var c : contradictions) {
                 var beliefNode = beliefs.stream()
@@ -173,8 +175,10 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
                         tenantId);
                 }
             }
+            return true;
         } catch (Exception e) {
             LOG.log(Level.WARNING, agentId + ": belief revision failed (non-fatal)", e);
+            return false;
         }
     }
 

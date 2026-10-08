@@ -89,7 +89,7 @@ class BeliefRevisionPhaseTest {
 
     @Test
     void contradictionFound_revisesBelief() {
-        addBelief("Nobody cares about me", "agent1");
+        addBeliefWithConfidence("Nobody cares about me", "agent1", 0.25);
         addEvidence("The housekeeper made a birthday cake for you", "agent1");
 
         agentProvider.setResponse("""
@@ -114,11 +114,42 @@ class BeliefRevisionPhaseTest {
                 .isNotEmpty();
     }
 
+    @Test
+    void afterRevision_cursorNotAdvanced_soNextPassReEvaluates() {
+        addBeliefWithConfidence("Nobody cares about me", "agent1", 0.25);
+        addEvidence("The housekeeper made a birthday cake for you", "agent1");
+
+        agentProvider.setResponse("""
+                {"contradictions": [{
+                    "beliefNodeId": "any",
+                    "beliefText": "Nobody cares about me",
+                    "contradictingEvidence": "The housekeeper made a birthday cake",
+                    "reasoning": "Someone clearly cared",
+                    "contradictionStrength": 0.8,
+                    "revisedBelief": "Some people show care in quiet ways"
+                }]}
+                """);
+
+        phase.run(TENANT, List.of());
+        int callsAfterRevision = agentProvider.callCount();
+
+        agentProvider.setResponse("{\"contradictions\": []}");
+
+        phase.run(TENANT, List.of());
+        assertThat(agentProvider.callCount())
+                .as("After a revision, cursor should not advance — next pass re-evaluates the revised belief against same evidence")
+                .isGreaterThan(callsAfterRevision);
+    }
+
     private void addBelief(String text, String agentId) {
+        addBeliefWithConfidence(text, agentId, 0.8);
+    }
+
+    private void addBeliefWithConfidence(String text, String agentId, double confidence) {
         store.addNode(
                 NodeInput.of(text, cognitiveSubgraphId)
                         .withTraits(Set.of("Belieflike"))
-                        .withConfidence(Confidence.inferred(0.8, Instant.now()))
+                        .withConfidence(Confidence.inferred(confidence, Instant.now()))
                         .withProvenance("experience-consolidation")
                         .withPrincipalId(PrincipalId.agent(agentId))
                         .withProperties(Map.of("cognitiveKind", "belief", "agent-id", agentId)),
