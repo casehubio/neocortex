@@ -234,7 +234,7 @@ connections:
     weight: 0.30
     provenance: empirical
     source: "van IJzendoorn 1995, r=.24-.32"
-    tags: []
+    tags: [social_input]
   - from: inconsistent_care
     to: other_reliability
     weight: -0.30
@@ -270,6 +270,32 @@ connections:
     weight: 0.45
     provenance: empirical
     source: "Zhang et al. 2022, r=.28 avoidance→mental health"
+    tags: []
+
+  # Disposition-activated: social/achievement → self_worth
+  - from: acceptance
+    to: self_worth
+    weight: 0.25
+    provenance: consensus
+    source: "social acceptance → self-worth (cooperative disposition boost)"
+    tags: [social_input]
+  - from: mastery
+    to: self_worth
+    weight: 0.25
+    provenance: consensus
+    source: "competence mastery → self-worth (independent disposition boost)"
+    tags: []
+  - from: performance_judged
+    to: self_worth
+    weight: 0.20
+    provenance: consensus
+    source: "performance evaluation → self-worth (competitive disposition boost)"
+    tags: []
+  - from: mastery
+    to: self_efficacy
+    weight: 0.30
+    provenance: empirical
+    source: "mastery experience → self-efficacy (Bandura 1997)"
     tags: []
 
   # BIS/BAS chains
