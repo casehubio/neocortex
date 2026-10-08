@@ -193,9 +193,10 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                 properties.put("agent-id", memory.subject().id());
                 properties.put("cognitiveKind", result.cognitiveKind());
 
-                String name = memory.text().length() > 100
-                              ? memory.text().substring(0, 100) + "..."
-                              : memory.text();
+                String rawText = memory.text() != null ? memory.text() : "";
+                String name = rawText.length() > 100
+                              ? rawText.substring(0, 100) + "..."
+                              : rawText;
 
                 NodeInput nodeInput = NodeInput.of(name, subgraphId)
                                                .withConfidence(MindMapConfidenceDefaults.forOrigin(
