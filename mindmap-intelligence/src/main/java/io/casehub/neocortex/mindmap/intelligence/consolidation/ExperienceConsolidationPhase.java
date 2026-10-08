@@ -153,7 +153,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         LOG.info("Experience consolidation: cursor=" + cursor + " found=" + experiences.size() + " memories for tenant=" + tenantId);
         if (experiences.isEmpty()) {return;}
 
-        String      subgraphId        = findOrCreateCognitiveSubgraph(tenantId);
+        Map<String, String> agentSubgraphs = new HashMap<>();
         Set<String> existingSourceIds = loadExistingSourceMemoryIds(tenantId);
         Map<String, GraduationContext> corroborationMap =
                 buildCorroborationMap(experiences, tenantId);
@@ -193,9 +193,15 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                 properties.put("agent-id", memory.subject().id());
                 properties.put("cognitiveKind", result.cognitiveKind());
 
-                String name = memory.text().length() > 100
-                              ? memory.text().substring(0, 100) + "..."
-                              : memory.text();
+                String agentId = memory.subject().id();
+                String subgraphId = agentSubgraphs.computeIfAbsent(agentId,
+                    id -> SubgraphUtils.ensureNamedSubgraph(mindMapStore,
+                        "cognitive-" + id, SubgraphTypes.COGNITIVE, tenantId));
+
+                String rawText = memory.text() != null ? memory.text() : "";
+                String name = rawText.length() > 100
+                              ? rawText.substring(0, 100) + "..."
+                              : rawText;
 
                 NodeInput nodeInput = NodeInput.of(name, subgraphId)
                                                .withConfidence(MindMapConfidenceDefaults.forOrigin(
@@ -252,13 +258,9 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         return map;
     }
 
-    private String findOrCreateCognitiveSubgraph(String tenantId) {
-        return SubgraphUtils.ensureSubgraph(mindMapStore, "Cognitive", SubgraphTypes.COGNITIVE, tenantId);
-    }
-
     private Set<String> loadExistingSourceMemoryIds(String tenantId) {
         return mindMapStore.search(
-                MindMapQuery.of(tenantId, 1000).withType(SubgraphTypes.COGNITIVE))
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
             .stream()
             .map(n -> n.property("source-memory-id"))
             .flatMap(Optional::stream)

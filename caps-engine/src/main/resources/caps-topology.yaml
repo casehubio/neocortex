@@ -234,7 +234,7 @@ connections:
     weight: 0.30
     provenance: empirical
     source: "van IJzendoorn 1995, r=.24-.32"
-    tags: []
+    tags: [social_input]
   - from: inconsistent_care
     to: other_reliability
     weight: -0.30
@@ -270,6 +270,32 @@ connections:
     weight: 0.45
     provenance: empirical
     source: "Zhang et al. 2022, r=.28 avoidance→mental health"
+    tags: []
+
+  # Disposition-activated: social/achievement → self_worth
+  - from: acceptance
+    to: self_worth
+    weight: 0.25
+    provenance: consensus
+    source: "social acceptance → self-worth (cooperative disposition boost)"
+    tags: [social_input]
+  - from: mastery
+    to: self_worth
+    weight: 0.25
+    provenance: consensus
+    source: "competence mastery → self-worth (independent disposition boost)"
+    tags: []
+  - from: performance_judged
+    to: self_worth
+    weight: 0.20
+    provenance: consensus
+    source: "performance evaluation → self-worth (competitive disposition boost)"
+    tags: []
+  - from: mastery
+    to: self_efficacy
+    weight: 0.30
+    provenance: empirical
+    source: "mastery experience → self-efficacy (Bandura 1997)"
     tags: []
 
   # BIS/BAS chains
@@ -424,13 +450,13 @@ connections:
     weight: 0.35
     provenance: consensus
     source: "attention → retention"
-    tags: []
+    tags: [schema]
   - from: behavior_schema
     to: behavior_attempt
     weight: 0.30
     provenance: consensus
     source: "retention → reproduction, gated by self_efficacy"
-    tags: []
+    tags: [schema]
   - from: self_efficacy
     to: behavior_attempt
     weight: 0.50
@@ -443,6 +469,32 @@ connections:
     provenance: consensus
     source: "motivation from vicarious/direct reinforcement"
     tags: []
+
+  # Autonomy chains
+  - from: agency_granted
+    to: self_efficacy
+    weight: 0.35
+    provenance: consensus
+    source: "autonomy experience → self-efficacy (Deci & Ryan SDT)"
+    tags: [self_direction]
+  - from: choice_available
+    to: BAS_activation
+    weight: 0.25
+    provenance: consensus
+    source: "choice availability → approach motivation"
+    tags: [self_direction]
+  - from: controlled
+    to: comply
+    weight: 0.40
+    provenance: consensus
+    source: "external control → compliance behavior"
+    tags: [compliance]
+  - from: social_threat
+    to: BIS_activation
+    weight: 0.40
+    provenance: consensus
+    source: "social evaluation threat → behavioral inhibition (Dickerson & Kemeny 2004)"
+    tags: [bis, threat]
 
   # Composition bridges
   - from: BIS_activation
@@ -474,7 +526,7 @@ connections:
 disposition_modifiers:
   socialOrient:
     independent:
-      social_input_to_self_worth: 0.5
+      social_input_connections: 0.5
       mastery_to_self_worth: 1.3
     cooperative:
       acceptance_to_self_worth: 1.3
@@ -485,14 +537,13 @@ disposition_modifiers:
 
   ruleFollowing:
     flexible:
-      punishment_to_behavioral_suppression: 0.7
-      schema_rigidity: 0.8
+      punishment_to_FFFS_activation: 0.7
+      schema_connections: 0.8
     moderate:
       _default: 1.0
     strict:
-      norm_violation_to_guilt: 1.4
-      rule_formation: 1.3
-      schema_rigidity: 1.3
+      social_threat_to_BIS_activation: 1.4
+      schema_connections: 1.3
 
   riskAppetite:
     conservative:
@@ -510,12 +561,12 @@ disposition_modifiers:
   autonomy:
     low:
       compliance_connections: 1.3
-      agency_to_satisfaction: 0.6
+      agency_granted: 0.6
     moderate:
       _default: 1.0
     high:
       self_direction_connections: 1.3
-      external_control_to_compliance: 0.6
+      controlled_to_comply: 0.6
 
   conflictMode:
     cooperative:
@@ -524,7 +575,7 @@ disposition_modifiers:
       fight_assert_pathways: 1.3
     analytical:
       cautious_approach: 1.3
-      delay_response: 1.2
+      BIS_activation_to_cautious_approach: 1.2
     avoidant:
       flight_freeze_withdraw_pathways: 1.3
 

@@ -28,6 +28,14 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
         String lower = description.toLowerCase();
         String[] tokens = lower.split("\\W+");
 
+        double salienceMultiplier = 1.0;
+        if (metadata != null) {
+            String salience = metadata.get("salience-multiplier");
+            if (salience != null) {
+                salienceMultiplier = Double.parseDouble(salience);
+            }
+        }
+
         List<SituationActivation> activations = new ArrayList<>();
 
         for (Map.Entry<String, CapsNode> entry : topology.nodes().entrySet()) {
@@ -44,7 +52,7 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
 
             if (matchCount == 0) continue;
 
-            double confidence = Math.min(1.0, matchCount * 0.3);
+            double confidence = Math.min(1.0, matchCount * 0.3 * salienceMultiplier);
 
             if (confidence >= CONFIDENCE_THRESHOLD) {
                 activations.add(new SituationActivation(node.id(), confidence));
