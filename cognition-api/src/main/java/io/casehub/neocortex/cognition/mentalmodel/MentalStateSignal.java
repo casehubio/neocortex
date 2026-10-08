@@ -40,4 +40,13 @@ public sealed interface MentalStateSignal {
             return event.description();
         }
     }
+
+    record SubThoughtCue(String subThoughtType, String content, String entity,
+                         double confidence) implements MentalStateSignal {
+        public SubThoughtCue {
+            java.util.Objects.requireNonNull(subThoughtType, "subThoughtType required");
+            java.util.Objects.requireNonNull(content, "content required");
+        }
+    }
+
 }

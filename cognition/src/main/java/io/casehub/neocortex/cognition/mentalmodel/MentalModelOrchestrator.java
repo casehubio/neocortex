@@ -69,6 +69,8 @@ public class MentalModelOrchestrator {
         synchronized (state) {
             if (signal instanceof MentalStateSignal.VerbalCue vc) {
                 extractHeuristic(state, vc);
+            } else if (signal instanceof MentalStateSignal.SubThoughtCue stc) {
+                extractSubThoughtHeuristic(state, stc);
             }
             state.appendSignal(signal.content());
             state.pendingSignals++;
@@ -198,6 +200,22 @@ public class MentalModelOrchestrator {
                     0.8, BdiDimension.INTENTION, now);
         }
     }
+
+    private void extractSubThoughtHeuristic(SubjectMentalState state, MentalStateSignal.SubThoughtCue cue) {
+        var now = clock.instant();
+        var key = normalizeKey(cue.content());
+        switch (cue.subThoughtType()) {
+            case io.casehub.neocortex.memory.experience.SubThoughtTypes.AFFECT_OBSERVATION,
+                 io.casehub.neocortex.memory.experience.SubThoughtTypes.EVALUATIVE -> upsertBelief(state, key, cue.content(), 0.6);
+            case io.casehub.neocortex.memory.experience.SubThoughtTypes.CONCERN,
+                 io.casehub.neocortex.memory.experience.SubThoughtTypes.ASSOCIATION -> upsertState(state.desires, key, cue.content(), 0.6, BdiDimension.DESIRE, now);
+            case io.casehub.neocortex.memory.experience.SubThoughtTypes.INTENTION -> upsertState(state.intentions, key, cue.content(), 0.7, BdiDimension.INTENTION, now);
+            case io.casehub.neocortex.memory.experience.SubThoughtTypes.CAUSAL_INFERENCE,
+                 io.casehub.neocortex.memory.experience.SubThoughtTypes.SELF_REFLECTION -> upsertBelief(state, key, cue.content(), 0.5);
+            default -> {}
+        }
+    }
+
 
     private void upsertBelief(SubjectMentalState state, String key, String description, double confidence) {
         var now = clock.instant();

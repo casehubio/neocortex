@@ -8,5 +8,8 @@ public final class SubThoughtAttributeKeys {
     public static String entity(int index)    { return "sub-thought-" + index + "-entity"; }
     public static String graduated(int index) { return "sub-thought-" + index + "-graduated"; }
 
+    public static String confidence(int index) {return "sub-thought-" + index + "-confidence";}
+
+
     private SubThoughtAttributeKeys() {}
 }

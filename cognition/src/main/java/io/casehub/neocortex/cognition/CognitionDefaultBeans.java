@@ -156,5 +156,19 @@ public class CognitionDefaultBeans {
         return new io.casehub.neocortex.cognition.goal.NoOpDeductiveGoalFormationStrategy();
     }
 
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant subThoughtTickParticipant(
+            io.casehub.neocortex.cognition.subthought.RuleBasedSubThoughtExtractor extractor,
+            jakarta.enterprise.inject.Instance<io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator> mentalModel,
+            jakarta.enterprise.inject.Instance<io.casehub.neocortex.cognition.core.SubjectResolver> resolver) {
+        return new io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant(
+                extractor,
+                mentalModel.isResolvable() ? mentalModel.get() : null,
+                resolver.isResolvable() ? resolver.get() : null
+        );
+    }
+
 
 }

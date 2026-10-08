@@ -34,7 +34,7 @@ class SubThoughtExtractorTest {
     @BeforeEach
     void setUp() {
         memoryStore = new InMemoryMemoryStore(principal);
-        extractor = new SubThoughtExtractor(memoryStore);
+        extractor = new SubThoughtExtractor(memoryStore, new NoOpEvent<>());
     }
 
     @Test
@@ -93,5 +93,25 @@ class SubThoughtExtractorTest {
         assertThatThrownBy(() -> extractor.applySubThoughts(memoryId, parsed, TENANT))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Unknown sub-thought type");
+    }
+
+    private static class NoOpEvent<T> implements jakarta.enterprise.event.Event<T> {
+        @Override
+        public void fire(T event)                                                                                                                                    {}
+
+        @Override
+        public <U extends T> java.util.concurrent.CompletionStage<U> fireAsync(U event)                                                                              {return java.util.concurrent.CompletableFuture.completedFuture(event);}
+
+        @Override
+        public <U extends T> java.util.concurrent.CompletionStage<U> fireAsync(U event, jakarta.enterprise.event.NotificationOptions options)                        {return java.util.concurrent.CompletableFuture.completedFuture(event);}
+
+        @Override
+        public jakarta.enterprise.event.Event<T> select(java.lang.annotation.Annotation... qualifiers)                                                               {return this;}
+
+        @Override
+        public <U extends T> jakarta.enterprise.event.Event<U> select(Class<U> subtype, java.lang.annotation.Annotation... qualifiers)                               {throw new UnsupportedOperationException();}
+
+        @Override
+        public <U extends T> jakarta.enterprise.event.Event<U> select(jakarta.enterprise.util.TypeLiteral<U> subtype, java.lang.annotation.Annotation... qualifiers) {throw new UnsupportedOperationException();}
     }
 }

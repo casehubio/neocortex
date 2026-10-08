@@ -120,6 +120,8 @@ public class CognitionCore {
     private UnaryOperator<List<CognitionPromptRenderer>> sectionCustomizer;
     private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
     private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
+    private volatile io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant subThoughtParticipant;
+
     private volatile @Nullable Consumer<MoodState> moodPersister;
     private volatile String lastAgentId;
     private volatile String lastTenantId;
@@ -495,6 +497,9 @@ public class CognitionCore {
         if (isEnabled(config.mentalModelEnabled(), AttentionRelevance.MENTAL_MODEL) && mentalModel != null) {
             sections.add(new MentalModelPromptSection(mentalModel));
         }
+        if (config.subThoughtsEnabled() && subThoughtParticipant != null) {
+            sections.add(new io.casehub.neocortex.cognition.subthought.SubThoughtPromptSection(subThoughtParticipant));
+        }
         if (config.strategyEnabled() && strategy != null) {
             sections.add(new StrategyPromptSection(strategy));
         }
@@ -592,6 +597,15 @@ public class CognitionCore {
         this.gutFeelingParticipant = new GutFeelingParticipant(memoryStore, moodOrchestrator, config);
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
+
+    public void configureSubThoughts(io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant participant) {
+        this.subThoughtParticipant = participant;
+        addParticipant(CognitionPhase.FOUNDATION, participant);
+        if (drives != null) {
+            drives.setSubThoughtParticipant(participant);
+        }
+    }
+
 
     public void configureDriveGoalBridge(MindMapStore mindMapStore, TermNormalizer termNormalizer) {
         if (config.goalsEnabled() && goals != null) {

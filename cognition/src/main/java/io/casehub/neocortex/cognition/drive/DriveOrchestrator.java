@@ -1,9 +1,9 @@
 package io.casehub.neocortex.cognition.drive;
 
 import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.narrative.NarrativeModulation;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
-import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Clock;
@@ -28,6 +28,8 @@ public class DriveOrchestrator {
     private final DriveConfig config;
     private final Clock clock;
     private final @Nullable NarrativeOrchestrator narrativeOrchestrator;
+    private volatile        io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant subThoughtParticipant;
+
 
     private final ConcurrentHashMap<String, DriveProfile> profiles = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -77,14 +79,22 @@ public class DriveOrchestrator {
             var disposition = descriptor.disposition();
             var now = Instant.now(clock);
 
-            Map<DriveAxis, Double> narrativeMod = null;
+            var modulations = new java.util.ArrayList<ModulationLayer>();
             if (narrativeOrchestrator != null) {
-                narrativeMod = narrativeOrchestrator.currentNarrative(agentId, tenantId)
+                narrativeOrchestrator.currentNarrative(agentId, tenantId)
                         .map(NarrativeModulation::compute)
-                        .orElse(null);
+                        .ifPresent(m -> modulations.add(new ModulationLayer(m, config.narrativeModulationStrength(), "narrative")));
+            }
+            if (subThoughtParticipant != null) {
+                var stResult = subThoughtParticipant.currentSubThoughts(agentId, tenantId);
+                if (stResult != null && !stResult.isEmpty()) {
+                    modulations.add(new ModulationLayer(
+                            io.casehub.neocortex.cognition.subthought.SubThoughtModulation.compute(stResult),
+                            config.subThoughtModulationStrength(), "sub-thought"));
+                }
             }
 
-            var newProfile = composer.compose(raw, disposition, mood, narrativeMod, config,
+            var newProfile = composer.compose(raw, disposition, mood, modulations, config,
                     agentId, tenantId, now);
 
             var previous = profiles.get(key);
@@ -112,6 +122,11 @@ public class DriveOrchestrator {
             return new DriveTick.Updated(previous, newProfile, changed);
         });
     }
+
+    public void setSubThoughtParticipant(io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant participant) {
+        this.subThoughtParticipant = participant;
+    }
+
 
     public Optional<DriveProfile> currentDrives(String agentId, String tenantId) {
         return Optional.ofNullable(profiles.get(agentId + ":" + tenantId));
