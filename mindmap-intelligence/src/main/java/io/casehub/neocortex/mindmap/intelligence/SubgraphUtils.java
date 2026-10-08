@@ -21,4 +21,14 @@ public final class SubgraphUtils {
             .orElseGet(() -> store.createSubgraph(
                 new SubgraphInput(name, type, null), tenantId));
     }
+
+    public static String ensureNamedSubgraph(MindMapStore store, String name, String type,
+                                              String tenantId) {
+        return store.listSubgraphs(tenantId).stream()
+            .filter(s -> type.equals(s.type()) && name.equals(s.name()))
+            .map(MindMapSubgraph::id)
+            .findFirst()
+            .orElseGet(() -> store.createSubgraph(
+                new SubgraphInput(name, type, null), tenantId));
+    }
 }

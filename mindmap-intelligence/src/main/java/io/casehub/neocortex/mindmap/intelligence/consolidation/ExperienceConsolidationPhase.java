@@ -153,7 +153,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         LOG.info("Experience consolidation: cursor=" + cursor + " found=" + experiences.size() + " memories for tenant=" + tenantId);
         if (experiences.isEmpty()) {return;}
 
-        String      subgraphId        = findOrCreateCognitiveSubgraph(tenantId);
+        Map<String, String> agentSubgraphs = new HashMap<>();
         Set<String> existingSourceIds = loadExistingSourceMemoryIds(tenantId);
         Map<String, GraduationContext> corroborationMap =
                 buildCorroborationMap(experiences, tenantId);
@@ -192,6 +192,11 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                                        ExperienceAttributeKeys.EVENT_TYPE, "unknown"));
                 properties.put("agent-id", memory.subject().id());
                 properties.put("cognitiveKind", result.cognitiveKind());
+
+                String agentId = memory.subject().id();
+                String subgraphId = agentSubgraphs.computeIfAbsent(agentId,
+                    id -> SubgraphUtils.ensureNamedSubgraph(mindMapStore,
+                        "cognitive-" + id, SubgraphTypes.COGNITIVE, tenantId));
 
                 String rawText = memory.text() != null ? memory.text() : "";
                 String name = rawText.length() > 100
@@ -251,10 +256,6 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
             map.put(observed, new GraduationContext(count, textSimCount, tenantId));
         }
         return map;
-    }
-
-    private String findOrCreateCognitiveSubgraph(String tenantId) {
-        return SubgraphUtils.ensureSubgraph(mindMapStore, "Cognitive", SubgraphTypes.COGNITIVE, tenantId);
     }
 
     private Set<String> loadExistingSourceMemoryIds(String tenantId) {
