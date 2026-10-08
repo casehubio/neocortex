@@ -258,7 +258,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
 
     private Set<String> loadExistingSourceMemoryIds(String tenantId) {
         return mindMapStore.search(
-                MindMapQuery.of(tenantId, 1000).withType(SubgraphTypes.COGNITIVE))
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
             .stream()
             .map(n -> n.property("source-memory-id"))
             .flatMap(Optional::stream)

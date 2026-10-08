@@ -204,7 +204,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                              Set<String> existingAttractors,
                                              List<String> sourceNodeNames) {
         Optional<MindMapNode> existing = store.search(
-                                                      MindMapQuery.of(tenantId, 100).withType(SubgraphTypes.BEHAVIORAL))
+                                                      MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.BEHAVIORAL))
                                               .stream()
                                               .filter(n -> attractor.nodeId().equals(n.property("caps-node-id").orElse(null)))
                                               .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
@@ -294,7 +294,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
     private Set<String> loadExistingAttractorNodeIds(String tenantId) {
         return store.search(
-            MindMapQuery.of(tenantId, 500).withType(SubgraphTypes.BEHAVIORAL))
+            MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.BEHAVIORAL))
             .stream()
             .map(n -> n.property("caps-node-id"))
             .flatMap(Optional::stream)
