@@ -264,6 +264,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         Map<String, String> meta = new HashMap<>();
         node.property("event-type").ifPresent(v -> meta.put("event-type", v));
         node.property("cognitiveKind").ifPresent(v -> meta.put("cognitiveKind", v));
+        node.property("salience-multiplier").ifPresent(v -> meta.put("salience-multiplier", v));
+        node.property("developmental-period").ifPresent(v -> meta.put("developmental-period", v));
+        node.property("situation-types").ifPresent(v -> meta.put("situation-types", v));
         return meta;
     }
 
