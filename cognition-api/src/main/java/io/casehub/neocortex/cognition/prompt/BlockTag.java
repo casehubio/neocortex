@@ -32,7 +32,10 @@ public enum BlockTag {
     CONSOLIDATION(520),
     QUEUE(530),
 
-    // Tier 6 — Stimulus (always last)
+    // Tier 6 — Commands (system instructions)
+    DO(800),
+
+    // Tier 7 — Stimulus (always last)
     CHAT(900);
 
     private final int ordinal;
