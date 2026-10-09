@@ -218,6 +218,67 @@ class AppraisalTickParticipantTest {
         assertThat(drives).allMatch(d -> d.category() == DriveCategory.BASELINE);
     }
 
+    @Test
+    void concernSalienceEmptyBeforeTick() {
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config);
+
+        assertThat(participant.currentConcernSalience("a1", "t1")).isEmpty();
+    }
+
+    @Test
+    void computesConcernSalienceFromDriveDescriptions() {
+        var store = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var cogSgId = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("Cognitive",
+                                                               io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE, null), "t1");
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("scheming", cogSgId)
+                                                            .withProperties(Map.of(
+                                                                    "cognitiveKind", "drive-intensity",
+                                                                    "drive-type", "scheming",
+                                                                    "intensity", "0.8",
+                                                                    "description", "Compelled to hatch elaborate plans and schemes",
+                                                                    "agent-id", "a1")),
+                      "t1");
+
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config, store);
+
+        participant.tick(contextWithObservation("They hatched an elaborate plan to escape"));
+
+        var salience = participant.currentConcernSalience("a1", "t1");
+        assertThat(salience).containsKey("scheming");
+        assertThat(salience.get("scheming")).isGreaterThan(0.0);
+    }
+
+    @Test
+    void concernSalienceIncludesActiveGoals() {
+        var store = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var goalSgId = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("Goals",
+                                                               io.casehub.neocortex.mindmap.SubgraphTypes.GOAL, null), "t1");
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("protect Clara from danger", goalSgId)
+                                                            .withProperties(Map.of(
+                                                                    "status", "active",
+                                                                    "agent-id", "a1")),
+                      "t1");
+
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config, store);
+
+        participant.tick(contextWithObservation("Clara is in terrible danger"));
+
+        var salience = participant.currentConcernSalience("a1", "t1");
+        assertThat(salience).containsKey("protect Clara from danger");
+        assertThat(salience.get("protect Clara from danger")).isGreaterThan(0.0);
+    }
+
 
     private CognitionTickContext contextWithObservation(String observation) {
         return new CognitionTickContext("a1", "t1", null, (a, t) -> java.util.Set.of(), observation);

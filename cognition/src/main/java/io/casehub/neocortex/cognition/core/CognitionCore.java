@@ -477,14 +477,31 @@ public class CognitionCore {
         }
         var result = appraisalParticipant.currentResult(lastAgentId, lastTenantId);
         if (result.isEmpty() || result.get().emotions().isEmpty()) {
-            return List.of();
+            // Even without emotions, concern salience can activate drives
+            var salience = appraisalParticipant.currentConcernSalience(lastAgentId, lastTenantId);
+            if (salience.isEmpty()) {return List.of();}
+            return salience.entrySet().stream()
+                           .filter(e -> e.getValue() > 0.1)
+                           .map(java.util.Map.Entry::getKey)
+                           .toList();
         }
+        var activated = new java.util.LinkedHashSet<String>();
+
         var profileOpt = drives.currentDrives(lastAgentId, lastTenantId);
-        if (profileOpt.isEmpty()) {return List.of();}
-        return profileOpt.get().allDrives().stream()
-                         .filter(d -> d.intensity() > 0.5)
-                         .map(io.casehub.neocortex.cognition.appraisal.Drive::name)
-                         .toList();
+        if (profileOpt.isPresent()) {
+            profileOpt.get().allDrives().stream()
+                      .filter(d -> d.intensity() > 0.5)
+                      .map(io.casehub.neocortex.cognition.appraisal.Drive::name)
+                      .forEach(activated::add);
+        }
+
+        appraisalParticipant.currentConcernSalience(lastAgentId, lastTenantId)
+                            .entrySet().stream()
+                            .filter(e -> e.getValue() > 0.1)
+                            .map(java.util.Map.Entry::getKey)
+                            .forEach(activated::add);
+
+        return List.copyOf(activated);
     }
 
 
