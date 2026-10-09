@@ -42,6 +42,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final CapsEngine capsEngine;
     private final SituationClassifier classifier;
     private final int maxPerPass;
+    private final double emaRetention;
+    private final double reinforcementBoostCap;
+    private final int reinforcementScale;
     private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
 
 
@@ -49,23 +52,31 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     public BehavioralSynthesisPhase(MindMapStore store,
                                     Instance<CapsEngine> capsEngine,
                                     Instance<SituationClassifier> classifier,
-                                    Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry) {
+                                    Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry,
+                                    Instance<BehavioralSynthesisConfig> config) {
         this.store            = store;
         this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
         this.classifier       = classifier.isResolvable() ? classifier.get() : null;
         this.defaultsRegistry = defaultsRegistry.isResolvable() ? defaultsRegistry.get() : null;
-        this.maxPerPass       = 20;
+        BehavioralSynthesisConfig c = config.isResolvable() ? config.get() : null;
+        this.maxPerPass            = c != null ? c.maxPerPass() : 20;
+        this.emaRetention          = c != null ? c.emaRetention() : 0.5;
+        this.reinforcementBoostCap = c != null ? c.reinforcementBoostCap() : 0.5;
+        this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
     }
 
     BehavioralSynthesisPhase(MindMapStore store,
                              CapsEngine capsEngine,
                              SituationClassifier classifier,
                              int maxPerPass) {
-        this.store            = store;
-        this.capsEngine       = capsEngine;
-        this.classifier       = classifier;
-        this.defaultsRegistry = null;
-        this.maxPerPass       = maxPerPass;
+        this.store                 = store;
+        this.capsEngine            = capsEngine;
+        this.classifier            = classifier;
+        this.defaultsRegistry      = null;
+        this.maxPerPass            = maxPerPass;
+        this.emaRetention          = 0.5;
+        this.reinforcementBoostCap = 0.5;
+        this.reinforcementScale    = 20;
     }
 
     @Override
@@ -248,10 +259,10 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                          .map(Double::parseDouble).orElse(0.0);
             int currentCount = node.property("source-count")
                                    .map(Integer::parseInt).orElse(0);
-            double reinforcementBoost = Math.min(0.5, Math.log1p(currentCount) / Math.log1p(20));
+            double reinforcementBoost = Math.min(reinforcementBoostCap, Math.log1p(currentCount) / Math.log1p(reinforcementScale));
             double boostedStrength    = Math.min(1.0, attractor.strength() * (1 + reinforcementBoost));
             double newStrength = Math.min(1.0,
-                                          currentStrength * 0.5 + boostedStrength * 0.5);
+                                          currentStrength * emaRetention + boostedStrength * (1 - emaRetention));
 
             String currentNames = node.property("source-names").orElse("");
 

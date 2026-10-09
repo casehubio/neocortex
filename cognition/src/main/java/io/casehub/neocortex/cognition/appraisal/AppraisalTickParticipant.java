@@ -36,8 +36,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
 
 
     private static final String DRIVE_INTENSITY_KIND = "drive-intensity";
-    private static final double SALIENCE_THRESHOLD = 0.0;
-    private static final int MIN_TOKEN_LENGTH = 3;
+    private final AppraisalThresholds thresholds;
 
     private final ConcurrentHashMap<String, AppraisalResult> results = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, HabituationState> habituationStates = new ConcurrentHashMap<>();
@@ -45,6 +44,10 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
 
     public Map<String, Double> currentConcernSalience(String agentId, String tenantId) {
         return concernSaliences.getOrDefault(agentId + ":" + tenantId, Map.of());
+    }
+
+    public AppraisalThresholds thresholds() {
+        return thresholds;
     }
 
 
@@ -56,7 +59,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             @Nullable CognitiveDefaultsRegistry defaultsRegistry,
             CognitionConfig config) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, null);
+             moodOrchestrator, defaultsRegistry, config, null, AppraisalThresholds.defaults());
     }
 
     public AppraisalTickParticipant(
@@ -67,6 +70,19 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             @Nullable CognitiveDefaultsRegistry defaultsRegistry,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore) {
+        this(salienceStrategy, appraisalStrategy, driveOrchestrator,
+             moodOrchestrator, defaultsRegistry, config, mindMapStore, AppraisalThresholds.defaults());
+    }
+
+    public AppraisalTickParticipant(
+            SalienceStrategy salienceStrategy,
+            AppraisalStrategy appraisalStrategy,
+            DriveOrchestrator driveOrchestrator,
+            MoodOrchestrator moodOrchestrator,
+            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            CognitionConfig config,
+            @Nullable MindMapStore mindMapStore,
+            AppraisalThresholds thresholds) {
         this.salienceStrategy  = salienceStrategy;
         this.appraisalStrategy = appraisalStrategy;
         this.driveOrchestrator = driveOrchestrator;
@@ -74,6 +90,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         this.defaultsRegistry  = defaultsRegistry;
         this.config            = config;
         this.mindMapStore      = mindMapStore;
+        this.thresholds        = thresholds;
     }
 
 
@@ -150,23 +167,24 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             String observation, List<MindMapNode> driveNodes,
             String agentId, String tenantId) {
         var salience = new HashMap<String, Double>();
-        var obsWords = tokenize(observation);
+        int minLen = thresholds.tokenMinLength();
+        var obsWords = tokenize(observation, minLen);
         if (obsWords.isEmpty()) return salience;
 
         for (var node : driveNodes) {
             String desc = node.properties().get("description");
             if (desc == null || desc.isBlank()) continue;
             String driveType = node.properties().getOrDefault("drive-type", node.name());
-            double score = keywordOverlap(obsWords, tokenize(desc));
-            if (score > SALIENCE_THRESHOLD) salience.put(driveType, score);
+            double score = keywordOverlap(obsWords, tokenize(desc, minLen));
+            if (score > thresholds.concernSalienceThreshold()) salience.put(driveType, score);
         }
 
         var goalNodes = mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.GOAL));
         for (var node : goalNodes) {
             if (!"active".equals(node.properties().get("status"))) continue;
             if (!agentId.equals(node.properties().get("agent-id"))) continue;
-            double score = keywordOverlap(obsWords, tokenize(node.name()));
-            if (score > SALIENCE_THRESHOLD) salience.put(node.name(), score);
+            double score = keywordOverlap(obsWords, tokenize(node.name(), minLen));
+            if (score > thresholds.concernSalienceThreshold()) salience.put(node.name(), score);
         }
 
         return Map.copyOf(salience);
@@ -178,9 +196,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         return (double) shared / Math.max(a.size(), b.size());
     }
 
-    private static Set<String> tokenize(String text) {
+    private static Set<String> tokenize(String text, int minLength) {
         return Arrays.stream(text.toLowerCase().split("\\W+"))
-                     .filter(w -> w.length() > MIN_TOKEN_LENGTH)
+                     .filter(w -> w.length() > minLength)
                      .collect(Collectors.toSet());
     }
 

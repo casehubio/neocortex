@@ -475,13 +475,14 @@ public class CognitionCore {
         if (appraisalParticipant == null || lastAgentId == null || lastTenantId == null) {
             return List.of();
         }
-        var activated = new java.util.LinkedHashSet<String>();
+        var thresholds = appraisalParticipant.thresholds();
+        var activated  = new java.util.LinkedHashSet<String>();
 
         if (drives != null) {
             var profileOpt = drives.currentDrives(lastAgentId, lastTenantId);
             if (profileOpt.isPresent()) {
                 profileOpt.get().allDrives().stream()
-                          .filter(d -> d.intensity() > 0.5)
+                          .filter(d -> d.intensity() > thresholds.driveActivationThreshold())
                           .map(io.casehub.neocortex.cognition.appraisal.Drive::name)
                           .forEach(activated::add);
             }
@@ -489,7 +490,7 @@ public class CognitionCore {
 
         appraisalParticipant.currentConcernSalience(lastAgentId, lastTenantId)
                             .entrySet().stream()
-                            .filter(e -> e.getValue() > 0.1)
+                            .filter(e -> e.getValue() > thresholds.concernSalienceThreshold())
                             .map(java.util.Map.Entry::getKey)
                             .forEach(activated::add);
 
