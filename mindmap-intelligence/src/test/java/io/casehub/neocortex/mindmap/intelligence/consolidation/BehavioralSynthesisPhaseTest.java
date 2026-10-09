@@ -344,6 +344,49 @@ class BehavioralSynthesisPhaseTest {
                 .isNotEmpty();
     }
 
+    @Test
+    void driveIntensitiesInfluenceCapsActivations() {
+        var capturingEngine = new CapturingCapsEngine();
+        capturingEngine.initializeAgent(TENANT, AGENT,
+                                        new DispositionAxes("cooperative", "moderate", "calculated",
+                                                            "moderate", "analytical"));
+
+        SituationClassifier classifier = (desc, meta) -> {
+            if (desc.contains("hatch")) {
+                return List.of(new SituationActivation("mastery", 0.6));
+            }
+            return List.of(new SituationActivation("reward", 0.8));
+        };
+
+        var drivePhase = new BehavioralSynthesisPhase(store, capturingEngine, classifier, 20);
+
+        store.addNode(NodeInput.of("scheming", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "cognitiveKind", "drive-intensity",
+                                       "drive-type", "scheming",
+                                       "intensity", "0.75",
+                                       "description", "Compelled to hatch elaborate plans",
+                                       "agent-id", AGENT)),
+                      TENANT);
+
+        store.addNode(NodeInput.of("Rewarded for work", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem1",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+
+        drivePhase.run(TENANT, List.of());
+
+        assertThat(capturingEngine.lastInputActivations).isNotNull();
+        assertThat(capturingEngine.lastInputActivations).containsKey("reward");
+        assertThat(capturingEngine.lastInputActivations).containsKey("mastery");
+        assertThat(capturingEngine.lastInputActivations.get("mastery"))
+                .as("mastery activation should be scaled by drive intensity 0.75")
+                .isLessThanOrEqualTo(0.6 * 0.75 + 0.01);
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();
@@ -435,4 +478,16 @@ class BehavioralSynthesisPhaseTest {
             return super.updateWeights(state, inputActivations, outcomeIntensity, outcomeValence, salienceMultiplier, reinforcementSchedule);
         }
     }
+
+    static class CapturingCapsEngine extends StubCapsEngine {
+        Map<String, Double> lastInputActivations;
+
+        @Override
+        public SettlingResult settle(AgentCapsState state,
+                                     Map<String, Double> inputActivations) {
+            lastInputActivations = new HashMap<>(inputActivations);
+            return super.settle(state, inputActivations);
+        }
+    }
+
 }

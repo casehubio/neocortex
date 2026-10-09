@@ -114,6 +114,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             }
 
+            mergeDriveIntensities(combinedActivations, agentId, tenantId);
+
             if (combinedActivations.isEmpty()) continue;
 
             try {
@@ -330,6 +332,29 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             .map(n -> n.property("caps-node-id"))
             .flatMap(Optional::stream)
             .collect(Collectors.toCollection(HashSet::new));
+    }
+
+
+    private void mergeDriveIntensities(Map<String, Double> combinedActivations,
+                                       String agentId, String tenantId) {
+        var cognitiveNodes = store.search(
+                MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE));
+        for (var node : cognitiveNodes) {
+            if (!"drive-intensity".equals(node.properties().get("cognitiveKind"))) {continue;}
+            if (!agentId.equals(node.properties().get("agent-id"))) {continue;}
+
+            String description = node.properties().get("description");
+            if (description == null || description.isBlank()) {continue;}
+
+            double intensity = Double.parseDouble(
+                    node.properties().getOrDefault("intensity", "0.5"));
+
+            var activations = classifier.classify(description, Map.of());
+            for (var sa : activations) {
+                double scaled = sa.confidence() * intensity;
+                combinedActivations.merge(sa.nodeId(), scaled, Math::max);
+            }
+        }
     }
 
     private String findOrCreateBehavioralSubgraph(String tenantId) {
