@@ -387,6 +387,29 @@ class BehavioralSynthesisPhaseTest {
                 .isLessThanOrEqualTo(0.6 * 0.75 + 0.01);
     }
 
+    @Test
+    void repeatedReinforcementPushesStrengthAboveEmerging() {
+        for (int i = 1; i <= 10; i++) {
+            store.addNode(NodeInput.of("Reinforcing experience " + i, cognitiveSubgraphId)
+                                   .withProperties(Map.of(
+                                           "source-memory-id", "mem-r" + i,
+                                           "agent-id", AGENT,
+                                           "event-type", "observation",
+                                           "graduation-score", "0.8")),
+                          TENANT);
+            phase.run(TENANT, List.of());
+        }
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral).hasSize(1);
+        double strength = Double.parseDouble(
+                behavioral.getFirst().property("strength").orElse("0"));
+        assertThat(strength)
+                .as("After 10 reinforcements, a well-established pattern should exceed 'deep-rooted' threshold 0.7")
+                .isGreaterThan(0.7);
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();

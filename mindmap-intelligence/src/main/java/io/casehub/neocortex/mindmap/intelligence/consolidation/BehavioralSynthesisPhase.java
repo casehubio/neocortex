@@ -238,8 +238,12 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             MindMapNode node = existing.get();
             double currentStrength = node.property("strength")
                                          .map(Double::parseDouble).orElse(0.0);
+            int sourceCount = node.property("source-count")
+                                   .map(Integer::parseInt).orElse(0);
+            double reinforcementBoost = Math.min(0.5, Math.log1p(sourceCount) / Math.log1p(20));
+            double boostedStrength = Math.min(1.0, attractor.strength() * (1 + reinforcementBoost));
             double newStrength = Math.min(1.0,
-                                          currentStrength * 0.7 + attractor.strength() * 0.3);
+                                          currentStrength * 0.5 + boostedStrength * 0.5);
 
             int currentCount = node.property("source-count")
                                    .map(Integer::parseInt).orElse(0);
