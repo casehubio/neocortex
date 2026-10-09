@@ -19,20 +19,27 @@ import java.util.List;
 import java.util.Objects;
 
 public record DescriptorView(
-    String agentId,
-    DispositionAxes disposition,
-    List<WeightedTerm> dispositionProfile,
-    List<String> goals,
-    FormationPadSummary formationPadSummary
+        String agentId,
+        DispositionAxes disposition,
+        List<WeightedTerm> dispositionProfile,
+        List<String> goals,
+        FormationPadSummary formationPadSummary,
+        AmpdFacets ampdFacets
 ) {
     public DescriptorView {
         Objects.requireNonNull(agentId, "agentId required");
         dispositionProfile = dispositionProfile != null ? List.copyOf(dispositionProfile) : List.of();
-        goals = goals != null ? List.copyOf(goals) : List.of();
+        goals              = goals != null ? List.copyOf(goals) : List.of();
+    }
+
+    public DescriptorView(String agentId, DispositionAxes disposition,
+                          List<WeightedTerm> dispositionProfile, List<String> goals,
+                          FormationPadSummary formationPadSummary) {
+        this(agentId, disposition, dispositionProfile, goals, formationPadSummary, null);
     }
 
     public static DescriptorView of(String agentId, DispositionAxes disposition,
-                                     List<WeightedTerm> dispositionProfile, List<String> goals) {
-        return new DescriptorView(agentId, disposition, dispositionProfile, goals, null);
+                                    List<WeightedTerm> dispositionProfile, List<String> goals) {
+        return new DescriptorView(agentId, disposition, dispositionProfile, goals, null, null);
     }
 }
