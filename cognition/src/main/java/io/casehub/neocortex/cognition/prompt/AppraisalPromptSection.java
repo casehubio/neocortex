@@ -8,20 +8,33 @@ import org.jspecify.annotations.Nullable;
 
 public class AppraisalPromptSection implements CognitionPromptRenderer {
 
-    private final AppraisalTickParticipant participant;
+    private final           AppraisalTickParticipant participant;
+    private final @Nullable PromptRenderingConfig    config;
 
     public AppraisalPromptSection(AppraisalTickParticipant participant) {
-        this.participant = participant;
+        this(participant, null);
     }
+
+    public AppraisalPromptSection(AppraisalTickParticipant participant,
+                                  @Nullable PromptRenderingConfig config) {
+        this.participant = participant;
+        this.config      = config;
+    }
+
+    private double actionTendencyMinIntensity() {return config != null ? config.actionTendencyMinIntensity() : 0.3;}
+
+    private double emotionStrongThreshold()     {return config != null ? config.emotionStrongThreshold() : 0.7;}
+
+    private double emotionModerateThreshold()   {return config != null ? config.emotionModerateThreshold() : 0.4;}
 
     @Override
     public @Nullable String render(CognitionRenderContext context) {
         return participant.currentResult(context.agentId(), context.tenantId())
-                .map(AppraisalPromptSection::renderEvocative)
-                .orElse(null);
+                          .map(this::renderEvocative)
+                          .orElse(null);
     }
 
-    private static @Nullable String renderEvocative(AppraisalResult result) {
+    private @Nullable String renderEvocative(AppraisalResult result) {
         if (result.narrative() != null && !result.narrative().isBlank()) {
             return result.narrative().strip();
         }
@@ -39,15 +52,15 @@ public class AppraisalPromptSection implements CognitionPromptRenderer {
         }
 
         result.actionTendencies().stream()
-              .filter(t -> t.intensity() > 0.3)
+              .filter(t -> t.intensity() > actionTendencyMinIntensity())
               .forEach(t -> sb.append(describeTendency(t)).append("\n"));
 
         return sb.isEmpty() ? null : sb.toString().strip();
     }
 
-    private static String describeEmotion(CognitiveEmotion emotion) {
-        var intensity = emotion.intensity() > 0.7 ? "strong "
-                : emotion.intensity() > 0.4 ? "" : "mild ";
+    private String describeEmotion(CognitiveEmotion emotion) {
+        var intensity = emotion.intensity() > emotionStrongThreshold() ? "strong "
+                                                                       : emotion.intensity() > emotionModerateThreshold() ? "" : "mild ";
         return intensity + emotion.type().name().toLowerCase().replace('_', ' ');
     }
 
