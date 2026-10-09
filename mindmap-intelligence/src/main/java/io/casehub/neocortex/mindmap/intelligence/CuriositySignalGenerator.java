@@ -94,7 +94,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         }
 
         var density = MindMapAnalyzer.subgraphDensity(store, sg.id(), tenantId);
-        if (density != null && density.density() < 0.1 && density.nodeCount() > 1) {
+        if (density != null && density.density() < config.densityThreshold() && density.nodeCount() > 1) {
             signals.add(new CuriositySignal(
                 SignalCategory.STRUCTURAL, 1.0 - density.density(),
                 null, sg.type(),
@@ -119,7 +119,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         }
 
         var lowConf = MindMapAnalyzer.lowConfidenceCluster(store, sg.id(), tenantId, 0.5);
-        if (lowConf != null && lowConf.ratio() > 0.5) {
+        if (lowConf != null && lowConf.ratio() > config.lowConfidenceRatio()) {
             signals.add(new CuriositySignal(
                 SignalCategory.QUALITY, lowConf.ratio(),
                 null, sg.type(),
@@ -129,7 +129,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         }
 
         var unvalidated = MindMapAnalyzer.unvalidatedEdgeRatio(store, sg.id(), tenantId);
-        if (unvalidated != null && unvalidated.ratio() > 0.3) {
+        if (unvalidated != null && unvalidated.ratio() > config.unvalidatedRatio()) {
             signals.add(new CuriositySignal(
                 SignalCategory.QUALITY, unvalidated.ratio(),
                 null, sg.type(),
@@ -144,7 +144,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
         Instant now = Instant.now();
         for (var stale : MindMapAnalyzer.staleNodes(store, sg.id(), tenantId, Duration.ofDays(config.staleDaysThreshold()), now)) {
             double staleDays = stale.age().toDays();
-            double score = Math.min(1.0, staleDays / 180.0);
+            double score = Math.min(1.0, staleDays / config.stalenessDivisor());
             signals.add(new CuriositySignal(
                 SignalCategory.TEMPORAL, score,
                 stale.nodeId(), sg.type(),
