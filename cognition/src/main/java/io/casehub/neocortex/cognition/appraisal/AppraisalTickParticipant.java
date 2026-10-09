@@ -7,8 +7,8 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
-import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.mindmap.MindMapStore;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -23,6 +23,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final MoodOrchestrator moodOrchestrator;
     private final @Nullable CognitiveDefaultsRegistry defaultsRegistry;
     private final CognitionConfig config;
+    private final @Nullable MindMapStore mindMapStore;
+
 
     private final ConcurrentHashMap<String, AppraisalResult> results = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, HabituationState> habituationStates = new ConcurrentHashMap<>();
@@ -34,35 +36,54 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             MoodOrchestrator moodOrchestrator,
             @Nullable CognitiveDefaultsRegistry defaultsRegistry,
             CognitionConfig config) {
-        this.salienceStrategy = salienceStrategy;
+        this(salienceStrategy, appraisalStrategy, driveOrchestrator,
+             moodOrchestrator, defaultsRegistry, config, null);
+    }
+
+    public AppraisalTickParticipant(
+            SalienceStrategy salienceStrategy,
+            AppraisalStrategy appraisalStrategy,
+            DriveOrchestrator driveOrchestrator,
+            MoodOrchestrator moodOrchestrator,
+            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            CognitionConfig config,
+            @Nullable MindMapStore mindMapStore) {
+        this.salienceStrategy  = salienceStrategy;
         this.appraisalStrategy = appraisalStrategy;
         this.driveOrchestrator = driveOrchestrator;
-        this.moodOrchestrator = moodOrchestrator;
-        this.defaultsRegistry = defaultsRegistry;
-        this.config = config;
+        this.moodOrchestrator  = moodOrchestrator;
+        this.defaultsRegistry  = defaultsRegistry;
+        this.config            = config;
+        this.mindMapStore      = mindMapStore;
     }
+
 
     @Override
     public void tick(CognitionTickContext context) {
-        if (!config.appraisalEnabled()) return;
+        if (!config.appraisalEnabled()) {return;}
 
-        var agentKey = context.agentId() + ":" + context.tenantId();
+        var agentKey    = context.agentId() + ":" + context.tenantId();
         var observation = context.observation();
 
         var profileOpt = driveOrchestrator.currentDrives(context.agentId(), context.tenantId());
-        if (profileOpt.isEmpty()) return;
-        var drives = profileOpt.get().allDrives();
+        if (profileOpt.isEmpty()) {return;}
+        var drives = new java.util.ArrayList<>(profileOpt.get().allDrives());
+
+        if (mindMapStore != null) {
+            var characterDrives = loadCharacterDrives(context.agentId(), context.tenantId());
+            drives.addAll(characterDrives);
+        }
 
         var mood = moodOrchestrator.currentMood(context.agentId(), context.tenantId())
-                .orElse(null);
+                                   .orElse(null);
 
         var defaults = defaultsRegistry != null
-                ? defaultsRegistry.forAgentOrDefaults(context.agentId()) : null;
-        var weights      = defaults != null ? defaults.appraisalWeights() : null;
-        var habConfig    = defaults != null ? defaults.habituationConfig() : null;
-        var disposition  = defaults != null && defaults.descriptor() != null
-                ? defaults.descriptor().disposition() : null;
-        var habituation  = habituationStates.getOrDefault(agentKey, HabituationState.empty());
+                       ? defaultsRegistry.forAgentOrDefaults(context.agentId()) : null;
+        var weights   = defaults != null ? defaults.appraisalWeights() : null;
+        var habConfig = defaults != null ? defaults.habituationConfig() : null;
+        var disposition = defaults != null && defaults.descriptor() != null
+                          ? defaults.descriptor().disposition() : null;
+        var habituation = habituationStates.getOrDefault(agentKey, HabituationState.empty());
 
         PerceivedSituation situation;
         if (config.salienceEnabled() && observation != null) {
@@ -86,6 +107,22 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     public Optional<AppraisalResult> currentResult(String agentId, String tenantId) {
         return Optional.ofNullable(results.get(agentId + ":" + tenantId));
     }
+
+    private List<Drive> loadCharacterDrives(String agentId, String tenantId) {
+        var query = io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 200)
+                                                             .withType(io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE);
+        return mindMapStore.search(query).stream()
+                           .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
+                           .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                           .map(n -> {
+                               String driveType = n.properties().getOrDefault("drive-type", n.name());
+                               double intensity = Double.parseDouble(
+                                       n.properties().getOrDefault("intensity", "0.5"));
+                               return new Drive(driveType, DriveCategory.CHARACTER, intensity, "adapted");
+                           })
+                           .toList();
+    }
+
 
     private void bridgeToMood(AppraisalResult result, CognitionTickContext context) {
         if (result.emotions().isEmpty()) return;
