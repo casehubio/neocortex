@@ -102,29 +102,30 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 LOG.info("Auto-initialized CAPS state for agent " + agentId);
             }
 
-            Map<String, Double> combinedActivations = new HashMap<>();
+            Map<String, Double> experienceActivations = new HashMap<>();
 
             for (MindMapNode node : agentNodes) {
                 List<SituationActivation> activations = classifier.classify(
                     node.name(), nodeMetadata(node));
 
                 for (SituationActivation sa : activations) {
-                    combinedActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                    experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                 }
 
             }
 
+            String dominantInput = experienceActivations.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("");
+
+            Map<String, Double> combinedActivations = new HashMap<>(experienceActivations);
             mergeDriveIntensities(combinedActivations, agentId, tenantId);
 
             if (combinedActivations.isEmpty()) continue;
 
             try {
                 var result = capsEngine.settle(state, combinedActivations);
-
-                String dominantInput = combinedActivations.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey)
-                    .orElse("");
 
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
@@ -245,15 +246,13 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             MindMapNode node = existing.get();
             double currentStrength = node.property("strength")
                                          .map(Double::parseDouble).orElse(0.0);
-            int sourceCount = node.property("source-count")
-                                  .map(Integer::parseInt).orElse(0);
-            double reinforcementBoost = Math.min(0.5, Math.log1p(sourceCount) / Math.log1p(20));
+            int currentCount = node.property("source-count")
+                                   .map(Integer::parseInt).orElse(0);
+            double reinforcementBoost = Math.min(0.5, Math.log1p(currentCount) / Math.log1p(20));
             double boostedStrength    = Math.min(1.0, attractor.strength() * (1 + reinforcementBoost));
             double newStrength = Math.min(1.0,
                                           currentStrength * 0.5 + boostedStrength * 0.5);
 
-            int currentCount = node.property("source-count")
-                                   .map(Integer::parseInt).orElse(0);
             String currentNames = node.property("source-names").orElse("");
 
             List<String> namesList = new ArrayList<>(
@@ -358,8 +357,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             String description = node.properties().get("description");
             if (description == null || description.isBlank()) {continue;}
 
-            double intensity = Double.parseDouble(
-                    node.properties().getOrDefault("intensity", "0.5"));
+            double intensity;
+            try { intensity = Double.parseDouble(node.properties().getOrDefault("intensity", "0.5")); }
+            catch (NumberFormatException e) { intensity = 0.5; }
 
             var activations = classifier.classify(description, Map.of());
             for (var sa : activations) {
