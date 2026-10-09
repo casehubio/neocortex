@@ -11,7 +11,7 @@ public interface ExperienceConsolidationConfig {
     @WithDefault("20")
     int maxPerPass();
 
-    @WithDefault("3")
+    @WithDefault("2")
     int minCorroboration();
 
     TextSimilarity textSimilarity();

@@ -121,6 +121,11 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             try {
                 var result = capsEngine.settle(state, combinedActivations);
 
+                String dominantInput = combinedActivations.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse("");
+
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
 
@@ -144,7 +149,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                     }
                     createOrStrengthenAttractor(
                         tenantId, behavioralSgId, agentId, enriched,
-                        existingAttractors, nodeNames);
+                        existingAttractors, nodeNames, dominantInput);
                 }
 
                 AgentCapsState updated = state;
@@ -226,12 +231,14 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                              String agentId,
                                              BehavioralAttractor attractor,
                                              Set<String> existingAttractors,
-                                             List<String> sourceNodeNames) {
+                                             List<String> sourceNodeNames,
+                                             String dominantInput) {
         Optional<MindMapNode> existing = store.search(
                                                       MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.BEHAVIORAL))
                                               .stream()
                                               .filter(n -> attractor.nodeId().equals(n.property("caps-node-id").orElse(null)))
                                               .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
+                                              .filter(n -> dominantInput.equals(n.property("dominant-input").orElse("")))
                                               .findFirst();
 
         if (existing.isPresent()) {
@@ -239,9 +246,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             double currentStrength = node.property("strength")
                                          .map(Double::parseDouble).orElse(0.0);
             int sourceCount = node.property("source-count")
-                                   .map(Integer::parseInt).orElse(0);
+                                  .map(Integer::parseInt).orElse(0);
             double reinforcementBoost = Math.min(0.5, Math.log1p(sourceCount) / Math.log1p(20));
-            double boostedStrength = Math.min(1.0, attractor.strength() * (1 + reinforcementBoost));
+            double boostedStrength    = Math.min(1.0, attractor.strength() * (1 + reinforcementBoost));
             double newStrength = Math.min(1.0,
                                           currentStrength * 0.5 + boostedStrength * 0.5);
 
@@ -262,6 +269,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             props.put("generation", String.valueOf(attractor.sourceGeneration()));
             props.put("source-count", String.valueOf(currentCount + sourceNodeNames.size()));
             props.put("source-names", cappedNames);
+            props.put("dominant-input", dominantInput);
             if (attractor.personalityLabel() != null) {
                 props.put("personality-label", attractor.personalityLabel());
             }
@@ -281,16 +289,16 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             props.put("generation", String.valueOf(attractor.sourceGeneration()));
             props.put("source-count", String.valueOf(sourceNodeNames.size()));
             props.put("source-names", names);
+            props.put("dominant-input", dominantInput);
             if (attractor.personalityLabel() != null) {
                 props.put("personality-label", attractor.personalityLabel());
             }
 
-            NodeInput input = NodeInput.of(attractor.nodeId(), behavioralSgId)
-                                       .withTraits(Set.of(CAPS_GENERATED_TRAIT))
-                                       .withProvenance("behavioral-synthesis")
-                                       .withProperties(props);
-            store.addNode(input, tenantId);
-            existingAttractors.add(attractor.nodeId());
+            store.addNode(
+                    NodeInput.of(attractor.nodeId() + (dominantInput.isEmpty() ? "" : "-" + dominantInput), behavioralSgId)
+                             .withTraits(Set.of(CAPS_GENERATED_TRAIT))
+                             .withProperties(props),
+                    tenantId);
         }
     }
 

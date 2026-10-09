@@ -410,6 +410,52 @@ class BehavioralSynthesisPhaseTest {
                 .isGreaterThan(0.7);
     }
 
+    @Test
+    void differentDominantInputsCreateSeparateAttractors() {
+        SituationClassifier inputAwareClassifier = (desc, meta) -> {
+            if (desc.contains("relationship")) {
+                return List.of(new SituationActivation("secure_attachment", 0.9));
+            } else if (desc.contains("achievement")) {
+                return List.of(new SituationActivation("mastery", 0.9));
+            }
+            return List.of(new SituationActivation("reward", 0.8));
+        };
+
+        var diffPhase = new BehavioralSynthesisPhase(store, capsEngine, inputAwareClassifier, 20);
+
+        store.addNode(NodeInput.of("Strong relationship bond", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-rel",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+        diffPhase.run(TENANT, List.of());
+
+        store.addNode(NodeInput.of("Great achievement at work", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-ach",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+        diffPhase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral)
+                .as("Two experiences with different dominant inputs should create separate attractors")
+                .hasSizeGreaterThanOrEqualTo(2);
+
+        var dominantInputs = behavioral.stream()
+                                       .map(n -> n.property("dominant-input").orElse(""))
+                                       .filter(s -> !s.isEmpty())
+                                       .collect(java.util.stream.Collectors.toSet());
+        assertThat(dominantInputs)
+                .as("Each attractor should track its dominant input")
+                .hasSizeGreaterThanOrEqualTo(2);
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();

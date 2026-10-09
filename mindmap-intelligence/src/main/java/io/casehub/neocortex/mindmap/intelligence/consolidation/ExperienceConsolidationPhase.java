@@ -72,7 +72,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         ExperienceConsolidationConfig c = config.isResolvable() ? config.get() : null;
         this.threshold        = c != null ? c.threshold() : 0.5;
         this.maxPerPass       = c != null ? c.maxPerPass() : 20;
-        this.minCorroboration = c != null ? c.minCorroboration() : 3;
+        this.minCorroboration = c != null ? c.minCorroboration() : 2;
         boolean tsEnabled = c != null && c.textSimilarity() != null && c.textSimilarity().enabled();
         if (tsEnabled) {
             double         embThreshold = c.textSimilarity().embeddingThreshold();
@@ -90,7 +90,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                                   GraduationClassifier classifier,
                                   double threshold,
                                   int maxPerPass) {
-        this(memoryStore, mindMapStore, scorer, classifier, threshold, maxPerPass, 3);
+        this(memoryStore, mindMapStore, scorer, classifier, threshold, maxPerPass, 2);
     }
 
     ExperienceConsolidationPhase(CaseMemoryStore memoryStore,
