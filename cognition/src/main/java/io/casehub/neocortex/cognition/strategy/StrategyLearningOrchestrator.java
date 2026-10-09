@@ -56,8 +56,7 @@ public class StrategyLearningOrchestrator {
 
     static final List<String> DEFAULT_DIMENSIONS = List.of(
             "verbosity", "formality", "initiative", "directness", "questionRate");
-    static final double       TREND_IMPROVING_THRESHOLD = 0.6;
-    static final double       TREND_DECLINING_THRESHOLD = 0.4;
+    // Trend thresholds moved to StrategyLearningConfig
 
 
     private final StrategyMemory strategyMemory;
@@ -134,8 +133,8 @@ public class StrategyLearningOrchestrator {
         var trends = new java.util.HashMap<String, EngagementTrend.TrendDirection>();
         for (var entry : profile.dimensions().entrySet()) {
             double val = entry.getValue();
-            trends.put(entry.getKey(), val > TREND_IMPROVING_THRESHOLD ? EngagementTrend.TrendDirection.IMPROVING
-                                                 : val < TREND_DECLINING_THRESHOLD ? EngagementTrend.TrendDirection.DECLINING
+            trends.put(entry.getKey(), val > config.trendImprovingThreshold() ? EngagementTrend.TrendDirection.IMPROVING
+                                                 : val < config.trendDecliningThreshold() ? EngagementTrend.TrendDirection.DECLINING
                                                              : EngagementTrend.TrendDirection.STABLE);
         }
         double responseRate = state.totalSignals > 0
@@ -561,7 +560,7 @@ public class StrategyLearningOrchestrator {
                     LOG.fine("Ignoring unknown dimension: " + delta.getKey());
                     continue;
                 }
-                double clamped = Math.max(-0.2, Math.min(0.2, delta.getValue()));
+                double clamped = Math.max(-config.maxDimensionDelta(), Math.min(config.maxDimensionDelta(), delta.getValue()));
                 double current = newDimensions.getOrDefault(delta.getKey(),
                                                             config.defaultDimensionValue());
                 newDimensions.put(delta.getKey(), Math.max(0.0, Math.min(1.0, current + clamped)));
