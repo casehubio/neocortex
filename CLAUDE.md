@@ -331,14 +331,16 @@ Each pipeline stage uses sub-agents (Haiku-class) for coverage verification and 
 | **Post-assembly** | Verify corpus.json field coverage per category against soft thresholds. Fields below threshold without justification → warn, report. |
 | **Post-import** | Verify store contents match corpus expectations. Spot-check: node traits assigned, memories domain-split, vocabulary registered, personality derived. |
 
-The verification agent doesn't just count — it verifies that poor coverage is truthful. When a field is absent or low, the agent checks whether the absence is a genuine result or a skip:
+**Every gap requires justification. Every justification requires verification.**
 
-- **Genuine absence:** "No cognitive distortions" on "Guillermo taught Frida photography" → correct, the passage contains no distorted thinking. Document as justified.
-- **False absence:** "No cognitive distortions" on "I NEVER painted dreams" → wrong, "NEVER" is all-or-nothing thinking. The extraction LLM skipped it. Retry with explicit instruction.
-- **Genuine low value:** PAD dominance 0.0 on a passage describing neutral observation → correct. Accept.
-- **Suspicious low value:** PAD dominance 0.0 on a passage describing Frida setting conditions for remarriage → wrong, high agency. Retry.
+The verification agent enforces two rules:
+1. **No unjustified gaps.** When a prescribed field is absent or has poor coverage, the extraction must provide a justification ("no distorted thinking present in this passage", "neutral agency — no dominance signal in text").
+2. **Justifications must be true.** The Haiku agent reads the original passage and verifies the justification against the text. A justification that contradicts the passage is a verification failure → retry.
 
-The verification question is always: "Given this passage, is this answer true?" Not "is this field populated?" A zero or absence backed by the text is valid coverage. A zero or absence that contradicts the text is a verification failure that triggers retry.
+Examples:
+- "No cognitive distortions" + passage says "Guillermo taught Frida photography" → justification verified, accept
+- "No cognitive distortions" + passage says "I NEVER painted dreams" → justification false ("NEVER" is all-or-nothing thinking) → retry
+- "PAD dominance 0.0" + justification "neutral agency" + passage describes Frida setting conditions for remarriage → justification false (high agency) → retry
 
 ### Maintenance Rules
 
