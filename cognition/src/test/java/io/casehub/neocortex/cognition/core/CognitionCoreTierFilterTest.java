@@ -90,4 +90,23 @@ class CognitionCoreTierFilterTest {
         assertThat(sections).hasSameSizeAs(core.promptSections());
     }
 
+    @Test
+    void activatedDriveCategoriesEmptyWhenNoAppraisalParticipant() {
+        var mood = new MoodOrchestrator(MoodConfig.defaults());
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+
+        core.tick("agent1", "tenant1", null, (a, t) -> java.util.Set.of());
+
+        assertThat(core.activatedDriveCategories()).isEmpty();
+    }
+
+    @Test
+    void activatedDriveCategoriesEmptyBeforeTick() {
+        var mood = new MoodOrchestrator(MoodConfig.defaults());
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+
+        assertThat(core.activatedDriveCategories()).isEmpty();
+    }
+
+
 }
