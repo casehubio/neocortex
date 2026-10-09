@@ -34,35 +34,46 @@ public class GoalAffectPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(GoalAffectPhase.class.getName());
 
-    private final MindMapStore  store;
-    private final Clock         clock;
-    private final GoalAppraisal appraisal;
+    private final MindMapStore          store;
+    private final Clock                 clock;
+    private final GoalAppraisal         appraisal;
+    private final GoalLifecycleConfig   config;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     private final CaseMemoryStore       memoryStore;
 
 
     @Inject
-    public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal, Instance<CaseMemoryStore> memoryStore) {
+    public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal,
+                           Instance<CaseMemoryStore> memoryStore, Instance<GoalLifecycleConfig> config) {
         this.store       = store.isResolvable() ? store.get() : null;
         this.appraisal   = appraisal.isResolvable() ? appraisal.get() : null;
         this.memoryStore = memoryStore.isResolvable() ? memoryStore.get() : null;
+        this.config      = config.isResolvable() ? config.get() : null;
         this.clock       = Clock.systemUTC();
     }
 
-    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal, CaseMemoryStore memoryStore, Clock clock) {
+    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal,
+                           CaseMemoryStore memoryStore, Clock clock, GoalLifecycleConfig config) {
         this.store       = store;
         this.appraisal   = appraisal;
         this.memoryStore = memoryStore;
+        this.config      = config;
         this.clock       = clock;
     }
 
+    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal, CaseMemoryStore memoryStore, Clock clock) {
+        this(store, appraisal, memoryStore, clock, null);
+    }
+
     public GoalAffectPhase(MindMapStore store, Clock clock) {
-        this(store, null, null, clock);
+        this(store, null, null, clock, null);
     }
 
     public GoalAffectPhase(MindMapStore store) {
-        this(store, null, null, Clock.systemUTC());
+        this(store, null, null, Clock.systemUTC(), null);
     }
+
+    private double legacyAffectDeltaThreshold() {return config != null ? config.legacyAffectDeltaThreshold() : 0.3;}
 
     @Override
     public String name() {
@@ -198,16 +209,16 @@ public class GoalAffectPhase implements ConsolidationPhase {
         if (pleasure != null) {
             Double oldPleasure = node.pleasure();
             double delta = oldPleasure != null
-                ? Math.abs(pleasure - oldPleasure)
-                : Math.abs(pleasure);
+                           ? Math.abs(pleasure - oldPleasure)
+                           : Math.abs(pleasure);
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPad(pleasure, arousal, dominance),
                              tenantId);
-            if (delta > 0.3) {
+            if (delta > legacyAffectDeltaThreshold()) {
                 pendingSignals.add(new AttentionSignal(
-                    node.property("agent-id").orElse(null), tenantId,
-                    SignalCategory.AFFECT_CHANGE, node.id(), node.name(), delta,
-                    status + " — pleasure delta " + String.format("%.2f", delta)));
+                        node.property("agent-id").orElse(null), tenantId,
+                        SignalCategory.AFFECT_CHANGE, node.id(), node.name(), delta,
+                        status + " — pleasure delta " + String.format("%.2f", delta)));
             }
         }
     }
