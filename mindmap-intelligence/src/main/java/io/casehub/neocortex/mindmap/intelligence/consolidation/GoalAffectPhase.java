@@ -179,29 +179,29 @@ public class GoalAffectPhase implements ConsolidationPhase {
 
         switch (status) {
             case "active" -> {
-                arousal   = urgency * 0.8;
-                pleasure  = 0.2;
-                dominance = 0.3;
+                arousal   = urgency * d(config, GoalLifecycleConfig::activeUrgencyArousalFactor, 0.8);
+                pleasure  = d(config, GoalLifecycleConfig::activePleasure, 0.2);
+                dominance = d(config, GoalLifecycleConfig::activeDominance, 0.3);
             }
             case "blocked" -> {
-                pleasure  = -0.4 - (urgency * 0.4);
-                arousal   = 0.3 + (urgency * 0.5);
-                dominance = -0.3;
+                pleasure  = d(config, GoalLifecycleConfig::blockedPleasure, -0.4) - (urgency * d(config, GoalLifecycleConfig::blockedUrgencyPleasureFactor, 0.4));
+                arousal   = d(config, GoalLifecycleConfig::blockedArousal, 0.3) + (urgency * d(config, GoalLifecycleConfig::blockedUrgencyArousalFactor, 0.5));
+                dominance = d(config, GoalLifecycleConfig::blockedDominance, -0.3);
             }
             case "completed" -> {
-                pleasure  = 0.6;
-                arousal   = 0.2;
-                dominance = 0.5;
+                pleasure  = d(config, GoalLifecycleConfig::completedPleasure, 0.6);
+                arousal   = d(config, GoalLifecycleConfig::completedArousal, 0.2);
+                dominance = d(config, GoalLifecycleConfig::completedDominance, 0.5);
             }
             case "dormant" -> {
-                pleasure  = 0.0;
-                arousal   = -0.3;
-                dominance = 0.0;
+                pleasure  = d(config, GoalLifecycleConfig::dormantPleasure, 0.0);
+                arousal   = d(config, GoalLifecycleConfig::dormantArousal, -0.3);
+                dominance = d(config, GoalLifecycleConfig::dormantDominance, 0.0);
             }
             case "abandoned" -> {
-                pleasure  = -0.2;
-                arousal   = -0.2;
-                dominance = -0.1;
+                pleasure  = d(config, GoalLifecycleConfig::abandonedPleasure, -0.2);
+                arousal   = d(config, GoalLifecycleConfig::abandonedArousal, -0.2);
+                dominance = d(config, GoalLifecycleConfig::abandonedDominance, -0.1);
             }
             default -> {}
         }
@@ -236,6 +236,11 @@ public class GoalAffectPhase implements ConsolidationPhase {
         return node.property(key)
                    .map(v -> {try {return Integer.parseInt(v);} catch (NumberFormatException e) {return defaultValue;}})
                    .orElse(defaultValue);
+    }
+
+
+    private static double d(GoalLifecycleConfig config, java.util.function.ToDoubleFunction<GoalLifecycleConfig> fn, double fallback) {
+        return config != null ? fn.applyAsDouble(config) : fallback;
     }
 
     private static Instant parseInstant(String value) {

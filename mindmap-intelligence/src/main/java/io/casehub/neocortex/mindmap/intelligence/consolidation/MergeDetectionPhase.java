@@ -44,14 +44,6 @@ public class MergeDetectionPhase implements ConsolidationPhase {
         this.config         = config.isResolvable() ? config.get() : null;
     }
 
-    MergeDetectionPhase(MindMapStore store, Object embeddingModel,
-                        double nameThreshold, double neighborThreshold,
-                        double autoMergeThreshold, int maxPerPass) {
-        this.store          = store;
-        this.embeddingModel = embeddingModel;
-        this.config         = null;
-    }
-
     MergeDetectionPhase(MindMapStore store, MergeDetectionConfig config) {
         this.store          = store;
         this.embeddingModel = null;
@@ -70,7 +62,8 @@ public class MergeDetectionPhase implements ConsolidationPhase {
 
     private double neighborWeight()     {return config != null ? config.neighborWeight() : 0.4;}
 
-    private int maxPerPass()            {return config != null ? config.maxPerPass() : 10;}
+    private int    maxPerPass()         {return config != null ? config.maxPerPass()         : 10;  }
+    private double candidateMinScore()  {return config != null ? config.candidateMinScore()  : 0.6; }
 
     @Override
     public String name() {
@@ -157,7 +150,7 @@ public class MergeDetectionPhase implements ConsolidationPhase {
                     double      neighborOverlap = jaccard(neighborsA, neighborsB);
 
                     double combined = nameWeight() * nameSim + neighborWeight() * neighborOverlap;
-                    if (combined >= 0.6) {
+                    if (combined >= candidateMinScore()) {
                         String reason = neighborOverlap > 0
                                         ? "name+neighbors" : "name-similarity";
                         candidates.add(new MergeCandidate(

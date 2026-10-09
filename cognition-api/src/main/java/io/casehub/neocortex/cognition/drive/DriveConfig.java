@@ -12,6 +12,13 @@ import java.util.Objects;
  * The modulation model follows Self-Determination Theory's distinction
  * between intrinsic drives (curiosity, competence, autonomy) and
  * social drives (affiliation).
+ * <p>
+ * Parameter interactions: moodPleasureModulation is applied at full
+ * strength to AFFILIATION and COMPETENCE drives, and at
+ * secondaryPleasureModulationFactor strength to CURIOSITY and AUTONOMY.
+ * moodArousalModulation applies uniformly to all drives.
+ * personalityModulationStrength scales disposition-based adjustments.
+ * The axisWeights determine composite drive score relative contributions.
  *
  * @see Deci, E.L. & Ryan, R.M. (2000). The "what" and "why" of goal
  * pursuits: Human needs and the self-determination of behavior.
@@ -38,6 +45,11 @@ public record DriveConfig(
          * AFFILIATION and COMPETENCE receive the full moodPleasureModulation
          * because positive affect directly facilitates social engagement and
          * perceived competence. Other drives receive a dampened version.
+         *
+         * Higher = non-social drives are equally affected by mood pleasure
+         * (approaching 1.0 means same as social drives); lower = mood
+         * pleasure barely affects non-social drives.
+         * Related: moodPleasureModulation.
          *
          * Range: [0.0, 1.0]. Default 0.5 — half the pleasure modulation
          * strength, preventing mood from dominating non-social drives.

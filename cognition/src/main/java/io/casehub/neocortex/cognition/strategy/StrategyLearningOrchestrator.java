@@ -42,7 +42,7 @@ public class StrategyLearningOrchestrator {
                 return t;
             });
 
-    private static final String SYSTEM_PROMPT = """
+    private static final String SYSTEM_PROMPT_TEMPLATE = """
             You are a metacognitive strategy advisor for an AI agent. Analyze the agent's \
             interaction history and recommend strategy adjustments.
 
@@ -52,11 +52,14 @@ public class StrategyLearningOrchestrator {
 
             Guidelines: ranked list, most impactful first. Include per-subject insights \
             where patterns differ significantly from global.
-            Deltas: in [-0.2, +0.2]. Only include dimensions that should change.""";
+            Deltas: in [-%s, +%s]. Only include dimensions that should change.""";
 
     static final List<String> DEFAULT_DIMENSIONS = List.of(
             "verbosity", "formality", "initiative", "directness", "questionRate");
-    // Trend thresholds moved to StrategyLearningConfig
+    private String systemPrompt() {
+        double d = config.maxDimensionDelta();
+        return String.format(SYSTEM_PROMPT_TEMPLATE, d, d);
+    }
 
 
     private final StrategyMemory strategyMemory;
@@ -261,7 +264,7 @@ public class StrategyLearningOrchestrator {
             var          perSubjectSummary = summarizePerSubject(cases);
             var          userPrompt        = buildReflectionPrompt(profile, trends, List.of(), perSubjectSummary);
 
-            String llmResponse = invokeText(AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt));
+            String llmResponse = invokeText(AgentSessionConfig.of(systemPrompt(), userPrompt));
             if (llmResponse == null) {
                 LOG.log(Level.WARNING, "Async reflect LLM failed for " + agentId);
                 return;
@@ -423,7 +426,7 @@ public class StrategyLearningOrchestrator {
         var perSubjectSummary = summarizePerSubject(cases);
         var userPrompt        = buildReflectionPrompt(profile, trends, reflections, perSubjectSummary);
 
-        String llmResponse = invokeText(AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt));
+        String llmResponse = invokeText(AgentSessionConfig.of(systemPrompt(), userPrompt));
         if (llmResponse == null) {
             return new StrategyReflection.NoChange("LLM synthesis failed");
         }

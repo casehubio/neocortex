@@ -118,7 +118,7 @@ public class CuriositySignalGenerator implements CuriositySignalProvider {
                     contradiction.edgeType() + " targets"));
         }
 
-        var lowConf = MindMapAnalyzer.lowConfidenceCluster(store, sg.id(), tenantId, 0.5);
+        var lowConf = MindMapAnalyzer.lowConfidenceCluster(store, sg.id(), tenantId, config.lowConfidenceThreshold());
         if (lowConf != null && lowConf.ratio() > config.lowConfidenceRatio()) {
             signals.add(new CuriositySignal(
                 SignalCategory.QUALITY, lowConf.ratio(),
