@@ -471,6 +471,23 @@ public class CognitionCore {
     public @Nullable AttentionBriefing lastBriefing() { return lastBriefing; }
     public @Nullable AgentDescriptor lastDescriptor() { return lastDescriptor; }
 
+    public java.util.List<String> activatedDriveCategories() {
+        if (appraisalParticipant == null || lastAgentId == null || lastTenantId == null) {
+            return List.of();
+        }
+        var result = appraisalParticipant.currentResult(lastAgentId, lastTenantId);
+        if (result.isEmpty() || result.get().emotions().isEmpty()) {
+            return List.of();
+        }
+        var profileOpt = drives.currentDrives(lastAgentId, lastTenantId);
+        if (profileOpt.isEmpty()) {return List.of();}
+        return profileOpt.get().allDrives().stream()
+                         .filter(d -> d.intensity() > 0.5)
+                         .map(io.casehub.neocortex.cognition.appraisal.Drive::name)
+                         .toList();
+    }
+
+
     public List<CognitionPromptRenderer> promptSections() {
         var sections = new ArrayList<CognitionPromptRenderer>();
         var desc     = lastDescriptor;

@@ -28,29 +28,33 @@ public class BehavioralPromptSection implements CognitionPromptRenderer {
     @Override
     public @Nullable String render(CognitionRenderContext context) {
         var attractors = mindMapStore.search(
-                MindMapQuery.of(context.tenantId(), 100)
-                    .withType(SubgraphTypes.BEHAVIORAL))
-            .stream()
-            .filter(n -> n.traits().contains("CapsGenerated"))
-            .filter(n -> context.agentId().equals(n.property("agent-id").orElse(null)))
-            .filter(n -> parseDouble(n, "strength") > 0.1)
-            .sorted(Comparator.comparingDouble(
-                (MindMapNode n) -> parseDouble(n, "strength")).reversed())
-            .limit(5)
-            .toList();
+                                             MindMapQuery.of(context.tenantId(), 100)
+                                                         .withType(SubgraphTypes.BEHAVIORAL))
+                                     .stream()
+                                     .filter(n -> n.traits().contains("CapsGenerated"))
+                                     .filter(n -> context.agentId().equals(n.property("agent-id").orElse(null)))
+                                     .filter(n -> parseDouble(n, "strength") > 0.1)
+                                     .sorted(Comparator.<MindMapNode, Integer>comparing(n -> {
+                                                           String cat = n.property("category").orElse("");
+                                                           return context.isDriveActivated(cat) ? 0 : 1;
+                                                       })
+                                                       .thenComparing(Comparator.comparingDouble(
+                                                               (MindMapNode n) -> parseDouble(n, "strength")).reversed()))
+                                     .limit(5)
+                                     .toList();
 
         var sb = new StringBuilder();
         for (int i = 0; i < attractors.size(); i++) {
-            if (i > 0) sb.append(" ");
+            if (i > 0) {sb.append(" ");}
             sb.append(renderAttractor(attractors.get(i)));
         }
 
         if (gutFeelingParticipant != null) {
             gutFeelingParticipant.currentResult(context.agentId(), context.tenantId())
-                .ifPresent(gut -> {
-                    if (!sb.isEmpty()) sb.append(" ");
-                    sb.append(renderGutFeeling(gut));
-                });
+                                 .ifPresent(gut -> {
+                                     if (!sb.isEmpty()) {sb.append(" ");}
+                                     sb.append(renderGutFeeling(gut));
+                                 });
         }
 
         return sb.isEmpty() ? null : sb.toString();
