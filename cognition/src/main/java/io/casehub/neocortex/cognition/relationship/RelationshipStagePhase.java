@@ -143,14 +143,17 @@ public class RelationshipStagePhase implements ConsolidationPhase {
 
         var stageConfig = configProvider.forAgent(observerId);
         double trustRate = 0.5;
+        var conflictMode = io.casehub.neocortex.cognitive.index.ConflictInterpretation.NEUTRAL;
         if (defaultsRegistry != null) {
             var defaults = defaultsRegistry.forAgentOrDefaults(observerId);
             if (defaults.socialCognition() != null) {
                 trustRate = defaults.socialCognition().trustFormationRate();
+                conflictMode = defaults.socialCognition().conflictInterpretation();
             }
         }
         double score = UserModelOrchestrator.computeFamiliarity(
-            positive, negative, neutral, stageConfig, ticksSinceLastInteraction, trustRate);
+            positive, negative, neutral, stageConfig, ticksSinceLastInteraction,
+            trustRate, conflictMode);
         String stage = stageConfig.resolveStage(score);
 
         mindMapStore.updateNode(overlay.id(),

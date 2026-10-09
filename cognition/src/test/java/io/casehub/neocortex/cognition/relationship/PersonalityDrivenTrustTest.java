@@ -42,4 +42,33 @@ class PersonalityDrivenTrustTest {
 
         assertThat(withDefault).isEqualTo(original, org.assertj.core.api.Assertions.within(0.001));
     }
+
+    @Test
+    void repairConflictInterpretationReducesNegativeImpact() {
+        double neutral = UserModelOrchestrator.computeFamiliarity(
+                5, 5, 0, CONFIG, 0, 0.5,
+                io.casehub.neocortex.cognitive.index.ConflictInterpretation.NEUTRAL);
+        double repair = UserModelOrchestrator.computeFamiliarity(
+                5, 5, 0, CONFIG, 0, 0.5,
+                io.casehub.neocortex.cognitive.index.ConflictInterpretation.REPAIR);
+
+        assertThat(repair)
+                .as("REPAIR agent discounts negative interactions — higher familiarity")
+                .isGreaterThan(neutral);
+    }
+
+    @Test
+    void disengageConflictInterpretationAmplifiesNegativeImpact() {
+        double neutral = UserModelOrchestrator.computeFamiliarity(
+                5, 5, 0, CONFIG, 0, 0.5,
+                io.casehub.neocortex.cognitive.index.ConflictInterpretation.NEUTRAL);
+        double disengage = UserModelOrchestrator.computeFamiliarity(
+                5, 5, 0, CONFIG, 0, 0.5,
+                io.casehub.neocortex.cognitive.index.ConflictInterpretation.DISENGAGE);
+
+        assertThat(disengage)
+                .as("DISENGAGE agent amplifies negative interactions — lower familiarity")
+                .isLessThan(neutral);
+    }
+
 }
