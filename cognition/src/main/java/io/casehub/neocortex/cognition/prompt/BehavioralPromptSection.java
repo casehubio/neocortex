@@ -59,25 +59,27 @@ public class BehavioralPromptSection implements CognitionPromptRenderer {
     private static String renderAttractor(MindMapNode node) {
         double strength = parseDouble(node, "strength");
         String label = strength > 0.7 ? "deeply ingrained"
-                     : strength > 0.4 ? "noticeable"
-                     : "emerging";
+                                      : strength > 0.4 ? "noticeable"
+                                                       : "emerging";
 
-        String trend = "";
-        var previousOpt = node.property("previous-strength");
+        String trend       = "";
+        var    previousOpt = node.property("previous-strength");
         if (previousOpt.isPresent()) {
             double previous = Double.parseDouble(previousOpt.get());
-            if (strength > previous + 0.05) trend = " that's been strengthening";
-            else if (strength < previous - 0.05) trend = " but it's fading";
+            if (strength > previous + 0.05) {
+                trend = " that's been strengthening";
+            } else if (strength < previous - 0.05) {trend = " but it's fading";}
         }
 
         String sourceContext = "";
-        var sourceNames = node.property("source-names");
+        var    sourceNames   = node.property("source-names");
         if (sourceNames.isPresent() && !sourceNames.get().isBlank()) {
             sourceContext = " — rooted in " + sourceNames.get();
         }
 
+        String attractorName = node.property("personality-label").orElse(node.name());
         return String.format("You have a %s %s%s%s.",
-            label, node.name(), trend, sourceContext);
+                             label, attractorName, trend, sourceContext);
     }
 
     private static String renderGutFeeling(GutFeeling gut) {

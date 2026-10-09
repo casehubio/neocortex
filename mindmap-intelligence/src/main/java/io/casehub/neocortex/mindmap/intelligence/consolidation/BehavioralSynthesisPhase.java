@@ -42,25 +42,30 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final CapsEngine capsEngine;
     private final SituationClassifier classifier;
     private final int maxPerPass;
+    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+
 
     @Inject
     public BehavioralSynthesisPhase(MindMapStore store,
-                                     Instance<CapsEngine> capsEngine,
-                                     Instance<SituationClassifier> classifier) {
-        this.store = store;
-        this.capsEngine = capsEngine.isResolvable() ? capsEngine.get() : null;
-        this.classifier = classifier.isResolvable() ? classifier.get() : null;
-        this.maxPerPass = 20;
+                                    Instance<CapsEngine> capsEngine,
+                                    Instance<SituationClassifier> classifier,
+                                    Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry) {
+        this.store            = store;
+        this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
+        this.classifier       = classifier.isResolvable() ? classifier.get() : null;
+        this.defaultsRegistry = defaultsRegistry.isResolvable() ? defaultsRegistry.get() : null;
+        this.maxPerPass       = 20;
     }
 
     BehavioralSynthesisPhase(MindMapStore store,
-                              CapsEngine capsEngine,
-                              SituationClassifier classifier,
-                              int maxPerPass) {
-        this.store = store;
-        this.capsEngine = capsEngine;
-        this.classifier = classifier;
-        this.maxPerPass = maxPerPass;
+                             CapsEngine capsEngine,
+                             SituationClassifier classifier,
+                             int maxPerPass) {
+        this.store            = store;
+        this.capsEngine       = capsEngine;
+        this.classifier       = classifier;
+        this.defaultsRegistry = null;
+        this.maxPerPass       = maxPerPass;
     }
 
     @Override
@@ -117,9 +122,26 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
 
+                io.casehub.neocortex.cognitive.index.ExpressionStyleDefaults expressionStyles = null;
+                if (defaultsRegistry != null) {
+                    var defaults = defaultsRegistry.forAgent(agentId);
+                    if (defaults.isPresent() && defaults.get().expressionStyles() != null) {
+                        expressionStyles = defaults.get().expressionStyles();
+                    }
+                }
+
                 for (BehavioralAttractor attractor : result.attractors()) {
+                    BehavioralAttractor enriched = attractor;
+                    if (expressionStyles != null) {
+                        String label = expressionStyles.expressionFor(attractor.category());
+                        if (label != null) {
+                            enriched = new BehavioralAttractor(attractor.category(),
+                                    attractor.nodeId(), attractor.strength(),
+                                    attractor.highSaturation(), attractor.sourceGeneration(), label);
+                        }
+                    }
                     createOrStrengthenAttractor(
-                        tenantId, behavioralSgId, agentId, attractor,
+                        tenantId, behavioralSgId, agentId, enriched,
                         existingAttractors, nodeNames);
                 }
 
@@ -234,6 +256,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             props.put("generation", String.valueOf(attractor.sourceGeneration()));
             props.put("source-count", String.valueOf(currentCount + sourceNodeNames.size()));
             props.put("source-names", cappedNames);
+            if (attractor.personalityLabel() != null) {
+                props.put("personality-label", attractor.personalityLabel());
+            }
 
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPropertiesToSet(props),
@@ -250,6 +275,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             props.put("generation", String.valueOf(attractor.sourceGeneration()));
             props.put("source-count", String.valueOf(sourceNodeNames.size()));
             props.put("source-names", names);
+            if (attractor.personalityLabel() != null) {
+                props.put("personality-label", attractor.personalityLabel());
+            }
 
             NodeInput input = NodeInput.of(attractor.nodeId(), behavioralSgId)
                                        .withTraits(Set.of(CAPS_GENERATED_TRAIT))
