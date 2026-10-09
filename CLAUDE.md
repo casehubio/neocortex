@@ -331,7 +331,14 @@ Each pipeline stage uses sub-agents (Haiku-class) for coverage verification and 
 | **Post-assembly** | Verify corpus.json field coverage per category against soft thresholds. Fields below threshold without justification → warn, report. |
 | **Post-import** | Verify store contents match corpus expectations. Spot-check: node traits assigned, memories domain-split, vocabulary registered, personality derived. |
 
-The verification agent doesn't just count — it pushes back. A missing CAPS activation on a Central-tier experience memory is a retry. A missing gut feeling on a peripheral memory is a justified skip. The field registry + depth tier together determine which gaps are retryable vs acceptable.
+The verification agent doesn't just count — it verifies that poor coverage is truthful. When a field is absent or low, the agent checks whether the absence is a genuine result or a skip:
+
+- **Genuine absence:** "No cognitive distortions" on "Guillermo taught Frida photography" → correct, the passage contains no distorted thinking. Document as justified.
+- **False absence:** "No cognitive distortions" on "I NEVER painted dreams" → wrong, "NEVER" is all-or-nothing thinking. The extraction LLM skipped it. Retry with explicit instruction.
+- **Genuine low value:** PAD dominance 0.0 on a passage describing neutral observation → correct. Accept.
+- **Suspicious low value:** PAD dominance 0.0 on a passage describing Frida setting conditions for remarriage → wrong, high agency. Retry.
+
+The verification question is always: "Given this passage, is this answer true?" Not "is this field populated?" A zero or absence backed by the text is valid coverage. A zero or absence that contradicts the text is a verification failure that triggers retry.
 
 ### Maintenance Rules
 
