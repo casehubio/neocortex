@@ -105,7 +105,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         if (profileOpt.isEmpty()) {return;}
         var drives = new ArrayList<>(profileOpt.get().allDrives());
 
-        List<MindMapNode> driveNodes = List.of();
+        List<MindMapNode>                        driveNodes     = List.of();
+        List<io.casehub.neocortex.memory.Memory> activeConcerns = List.of();
         if (mindMapStore != null) {
             driveNodes = loadDriveIntensityNodes(context.agentId(), context.tenantId());
             for (var node : driveNodes) {
@@ -113,6 +114,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
                 double intensity = parseDoubleSafe(node.properties().get("intensity"), 0.5);
                 drives.add(new Drive(driveType, DriveCategory.CHARACTER, intensity, "adapted"));
             }
+            activeConcerns = buildActiveConcerns(driveNodes, context.agentId(), context.tenantId());
         }
 
         var mood = moodOrchestrator.currentMood(context.agentId(), context.tenantId())
@@ -129,7 +131,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         PerceivedSituation situation;
         if (config.salienceEnabled() && observation != null) {
             situation = salienceStrategy.perceive(
-                    new SalienceContext(observation, drives, mood, List.of(), List.of()));
+                    new SalienceContext(observation, drives, mood, activeConcerns, List.of()));
         } else if (observation != null) {
             situation = PerceivedSituation.passThrough(observation);
         } else {
@@ -142,10 +144,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         results.put(agentKey, result);
         habituationStates.put(agentKey, result.updatedHabituation());
 
-        if (mindMapStore != null && observation != null) {
-            var salience = computeConcernSalience(observation, driveNodes,
-                                                  context.agentId(), context.tenantId());
-            concernSaliences.put(agentKey, salience);
+        if (!situation.salience().isEmpty()) {
+            concernSaliences.put(agentKey, situation.salience());
         }
 
         bridgeToMood(result, context);
@@ -155,6 +155,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         return Optional.ofNullable(results.get(agentId + ":" + tenantId));
     }
 
+    private static final io.casehub.neocortex.memory.MemoryDomain CONCERN_DOMAIN =
+            new io.casehub.neocortex.memory.MemoryDomain("concern");
+
     private List<MindMapNode> loadDriveIntensityNodes(String agentId, String tenantId) {
         return mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
                            .stream()
@@ -163,43 +166,34 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
                            .toList();
     }
 
-    private Map<String, Double> computeConcernSalience(
-            String observation, List<MindMapNode> driveNodes,
-            String agentId, String tenantId) {
-        var salience = new HashMap<String, Double>();
-        int minLen = thresholds.tokenMinLength();
-        var obsWords = tokenize(observation, minLen);
-        if (obsWords.isEmpty()) return salience;
+    private List<io.casehub.neocortex.memory.Memory> buildActiveConcerns(
+            List<MindMapNode> driveNodes, String agentId, String tenantId) {
+        var concerns = new ArrayList<io.casehub.neocortex.memory.Memory>();
+        var now = java.time.Instant.now();
+        var conf = new io.casehub.neocortex.cognitive.Confidence(
+                io.casehub.neocortex.cognitive.ConfidenceOrigin.STATED, 0.8, now);
 
         for (var node : driveNodes) {
             String desc = node.properties().get("description");
             if (desc == null || desc.isBlank()) continue;
             String driveType = node.properties().getOrDefault("drive-type", node.name());
-            double score = keywordOverlap(obsWords, tokenize(desc, minLen));
-            if (score > thresholds.concernSalienceThreshold()) salience.put(driveType, score);
+            concerns.add(new io.casehub.neocortex.memory.Memory(
+                    driveType, io.casehub.neocortex.memory.Subject.of("drive", driveType),
+                    CONCERN_DOMAIN, tenantId, "", desc, Map.of(), now, conf,
+                    null, null, null, null, null));
         }
 
         var goalNodes = mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.GOAL));
         for (var node : goalNodes) {
             if (!"active".equals(node.properties().get("status"))) continue;
             if (!agentId.equals(node.properties().get("agent-id"))) continue;
-            double score = keywordOverlap(obsWords, tokenize(node.name(), minLen));
-            if (score > thresholds.concernSalienceThreshold()) salience.put(node.name(), score);
+            concerns.add(new io.casehub.neocortex.memory.Memory(
+                    node.name(), io.casehub.neocortex.memory.Subject.of("goal", node.name()),
+                    CONCERN_DOMAIN, tenantId, "", node.name(), Map.of(), now, conf,
+                    null, null, null, null, null));
         }
 
-        return Map.copyOf(salience);
-    }
-
-    private static double keywordOverlap(Set<String> a, Set<String> b) {
-        if (a.isEmpty() || b.isEmpty()) return 0.0;
-        long shared = a.stream().filter(b::contains).count();
-        return (double) shared / Math.max(a.size(), b.size());
-    }
-
-    private static Set<String> tokenize(String text, int minLength) {
-        return Arrays.stream(text.toLowerCase().split("\\W+"))
-                     .filter(w -> w.length() > minLength)
-                     .collect(Collectors.toSet());
+        return concerns;
     }
 
     private static double parseDoubleSafe(String value, double fallback) {

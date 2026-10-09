@@ -243,9 +243,10 @@ class AppraisalTickParticipantTest {
                                                                     "agent-id", "a1")),
                       "t1");
 
-        var config = CognitionConfig.none().with("appraisal", true);
+        var config = CognitionConfig.none().with("appraisal", true).with("salience", true);
+        var concernStrategy = new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
         var participant = new AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                concernStrategy, appraisalStrategy, driveOrchestrator,
                 moodOrchestrator, null, config, store);
 
         participant.tick(contextWithObservation("They hatched an elaborate plan to escape"));
@@ -267,9 +268,10 @@ class AppraisalTickParticipantTest {
                                                                     "agent-id", "a1")),
                       "t1");
 
-        var config = CognitionConfig.none().with("appraisal", true);
+        var config = CognitionConfig.none().with("appraisal", true).with("salience", true);
+        var concernStrategy = new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
         var participant = new AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                concernStrategy, appraisalStrategy, driveOrchestrator,
                 moodOrchestrator, null, config, store);
 
         participant.tick(contextWithObservation("Clara is in terrible danger"));
