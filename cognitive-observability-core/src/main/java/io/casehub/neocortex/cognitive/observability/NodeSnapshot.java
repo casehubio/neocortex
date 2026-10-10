@@ -20,13 +20,16 @@ public record NodeSnapshot(
     Set<NodeRef> refs,
     Map<String, String> properties,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    Instant validFrom,
+    Instant validUntil
 ) {
     public static NodeSnapshot from(MindMapNode node) {
         return new NodeSnapshot(
             node.id(), node.name(), node.subgraphType(),
             node.confidence(), node.pleasure(), node.arousal(), node.dominance(),
             node.traits(), node.refs(), node.properties(),
-            node.createdAt(), node.updatedAt());
+            node.createdAt(), node.updatedAt(),
+            node.validFrom(), node.validUntil());
     }
 }

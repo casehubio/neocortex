@@ -105,6 +105,13 @@ public record FieldChange(String field, Object oldValue, Object newValue) {
             }
         }
 
+        if (update.validFrom() != null && !Objects.equals(update.validFrom(), before.validFrom())) {
+            changes.put("validFrom", new FieldChange("validFrom", before.validFrom(), update.validFrom()));
+        }
+        if (update.validUntil() != null && !Objects.equals(update.validUntil(), before.validUntil())) {
+            changes.put("validUntil", new FieldChange("validUntil", before.validUntil(), update.validUntil()));
+        }
+
         if ((update.propertiesToSet() != null && !update.propertiesToSet().isEmpty())
             || (update.propertiesToRemove() != null && !update.propertiesToRemove().isEmpty())) {
             var oldProps = before.properties() != null ? new HashMap<>(before.properties()) : new HashMap<String, String>();

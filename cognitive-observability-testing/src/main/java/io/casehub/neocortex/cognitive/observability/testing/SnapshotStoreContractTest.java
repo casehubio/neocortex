@@ -98,7 +98,7 @@ public abstract class SnapshotStoreContractTest {
         var keyframe = new GraphSnapshot("kf1", "t1", "sg1", Instant.now(),
             GraphSnapshot.SnapshotType.KEYFRAME,
             List.of(new NodeSnapshot("n1", "Alice", "person", STATED, null, null, null,
-                Set.of("Personable"), Set.of(), Map.of(), Instant.now(), Instant.now())),
+                Set.of("Personable"), Set.of(), Map.of(), Instant.now(), Instant.now(), null, null)),
             List.of());
 
         store.storeKeyframe(keyframe);
