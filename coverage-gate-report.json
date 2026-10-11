@@ -1,0 +1,147 @@
+{
+  "format": "coverage-gate-report/v1",
+  "category_breakdown": {
+    "node_fields": {
+      "populated": 13,
+      "total": 22,
+      "pct": 59.1,
+      "threshold": 60,
+      "gate": "WARN"
+    },
+    "memory_fields": {
+      "populated": 13,
+      "total": 17,
+      "pct": 76.5,
+      "threshold": 50,
+      "gate": "PASS"
+    },
+    "enrichment_fields": {
+      "populated": 19,
+      "total": 24,
+      "pct": 79.2,
+      "threshold": 70,
+      "gate": "PASS"
+    }
+  },
+  "gaps": {
+    "node_fields": [
+      {
+        "id": "N4",
+        "name": "traits",
+        "missing": 165,
+        "total": 274
+      },
+      {
+        "id": "N5",
+        "name": "trait_properties",
+        "missing": 166,
+        "total": 274
+      },
+      {
+        "id": "N6",
+        "name": "pad",
+        "missing": 248,
+        "total": 274
+      },
+      {
+        "id": "N9",
+        "name": "node_ref_provenance",
+        "missing": 274,
+        "total": 274
+      },
+      {
+        "id": "N11",
+        "name": "valid_until",
+        "missing": 264,
+        "total": 274
+      },
+      {
+        "id": "N19",
+        "name": "goal_target_date",
+        "missing": 136,
+        "total": 136
+      },
+      {
+        "id": "N21",
+        "name": "goal_pad_affect",
+        "missing": 136,
+        "total": 136
+      },
+      {
+        "id": "N22",
+        "name": "edge_confidence",
+        "missing": 274,
+        "total": 274
+      },
+      {
+        "id": "N23",
+        "name": "edge_validation_tier",
+        "missing": 274,
+        "total": 274
+      }
+    ],
+    "memory_fields": [
+      {
+        "id": "M6",
+        "name": "related_entities",
+        "missing": 204,
+        "total": 347
+      },
+      {
+        "id": "M7",
+        "name": "source_provenance",
+        "missing": 204,
+        "total": 347
+      },
+      {
+        "id": "M10",
+        "name": "passage_id",
+        "missing": 204,
+        "total": 347
+      },
+      {
+        "id": "M17",
+        "name": "mentioned_entities",
+        "missing": 204,
+        "total": 347
+      }
+    ],
+    "enrichment_fields": [
+      {
+        "id": "E2",
+        "name": "pad_justification",
+        "missing": 206,
+        "total": 347
+      },
+      {
+        "id": "E10",
+        "name": "drive_justification",
+        "missing": 204,
+        "total": 347
+      },
+      {
+        "id": "E14",
+        "name": "confidence_justification",
+        "missing": 206,
+        "total": 347
+      },
+      {
+        "id": "E18",
+        "name": "caps_expected_outputs",
+        "missing": 347,
+        "total": 347
+      },
+      {
+        "id": "E24",
+        "name": "trait_assignment",
+        "missing": 347,
+        "total": 347
+      }
+    ]
+  },
+  "overall": {
+    "populated": 45,
+    "total": 63,
+    "pct": 71.4
+  }
+}
