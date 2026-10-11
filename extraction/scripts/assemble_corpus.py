@@ -739,7 +739,143 @@ def create_cross_tier_edges(nodes: list[dict]) -> list[dict]:
     return edges
 
 
-def assemble(enriched: dict) -> dict:
+LLM_DEDUP_SYSTEM = """You are a knowledge graph deduplication expert. For each pair of goals, classify as:
+- DUPLICATE: same goal expressed differently — should be merged
+- RELATED: connected goals but distinct — should NOT be merged
+- DISTINCT: unrelated goals — should NOT be merged
+
+Consider the full goal description, tier, and domain. Two goals about the same broad topic
+at different tiers (tactical vs thematic) are RELATED, not DUPLICATE.
+
+Respond with JSON: {"verdicts": [{"pair_index": 0, "verdict": "DUPLICATE|RELATED|DISTINCT", "reason": "..."}]}"""
+
+
+def build_dedup_batches(near_misses: list[dict], batch_size: int = 20) -> list[list[dict]]:
+    """Split near-miss pairs into batches for LLM classification."""
+    if not near_misses:
+        return []
+    batches = []
+    for i in range(0, len(near_misses), batch_size):
+        batches.append(near_misses[i:i + batch_size])
+    return batches
+
+
+def union_find_merge(verdicts: list[dict]) -> list[list[str]]:
+    """Merge DUPLICATE pairs transitively via union-find."""
+    parent = {}
+
+    def find(x):
+        while parent.get(x, x) != x:
+            parent[x] = parent.get(parent[x], parent[x])
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for v in verdicts:
+        if v.get('verdict') == 'DUPLICATE':
+            union(v['a'], v['b'])
+
+    groups_map: dict[str, list[str]] = {}
+    all_names = set()
+    for v in verdicts:
+        if v.get('verdict') == 'DUPLICATE':
+            all_names.add(v['a'])
+            all_names.add(v['b'])
+    for name in all_names:
+        root = find(name)
+        groups_map.setdefault(root, []).append(name)
+
+    return [sorted(set(members)) for members in groups_map.values() if len(members) > 1]
+
+
+def apply_llm_dedup_verdicts(nodes: list[dict],
+                             merge_groups: list[list[str]]) -> tuple[list[dict], dict]:
+    """Apply LLM dedup merge groups to nodes. Keeps longest name as canonical."""
+    if not merge_groups:
+        return nodes, {'llm_merged': 0, 'llm_clusters': []}
+
+    names_to_remove = set()
+    clusters = []
+    node_by_name = {n['name']: n for n in nodes if n.get('subgraph_type') == 'goal'}
+
+    for group in merge_groups:
+        present = [name for name in group if name in node_by_name]
+        if len(present) < 2:
+            continue
+        canonical_name = max(present, key=len)
+        canonical = node_by_name[canonical_name]
+        for name in present:
+            if name == canonical_name:
+                continue
+            duplicate = node_by_name[name]
+            canonical.setdefault('merged_from', []).append(name)
+            for pid in duplicate.get('source_passages', []):
+                if pid not in canonical.get('source_passages', []):
+                    canonical.setdefault('source_passages', []).append(pid)
+            names_to_remove.add(name)
+        clusters.append({'canonical': canonical_name, 'merged': [n for n in present if n != canonical_name]})
+
+    surviving = [n for n in nodes if n['name'] not in names_to_remove]
+    report = {
+        'llm_merged': len(names_to_remove),
+        'llm_clusters': clusters,
+    }
+    return surviving, report
+
+
+def llm_semantic_dedup(nodes: list[dict], near_misses: list[dict],
+                       client=None) -> tuple[list[dict], dict]:
+    """Run LLM semantic dedup on near-miss goal pairs.
+
+    Requires an LLM client. If client is None, returns nodes unchanged.
+    """
+    if not near_misses or client is None:
+        return nodes, {'llm_merged': 0, 'llm_clusters': [], 'skipped': client is None}
+
+    from llm_client import model_id
+    batches = build_dedup_batches(near_misses)
+    all_verdicts = []
+
+    for batch_idx, batch in enumerate(batches):
+        pairs_text = '\n'.join(
+            f"  [{i}] \"{p['a']}\" vs \"{p['b']}\" (JW={p['jw_score']}, Jaccard={p.get('jaccard', '?')})"
+            for i, p in enumerate(batch)
+        )
+        user_prompt = f"Classify these {len(batch)} goal pairs:\n{pairs_text}"
+
+        try:
+            response = client.messages.create(
+                model=model_id(),
+                max_tokens=2048,
+                system=LLM_DEDUP_SYSTEM,
+                messages=[{'role': 'user', 'content': user_prompt}],
+            )
+            text = response.content[0].text
+            start = text.find('{')
+            end = text.rfind('}') + 1
+            if start >= 0 and end > start:
+                result = json.loads(text[start:end])
+                for v in result.get('verdicts', []):
+                    idx = v.get('pair_index', -1)
+                    if 0 <= idx < len(batch):
+                        all_verdicts.append({
+                            'a': batch[idx]['a'],
+                            'b': batch[idx]['b'],
+                            'verdict': v.get('verdict', 'DISTINCT'),
+                            'reason': v.get('reason', ''),
+                        })
+        except Exception as e:
+            print(f"    Warning: LLM dedup batch {batch_idx} failed: {e}", file=sys.stderr)
+
+    merge_groups = union_find_merge(all_verdicts)
+    return apply_llm_dedup_verdicts(nodes, merge_groups)
+
+
+def assemble(enriched: dict, llm_client=None) -> dict:
     """Assemble the final corpus structure with all prescribed fields."""
     nodes = []
     for ent in enriched.get('entities', []):
@@ -874,6 +1010,12 @@ def assemble(enriched: dict) -> dict:
     nodes = normalise_lifecycle_labels(nodes)
     nodes, entity_dedup_report = dedup_entities(nodes)
     dedup_report, nodes = dedup_goals(nodes)
+
+    llm_dedup_report = {'llm_merged': 0, 'llm_clusters': []}
+    near_misses = dedup_report.get('near_misses', [])
+    if near_misses and llm_client is not None:
+        nodes, llm_dedup_report = llm_semantic_dedup(nodes, near_misses, llm_client)
+
     cross_tier_edges = create_cross_tier_edges(nodes)
     edges.extend(cross_tier_edges)
 
@@ -888,6 +1030,7 @@ def assemble(enriched: dict) -> dict:
             'domains': dict(Counter(m.get('domain', 'experience') for m in memories)),
             'goal_dedup': dedup_report,
             'entity_dedup': entity_dedup_report,
+            'llm_dedup': llm_dedup_report,
         },
         'nodes': nodes,
         'edges': edges,
@@ -910,6 +1053,7 @@ def main():
     parser.add_argument('--report', '-r', default='coverage-report.json', help='Coverage report')
     parser.add_argument('--model-report', '-m', default='model-coverage.json', help='Model coverage report')
     parser.add_argument('--gate-report', '-g', default='coverage-gate-report.json', help='Coverage gate report')
+    parser.add_argument('--llm-dedup', action='store_true', help='Enable LLM semantic dedup of near-miss goals')
     args = parser.parse_args()
 
     with open(args.enriched, 'r') as f:
@@ -917,7 +1061,12 @@ def main():
     with open(args.baseline, 'r') as f:
         baseline = json.load(f)
 
-    corpus = assemble(enriched)
+    llm_client = None
+    if args.llm_dedup:
+        from llm_client import create_client
+        llm_client = create_client()
+
+    corpus = assemble(enriched, llm_client=llm_client)
     coverage = build_coverage_report(enriched.get('entities', []), baseline)
     model_cov = audit_model_coverage(enriched.get('memories', []))
 
