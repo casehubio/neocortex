@@ -669,6 +669,42 @@ def dedup_goals(nodes: list[dict], jw_threshold: float = 0.90,
     return report, surviving
 
 
+_TIER_ORDER = {'tactical': 0, 'strategic': 1, 'thematic': 2}
+
+
+def create_cross_tier_edges(nodes: list[dict]) -> list[dict]:
+    """Create contributes-to edges from lower-tier to higher-tier goals within same domain."""
+    goals_by_domain = {}
+    for node in nodes:
+        if node.get('subgraph_type') != 'goal':
+            continue
+        domain = node.get('content_domain')
+        if not domain:
+            continue
+        goals_by_domain.setdefault(domain, []).append(node)
+
+    edges = []
+    for domain, domain_goals in goals_by_domain.items():
+        for g in domain_goals:
+            tier = g.get('goal_tier', '')
+            tier_rank = _TIER_ORDER.get(tier, -1)
+            if tier_rank < 0:
+                continue
+            for other in domain_goals:
+                if other is g:
+                    continue
+                other_tier = other.get('goal_tier', '')
+                other_rank = _TIER_ORDER.get(other_tier, -1)
+                if other_rank > tier_rank:
+                    edges.append({
+                        'source': g['name'],
+                        'target': other['name'],
+                        'type': 'contributes-to',
+                        'source_passage': 'cross-tier-inference',
+                    })
+    return edges
+
+
 def assemble(enriched: dict) -> dict:
     """Assemble the final corpus structure with all prescribed fields."""
     nodes = []
@@ -803,6 +839,8 @@ def assemble(enriched: dict) -> dict:
     nodes = normalise_lifecycle_labels(nodes)
     nodes, entity_dedup_report = dedup_entities(nodes)
     dedup_report, nodes = dedup_goals(nodes)
+    cross_tier_edges = create_cross_tier_edges(nodes)
+    edges.extend(cross_tier_edges)
 
     corpus = {
         'format': 'cognitive-workbench-corpus/v2',
