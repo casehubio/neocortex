@@ -669,6 +669,40 @@ def dedup_goals(nodes: list[dict], jw_threshold: float = 0.90,
     return report, surviving
 
 
+def derive_entity_pad(nodes: list[dict], memories: list[dict]) -> None:
+    """Derive PAD for entities without it from memory PAD averages.
+
+    For each node missing PAD, collect PAD values from memories that mention
+    the entity (as subject or in related_entities), and average them.
+    """
+    entity_pads: dict[str, list[dict]] = {}
+    for mem in memories:
+        pad = mem.get('pad')
+        if not isinstance(pad, dict) or pad.get('pleasure') is None:
+            continue
+        subject = mem.get('subject', '')
+        if subject:
+            entity_pads.setdefault(subject.lower(), []).append(pad)
+        for rel in mem.get('related_entities', []):
+            if rel:
+                entity_pads.setdefault(rel.lower(), []).append(pad)
+
+    for node in nodes:
+        if node.get('pad'):
+            continue
+        key = node['name'].lower()
+        pads = entity_pads.get(key, [])
+        if not pads:
+            continue
+        avg_pad = {}
+        for dim in ('pleasure', 'arousal', 'dominance'):
+            vals = [p[dim] for p in pads if isinstance(p.get(dim), (int, float))]
+            if vals:
+                avg_pad[dim] = round(sum(vals) / len(vals), 2)
+        if len(avg_pad) == 3:
+            node['pad'] = avg_pad
+
+
 _TIER_ORDER = {'tactical': 0, 'strategic': 1, 'thematic': 2}
 
 
@@ -835,6 +869,7 @@ def assemble(enriched: dict) -> dict:
             'extraction_pass': 'phase-2b-entity',
         })
 
+    derive_entity_pad(nodes, memories)
     nodes = normalise_goal_vocabulary(nodes)
     nodes = normalise_lifecycle_labels(nodes)
     nodes, entity_dedup_report = dedup_entities(nodes)

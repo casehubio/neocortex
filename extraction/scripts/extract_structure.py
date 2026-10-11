@@ -39,7 +39,7 @@ For each entity, produce:
   * project → ["Projectlike"] (fill: status, deadline, description)
   * organisation → ["Organisational"] (fill: industry, size, founded)
 - trait_properties: key-value pairs for the trait fields listed above
-- pad: emotional dimensions for this entity as experienced by the subject. For persons: {"pleasure": -1..1, "arousal": -1..1, "dominance": -1..1}. Captures the subject's felt affect toward/about this entity.
+- pad: emotional dimensions for this entity as experienced by the subject: {"pleasure": -1..1, "arousal": -1..1, "dominance": -1..1}. Captures the subject's felt affect toward/about this entity. REQUIRED for ALL entity types — persons, places, activities, projects, concepts, organisations. Every entity carries affective significance: a place can feel safe or threatening, an activity joyful or dreaded, a concept inspiring or oppressive.
 - confidence: {"origin": "STATED|INFERRED|SPECULATED", "value": 0.0-1.0}
 - valid_from: ISO date or partial date when this entity first appears or is relevant. REQUIRED for persons (birth), places (founding/first mention), organisations (founding). Use partial dates (YYYY or YYYY-MM) when exact date unknown.
 - valid_until: ISO date or partial date when this entity ceases to be relevant (death, demolition, dissolution). Omit if entity is still active at end of passage.
