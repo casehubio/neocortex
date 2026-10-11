@@ -31,7 +31,7 @@ def test_load_registry_has_85_fields():
     from coverage import load_registry
     registry = load_registry(REGISTRY_PATH)
     total = sum(len(c['fields']) for c in registry['categories'].values())
-    assert total == 85
+    assert total == 90
 
 
 def test_check_node_coverage_complete_node():

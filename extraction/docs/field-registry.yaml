@@ -136,6 +136,36 @@ categories:
         stages: [corpus, importer]
         status: gap
         note: "Edge attribute — checked at corpus level against edges, not nodes"
+      - id: N24
+        name: goal_content_domain
+        ref: "Talevich Y-level"
+        stages: [extraction, corpus, importer]
+        type_filter: goal
+        status: partial
+      - id: N25
+        name: goal_content_subdomain
+        ref: "Talevich W-level"
+        stages: [extraction, corpus, importer]
+        type_filter: goal
+        status: partial
+      - id: N26
+        name: goal_motivation_origin
+        ref: "SDT"
+        stages: [extraction, corpus, importer]
+        type_filter: goal
+        status: partial
+      - id: N27
+        name: goal_clarity
+        ref: "Emmons SAS"
+        stages: [extraction, corpus, importer]
+        type_filter: goal
+        status: partial
+      - id: N28
+        name: goal_evidence_basis
+        ref: "§6.4"
+        stages: [extraction, corpus, importer]
+        type_filter: goal
+        status: partial
 
   memory_fields:
     threshold: 50
