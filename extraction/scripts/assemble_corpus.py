@@ -930,6 +930,8 @@ def assemble(enriched: dict, llm_client=None) -> dict:
         domain = mem.get('domain', 'experience')
         if domain == 'formative-experience':
             domain = 'experience'
+        if mem.get('event_type') == 'formative-experience' and domain != 'experience':
+            domain = 'experience'
         memory = {
             'text': mem['text'],
             'domain': domain,
