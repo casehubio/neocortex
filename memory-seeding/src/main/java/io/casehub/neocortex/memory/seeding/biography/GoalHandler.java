@@ -1,8 +1,8 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.GoalVocabulary;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -12,12 +12,14 @@ import jakarta.inject.Inject;
 
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class GoalHandler implements BiographyHandler {
 
+
+    private static final Logger LOG = Logger.getLogger(GoalHandler.class.getName());
     private final MindMapStore store;
 
     @Inject
@@ -39,6 +41,35 @@ public class GoalHandler implements BiographyHandler {
             if (entry.sourceRef() != null) props.put("source-ref", entry.sourceRef());
             if (entry.tier() != null) props.put("tier", entry.tier());
             if (entry.horizon() != null) props.put("horizon", entry.horizon());
+            if (entry.status() != null) props.put("status", entry.status());
+            if (entry.urgency() != null) props.put("urgency", entry.urgency());
+            if (entry.priority() != null) props.put("priority", entry.priority());
+            if (entry.feasibility() != null) props.put("feasibility", entry.feasibility());
+            if (entry.needTier() != null) props.put("need-tier", entry.needTier());
+            if (entry.contentDomain() != null) {
+                if (GoalVocabulary.CONTENT_DOMAINS.contains(entry.contentDomain())) {
+                    props.put("contentDomain", entry.contentDomain());
+                } else {
+                    LOG.warning("Rejected invalid contentDomain '" + entry.contentDomain() + "' for goal '" + entry.name() + "'");
+                }
+            }
+            if (entry.contentSubdomain() != null) {
+                if (GoalVocabulary.CONTENT_SUBDOMAINS.contains(entry.contentSubdomain())) {
+                    props.put("contentSubdomain", entry.contentSubdomain());
+                } else {
+                    LOG.warning("Rejected invalid contentSubdomain '" + entry.contentSubdomain() + "' for goal '" + entry.name() + "'");
+                }
+            }
+            if (entry.motivationOrigin() != null) {
+                if (GoalVocabulary.MOTIVATION_ORIGINS.contains(entry.motivationOrigin())) {
+                    props.put("motivationOrigin", entry.motivationOrigin());
+                } else {
+                    LOG.warning("Rejected invalid motivationOrigin '" + entry.motivationOrigin() + "' for goal '" + entry.name() + "'");
+                }
+            }
+            if (entry.clarity() != null) props.put("clarity", String.valueOf(entry.clarity()));
+            if (entry.evidenceBasis() != null) props.put("evidenceBasis", entry.evidenceBasis());
+            props.put("recognitionSource", "biographical-import");
 
             var origin = PlaceHandler.resolveOrigin(entry.confidenceOrigin());
             var input = NodeInput.of(entry.name(), subgraphId)
