@@ -30,7 +30,7 @@ class GoallikeTest {
                 "description", "find diamond",
                 "status", "active",
                 "horizon", "medium",
-                "origin", "conversation",
+                "recognitionSource", "conversation",
                 "resolution", "low",
                 "urgency", "0.8",
                 "feasibility", "0.6"));
@@ -38,7 +38,7 @@ class GoallikeTest {
         assertThat(g.description()).contains("find diamond");
         assertThat(g.status()).contains("active");
         assertThat(g.horizon()).contains("medium");
-        assertThat(g.origin()).contains("conversation");
+        assertThat(g.recognitionSource()).contains("conversation");
         assertThat(g.resolution()).contains("low");
         assertThat(g.urgency()).contains("0.8");
         assertThat(g.feasibility()).contains("0.6");
@@ -50,7 +50,7 @@ class GoallikeTest {
         assertThat(g.description()).isEmpty();
         assertThat(g.status()).isEmpty();
         assertThat(g.horizon()).isEmpty();
-        assertThat(g.origin()).isEmpty();
+        assertThat(g.recognitionSource()).isEmpty();
         assertThat(g.resolution()).isEmpty();
         assertThat(g.urgency()).isEmpty();
         assertThat(g.feasibility()).isEmpty();
