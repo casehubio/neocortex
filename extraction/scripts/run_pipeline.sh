@@ -7,6 +7,10 @@
 # The pipeline converges: after entity synthesis (Phase 2b) produces new
 # memories, those go through structural extraction and enrichment. The loop
 # terminates when no new memories are generated or max passes is reached.
+#
+# Key intermediates (enriched.json, nlp-baseline.json) are preserved in
+# the output directory and tracked in git. Re-assembly (Step 7) and
+# re-verification (Step 8) can re-run without LLM calls using these files.
 
 set -euo pipefail
 
