@@ -131,6 +131,8 @@ Respond with JSON only: {"entities": [...]}"""
 
 MEMORY_SYSTEM = """You are a biographical knowledge graph builder. Extract MEMORIES from the passage — structured records of experiences, relationships, reflections, and moods.
 
+You will be given a list of extracted entities — use ONLY these canonical entity names for the subject and related_entities fields. Do not abbreviate or alter names (e.g., use "Frida Kahlo" not "Frida", use "Mexico City" not "Mexico").
+
 For each memory:
 - text: summarised memory (1-2 sentences capturing the key experience)
 - domain: classify as one of:
@@ -230,6 +232,7 @@ def infer_cooccurrence_edges(entities, memories):
                 'target': canonical_rel,
                 'type': 'associated-with',
                 'confidence_origin': 'INFERRED',
+                'confidence_value': 0.5,
                 'validation_tier': 'UNVALIDATED',
                 'extraction_method': 'cooccurrence-inference',
             })
@@ -279,7 +282,8 @@ def extract_passage(client, passage, candidates):
 
     edge_result = call_llm(client, EDGE_SYSTEM, text, candidate_text, 'edges',
                            entity_context=entity_ctx)
-    mem_result = call_llm(client, MEMORY_SYSTEM, text, candidate_text, 'memories')
+    mem_result = call_llm(client, MEMORY_SYSTEM, text, candidate_text, 'memories',
+                          entity_context=entity_ctx)
 
     llm_edges = edge_result.get('edges', [])
     memories = mem_result.get('memories', [])
@@ -351,16 +355,20 @@ def group_memories_by_entity(memories: list) -> dict[str, list]:
 
 
 def build_convergence_prompt(entity_name: str, memories: list,
-                              known_entities: list, known_edges: list) -> str:
+                              known_entities: list, known_edges: list,
+                              entity_objects: list = None) -> str:
     mem_text = '\n'.join(f'  [{i+1}] {m["text"]}' for i, m in enumerate(memories))
-    ent_text = ', '.join(known_entities[:50])
+    if entity_objects:
+        ent_text = build_entity_context(entity_objects)
+    else:
+        ent_text = ', '.join(known_entities[:50])
     edge_text = '\n'.join(f'  {e}' for e in known_edges[:50])
     return f"""Entity: {entity_name}
 
 Synthesized insights ({len(memories)} total):
 {mem_text}
 
-Known entities (do NOT re-extract these):
+Known entities (do NOT re-extract these — use these canonical names for any new edges/memories):
 {ent_text}
 
 Known edges (do NOT re-extract these):
@@ -447,7 +455,8 @@ def run_convergence(args):
         print("NEW_MEMORIES=0")
         return
 
-    known_entities = [e['name'] for e in structure.get('entities', [])]
+    entity_objects = structure.get('entities', [])
+    known_entities = [e['name'] for e in entity_objects]
     known_edges = [f"{e['source']}|{e['target']}|{e['type']}" for e in structure.get('edges', []) if e.get('source') and e.get('target') and e.get('type')]
 
     total_new_entities = 0
@@ -456,7 +465,8 @@ def run_convergence(args):
 
     for i, (entity_name, mems) in enumerate(groups.items()):
         print(f"  [{i+1}/{len(groups)}] {entity_name}: {len(mems)} generated memories")
-        prompt = build_convergence_prompt(entity_name, mems, known_entities, known_edges)
+        prompt = build_convergence_prompt(entity_name, mems, known_entities, known_edges,
+                                          entity_objects=entity_objects)
 
         result = call_convergence_llm(client, CONVERGENCE_SYSTEM, prompt, entity_name)
         if not result:

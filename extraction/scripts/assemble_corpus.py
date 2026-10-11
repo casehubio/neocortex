@@ -734,6 +734,9 @@ def create_cross_tier_edges(nodes: list[dict]) -> list[dict]:
                         'source': g['name'],
                         'target': other['name'],
                         'type': 'contributes-to',
+                        'confidence_origin': 'INFERRED',
+                        'confidence_value': 0.6,
+                        'validation_tier': 'REGISTERED',
                         'source_passage': 'cross-tier-inference',
                     })
     return edges
