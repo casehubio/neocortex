@@ -100,7 +100,19 @@ For each goal, produce:
 - goal_need_tier: SAFETY | TASKS | SOCIAL | SELF_EXPRESSION | UNDERSTANDING
 - goal_priority: 0.0-1.0
 - goal_feasibility: 0.0-1.0
+- content_domain: one of: morality-and-virtue | religion-and-spirituality | self-actualisation | avoidance | social-relating | health | family | mastery-and-competence | financial-and-occupational
+- content_subdomain: (optional, more specific) one of: social-values | personal-morals | help-others | highly-regarded | religion-and-spirituality | wisdom-and-serenity | self-knowledge-and-happiness | appreciating-beauty | exploration-and-passions | enjoy-life | avoid-stress-harm-rejection-conflict | avoid-hassles | relate-and-belong | intimacy | stability | power | leadership | health | family | achievement | self-efficacy | practical-competence | intellectual-competence | finances | occupational-success
+- motivation_origin: intrinsic | identified | introjected | external
+  * intrinsic: pursued for inherent satisfaction
+  * identified: valued and personally endorsed
+  * introjected: pursued to avoid guilt or gain approval
+  * external: driven by external reward or punishment
+- clarity: 0.0-1.0 (how well-defined the goal is — vague yearning=0.2, concrete plan=0.9)
+- evidence_basis: quote or paraphrase the textual evidence supporting this goal (required unless confidence origin is SPECULATED)
 - confidence: {"origin": "STATED|INFERRED|SPECULATED", "value": 0.0-1.0}
+  * STATED 0.85-1.0: subject explicitly declares the goal
+  * INFERRED 0.5-0.8: goal implied by sustained actions or choices
+  * SPECULATED 0.3-0.5: analyst interpretation from indirect evidence
 
 Extract aggressively — look for:
 - Explicit aspirations ("she wanted to...", "her dream was...")
