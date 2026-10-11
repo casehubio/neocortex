@@ -66,9 +66,11 @@ Respond with JSON only: {"entities": [...]}"""
 
 EDGE_SYSTEM = """You are a biographical knowledge graph builder. Extract RELATIONSHIPS (edges) between entities in the passage.
 
+You will be given a list of extracted entities — use ONLY these entity names as source/target. Connect every pair of entities that have a relationship in the passage. Be thorough: if two entities appear in the same context, there is likely a relationship.
+
 For each edge:
-- source: entity name
-- target: entity name
+- source: entity name (must match an extracted entity)
+- target: entity name (must match an extracted entity)
 - type: relationship type from vocabulary:
   Kinship: child-of, sibling-of, parent-of
   Romantic: married-to, affair-with, divorced-from
@@ -80,6 +82,8 @@ For each edge:
   Activity: participated, occasion
 - confidence_origin: STATED | INFERRED
 - validation_tier: REGISTERED (from vocabulary above) | UNVALIDATED (ad-hoc type)
+
+Extract edges aggressively — the graph needs rich connectivity. For every entity pair that co-occurs in the passage, consider whether a relationship exists. Include spatial relationships (person lives-at place), creative relationships (person created-by project), and goal relationships (person pursues goal).
 
 Respond with JSON only: {"edges": [...]}"""
 
@@ -174,18 +178,70 @@ When a passage describes a RELATIONSHIP change, create BOTH:
 Respond with JSON only: {"memories": [...]}"""
 
 
-def call_llm(client, system_prompt, passage_text, candidates_text, chunk_name):
+def build_entity_context(entities):
+    """Format extracted entities as context text for the edge extraction prompt."""
+    if not entities:
+        return '  (none)'
+    lines = []
+    for ent in entities[:50]:
+        name = ent.get('name', '?')
+        etype = ent.get('type', '?')
+        parts = [f'{name} ({etype}']
+        if etype == 'goal':
+            tier = ent.get('goal_tier')
+            domain = ent.get('content_domain')
+            if tier:
+                parts.append(f', {tier}')
+            if domain:
+                parts.append(f', {domain}')
+        parts.append(')')
+        lines.append(f"  - {''.join(parts)}")
+    return '\n'.join(lines)
+
+
+def infer_cooccurrence_edges(entities, memories):
+    """Infer associated-with edges from entity co-occurrence in memories."""
+    entity_names = {e['name'].lower(): e['name'] for e in entities}
+    seen_pairs = set()
+    edges = []
+    for mem in memories:
+        subject = mem.get('subject')
+        related = mem.get('related_entities', [])
+        if not subject or not related:
+            continue
+        subj_lower = subject.lower()
+        if subj_lower not in entity_names:
+            continue
+        canonical_subj = entity_names[subj_lower]
+        for rel in related:
+            rel_lower = rel.lower()
+            if rel_lower not in entity_names or rel_lower == subj_lower:
+                continue
+            canonical_rel = entity_names[rel_lower]
+            pair = tuple(sorted([canonical_subj, canonical_rel]))
+            if pair in seen_pairs:
+                continue
+            seen_pairs.add(pair)
+            edges.append({
+                'source': canonical_subj,
+                'target': canonical_rel,
+                'type': 'associated-with',
+                'confidence_origin': 'INFERRED',
+                'validation_tier': 'UNVALIDATED',
+                'extraction_method': 'cooccurrence-inference',
+            })
+    return edges
+
+
+def call_llm(client, system_prompt, passage_text, candidates_text, chunk_name,
+             entity_context=None):
     """Make a single focused LLM call and parse JSON response."""
-    user_prompt = f"""Passage:
-
-{passage_text}
-
----
-
-NLP candidate entities:
-{candidates_text if candidates_text else '  (none)'}
-
-Extract {chunk_name} from this passage."""
+    sections = [f"Passage:\n\n{passage_text}\n\n---"]
+    sections.append(f"NLP candidate entities:\n{candidates_text if candidates_text else '  (none)'}")
+    if entity_context is not None:
+        sections.append(f"Extracted entities (use these as source/target for edges):\n{entity_context}")
+    sections.append(f"Extract {chunk_name} from this passage.")
+    user_prompt = '\n\n'.join(sections)
 
     try:
         response = client.messages.create(
@@ -205,7 +261,7 @@ Extract {chunk_name} from this passage."""
 
 
 def extract_passage(client, passage, candidates):
-    """Extract structure from one passage via 4 independent LLM calls."""
+    """Extract structure from one passage: entities+goals first, then edges with entity context."""
     candidate_text = '\n'.join(
         f"  - {c['canonical']} ({c['type']}, {c['mentions']} mentions, tier: {c.get('depth_tier', '?')})"
         for c in candidates[:30]
@@ -214,15 +270,31 @@ def extract_passage(client, passage, candidates):
 
     ent_result = call_llm(client, ENTITY_SYSTEM, text, candidate_text, 'entities')
     goal_result = call_llm(client, GOAL_SYSTEM, text, candidate_text, 'goals')
-    edge_result = call_llm(client, EDGE_SYSTEM, text, candidate_text, 'edges')
-    mem_result = call_llm(client, MEMORY_SYSTEM, text, candidate_text, 'memories')
 
     all_entities = ent_result.get('entities', []) + goal_result.get('entities', [])
+    entity_ctx = build_entity_context(all_entities)
+
+    edge_result = call_llm(client, EDGE_SYSTEM, text, candidate_text, 'edges',
+                           entity_context=entity_ctx)
+    mem_result = call_llm(client, MEMORY_SYSTEM, text, candidate_text, 'memories')
+
+    llm_edges = edge_result.get('edges', [])
+    memories = mem_result.get('memories', [])
+    cooccurrence_edges = infer_cooccurrence_edges(all_entities, memories)
+
+    existing_pairs = {(e.get('source', '').lower(), e.get('target', '').lower())
+                      for e in llm_edges}
+    for ce in cooccurrence_edges:
+        pair = (ce['source'].lower(), ce['target'].lower())
+        reverse = (pair[1], pair[0])
+        if pair not in existing_pairs and reverse not in existing_pairs:
+            llm_edges.append(ce)
+            existing_pairs.add(pair)
 
     return {
         'entities': all_entities,
-        'edges': edge_result.get('edges', []),
-        'memories': mem_result.get('memories', []),
+        'edges': llm_edges,
+        'memories': memories,
     }
 
 
