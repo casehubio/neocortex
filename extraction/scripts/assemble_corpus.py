@@ -366,6 +366,97 @@ def normalise_occ_emotions(emotions: list) -> list:
     return result
 
 
+_CONTENT_DOMAIN_NORMALISATION = {
+    'career-development': 'financial-and-occupational',
+    'professional-growth': 'financial-and-occupational',
+    'work-success': 'financial-and-occupational',
+    'achievement-and-competence': 'mastery-and-competence',
+    'skill-building': 'mastery-and-competence',
+    'self-improvement': 'self-actualisation',
+    'personal-growth': 'self-actualisation',
+    'self-development': 'self-actualisation',
+    'relationships': 'social-relating',
+    'social-connection': 'social-relating',
+    'belonging': 'social-relating',
+    'safety': 'avoidance',
+    'security': 'avoidance',
+    'harm-avoidance': 'avoidance',
+    'faith': 'religion-and-spirituality',
+    'spirituality': 'religion-and-spirituality',
+    'ethics': 'morality-and-virtue',
+    'values': 'morality-and-virtue',
+    'doing-good': 'morality-and-virtue',
+}
+
+_CONTENT_DOMAIN_CANONICAL = {
+    'morality-and-virtue', 'religion-and-spirituality', 'self-actualisation',
+    'avoidance', 'social-relating', 'health', 'family',
+    'mastery-and-competence', 'financial-and-occupational',
+}
+
+_MOTIVATION_ORIGIN_NORMALISATION = {
+    'self-driven': 'intrinsic',
+    'autonomous': 'intrinsic',
+    'self-motivated': 'intrinsic',
+    'personally-valued': 'identified',
+    'self-endorsed': 'identified',
+    'guilt-driven': 'introjected',
+    'shame-based': 'introjected',
+    'obligatory': 'introjected',
+    'socially-imposed': 'external',
+    'reward-driven': 'external',
+    'compliance': 'external',
+}
+
+_MOTIVATION_ORIGIN_CANONICAL = {'intrinsic', 'identified', 'introjected', 'external'}
+
+_CONTENT_SUBDOMAIN_CANONICAL = {
+    'social-values', 'personal-morals', 'help-others', 'highly-regarded',
+    'religion-and-spirituality',
+    'wisdom-and-serenity', 'self-knowledge-and-happiness', 'appreciating-beauty',
+    'exploration-and-passions', 'enjoy-life',
+    'avoid-stress-harm-rejection-conflict', 'avoid-hassles',
+    'relate-and-belong', 'intimacy', 'stability', 'power', 'leadership',
+    'health', 'family',
+    'achievement', 'self-efficacy', 'practical-competence', 'intellectual-competence',
+    'finances', 'occupational-success',
+}
+
+
+def normalise_goal_vocabulary(nodes: list[dict]) -> list[dict]:
+    """Normalise content_domain, content_subdomain, and motivation_origin on goal nodes."""
+    for node in nodes:
+        if node.get('subgraph_type') != 'goal':
+            continue
+        cd = node.get('content_domain')
+        if cd:
+            if cd in _CONTENT_DOMAIN_CANONICAL:
+                pass
+            elif cd in _CONTENT_DOMAIN_NORMALISATION:
+                node['original_content_domain'] = cd
+                node['content_domain'] = _CONTENT_DOMAIN_NORMALISATION[cd]
+            else:
+                node['original_content_domain'] = cd
+                node['content_domain'] = None
+
+        cs = node.get('content_subdomain')
+        if cs and cs not in _CONTENT_SUBDOMAIN_CANONICAL:
+            node['original_content_subdomain'] = cs
+            node['content_subdomain'] = None
+
+        mo = node.get('motivation_origin')
+        if mo:
+            if mo in _MOTIVATION_ORIGIN_CANONICAL:
+                pass
+            elif mo in _MOTIVATION_ORIGIN_NORMALISATION:
+                node['original_motivation_origin'] = mo
+                node['motivation_origin'] = _MOTIVATION_ORIGIN_NORMALISATION[mo]
+            else:
+                node['original_motivation_origin'] = mo
+                node['motivation_origin'] = None
+    return nodes
+
+
 def _word_set(name: str) -> set[str]:
     """Extract content words from a goal name, ignoring stop words."""
     stops = {'a', 'an', 'the', 'and', 'or', 'in', 'of', 'to', 'for', 'from',
@@ -419,8 +510,12 @@ def dedup_goals(nodes: list[dict], jw_threshold: float = 0.90,
             words_b = _word_set(b['name'])
             jac = _jaccard(words_a, words_b)
 
+            domain_a = a.get('content_domain')
+            domain_b = b.get('content_domain')
+            domain_compatible = (domain_a is None or domain_b is None
+                                 or domain_a == domain_b)
             is_mechanical_match = (jw >= jw_threshold and jac >= jaccard_threshold
-                                   and tier_a == tier_b)
+                                   and tier_a == tier_b and domain_compatible)
 
             if is_mechanical_match:
                 cluster.append(b['name'])
@@ -468,7 +563,9 @@ def assemble(enriched: dict) -> dict:
         for key in ('traits', 'trait_properties', 'confidence', 'valid_from', 'valid_until',
                      'node_ref', 'pad',
                      'goal_tier', 'goal_horizon', 'goal_status', 'goal_urgency',
-                     'goal_need_tier', 'goal_priority', 'goal_feasibility', 'goal_target_date'):
+                     'goal_need_tier', 'goal_priority', 'goal_feasibility', 'goal_target_date',
+                     'content_domain', 'content_subdomain', 'motivation_origin',
+                     'clarity', 'evidence_basis'):
             if key in ent:
                 node[key] = ent[key]
         for event in ent.get('lifecycle', []):
@@ -583,6 +680,7 @@ def assemble(enriched: dict) -> dict:
             'extraction_pass': 'phase-2b-entity',
         })
 
+    nodes = normalise_goal_vocabulary(nodes)
     dedup_report, nodes = dedup_goals(nodes)
 
     corpus = {
