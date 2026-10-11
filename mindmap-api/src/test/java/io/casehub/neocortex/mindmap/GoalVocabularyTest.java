@@ -35,4 +35,30 @@ class GoalVocabularyTest {
                 .filter(e -> e.canonical().equals("decomposes-into")).findFirst().orElseThrow();
         assertThat(d.aliases()).contains("breaks-down-to", "involves");
     }
+
+    @Test
+    void contentDomainsHasNineValues() {
+        assertThat(GoalVocabulary.CONTENT_DOMAINS).hasSize(9);
+        assertThat(GoalVocabulary.CONTENT_DOMAINS).contains(
+                "mastery-and-competence", "self-actualisation", "avoidance",
+                "social-relating", "health", "family",
+                "morality-and-virtue", "religion-and-spirituality",
+                "financial-and-occupational");
+    }
+
+    @Test
+    void motivationOriginsHasFourValues() {
+        assertThat(GoalVocabulary.MOTIVATION_ORIGINS).hasSize(4);
+        assertThat(GoalVocabulary.MOTIVATION_ORIGINS).contains(
+                "intrinsic", "identified", "introjected", "external");
+    }
+
+    @Test
+    void contentSubdomainsHas25Values() {
+        assertThat(GoalVocabulary.CONTENT_SUBDOMAINS).hasSize(25);
+        assertThat(GoalVocabulary.CONTENT_SUBDOMAINS).contains(
+                "self-efficacy", "achievement", "religion-and-spirituality",
+                "intimacy", "leadership", "finances");
+    }
+
 }

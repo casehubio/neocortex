@@ -65,4 +65,35 @@ class GoallikeTest {
         assertThat(g.horizon()).isEmpty();
         assertThat(g.urgency()).isEmpty();
     }
+
+    @Test
+    void contentDomainReturnsValue() {
+        var g = thing(Map.of("contentDomain", "mastery-and-competence")).as(Goallike.class);
+        assertThat(g.contentDomain()).contains("mastery-and-competence");
+    }
+
+    @Test
+    void contentSubdomainReturnsValue() {
+        var g = thing(Map.of("contentSubdomain", "achievement")).as(Goallike.class);
+        assertThat(g.contentSubdomain()).contains("achievement");
+    }
+
+    @Test
+    void motivationOriginReturnsValue() {
+        var g = thing(Map.of("motivationOrigin", "intrinsic")).as(Goallike.class);
+        assertThat(g.motivationOrigin()).contains("intrinsic");
+    }
+
+    @Test
+    void clarityReturnsStringValue() {
+        var g = thing(Map.of("clarity", "0.8")).as(Goallike.class);
+        assertThat(g.clarity()).contains("0.8");
+    }
+
+    @Test
+    void evidenceBasisReturnsValue() {
+        var g = thing(Map.of("evidenceBasis", "Pattern of daily practice across §4-§8")).as(Goallike.class);
+        assertThat(g.evidenceBasis()).contains("Pattern of daily practice across §4-§8");
+    }
+
 }

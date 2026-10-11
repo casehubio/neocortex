@@ -10,4 +10,15 @@ public interface Goallike {
     Optional<String> resolution();
     Optional<String> urgency();
     Optional<String> feasibility();
+
+    Optional<String> contentDomain();
+
+    Optional<String> contentSubdomain();
+
+    Optional<String> motivationOrigin();
+
+    Optional<String> clarity();
+
+    Optional<String> evidenceBasis();
+
 }
