@@ -42,25 +42,41 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final CapsEngine capsEngine;
     private final SituationClassifier classifier;
     private final int maxPerPass;
+    private final double emaRetention;
+    private final double reinforcementBoostCap;
+    private final int reinforcementScale;
+    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+
 
     @Inject
     public BehavioralSynthesisPhase(MindMapStore store,
-                                     Instance<CapsEngine> capsEngine,
-                                     Instance<SituationClassifier> classifier) {
-        this.store = store;
-        this.capsEngine = capsEngine.isResolvable() ? capsEngine.get() : null;
-        this.classifier = classifier.isResolvable() ? classifier.get() : null;
-        this.maxPerPass = 20;
+                                    Instance<CapsEngine> capsEngine,
+                                    Instance<SituationClassifier> classifier,
+                                    Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry,
+                                    Instance<BehavioralSynthesisConfig> config) {
+        this.store            = store;
+        this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
+        this.classifier       = classifier.isResolvable() ? classifier.get() : null;
+        this.defaultsRegistry = defaultsRegistry.isResolvable() ? defaultsRegistry.get() : null;
+        BehavioralSynthesisConfig c = config.isResolvable() ? config.get() : null;
+        this.maxPerPass            = c != null ? c.maxPerPass() : 20;
+        this.emaRetention          = c != null ? c.emaRetention() : 0.5;
+        this.reinforcementBoostCap = c != null ? c.reinforcementBoostCap() : 0.5;
+        this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
     }
 
     BehavioralSynthesisPhase(MindMapStore store,
-                              CapsEngine capsEngine,
-                              SituationClassifier classifier,
-                              int maxPerPass) {
-        this.store = store;
-        this.capsEngine = capsEngine;
-        this.classifier = classifier;
-        this.maxPerPass = maxPerPass;
+                             CapsEngine capsEngine,
+                             SituationClassifier classifier,
+                             int maxPerPass) {
+        this.store                 = store;
+        this.capsEngine            = capsEngine;
+        this.classifier            = classifier;
+        this.defaultsRegistry      = null;
+        this.maxPerPass            = maxPerPass;
+        this.emaRetention          = 0.5;
+        this.reinforcementBoostCap = 0.5;
+        this.reinforcementScale    = 20;
     }
 
     @Override
@@ -97,17 +113,25 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 LOG.info("Auto-initialized CAPS state for agent " + agentId);
             }
 
-            Map<String, Double> combinedActivations = new HashMap<>();
+            Map<String, Double> experienceActivations = new HashMap<>();
 
             for (MindMapNode node : agentNodes) {
                 List<SituationActivation> activations = classifier.classify(
                     node.name(), nodeMetadata(node));
 
                 for (SituationActivation sa : activations) {
-                    combinedActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                    experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                 }
 
             }
+
+            String dominantInput = experienceActivations.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("");
+
+            Map<String, Double> combinedActivations = new HashMap<>(experienceActivations);
+            mergeDriveIntensities(combinedActivations, agentId, tenantId);
 
             if (combinedActivations.isEmpty()) continue;
 
@@ -117,10 +141,27 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
 
+                io.casehub.neocortex.cognitive.index.ExpressionStyleDefaults expressionStyles = null;
+                if (defaultsRegistry != null) {
+                    var defaults = defaultsRegistry.forAgent(agentId);
+                    if (defaults.isPresent() && defaults.get().expressionStyles() != null) {
+                        expressionStyles = defaults.get().expressionStyles();
+                    }
+                }
+
                 for (BehavioralAttractor attractor : result.attractors()) {
+                    BehavioralAttractor enriched = attractor;
+                    if (expressionStyles != null) {
+                        String label = expressionStyles.expressionFor(attractor.category());
+                        if (label != null) {
+                            enriched = new BehavioralAttractor(attractor.category(),
+                                    attractor.nodeId(), attractor.strength(),
+                                    attractor.highSaturation(), attractor.sourceGeneration(), label);
+                        }
+                    }
                     createOrStrengthenAttractor(
-                        tenantId, behavioralSgId, agentId, attractor,
-                        existingAttractors, nodeNames);
+                        tenantId, behavioralSgId, agentId, enriched,
+                        existingAttractors, nodeNames, dominantInput);
                 }
 
                 AgentCapsState updated = state;
@@ -202,23 +243,27 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                              String agentId,
                                              BehavioralAttractor attractor,
                                              Set<String> existingAttractors,
-                                             List<String> sourceNodeNames) {
+                                             List<String> sourceNodeNames,
+                                             String dominantInput) {
         Optional<MindMapNode> existing = store.search(
                                                       MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.BEHAVIORAL))
                                               .stream()
                                               .filter(n -> attractor.nodeId().equals(n.property("caps-node-id").orElse(null)))
                                               .filter(n -> agentId.equals(n.property("agent-id").orElse(null)))
+                                              .filter(n -> dominantInput.equals(n.property("dominant-input").orElse("")))
                                               .findFirst();
 
         if (existing.isPresent()) {
             MindMapNode node = existing.get();
             double currentStrength = node.property("strength")
                                          .map(Double::parseDouble).orElse(0.0);
-            double newStrength = Math.min(1.0,
-                                          currentStrength * 0.7 + attractor.strength() * 0.3);
-
             int currentCount = node.property("source-count")
                                    .map(Integer::parseInt).orElse(0);
+            double reinforcementBoost = Math.min(reinforcementBoostCap, Math.log1p(currentCount) / Math.log1p(reinforcementScale));
+            double boostedStrength    = Math.min(1.0, attractor.strength() * (1 + reinforcementBoost));
+            double newStrength = Math.min(1.0,
+                                          currentStrength * emaRetention + boostedStrength * (1 - emaRetention));
+
             String currentNames = node.property("source-names").orElse("");
 
             List<String> namesList = new ArrayList<>(
@@ -234,6 +279,10 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             props.put("generation", String.valueOf(attractor.sourceGeneration()));
             props.put("source-count", String.valueOf(currentCount + sourceNodeNames.size()));
             props.put("source-names", cappedNames);
+            props.put("dominant-input", dominantInput);
+            if (attractor.personalityLabel() != null) {
+                props.put("personality-label", attractor.personalityLabel());
+            }
 
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPropertiesToSet(props),
@@ -250,13 +299,16 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             props.put("generation", String.valueOf(attractor.sourceGeneration()));
             props.put("source-count", String.valueOf(sourceNodeNames.size()));
             props.put("source-names", names);
+            props.put("dominant-input", dominantInput);
+            if (attractor.personalityLabel() != null) {
+                props.put("personality-label", attractor.personalityLabel());
+            }
 
-            NodeInput input = NodeInput.of(attractor.nodeId(), behavioralSgId)
-                                       .withTraits(Set.of(CAPS_GENERATED_TRAIT))
-                                       .withProvenance("behavioral-synthesis")
-                                       .withProperties(props);
-            store.addNode(input, tenantId);
-            existingAttractors.add(attractor.nodeId());
+            store.addNode(
+                    NodeInput.of(attractor.nodeId() + (dominantInput.isEmpty() ? "" : "-" + dominantInput), behavioralSgId)
+                             .withTraits(Set.of(CAPS_GENERATED_TRAIT))
+                             .withProperties(props),
+                    tenantId);
         }
     }
 
@@ -302,6 +354,30 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             .map(n -> n.property("caps-node-id"))
             .flatMap(Optional::stream)
             .collect(Collectors.toCollection(HashSet::new));
+    }
+
+
+    private void mergeDriveIntensities(Map<String, Double> combinedActivations,
+                                       String agentId, String tenantId) {
+        var cognitiveNodes = store.search(
+                MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE));
+        for (var node : cognitiveNodes) {
+            if (!"drive-intensity".equals(node.properties().get("cognitiveKind"))) {continue;}
+            if (!agentId.equals(node.properties().get("agent-id"))) {continue;}
+
+            String description = node.properties().get("description");
+            if (description == null || description.isBlank()) {continue;}
+
+            double intensity;
+            try { intensity = Double.parseDouble(node.properties().getOrDefault("intensity", "0.5")); }
+            catch (NumberFormatException e) { intensity = 0.5; }
+
+            var activations = classifier.classify(description, Map.of());
+            for (var sa : activations) {
+                double scaled = sa.confidence() * intensity;
+                combinedActivations.merge(sa.nodeId(), scaled, Math::max);
+            }
+        }
     }
 
     private String findOrCreateBehavioralSubgraph(String tenantId) {

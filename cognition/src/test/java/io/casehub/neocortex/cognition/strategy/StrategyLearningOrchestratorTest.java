@@ -242,7 +242,8 @@ class StrategyLearningOrchestratorTest {
         var config = new StrategyLearningConfig(
                 1, 2, 50, 10, 0.5, 100, Duration.ofSeconds(1),
                 new io.casehub.neocortex.memory.MemoryDomain("test"),
-                "engagement-evidence", "strategy-profile");
+                "engagement-evidence", "strategy-profile",
+                0.6, 0.4, 0.2);
         var storedProfile = new java.util.concurrent.atomic.AtomicReference<StrategyProfile>();
         var testStrategyMemory = mock(StrategyMemory.class);
         doAnswer(inv -> {

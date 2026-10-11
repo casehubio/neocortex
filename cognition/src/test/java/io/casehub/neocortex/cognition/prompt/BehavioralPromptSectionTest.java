@@ -284,4 +284,131 @@ class BehavioralPromptSectionTest {
         assertThat(sectionWithGut.render(context)).contains("pulling back");
     }
 
+    @Test
+    void activatedDriveSortedBeforeInactiveDespiteLowerStrength() {
+        var sgId = store.createSubgraph(
+                new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null), "t1");
+        store.addNode(NodeInput.of("strong-inactive", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "strong-inactive",
+                                       "category", "achievement",
+                                       "strength", "0.90",
+                                       "agent-id", "agent1",
+                                       "source-count", "10")),
+                      "t1");
+        store.addNode(NodeInput.of("weak-activated", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "weak-activated",
+                                       "category", "social",
+                                       "strength", "0.30",
+                                       "agent-id", "agent1",
+                                       "source-count", "3")),
+                      "t1");
+
+        var activatedContext = new CognitionRenderContext("agent1", "t1", null,
+                                                          java.util.List.of("social"));
+        var rendered = section.render(activatedContext);
+        assertThat(rendered).isNotNull();
+        int activatedPos = rendered.indexOf("weak-activated");
+        int inactivePos  = rendered.indexOf("strong-inactive");
+        assertThat(activatedPos).isLessThan(inactivePos);
+    }
+
+    @Test
+    void withinActivatedGroupSortedByStrengthDescending() {
+        var sgId = store.createSubgraph(
+                new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null), "t1");
+        store.addNode(NodeInput.of("weaker-activated", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "weaker-activated",
+                                       "category", "social",
+                                       "strength", "0.40",
+                                       "agent-id", "agent1",
+                                       "source-count", "3")),
+                      "t1");
+        store.addNode(NodeInput.of("stronger-activated", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "stronger-activated",
+                                       "category", "achievement",
+                                       "strength", "0.70",
+                                       "agent-id", "agent1",
+                                       "source-count", "7")),
+                      "t1");
+
+        var activatedContext = new CognitionRenderContext("agent1", "t1", null,
+                                                          java.util.List.of("social", "achievement"));
+        var rendered = section.render(activatedContext);
+        assertThat(rendered).isNotNull();
+        int strongerPos = rendered.indexOf("stronger-activated");
+        int weakerPos   = rendered.indexOf("weaker-activated");
+        assertThat(strongerPos).isLessThan(weakerPos);
+    }
+
+    @Test
+    void noActivatedDrivesFallsBackToStrengthOrdering() {
+        var sgId = store.createSubgraph(
+                new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null), "t1");
+        store.addNode(NodeInput.of("weaker", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "weaker",
+                                       "category", "social",
+                                       "strength", "0.30",
+                                       "agent-id", "agent1",
+                                       "source-count", "3")),
+                      "t1");
+        store.addNode(NodeInput.of("stronger", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "stronger",
+                                       "category", "achievement",
+                                       "strength", "0.80",
+                                       "agent-id", "agent1",
+                                       "source-count", "8")),
+                      "t1");
+
+        var rendered = section.render(context);
+        assertThat(rendered).isNotNull();
+        int strongerPos = rendered.indexOf("stronger");
+        int weakerPos   = rendered.indexOf("weaker");
+        assertThat(strongerPos).isLessThan(weakerPos);
+    }
+
+    @Test
+    void activatedDriveBumpsIntoTopFive() {
+        var sgId = store.createSubgraph(
+                new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null), "t1");
+        for (int i = 1; i <= 6; i++) {
+            store.addNode(NodeInput.of("inactive-" + i, sgId)
+                                   .withTraits(Set.of("CapsGenerated"))
+                                   .withProperties(Map.of(
+                                           "caps-node-id", "inactive-" + i,
+                                           "category", "achievement",
+                                           "strength", String.valueOf(0.3 + i * 0.1),
+                                           "agent-id", "agent1",
+                                           "source-count", "3")),
+                          "t1");
+        }
+        store.addNode(NodeInput.of("activated-low", sgId)
+                               .withTraits(Set.of("CapsGenerated"))
+                               .withProperties(Map.of(
+                                       "caps-node-id", "activated-low",
+                                       "category", "social",
+                                       "strength", "0.15",
+                                       "agent-id", "agent1",
+                                       "source-count", "1")),
+                      "t1");
+
+        var activatedContext = new CognitionRenderContext("agent1", "t1", null,
+                                                          java.util.List.of("social"));
+        var rendered = section.render(activatedContext);
+        assertThat(rendered).isNotNull();
+        assertThat(rendered).contains("activated-low");
+    }
+
+
 }

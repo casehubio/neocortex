@@ -1,11 +1,11 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -27,33 +27,43 @@ import java.util.stream.Collectors;
 public class MergeDetectionPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(
-        MergeDetectionPhase.class.getName());
+            MergeDetectionPhase.class.getName());
 
-    final MindMapStore store;
-    final Object embeddingModel;
+    final         MindMapStore          store;
+    final         Object                embeddingModel;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
-    final double nameThreshold;
-    final double neighborThreshold;
-    final double autoMergeThreshold;
-    final int maxPerPass;
+    final         MergeDetectionConfig  config;
 
     @Inject
     public MergeDetectionPhase(MindMapStore store,
-                                @SuppressWarnings("unused")
-                                Instance<Object> embeddingModel) {
-        this(store, null, 0.85, 0.3, 0.9, 10);
+                               @SuppressWarnings("unused")
+                               Instance<Object> embeddingModel,
+                               Instance<MergeDetectionConfig> config) {
+        this.store          = store;
+        this.embeddingModel = null;
+        this.config         = config.isResolvable() ? config.get() : null;
     }
 
-    MergeDetectionPhase(MindMapStore store, Object embeddingModel,
-                         double nameThreshold, double neighborThreshold,
-                         double autoMergeThreshold, int maxPerPass) {
-        this.store = store;
-        this.embeddingModel = embeddingModel;
-        this.nameThreshold = nameThreshold;
-        this.neighborThreshold = neighborThreshold;
-        this.autoMergeThreshold = autoMergeThreshold;
-        this.maxPerPass = maxPerPass;
+    MergeDetectionPhase(MindMapStore store, MergeDetectionConfig config) {
+        this.store          = store;
+        this.embeddingModel = null;
+        this.config         = config;
     }
+
+    private double nameThreshold()      {return config != null ? config.nameThreshold() : 0.85;}
+
+    private double neighborThreshold()  {return config != null ? config.neighborThreshold() : 0.3;}
+
+    private double autoMergeThreshold() {return config != null ? config.autoMergeThreshold() : 0.9;}
+
+    private double reviewThreshold()    {return config != null ? config.reviewThreshold() : 0.7;}
+
+    private double nameWeight()         {return config != null ? config.nameWeight() : 0.6;}
+
+    private double neighborWeight()     {return config != null ? config.neighborWeight() : 0.4;}
+
+    private int    maxPerPass()         {return config != null ? config.maxPerPass()         : 10;  }
+    private double candidateMinScore()  {return config != null ? config.candidateMinScore()  : 0.6; }
 
     @Override
     public String name() {
@@ -75,38 +85,38 @@ public class MergeDetectionPhase implements ConsolidationPhase {
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
         List<String> subgraphIds = orderedSubgraphs(tenantId, subgraphPriority);
-        int mergeCount = 0;
+        int          mergeCount  = 0;
 
         for (String sgId : subgraphIds) {
-            if (mergeCount >= maxPerPass) break;
+            if (mergeCount >= maxPerPass()) {break;}
             List<MergeCandidate> candidates = detectCandidates(sgId, tenantId);
 
             for (MergeCandidate candidate : candidates) {
-                if (mergeCount >= maxPerPass) break;
-                if (candidate.score() >= autoMergeThreshold) {
+                if (mergeCount >= maxPerPass()) {break;}
+                if (candidate.score() >= autoMergeThreshold()) {
                     try {
                         String keepId = chooseKeepNode(
-                            candidate.nodeId1(), candidate.nodeId2(), tenantId);
+                                candidate.nodeId1(), candidate.nodeId2(), tenantId);
                         String removeId = keepId.equals(candidate.nodeId1())
-                            ? candidate.nodeId2() : candidate.nodeId1();
+                                          ? candidate.nodeId2() : candidate.nodeId1();
                         store.mergeNodes(keepId, removeId, tenantId);
                         MindMapNode kept = store.getNode(keepId, tenantId);
                         pendingSignals.add(new AttentionSignal(
-                            null, tenantId, SignalCategory.MERGE_CANDIDATE,
-                            keepId, kept != null ? kept.name() : keepId,
-                            candidate.score(),
-                            "auto-merged (score " + String.format("%.2f", candidate.score()) + ")"));
+                                null, tenantId, SignalCategory.MERGE_CANDIDATE,
+                                keepId, kept != null ? kept.name() : keepId,
+                                candidate.score(),
+                                "auto-merged (score " + String.format("%.2f", candidate.score()) + ")"));
                         mergeCount++;
                     } catch (Exception e) {
                         LOG.warning("Merge failed: " + e.getMessage());
                     }
-                } else if (candidate.score() >= 0.7) {
+                } else if (candidate.score() >= reviewThreshold()) {
                     flagCandidate(candidate, tenantId);
                     pendingSignals.add(new AttentionSignal(
-                        null, tenantId, SignalCategory.MERGE_CANDIDATE,
-                        candidate.nodeId1(), candidate.nodeId1(),
-                        candidate.score(),
-                        "flagged for review (score " + String.format("%.2f", candidate.score()) + ")"));
+                            null, tenantId, SignalCategory.MERGE_CANDIDATE,
+                            candidate.nodeId1(), candidate.nodeId1(),
+                            candidate.score(),
+                            "flagged for review (score " + String.format("%.2f", candidate.score()) + ")"));
                 }
             }
         }
@@ -133,14 +143,14 @@ public class MergeDetectionPhase implements ConsolidationPhase {
                     MindMapNode a       = bucket.get(i);
                     MindMapNode b       = bucket.get(j);
                     double      nameSim = JaroWinkler.similarity(a.name(), b.name());
-                    if (nameSim < nameThreshold) {continue;}
+                    if (nameSim < nameThreshold()) {continue;}
 
                     Set<String> neighborsA      = neighborSets.getOrDefault(a.id(), Set.of());
                     Set<String> neighborsB      = neighborSets.getOrDefault(b.id(), Set.of());
                     double      neighborOverlap = jaccard(neighborsA, neighborsB);
 
-                    double combined = 0.6 * nameSim + 0.4 * neighborOverlap;
-                    if (combined >= 0.6) {
+                    double combined = nameWeight() * nameSim + neighborWeight() * neighborOverlap;
+                    if (combined >= candidateMinScore()) {
                         String reason = neighborOverlap > 0
                                         ? "name+neighbors" : "name-similarity";
                         candidates.add(new MergeCandidate(
@@ -155,13 +165,13 @@ public class MergeDetectionPhase implements ConsolidationPhase {
     }
 
     private Map<String, Set<String>> bulkLoadNeighbors(List<MindMapNode> nodes,
-                                                         String tenantId) {
+                                                       String tenantId) {
         Map<String, Set<String>> result = new HashMap<>();
         for (MindMapNode node : nodes) {
             Set<String> ids = store.neighbors(node.id(), tenantId).stream()
-                .map(edge -> edge.sourceNodeId().equals(node.id())
-                    ? edge.targetNodeId() : edge.sourceNodeId())
-                .collect(Collectors.toSet());
+                                   .map(edge -> edge.sourceNodeId().equals(node.id())
+                                                ? edge.targetNodeId() : edge.sourceNodeId())
+                                   .collect(Collectors.toSet());
             result.put(node.id(), ids);
         }
         return result;
@@ -171,14 +181,14 @@ public class MergeDetectionPhase implements ConsolidationPhase {
         Map<String, List<MindMapNode>> buckets = new HashMap<>();
         for (MindMapNode node : nodes) {
             String name = node.name().trim().toLowerCase();
-            String key = name.length() >= 3 ? name.substring(0, 3) : name;
+            String key  = name.length() >= 3 ? name.substring(0, 3) : name;
             buckets.computeIfAbsent(key, k -> new ArrayList<>()).add(node);
         }
         return buckets;
     }
 
     private double jaccard(Set<String> a, Set<String> b) {
-        if (a.isEmpty() && b.isEmpty()) return 0.0;
+        if (a.isEmpty() && b.isEmpty()) {return 0.0;}
         Set<String> intersection = new HashSet<>(a);
         intersection.retainAll(b);
         Set<String> union = new HashSet<>(a);
@@ -189,21 +199,21 @@ public class MergeDetectionPhase implements ConsolidationPhase {
     private String chooseKeepNode(String id1, String id2, String tenantId) {
         MindMapNode n1 = store.getNode(id1, tenantId);
         MindMapNode n2 = store.getNode(id2, tenantId);
-        int s1 = n1.property("storageStrength").map(Integer::parseInt).orElse(0);
-        int s2 = n2.property("storageStrength").map(Integer::parseInt).orElse(0);
+        int         s1 = n1.property("storageStrength").map(Integer::parseInt).orElse(0);
+        int         s2 = n2.property("storageStrength").map(Integer::parseInt).orElse(0);
         return s1 >= s2 ? id1 : id2;
     }
 
     private void flagCandidate(MergeCandidate candidate, String tenantId) {
         try {
             store.updateNode(candidate.nodeId1(),
-                NodeUpdate.empty().withPropertiesToSet(Map.of(
-                    "mergeCandidate", candidate.nodeId2())),
-                tenantId);
+                             NodeUpdate.empty().withPropertiesToSet(Map.of(
+                                     "mergeCandidate", candidate.nodeId2())),
+                             tenantId);
             store.updateNode(candidate.nodeId2(),
-                NodeUpdate.empty().withPropertiesToSet(Map.of(
-                    "mergeCandidate", candidate.nodeId1())),
-                tenantId);
+                             NodeUpdate.empty().withPropertiesToSet(Map.of(
+                                     "mergeCandidate", candidate.nodeId1())),
+                             tenantId);
         } catch (Exception e) {
             LOG.fine("Could not flag merge candidate: " + e.getMessage());
         }
@@ -211,10 +221,10 @@ public class MergeDetectionPhase implements ConsolidationPhase {
 
     private List<String> orderedSubgraphs(String tenantId, List<String> priority) {
         List<String> all = store.listSubgraphs(tenantId).stream()
-            .map(MindMapSubgraph::id).collect(Collectors.toCollection(ArrayList::new));
+                                .map(MindMapSubgraph::id).collect(Collectors.toCollection(ArrayList::new));
         List<String> ordered = new ArrayList<>();
         for (String sgId : priority) {
-            if (all.remove(sgId)) ordered.add(sgId);
+            if (all.remove(sgId)) {ordered.add(sgId);}
         }
         ordered.addAll(all);
         return ordered;

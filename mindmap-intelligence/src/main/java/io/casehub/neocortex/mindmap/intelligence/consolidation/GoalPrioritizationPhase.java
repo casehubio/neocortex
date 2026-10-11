@@ -26,33 +26,50 @@ import java.util.logging.Logger;
 @Priority(38)
 public class GoalPrioritizationPhase implements ConsolidationPhase {
 
-    private static final Logger      LOG                          = Logger.getLogger(GoalPrioritizationPhase.class.getName());
-    private static final Set<String> IMPORTANCE_EDGE_TYPES        = Set.of("contributes-to", "enables");
-    private static final double      W_URGENCY                    = 0.3;
-    private static final double      W_FEASIBILITY                = 0.2;
-    private static final double      W_AFFECTIVE                  = 0.2;
-    private static final double      W_IMPORTANCE                 = 0.3;
-    static final         double      DORMANT_CONFIDENCE_THRESHOLD = 0.4;
-    static final         double      ABANDON_CONFIDENCE_THRESHOLD = 0.2;
+    private static final Logger      LOG                   = Logger.getLogger(GoalPrioritizationPhase.class.getName());
+    private static final Set<String> IMPORTANCE_EDGE_TYPES = Set.of("contributes-to", "enables");
 
-    private final MindMapStore store;
-    private final Clock        clock;
+    private final MindMapStore          store;
+    private final Clock                 clock;
+    private final GoalLifecycleConfig   config;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
 
     @Inject
-    public GoalPrioritizationPhase(Instance<MindMapStore> store) {
-        this.store = store.isResolvable() ? store.get() : null;
-        this.clock = Clock.systemUTC();
+    public GoalPrioritizationPhase(Instance<MindMapStore> store, Instance<GoalLifecycleConfig> config) {
+        this.store  = store.isResolvable() ? store.get() : null;
+        this.config = config.isResolvable() ? config.get() : null;
+        this.clock  = Clock.systemUTC();
+    }
+
+    public GoalPrioritizationPhase(MindMapStore store, Clock clock, GoalLifecycleConfig config) {
+        this.store  = store;
+        this.clock  = clock;
+        this.config = config;
     }
 
     public GoalPrioritizationPhase(MindMapStore store, Clock clock) {
-        this.store = store;
-        this.clock = clock;
+        this(store, clock, null);
     }
 
     public GoalPrioritizationPhase(MindMapStore store) {
-        this(store, Clock.systemUTC());
+        this(store, Clock.systemUTC(), null);
     }
+
+    private double urgencyWeight()              {return config != null ? config.urgencyWeight() : 0.3;}
+
+    private double feasibilityWeight()          {return config != null ? config.feasibilityWeight() : 0.2;}
+
+    private double affectiveWeight()            {return config != null ? config.affectiveWeight() : 0.2;}
+
+    private double importanceWeight()           {return config != null ? config.importanceWeight() : 0.3;}
+
+    private double dormantConfidenceThreshold() {return config != null ? config.dormantConfidenceThreshold() : 0.4;}
+
+    private double abandonConfidenceThreshold() {return config != null ? config.abandonConfidenceThreshold() : 0.2;}
+
+    private double urgencySpikeThreshold()      {return config != null ? config.urgencySpikeThreshold() : 0.7;}
+
+    private double priorityShiftThreshold()     {return config != null ? config.priorityShiftThreshold() : 0.2;}
 
     @Override
     public String name() {
@@ -108,16 +125,16 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
 
             double importance = (double) countImportanceEdges(node, tenantId) / maxInbound;
 
-            double priority = W_URGENCY * urgency
-                              + W_FEASIBILITY * feasibility
-                              + W_AFFECTIVE * affectiveValence
-                              + W_IMPORTANCE * importance;
+            double priority = urgencyWeight() * urgency
+                              + feasibilityWeight() * feasibility
+                              + affectiveWeight() * affectiveValence
+                              + importanceWeight() * importance;
 
             priority = Math.max(0.0, Math.min(1.0, priority));
 
             String principalId = node.property("agent-id").orElse(null);
 
-            if (urgency > 0.7) {
+            if (urgency > urgencySpikeThreshold()) {
                 pendingSignals.add(new AttentionSignal(
                         principalId, tenantId, SignalCategory.URGENCY_SPIKE,
                         node.id(), node.name(), urgency,
@@ -125,7 +142,7 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
             }
 
             double previousPriority = node.property("priority").map(Double::parseDouble).orElse(0.0);
-            if (Math.abs(priority - previousPriority) > 0.2) {
+            if (Math.abs(priority - previousPriority) > priorityShiftThreshold()) {
                 pendingSignals.add(new AttentionSignal(
                         principalId, tenantId, SignalCategory.PRIORITY_SHIFT,
                         node.id(), node.name(), Math.abs(priority - previousPriority),
@@ -145,7 +162,7 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
             if (!"active".equals(node.property("status").orElse(null))) {continue;}
 
             Confidence conf = node.confidence();
-            if (conf == null || conf.value() >= DORMANT_CONFIDENCE_THRESHOLD) {continue;}
+            if (conf == null || conf.value() >= dormantConfidenceThreshold()) {continue;}
 
             double pleasure = node.pleasure() != null ? node.pleasure() : 0.0;
             if (pleasure > 0) {continue;}
@@ -153,7 +170,7 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
             boolean isLinked    = node.property("eidos-goal-name").isPresent();
             String  principalId = node.property("agent-id").orElse(null);
 
-            if (conf.value() < ABANDON_CONFIDENCE_THRESHOLD && pleasure < 0) {
+            if (conf.value() < abandonConfidenceThreshold() && pleasure < 0) {
                 if (isLinked) {
                     store.updateNode(node.id(),
                                      NodeUpdate.empty().withPropertiesToSet(

@@ -1,29 +1,51 @@
 package io.casehub.neocortex.caps.engine;
 
-import io.casehub.neocortex.caps.*;
-import java.util.*;
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsConnection;
+import io.casehub.neocortex.caps.CapsNode;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.ConnectionWeight;
+import io.casehub.neocortex.caps.ConvergenceType;
+import io.casehub.neocortex.caps.DistortionDefinition;
+import io.casehub.neocortex.caps.DistortionEffect;
+import io.casehub.neocortex.caps.NodeRange;
+import io.casehub.neocortex.caps.NodeState;
+import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.SettlingResult;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CapsSettler {
 
-    private final CapsTopology topology;
+    private final CapsTopology       topology;
+    private final CapsSettlingConfig config;
 
     public CapsSettler(CapsTopology topology) {
+        this(topology, CapsSettlingConfig.defaults());
+    }
+
+    public CapsSettler(CapsTopology topology, CapsSettlingConfig config) {
         this.topology = topology;
+        this.config   = config;
     }
 
     public SettlingResult settle(AgentCapsState state,
                                  Map<String, Double> inputActivations) {
-        var params = topology.weightUpdate();
+        var                 params      = topology.weightUpdate();
         Map<String, Double> activations = new HashMap<>();
 
         for (var entry : topology.nodes().entrySet()) {
             CapsNode node = entry.getValue();
             if (node.type() == NodeType.INPUT) {
                 activations.put(node.id(),
-                    inputActivations.getOrDefault(node.id(), 0.0));
+                                inputActivations.getOrDefault(node.id(), 0.0));
             } else {
                 NodeState ns = state.nodeStates()
-                    .getOrDefault(node.id(), NodeState.DEFAULT);
+                                    .getOrDefault(node.id(), NodeState.DEFAULT);
                 activations.put(node.id(), ns.restingActivation());
             }
         }
@@ -31,12 +53,12 @@ public class CapsSettler {
         Map<String, List<CapsConnection>> incomingByNode = new HashMap<>();
         for (CapsConnection conn : topology.connections()) {
             incomingByNode.computeIfAbsent(conn.to(), k -> new ArrayList<>())
-                .add(conn);
+                          .add(conn);
         }
 
-        Map<String, Double> prevPrev = null;
-        List<Map<String, Double>> lastTen = new ArrayList<>();
-        int iterations = 0;
+        Map<String, Double>       prevPrev   = null;
+        List<Map<String, Double>> lastTen    = new ArrayList<>();
+        int                       iterations = 0;
 
         for (int iter = 0; iter < params.maxIterations(); iter++) {
             iterations = iter + 1;
@@ -44,25 +66,25 @@ public class CapsSettler {
 
             for (var entry : topology.nodes().entrySet()) {
                 CapsNode node = entry.getValue();
-                if (node.type() == NodeType.INPUT) continue;
+                if (node.type() == NodeType.INPUT) {continue;}
 
                 List<CapsConnection> incoming = incomingByNode
-                    .getOrDefault(node.id(), List.of());
+                                                        .getOrDefault(node.id(), List.of());
                 double netInput = 0.0;
                 for (CapsConnection conn : incoming) {
                     ConnectionWeight cw = state.weights()
-                        .getOrDefault(conn.id(),
-                            new ConnectionWeight(conn.defaultWeight(), 0.0, 1.0, 1.0));
+                                               .getOrDefault(conn.id(),
+                                                             new ConnectionWeight(conn.defaultWeight(), 0.0, 1.0, 1.0));
                     double sourceActivation = activations
-                        .getOrDefault(conn.from(), 0.0);
+                                                      .getOrDefault(conn.from(), 0.0);
                     netInput += sourceActivation * cw.effectiveWeight();
                 }
 
                 netInput = applyDistortions(node, activations.get(node.id()),
-                    netInput, state);
+                                            netInput, state);
 
                 NodeState ns = state.nodeStates()
-                    .getOrDefault(node.id(), NodeState.DEFAULT);
+                                    .getOrDefault(node.id(), NodeState.DEFAULT);
 
                 double newAct;
                 if (node.range() == NodeRange.BIPOLAR) {
@@ -76,64 +98,64 @@ public class CapsSettler {
 
             double maxDelta = 0.0;
             for (var entry : topology.nodes().entrySet()) {
-                if (entry.getValue().type() == NodeType.INPUT) continue;
+                if (entry.getValue().type() == NodeType.INPUT) {continue;}
                 double delta = Math.abs(
-                    newActivations.get(entry.getKey()) -
-                    activations.get(entry.getKey()));
+                        newActivations.get(entry.getKey()) -
+                        activations.get(entry.getKey()));
                 maxDelta = Math.max(maxDelta, delta);
             }
 
             if (prevPrev != null) {
                 double osc = 0.0;
                 for (var entry : topology.nodes().entrySet()) {
-                    if (entry.getValue().type() == NodeType.INPUT) continue;
+                    if (entry.getValue().type() == NodeType.INPUT) {continue;}
                     osc = Math.max(osc, Math.abs(
-                        newActivations.get(entry.getKey()) -
-                        prevPrev.get(entry.getKey())));
+                            newActivations.get(entry.getKey()) -
+                            prevPrev.get(entry.getKey())));
                 }
                 if (osc < params.epsilon()) {
                     Map<String, Double> averaged = new HashMap<>(newActivations);
                     for (var entry : topology.nodes().entrySet()) {
-                        if (entry.getValue().type() == NodeType.INPUT) continue;
+                        if (entry.getValue().type() == NodeType.INPUT) {continue;}
                         String key = entry.getKey();
                         averaged.put(key, (newActivations.get(key) + activations.get(key)) / 2.0);
                     }
                     return buildResult(averaged, null,
-                        iterations, ConvergenceType.OSCILLATION, state);
+                                       iterations, ConvergenceType.OSCILLATION, state);
                 }
             }
 
-            prevPrev = activations;
+            prevPrev    = activations;
             activations = newActivations;
 
-            if (lastTen.size() >= 10) lastTen.removeFirst();
+            if (lastTen.size() >= 10) {lastTen.removeFirst();}
             lastTen.add(Map.copyOf(activations));
 
             if (maxDelta < params.epsilon()) {
                 return buildResult(activations, null,
-                    iterations, ConvergenceType.CONVERGED, state);
+                                   iterations, ConvergenceType.CONVERGED, state);
             }
         }
 
         Map<String, Double> bestState = findMostSettled(lastTen);
         return buildResult(bestState, null,
-            iterations, ConvergenceType.MAX_ITERATIONS, state);
+                           iterations, ConvergenceType.MAX_ITERATIONS, state);
     }
 
     private double applyDistortions(CapsNode node, double currentActivation,
-                                     double netInput, AgentCapsState state) {
+                                    double netInput, AgentCapsState state) {
         double compoundMultiplier = 1.0;
-        double additiveTotal = 0.0;
+        double additiveTotal      = 0.0;
 
         for (DistortionDefinition dist : topology.distortions()) {
-            if (!dist.targetCategories().contains(node.category())) continue;
+            if (!dist.targetCategories().contains(node.category())) {continue;}
 
             double effectiveThreshold = dist.baseThreshold() * (
-                1.0 - dist.negativeWeight() * Math.max(0, -currentActivation)
+                    1.0 - dist.negativeWeight() * Math.max(0, -currentActivation)
                     - dist.positiveWeight() * Math.max(0, currentActivation));
-            effectiveThreshold = Math.max(0.05, effectiveThreshold);
+            effectiveThreshold = Math.max(config.minEffectiveDistortionThreshold(), effectiveThreshold);
 
-            if (Math.abs(currentActivation) <= effectiveThreshold) continue;
+            if (Math.abs(currentActivation) <= effectiveThreshold) {continue;}
 
             double t = (Math.abs(currentActivation) - effectiveThreshold)
                        / (1.0 - effectiveThreshold);
@@ -151,7 +173,7 @@ public class CapsSettler {
         compoundMultiplier = Math.max(cap[0], Math.min(cap[1], compoundMultiplier));
 
         double result = netInput * compoundMultiplier + additiveTotal;
-        var wCap = topology.weightUpdate().effectiveWeightCap();
+        var    wCap   = topology.weightUpdate().effectiveWeightCap();
         return Math.max(wCap[0], Math.min(wCap[1], result));
     }
 
@@ -164,56 +186,56 @@ public class CapsSettler {
                                        int iterations,
                                        ConvergenceType convergence,
                                        AgentCapsState agentState) {
-        double saturationRatio = computeSaturation(primaryState);
-        boolean highSat = saturationRatio > topology.weightUpdate().saturationWarningThreshold();
+        double  saturationRatio = computeSaturation(primaryState);
+        boolean highSat         = saturationRatio > topology.weightUpdate().saturationWarningThreshold();
 
         List<BehavioralAttractor> attractors = new ArrayList<>();
         extractAttractors(primaryState, attractors, highSat,
-            agentState.generation(), 1.0);
+                          agentState.generation(), 1.0);
 
         return new SettlingResult(primaryState, iterations,
-            convergence, saturationRatio, List.copyOf(attractors));
+                                  convergence, saturationRatio, List.copyOf(attractors));
     }
 
     private void extractAttractors(Map<String, Double> activations,
-                                    List<BehavioralAttractor> attractors,
-                                    boolean highSat, long generation,
-                                    double strengthMultiplier) {
+                                   List<BehavioralAttractor> attractors,
+                                   boolean highSat, long generation,
+                                   double strengthMultiplier) {
         for (var entry : topology.nodes().entrySet()) {
             CapsNode node = entry.getValue();
-            if (node.type() != NodeType.OUTPUT) continue;
+            if (node.type() != NodeType.OUTPUT) {continue;}
             double strength = activations.getOrDefault(node.id(), 0.0) * strengthMultiplier;
-            if (strength > 0.1) {
+            if (strength > config.attractorStrengthMinFilter()) {
                 attractors.add(new BehavioralAttractor(
-                    node.category(), node.id(), strength, highSat, generation));
+                        node.category(), node.id(), strength, highSat, generation));
             }
         }
     }
 
     private double computeSaturation(Map<String, Double> activations) {
         long mediating = topology.nodes().values().stream()
-            .filter(n -> n.type() == NodeType.MEDIATING).count();
-        if (mediating == 0) return 0;
+                                 .filter(n -> n.type() == NodeType.MEDIATING).count();
+        if (mediating == 0) {return 0;}
         long saturated = topology.nodes().values().stream()
-            .filter(n -> n.type() == NodeType.MEDIATING)
-            .filter(n -> Math.abs(activations.getOrDefault(n.id(), 0.0)) > 0.99)
-            .count();
+                                 .filter(n -> n.type() == NodeType.MEDIATING)
+                                 .filter(n -> Math.abs(activations.getOrDefault(n.id(), 0.0)) > config.saturationActivationThreshold())
+                                 .count();
         return (double) saturated / mediating;
     }
 
     private Map<String, Double> findMostSettled(List<Map<String, Double>> states) {
-        if (states.size() < 2) return states.getLast();
-        Map<String, Double> best = states.getLast();
-        double bestMaxDelta = Double.MAX_VALUE;
+        if (states.size() < 2) {return states.getLast();}
+        Map<String, Double> best         = states.getLast();
+        double              bestMaxDelta = Double.MAX_VALUE;
         for (int i = 1; i < states.size(); i++) {
             double maxDelta = 0;
             for (var key : states.get(i).keySet()) {
                 maxDelta = Math.max(maxDelta,
-                    Math.abs(states.get(i).get(key) - states.get(i - 1).get(key)));
+                                    Math.abs(states.get(i).get(key) - states.get(i - 1).get(key)));
             }
             if (maxDelta < bestMaxDelta) {
                 bestMaxDelta = maxDelta;
-                best = states.get(i);
+                best         = states.get(i);
             }
         }
         return best;

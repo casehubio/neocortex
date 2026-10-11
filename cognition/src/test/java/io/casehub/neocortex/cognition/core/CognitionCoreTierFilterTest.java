@@ -90,4 +90,45 @@ class CognitionCoreTierFilterTest {
         assertThat(sections).hasSameSizeAs(core.promptSections());
     }
 
+    @Test
+    void activatedDriveCategoriesEmptyWhenNoAppraisalParticipant() {
+        var mood = new MoodOrchestrator(MoodConfig.defaults());
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+
+        core.tick("agent1", "tenant1", null, (a, t) -> java.util.Set.of());
+
+        assertThat(core.activatedDriveCategories()).isEmpty();
+    }
+
+    @Test
+    void activatedDriveCategoriesEmptyBeforeTick() {
+        var mood = new MoodOrchestrator(MoodConfig.defaults());
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+
+        assertThat(core.activatedDriveCategories()).isEmpty();
+    }
+
+    @Test
+    void activatedDriveCategoriesIncludesConcernSalientDrives() {
+        var mood = new MoodOrchestrator(MoodConfig.defaults());
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+
+        var stubAppraisal = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
+                new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy(),
+                new io.casehub.neocortex.cognition.appraisal.NoOpAppraisalStrategy(),
+                null, mood, null,
+                io.casehub.neocortex.cognition.core.CognitionConfig.none().with("appraisal", true)) {
+            @Override
+            public java.util.Map<String, Double> currentConcernSalience(String agentId, String tenantId) {
+                return java.util.Map.of("scheming", 0.8);
+            }
+        };
+        core.setAppraisalParticipant(stubAppraisal);
+
+        core.tick("agent1", "tenant1", null, (a, t) -> java.util.Set.of());
+
+        assertThat(core.activatedDriveCategories()).contains("scheming");
+    }
+
+
 }

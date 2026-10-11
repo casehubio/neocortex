@@ -116,6 +116,46 @@ public class UserModelOrchestrator {
         return score * Math.pow(1.0 - stageConfig.decayRate(), ticksSinceLastInteraction);
     }
 
+    public static double computeFamiliarity(int positive, int negative, int neutral,
+                                            RelationshipStageConfig stageConfig,
+                                            long ticksSinceLastInteraction,
+                                            double trustFormationRate) {
+        int total = positive + negative + neutral;
+        if (total == 0) {return 0.0;}
+        double effectivePositiveWeight = stageConfig.positiveWeight() * (0.5 + trustFormationRate);
+        double effectiveNegativeWeight = stageConfig.negativeWeight() * (1.5 - trustFormationRate);
+        double affect = (positive * effectivePositiveWeight
+                         - negative * effectiveNegativeWeight) / total;
+        double affectNorm   = Math.max(0.0, Math.min(1.0, (affect + 1.0) / 2.0));
+        double volumeFactor = 1.0 - 1.0 / (1.0 + total * 0.1);
+        double score        = affectNorm * volumeFactor;
+        return score * Math.pow(1.0 - stageConfig.decayRate(), ticksSinceLastInteraction);
+    }
+
+    public static double computeFamiliarity(int positive, int negative, int neutral,
+                                            RelationshipStageConfig stageConfig,
+                                            long ticksSinceLastInteraction,
+                                            double trustFormationRate,
+                                            io.casehub.neocortex.cognitive.index.ConflictInterpretation conflictInterpretation) {
+        int total = positive + negative + neutral;
+        if (total == 0) {return 0.0;}
+        double effectivePositiveWeight = stageConfig.positiveWeight() * (0.5 + trustFormationRate);
+        double conflictMultiplier = switch (conflictInterpretation) {
+            case REPAIR -> 0.6;
+            case INFORMATION -> 0.9;
+            case NEUTRAL -> 1.0;
+            case DISENGAGE -> 1.4;
+        };
+        double effectiveNegativeWeight = stageConfig.negativeWeight() * (1.5 - trustFormationRate) * conflictMultiplier;
+        double affect = (positive * effectivePositiveWeight
+                         - negative * effectiveNegativeWeight) / total;
+        double affectNorm   = Math.max(0.0, Math.min(1.0, (affect + 1.0) / 2.0));
+        double volumeFactor = 1.0 - 1.0 / (1.0 + total * 0.1);
+        double score        = affectNorm * volumeFactor;
+        return score * Math.pow(1.0 - stageConfig.decayRate(), ticksSinceLastInteraction);
+    }
+
+
     private UserModelTick doTick(SubjectState state) {
         int snapPositive, snapNegative, snapNeutral, snapInteractions;
         String snapText;

@@ -23,7 +23,7 @@ class MergeDetectionPhaseTest {
     @BeforeEach
     void setUp() {
         store = new InMemoryMindMapStore();
-        phase = new MergeDetectionPhase(store, null, 0.85, 0.3, 0.9, 10);
+        phase = new MergeDetectionPhase(store, null);
         subgraphId = store.createSubgraph(
             new SubgraphInput("People", SubgraphTypes.PERSON, null), "t1");
     }
