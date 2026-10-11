@@ -267,6 +267,19 @@ echo "--- Step 7: Assemble Corpus ---"
 $VENV "$SCRIPT_DIR/assemble_corpus.py" "$OUTDIR/enriched.json" "$OUTDIR/nlp-baseline.json" -o "$OUTDIR/corpus.json" -r "$OUTDIR/coverage-report.json" --llm-dedup
 echo ""
 
+echo "--- Step 8: Verify Import Readiness ---"
+$VENV "$SCRIPT_DIR/verify_corpus.py" "$OUTDIR/corpus.json" \
+    --schema "$SCRIPT_DIR/../docs/verify_schema.yaml" \
+    --output "$OUTDIR"
+VERIFY_EXIT=$?
+if [ $VERIFY_EXIT -eq 1 ]; then
+    echo ""
+    echo "CRITICAL: Import readiness gate failed."
+    echo "Run with --fix to attempt auto-repair:"
+    echo "  python3 scripts/verify_corpus.py $OUTDIR/corpus.json --fix --output $OUTDIR"
+fi
+echo ""
+
 # Print convergence summary
 echo "=== Pipeline Complete ==="
 $VENV -c "
@@ -287,3 +300,4 @@ echo "  $OUTDIR/enriched.json        — cognitively enriched data"
 echo "  $OUTDIR/corpus.json          — importable corpus"
 echo "  $OUTDIR/manifest.json        — convergence state"
 echo "  $OUTDIR/coverage-report.json — coverage audit"
+echo "  $OUTDIR/verification-report.json — import readiness"
