@@ -80,7 +80,10 @@ For each edge:
   Creative: inspired-by, created-by, depicted-in
   Conceptual: associated-with, influenced-by
   Activity: participated, occasion
+  Temporal: preceded-by, concurrent-with, succeeded-by
+  Causal: caused-by, resulted-in, motivated-by
 - confidence_origin: STATED | INFERRED
+- confidence_value: 0.0-1.0 (STATED edges typically 0.85-1.0, INFERRED 0.5-0.8)
 - validation_tier: REGISTERED (from vocabulary above) | UNVALIDATED (ad-hoc type)
 
 Extract edges aggressively — the graph needs rich connectivity. For every entity pair that co-occurs in the passage, consider whether a relationship exists. Include spatial relationships (person lives-at place), creative relationships (person created-by project), and goal relationships (person pursues goal).
@@ -649,7 +652,9 @@ def main():
                         existing_events.add(lc['event'])
                 all_entities[key]['lifecycle'] = existing_lc
             for gk in ('goal_tier', 'goal_horizon', 'goal_status', 'goal_urgency',
-                        'goal_need_tier', 'goal_priority', 'goal_feasibility'):
+                        'goal_need_tier', 'goal_priority', 'goal_feasibility',
+                        'content_domain', 'content_subdomain', 'motivation_origin',
+                        'clarity', 'evidence_basis'):
                 if gk in ent and gk not in all_entities[key]:
                     all_entities[key][gk] = ent[gk]
 

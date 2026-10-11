@@ -914,8 +914,12 @@ def assemble(enriched: dict, llm_client=None) -> dict:
         }
         if 'confidence_origin' in edge:
             e['confidence_origin'] = edge['confidence_origin']
+        if 'confidence_value' in edge:
+            e['confidence_value'] = edge['confidence_value']
         if 'validation_tier' in edge:
             e['validation_tier'] = edge['validation_tier']
+        if 'extraction_method' in edge:
+            e['extraction_method'] = edge['extraction_method']
         edges.append(e)
 
     memories = []

@@ -82,6 +82,24 @@ def test_goal_fields_checked_for_goals():
     assert 'N13' in goal_gap_ids  # goal_horizon missing
 
 
+def test_taxonomy_fields_detected_at_top_level():
+    from coverage import load_registry, check_node_coverage
+    node = {
+        'name': 'Artistic mastery', 'subgraph_type': 'goal',
+        'content_domain': 'mastery-and-competence',
+        'motivation_origin': 'intrinsic',
+        'clarity': 0.85,
+        'evidence_basis': 'Pattern of daily practice',
+    }
+    registry = load_registry(REGISTRY_PATH)
+    report = check_node_coverage([node], registry)
+    gap_ids = {g['id'] for g in report.gaps}
+    assert 'N24' not in gap_ids  # content_domain present
+    assert 'N26' not in gap_ids  # motivation_origin present
+    assert 'N27' not in gap_ids  # clarity present
+    assert 'N28' not in gap_ids  # evidence_basis present
+
+
 def test_check_memory_coverage_all_experience():
     from coverage import load_registry, check_memory_coverage
     memories = [

@@ -65,11 +65,11 @@ _NODE_CHECKERS = {
     'lifecycle_events': lambda e: bool(e.get('lifecycle')) or any(k.startswith('lifecycle.') for k in e.get('properties', {})),
     'edge_confidence': lambda e: bool(e.get('confidence_origin')),
     'edge_validation_tier': lambda e: bool(e.get('validation_tier')),
-    'goal_content_domain': lambda e: bool(e.get('properties', {}).get('contentDomain') or e.get('goal', {}).get('content_domain')),
-    'goal_content_subdomain': lambda e: bool(e.get('properties', {}).get('contentSubdomain') or e.get('goal', {}).get('content_subdomain')),
-    'goal_motivation_origin': lambda e: bool(e.get('properties', {}).get('motivationOrigin') or e.get('goal', {}).get('motivation_origin')),
-    'goal_clarity': lambda e: (e.get('properties', {}).get('clarity') or e.get('goal', {}).get('clarity')) is not None,
-    'goal_evidence_basis': lambda e: bool(e.get('properties', {}).get('evidenceBasis') or e.get('goal', {}).get('evidence_basis')) or (e.get('confidence', {}) or {}).get('origin') == 'SPECULATED',
+    'goal_content_domain': lambda e: bool(e.get('content_domain') or e.get('properties', {}).get('contentDomain') or e.get('goal', {}).get('content_domain')),
+    'goal_content_subdomain': lambda e: bool(e.get('content_subdomain') or e.get('properties', {}).get('contentSubdomain') or e.get('goal', {}).get('content_subdomain')),
+    'goal_motivation_origin': lambda e: bool(e.get('motivation_origin') or e.get('properties', {}).get('motivationOrigin') or e.get('goal', {}).get('motivation_origin')),
+    'goal_clarity': lambda e: (e.get('clarity') or e.get('properties', {}).get('clarity') or e.get('goal', {}).get('clarity')) is not None,
+    'goal_evidence_basis': lambda e: bool(e.get('evidence_basis') or e.get('properties', {}).get('evidenceBasis') or e.get('goal', {}).get('evidence_basis')) or (e.get('confidence', {}) or {}).get('origin') == 'SPECULATED',
 }
 
 
