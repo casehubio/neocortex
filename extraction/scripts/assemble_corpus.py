@@ -457,6 +457,56 @@ def normalise_goal_vocabulary(nodes: list[dict]) -> list[dict]:
     return nodes
 
 
+_LIFECYCLE_STANDARD_LABELS = {
+    'person': {'born', 'died'},
+    'project': {'conceived', 'started', 'completed', 'first-exhibited',
+                'published', 'sold', 'destroyed', 'lost'},
+    'place': {'founded', 'built', 'renamed', 'demolished', 'opened-as-museum'},
+    'organisation': {'founded', 'merged', 'dissolved'},
+    'activity': {'occurred', 'started', 'ended'},
+    'concept': {'coined', 'popularised'},
+}
+
+_LIFECYCLE_NORMALISATION = {
+    'birth': 'born', 'date-of-birth': 'born', 'dob': 'born',
+    'death': 'died', 'date-of-death': 'died', 'dod': 'died', 'passed': 'died',
+    'created': 'conceived', 'inception': 'conceived', 'began': 'started',
+    'finished': 'completed', 'done': 'completed', 'ended': 'completed',
+    'exhibited': 'first-exhibited', 'shown': 'first-exhibited', 'displayed': 'first-exhibited',
+    'printed': 'published', 'released': 'published',
+    'built-in': 'built', 'constructed': 'built', 'erected': 'built',
+    'torn-down': 'demolished', 'razed': 'demolished',
+    'established': 'founded', 'incorporated': 'founded',
+    'disbanded': 'dissolved', 'closed': 'dissolved',
+    'happened': 'occurred', 'took-place': 'occurred',
+    'introduced': 'coined', 'invented': 'coined',
+}
+
+_ALL_STANDARD_LABELS = set()
+for _labels in _LIFECYCLE_STANDARD_LABELS.values():
+    _ALL_STANDARD_LABELS.update(_labels)
+
+
+def normalise_lifecycle_labels(nodes: list[dict]) -> list[dict]:
+    """Normalise ad-hoc lifecycle event labels to standard set."""
+    for node in nodes:
+        props = node.get('properties', {})
+        lifecycle_keys = [k for k in props if k.startswith('lifecycle.')]
+        for key in lifecycle_keys:
+            label = key[len('lifecycle.'):]
+            normalised = _LIFECYCLE_NORMALISATION.get(label)
+            if normalised and normalised != label:
+                new_key = f'lifecycle.{normalised}'
+                if new_key not in props:
+                    props[new_key] = props.pop(key)
+                    props[f'lifecycle.original.{normalised}'] = label
+                else:
+                    props.pop(key)
+            elif label not in _ALL_STANDARD_LABELS and label not in _LIFECYCLE_NORMALISATION:
+                props[f'lifecycle.nonstandard.{label}'] = props.pop(key)
+    return nodes
+
+
 def _word_set(name: str) -> set[str]:
     """Extract content words from a goal name, ignoring stop words."""
     stops = {'a', 'an', 'the', 'and', 'or', 'in', 'of', 'to', 'for', 'from',
@@ -469,6 +519,75 @@ def _jaccard(a: set, b: set) -> float:
     if not a or not b:
         return 0.0
     return len(a & b) / len(a | b)
+
+
+def dedup_entities(nodes: list[dict], jw_threshold: float = 0.92,
+                   jaccard_threshold: float = 0.5) -> tuple[list[dict], dict]:
+    """Merge duplicate entities across all types via name similarity.
+
+    Handles short-name/long-name pairs like "Frida" / "Frida Kahlo" by
+    treating a shorter name as a potential prefix/substring of the longer one.
+    Only merges within the same subgraph_type. Goals are handled by dedup_goals.
+    """
+    non_goals = [(i, n) for i, n in enumerate(nodes) if n.get('subgraph_type') != 'goal']
+    if not non_goals:
+        return nodes, {'merged': 0, 'clusters': [], 'before': 0, 'after': 0}
+
+    merged_into = {}
+    clusters = []
+
+    for ai, (idx_a, a) in enumerate(non_goals):
+        if idx_a in merged_into:
+            continue
+        cluster = [a['name']]
+        type_a = a.get('subgraph_type', '')
+        name_a = a['name'].lower()
+
+        for bi in range(ai + 1, len(non_goals)):
+            idx_b, b = non_goals[bi]
+            if idx_b in merged_into:
+                continue
+            type_b = b.get('subgraph_type', '')
+            if type_a != type_b:
+                continue
+            name_b = b['name'].lower()
+
+            jw = jaro_winkler(name_a, name_b)
+            words_a = _word_set(a['name'])
+            words_b = _word_set(b['name'])
+            jac = _jaccard(words_a, words_b)
+
+            is_substring = name_a in name_b or name_b in name_a
+            is_match = (jw >= jw_threshold and jac >= jaccard_threshold) or (is_substring and jw >= 0.85)
+
+            if is_match:
+                if len(a['name']) >= len(b['name']):
+                    canonical, duplicate, dup_idx = a, b, idx_b
+                else:
+                    canonical, duplicate, dup_idx = b, a, idx_a
+                    merged_into[idx_a] = idx_b
+                    idx_a = idx_b
+                    a = b
+
+                cluster.append(duplicate['name'])
+                merged_into[dup_idx] = idx_a
+                canonical.setdefault('merged_from', []).append(duplicate['name'])
+                for pid in duplicate.get('source_passages', []):
+                    if pid not in canonical.get('source_passages', []):
+                        canonical.setdefault('source_passages', []).append(pid)
+
+        if len(cluster) > 1:
+            clusters.append({'canonical': a['name'], 'merged': cluster[1:], 'type': type_a})
+
+    remove_indices = set(merged_into.keys())
+    surviving = [n for i, n in enumerate(nodes) if i not in remove_indices]
+    report = {
+        'merged': len(remove_indices),
+        'clusters': clusters,
+        'before': len(non_goals),
+        'after': len(non_goals) - len(remove_indices),
+    }
+    return surviving, report
 
 
 def dedup_goals(nodes: list[dict], jw_threshold: float = 0.90,
@@ -681,6 +800,8 @@ def assemble(enriched: dict) -> dict:
         })
 
     nodes = normalise_goal_vocabulary(nodes)
+    nodes = normalise_lifecycle_labels(nodes)
+    nodes, entity_dedup_report = dedup_entities(nodes)
     dedup_report, nodes = dedup_goals(nodes)
 
     corpus = {
@@ -693,6 +814,7 @@ def assemble(enriched: dict) -> dict:
             'enriched_memories': sum(1 for m in memories if m.get('pad')),
             'domains': dict(Counter(m.get('domain', 'experience') for m in memories)),
             'goal_dedup': dedup_report,
+            'entity_dedup': entity_dedup_report,
         },
         'nodes': nodes,
         'edges': edges,
