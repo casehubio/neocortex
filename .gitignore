@@ -14,3 +14,8 @@ evaluation/code_domain_embeddings/corpus-snapshot/
 .worktrees/
 .claude
 .claude/
+extraction/output/
+extraction/output-test/
+extraction/scripts/.venv/
+extraction/scripts/__pycache__/
+extraction/tests/__pycache__/
