@@ -111,6 +111,8 @@ def convert(corpus, schema, output_dir):
         report["nodes_mapped"] += 1
 
     report["edges_mapped"] = report["edges_specific"] + report["edges_association"]
+    total_corpus_edges = len(corpus.get("edges", []))
+    report["edges_unattributable"] = total_corpus_edges - report["edges_mapped"]
 
     life_events = []
     current_states = []

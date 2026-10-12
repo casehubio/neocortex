@@ -61,7 +61,9 @@ public class EntityEnrichmentHandler implements BiographyHandler {
                 }
             }
 
-            store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
+            if (!props.isEmpty()) {
+                store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
+            }
         }
     }
 }

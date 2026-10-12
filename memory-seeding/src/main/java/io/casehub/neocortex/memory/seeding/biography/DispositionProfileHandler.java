@@ -36,7 +36,9 @@ public class DispositionProfileHandler implements BiographyHandler {
             if (entry.conflictMode() != null) props.put("disposition-conflictMode", entry.conflictMode());
             props.put("provenance", "biographical-import");
 
-            store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
+            if (props.size() > 1) { // more than just "provenance"
+                store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
+            }
         }
     }
 }
