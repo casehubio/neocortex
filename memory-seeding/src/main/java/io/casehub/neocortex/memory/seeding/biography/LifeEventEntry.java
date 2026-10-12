@@ -19,6 +19,4 @@ public record LifeEventEntry(
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record SubThought(String type, String text) {}
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record PadValues(Double pleasure, Double arousal, Double dominance) {}
 }

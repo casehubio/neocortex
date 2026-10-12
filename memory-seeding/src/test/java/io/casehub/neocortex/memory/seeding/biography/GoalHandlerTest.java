@@ -22,8 +22,8 @@ class GoalHandlerTest {
             "Establish artistic legacy", "THEMATIC", "aspirational",
             null, null, null, null, null,
             null, null, null, null, null,
-            List.of(), new GoalEntry.PadValues(0.5, 0.6, 0.7),
-            List.of(subGoal));
+            List.of(), new PadValues(0.5, 0.6, 0.7),
+            List.of(subGoal), null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", "tenant-1");
 
@@ -46,7 +46,7 @@ class GoalHandlerTest {
             "Test goal", "OPERATIONAL", "short",
             null, null, null, null, null,
             null, null, null, null, null,
-            List.of(), null, List.of());
+            List.of(), null, List.of(), null);
         var profile = profileWith(List.of(entry));
 
         handler.handle(profile, "agent-1", "tenant-1");
@@ -67,7 +67,7 @@ class GoalHandlerTest {
                                   "active", "0.8", "0.7", "0.9", "SELF_EXPRESSION",
                                   "mastery-and-competence", "achievement", "intrinsic",
                                   0.85, "Pattern of daily practice across multiple passages",
-                                  List.of(), null, List.of());
+                                  List.of(), null, List.of(), null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", "tenant-1");
 
@@ -96,7 +96,7 @@ class GoalHandlerTest {
                                   null, null, null, null, null,
                                   "invalid-domain", null, "intrinsic",
                                   null, null,
-                                  List.of(), null, List.of());
+                                  List.of(), null, List.of(), null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", "tenant-1");
 

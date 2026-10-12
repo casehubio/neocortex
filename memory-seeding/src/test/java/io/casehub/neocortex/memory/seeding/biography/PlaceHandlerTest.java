@@ -20,7 +20,7 @@ class PlaceHandlerTest {
         var entry = new PlaceEntry("casa-azul", "source.md#casa", null,
             "La Casa Azul",
             Map.of("address", "Londres 247"),
-            new PlaceEntry.PadValues(0.6, 0.2, 0.5),
+            new PadValues(0.6, 0.2, 0.5),
             List.of());
 
         var profile = profileWith(List.of(entry));

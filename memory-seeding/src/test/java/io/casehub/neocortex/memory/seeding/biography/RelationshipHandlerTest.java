@@ -33,9 +33,9 @@ class RelationshipHandlerTest {
         var entry = new RelationshipEntry("diego-rivera", null, null,
             "Diego Rivera", List.of("Personable"),
             new RelationshipEntry.BdiValues("Brilliant artist", "Mutual respect", "Maintain partnership"),
-            new RelationshipEntry.AffectValues(new RelationshipEntry.PadValues(0.2, 0.7, -0.3)),
+            new RelationshipEntry.AffectValues(new PadValues(0.2, 0.7, -0.3)),
             new RelationshipEntry.DynamicsValues(0.4, "confrontational"),
-            Map.of("relationship_type", "spouse"));
+            Map.of("relationship_type", "spouse"), null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 

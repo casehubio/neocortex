@@ -15,13 +15,4 @@ public record PlaceEntry(
     Map<String, String> properties,
     PadValues pad,
     List<Association> associations
-) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Association(
-        @JsonProperty("entity_ref") String entityRef,
-        @JsonProperty("edge_type") String edgeType
-    ) {}
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record PadValues(Double pleasure, Double arousal, Double dominance) {}
-}
+) {}

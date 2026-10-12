@@ -101,21 +101,15 @@ public class GoalHandler implements BiographyHandler {
 
             if (entry.dependencies() != null) {
                 for (var dep : entry.dependencies()) {
-                    String targetId = resolveAcrossSubgraphs(dep.ref(), tenantId);
+                    String targetId = AssociationProcessor.resolveAcrossSubgraphs(dep.ref(), store, tenantId);
                     if (targetId != null) {
                         store.addEdge(EdgeInput.of(goalId, targetId, dep.edgeType())
                             .withProvenance("biographical-import"), tenantId);
                     }
                 }
             }
-        }
-    }
 
-    private String resolveAcrossSubgraphs(String name, String tenantId) {
-        for (var sg : store.listSubgraphs(tenantId)) {
-            MindMapNode node = store.resolveNode(name, sg.id(), tenantId);
-            if (node != null) return node.id();
+            AssociationProcessor.process(entry.associations(), goalId, store, tenantId);
         }
-        return null;
     }
 }

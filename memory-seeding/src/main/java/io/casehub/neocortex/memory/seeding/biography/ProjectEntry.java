@@ -13,5 +13,6 @@ public record ProjectEntry(
     String name,
     String description,
     @JsonProperty("activity_refs") List<String> activityRefs,
-    Map<String, String> properties
+    Map<String, String> properties,
+    List<Association> associations
 ) {}
