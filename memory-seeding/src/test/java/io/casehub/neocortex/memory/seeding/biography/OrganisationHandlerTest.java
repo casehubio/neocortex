@@ -59,6 +59,7 @@ class OrganisationHandlerTest {
     private BiographyProfile profileWith(List<OrganisationEntry> orgs) {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), orgs, List.of(), List.of(), List.of(), List.of());
+            List.of(), orgs, List.of(), List.of(), List.of(),
+            List.of(), List.of(), List.of());
     }
 }

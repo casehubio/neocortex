@@ -13,6 +13,8 @@ public final class BiographyTemplateTypes {
     public static final String RELATIONSHIP         = "relationship";
     public static final String GOAL                 = "goal";
     public static final String BELIEF               = "belief";
+    public static final String ENTITY_ENRICHMENT    = "entity-enrichment";
+    public static final String DISPOSITION_PROFILE  = "disposition-profile";
     public static final String CURRENT_STATE        = "current-state";
 
     private static final Map<String, Integer> LAYER_MAP = Map.ofEntries(
@@ -26,6 +28,8 @@ public final class BiographyTemplateTypes {
         Map.entry(RELATIONSHIP, 5),
         Map.entry(GOAL, 6),
         Map.entry(BELIEF, 6),
+        Map.entry(ENTITY_ENRICHMENT, 7),
+        Map.entry(DISPOSITION_PROFILE, 7),
         Map.entry(CURRENT_STATE, 8)
     );
 

@@ -15,6 +15,8 @@ public record BiographyProfile(
     List<RelationshipEntry> relationships,
     List<GoalEntry> goals,
     List<BeliefEntry> beliefs,
+    List<EntityEnrichmentEntry> entityEnrichments,
+    List<DispositionProfileEntry> dispositionProfiles,
     List<CurrentStateEntry> currentStates
 ) {
     public BiographyProfile {
@@ -28,6 +30,8 @@ public record BiographyProfile(
         relationships = relationships != null ? List.copyOf(relationships) : List.of();
         goals = goals != null ? List.copyOf(goals) : List.of();
         beliefs = beliefs != null ? List.copyOf(beliefs) : List.of();
+        entityEnrichments = entityEnrichments != null ? List.copyOf(entityEnrichments) : List.of();
+        dispositionProfiles = dispositionProfiles != null ? List.copyOf(dispositionProfiles) : List.of();
         currentStates = currentStates != null ? List.copyOf(currentStates) : List.of();
     }
 }
