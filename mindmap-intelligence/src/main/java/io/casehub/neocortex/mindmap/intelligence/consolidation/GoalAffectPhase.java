@@ -34,35 +34,46 @@ public class GoalAffectPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(GoalAffectPhase.class.getName());
 
-    private final MindMapStore  store;
-    private final Clock         clock;
-    private final GoalAppraisal appraisal;
+    private final MindMapStore          store;
+    private final Clock                 clock;
+    private final GoalAppraisal         appraisal;
+    private final GoalLifecycleConfig   config;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     private final CaseMemoryStore       memoryStore;
 
 
     @Inject
-    public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal, Instance<CaseMemoryStore> memoryStore) {
+    public GoalAffectPhase(Instance<MindMapStore> store, Instance<GoalAppraisal> appraisal,
+                           Instance<CaseMemoryStore> memoryStore, Instance<GoalLifecycleConfig> config) {
         this.store       = store.isResolvable() ? store.get() : null;
         this.appraisal   = appraisal.isResolvable() ? appraisal.get() : null;
         this.memoryStore = memoryStore.isResolvable() ? memoryStore.get() : null;
+        this.config      = config.isResolvable() ? config.get() : null;
         this.clock       = Clock.systemUTC();
     }
 
-    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal, CaseMemoryStore memoryStore, Clock clock) {
+    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal,
+                           CaseMemoryStore memoryStore, Clock clock, GoalLifecycleConfig config) {
         this.store       = store;
         this.appraisal   = appraisal;
         this.memoryStore = memoryStore;
+        this.config      = config;
         this.clock       = clock;
     }
 
+    public GoalAffectPhase(MindMapStore store, GoalAppraisal appraisal, CaseMemoryStore memoryStore, Clock clock) {
+        this(store, appraisal, memoryStore, clock, null);
+    }
+
     public GoalAffectPhase(MindMapStore store, Clock clock) {
-        this(store, null, null, clock);
+        this(store, null, null, clock, null);
     }
 
     public GoalAffectPhase(MindMapStore store) {
-        this(store, null, null, Clock.systemUTC());
+        this(store, null, null, Clock.systemUTC(), null);
     }
+
+    private double legacyAffectDeltaThreshold() {return config != null ? config.legacyAffectDeltaThreshold() : 0.3;}
 
     @Override
     public String name() {
@@ -168,29 +179,29 @@ public class GoalAffectPhase implements ConsolidationPhase {
 
         switch (status) {
             case "active" -> {
-                arousal   = urgency * 0.8;
-                pleasure  = 0.2;
-                dominance = 0.3;
+                arousal   = urgency * d(config, GoalLifecycleConfig::activeUrgencyArousalFactor, 0.8);
+                pleasure  = d(config, GoalLifecycleConfig::activePleasure, 0.2);
+                dominance = d(config, GoalLifecycleConfig::activeDominance, 0.3);
             }
             case "blocked" -> {
-                pleasure  = -0.4 - (urgency * 0.4);
-                arousal   = 0.3 + (urgency * 0.5);
-                dominance = -0.3;
+                pleasure  = d(config, GoalLifecycleConfig::blockedPleasure, -0.4) - (urgency * d(config, GoalLifecycleConfig::blockedUrgencyPleasureFactor, 0.4));
+                arousal   = d(config, GoalLifecycleConfig::blockedArousal, 0.3) + (urgency * d(config, GoalLifecycleConfig::blockedUrgencyArousalFactor, 0.5));
+                dominance = d(config, GoalLifecycleConfig::blockedDominance, -0.3);
             }
             case "completed" -> {
-                pleasure  = 0.6;
-                arousal   = 0.2;
-                dominance = 0.5;
+                pleasure  = d(config, GoalLifecycleConfig::completedPleasure, 0.6);
+                arousal   = d(config, GoalLifecycleConfig::completedArousal, 0.2);
+                dominance = d(config, GoalLifecycleConfig::completedDominance, 0.5);
             }
             case "dormant" -> {
-                pleasure  = 0.0;
-                arousal   = -0.3;
-                dominance = 0.0;
+                pleasure  = d(config, GoalLifecycleConfig::dormantPleasure, 0.0);
+                arousal   = d(config, GoalLifecycleConfig::dormantArousal, -0.3);
+                dominance = d(config, GoalLifecycleConfig::dormantDominance, 0.0);
             }
             case "abandoned" -> {
-                pleasure  = -0.2;
-                arousal   = -0.2;
-                dominance = -0.1;
+                pleasure  = d(config, GoalLifecycleConfig::abandonedPleasure, -0.2);
+                arousal   = d(config, GoalLifecycleConfig::abandonedArousal, -0.2);
+                dominance = d(config, GoalLifecycleConfig::abandonedDominance, -0.1);
             }
             default -> {}
         }
@@ -198,16 +209,16 @@ public class GoalAffectPhase implements ConsolidationPhase {
         if (pleasure != null) {
             Double oldPleasure = node.pleasure();
             double delta = oldPleasure != null
-                ? Math.abs(pleasure - oldPleasure)
-                : Math.abs(pleasure);
+                           ? Math.abs(pleasure - oldPleasure)
+                           : Math.abs(pleasure);
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPad(pleasure, arousal, dominance),
                              tenantId);
-            if (delta > 0.3) {
+            if (delta > legacyAffectDeltaThreshold()) {
                 pendingSignals.add(new AttentionSignal(
-                    node.property("agent-id").orElse(null), tenantId,
-                    SignalCategory.AFFECT_CHANGE, node.id(), node.name(), delta,
-                    status + " — pleasure delta " + String.format("%.2f", delta)));
+                        node.property("agent-id").orElse(null), tenantId,
+                        SignalCategory.AFFECT_CHANGE, node.id(), node.name(), delta,
+                        status + " — pleasure delta " + String.format("%.2f", delta)));
             }
         }
     }
@@ -225,6 +236,11 @@ public class GoalAffectPhase implements ConsolidationPhase {
         return node.property(key)
                    .map(v -> {try {return Integer.parseInt(v);} catch (NumberFormatException e) {return defaultValue;}})
                    .orElse(defaultValue);
+    }
+
+
+    private static double d(GoalLifecycleConfig config, java.util.function.ToDoubleFunction<GoalLifecycleConfig> fn, double fallback) {
+        return config != null ? fn.applyAsDouble(config) : fallback;
     }
 
     private static Instant parseInstant(String value) {

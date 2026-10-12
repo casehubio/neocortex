@@ -59,7 +59,7 @@ public class DriveComposer {
         if (axis == DriveAxis.AFFILIATION || axis == DriveAxis.COMPETENCE) {
             intensity += pleasureMod;
         } else {
-            intensity += pleasureMod * 0.5;
+            intensity += pleasureMod * config.secondaryPleasureModulationFactor();
         }
 
         if (axis == DriveAxis.AUTONOMY && mood.dominance() < 0) {

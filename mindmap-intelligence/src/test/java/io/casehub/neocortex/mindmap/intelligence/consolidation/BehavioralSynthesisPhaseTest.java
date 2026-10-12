@@ -344,6 +344,118 @@ class BehavioralSynthesisPhaseTest {
                 .isNotEmpty();
     }
 
+    @Test
+    void driveIntensitiesInfluenceCapsActivations() {
+        var capturingEngine = new CapturingCapsEngine();
+        capturingEngine.initializeAgent(TENANT, AGENT,
+                                        new DispositionAxes("cooperative", "moderate", "calculated",
+                                                            "moderate", "analytical"));
+
+        SituationClassifier classifier = (desc, meta) -> {
+            if (desc.contains("hatch")) {
+                return List.of(new SituationActivation("mastery", 0.6));
+            }
+            return List.of(new SituationActivation("reward", 0.8));
+        };
+
+        var drivePhase = new BehavioralSynthesisPhase(store, capturingEngine, classifier, 20);
+
+        store.addNode(NodeInput.of("scheming", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "cognitiveKind", "drive-intensity",
+                                       "drive-type", "scheming",
+                                       "intensity", "0.75",
+                                       "description", "Compelled to hatch elaborate plans",
+                                       "agent-id", AGENT)),
+                      TENANT);
+
+        store.addNode(NodeInput.of("Rewarded for work", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem1",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+
+        drivePhase.run(TENANT, List.of());
+
+        assertThat(capturingEngine.lastInputActivations).isNotNull();
+        assertThat(capturingEngine.lastInputActivations).containsKey("reward");
+        assertThat(capturingEngine.lastInputActivations).containsKey("mastery");
+        assertThat(capturingEngine.lastInputActivations.get("mastery"))
+                .as("mastery activation should be scaled by drive intensity 0.75")
+                .isLessThanOrEqualTo(0.6 * 0.75 + 0.01);
+    }
+
+    @Test
+    void repeatedReinforcementPushesStrengthAboveEmerging() {
+        for (int i = 1; i <= 10; i++) {
+            store.addNode(NodeInput.of("Reinforcing experience " + i, cognitiveSubgraphId)
+                                   .withProperties(Map.of(
+                                           "source-memory-id", "mem-r" + i,
+                                           "agent-id", AGENT,
+                                           "event-type", "observation",
+                                           "graduation-score", "0.8")),
+                          TENANT);
+            phase.run(TENANT, List.of());
+        }
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral).hasSize(1);
+        double strength = Double.parseDouble(
+                behavioral.getFirst().property("strength").orElse("0"));
+        assertThat(strength)
+                .as("After 10 reinforcements, a well-established pattern should exceed 'deep-rooted' threshold 0.7")
+                .isGreaterThan(0.7);
+    }
+
+    @Test
+    void differentDominantInputsCreateSeparateAttractors() {
+        SituationClassifier inputAwareClassifier = (desc, meta) -> {
+            if (desc.contains("relationship")) {
+                return List.of(new SituationActivation("secure_attachment", 0.9));
+            } else if (desc.contains("achievement")) {
+                return List.of(new SituationActivation("mastery", 0.9));
+            }
+            return List.of(new SituationActivation("reward", 0.8));
+        };
+
+        var diffPhase = new BehavioralSynthesisPhase(store, capsEngine, inputAwareClassifier, 20);
+
+        store.addNode(NodeInput.of("Strong relationship bond", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-rel",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+        diffPhase.run(TENANT, List.of());
+
+        store.addNode(NodeInput.of("Great achievement at work", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-ach",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+        diffPhase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral)
+                .as("Two experiences with different dominant inputs should create separate attractors")
+                .hasSizeGreaterThanOrEqualTo(2);
+
+        var dominantInputs = behavioral.stream()
+                                       .map(n -> n.property("dominant-input").orElse(""))
+                                       .filter(s -> !s.isEmpty())
+                                       .collect(java.util.stream.Collectors.toSet());
+        assertThat(dominantInputs)
+                .as("Each attractor should track its dominant input")
+                .hasSizeGreaterThanOrEqualTo(2);
+    }
+
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();
@@ -435,4 +547,16 @@ class BehavioralSynthesisPhaseTest {
             return super.updateWeights(state, inputActivations, outcomeIntensity, outcomeValence, salienceMultiplier, reinforcementSchedule);
         }
     }
+
+    static class CapturingCapsEngine extends StubCapsEngine {
+        Map<String, Double> lastInputActivations;
+
+        @Override
+        public SettlingResult settle(AgentCapsState state,
+                                     Map<String, Double> inputActivations) {
+            lastInputActivations = new HashMap<>(inputActivations);
+            return super.settle(state, inputActivations);
+        }
+    }
+
 }

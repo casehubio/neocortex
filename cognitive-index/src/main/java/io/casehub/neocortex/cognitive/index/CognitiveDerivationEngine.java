@@ -139,30 +139,32 @@ public final class CognitiveDerivationEngine {
     private CognitiveDerivationEngine() {}
 
     public static CognitiveDefaults derive(DescriptorView descriptor) {
-        PersonalityWeights  personality   = derivePersonality(descriptor.dispositionProfile());
-        MoodBaseline        mood          = deriveMoodBaseline(descriptor.disposition());
-        CuriosityConfig     curiosity     = deriveCuriosity(descriptor.disposition(), descriptor.goals());
-        TemporalFocusConfig temporalFocus = deriveTemporalFocus(descriptor.goals());
-        CbrStrategyDefaults     cbrStrategy     = deriveCbrStrategy(descriptor.disposition());
+        PersonalityWeights      personality      = derivePersonality(descriptor.dispositionProfile());
+        MoodBaseline            mood             = deriveMoodBaseline(descriptor.disposition());
+        CuriosityConfig         curiosity        = deriveCuriosity(descriptor.disposition(), descriptor.goals());
+        TemporalFocusConfig     temporalFocus    = deriveTemporalFocus(descriptor.goals());
+        CbrStrategyDefaults     cbrStrategy      = deriveCbrStrategy(descriptor.disposition());
         SocialCognitionDefaults socialCognition  = deriveSocialCognition(descriptor.disposition());
         GraphStructureDefaults  graphStructure   = deriveGraphStructure(descriptor.dispositionProfile());
         ExtractionBiasDefaults  extractionBias   = deriveExtractionBias(descriptor.dispositionProfile());
         AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile(), descriptor.disposition());
         HabituationConfig       habituation      = deriveHabituationConfig(descriptor.disposition(), descriptor.goals());
         double                  personalityDom   = derivePersonalityDominance(descriptor.formationPadSummary());
+        ExpressionStyleDefaults expressionStyles = deriveExpressionStyles(descriptor.ampdFacets());
 
         return CognitiveDefaults.empty(descriptor.agentId())
-                .withPersonality(personality)
-                .withMoodBaseline(mood)
-                .withCuriosity(curiosity)
-                .withTemporalFocus(temporalFocus)
-                .withCbrStrategy(cbrStrategy)
-                .withSocialCognition(socialCognition)
-                .withGraphStructure(graphStructure)
-                .withExtractionBias(extractionBias)
-                .withAppraisalWeights(appraisal)
-                .withHabituationConfig(habituation)
-                .withPersonalityDominance(personalityDom);
+                                .withPersonality(personality)
+                                .withMoodBaseline(mood)
+                                .withCuriosity(curiosity)
+                                .withTemporalFocus(temporalFocus)
+                                .withCbrStrategy(cbrStrategy)
+                                .withSocialCognition(socialCognition)
+                                .withGraphStructure(graphStructure)
+                                .withExtractionBias(extractionBias)
+                                .withAppraisalWeights(appraisal)
+                                .withHabituationConfig(habituation)
+                                .withPersonalityDominance(personalityDom)
+                                .withExpressionStyles(expressionStyles);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
@@ -171,23 +173,24 @@ public final class CognitiveDerivationEngine {
         }
         CognitiveDefaults derived = derive(explicit.descriptor());
         return CognitiveDefaults.empty(explicit.agentId())
-                .withTenantId(explicit.tenantId())
-                .withPersonality(explicit.personality() != null ? explicit.personality() : derived.personality())
-                .withMoodBaseline(explicit.moodBaseline() != null ? explicit.moodBaseline() : derived.moodBaseline())
-                .withCuriosity(explicit.curiosity() != null ? explicit.curiosity() : derived.curiosity())
-                .withTemporalFocus(explicit.temporalFocus() != null ? explicit.temporalFocus() : derived.temporalFocus())
-                .withCbrStrategy(explicit.cbrStrategy() != null ? explicit.cbrStrategy() : derived.cbrStrategy())
-                .withSocialCognition(explicit.socialCognition() != null ? explicit.socialCognition() : derived.socialCognition())
-                .withGraphStructure(explicit.graphStructure() != null ? explicit.graphStructure() : derived.graphStructure())
-                .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
-                .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
-                .withHabituationConfig(explicit.habituationConfig() != null ? explicit.habituationConfig() : derived.habituationConfig())
-                .withPersonalityDominance(explicit.personalityDominance() != null ? explicit.personalityDominance() : derived.personalityDominance())
-                .withVocabulary(explicit.vocabulary())
-                .withServices(explicit.services())
-                .withTraitRules(explicit.traitRules())
-                .withDerivedEdgeRules(explicit.derivedEdgeRules())
-                .withDescriptor(explicit.descriptor());
+                                .withTenantId(explicit.tenantId())
+                                .withPersonality(explicit.personality() != null ? explicit.personality() : derived.personality())
+                                .withMoodBaseline(explicit.moodBaseline() != null ? explicit.moodBaseline() : derived.moodBaseline())
+                                .withCuriosity(explicit.curiosity() != null ? explicit.curiosity() : derived.curiosity())
+                                .withTemporalFocus(explicit.temporalFocus() != null ? explicit.temporalFocus() : derived.temporalFocus())
+                                .withCbrStrategy(explicit.cbrStrategy() != null ? explicit.cbrStrategy() : derived.cbrStrategy())
+                                .withSocialCognition(explicit.socialCognition() != null ? explicit.socialCognition() : derived.socialCognition())
+                                .withGraphStructure(explicit.graphStructure() != null ? explicit.graphStructure() : derived.graphStructure())
+                                .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
+                                .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
+                                .withHabituationConfig(explicit.habituationConfig() != null ? explicit.habituationConfig() : derived.habituationConfig())
+                                .withPersonalityDominance(explicit.personalityDominance() != null ? explicit.personalityDominance() : derived.personalityDominance())
+                                .withExpressionStyles(explicit.expressionStyles() != null ? explicit.expressionStyles() : derived.expressionStyles())
+                                .withVocabulary(explicit.vocabulary())
+                                .withServices(explicit.services())
+                                .withTraitRules(explicit.traitRules())
+                                .withDerivedEdgeRules(explicit.derivedEdgeRules())
+                                .withDescriptor(explicit.descriptor());
     }
 
 
@@ -456,6 +459,91 @@ public final class CognitiveDerivationEngine {
         }
         double ratio = summary.dominanceWeightedReward() / summary.totalPositivePleasure();
         return Math.clamp((ratio + 1.0) / 2.0, 0.0, 1.0);
+    }
+
+    static ExpressionStyleDefaults deriveExpressionStyles(AmpdFacets facets) {
+        if (facets == null || facets.scores().isEmpty()) {return null;}
+
+        var styles = new HashMap<String, String>();
+
+        // Triumph expression — Grandiosity × Callousness interaction
+        // McAdams (2001) Level 2 characteristic adaptations: same trait produces
+        // different behavioral signatures depending on co-occurring traits
+        if (facets.isHigh(AmpdFacets.GRANDIOSITY) && facets.isHigh(AmpdFacets.CALLOUSNESS)) {
+            styles.put("triumph", "public, theatrical, needs audience to witness");
+        } else if (facets.isHigh(AmpdFacets.GRANDIOSITY) && facets.isLow(AmpdFacets.CALLOUSNESS)) {
+            styles.put("triumph", "expansive, generous, wants to share the glory");
+        } else if (facets.isLow(AmpdFacets.GRANDIOSITY)) {
+            styles.put("triumph", "private, quiet satisfaction, deflects credit");
+        }
+
+        // Gloating expression — Antagonism triad (Grandiosity + Callousness + Manipulativeness)
+        // Paulhus & Williams (2002) Dark Triad: convergence of narcissism, psychopathy,
+        // Machiavellianism predicts schadenfreude and dominance displays
+        if (facets.isHigh(AmpdFacets.GRANDIOSITY) && facets.isHigh(AmpdFacets.CALLOUSNESS)
+            && facets.isHigh(AmpdFacets.MANIPULATIVENESS)) {
+            styles.put("gloating", "savoring, deliberate, wants the other to know");
+        } else if (facets.isHigh(AmpdFacets.CALLOUSNESS) && !facets.isHigh(AmpdFacets.GRANDIOSITY)) {
+            styles.put("gloating", "cold satisfaction, indifferent rather than triumphant");
+        } else if (facets.isLow(AmpdFacets.CALLOUSNESS)) {
+            styles.put("gloating", "uncomfortable with others' misfortune, suppresses it");
+        }
+
+        // Scheming expression — Manipulativeness × Suspiciousness
+        // Mischel & Shoda (1995) CAPS: if-then profiles predict situation-specific strategy selection
+        if (facets.isHigh(AmpdFacets.MANIPULATIVENESS) && facets.isHigh(AmpdFacets.SUSPICIOUSNESS)) {
+            styles.put("scheming", "elaborate, multi-step, assumes others are doing the same");
+        } else if (facets.isHigh(AmpdFacets.MANIPULATIVENESS) && facets.isLow(AmpdFacets.SUSPICIOUSNESS)) {
+            styles.put("scheming", "opportunistic, charm-based, reads openings not threats");
+        } else if (facets.isLow(AmpdFacets.MANIPULATIVENESS)) {
+            styles.put("scheming", "transparent, prefers direct negotiation");
+        }
+
+        // Proving-worth expression — Grandiosity × Hostility interaction
+        // Krueger et al. (2012) AMPD: Grandiosity facet reflects both compensatory
+        // and genuine self-enhancement depending on co-occurring Negative Affectivity
+        if (facets.isHigh(AmpdFacets.GRANDIOSITY) && facets.isHigh(AmpdFacets.HOSTILITY)) {
+            styles.put("proving-worth", "combative, proving through dominance and comparison");
+        } else if (facets.isHigh(AmpdFacets.GRANDIOSITY) && facets.isLow(AmpdFacets.HOSTILITY)) {
+            styles.put("proving-worth", "demonstrative, seeking admiration through competence display");
+        } else if (facets.isLow(AmpdFacets.GRANDIOSITY)) {
+            styles.put("proving-worth", "quiet competence, lets work speak, uncomfortable with praise");
+        }
+
+        // Gallantry expression — inverse of Callousness × Suspiciousness
+        // Costa & McCrae (1992) FFM: high Agreeableness (low AMPD Antagonism) predicts
+        // prosocial helping motivated by empathic concern vs. reciprocity expectations
+        if (facets.isLow(AmpdFacets.CALLOUSNESS) && facets.isLow(AmpdFacets.SUSPICIOUSNESS)) {
+            styles.put("gallantry", "genuine, protective, feels others' vulnerability");
+        } else if (facets.isLow(AmpdFacets.CALLOUSNESS) && facets.isHigh(AmpdFacets.SUSPICIOUSNESS)) {
+            styles.put("gallantry", "cautious protectiveness, helps but watches for betrayal");
+        } else if (facets.isHigh(AmpdFacets.CALLOUSNESS)) {
+            styles.put("gallantry", "instrumental, helps when it serves a purpose");
+        }
+
+        // Distrust expression — Suspiciousness × Hostility
+        // Krueger et al. (2012): Suspiciousness loads on both Detachment and Psychoticism,
+        // co-occurring Hostility shifts from avoidant vigilance to aggressive preemption
+        if (facets.isHigh(AmpdFacets.SUSPICIOUSNESS) && facets.isHigh(AmpdFacets.HOSTILITY)) {
+            styles.put("distrust", "aggressive vigilance, reads threats into neutral behavior");
+        } else if (facets.isHigh(AmpdFacets.SUSPICIOUSNESS) && facets.isLow(AmpdFacets.HOSTILITY)) {
+            styles.put("distrust", "watchful withdrawal, avoids rather than confronts");
+        } else if (facets.isLow(AmpdFacets.SUSPICIOUSNESS)) {
+            styles.put("distrust", "trusts by default, slow to suspect");
+        }
+
+        // Territorial expression — Hostility × Risk Taking
+        // Patrick et al. (2009) Triarchic: boldness + meanness interaction
+        // determines whether resource defense is proactive or reactive
+        if (facets.isHigh(AmpdFacets.HOSTILITY) && facets.isHigh(AmpdFacets.RISK_TAKING)) {
+            styles.put("territorial", "aggressive, preemptive, expands boundaries");
+        } else if (facets.isHigh(AmpdFacets.HOSTILITY) && facets.isLow(AmpdFacets.RISK_TAKING)) {
+            styles.put("territorial", "defensive, reactive, guards existing ground");
+        } else if (facets.isLow(AmpdFacets.HOSTILITY)) {
+            styles.put("territorial", "shares space easily, low boundary sensitivity");
+        }
+
+        return styles.isEmpty() ? null : new ExpressionStyleDefaults(styles);
     }
 
 

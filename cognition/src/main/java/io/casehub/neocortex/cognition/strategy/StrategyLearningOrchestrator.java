@@ -42,7 +42,7 @@ public class StrategyLearningOrchestrator {
                 return t;
             });
 
-    private static final String SYSTEM_PROMPT = """
+    private static final String SYSTEM_PROMPT_TEMPLATE = """
             You are a metacognitive strategy advisor for an AI agent. Analyze the agent's \
             interaction history and recommend strategy adjustments.
 
@@ -52,12 +52,14 @@ public class StrategyLearningOrchestrator {
 
             Guidelines: ranked list, most impactful first. Include per-subject insights \
             where patterns differ significantly from global.
-            Deltas: in [-0.2, +0.2]. Only include dimensions that should change.""";
+            Deltas: in [-%s, +%s]. Only include dimensions that should change.""";
 
     static final List<String> DEFAULT_DIMENSIONS = List.of(
             "verbosity", "formality", "initiative", "directness", "questionRate");
-    static final double       TREND_IMPROVING_THRESHOLD = 0.6;
-    static final double       TREND_DECLINING_THRESHOLD = 0.4;
+    private String systemPrompt() {
+        double d = config.maxDimensionDelta();
+        return String.format(SYSTEM_PROMPT_TEMPLATE, d, d);
+    }
 
 
     private final StrategyMemory strategyMemory;
@@ -134,8 +136,8 @@ public class StrategyLearningOrchestrator {
         var trends = new java.util.HashMap<String, EngagementTrend.TrendDirection>();
         for (var entry : profile.dimensions().entrySet()) {
             double val = entry.getValue();
-            trends.put(entry.getKey(), val > TREND_IMPROVING_THRESHOLD ? EngagementTrend.TrendDirection.IMPROVING
-                                                 : val < TREND_DECLINING_THRESHOLD ? EngagementTrend.TrendDirection.DECLINING
+            trends.put(entry.getKey(), val > config.trendImprovingThreshold() ? EngagementTrend.TrendDirection.IMPROVING
+                                                 : val < config.trendDecliningThreshold() ? EngagementTrend.TrendDirection.DECLINING
                                                              : EngagementTrend.TrendDirection.STABLE);
         }
         double responseRate = state.totalSignals > 0
@@ -262,7 +264,7 @@ public class StrategyLearningOrchestrator {
             var          perSubjectSummary = summarizePerSubject(cases);
             var          userPrompt        = buildReflectionPrompt(profile, trends, List.of(), perSubjectSummary);
 
-            String llmResponse = invokeText(AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt));
+            String llmResponse = invokeText(AgentSessionConfig.of(systemPrompt(), userPrompt));
             if (llmResponse == null) {
                 LOG.log(Level.WARNING, "Async reflect LLM failed for " + agentId);
                 return;
@@ -424,7 +426,7 @@ public class StrategyLearningOrchestrator {
         var perSubjectSummary = summarizePerSubject(cases);
         var userPrompt        = buildReflectionPrompt(profile, trends, reflections, perSubjectSummary);
 
-        String llmResponse = invokeText(AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt));
+        String llmResponse = invokeText(AgentSessionConfig.of(systemPrompt(), userPrompt));
         if (llmResponse == null) {
             return new StrategyReflection.NoChange("LLM synthesis failed");
         }
@@ -561,7 +563,7 @@ public class StrategyLearningOrchestrator {
                     LOG.fine("Ignoring unknown dimension: " + delta.getKey());
                     continue;
                 }
-                double clamped = Math.max(-0.2, Math.min(0.2, delta.getValue()));
+                double clamped = Math.max(-config.maxDimensionDelta(), Math.min(config.maxDimensionDelta(), delta.getValue()));
                 double current = newDimensions.getOrDefault(delta.getKey(),
                                                             config.defaultDimensionValue());
                 newDimensions.put(delta.getKey(), Math.max(0.0, Math.min(1.0, current + clamped)));

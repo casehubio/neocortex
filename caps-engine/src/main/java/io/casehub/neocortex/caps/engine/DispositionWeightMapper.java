@@ -1,9 +1,20 @@
 package io.casehub.neocortex.caps.engine;
 
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.CapsConnection;
+import io.casehub.neocortex.caps.CapsNode;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.ConnectionWeight;
+import io.casehub.neocortex.caps.DispositionModifier;
+import io.casehub.neocortex.caps.NodeState;
+import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class DispositionWeightMapper {
@@ -26,7 +37,7 @@ public class DispositionWeightMapper {
         for (CapsConnection conn : topology.connections()) {
             weights.put(conn.id(), new ConnectionWeight(
                 conn.defaultWeight(), 0.0, 1.0,
-                CapsWeightUpdater.provenancePrecision(conn.provenance())));
+                CapsWeightUpdateConfig.defaults().provenancePrecision(conn.provenance())));
         }
 
         Map<String, String> axes = Map.of(
@@ -119,15 +130,31 @@ public class DispositionWeightMapper {
     }
 
     private void setRestingActivations(DispositionAxes disposition,
-                                        Map<String, NodeState> nodeStates) {
+                                       Map<String, NodeState> nodeStates) {
         if ("cooperative".equals(disposition.socialOrient())) {
             setResting(nodeStates, "other_reliability", 0.2);
+        } else if ("competitive".equals(disposition.socialOrient())) {
+            setResting(nodeStates, "social_comparison", 0.15);
         }
         if ("bold".equals(disposition.riskAppetite())) {
             setResting(nodeStates, "BAS_activation", 0.1);
-        }
-        if ("conservative".equals(disposition.riskAppetite())) {
+        } else if ("conservative".equals(disposition.riskAppetite())) {
             setResting(nodeStates, "BIS_activation", 0.1);
+        }
+        if ("strict".equals(disposition.ruleFollowing())) {
+            setResting(nodeStates, "reinforcement_expectation", 0.15);
+        } else if ("flexible".equals(disposition.ruleFollowing())) {
+            setResting(nodeStates, "self_efficacy", 0.1);
+        }
+        if ("independent".equals(disposition.autonomy())) {
+            setResting(nodeStates, "self_efficacy", 0.15);
+        } else if ("dependent".equals(disposition.autonomy())) {
+            setResting(nodeStates, "other_reliability", 0.1);
+        }
+        if ("confrontational".equals(disposition.conflictMode())) {
+            setResting(nodeStates, "threat_sensitivity", 0.1);
+        } else if ("avoidant".equals(disposition.conflictMode())) {
+            setResting(nodeStates, "escape_assessment", 0.15);
         }
     }
 
