@@ -220,18 +220,13 @@ All five axes have substantive justifications (450-545 chars each) grounded in b
 
 ---
 
-## Issues to File
+## Issues Filed
 
-### Systematic quality problems
-
-1. **Per-memory enrichments missing (Critical):** Zero OCC, SEC, drive, sub-thought, CAPS, gut-feeling, habituation, action-tendency, or cognitive-distortion fields populated across 261 memories. The extraction/enrichment pipeline produces these in the YAML but they are not making it into the assembled corpus. This defeats the purpose of the enrichment pass.
-
-2. **Entity naming inconsistency (High):** 139 edge references don't match node names. Primary pattern: short names in edges ("Frida", "Diego") vs full names in nodes ("Frida Kahlo", "Diego Rivera"), and descriptive names in nodes ("Frida's father") vs proper names in edges ("Guillermo Kahlo"). Needs entity resolution or name normalization in the assembly step.
-
-3. **Missing subgraph and type assignments (High):** All nodes have `type: unknown` and `subgraph: none`. The MindMap import relies on these for TypeRegistry bootstrap, trait assignment, and subgraph-scoped operations. The assembly step should assign types based on traits (Personable -> person, Locatable -> place, etc.) and derive subgraphs.
-
-4. **Contributes-to edge saturation (Medium):** 1172 of 1570 edges (74.6%) are contributes-to, with single goals having 50 outgoing edges. This makes the goal graph nearly fully connected and reduces its analytical value. The extraction should either be more selective or use a confidence threshold to prune weak contributions.
-
-5. **Factual errors in edges (Medium):** At least 3 factually incorrect edges found in a sample of 25: married-to Frida->Alejandro (never married), parent-of inversions, dubious Matilde->Zapata collaboration. Systematic verification needed.
-
-6. **Arousal value compression (Low):** Arousal mean 0.73 with stdev 0.14 suggests systematic high-arousal bias in the enrichment prompt. Calm biographical moments (childhood walks, quiet painting sessions) should have lower arousal.
+| # | Title | Severity | Scale |
+|---|-------|----------|-------|
+| #564 | Per-memory enrichments missing from assembled corpus | Critical | M |
+| #565 | Entity naming inconsistency causes 139 dangling edge references | High | M |
+| #566 | Corpus nodes missing subgraph and type assignments | High | S |
+| #567 | Contributes-to edge saturation reduces goal graph analytical value | Medium | S |
+| #568 | Factual errors in extracted edges need systematic verification | Medium | S |
+| #569 | PAD arousal value compression in enrichment pipeline | Low | XS |
