@@ -9,22 +9,24 @@ public final class BiographyTemplateTypes {
     public static final String PLACE                = "place";
     public static final String ACTIVITY             = "activity";
     public static final String PROJECT              = "project";
+    public static final String ORGANISATION         = "organisation";
     public static final String RELATIONSHIP         = "relationship";
     public static final String GOAL                 = "goal";
     public static final String BELIEF               = "belief";
     public static final String CURRENT_STATE        = "current-state";
 
-    private static final Map<String, Integer> LAYER_MAP = Map.of(
-        CULTURAL_CONTEXT, 1,
-        FORMATIVE_EXPERIENCE, 2,
-        LIFE_EVENT, 4,
-        PLACE, 4,
-        ACTIVITY, 4,
-        PROJECT, 4,
-        RELATIONSHIP, 5,
-        GOAL, 6,
-        BELIEF, 6,
-        CURRENT_STATE, 8
+    private static final Map<String, Integer> LAYER_MAP = Map.ofEntries(
+        Map.entry(CULTURAL_CONTEXT, 1),
+        Map.entry(FORMATIVE_EXPERIENCE, 2),
+        Map.entry(LIFE_EVENT, 4),
+        Map.entry(PLACE, 4),
+        Map.entry(ACTIVITY, 4),
+        Map.entry(PROJECT, 4),
+        Map.entry(ORGANISATION, 4),
+        Map.entry(RELATIONSHIP, 5),
+        Map.entry(GOAL, 6),
+        Map.entry(BELIEF, 6),
+        Map.entry(CURRENT_STATE, 8)
     );
 
     public static int layerFor(String type) {

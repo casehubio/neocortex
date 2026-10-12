@@ -58,6 +58,6 @@ class PlaceHandlerTest {
     private BiographyProfile profileWith(List<PlaceEntry> places) {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), places, List.of(),
-            List.of(), List.of(), List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of(), List.of(), List.of());
     }
 }
