@@ -67,7 +67,7 @@ class GoalRecognitionPhaseTest {
         List<MindMapNode> goals = mindMapStore.nodesIn(goalSubgraphId, TENANT);
         assertThat(goals).hasSize(1);
         assertThat(goals.get(0).name()).isEqualTo("learn quantum computing");
-        assertThat(goals.get(0).property("origin")).contains("conversation");
+        assertThat(goals.get(0).property("recognitionSource")).contains("conversation");
         assertThat(goals.get(0).property("horizon")).contains("long");
         assertThat(goals.get(0).property("status")).contains("active");
         assertThat(goals.get(0).property("need-tier")).contains("TASKS");

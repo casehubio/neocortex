@@ -1,0 +1,9 @@
+type: disposition-profile
+entries:
+  - id: disp-frida
+    entity_ref: "Frida Kahlo"
+    social_orient: cooperative
+    rule_following: defiant
+    risk_appetite: bold
+    autonomy: autonomous
+    conflict_mode: confrontational

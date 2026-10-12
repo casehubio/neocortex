@@ -55,7 +55,7 @@ class DriveGoalBridgeParticipantTest {
 
         var node = nodes.getFirst();
         assertThat(node.name()).isEqualTo("Learn Spanish");
-        assertThat(node.properties().get("origin")).isEqualTo("drive-proposal");
+        assertThat(node.properties().get("recognitionSource")).isEqualTo("drive-proposal");
         assertThat(node.properties().get("origin-drive")).isEqualTo("CURIOSITY");
         assertThat(node.properties().get("formation-reason")).isEqualTo("Strong curiosity about languages");
         assertThat(node.properties().get("status")).isEqualTo("active");
@@ -89,7 +89,7 @@ class DriveGoalBridgeParticipantTest {
                 new io.casehub.neocortex.mindmap.SubgraphInput(SubgraphTypes.GOAL, SubgraphTypes.GOAL, null),
                 "tenant1");
         store.addNode(NodeInput.of("Improve coding skills", sgId)
-                .withProperties(Map.of("status", "active", "origin", "recognized")), "tenant1");
+                .withProperties(Map.of("status", "active", "recognitionSource", "recognized")), "tenant1");
 
         var proposal = new DriveGoalProposal(
                 DriveAxis.CURIOSITY, "Improve coding skill",
@@ -102,7 +102,7 @@ class DriveGoalBridgeParticipantTest {
         assertThat(nodes).hasSize(1);
         var node = nodes.getFirst();
         assertThat(node.name()).isEqualTo("Improve coding skills");
-        assertThat(node.properties().get("origin")).isEqualTo("recognized");
+        assertThat(node.properties().get("recognitionSource")).isEqualTo("recognized");
         assertThat(node.properties().get("origin-drive")).isEqualTo("CURIOSITY");
         assertThat(node.properties().get("formation-reason")).isEqualTo("curiosity about programming");
         assertThat(node.properties().get("need-tier")).isEqualTo("UNDERSTANDING");

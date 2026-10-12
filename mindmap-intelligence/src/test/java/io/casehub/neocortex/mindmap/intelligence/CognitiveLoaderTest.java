@@ -193,7 +193,7 @@ class CognitiveLoaderTest {
 
         var schema = registry.schemaFor("goal", "default");
         assertThat(schema).containsKeys("description", "status", "horizon",
-                                        "origin", "resolution", "urgency", "feasibility");
+                                        "recognitionSource", "resolution", "urgency", "feasibility");
     }
 
 

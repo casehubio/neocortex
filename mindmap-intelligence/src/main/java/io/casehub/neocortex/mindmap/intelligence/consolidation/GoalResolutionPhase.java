@@ -157,6 +157,8 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                     props.put("horizon", subGoal.suggestedHorizon());
                 }
                 props.put("goal-tier", GoalTier.fromHorizon(subGoal.suggestedHorizon()).name());
+                node.property("contentDomain").ifPresent(d -> props.putIfAbsent("contentDomain", d));
+                node.property("motivationOrigin").ifPresent(o -> props.putIfAbsent("motivationOrigin", o));
 
                 String subId = store.addNode(NodeInput.of(subGoal.description(), goalSgId)
                                                       .withProperties(props), tenantId);
@@ -208,7 +210,10 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                 if (merged.contains(b.id())) {continue;}
 
                 double similarity = JaroWinkler.similarity(a.name(), b.name());
-                if (similarity >= 0.85) {
+                String domainA = a.property("contentDomain").orElse(null);
+                String domainB = b.property("contentDomain").orElse(null);
+                boolean domainCompatible = domainA == null || domainB == null || domainA.equals(domainB);
+                if (similarity >= 0.90 && domainCompatible) {
                     try {
                         store.mergeNodes(a.id(), b.id(), tenantId);
                         merged.add(b.id());

@@ -114,7 +114,7 @@ public final class DriveGoalBridgeParticipant implements CognitionTickParticipan
         Map<String, String> props = new LinkedHashMap<>();
         props.put("description", proposal.goalDescription());
         props.put("status", "active");
-        props.put("origin", "drive-proposal");
+        props.put("recognitionSource", "drive-proposal");
         props.put("origin-drive", proposal.axis().name());
         props.put("formation-reason", proposal.formationReason());
         String horizon = mapHorizon(proposal.suggestedPriority());

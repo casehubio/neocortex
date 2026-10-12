@@ -287,6 +287,31 @@ class GoalResolutionPhaseTest {
         assertThat(allGoals).hasSize(1);
     }
 
+    @Test
+    void expand_propagatesTaxonomyToSubGoals() {
+        store.addNode(NodeInput.of("Master painting", goalSubgraphId)
+                               .withProperties(Map.of("description", "master painting techniques",
+                                                      "status", "active", "urgency", "0.9",
+                                                      "resolution", "low",
+                                                      "contentDomain", "mastery-and-competence",
+                                                      "motivationOrigin", "intrinsic")), TENANT);
+
+        CognitiveGoalDecomposer decomposer = (desc, ctx, tid) ->
+                                                     new GoalDecompositionResult(
+                                                             List.of(new GoalDecompositionResult.SubGoal("Learn color theory", "medium", Map.of())),
+                                                             List.of());
+
+        phase(decomposer, (a, t) -> Map.of()).run(TENANT, List.of());
+
+        List<MindMapNode> allGoals = store.nodesIn(goalSubgraphId, TENANT);
+        MindMapNode subGoal = allGoals.stream()
+                                      .filter(n -> n.name().equals("Learn color theory"))
+                                      .findFirst().orElseThrow();
+        assertThat(subGoal.property("contentDomain")).contains("mastery-and-competence");
+        assertThat(subGoal.property("motivationOrigin")).contains("intrinsic");
+    }
+
+
 // --- Merge step ---
 
     @Test
@@ -314,6 +339,32 @@ class GoalResolutionPhaseTest {
                                              .findFirst().orElseThrow();
         List<MindMapEdge> contributesTo = store.neighbors(survivingChild.id(), "contributes-to", TENANT);
         assertThat(contributesTo).isNotEmpty();
+    }
+
+    @Test
+    void merge_doesNotMergeAcrossContentDomains() {
+        String parent1 = store.addNode(NodeInput.of("Learn AI research", goalSubgraphId)
+                                                .withProperties(Map.of("description", "learn AI", "status", "active")), TENANT);
+        String parent2 = store.addNode(NodeInput.of("Master cooking", goalSubgraphId)
+                                                .withProperties(Map.of("description", "master cooking", "status", "active")), TENANT);
+
+        String sub1 = store.addNode(NodeInput.of("study techniques", goalSubgraphId)
+                                             .withProperties(Map.of("description", "study techniques", "status", "active",
+                                                                    "contentDomain", "mastery-and-competence")), TENANT);
+        String sub2 = store.addNode(NodeInput.of("study techniques and recipes", goalSubgraphId)
+                                             .withProperties(Map.of("description", "study techniques and recipes", "status", "active",
+                                                                    "contentDomain", "health")), TENANT);
+
+        store.addEdge(EdgeInput.of(parent1, sub1, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(parent2, sub2, "decomposes-into"), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        List<MindMapNode> allGoals = store.nodesIn(goalSubgraphId, TENANT);
+        long subGoalCount = allGoals.stream()
+                                    .filter(n -> n.name().contains("study techniques"))
+                                    .count();
+        assertThat(subGoalCount).isEqualTo(2);
     }
 
 

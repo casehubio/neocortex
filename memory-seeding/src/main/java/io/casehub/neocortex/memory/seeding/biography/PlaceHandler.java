@@ -2,7 +2,6 @@ package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
-import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -51,20 +50,8 @@ public class PlaceHandler implements BiographyHandler {
 
             String nodeId = store.addNode(input, tenantId);
 
-            if (entry.associations() != null) {
-                for (var assoc : entry.associations()) {
-                    String targetId = resolveOrCreate(assoc.entityRef(), subgraphId, tenantId);
-                    store.addEdge(EdgeInput.of(nodeId, targetId, assoc.edgeType())
-                        .withProvenance("biographical-import"), tenantId);
-                }
-            }
+            AssociationProcessor.process(entry.associations(), nodeId, store, tenantId);
         }
-    }
-
-    private String resolveOrCreate(String name, String subgraphId, String tenantId) {
-        MindMapNode existing = store.resolveNode(name, subgraphId, tenantId);
-        if (existing != null) return existing.id();
-        return store.addNode(NodeInput.of(name, subgraphId).withProvenance("biographical-import"), tenantId);
     }
 
     static ConfidenceOrigin resolveOrigin(String origin) {

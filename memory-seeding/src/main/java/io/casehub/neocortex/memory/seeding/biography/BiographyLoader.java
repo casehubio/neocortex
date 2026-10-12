@@ -27,21 +27,26 @@ public class BiographyLoader {
         var relationships = new ArrayList<RelationshipEntry>();
         var goals = new ArrayList<GoalEntry>();
         var beliefs = new ArrayList<BeliefEntry>();
+        var organisations = new ArrayList<OrganisationEntry>();
+        var entityEnrichments = new ArrayList<EntityEnrichmentEntry>();
+        var dispositionProfiles = new ArrayList<DispositionProfileEntry>();
         var currentStates = new ArrayList<CurrentStateEntry>();
 
         try (Stream<Path> files = Files.list(biographyDir)) {
             files.filter(p -> p.toString().endsWith(".yaml"))
                  .sorted()
                  .forEach(p -> loadFile(p, culturalContexts, formativeExperiences,
-                     lifeEvents, places, activities, projects,
-                     relationships, goals, beliefs, currentStates));
+                     lifeEvents, places, activities, projects, organisations,
+                     relationships, goals, beliefs, entityEnrichments,
+                     dispositionProfiles, currentStates));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to list biography directory " + biographyDir, e);
         }
 
         var profile = new BiographyProfile(agentId, tenantId,
             culturalContexts, formativeExperiences, lifeEvents, places,
-            activities, projects, relationships, goals, beliefs, currentStates);
+            activities, projects, organisations, relationships, goals, beliefs,
+            entityEnrichments, dispositionProfiles, currentStates);
 
         validate(profile);
         return profile;
@@ -51,8 +56,11 @@ public class BiographyLoader {
                           List<CulturalContextEntry> cc, List<FormativeExperienceEntry> fe,
                           List<LifeEventEntry> le, List<PlaceEntry> pl,
                           List<ActivityEntry> ac, List<ProjectEntry> pr,
+                          List<OrganisationEntry> or,
                           List<RelationshipEntry> re, List<GoalEntry> go,
-                          List<BeliefEntry> be, List<CurrentStateEntry> cs) {
+                          List<BeliefEntry> be, List<EntityEnrichmentEntry> ee,
+                          List<DispositionProfileEntry> dp,
+                          List<CurrentStateEntry> cs) {
         try {
             var header = mapper.readValue(file.toFile(), TypeHeader.class);
             if (header.type() == null) {
@@ -71,12 +79,18 @@ public class BiographyLoader {
                     ac.addAll(mapper.readValue(file.toFile(), ActivityFile.class).entries());
                 case BiographyTemplateTypes.PROJECT ->
                     pr.addAll(mapper.readValue(file.toFile(), ProjectFile.class).entries());
+                case BiographyTemplateTypes.ORGANISATION ->
+                    or.addAll(mapper.readValue(file.toFile(), OrganisationFile.class).entries());
                 case BiographyTemplateTypes.RELATIONSHIP ->
                     re.addAll(mapper.readValue(file.toFile(), RelationshipFile.class).entries());
                 case BiographyTemplateTypes.GOAL ->
                     go.addAll(mapper.readValue(file.toFile(), GoalFile.class).entries());
                 case BiographyTemplateTypes.BELIEF ->
                     be.addAll(mapper.readValue(file.toFile(), BeliefFile.class).entries());
+                case BiographyTemplateTypes.ENTITY_ENRICHMENT ->
+                    ee.addAll(mapper.readValue(file.toFile(), EntityEnrichmentFile.class).entries());
+                case BiographyTemplateTypes.DISPOSITION_PROFILE ->
+                    dp.addAll(mapper.readValue(file.toFile(), DispositionProfileFile.class).entries());
                 case BiographyTemplateTypes.CURRENT_STATE ->
                     cs.addAll(mapper.readValue(file.toFile(), CurrentStateFile.class).entries());
                 default -> throw new IllegalStateException("Unknown type: " + header.type() + " in " + file);
@@ -94,9 +108,12 @@ public class BiographyLoader {
         validateIds(ids, profile.places().stream().map(PlaceEntry::id).toList());
         validateIds(ids, profile.activities().stream().map(ActivityEntry::id).toList());
         validateIds(ids, profile.projects().stream().map(ProjectEntry::id).toList());
+        validateIds(ids, profile.organisations().stream().map(OrganisationEntry::id).toList());
         validateIds(ids, profile.relationships().stream().map(RelationshipEntry::id).toList());
         validateIds(ids, profile.goals().stream().map(GoalEntry::id).toList());
         validateIds(ids, profile.beliefs().stream().map(BeliefEntry::id).toList());
+        validateIds(ids, profile.entityEnrichments().stream().map(EntityEnrichmentEntry::id).toList());
+        validateIds(ids, profile.dispositionProfiles().stream().map(DispositionProfileEntry::id).toList());
         validateIds(ids, profile.currentStates().stream().map(CurrentStateEntry::id).toList());
     }
 
@@ -119,8 +136,11 @@ public class BiographyLoader {
     @JsonIgnoreProperties(ignoreUnknown = true) record PlaceFile(List<PlaceEntry> entries) {}
     @JsonIgnoreProperties(ignoreUnknown = true) record ActivityFile(List<ActivityEntry> entries) {}
     @JsonIgnoreProperties(ignoreUnknown = true) record ProjectFile(List<ProjectEntry> entries) {}
+    @JsonIgnoreProperties(ignoreUnknown = true) record OrganisationFile(List<OrganisationEntry> entries) {}
     @JsonIgnoreProperties(ignoreUnknown = true) record RelationshipFile(List<RelationshipEntry> entries) {}
     @JsonIgnoreProperties(ignoreUnknown = true) record GoalFile(List<GoalEntry> entries) {}
     @JsonIgnoreProperties(ignoreUnknown = true) record BeliefFile(List<BeliefEntry> entries) {}
+    @JsonIgnoreProperties(ignoreUnknown = true) record EntityEnrichmentFile(List<EntityEnrichmentEntry> entries) {}
+    @JsonIgnoreProperties(ignoreUnknown = true) record DispositionProfileFile(List<DispositionProfileEntry> entries) {}
     @JsonIgnoreProperties(ignoreUnknown = true) record CurrentStateFile(List<CurrentStateEntry> entries) {}
 }

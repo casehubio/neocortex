@@ -20,8 +20,10 @@ class GoalHandlerTest {
             "Gain recognition beyond Mexico");
         var entry = new GoalEntry("artistic-legacy", null, null,
             "Establish artistic legacy", "THEMATIC", "aspirational",
-            List.of(), new GoalEntry.PadValues(0.5, 0.6, 0.7),
-            List.of(subGoal));
+            null, null, null, null, null,
+            null, null, null, null, null,
+            List.of(), new PadValues(0.5, 0.6, 0.7),
+            List.of(subGoal), null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", "tenant-1");
 
@@ -42,7 +44,9 @@ class GoalHandlerTest {
 
         var entry = new GoalEntry("g1", null, null,
             "Test goal", "OPERATIONAL", "short",
-            List.of(), null, List.of());
+            null, null, null, null, null,
+            null, null, null, null, null,
+            List.of(), null, List.of(), null);
         var profile = profileWith(List.of(entry));
 
         handler.handle(profile, "agent-1", "tenant-1");
@@ -53,9 +57,60 @@ class GoalHandlerTest {
         assertThat(nodes).hasSize(1);
     }
 
+    @Test
+    void writesTaxonomyProperties() {
+        var store   = new InMemoryMindMapStore();
+        var handler = new GoalHandler(store);
+
+        var entry = new GoalEntry("g1", null, "STATED", "Master painting",
+                                  "THEMATIC", "long",
+                                  "active", "0.8", "0.7", "0.9", "SELF_EXPRESSION",
+                                  "mastery-and-competence", "achievement", "intrinsic",
+                                  0.85, "Pattern of daily practice across multiple passages",
+                                  List.of(), null, List.of(), null);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", "tenant-1");
+
+        var nodes = store.search(
+                MindMapQuery.of("tenant-1", 10).withType(SubgraphTypes.GOAL));
+        assertThat(nodes).hasSize(1);
+        var node = nodes.getFirst();
+        assertThat(node.properties()).containsEntry("contentDomain", "mastery-and-competence");
+        assertThat(node.properties()).containsEntry("contentSubdomain", "achievement");
+        assertThat(node.properties()).containsEntry("motivationOrigin", "intrinsic");
+        assertThat(node.properties()).containsEntry("clarity", "0.85");
+        assertThat(node.properties()).containsEntry("evidenceBasis", "Pattern of daily practice across multiple passages");
+        assertThat(node.properties()).containsEntry("status", "active");
+        assertThat(node.properties()).containsEntry("urgency", "0.8");
+        assertThat(node.properties()).containsEntry("feasibility", "0.9");
+        assertThat(node.properties()).containsEntry("recognitionSource", "biographical-import");
+    }
+
+    @Test
+    void rejectsInvalidContentDomain() {
+        var store   = new InMemoryMindMapStore();
+        var handler = new GoalHandler(store);
+
+        var entry = new GoalEntry("g1", null, null, "Test goal",
+                                  "OPERATIONAL", "short",
+                                  null, null, null, null, null,
+                                  "invalid-domain", null, "intrinsic",
+                                  null, null,
+                                  List.of(), null, List.of(), null);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", "tenant-1");
+
+        var nodes = store.search(
+                MindMapQuery.of("tenant-1", 10).withType(SubgraphTypes.GOAL));
+        assertThat(nodes).hasSize(1);
+        assertThat(nodes.getFirst().properties()).doesNotContainKey("contentDomain");
+        assertThat(nodes.getFirst().properties()).containsEntry("motivationOrigin", "intrinsic");
+    }
+
+
     private BiographyProfile profileWith(List<GoalEntry> goals) {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), goals, List.of(), List.of());
+            List.of(), List.of(), List.of(), goals, List.of(), List.of(), List.of(), List.of());
     }
 }

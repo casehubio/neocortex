@@ -10,10 +10,7 @@ public record CurrentStateEntry(
     String id,
     @JsonProperty("source_ref") String sourceRef,
     String timestamp,
-    MoodValues mood,
+    PadValues mood,
     @JsonProperty("active_goals") List<String> activeGoals,
     @JsonProperty("recent_context") String recentContext
-) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record MoodValues(Double pleasure, Double arousal, Double dominance) {}
-}
+) {}

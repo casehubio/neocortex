@@ -1,0 +1,11 @@
+type: entity-enrichment
+entries:
+  - id: enrich-frida
+    entity_ref: "Frida Kahlo"
+    drive_baselines:
+      curiosity:
+        baseline: 0.85
+        justification: "Strong intellectual exploration"
+      competence:
+        baseline: 0.88
+        justification: "High skill drive"

@@ -1,0 +1,26 @@
+type: life-event
+entries:
+  - id: le-polio
+    confidence_origin: STATED
+    timestamp: "1913"
+    description: "Contracted polio at age six."
+    domain: experience
+    event_type: observation
+    subject: "Frida Kahlo"
+    period: "1913"
+    pad:
+      pleasure: -0.6
+      arousal: 0.5
+      dominance: -0.7
+    occ_emotions:
+      - type: distress
+        intensity: 0.7
+        source: INTRINSIC
+    drive_impact:
+      curiosity: 0.0
+      competence: -0.3
+      affiliation: -0.2
+      autonomy: -0.5
+    sub_thoughts:
+      - type: affect-observation
+        text: "The isolation was profound."

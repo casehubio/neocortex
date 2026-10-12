@@ -14,3 +14,13 @@ evaluation/code_domain_embeddings/corpus-snapshot/
 .worktrees/
 .claude
 .claude/
+extraction/output/*
+!extraction/output/enriched.json
+!extraction/output/nlp-baseline.json
+!extraction/output/corpus.json
+!extraction/output/manifest.json
+extraction/output-test/
+extraction/iteration-log.md
+extraction/scripts/.venv/
+extraction/scripts/__pycache__/
+extraction/tests/__pycache__/

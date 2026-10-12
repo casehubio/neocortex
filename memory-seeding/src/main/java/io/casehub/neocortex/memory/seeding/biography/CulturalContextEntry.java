@@ -12,7 +12,8 @@ public record CulturalContextEntry(
     @JsonProperty("source_ref") String sourceRef,
     String description,
     List<Norm> norms,
-    @JsonProperty("context_properties") Map<String, String> contextProperties
+    @JsonProperty("context_properties") Map<String, String> contextProperties,
+    List<Association> associations
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Norm(String name, Double strength, String description) {}

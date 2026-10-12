@@ -35,7 +35,9 @@ class LifeEventHandlerTest {
         );
         var entry = new LifeEventEntry("polio", "source.md#polio", null,
             "1913-01-01", "Contracted polio at age six.",
-            new LifeEventEntry.PadValues(-0.6, 0.5, -0.7),
+            null, null, null, null, null,
+            new PadValues(-0.6, 0.5, -0.7),
+            null, null, null, null, null, null, null, null, null,
             subThoughts, List.of());
 
         var profile = profileWith(List.of(entry));
@@ -56,6 +58,7 @@ class LifeEventHandlerTest {
     private BiographyProfile profileWith(List<LifeEventEntry> events) {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), events, List.of(), List.of(),
-            List.of(), List.of(), List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of(), List.of(),
+            List.of(), List.of(), List.of());
     }
 }

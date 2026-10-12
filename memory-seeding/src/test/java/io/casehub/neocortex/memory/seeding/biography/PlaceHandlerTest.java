@@ -20,7 +20,7 @@ class PlaceHandlerTest {
         var entry = new PlaceEntry("casa-azul", "source.md#casa", null,
             "La Casa Azul",
             Map.of("address", "Londres 247"),
-            new PlaceEntry.PadValues(0.6, 0.2, 0.5),
+            new PadValues(0.6, 0.2, 0.5),
             List.of());
 
         var profile = profileWith(List.of(entry));
@@ -58,6 +58,7 @@ class PlaceHandlerTest {
     private BiographyProfile profileWith(List<PlaceEntry> places) {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), places, List.of(),
-            List.of(), List.of(), List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of(), List.of(),
+            List.of(), List.of(), List.of());
     }
 }

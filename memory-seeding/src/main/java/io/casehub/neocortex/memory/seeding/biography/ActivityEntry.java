@@ -14,7 +14,8 @@ public record ActivityEntry(
     String date,
     @JsonProperty("place_ref") String placeRef,
     List<Participant> participants,
-    String notes
+    String notes,
+    List<Association> associations
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Participant(

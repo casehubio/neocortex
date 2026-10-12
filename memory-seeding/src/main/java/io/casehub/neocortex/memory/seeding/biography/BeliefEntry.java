@@ -15,5 +15,6 @@ public record BeliefEntry(
     String description,
     @JsonProperty("cognitive_kind") String cognitiveKind,
     @JsonProperty("entity_refs") List<String> entityRefs,
-    Map<String, String> properties
+    Map<String, String> properties,
+    List<Association> associations
 ) {}
