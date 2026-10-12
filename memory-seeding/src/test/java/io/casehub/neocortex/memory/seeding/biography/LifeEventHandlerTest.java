@@ -35,7 +35,9 @@ class LifeEventHandlerTest {
         );
         var entry = new LifeEventEntry("polio", "source.md#polio", null,
             "1913-01-01", "Contracted polio at age six.",
+            null, null, null, null, null,
             new PadValues(-0.6, 0.5, -0.7),
+            null, null, null, null, null, null, null, null, null,
             subThoughts, List.of());
 
         var profile = profileWith(List.of(entry));
