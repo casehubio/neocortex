@@ -58,6 +58,8 @@ public class ActivityHandler implements BiographyHandler {
                         .withProvenance("biographical-import"), tenantId);
                 }
             }
+
+            AssociationProcessor.process(entry.associations(), activityId, store, tenantId);
         }
     }
 

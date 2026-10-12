@@ -58,6 +58,8 @@ public class BeliefHandler implements BiographyHandler {
                     }
                 }
             }
+
+            AssociationProcessor.process(entry.associations(), nodeId, store, tenantId);
         }
     }
 

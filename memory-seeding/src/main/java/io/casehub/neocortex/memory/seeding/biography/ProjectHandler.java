@@ -37,12 +37,13 @@ public class ProjectHandler implements BiographyHandler {
             if (entry.description() != null) props.put("description", entry.description());
             if (entry.properties() != null) props.putAll(entry.properties());
 
-            store.addNode(
+            String nodeId = store.addNode(
                 NodeInput.of(entry.name(), subgraphId)
                     .withConfidence(Confidence.stated(0.8, Instant.now()))
                     .withProvenance("biographical-import")
                     .withProperties(props),
                 tenantId);
+            AssociationProcessor.process(entry.associations(), nodeId, store, tenantId);
         }
     }
 }

@@ -47,12 +47,13 @@ public class CulturalContextHandler implements BiographyHandler {
                 props.put("norm-count", String.valueOf(entry.norms().size()));
             }
 
-            store.addNode(
+            String nodeId = store.addNode(
                 NodeInput.of(entry.description(), subgraphId)
                     .withConfidence(Confidence.stated(0.8, Instant.now()))
                     .withProvenance("biographical-import")
                     .withProperties(props),
                 tenantId);
+            AssociationProcessor.process(entry.associations(), nodeId, store, tenantId);
         }
     }
 }
