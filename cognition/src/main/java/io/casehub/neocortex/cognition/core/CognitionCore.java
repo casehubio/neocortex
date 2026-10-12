@@ -598,7 +598,7 @@ public class CognitionCore {
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
             io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
         this.appraisalParticipant = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config);
+                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config, mindMapStore);
         addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
     }
 
