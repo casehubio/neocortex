@@ -1,0 +1,102 @@
+name: Extraction Pipeline Gate
+on:
+  pull_request:
+    paths:
+      - 'extraction/**'
+  push:
+    branches: [main]
+    paths:
+      - 'extraction/**'
+
+jobs:
+  deterministic-stages:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: extraction
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Field coverage audit
+        run: |
+          python3 -c "
+          import json, sys
+          sys.path.insert(0, 'scripts')
+          from coverage import load_registry, check_node_coverage, check_memory_coverage, check_enrichment_coverage, format_report
+
+          registry = load_registry('docs/field-registry.yaml')
+          with open('output/corpus.json') as f:
+              corpus = json.load(f)
+
+          reports = [
+              check_node_coverage(corpus.get('nodes', []), registry),
+              check_memory_coverage(corpus.get('memories', []), registry),
+              check_enrichment_coverage(corpus.get('memories', []), registry),
+          ]
+          print(format_report(reports))
+
+          for r in reports:
+              pct = (r.populated / r.total * 100) if r.total > 0 else 100
+              if pct < 50:
+                  print(f'FAIL: {r.category} coverage {pct:.0f}% below 50% threshold')
+                  sys.exit(1)
+          print('Coverage gate: PASSED')
+          "
+
+      - name: Import readiness verification (informational)
+        run: |
+          python3 -c "
+          import sys
+          sys.path.insert(0, 'scripts')
+          from verify_corpus import load_schema, verify
+          import json
+
+          with open('output/corpus.json') as f:
+              corpus = json.load(f)
+          schema = load_schema('docs/verify_schema.yaml')
+          report = verify(corpus, schema)
+
+          s = report['summary']
+          print(f'Verify: {s[\"total_findings\"]} findings — {s[\"critical\"]} critical, {s[\"fixable\"]} fixable, {s[\"warning\"]} warning, {s[\"info\"]} info')
+          print(f'Gate: {s[\"gate\"]}')
+          print('Note: verify is informational until existing corpus findings are resolved')
+          "
+
+      - name: Conversion smoke test
+        run: |
+          python3 -c "
+          import json, sys, tempfile, os
+          sys.path.insert(0, 'scripts')
+          from convert_corpus import convert
+          import yaml
+
+          with open('output/corpus.json') as f:
+              corpus = json.load(f)
+          schema = {}
+          if os.path.exists('docs/verify_schema.yaml'):
+              with open('docs/verify_schema.yaml') as f:
+                  schema = yaml.safe_load(f)
+
+          with tempfile.TemporaryDirectory() as d:
+              report = convert(corpus, schema, d)
+              files = [f for f in os.listdir(d) if f.endswith('.yaml')]
+              print(f'Converted: {report[\"nodes_mapped\"]} nodes, {report[\"memories_mapped\"]} memories')
+              print(f'Output files: {len(files)} YAML files')
+              if report['nodes_mapped'] == 0:
+                  print('FAIL: zero nodes mapped')
+                  sys.exit(1)
+          print('Conversion gate: PASSED')
+          "
+
+      - name: Python test suite
+        run: |
+          pip install pytest
+          python3 -m pytest tests/ -q
