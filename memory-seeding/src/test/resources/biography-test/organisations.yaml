@@ -1,0 +1,10 @@
+type: organisation
+entries:
+  - id: org-cachuchas
+    confidence_origin: STATED
+    name: "Los Cachuchas"
+    traits:
+      - "Organisational"
+    properties:
+      type: "student group"
+    valid_from: "1920~"

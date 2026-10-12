@@ -1,0 +1,18 @@
+type: goal
+entries:
+  - id: goal-artistic-identity
+    confidence_origin: INFERRED
+    name: "Establish artistic identity"
+    tier: thematic
+    horizon: long
+    status: active
+    urgency: "0.85"
+    content_domain: self-actualisation
+    motivation_origin: intrinsic
+    pad:
+      pleasure: 0.6
+      arousal: 0.7
+      dominance: 0.8
+    dependencies:
+      - ref: "La Casa Azul"
+        edge_type: "associated-with"

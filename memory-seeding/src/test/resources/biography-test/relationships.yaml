@@ -1,0 +1,9 @@
+type: relationship
+entries:
+  - id: rel-frida
+    confidence_origin: STATED
+    name: "Frida Kahlo"
+    traits:
+      - "Personable"
+    properties:
+      role: "artist"
