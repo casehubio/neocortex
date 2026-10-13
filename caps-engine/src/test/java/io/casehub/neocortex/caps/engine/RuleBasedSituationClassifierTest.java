@@ -97,4 +97,35 @@ class RuleBasedSituationClassifierTest {
         assertThat(result).anySatisfy(a ->
             assertThat(a.nodeId()).isEqualTo("powerlessness"));
     }
+
+    @Test
+    void strongVocabularyTermProducesHighConfidence() {
+        List<SituationActivation> result = classifier.classify(
+                "He was attacked violently and felt threatened",
+                Map.of());
+
+        var threat = result.stream()
+                           .filter(a -> a.nodeId().equals("physical_threat"))
+                           .findFirst().orElseThrow();
+
+        assertThat(threat.confidence()).isGreaterThanOrEqualTo(0.5);
+    }
+
+    @Test
+    void multipleMatchesBoostConfidence() {
+        List<SituationActivation> singleMatch = classifier.classify(
+                "She was rewarded", Map.of());
+        List<SituationActivation> multiMatch = classifier.classify(
+                "She was rewarded and praised, and earned a bonus", Map.of());
+
+        double singleConf = singleMatch.stream()
+                                       .filter(a -> a.nodeId().equals("reward"))
+                                       .mapToDouble(SituationActivation::confidence).findFirst().orElse(0);
+        double multiConf = multiMatch.stream()
+                                     .filter(a -> a.nodeId().equals("reward"))
+                                     .mapToDouble(SituationActivation::confidence).findFirst().orElse(0);
+
+        assertThat(multiConf).isGreaterThan(singleConf);
+    }
+
 }

@@ -22,10 +22,10 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
 
     @Override
     public List<SituationActivation> classify(String description,
-                                               Map<String, String> metadata) {
-        if (description == null || description.isBlank()) return List.of();
+                                              Map<String, String> metadata) {
+        if (description == null || description.isBlank()) {return List.of();}
 
-        String lower = description.toLowerCase();
+        String   lower  = description.toLowerCase();
         String[] tokens = lower.split("\\W+");
 
         double salienceMultiplier = 1.0;
@@ -40,19 +40,22 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
 
         for (Map.Entry<String, CapsNode> entry : topology.nodes().entrySet()) {
             CapsNode node = entry.getValue();
-            if (node.type() != NodeType.INPUT) continue;
-            if (node.keywords().isEmpty()) continue;
+            if (node.type() != NodeType.INPUT) {continue;}
+            if (node.vocabulary().isEmpty()) {continue;}
 
-            int matchCount = 0;
-            for (String keyword : node.keywords()) {
-                if (containsKeyword(tokens, lower, keyword.toLowerCase())) {
+            double maxWeight  = 0;
+            int    matchCount = 0;
+            for (Map.Entry<String, Double> vocab : node.vocabulary().entrySet()) {
+                if (containsKeyword(tokens, lower, vocab.getKey().toLowerCase())) {
+                    maxWeight = Math.max(maxWeight, vocab.getValue());
                     matchCount++;
                 }
             }
 
-            if (matchCount == 0) continue;
+            if (maxWeight == 0) {continue;}
 
-            double confidence = Math.min(1.0, matchCount * 0.3 * salienceMultiplier);
+            double reinforcement = Math.min(0.15, (matchCount - 1) * 0.05);
+            double confidence    = Math.min(1.0, (maxWeight + reinforcement) * salienceMultiplier);
 
             if (confidence >= CONFIDENCE_THRESHOLD) {
                 activations.add(new SituationActivation(node.id(), confidence));
