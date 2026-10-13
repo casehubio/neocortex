@@ -28,7 +28,14 @@ For EACH memory, apply the COMPLETE type-discriminated checklist. Every field mu
 
 ### 1. PAD Affect [-1.0 to 1.0 each]
 - pleasure: positive/negative valence
-- arousal: activation/deactivation level
+- arousal: activation/deactivation level. USE THE FULL RANGE:
+  -0.8 to -0.4 = deep calm, sleep, torpor, numbness
+  -0.3 to 0.0 = relaxed, peaceful, quiet reflection, convalescence
+  0.1 to 0.3 = mild engagement, routine activity, calm attention
+  0.4 to 0.6 = moderate activation, animated conversation, focused work
+  0.7 to 0.9 = high intensity, crisis, passion, acute pain, confrontation
+  1.0 = extreme physiological activation (accident, birth, death)
+  Quiet biographical facts (childhood, painting alone, recovery) should be LOW arousal.
 - dominance: sense of control/submission
 - pad_justification: one sentence per dimension explaining why these values
 
@@ -274,8 +281,14 @@ def run_backfill(args):
             unenriched.append((i, mem, 'phase2b_reflections'))
 
     for i, mem in enumerate(phase2b_moods):
-        if isinstance(mem, dict) and 'cognitive' not in mem and mem.get('text'):
-            unenriched.append((i, mem, 'phase2b_mood_snapshots'))
+        if isinstance(mem, dict) and 'cognitive' not in mem:
+            text = mem.get('text') or mem.get('context', '')
+            if not text and mem.get('period'):
+                text = f"Mood during {mem['period']}"
+            if text:
+                if 'text' not in mem:
+                    mem['text'] = f"Mood during {mem.get('period', '?')}: {text}"
+                unenriched.append((i, mem, 'phase2b_mood_snapshots'))
 
     print(f"Backfill: {len(unenriched)} unenriched memories to process")
     enrichment_count = 0

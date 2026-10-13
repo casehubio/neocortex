@@ -19,6 +19,8 @@ extraction/output/*
 !extraction/output/nlp-baseline.json
 !extraction/output/corpus.json
 !extraction/output/manifest.json
+!extraction/output/aliases.yaml
+!extraction/output/edge-corrections.yaml
 extraction/output-test/
 extraction/iteration-log.md
 extraction/scripts/.venv/

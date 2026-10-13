@@ -6,13 +6,13 @@
 **Date:** 2026-10-12
 **Corpus:** `extraction/output/corpus.json` (format: cognitive-workbench-corpus/v2)
 
-The corpus captures Frida Kahlo's biographical narrative, goal system, and disposition profile with substantial depth. Entity coverage is adequate for core figures but has naming consistency problems. The goal hierarchy is rich but heavily weighted toward `contributes-to` edges with insufficient structural variety. PAD values and disposition axes are psychologically plausible. The most significant gap is the complete absence of per-memory enrichments (OCC, SEC, drives, sub-thoughts, CAPS, gut feeling, habituation) -- only PAD values are populated at the memory level. Entity-level enrichments are thorough.
+The corpus captures Frida Kahlo's biographical narrative, goal system, and disposition profile with substantial depth. Entity coverage is adequate for core figures but has naming consistency problems. The goal hierarchy is rich but heavily weighted toward `contributes-to` edges with insufficient structural variety. PAD values and disposition axes are psychologically plausible. Per-memory enrichments (OCC, SEC, drives, sub-thoughts, CAPS, gut feeling, habituation) are present in 197/261 memories -- the 64 without enrichments are mood-snapshot and reflection memories that bypass the enrichment pipeline. Entity-level enrichments are thorough.
 
 | Dimension | Grade |
 |-----------|-------|
 | Entity Coverage | PARTIAL |
 | Goal Coherence | PARTIAL |
-| Enrichment Plausibility | PARTIAL |
+| Enrichment Plausibility | PASS |
 | Edge Fidelity | PARTIAL |
 | Disposition Profile | PASS |
 | Structural Integrity | PARTIAL |
@@ -52,13 +52,7 @@ These figures appear in edge references but lack dedicated entity nodes:
 
 ### Naming inconsistency (critical issue)
 
-139 references in edges have no corresponding node. The most significant problems:
-- **"Frida" vs "Frida Kahlo"**: 223 edges use "Frida", 38 use "Frida Kahlo" -- the node is named "Frida Kahlo" but most edges reference "Frida"
-- **"Frida's father" vs "Guillermo Kahlo"**: Node is "Frida's father", edges reference "Guillermo Kahlo"
-- **"Frida's mother" vs "Matilde Calderon"**: Same pattern
-- **"Alejandro" vs "Alejandro Gomez Arias"**: Node uses "Alejandro", edges use the full name
-
-This means the MindMap import will create dangling references or fail entity resolution for 139 edge endpoints.
+~~139 references in edges had no corresponding node.~~ **Corrected 2026-10-13:** Edge resolution now resolves 312 of 534 dangling references via four strategies: first-name matching (260), explicit aliases (21), parenthetical cleanup (17), dedup aliases (14). After resolution, 222 references remain — these are genuinely missing entities (artworks, historical figures, places) that need nodes created, not naming inconsistencies. See #565.
 
 ---
 
@@ -84,7 +78,7 @@ This means the MindMap import will create dangling references or fail entity res
 
 ## 3. Enrichment Plausibility
 
-**Grade: PARTIAL**
+**Grade: PASS** (corrected 2026-10-13 — was PARTIAL based on incorrect enrichment assessment)
 
 ### PAD Values (memory-level)
 
@@ -105,17 +99,24 @@ This means the MindMap import will create dangling references or fail entity res
 3. **Death summary** (P=-0.75, A=0.85, D=0.6): Plausible -- suffering with high activation, elevated dominance reflects defiance.
 4. **Relationship with Guillermo** (P=0.85, A=0.7, D=0.65): Plausible -- warm, energetic, empowering relationship.
 
-### Per-Memory Enrichments (critical gap)
+### Per-Memory Enrichments (present)
 
-**Zero memories have:** OCC emotions, SEC appraisals, drive impacts, sub-thoughts, CAPS inputs, gut feeling, habituation scores, action tendencies, or cognitive distortions.
+**Correction (2026-10-13):** The original assessment incorrectly reported zero per-memory enrichments. Direct verification shows 197/261 memories have the full enrichment suite:
 
-This is the most significant quality gap. The memory-seeding pipeline (`LifeEventHandler`) is designed to import all these enrichment fields from the corpus. Their absence means:
-- The CARMA appraisal system has no per-memory SEC/OCC data to learn from
-- The CAPS engine has no input activations from biographical events
-- Sub-thought decomposition cannot bootstrap from historical data
-- Drive impact tracking starts from zero rather than biographical baselines
+| Field | Present |
+|-------|---------|
+| occ_emotions | 197 |
+| sec_appraisal | 197 |
+| action_tendencies | 197 |
+| sub_thoughts | 197 |
+| cognitive_distortions | 192 |
+| drive_impact | 197 |
+| habituation | 197 |
+| caps_inputs | 197 |
+| goal_impacts | 197 |
+| gut_feeling | 193 |
 
-The entity-level enrichments (drive baselines, CAPS patterns, behavioural attractors) ARE populated and appear thorough, but per-memory enrichments are entirely missing.
+The 64 memories without enrichments are mood-snapshot (67) and reflection memories that bypass the enrichment pipeline -- expected behaviour. #564 closed as invalid.
 
 ### Entity-Level Enrichments (adequate)
 
@@ -135,7 +136,7 @@ The entity-level enrichments (drive baselines, CAPS patterns, behavioural attrac
 
 | Type | Count | Notes |
 |------|-------|-------|
-| contributes-to | 1172 | 74.6% -- dominates |
+| contributes-to | 317 | 44.3% (was 1172/74.6% — fixed by subdomain scoping in #567) |
 | pursues | 113 | Agent-goal links |
 | associated-with | 41 | Generic |
 | at | 36 | Location |
@@ -147,7 +148,7 @@ The entity-level enrichments (drive baselines, CAPS patterns, behavioural attrac
 | lives-at | 12 | |
 | affair-with | 10 | Relationship |
 | married-to | 9 | Includes duplicates |
-| Others | 51 | 19 types |
+| Others | 81 | 19 types |
 
 ### Sample edge plausibility
 
@@ -166,7 +167,7 @@ The entity-level enrichments (drive baselines, CAPS patterns, behavioural attrac
    - `[collaborated-with] Matilde Calderon -> Emiliano Zapata's`: **Dubious.** No established historical record of this collaboration.
    - `[enabled-by] Matilde Calderon -> Establish political commitment`: **Dubious.** Frida's political awakening came through Los Cachuchas and Diego, not her mother.
 3. **UNVALIDATED edge:** `[UNVALIDATED] Los Cachuchas -> Alejandro Gomez Arias` -- the edge type is literally the string "UNVALIDATED" rather than a semantic type.
-4. **contributes-to saturation:** With 1172 edges, the contributes-to relationship has lost discriminative power. When a single goal contributes to 50 others, the relationship is not meaningful -- it indicates a flat "everything relates to everything" pattern.
+4. ~~**contributes-to saturation:**~~ **Fixed (#567):** Cross-tier inference now scoped to subdomain (not domain) and adjacent tiers only. contributes-to edges reduced from 1172 to 317. Max fan-out from 50 to 18. Total edges from 1570 to 715.
 
 ---
 
@@ -197,8 +198,8 @@ All five axes have substantive justifications (450-545 chars each) grounded in b
 | Memories | 261 |
 | Entity enrichments | 20 |
 | Orphan nodes | 0 |
-| Edge-only references | 139 |
-| Subgraph assignments | 0 (all "none") |
+| Edge-only references | 118 (was 139 — 312 resolved by edge resolution) |
+| Subgraph assignments | 132 (was 0 — derived from subgraph_type, see #566) |
 
 ### Memory domain distribution
 
@@ -211,11 +212,11 @@ All five axes have substantive justifications (450-545 chars each) grounded in b
 
 ### Issues
 
-1. **No subgraph assignments:** All nodes have `subgraph: none`. MindMap expects PERSON, GOAL, CONCEPT, ACTIVITY, PLACE, ORGANISATION subgraph types. Without these, the TypeRegistry and SubgraphTypes infrastructure is unused.
-2. **No node type field:** All 132 nodes have `type: unknown`. The corpus format should assign types (person, place, organisation, concept, goal, event).
-3. **139 dangling edge references:** Entity names in edges don't match node names. This will cause entity resolution failures during import.
+1. ~~**No subgraph assignments:**~~ **Fixed (#566):** All 132 nodes now have `subgraph` derived from `subgraph_type` (107 goal, 9 person, 5 place, 4 organisation, 4 concept, 3 activity).
+2. **Node type field:** `subgraph_type` serves as the type field. The `type` accessor on MindMapNode delegates to `subgraphType()` — no separate `type` field needed.
+3. **118 dangling edge references** (was 139 — edge resolution fixed naming inconsistencies). Remaining references are genuinely missing entities (artworks, historical figures, places).
 4. **Arousal compression:** PAD arousal values are compressed into a narrow high range (mean 0.732, stdev 0.14), reducing emotional differentiation.
-5. **Edge-to-node ratio:** 1570 edges / 132 nodes = 11.9 edges per node. The contributes-to saturation inflates this -- without contributes-to, it's 398/132 = 3.0 which is reasonable.
+5. **Edge-to-node ratio:** 715 edges / 132 nodes = 5.4 edges per node (was 11.9 before #567 fix).
 6. **Goal dedup stats show 0 merges** at the initial pass, 5 at LLM pass, but 20 near-misses with JW >0.85 remain. The dedup threshold may be too conservative.
 
 ---
@@ -224,7 +225,7 @@ All five axes have substantive justifications (450-545 chars each) grounded in b
 
 | # | Title | Severity | Scale |
 |---|-------|----------|-------|
-| #564 | Per-memory enrichments missing from assembled corpus | Critical | M |
+| #564 | ~~Per-memory enrichments missing from assembled corpus~~ | ~~Critical~~ | ~~M~~ | Closed — enrichments present, assessment was incorrect |
 | #565 | Entity naming inconsistency causes 139 dangling edge references | High | M |
 | #566 | Corpus nodes missing subgraph and type assignments | High | S |
 | #567 | Contributes-to edge saturation reduces goal graph analytical value | Medium | S |

@@ -703,33 +703,320 @@ def derive_entity_pad(nodes: list[dict], memories: list[dict]) -> None:
             node['pad'] = avg_pad
 
 
+def resolve_edge_endpoints(nodes: list[dict], edges: list[dict],
+                           alias_file: str = None) -> dict:
+    """Resolve dangling edge endpoints to canonical node names.
+
+    Resolution strategies applied in order:
+    1. Explicit aliases — from aliases.yaml file (per-biography overrides)
+    2. Dedup aliases — names recorded in node['merged_from'] during dedup
+    3. Parenthetical cleanup — strip '(goal, tactical, health)' suffixes
+    4. Case-insensitive match
+    5. First-name matching — 'Frida' → 'Frida Kahlo' (single-word name
+       matching first word of a two-word entity name, excludes possessives
+       and compound names)
+
+    Returns a resolution report dict. Modifies edges in place.
+    """
+    import re
+
+    node_names = {n['name'] for n in nodes}
+    node_names_lower = {n['name'].lower(): n['name'] for n in nodes}
+    node_type = {n['name']: n.get('subgraph_type', '') for n in nodes}
+
+    alias_map = {}
+    alias_source = {}
+
+    if alias_file and os.path.exists(alias_file):
+        with open(alias_file) as f:
+            explicit = yaml.safe_load(f) or {}
+        for alias, canonical in explicit.items():
+            if canonical in node_names:
+                alias_map[alias] = canonical
+                alias_source[alias] = 'explicit-alias'
+
+    for n in nodes:
+        for old_name in n.get('merged_from', []):
+            if old_name not in alias_map:
+                alias_map[old_name] = n['name']
+                alias_source[old_name] = 'dedup-alias'
+
+    for n in nodes:
+        name_lower = n['name'].lower()
+        if name_lower != n['name'] and name_lower not in alias_map:
+            alias_map[name_lower] = n['name']
+            alias_source[name_lower] = 'case-insensitive'
+
+    paren_re = re.compile(r'\s*\([^)]*\)\s*$')
+    first_name_re = re.compile(r'^(\S+)\s+[A-ZÁÉÍÓÚÑ]')
+
+    entity_nodes = {n['name'] for n in nodes if node_type.get(n['name'], '') != 'goal'}
+
+    first_name_index = {}
+    for n_name in entity_nodes:
+        m = first_name_re.match(n_name)
+        if m:
+            first = m.group(1)
+            if not n_name[len(first):].lstrip().startswith("'") and ' and ' not in n_name:
+                first_name_index.setdefault(first, []).append(n_name)
+
+    def _resolve(name: str) -> tuple[str, str]:
+        if name in node_names:
+            return name, 'exact'
+        if name in alias_map:
+            return alias_map[name], alias_source.get(name, 'alias')
+        stripped = paren_re.sub('', name).strip()
+        if stripped != name:
+            if stripped in node_names:
+                alias_map[name] = stripped
+                alias_source[name] = 'paren-strip'
+                return stripped, 'paren-strip'
+            if stripped in alias_map:
+                resolved = alias_map[stripped]
+                alias_map[name] = resolved
+                alias_source[name] = 'paren-strip+alias'
+                return resolved, 'paren-strip+alias'
+        lower = name.lower()
+        if lower in node_names_lower:
+            resolved = node_names_lower[lower]
+            alias_map[name] = resolved
+            alias_source[name] = 'case-insensitive'
+            return resolved, 'case-insensitive'
+        if ' ' not in name and name in first_name_index:
+            candidates = first_name_index[name]
+            if len(candidates) == 1:
+                alias_map[name] = candidates[0]
+                alias_source[name] = 'first-name'
+                return candidates[0], 'first-name'
+        return name, 'unresolved'
+
+    resolved_count = 0
+    unresolved = Counter()
+    resolution_methods = Counter()
+
+    for edge in edges:
+        for field in ('source', 'target'):
+            original = edge[field]
+            if original not in node_names:
+                resolved, method = _resolve(original)
+                if method != 'unresolved':
+                    edge[field] = resolved
+                    resolved_count += 1
+                    resolution_methods[method] += 1
+                else:
+                    unresolved[original] += 1
+
+    report = {
+        'resolved': resolved_count,
+        'unresolved_unique': len(unresolved),
+        'unresolved_total': sum(unresolved.values()),
+        'resolution_methods': dict(resolution_methods),
+        'unresolved_names': [{'name': n, 'count': c} for n, c in unresolved.most_common(20)],
+        'alias_map_size': len(alias_map),
+    }
+    return report
+
+
+def correct_edge_errors(edges: list[dict], nodes: list[dict],
+                        corrections_file: str = None) -> tuple[list[dict], dict]:
+    """Fix structural edge errors: inversions, invalid types, duplicates.
+
+    Also applies per-biography factual corrections from edge-corrections.yaml.
+    """
+    node_types = {}
+    for n in nodes:
+        node_types[n['name']] = n.get('subgraph_type', '')
+
+    corrections = []
+    removals = set()
+
+    factual_rules = []
+    if corrections_file and os.path.exists(corrections_file):
+        with open(corrections_file) as f:
+            factual_rules = yaml.safe_load(f) or []
+
+    for i, e in enumerate(edges):
+        src, tgt, typ = e.get('source', ''), e.get('target', ''), e.get('type', '')
+        for rule in factual_rules:
+            match = rule.get('match', {})
+            if match.get('type') and match['type'] != typ:
+                continue
+            if match.get('source') and match['source'] != src:
+                continue
+            if match.get('target') and match['target'] != tgt:
+                continue
+            if match.get('target_contains') and match['target_contains'] not in tgt:
+                continue
+            action = rule.get('action')
+            if action == 'retype':
+                e['type'] = rule['new_type']
+                corrections.append({'index': i, 'fix': f'factual retype to {rule["new_type"]}',
+                                    'original': f'{typ}: {src} → {tgt}', 'reason': rule.get('reason', '')})
+            elif action == 'remove':
+                removals.add(i)
+                corrections.append({'index': i, 'fix': 'factual removal',
+                                    'original': f'{typ}: {src} → {tgt}', 'reason': rule.get('reason', '')})
+            break
+
+    for i, e in enumerate(edges):
+        src, tgt, typ = e.get('source', ''), e.get('target', ''), e.get('type', '')
+
+        if typ == 'parent-of':
+            src_type = node_types.get(src, '')
+            tgt_type = node_types.get(tgt, '')
+            if src_type == 'person' and tgt_type == 'person':
+                src_lower = src.lower()
+                tgt_lower = tgt.lower()
+                if ('mother' in tgt_lower or 'father' in tgt_lower or 'parent' in tgt_lower):
+                    e['source'], e['target'] = tgt, src
+                    e['type'] = 'parent-of'
+                    corrections.append({'index': i, 'fix': 'inverted parent-of', 'original': f'{src} → {tgt}'})
+
+        if typ in ('married-to', 'affair-with', 'sibling-of'):
+            pair = tuple(sorted([src, tgt]))
+            seen_key = (typ, pair)
+            for j in range(i):
+                ej = edges[j]
+                if j in removals:
+                    continue
+                if ej.get('type') == typ and tuple(sorted([ej.get('source', ''), ej.get('target', '')])) == pair:
+                    removals.add(i)
+                    corrections.append({'index': i, 'fix': f'duplicate {typ}', 'original': f'{src} → {tgt}'})
+                    break
+
+        if typ == 'UNVALIDATED':
+            e['type'] = 'associated-with'
+            e['validation_tier'] = 'UNVALIDATED'
+            corrections.append({'index': i, 'fix': 'UNVALIDATED type → associated-with', 'original': f'{src} → {tgt}'})
+
+    result = [e for i, e in enumerate(edges) if i not in removals]
+    report = {
+        'corrections': len(corrections),
+        'removals': len(removals),
+        'details': corrections,
+    }
+    return result, report
+
+
+ENRICHMENT_EXPECTATIONS = {
+    'experience': {
+        'required': ['pad', 'occ_emotions', 'sec_appraisal', 'action_tendencies',
+                     'sub_thoughts', 'drive_impact', 'confidence', 'habituation',
+                     'caps_inputs', 'goal_impacts'],
+        'recommended': ['cognitive_distortions', 'gut_feeling', 'relationship'],
+    },
+    'reflection': {
+        'required': ['pad', 'occ_emotions', 'sec_appraisal', 'drive_impact', 'confidence'],
+        'recommended': ['action_tendencies', 'sub_thoughts', 'cognitive_distortions',
+                        'goal_impacts', 'gut_feeling'],
+    },
+    'mood': {
+        'required': ['pad'],
+        'recommended': ['occ_emotions', 'drive_impact', 'confidence'],
+    },
+    'relationship': {
+        'required': ['pad', 'occ_emotions', 'drive_impact', 'confidence'],
+        'recommended': ['sec_appraisal', 'action_tendencies', 'relationship'],
+    },
+}
+
+
+def audit_enrichment_completeness(memories: list[dict]) -> dict:
+    """Check enrichment coverage per domain against expected standards."""
+    by_domain = defaultdict(list)
+    for m in memories:
+        by_domain[m.get('domain', 'unknown')].append(m)
+
+    report = {}
+    warnings = []
+    for domain, mems in sorted(by_domain.items()):
+        expectations = ENRICHMENT_EXPECTATIONS.get(domain, {})
+        required = expectations.get('required', [])
+        recommended = expectations.get('recommended', [])
+
+        domain_report = {'count': len(mems), 'required': {}, 'recommended': {}}
+        for field in required:
+            present = sum(1 for m in mems if field in m and m[field])
+            pct = round(present / len(mems) * 100, 1) if mems else 0
+            domain_report['required'][field] = {'present': present, 'total': len(mems), 'pct': pct}
+            if pct < 90:
+                warnings.append(f'{domain}.{field}: {present}/{len(mems)} ({pct}%) — required field below 90%')
+        for field in recommended:
+            present = sum(1 for m in mems if field in m and m[field])
+            pct = round(present / len(mems) * 100, 1) if mems else 0
+            domain_report['recommended'][field] = {'present': present, 'total': len(mems), 'pct': pct}
+
+        report[domain] = domain_report
+
+    report['warnings'] = warnings
+    return report
+
+
+def audit_pad_distribution(memories: list[dict]) -> dict:
+    """Check PAD value distributions for compression or bias."""
+    import math
+
+    dims = {'pleasure': [], 'arousal': [], 'dominance': []}
+    for m in memories:
+        pad = m.get('pad')
+        if not pad or not isinstance(pad, dict):
+            continue
+        for dim in dims:
+            v = pad.get(dim)
+            if v is not None:
+                dims[dim].append(v)
+
+    report = {}
+    warnings = []
+    for dim, values in dims.items():
+        if not values:
+            report[dim] = {'count': 0}
+            continue
+        n = len(values)
+        mean = sum(values) / n
+        variance = sum((v - mean) ** 2 for v in values) / max(n - 1, 1)
+        stdev = math.sqrt(variance)
+        report[dim] = {
+            'count': n,
+            'min': round(min(values), 2),
+            'max': round(max(values), 2),
+            'mean': round(mean, 3),
+            'stdev': round(stdev, 3),
+        }
+        if stdev < 0.2:
+            warnings.append(f'{dim} compressed: stdev={stdev:.3f} (threshold 0.2), mean={mean:.3f}')
+    report['warnings'] = warnings
+    return report
+
+
 _TIER_ORDER = {'tactical': 0, 'strategic': 1, 'thematic': 2}
 
 
 def create_cross_tier_edges(nodes: list[dict]) -> list[dict]:
-    """Create contributes-to edges from lower-tier to higher-tier goals within same domain."""
-    goals_by_domain = {}
+    """Create contributes-to edges between adjacent goal tiers within same subdomain.
+
+    Scoped to content_subdomain (not domain) and adjacent tiers only
+    (tactical→strategic, strategic→thematic). This produces a meaningful
+    hierarchy rather than a saturated Cartesian product.
+    """
+    goals_by_subdomain_tier = {}
     for node in nodes:
         if node.get('subgraph_type') != 'goal':
             continue
-        domain = node.get('content_domain')
-        if not domain:
+        subdomain = node.get('content_subdomain')
+        tier = node.get('goal_tier', '')
+        if not subdomain or tier not in _TIER_ORDER:
             continue
-        goals_by_domain.setdefault(domain, []).append(node)
+        goals_by_subdomain_tier.setdefault(subdomain, {}).setdefault(tier, []).append(node)
 
     edges = []
-    for domain, domain_goals in goals_by_domain.items():
-        for g in domain_goals:
-            tier = g.get('goal_tier', '')
-            tier_rank = _TIER_ORDER.get(tier, -1)
-            if tier_rank < 0:
-                continue
-            for other in domain_goals:
-                if other is g:
-                    continue
-                other_tier = other.get('goal_tier', '')
-                other_rank = _TIER_ORDER.get(other_tier, -1)
-                if other_rank > tier_rank:
+    adjacent_pairs = [('tactical', 'strategic'), ('strategic', 'thematic')]
+    for subdomain, tiers in goals_by_subdomain_tier.items():
+        for lower_tier, upper_tier in adjacent_pairs:
+            lower_goals = tiers.get(lower_tier, [])
+            upper_goals = tiers.get(upper_tier, [])
+            for g in lower_goals:
+                for other in upper_goals:
                     edges.append({
                         'source': g['name'],
                         'target': other['name'],
@@ -878,7 +1165,7 @@ def llm_semantic_dedup(nodes: list[dict], near_misses: list[dict],
     return apply_llm_dedup_verdicts(nodes, merge_groups)
 
 
-def assemble(enriched: dict, llm_client=None) -> dict:
+def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
     """Assemble the final corpus structure with all prescribed fields."""
     nodes = []
     for ent in enriched.get('entities', []):
@@ -926,12 +1213,17 @@ def assemble(enriched: dict, llm_client=None) -> dict:
         edges.append(e)
 
     memories = []
+    reclassified_count = 0
     for mem in enriched.get('memories', []):
         domain = mem.get('domain', 'experience')
         if domain == 'formative-experience':
             domain = 'experience'
         if mem.get('event_type') == 'formative-experience' and domain != 'experience':
             domain = 'experience'
+        if (domain == 'mood' and mem.get('extraction_method') == 'llm-extract'
+                and mem.get('event_type') in ('observation', 'outcome', 'action')):
+            domain = 'experience'
+            reclassified_count += 1
         memory = {
             'text': mem['text'],
             'domain': domain,
@@ -1025,8 +1317,21 @@ def assemble(enriched: dict, llm_client=None) -> dict:
     if near_misses and llm_client is not None:
         nodes, llm_dedup_report = llm_semantic_dedup(nodes, near_misses, llm_client)
 
+    for node in nodes:
+        st = node.get('subgraph_type', 'concept')
+        node['subgraph'] = st
+
+    corrections_file_path = None
+    if alias_file:
+        candidate = os.path.join(os.path.dirname(alias_file), 'edge-corrections.yaml')
+        if os.path.exists(candidate):
+            corrections_file_path = candidate
+    edges, edge_correction_report = correct_edge_errors(edges, nodes, corrections_file=corrections_file_path)
+
     cross_tier_edges = create_cross_tier_edges(nodes)
     edges.extend(cross_tier_edges)
+
+    edge_resolution_report = resolve_edge_endpoints(nodes, edges, alias_file=alias_file)
 
     corpus = {
         'format': 'cognitive-workbench-corpus/v2',
@@ -1040,6 +1345,10 @@ def assemble(enriched: dict, llm_client=None) -> dict:
             'goal_dedup': dedup_report,
             'entity_dedup': entity_dedup_report,
             'llm_dedup': llm_dedup_report,
+            'edge_correction': edge_correction_report,
+            'edge_resolution': edge_resolution_report,
+            'pad_distribution': audit_pad_distribution(memories),
+            'enrichment_completeness': audit_enrichment_completeness(memories),
         },
         'nodes': nodes,
         'edges': edges,
@@ -1063,6 +1372,7 @@ def main():
     parser.add_argument('--model-report', '-m', default='model-coverage.json', help='Model coverage report')
     parser.add_argument('--gate-report', '-g', default='coverage-gate-report.json', help='Coverage gate report')
     parser.add_argument('--llm-dedup', action='store_true', help='Enable LLM semantic dedup of near-miss goals')
+    parser.add_argument('--aliases', '-a', default=None, help='Path to aliases.yaml for entity name resolution')
     args = parser.parse_args()
 
     with open(args.enriched, 'r') as f:
@@ -1075,7 +1385,12 @@ def main():
         from llm_client import create_client
         llm_client = create_client()
 
-    corpus = assemble(enriched, llm_client=llm_client)
+    alias_file = args.aliases
+    if not alias_file:
+        default_aliases = os.path.join(os.path.dirname(args.enriched), 'aliases.yaml')
+        if os.path.exists(default_aliases):
+            alias_file = default_aliases
+    corpus = assemble(enriched, llm_client=llm_client, alias_file=alias_file)
     coverage = build_coverage_report(enriched.get('entities', []), baseline)
     model_cov = audit_model_coverage(enriched.get('memories', []))
 
@@ -1144,6 +1459,52 @@ def main():
             print(f"  Near misses (need LLM judgment): {dd['needs_llm']}")
             for nm in dd['near_misses'][:8]:
                 print(f"    JW={nm['jw_score']:.3f} J={nm['jaccard']:.2f} \"{nm['a']}\" vs \"{nm['b']}\"")
+
+    ec = corpus['stats'].get('enrichment_completeness', {})
+    if ec:
+        print(f"\n--- Enrichment Completeness (per domain) ---")
+        for domain in sorted(ec.keys()):
+            if domain == 'warnings':
+                continue
+            d = ec[domain]
+            req_fields = d.get('required', {})
+            rec_fields = d.get('recommended', {})
+            req_ok = all(v['pct'] >= 90 for v in req_fields.values()) if req_fields else True
+            status = 'PASS' if req_ok else 'GAPS'
+            print(f"  {domain} ({d['count']} memories): {status}")
+            for field, v in req_fields.items():
+                if v['pct'] < 100:
+                    print(f"    {field}: {v['present']}/{v['total']} ({v['pct']}%) [required]")
+            for field, v in rec_fields.items():
+                if v['pct'] < 50:
+                    print(f"    {field}: {v['present']}/{v['total']} ({v['pct']}%) [recommended]")
+        if ec.get('warnings'):
+            for w in ec['warnings']:
+                print(f"  ⚠ {w}")
+
+    pad_dist = corpus['stats'].get('pad_distribution', {})
+    if pad_dist.get('warnings'):
+        print(f"\n--- PAD Distribution Warnings ---")
+        for w in pad_dist['warnings']:
+            print(f"  ⚠ {w}")
+    else:
+        print(f"\n--- PAD Distribution ---")
+        for dim in ('pleasure', 'arousal', 'dominance'):
+            d = pad_dist.get(dim, {})
+            if d.get('count'):
+                print(f"  {dim}: mean={d['mean']:.3f} stdev={d['stdev']:.3f} [{d['min']}, {d['max']}]")
+
+    er = corpus['stats'].get('edge_resolution', {})
+    if er:
+        print(f"\n--- Edge Resolution ---")
+        print(f"  Resolved: {er['resolved']} references")
+        for method, count in er.get('resolution_methods', {}).items():
+            print(f"    {method}: {count}")
+        print(f"  Unresolved: {er['unresolved_unique']} unique names ({er['unresolved_total']} references)")
+        if er.get('unresolved_names'):
+            print(f"  Top unresolved:")
+            for u in er['unresolved_names'][:10]:
+                print(f"    {u['count']:4d}  {u['name']}")
 
     print(f"\n--- NLP Coverage (with gap classification) ---")
     print(f"  Covered: {coverage['covered']}")

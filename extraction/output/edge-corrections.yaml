@@ -1,0 +1,20 @@
+# Factual edge corrections for Frida Kahlo biography corpus.
+# Applied by assemble_corpus.py during edge correction pass.
+#
+# Each entry specifies a pattern to match and the correction to apply.
+# 'action' can be: retype (change edge type), remove (delete edge)
+
+- match:
+    type: married-to
+    source: Frida Kahlo
+    target: Alejandro
+  action: retype
+  new_type: romantic-partner
+  reason: "Frida and Alejandro were romantic partners, never married"
+
+- match:
+    type: collaborated-with
+    source: Frida's mother
+    target_contains: Zapata
+  action: remove
+  reason: "No established historical record of Matilde-Zapata collaboration"
