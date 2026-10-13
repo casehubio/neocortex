@@ -1,8 +1,16 @@
 package io.casehub.neocortex.caps.engine;
 
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.CapsConnection;
+import io.casehub.neocortex.caps.CapsNode;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.DistortionEffect;
+import io.casehub.neocortex.caps.NodeRange;
+import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.WeightProvenance;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 class CapsTopologyLoaderTest {
 
@@ -123,6 +131,28 @@ class CapsTopologyLoaderTest {
         assertThat(secureAttachment.vocabulary()).containsKeys("secure", "warmth");
         assertThat(secureAttachment.vocabulary().get("secure")).isBetween(0.1, 1.0);
     }
+
+    @Test
+    void allInputNodesHaveConnections() {
+        var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
+        var inputNodeIds = topology.nodes().values().stream()
+                                   .filter(n -> n.type() == NodeType.INPUT)
+                                   .map(CapsNode::id)
+                                   .toList();
+
+        var connectedSourceIds = topology.connections().stream()
+                                         .map(CapsConnection::from)
+                                         .collect(java.util.stream.Collectors.toSet());
+
+        var disconnected = inputNodeIds.stream()
+                                       .filter(id -> !connectedSourceIds.contains(id))
+                                       .toList();
+
+        assertThat(disconnected)
+                .as("All INPUT nodes should have at least one outgoing connection")
+                .isEmpty();
+    }
+
 
     @Test
     void distortionsLoaded() {
