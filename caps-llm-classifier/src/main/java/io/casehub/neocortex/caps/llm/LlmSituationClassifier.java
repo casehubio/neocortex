@@ -150,8 +150,8 @@ public class LlmSituationClassifier implements SituationClassifier {
                 if (node.type() == NodeType.INPUT) {
                     sb.append("- ").append(id)
                         .append(" (").append(node.category()).append(")")
-                        .append(node.keywords().isEmpty() ? "" :
-                            " — keywords: " + String.join(", ", node.keywords()))
+                        .append(node.vocabulary().isEmpty() ? "" :
+                            " — vocabulary: " + String.join(", ", node.vocabulary().keySet()))
                         .append("\n");
                 }
             });

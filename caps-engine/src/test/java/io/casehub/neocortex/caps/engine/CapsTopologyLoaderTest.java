@@ -115,12 +115,13 @@ class CapsTopologyLoaderTest {
     }
 
     @Test
-    void inputNodesHaveKeywords() {
+    void inputNodesHaveVocabulary() {
         var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
         var secureAttachment = topology.nodes().get("secure_attachment");
 
-        assertThat(secureAttachment.keywords()).isNotEmpty();
-        assertThat(secureAttachment.keywords()).contains("secure", "warmth");
+        assertThat(secureAttachment.vocabulary()).isNotEmpty();
+        assertThat(secureAttachment.vocabulary()).containsKeys("secure", "warmth");
+        assertThat(secureAttachment.vocabulary().get("secure")).isBetween(0.1, 1.0);
     }
 
     @Test

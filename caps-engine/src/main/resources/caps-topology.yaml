@@ -1,7 +1,7 @@
 # CAPS Network Topology — Engine Configuration
 # Source: casehubio/neocortex#407 research spec
-# Extended for #408 graph engine: tags on connections, keywords on input
-# nodes, distortion definitions.
+# Extended for #408 graph engine: tags on connections, weighted vocabulary
+# on input nodes (#115 Layer A), distortion definitions.
 #
 # Format: nodes define the network vertices; connections define
 # weighted edges; disposition_modifiers define how DispositionAxes
@@ -13,76 +13,356 @@ spec_issue: 407
 parent_epic: 406
 
 nodes:
+  # Vocabulary: construct-derived weighted terms (§10.5, §12.2)
+  # Weights: strong 0.7-0.9, moderate 0.4-0.6, faint 0.2-0.3
+  # Source constructs cited per category. Terms are universal across
+  # characters — individual differences come from connection weights
+  # and drive amplification, not different input features (Read & Miller 2002).
   input:
+    # Source: Bowlby (1969/1982) attachment theory
     relationship:
       - id: secure_attachment
-        keywords: [secure, warmth, reliable, responsive, consistent, caring, dependable, nurturing, safe]
+        vocabulary:
+          nurturing: 0.8
+          warmth: 0.7
+          caring: 0.7
+          comforted: 0.7
+          secure: 0.7
+          trusted: 0.6
+          reliable: 0.5
+          responsive: 0.5
+          dependable: 0.5
+          safe: 0.5
+          protected: 0.5
+          consistent: 0.3
       - id: inconsistent_care
-        keywords: [inconsistent, unpredictable, sometimes, variable, unreliable, mixed]
+        vocabulary:
+          inconsistent: 0.8
+          unpredictable: 0.7
+          unreliable: 0.7
+          erratic: 0.7
+          variable: 0.5
+          mixed: 0.4
+          sometimes: 0.3
       - id: rejection
-        keywords: [rejected, dismissed, unwanted, turned away, refused, ignored]
+        vocabulary:
+          rejected: 0.9
+          dismissed: 0.8
+          unwanted: 0.8
+          turned away: 0.7
+          rebuffed: 0.7
+          refused: 0.6
+          spurned: 0.6
+          ignored: 0.5
+          cold: 0.3
       - id: betrayal
-        keywords: [betrayed, deceived, lied, broken trust, unfaithful, backstabbed]
+        vocabulary:
+          betrayed: 0.9
+          backstabbed: 0.9
+          broken trust: 0.8
+          deceived: 0.7
+          lied: 0.6
+          unfaithful: 0.7
+          double-crossed: 0.8
       - id: abandonment
-        keywords: [abandoned, left, deserted, walked away, disappeared, alone]
+        vocabulary:
+          abandoned: 0.9
+          deserted: 0.8
+          forsaken: 0.8
+          walked away: 0.6
+          disappeared: 0.6
+          left behind: 0.6
+          left: 0.4
+          alone: 0.3
       - id: neglect
-        keywords: [neglected, ignored, forgotten, overlooked, unseen, invisible]
+        vocabulary:
+          neglected: 0.9
+          unseen: 0.8
+          invisible: 0.7
+          unnoticed: 0.7
+          ignored: 0.6
+          forgotten: 0.6
+          overlooked: 0.5
+
+    # Source: Gray (1982) RST, Dickerson & Kemeny (2004), trauma research
     threat:
       - id: physical_threat
-        keywords: [threat, danger, violence, hit, attacked, hurt, harm, aggressive]
+        vocabulary:
+          attacked: 0.9
+          violence: 0.9
+          weapon: 0.8
+          danger: 0.8
+          hit: 0.7
+          hurt: 0.6
+          harm: 0.6
+          threat: 0.6
+          aggressive: 0.5
+          chase: 0.5
+          trapped: 0.5
+          risk: 0.3
       - id: social_threat
-        keywords: [humiliated, embarrassed, mocked, ridiculed, judged, shamed]
+        vocabulary:
+          humiliated: 0.9
+          shamed: 0.8
+          mocked: 0.7
+          ridiculed: 0.7
+          embarrassed: 0.6
+          laughed at: 0.7
+          scorned: 0.7
+          judged: 0.3
       - id: psychological_threat
-        keywords: [manipulated, gaslighted, controlled, threatened, intimidated]
+        vocabulary:
+          gaslighted: 0.9
+          manipulated: 0.8
+          intimidated: 0.7
+          coerced: 0.7
+          threatened: 0.6
+          controlled: 0.5
       - id: unpredictable_danger
-        keywords: [unpredictable, chaotic, volatile, unstable, explosive]
+        vocabulary:
+          chaotic: 0.8
+          volatile: 0.8
+          explosive: 0.8
+          unpredictable: 0.6
+          unstable: 0.5
+          erratic: 0.5
+
+    # Source: McClelland (1961) achievement motivation, Winter (1973) nPow
     achievement:
       - id: mastery
-        keywords: [mastered, accomplished, succeeded, achieved, learned, skilled]
+        vocabulary:
+          mastered: 0.9
+          accomplished: 0.8
+          excelled: 0.7
+          succeeded: 0.6
+          achieved: 0.6
+          skilled: 0.5
+          solved: 0.5
+          learned: 0.3
       - id: failure
-        keywords: [failed, couldn't, unable, mistake, wrong, incompetent]
+        vocabulary:
+          failed: 0.9
+          incompetent: 0.8
+          defeated: 0.8
+          collapsed: 0.7
+          humiliated: 0.7
+          bungled: 0.7
+          mistake: 0.6
+          stumbled: 0.5
+          unable: 0.5
+          wrong: 0.4
+          fell short: 0.5
+          couldn't: 0.3
+          struggle: 0.3
+          slip: 0.3
       - id: performance_judged
-        keywords: [evaluated, judged, tested, graded, assessed, scrutinized, criticized]
+        vocabulary:
+          scrutinized: 0.8
+          criticized: 0.7
+          evaluated: 0.6
+          assessed: 0.5
+          tested: 0.5
+          graded: 0.5
+          judged: 0.4
+          examined: 0.4
       - id: competence_recognition
-        keywords: [praised, recognized, acknowledged, appreciated, competent, capable]
+        vocabulary:
+          brilliant: 0.8
+          masterful: 0.8
+          praised: 0.8
+          recognized: 0.8
+          genius: 0.7
+          impressive: 0.6
+          acknowledged: 0.6
+          clever: 0.5
+          appreciated: 0.5
+          skilled: 0.4
+          competent: 0.3
+          capable: 0.3
+
+    # Source: Baumeister & Leary (1995) belongingness, Williams (2007)
+    # ostracism, McClelland nPow, Winter (1973), Bandura (1977)
     social:
       - id: acceptance
-        keywords: [accepted, welcomed, included, belonged, valued, appreciated]
+        vocabulary:
+          embraced: 0.8
+          welcomed: 0.8
+          belonged: 0.8
+          loved: 0.7
+          accepted: 0.7
+          included: 0.6
+          approved: 0.5
+          invited: 0.5
+          valued: 0.5
+          acknowledged: 0.4
+          greeted: 0.3
+          noticed: 0.2
       - id: exclusion
-        keywords: [excluded, left out, rejected, ostracized, isolated, marginalized]
+        vocabulary:
+          ostracized: 0.9
+          shunned: 0.8
+          banished: 0.8
+          excluded: 0.7
+          isolated: 0.6
+          marginalized: 0.6
+          left out: 0.5
+          rejected: 0.5
+          ignored: 0.4
+          forgotten: 0.3
       - id: dominance
-        keywords: [dominated, controlled, overpowered, subordinated, bullied]
+        vocabulary:
+          dominated: 0.9
+          overpowered: 0.9
+          humiliate: 0.8
+          bullied: 0.8
+          control: 0.7
+          command: 0.7
+          subordinated: 0.7
+          authority: 0.5
+          controlled: 0.5
+          influence: 0.4
+          pressure: 0.4
+          direct: 0.3
       - id: submission
-        keywords: [submitted, yielded, gave in, complied, surrendered, obeyed]
+        vocabulary:
+          submitted: 0.8
+          surrendered: 0.8
+          yielded: 0.6
+          obeyed: 0.5
+          complied: 0.5
+          gave in: 0.4
+          deferred: 0.4
       - id: modeling_observed
-        keywords: [watched, observed, saw, witnessed, modeled, imitated, learned from]
+        vocabulary:
+          modeled: 0.8
+          imitated: 0.8
+          learned from: 0.7
+          copied: 0.6
+          observed: 0.5
+          witnessed: 0.5
+          watched: 0.3
+          saw: 0.2
+
+    # Source: evolutionary resource competition, Hobfoll (1989) COR theory
     resource:
       - id: scarcity
-        keywords: [scarce, lacking, insufficient, poverty, deprived, without, hungry]
+        vocabulary:
+          deprived: 0.8
+          poverty: 0.8
+          hungry: 0.7
+          starving: 0.8
+          scarce: 0.6
+          lacking: 0.5
+          insufficient: 0.4
+          without: 0.3
       - id: abundance
-        keywords: [abundant, plenty, enough, provided, surplus, wealthy]
+        vocabulary:
+          wealthy: 0.7
+          surplus: 0.7
+          abundant: 0.6
+          plenty: 0.5
+          provided: 0.4
+          enough: 0.3
       - id: competition
-        keywords: [competed, rivaled, fought over, contested, competed for]
+        vocabulary:
+          competed: 0.8
+          fought over: 0.8
+          rivaled: 0.7
+          rival: 0.7
+          outwit: 0.6
+          contested: 0.6
+          competed for: 0.6
+          defeat: 0.6
+          scheme: 0.5
+          race: 0.4
       - id: sharing
-        keywords: [shared, gave, generous, cooperative, distributed, helped]
+        vocabulary:
+          generous: 0.7
+          cooperative: 0.6
+          shared: 0.5
+          helped: 0.5
+          distributed: 0.4
+          gave: 0.3
+
+    # Source: Deci & Ryan (2000) self-determination theory,
+    # Seligman (1975) learned helplessness
     autonomy:
       - id: agency_granted
-        keywords: [freedom, choice, autonomy, independent, empowered, allowed]
+        vocabulary:
+          autonomy: 0.8
+          empowered: 0.8
+          freedom: 0.7
+          independent: 0.6
+          choice: 0.5
+          allowed: 0.3
       - id: controlled
-        keywords: [controlled, restricted, confined, micromanaged, dictated, no choice]
+        vocabulary:
+          micromanaged: 0.8
+          no choice: 0.8
+          dictated: 0.7
+          controlled: 0.5
+          restricted: 0.5
+          confined: 0.5
+          constrained: 0.5
       - id: choice_available
-        keywords: [options, alternatives, choose, decide, free to]
+        vocabulary:
+          free to: 0.7
+          options: 0.5
+          alternatives: 0.5
+          choose: 0.5
+          decide: 0.4
+          opportunity: 0.4
       - id: powerlessness
-        keywords: [powerless, helpless, trapped, stuck, no control, overwhelmed]
+        vocabulary:
+          powerless: 0.9
+          helpless: 0.8
+          trapped: 0.8
+          no control: 0.7
+          overwhelmed: 0.6
+          stuck: 0.5
+          paralyzed: 0.7
+
+    # Source: Gray (1982) RST BAS/BIS, Skinner (1953) operant conditioning
     consequence:
       - id: reward
-        keywords: [rewarded, praised, gained, earned, got, received, bonus]
+        vocabulary:
+          triumph: 0.8
+          rewarded: 0.8
+          victory: 0.7
+          prize: 0.7
+          treasure: 0.6
+          success: 0.5
+          earned: 0.5
+          praised: 0.5
+          gained: 0.5
+          win: 0.5
+          bonus: 0.4
+          received: 0.3
+          found: 0.2
       - id: punishment
-        keywords: [punished, disciplined, penalized, consequences, scolded, reprimanded]
+        vocabulary:
+          punished: 0.9
+          disciplined: 0.7
+          penalized: 0.7
+          scolded: 0.6
+          reprimanded: 0.6
+          consequences: 0.5
       - id: reward_removal
-        keywords: [taken away, lost, removed, deprived, withheld]
+        vocabulary:
+          taken away: 0.8
+          deprived: 0.7
+          withheld: 0.7
+          confiscated: 0.7
+          lost: 0.5
+          removed: 0.5
       - id: aversive_removal
-        keywords: [relief, escaped, avoided, stopped, ended, free from]
+        vocabulary:
+          relief: 0.8
+          escaped: 0.7
+          free from: 0.7
+          avoided: 0.5
+          stopped: 0.4
+          ended: 0.3
 
   mediating:
     self_model:

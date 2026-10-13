@@ -56,31 +56,51 @@ public class CapsTopologyLoader {
     }
 
     private void parseNodeGroup(JsonNode groupNode, NodeType type,
-                                 Map<String, CapsNode> result) {
+                                Map<String, CapsNode> result) {
         groupNode.fields().forEachRemaining(entry -> {
-            String category = entry.getKey();
+            String   category      = entry.getKey();
             JsonNode categoryNodes = entry.getValue();
             if (categoryNodes.isArray()) {
                 for (JsonNode nodeEntry : categoryNodes) {
                     if (nodeEntry.isTextual()) {
                         result.put(nodeEntry.asText(), new CapsNode(
-                            nodeEntry.asText(), type,
-                            defaultRange(type), category,
-                            List.of(), List.of()));
+                                nodeEntry.asText(), type,
+                                defaultRange(type), category,
+                                List.of(), Map.of()));
                     } else if (nodeEntry.isObject()) {
                         String id = nodeEntry.has("id")
-                            ? nodeEntry.path("id").asText()
-                            : nodeEntry.path("name").asText();
-                        NodeRange range = parseRange(nodeEntry, type);
-                        List<String> sourceModels = parseStringList(nodeEntry.path("source_models"));
-                        List<String> keywords = parseStringList(nodeEntry.path("keywords"));
+                                    ? nodeEntry.path("id").asText()
+                                    : nodeEntry.path("name").asText();
+                        NodeRange           range        = parseRange(nodeEntry, type);
+                        List<String>        sourceModels = parseStringList(nodeEntry.path("source_models"));
+                        Map<String, Double> vocabulary   = parseVocabulary(nodeEntry);
                         result.put(id, new CapsNode(id, type, range, category,
-                            sourceModels, keywords));
+                                                    sourceModels, vocabulary));
                     }
                 }
             }
         });
     }
+
+    private Map<String, Double> parseVocabulary(JsonNode nodeEntry) {
+        JsonNode vocabNode = nodeEntry.path("vocabulary");
+        if (vocabNode.isObject()) {
+            Map<String, Double> vocab = new LinkedHashMap<>();
+            vocabNode.fields().forEachRemaining(e ->
+                                                        vocab.put(e.getKey(), e.getValue().asDouble(0.5)));
+            return Collections.unmodifiableMap(vocab);
+        }
+        JsonNode keywordsNode = nodeEntry.path("keywords");
+        if (keywordsNode.isArray()) {
+            Map<String, Double> vocab = new LinkedHashMap<>();
+            for (JsonNode item : keywordsNode) {
+                vocab.put(item.asText(), 0.5);
+            }
+            return Collections.unmodifiableMap(vocab);
+        }
+        return Map.of();
+    }
+
 
     private NodeRange parseRange(JsonNode node, NodeType type) {
         if (node.has("type")) {
