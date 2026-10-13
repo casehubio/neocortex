@@ -351,12 +351,8 @@ class BehavioralSynthesisPhaseTest {
                                         new DispositionAxes("cooperative", "moderate", "calculated",
                                                             "moderate", "analytical"));
 
-        SituationClassifier classifier = (desc, meta) -> {
-            if (desc.contains("hatch")) {
-                return List.of(new SituationActivation("mastery", 0.6));
-            }
-            return List.of(new SituationActivation("reward", 0.8));
-        };
+        SituationClassifier classifier = (desc, meta) ->
+                                                 List.of(new SituationActivation("reward", 0.8));
 
         var drivePhase = new BehavioralSynthesisPhase(store, capturingEngine, classifier, 20);
 
@@ -381,10 +377,14 @@ class BehavioralSynthesisPhaseTest {
 
         assertThat(capturingEngine.lastInputActivations).isNotNull();
         assertThat(capturingEngine.lastInputActivations).containsKey("reward");
-        assertThat(capturingEngine.lastInputActivations).containsKey("mastery");
-        assertThat(capturingEngine.lastInputActivations.get("mastery"))
-                .as("mastery activation should be scaled by drive intensity 0.75")
-                .isLessThanOrEqualTo(0.6 * 0.75 + 0.01);
+        assertThat(capturingEngine.lastInputActivations)
+                .as("D1 mapping: scheming → dominance, distrust, self_direct at drive intensity")
+                .containsKey("dominance")
+                .containsKey("distrust")
+                .containsKey("self_direct");
+        assertThat(capturingEngine.lastInputActivations.get("dominance"))
+                .as("dominance activation should equal drive intensity 0.75")
+                .isEqualTo(0.75);
     }
 
     @Test

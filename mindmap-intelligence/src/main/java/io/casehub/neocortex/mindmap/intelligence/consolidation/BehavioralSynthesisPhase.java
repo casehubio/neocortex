@@ -357,6 +357,26 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
 
+    // D1 drive→CAPS node mappings (§2.3, literature-sourced)
+// Drive type → CAPS nodes that the drive activates directly.
+// Replaces text-based classification of drive descriptions.
+    private static final Map<String, List<String>> DRIVE_CAPS_MAPPINGS = Map.ofEntries(
+            Map.entry("gallantry", List.of("other_safety", "acceptance", "approach")),
+            Map.entry("proving-worth", List.of("mastery", "competence_recognition", "self_efficacy")),
+            Map.entry("protection", List.of("other_safety", "physical_threat", "approach")),
+            Map.entry("scheming", List.of("dominance", "distrust", "self_direct")),
+            Map.entry("gloating", List.of("dominance", "BAS_activation")),
+            Map.entry("self-preservation", List.of("threat_sensitivity", "escape_assessment", "FFFS_activation")),
+            Map.entry("recognition", List.of("competence_recognition", "self_worth", "BAS_activation")),
+            Map.entry("curiosity", List.of("explore", "BAS_activation")),
+            Map.entry("social-harmony", List.of("other_safety", "acceptance", "proximity_seek")),
+            Map.entry("adventure", List.of("explore", "BAS_activation", "approach")),
+            Map.entry("greed", List.of("BAS_activation", "approach", "persist")),
+            Map.entry("loyalty", List.of("other_reliability", "proximity_seek", "trust")),
+            Map.entry("suspicion", List.of("threat_sensitivity", "distrust", "BIS_activation")),
+            Map.entry("dominance", List.of("dominance", "self_direct", "assert"))
+                                                                                      );
+
     private void mergeDriveIntensities(Map<String, Double> combinedActivations,
                                        String agentId, String tenantId) {
         var cognitiveNodes = store.search(
@@ -365,17 +385,27 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             if (!"drive-intensity".equals(node.properties().get("cognitiveKind"))) {continue;}
             if (!agentId.equals(node.properties().get("agent-id"))) {continue;}
 
-            String description = node.properties().get("description");
-            if (description == null || description.isBlank()) {continue;}
+            String driveType = node.properties().get("drive-type");
+            if (driveType == null) {continue;}
 
             double intensity;
-            try { intensity = Double.parseDouble(node.properties().getOrDefault("intensity", "0.5")); }
-            catch (NumberFormatException e) { intensity = 0.5; }
+            try {
+                intensity = Double.parseDouble(node.properties().getOrDefault("intensity", "0.5"));
+            } catch (NumberFormatException e) {intensity = 0.5;}
 
-            var activations = classifier.classify(description, Map.of());
-            for (var sa : activations) {
-                double scaled = sa.confidence() * intensity;
-                combinedActivations.merge(sa.nodeId(), scaled, Math::max);
+            List<String> targetNodes = DRIVE_CAPS_MAPPINGS.get(driveType);
+            if (targetNodes != null) {
+                for (String nodeId : targetNodes) {
+                    combinedActivations.merge(nodeId, intensity, Math::max);
+                }
+            } else {
+                String description = node.properties().get("description");
+                if (description == null || description.isBlank()) {continue;}
+                var activations = classifier.classify(description, Map.of());
+                for (var sa : activations) {
+                    double scaled = sa.confidence() * intensity;
+                    combinedActivations.merge(sa.nodeId(), scaled, Math::max);
+                }
             }
         }
     }
