@@ -282,6 +282,10 @@ def main():
             for mood in result.get('mood_snapshots', []):
                 if not isinstance(mood, dict):
                     continue
+                if 'text' not in mood:
+                    period = mood.get('period', '?')
+                    context = mood.get('context', '')
+                    mood['text'] = f"Mood during {period}: {context}" if context else f"Mood during {period}"
                 mood['domain'] = 'mood'
                 mood['subject'] = entity_name
                 mood['enrichment_version'] = 'v1.0-phase2b'

@@ -1,0 +1,15 @@
+# Entity name aliases for Frida Kahlo biography corpus.
+# Maps dangling edge endpoint names to canonical node names.
+# Used by assemble_corpus.py during edge resolution.
+
+# Proper name → descriptive node name
+"Guillermo Kahlo": "Frida's father"
+"Matilde Calderón": "Frida's mother"
+"Matilde": "Frida's mother"
+
+# Full name → short node name
+"Alejandro Gómez Arias": "Alejandro"
+
+# Variant → canonical
+"Surrealism": "Surrealist movement"
+"surrealism": "Surrealist movement"
