@@ -213,7 +213,7 @@ nodes:
         vocabulary:
           dominated: 0.9
           overpowered: 0.9
-          humiliate: 0.8
+          humiliated: 0.8
           bullied: 0.8
           control: 0.7
           command: 0.7
@@ -781,6 +781,215 @@ connections:
     provenance: consensus
     source: "social evaluation threat → behavioral inhibition (Dickerson & Kemeny 2004)"
     tags: [bis, threat]
+
+  # Missing INPUT→MEDIATING connections (Layer A §10.4 break #3)
+  # Priority nodes for collapsed drives marked with ★
+
+  # ★ dominance → BAS + social_comparison (McClelland nPow: power = approach)
+  - from: dominance
+    to: BAS_activation
+    weight: 0.40
+    provenance: consensus
+    source: "McClelland nPow: dominance activates approach/reward system"
+    tags: [bas]
+  - from: dominance
+    to: social_comparison
+    weight: 0.45
+    provenance: consensus
+    source: "Festinger 1954: dominance triggers upward/downward comparison"
+    tags: []
+
+  # ★ failure → self_worth (neg) + BIS (McClelland: failure depresses self-worth)
+  - from: failure
+    to: self_worth
+    weight: -0.30
+    provenance: consensus
+    source: "McClelland 1961: achievement failure → depressed self-worth"
+    tags: []
+  - from: failure
+    to: BIS_activation
+    weight: 0.30
+    provenance: consensus
+    source: "failure → behavioral inhibition, rumination"
+    tags: [bis]
+
+  # ★ competence_recognition → self_worth (pos) + BAS (recognition = reward)
+  - from: competence_recognition
+    to: self_worth
+    weight: 0.30
+    provenance: consensus
+    source: "McClelland 1961: recognition validates competence → self-worth"
+    tags: []
+  - from: competence_recognition
+    to: BAS_activation
+    weight: 0.35
+    provenance: consensus
+    source: "recognition = social reward signal → BAS approach"
+    tags: [bas]
+
+  # ★ exclusion → other_safety (neg) + BIS (Williams 2007: ostracism = threat)
+  - from: exclusion
+    to: other_safety
+    weight: -0.35
+    provenance: empirical
+    source: "Williams 2007: ostracism threatens belonging, safety"
+    tags: []
+  - from: exclusion
+    to: BIS_activation
+    weight: 0.35
+    provenance: consensus
+    source: "exclusion → behavioral inhibition, social withdrawal"
+    tags: [bis]
+
+  # ★ competition → BAS + social_comparison
+  - from: competition
+    to: BAS_activation
+    weight: 0.40
+    provenance: consensus
+    source: "resource competition activates approach/reward system"
+    tags: [bas]
+  - from: competition
+    to: social_comparison
+    weight: 0.40
+    provenance: consensus
+    source: "Festinger 1954: competition heightens social comparison"
+    tags: []
+
+  # betrayal → other_reliability (neg) + FFFS
+  - from: betrayal
+    to: other_reliability
+    weight: -0.45
+    provenance: consensus
+    source: "trust violation → depressed other-model reliability"
+    tags: []
+  - from: betrayal
+    to: FFFS_activation
+    weight: 0.35
+    provenance: consensus
+    source: "betrayal by trusted figure activates fight-flight"
+    tags: [threat]
+
+  # abandonment → other_reliability (neg) + self_worth (neg)
+  - from: abandonment
+    to: other_reliability
+    weight: -0.40
+    provenance: consensus
+    source: "Bowlby: abandonment → others are unreliable"
+    tags: []
+  - from: abandonment
+    to: self_worth
+    weight: -0.25
+    provenance: consensus
+    source: "Bowlby: abandoned → I must not be worth staying for"
+    tags: []
+
+  # neglect → self_worth (neg) + other_reliability (neg)
+  - from: neglect
+    to: self_worth
+    weight: -0.30
+    provenance: consensus
+    source: "Bowlby: neglect → I am not worth attending to"
+    tags: []
+  - from: neglect
+    to: other_reliability
+    weight: -0.30
+    provenance: consensus
+    source: "neglect → others don't attend to my needs"
+    tags: []
+
+  # psychological_threat → threat_sensitivity + BIS
+  - from: psychological_threat
+    to: threat_sensitivity
+    weight: 0.45
+    provenance: consensus
+    source: "coercion/manipulation → heightened threat detection"
+    tags: [threat]
+  - from: psychological_threat
+    to: BIS_activation
+    weight: 0.35
+    provenance: consensus
+    source: "psychological threat → behavioral inhibition"
+    tags: [bis, threat]
+
+  # unpredictable_danger → threat_sensitivity + arousal_level
+  - from: unpredictable_danger
+    to: threat_sensitivity
+    weight: 0.45
+    provenance: consensus
+    source: "chronic unpredictability → sensitized threat detection"
+    tags: [threat]
+  - from: unpredictable_danger
+    to: arousal_level
+    weight: 0.40
+    provenance: consensus
+    source: "volatile environment → elevated baseline arousal"
+    tags: [threat]
+
+  # submission → self_efficacy (neg)
+  - from: submission
+    to: self_efficacy
+    weight: -0.25
+    provenance: consensus
+    source: "repeated yielding → depressed self-efficacy"
+    tags: []
+
+  # scarcity → BIS + FFFS (resource threat)
+  - from: scarcity
+    to: BIS_activation
+    weight: 0.30
+    provenance: consensus
+    source: "resource scarcity → cautious behavior"
+    tags: [bis]
+  - from: scarcity
+    to: FFFS_activation
+    weight: 0.25
+    provenance: consensus
+    source: "severe deprivation → survival-level threat"
+    tags: [threat]
+
+  # abundance → BAS
+  - from: abundance
+    to: BAS_activation
+    weight: 0.25
+    provenance: consensus
+    source: "resource abundance → approach/reward"
+    tags: [bas]
+
+  # sharing → other_reliability (pos)
+  - from: sharing
+    to: other_reliability
+    weight: 0.25
+    provenance: consensus
+    source: "prosocial resource sharing → others are reliable/safe"
+    tags: [social_input]
+
+  # reward_removal → BIS + reinforcement_expectation (neg)
+  - from: reward_removal
+    to: BIS_activation
+    weight: 0.30
+    provenance: consensus
+    source: "loss of expected reward → behavioral inhibition"
+    tags: [bis]
+  - from: reward_removal
+    to: reinforcement_expectation
+    weight: -0.35
+    provenance: consensus
+    source: "reward removal depresses reward expectation"
+    tags: []
+
+  # aversive_removal → BAS + reinforcement_expectation (pos)
+  - from: aversive_removal
+    to: BAS_activation
+    weight: 0.30
+    provenance: consensus
+    source: "negative reinforcement → approach behavior"
+    tags: [bas]
+  - from: aversive_removal
+    to: reinforcement_expectation
+    weight: 0.30
+    provenance: consensus
+    source: "aversive removal → positive reinforcement expectation"
+    tags: []
 
   # Composition bridges
   - from: BIS_activation

@@ -128,4 +128,35 @@ class RuleBasedSituationClassifierTest {
         assertThat(multiConf).isGreaterThan(singleConf);
     }
 
+    @Test
+    void scenarioEvent_rivalFailure_activatesDominanceAndFailure() {
+        List<SituationActivation> result = classifier.classify(
+                "The rival's scheme collapsed spectacularly — they stumbled and failed in front of everyone, humiliated and defeated",
+                Map.of());
+
+        List<String> nodeIds = result.stream().map(SituationActivation::nodeId).toList();
+        assertThat(nodeIds).contains("failure", "dominance");
+    }
+
+    @Test
+    void scenarioEvent_helpingOthers_activatesAcceptanceAndSharing() {
+        List<SituationActivation> result = classifier.classify(
+                "She helped the newcomer feel welcomed and included, sharing what she had",
+                Map.of());
+
+        List<String> nodeIds = result.stream().map(SituationActivation::nodeId).toList();
+        assertThat(nodeIds).contains("acceptance", "sharing");
+    }
+
+    @Test
+    void scenarioEvent_competitionAndRecognition_activatesMultipleNodes() {
+        List<SituationActivation> result = classifier.classify(
+                "His clever scheme outwitted the rival and everyone praised his brilliant plan",
+                Map.of());
+
+        List<String> nodeIds = result.stream().map(SituationActivation::nodeId).toList();
+        assertThat(nodeIds).contains("competence_recognition", "competition");
+    }
+
+
 }
