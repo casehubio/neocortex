@@ -29,6 +29,7 @@ while [[ $# -gt 0 ]]; do
         --mode) MODE="$2"; shift 2;;
         --max-passes) MAX_PASSES="$2"; shift 2;;
         --limit) LIMIT="$2"; shift 2;;
+        --schema) SCHEMA_PATH="$2"; shift 2;;
         *) shift;;
     esac
 done
@@ -47,9 +48,32 @@ fi
 mkdir -p "$OUTDIR"
 MANIFEST="$OUTDIR/manifest.json"
 
+# Schema discovery: explicit > output-dir > docs fallback
+if [ -z "${SCHEMA_PATH:-}" ]; then
+    if [ -f "$OUTDIR/verify_schema.yaml" ]; then
+        SCHEMA_PATH="$OUTDIR/verify_schema.yaml"
+    else
+        SCHEMA_PATH="$SCRIPT_DIR/../docs/verify_schema.yaml"
+    fi
+fi
+
+# Read subject name from schema
+SUBJECT=$($VENV -c "
+import yaml, sys
+with open('$SCHEMA_PATH') as f:
+    schema = yaml.safe_load(f)
+print(schema.get('converter', {}).get('subject_name', ''))
+")
+if [ -z "$SUBJECT" ]; then
+    echo "Error: converter.subject_name not found in $SCHEMA_PATH"
+    exit 1
+fi
+
 echo "=== Cognitive Extraction Pipeline ==="
 echo "Source: $SOURCE"
 echo "Output: $OUTDIR"
+echo "Schema: $SCHEMA_PATH"
+echo "Subject: $SUBJECT"
 echo "Mode: $MODE"
 echo "Max passes: $MAX_PASSES"
 if [ "$LIMIT" -gt 0 ]; then echo "Passage limit: $LIMIT"; fi
@@ -264,7 +288,7 @@ fi
 # ===================== POST-CONVERGENCE =====================
 echo ""
 echo "--- Step 6: Reference Overlay ---"
-$VENV "$SCRIPT_DIR/generate_overlay.py" "$OUTDIR/structure.json" "$OUTDIR/passages.json" -o "$OUTDIR/reference-overlay.json"
+$VENV "$SCRIPT_DIR/generate_overlay.py" "$OUTDIR/structure.json" "$OUTDIR/passages.json" -o "$OUTDIR/reference-overlay.json" --subject "$SUBJECT"
 echo ""
 
 echo "--- Step 7: Assemble Corpus ---"
@@ -273,7 +297,7 @@ echo ""
 
 echo "--- Step 8: Verify Import Readiness ---"
 $VENV "$SCRIPT_DIR/verify_corpus.py" "$OUTDIR/corpus.json" \
-    --schema "$SCRIPT_DIR/../docs/verify_schema.yaml" \
+    --schema "$SCHEMA_PATH" \
     --output "$OUTDIR"
 VERIFY_EXIT=$?
 if [ $VERIFY_EXIT -eq 1 ]; then

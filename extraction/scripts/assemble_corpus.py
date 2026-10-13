@@ -2,7 +2,7 @@
 """Step 6: Assemble importable corpus from enriched data.
 
 Input:  enriched.json + nlp-baseline.json
-Output: corpus.json — ready for FridaSeeder or BiographyHandler import
+Output: corpus.json — ready for BiographyHandler import
 
 Also produces:
 - coverage-report.json — NLP coverage audit with gap classification
@@ -1228,7 +1228,7 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
             'text': mem['text'],
             'domain': domain,
             'event_type': mem.get('event_type', 'observation'),
-            'subject': mem.get('subject', 'frida-kahlo'),
+            'subject': mem['subject'],
             'period': mem.get('period'),
             'related_entities': mem.get('related_entities', []),
             'mentioned_entities': mem.get('related_entities', []),

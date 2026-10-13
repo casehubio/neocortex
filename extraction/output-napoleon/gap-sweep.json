@@ -1,0 +1,841 @@
+{
+  "stats": {
+    "passages_scanned": 21,
+    "new_entities_found": 119
+  },
+  "new_entities": [
+    {
+      "name": "Corsican independence",
+      "type": "goal",
+      "confidence": 0.95,
+      "passage_text": "fought alongside Pasquale Paoli for Corsican independence",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "French military academies",
+      "type": "organisation",
+      "confidence": 0.9,
+      "passage_text": "secured scholarships for his sons at French military academies",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "French occupiers",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "despised his father's accommodation with the French occupiers",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Corsican pragmatism",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "This was not cruelty; it was Corsican pragmatism in a household with too many mouths and too little money",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Plutarch's Lives",
+      "type": "project",
+      "confidence": 0.95,
+      "passage_text": "He devoured Plutarch's Lives, Caesar's commentaries, and histories of Alexander the Great.",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Caesar's commentaries",
+      "type": "project",
+      "confidence": 0.95,
+      "passage_text": "He devoured Plutarch's Lives, Caesar's commentaries, and histories of Alexander the Great.",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Corsican identity",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "He refused to assimilate, refused to soften his Corsican identity, refused to pretend he belonged.",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Napoleon's father",
+      "type": "person",
+      "confidence": 0.9,
+      "passage_text": "When his father died in 1785, Napoleon grieved briefly and privately.",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "isolation",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "He converted his isolation into a fortress of contempt",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Voltaire",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "He read voraciously \u2014 Rousseau, Voltaire, Montesquieu, Raynal",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "Montesquieu",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "He read voraciously \u2014 Rousseau, Voltaire, Montesquieu, Raynal",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "Raynal",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "He read voraciously \u2014 Rousseau, Voltaire, Montesquieu, Raynal",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "The Revolution",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "The Revolution, when it came in 1789",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "The Terror",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "He saw the Terror not as justice but as chaos",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "Enlightenment rationalism",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "developed a political philosophy that combined Enlightenment rationalism with an instinct for authoritarian control",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "meritocracy",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "He believed in meritocracy passionately and in democracy not at all",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "the royal family",
+      "type": "person",
+      "confidence": 0.8,
+      "passage_text": "the royal family dragged through jeering crowds",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "Storming of the Tuileries",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "He witnessed the storming of the Tuileries in August 1792",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "artillery",
+      "type": "organisation",
+      "confidence": 0.75,
+      "passage_text": "commissioned as a second lieutenant in the artillery, the least fashionable branch of the army",
+      "source_passage": "p-004"
+    },
+    {
+      "name": "Revolutionary government",
+      "type": "organisation",
+      "confidence": 0.95,
+      "passage_text": "rebelled against the Revolutionary government",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "British fleet",
+      "type": "organisation",
+      "confidence": 0.95,
+      "passage_text": "invited the British fleet to occupy the harbour",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "Siege of Toulon",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "The Republican besieging force needed an artillery commander",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "harbour entrance",
+      "type": "place",
+      "confidence": 0.85,
+      "passage_text": "a promontory called L'\u00c9guillette that commanded the harbour entrance",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "defences",
+      "type": "place",
+      "confidence": 0.8,
+      "passage_text": "He surveyed the defences",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "ambition/conviction of superiority",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "the conviction that his vision was superior to other men's, and that the world existed to prove it",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "whiff of grapeshot",
+      "type": "event",
+      "confidence": 0.95,
+      "passage_text": "the famous \"whiff of grapeshot\"",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "royalist uprising",
+      "type": "event",
+      "confidence": 0.9,
+      "passage_text": "a royalist uprising in Paris",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "Italian campaign",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "His letters to her during the Italian campaign",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "salon",
+      "type": "place",
+      "confidence": 0.85,
+      "passage_text": "At a salon, he met Rose de Beauharnais",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "self-sufficiency",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "everything he believed about self-sufficiency",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "marriage certificate",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "The marriage certificate falsified both their ages",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "Lodi",
+      "type": "place",
+      "confidence": 0.95,
+      "passage_text": "At Lodi, he personally led a charge across a bridge under Austrian fire",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Arcole",
+      "type": "place",
+      "confidence": 0.95,
+      "passage_text": "He destroyed the Austrians and Sardinians in a series of battles \u2014 Montenotte, Lodi, Arcole, Rivoli",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "le petit caporal",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "his soldiers began calling him le petit caporal \u2014 the Little Corporal \u2014 with affection and awe",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "the Little Corporal",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "his soldiers began calling him le petit caporal \u2014 the Little Corporal \u2014 with affection and awe",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Italian states",
+      "type": "place",
+      "confidence": 0.85,
+      "passage_text": "reorganised Italian states without permission",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "looted art",
+      "type": "project",
+      "confidence": 0.8,
+      "passage_text": "sent back looted art as fait accompli",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Acre",
+      "type": "place",
+      "confidence": 0.95,
+      "passage_text": "he could not take Acre",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Institut d'\u00c9gypte",
+      "type": "organisation",
+      "confidence": 0.95,
+      "passage_text": "the founding of the Institut d'\u00c9gypte",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Ancient Egypt",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "a library of books on Egypt, Islam, and ancient history",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Conqueror of the East",
+      "type": "goal",
+      "confidence": 0.9,
+      "passage_text": "He wanted to add \"conqueror of the East\" to his identity",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Scientific expedition to Egypt",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "the scientific expedition, the Description de l'\u00c9gypte, the founding of the Institut d'\u00c9gypte \u2014 all were real achievements",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Eastern Mediterranean",
+      "type": "place",
+      "confidence": 0.9,
+      "passage_text": "establish French influence in the eastern Mediterranean",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Junior officer",
+      "type": "person",
+      "confidence": 0.7,
+      "passage_text": "the wife of a junior officer",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Coup of 18 Brumaire",
+      "type": "activity",
+      "confidence": 0.95,
+      "passage_text": "The coup of 18 Brumaire, on 9 November 1799, was nearly a disaster.",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "9 November 1799",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "The coup of 18 Brumaire, on 9 November 1799, was nearly a disaster.",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "grenadiers",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "rallying the grenadiers, clearing the hall",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "self-mythologising",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "This capacity for self-mythologising \u2014 for believing his own propaganda \u2014 was both his greatest strength and the flaw that would eventually destroy him.",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "self-image",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "he replaced it with a version that matched his self-image",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "August 1799",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "Napoleon abandoned his army in Egypt in August 1799",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "Concordat of 1801",
+      "type": "project",
+      "confidence": 0.95,
+      "passage_text": "He reconciled with the Catholic Church through the Concordat of 1801",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "lyc\u00e9e system",
+      "type": "project",
+      "confidence": 0.9,
+      "passage_text": "created the lyc\u00e9e system of secondary education",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "tax system",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "He reorganised the tax system",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "roads and canals",
+      "type": "project",
+      "confidence": 0.8,
+      "passage_text": "built roads and canals",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "rationality",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "The Code was an expression of his deepest values: rationality, order, clarity, meritocracy",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "meritocracy",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "The Code was an expression of his deepest values: rationality, order, clarity, meritocracy",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "patriarchal authority",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "rationality, order, clarity, meritocracy \u2014 and patriarchal authority",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "domestic sphere",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "Women belonged in the domestic sphere; men in the public one",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "equality before the law",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "It guaranteed equality before the law and property rights",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "secretaries",
+      "type": "person",
+      "confidence": 0.7,
+      "passage_text": "He dictated letters at a speed that exhausted his secretaries",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "Emperor of the French",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "Napoleon crowned himself Emperor of the French",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "coronation ceremony",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "at the moment of coronation, Napoleon took the crown from the altar and placed it on his own head",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "right flank",
+      "type": "place",
+      "confidence": 0.8,
+      "passage_text": "He had lured the combined armies of Austria and Russia into attacking his deliberately weakened right flank",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "centre",
+      "type": "place",
+      "confidence": 0.8,
+      "passage_text": "then struck with his main force at the centre, splitting the allied army in two",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "allied army",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "the combined armies of Austria and Russia into attacking his deliberately weakened right flank, then struck with his main force at the centre, splitting the allied army in two",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "diadem",
+      "type": "project",
+      "confidence": 0.75,
+      "passage_text": "the gentleness with which he placed the diadem on her head",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "Napoleon II",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "Marie Louise gave him a son \u2014 Napoleon II, King of Rome",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "King of Rome",
+      "type": "person",
+      "confidence": 0.9,
+      "passage_text": "Napoleon II, King of Rome",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "the young general",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "the young general who had written frantic letters from Italy",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "emotional life vs political life",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "Jos\u00e9phine represented the emotional life he had sacrificed for the political one",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "legacy through dynasty",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "how much of his empire-building was ultimately about legacy, about cheating death through dynasty",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "The Retreat from Moscow",
+      "type": "activity",
+      "confidence": 0.95,
+      "passage_text": "The retreat began on 19 October 1812. It was one of the great catastrophes in military history.",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "Grande Arm\u00e9e",
+      "type": "organisation",
+      "confidence": 0.95,
+      "passage_text": "The Grande Arm\u00e9e, already weakened by disease, desertion, and the Battle of Borodino",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "Cossacks",
+      "type": "organisation",
+      "confidence": 0.9,
+      "passage_text": "The Cossacks harassed the flanks.",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "disease",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "already weakened by disease, desertion, and the Battle of Borodino",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "desertion",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "already weakened by disease, desertion, and the Battle of Borodino",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "coalition powers",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "before the coalition powers exploited his weakness",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "the soldiers",
+      "type": "person",
+      "confidence": 0.7,
+      "passage_text": "He walked among the soldiers, shared their cold, and made decisions that saved thousands",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "Talleyrand",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "Talleyrand was secretly negotiating with the allies.",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Napoleon's marshals",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "His marshals were exhausted.",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Napoleon's advisers",
+      "type": "person",
+      "confidence": 0.8,
+      "passage_text": "Even his closest advisers urged him to negotiate a peace",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Treaty of Prague (1813)",
+      "type": "activity",
+      "confidence": 0.75,
+      "passage_text": "The allies offered generous terms at Prague in the summer of 1813",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "France's natural borders",
+      "type": "concept",
+      "confidence": 0.7,
+      "passage_text": "negotiate a peace that would preserve France's natural borders \u2014 the Rhine, the Alps, the Pyrenees",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "acceptance of limitations",
+      "type": "concept",
+      "confidence": 0.65,
+      "passage_text": "acceptance meant acknowledging limits, and acknowledging limits meant admitting he was not the man he believed himself to be",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "fate",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "He genuinely could not see that a smaller empire voluntarily accepted was preferable to a larger empire violently lost. At the Battle of Leipzig in October 1813...This was a man who had spent his entire career believing he could shape fate recognising, for the first time, that fate might shape him.",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Marshal Petit",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "He kissed Marshal Petit on both cheeks.",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "Constant",
+      "type": "person",
+      "confidence": 0.8,
+      "passage_text": "He told his valet Constant",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "regimental eagle",
+      "type": "project",
+      "confidence": 0.75,
+      "passage_text": "and kissed the regimental eagle",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "Russian campaign",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "a poison he had carried since the Russian campaign",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "abdication",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "Napoleon abdicated",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "allied armies",
+      "type": "organisation",
+      "confidence": 0.8,
+      "passage_text": "with allied armies in Paris",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "suicide attempt",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "The suicide attempt was the clearest evidence",
+      "source_passage": "p-017"
+    },
+    {
+      "name": "the Hundred Days",
+      "type": "activity",
+      "confidence": 0.95,
+      "passage_text": "He was happy during the Hundred Days",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "constitutional monarch",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "He genuinely wanted to govern as a constitutional monarch",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "liberal reforms",
+      "type": "goal",
+      "confidence": 0.8,
+      "passage_text": "He promised liberal reforms, a new constitution, peace with Europe",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "new constitution",
+      "type": "project",
+      "confidence": 0.8,
+      "passage_text": "He promised liberal reforms, a new constitution, peace with Europe",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "loyalty and spectacle",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "he understood something about loyalty and spectacle that no other leader of his era grasped",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "the allies",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "He genuinely believed the allies would accept his return",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "Vive l'Empereur",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "They rushed forward shouting \"Vive l'Empereur!\"",
+      "source_passage": "p-018"
+    },
+    {
+      "name": "Battle of Waterloo",
+      "type": "activity",
+      "confidence": 0.95,
+      "passage_text": "At Waterloo, Napoleon faced the Duke of Wellington's Anglo-allied army on a ridge near Brussels.",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "Duke of Wellington",
+      "type": "person",
+      "confidence": 0.9,
+      "passage_text": "the Duke of Wellington's Anglo-allied army",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "ridge near Brussels",
+      "type": "place",
+      "confidence": 0.75,
+      "passage_text": "on a ridge near Brussels",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "D'Erlon's corps",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "D'Erlon's corps attacked in a formation",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "British squares",
+      "type": "organisation",
+      "confidence": 0.8,
+      "passage_text": "Marshal Ney charged the British squares too early",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "British musketry",
+      "type": "activity",
+      "confidence": 0.7,
+      "passage_text": "formation that maximised its vulnerability to British musketry",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "French army",
+      "type": "organisation",
+      "confidence": 0.9,
+      "passage_text": "The cry spread through the French army like a physical shock",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "abdication",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "abdicated for the second time on 22 June",
+      "source_passage": "p-019"
+    },
+    {
+      "name": "Gourgaud",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "He dictated his memoirs \u2014 to Las Cases, Gourgaud, Montholon, Bertrand",
+      "source_passage": "p-020"
+    },
+    {
+      "name": "Egyptian campaign",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "The Egyptian campaign became a civilising mission",
+      "source_passage": "p-020"
+    },
+    {
+      "name": "Spanish war",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "The Spanish war became a defensive necessity",
+      "source_passage": "p-020"
+    },
+    {
+      "name": "memoirs",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "He dictated his memoirs \u2014 to Las Cases, Gourgaud, Montholon, Bertrand",
+      "source_passage": "p-020"
+    },
+    {
+      "name": "myth construction",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "he constructed the myth that would outlive the man",
+      "source_passage": "p-020"
+    },
+    {
+      "name": "self-deception",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "The self-deception was total and, in its way, heroic",
+      "source_passage": "p-020"
+    },
+    {
+      "name": "Napoleon's son",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "He spoke often of his son, whom he had not seen since 1814. The boy was in Vienna, raised as an Austrian prince",
+      "source_passage": "p-021"
+    },
+    {
+      "name": "gastric cancer",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "He suffered from chronic stomach pain \u2014 probably gastric cancer, the disease that had killed his father",
+      "source_passage": "p-021"
+    },
+    {
+      "name": "Napoleon's father",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "probably gastric cancer, the disease that had killed his father",
+      "source_passage": "p-021"
+    },
+    {
+      "name": "St Helena (garden)",
+      "type": "place",
+      "confidence": 0.75,
+      "passage_text": "He spent hours in the garden, tending plants",
+      "source_passage": "p-021"
+    },
+    {
+      "name": "the myth of the martyred Emperor",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "The myth he built at St Helena \u2014 of the martyred Emperor, the champion of the people, the man betrayed by lesser men",
+      "source_passage": "p-021"
+    },
+    {
+      "name": "anarchy",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "I closed the gulf of anarchy and brought order out of chaos",
+      "source_passage": "p-021"
+    }
+  ]
+}

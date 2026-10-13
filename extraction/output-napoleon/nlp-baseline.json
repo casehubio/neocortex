@@ -1,0 +1,8118 @@
+{
+  "stats": {
+    "total_entities": 191,
+    "total_temporal": 69,
+    "total_noun_chunks": 1088,
+    "by_type": {
+      "organisation": 45,
+      "group": 18,
+      "place": 50,
+      "person": 37,
+      "unknown": 33,
+      "project": 1,
+      "activity": 3,
+      "work-of-art": 4
+    },
+    "by_tier": {
+      "central": 29,
+      "supporting": 67,
+      "peripheral": 95
+    }
+  },
+  "entities": {
+    "napoleon": {
+      "canonical": "Napoleon",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 57,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-004",
+        "p-005",
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-009",
+        "p-010",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-014",
+        "p-015",
+        "p-016",
+        "p-017",
+        "p-018",
+        "p-019",
+        "p-020",
+        "p-021"
+      ],
+      "aliases": [
+        "Napoleon"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 746,
+          "end_char": 754
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1030,
+          "end_char": 1038
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1273,
+          "end_char": 1281
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1590,
+          "end_char": 1598
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2056,
+          "end_char": 2064
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2147,
+          "end_char": 2155
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 3420,
+          "end_char": 3428
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 3638,
+          "end_char": 3646
+        },
+        {
+          "passage_id": "p-004",
+          "start_char": 3850,
+          "end_char": 3858
+        },
+        {
+          "passage_id": "p-005",
+          "start_char": 6824,
+          "end_char": 6832
+        },
+        {
+          "passage_id": "p-006",
+          "start_char": 7492,
+          "end_char": 7500
+        },
+        {
+          "passage_id": "p-006",
+          "start_char": 8554,
+          "end_char": 8562
+        },
+        {
+          "passage_id": "p-006",
+          "start_char": 8735,
+          "end_char": 8743
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 9251,
+          "end_char": 9259
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 11258,
+          "end_char": 11266
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 11337,
+          "end_char": 11345
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 11699,
+          "end_char": 11707
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 11964,
+          "end_char": 11972
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 12534,
+          "end_char": 12542
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 13361,
+          "end_char": 13369
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13601,
+          "end_char": 13609
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 14125,
+          "end_char": 14133
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 14615,
+          "end_char": 14623
+        },
+        {
+          "passage_id": "p-010",
+          "start_char": 15309,
+          "end_char": 15317
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 17358,
+          "end_char": 17366
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 17493,
+          "end_char": 17501
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19284,
+          "end_char": 19292
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19696,
+          "end_char": 19704
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20744,
+          "end_char": 20752
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 21065,
+          "end_char": 21073
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 21356,
+          "end_char": 21364
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 21673,
+          "end_char": 21681
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23388,
+          "end_char": 23396
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 24316,
+          "end_char": 24324
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 25191,
+          "end_char": 25199
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 26255,
+          "end_char": 26263
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 26808,
+          "end_char": 26816
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 27393,
+          "end_char": 27401
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 27487,
+          "end_char": 27495
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 28874,
+          "end_char": 28882
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29280,
+          "end_char": 29288
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29728,
+          "end_char": 29736
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 30089,
+          "end_char": 30097
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 30587,
+          "end_char": 30595
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 32198,
+          "end_char": 32206
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 32694,
+          "end_char": 32702
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33281,
+          "end_char": 33289
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 33815,
+          "end_char": 33823
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34041,
+          "end_char": 34049
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34200,
+          "end_char": 34208
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34293,
+          "end_char": 34301
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34817,
+          "end_char": 34825
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 35047,
+          "end_char": 35055
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 35627,
+          "end_char": 35635
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 36171,
+          "end_char": 36179
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 36921,
+          "end_char": 36929
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 37877,
+          "end_char": 37885
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 97
+    },
+    "french": {
+      "canonical": "French",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 14,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-008",
+        "p-010",
+        "p-011",
+        "p-012",
+        "p-014",
+        "p-017",
+        "p-019",
+        "p-021"
+      ],
+      "aliases": [
+        "French"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 1461,
+          "end_char": 1467
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1563,
+          "end_char": 1569
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1644,
+          "end_char": 1650
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2165,
+          "end_char": 2171
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 11878,
+          "end_char": 11884
+        },
+        {
+          "passage_id": "p-010",
+          "start_char": 15645,
+          "end_char": 15651
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 17398,
+          "end_char": 17404
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 18478,
+          "end_char": 18484
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19641,
+          "end_char": 19647
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20384,
+          "end_char": 20390
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23917,
+          "end_char": 23923
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29489,
+          "end_char": 29495
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33170,
+          "end_char": 33176
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 37734,
+          "end_char": 37740
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 34
+    },
+    "france": {
+      "canonical": "France",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 12,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-009",
+        "p-010",
+        "p-012",
+        "p-015",
+        "p-016",
+        "p-021"
+      ],
+      "aliases": [
+        "France"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 323,
+          "end_char": 329
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 535,
+          "end_char": 541
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2139,
+          "end_char": 2145
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13726,
+          "end_char": 13732
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13844,
+          "end_char": 13850
+        },
+        {
+          "passage_id": "p-010",
+          "start_char": 15327,
+          "end_char": 15333
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19546,
+          "end_char": 19552
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20601,
+          "end_char": 20607
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 26090,
+          "end_char": 26096
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 27168,
+          "end_char": 27174
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 27331,
+          "end_char": 27337
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 37085,
+          "end_char": 37091
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 28
+    },
+    "paris": {
+      "canonical": "Paris",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 12,
+      "passages": [
+        "p-004",
+        "p-006",
+        "p-007",
+        "p-014",
+        "p-015",
+        "p-017",
+        "p-018",
+        "p-019"
+      ],
+      "aliases": [
+        "Paris"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 3897,
+          "end_char": 3902
+        },
+        {
+          "passage_id": "p-006",
+          "start_char": 7535,
+          "end_char": 7540
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 10557,
+          "end_char": 10562
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 10957,
+          "end_char": 10962
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23754,
+          "end_char": 23759
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 25812,
+          "end_char": 25817
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 26006,
+          "end_char": 26011
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 28832,
+          "end_char": 28837
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29639,
+          "end_char": 29644
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 30670,
+          "end_char": 30675
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 31213,
+          "end_char": 31218
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33322,
+          "end_char": 33327
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 28
+    },
+    "corsican": {
+      "canonical": "Corsican",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 10,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-004",
+        "p-005",
+        "p-007"
+      ],
+      "aliases": [
+        "Corsican"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 373,
+          "end_char": 381
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 435,
+          "end_char": 443
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1180,
+          "end_char": 1188
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1803,
+          "end_char": 1811
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2179,
+          "end_char": 2187
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2366,
+          "end_char": 2374
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2678,
+          "end_char": 2686
+        },
+        {
+          "passage_id": "p-004",
+          "start_char": 4541,
+          "end_char": 4549
+        },
+        {
+          "passage_id": "p-005",
+          "start_char": 6143,
+          "end_char": 6151
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 9416,
+          "end_char": 9424
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 20
+    },
+    "jos\u00e9phine": {
+      "canonical": "Jos\u00e9phine",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 9,
+      "passages": [
+        "p-006",
+        "p-008",
+        "p-010",
+        "p-011",
+        "p-013",
+        "p-021"
+      ],
+      "aliases": [
+        "Jos\u00e9phine"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 8807,
+          "end_char": 8816
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 12843,
+          "end_char": 12852
+        },
+        {
+          "passage_id": "p-010",
+          "start_char": 16372,
+          "end_char": 16381
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 17651,
+          "end_char": 17660
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 21370,
+          "end_char": 21379
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 22264,
+          "end_char": 22273
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 23213,
+          "end_char": 23222
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 23277,
+          "end_char": 23286
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 37114,
+          "end_char": 37123
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 21
+    },
+    "british": {
+      "canonical": "British",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 7,
+      "passages": [
+        "p-005",
+        "p-009",
+        "p-012",
+        "p-019"
+      ],
+      "aliases": [
+        "British"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 5872,
+          "end_char": 5879
+        },
+        {
+          "passage_id": "p-005",
+          "start_char": 6742,
+          "end_char": 6749
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13808,
+          "end_char": 13815
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19478,
+          "end_char": 19485
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 32518,
+          "end_char": 32525
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 32675,
+          "end_char": 32682
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33394,
+          "end_char": 33401
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 15
+    },
+    "egypt": {
+      "canonical": "Egypt",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 7,
+      "passages": [
+        "p-008",
+        "p-009",
+        "p-015"
+      ],
+      "aliases": [
+        "Egypt"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 11719,
+          "end_char": 11724
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 12104,
+          "end_char": 12109
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 12430,
+          "end_char": 12435
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 12818,
+          "end_char": 12823
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13632,
+          "end_char": 13637
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13872,
+          "end_char": 13877
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 26083,
+          "end_char": 26088
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 13
+    },
+    "russia": {
+      "canonical": "Russia",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 7,
+      "passages": [
+        "p-011",
+        "p-012",
+        "p-014",
+        "p-015",
+        "p-016",
+        "p-020"
+      ],
+      "aliases": [
+        "Russia"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18224,
+          "end_char": 18230
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20674,
+          "end_char": 20680
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23405,
+          "end_char": 23411
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23936,
+          "end_char": 23942
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 26218,
+          "end_char": 26224
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 26962,
+          "end_char": 26968
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 35070,
+          "end_char": 35076
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 19
+    },
+    "austerlitz": {
+      "canonical": "Austerlitz",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 6,
+      "passages": [
+        "p-011",
+        "p-012",
+        "p-014"
+      ],
+      "aliases": [
+        "Austerlitz"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18506,
+          "end_char": 18516
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 18924,
+          "end_char": 18934
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 19174,
+          "end_char": 19184
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19268,
+          "end_char": 19278
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 24513,
+          "end_char": 24523
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 24552,
+          "end_char": 24562
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 12
+    },
+    "two": {
+      "canonical": "two",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 5,
+      "passages": [
+        "p-006",
+        "p-011",
+        "p-014",
+        "p-017"
+      ],
+      "aliases": [
+        "two"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 7765,
+          "end_char": 7768
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 18361,
+          "end_char": 18364
+        },
+        {
+          "passage_id": "p-011",
+          "start_char": 18875,
+          "end_char": 18878
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23704,
+          "end_char": 23707
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29330,
+          "end_char": 29333
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 13
+    },
+    "italy": {
+      "canonical": "Italy",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 5,
+      "passages": [
+        "p-006",
+        "p-007",
+        "p-013",
+        "p-016"
+      ],
+      "aliases": [
+        "Italy"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 8572,
+          "end_char": 8577
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 9271,
+          "end_char": 9276
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 11216,
+          "end_char": 11221
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 22422,
+          "end_char": 22427
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 27386,
+          "end_char": 27391
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 13
+    },
+    "europe": {
+      "canonical": "Europe",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 5,
+      "passages": [
+        "p-012",
+        "p-018",
+        "p-021"
+      ],
+      "aliases": [
+        "Europe"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 19307,
+          "end_char": 19313
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19860,
+          "end_char": 19866
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 31324,
+          "end_char": 31330
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 31584,
+          "end_char": 31590
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 37230,
+          "end_char": 37236
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 11
+    },
+    "joseph": {
+      "canonical": "Joseph",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 4,
+      "passages": [
+        "p-003",
+        "p-008",
+        "p-012"
+      ],
+      "aliases": [
+        "Joseph"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 2087,
+          "end_char": 2093
+        },
+        {
+          "passage_id": "p-003",
+          "start_char": 2284,
+          "end_char": 2290
+        },
+        {
+          "passage_id": "p-008",
+          "start_char": 13119,
+          "end_char": 13125
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20058,
+          "end_char": 20064
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 10
+    },
+    "italian": {
+      "canonical": "Italian",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 4,
+      "passages": [
+        "p-003",
+        "p-006",
+        "p-007"
+      ],
+      "aliases": [
+        "Italian"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 2188,
+          "end_char": 2195
+        },
+        {
+          "passage_id": "p-006",
+          "start_char": 7997,
+          "end_char": 8004
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 10481,
+          "end_char": 10488
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 10719,
+          "end_char": 10726
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 10
+    },
+    "waterloo": {
+      "canonical": "Waterloo",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 4,
+      "passages": [
+        "p-010",
+        "p-019",
+        "p-020"
+      ],
+      "aliases": [
+        "Waterloo"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 15813,
+          "end_char": 15821
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 32188,
+          "end_char": 32196
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34734,
+          "end_char": 34742
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 35151,
+          "end_char": 35159
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 10
+    },
+    "austria": {
+      "canonical": "Austria",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 4,
+      "passages": [
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-016"
+      ],
+      "aliases": [
+        "Austria"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18212,
+          "end_char": 18219
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20718,
+          "end_char": 20725
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 22020,
+          "end_char": 22027
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 26979,
+          "end_char": 26986
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 12
+    },
+    "st helena": {
+      "canonical": "St Helena",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 4,
+      "passages": [
+        "p-015",
+        "p-020",
+        "p-021"
+      ],
+      "aliases": [
+        "St Helena"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-015",
+          "start_char": 26463,
+          "end_char": 26472
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 33835,
+          "end_char": 33844
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 35161,
+          "end_char": 35170
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 37501,
+          "end_char": 37510
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 10
+    },
+    "corsica": {
+      "canonical": "Corsica",
+      "type": "project",
+      "spacy_label": "PRODUCT",
+      "mentions": 3,
+      "passages": [
+        "p-002",
+        "p-004"
+      ],
+      "aliases": [
+        "Corsica"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 261,
+          "end_char": 268
+        },
+        {
+          "passage_id": "p-002",
+          "start_char": 1878,
+          "end_char": 1885
+        },
+        {
+          "passage_id": "p-004",
+          "start_char": 4512,
+          "end_char": 4519
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 7
+    },
+    "directory": {
+      "canonical": "Directory",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 3,
+      "passages": [
+        "p-006",
+        "p-007",
+        "p-009"
+      ],
+      "aliases": [
+        "Directory"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 7831,
+          "end_char": 7840
+        },
+        {
+          "passage_id": "p-007",
+          "start_char": 10806,
+          "end_char": 10815
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 13887,
+          "end_char": 13896
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 9
+    },
+    "britain": {
+      "canonical": "Britain",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 3,
+      "passages": [
+        "p-012",
+        "p-016"
+      ],
+      "aliases": [
+        "Britain"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 19412,
+          "end_char": 19419
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19584,
+          "end_char": 19591
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 27000,
+          "end_char": 27007
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 7
+    },
+    "european": {
+      "canonical": "European",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 3,
+      "passages": [
+        "p-012",
+        "p-014"
+      ],
+      "aliases": [
+        "European"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 19440,
+          "end_char": 19448
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 19730,
+          "end_char": 19738
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23489,
+          "end_char": 23497
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 7
+    },
+    "the continental system": {
+      "canonical": "the Continental System",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 3,
+      "passages": [
+        "p-012",
+        "p-014"
+      ],
+      "aliases": [
+        "the Continental System"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20694,
+          "end_char": 20716
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 21023,
+          "end_char": 21045
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23573,
+          "end_char": 23595
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 7
+    },
+    "marie louise": {
+      "canonical": "Marie Louise",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 3,
+      "passages": [
+        "p-013"
+      ],
+      "aliases": [
+        "Marie Louise"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-013",
+          "start_char": 22004,
+          "end_char": 22016
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 22838,
+          "end_char": 22850
+        },
+        {
+          "passage_id": "p-013",
+          "start_char": 23111,
+          "end_char": 23123
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 5
+    },
+    "russian": {
+      "canonical": "Russian",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 3,
+      "passages": [
+        "p-014",
+        "p-017",
+        "p-020"
+      ],
+      "aliases": [
+        "Russian"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 24164,
+          "end_char": 24171
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29851,
+          "end_char": 29858
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34693,
+          "end_char": 34700
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 9
+    },
+    "moscow": {
+      "canonical": "Moscow",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 3,
+      "passages": [
+        "p-014",
+        "p-018"
+      ],
+      "aliases": [
+        "Moscow"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 24233,
+          "end_char": 24239
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 24425,
+          "end_char": 24431
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 31707,
+          "end_char": 31713
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 7
+    },
+    "thousands": {
+      "canonical": "thousands",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 3,
+      "passages": [
+        "p-015"
+      ],
+      "aliases": [
+        "thousands"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-015",
+          "start_char": 25046,
+          "end_char": 25055
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 25154,
+          "end_char": 25163
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 25513,
+          "end_char": 25522
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 5
+    },
+    "elba": {
+      "canonical": "Elba",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 3,
+      "passages": [
+        "p-017",
+        "p-020"
+      ],
+      "aliases": [
+        "Elba"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-017",
+          "start_char": 29367,
+          "end_char": 29371
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 30277,
+          "end_char": 30281
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 35145,
+          "end_char": 35149
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 7
+    },
+    "letizia": {
+      "canonical": "Letizia",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-002",
+        "p-010"
+      ],
+      "aliases": [
+        "Letizia"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 867,
+          "end_char": 874
+        },
+        {
+          "passage_id": "p-010",
+          "start_char": 16396,
+          "end_char": 16403
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 6
+    },
+    "brienne": {
+      "canonical": "Brienne",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 2,
+      "passages": [
+        "p-003",
+        "p-004"
+      ],
+      "aliases": [
+        "Brienne"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 2559,
+          "end_char": 2566
+        },
+        {
+          "passage_id": "p-004",
+          "start_char": 4992,
+          "end_char": 4999
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 6
+    },
+    "one": {
+      "canonical": "one",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 2,
+      "passages": [
+        "p-003",
+        "p-014"
+      ],
+      "aliases": [
+        "one"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 3312,
+          "end_char": 3315
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 23697,
+          "end_char": 23700
+        }
+      ],
+      "depth_tier": "central",
+      "prominence_score": 6
+    },
+    "bourrienne": {
+      "canonical": "Bourrienne",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-003",
+        "p-004"
+      ],
+      "aliases": [
+        "Bourrienne"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 3398,
+          "end_char": 3408
+        },
+        {
+          "passage_id": "p-004",
+          "start_char": 5371,
+          "end_char": 5381
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "second": {
+      "canonical": "second",
+      "type": "unknown",
+      "spacy_label": "ORDINAL",
+      "mentions": 2,
+      "passages": [
+        "p-004",
+        "p-019"
+      ],
+      "aliases": [
+        "second"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 4064,
+          "end_char": 4070
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33347,
+          "end_char": 33353
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "tuileries": {
+      "canonical": "Tuileries",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 2,
+      "passages": [
+        "p-004",
+        "p-018"
+      ],
+      "aliases": [
+        "Tuileries"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 5140,
+          "end_char": 5149
+        },
+        {
+          "passage_id": "p-018",
+          "start_char": 31241,
+          "end_char": 31250
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "toulon": {
+      "canonical": "Toulon",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 2,
+      "passages": [
+        "p-005"
+      ],
+      "aliases": [
+        "Toulon"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 5799,
+          "end_char": 5805
+        },
+        {
+          "passage_id": "p-005",
+          "start_char": 6811,
+          "end_char": 6817
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "l'\u00e9guillette": {
+      "canonical": "L'\u00c9guillette",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 2,
+      "passages": [
+        "p-005"
+      ],
+      "aliases": [
+        "L'\u00c9guillette"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 6284,
+          "end_char": 6296
+        },
+        {
+          "passage_id": "p-005",
+          "start_char": 6759,
+          "end_char": 6771
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "austrian": {
+      "canonical": "Austrian",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 2,
+      "passages": [
+        "p-007",
+        "p-021"
+      ],
+      "aliases": [
+        "Austrian"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 10143,
+          "end_char": 10151
+        },
+        {
+          "passage_id": "p-021",
+          "start_char": 36125,
+          "end_char": 36133
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "mediterranean": {
+      "canonical": "Mediterranean",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 2,
+      "passages": [
+        "p-008",
+        "p-017"
+      ],
+      "aliases": [
+        "Mediterranean"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 11910,
+          "end_char": 11923
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29380,
+          "end_char": 29393
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "alexander": {
+      "canonical": "Alexander",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-008",
+        "p-014"
+      ],
+      "aliases": [
+        "Alexander"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 11993,
+          "end_char": 12002
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 24284,
+          "end_char": 24293
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "lucien": {
+      "canonical": "Lucien",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-009"
+      ],
+      "aliases": [
+        "Lucien"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-009",
+          "start_char": 14436,
+          "end_char": 14442
+        },
+        {
+          "passage_id": "p-009",
+          "start_char": 14702,
+          "end_char": 14708
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "spain": {
+      "canonical": "Spain",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 2,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "Spain"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20068,
+          "end_char": 20073
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20526,
+          "end_char": 20531
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "louis": {
+      "canonical": "Louis",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 2,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "Louis"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20075,
+          "end_char": 20080
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20346,
+          "end_char": 20351
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "j\u00e9r\u00f4me": {
+      "canonical": "J\u00e9r\u00f4me",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 2,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "J\u00e9r\u00f4me"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20093,
+          "end_char": 20099
+        },
+        {
+          "passage_id": "p-012",
+          "start_char": 20403,
+          "end_char": 20409
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "600,000": {
+      "canonical": "600,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 2,
+      "passages": [
+        "p-014",
+        "p-015"
+      ],
+      "aliases": [
+        "600,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 23441,
+          "end_char": 23448
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 26189,
+          "end_char": 26196
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "tsar": {
+      "canonical": "Tsar",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 2,
+      "passages": [
+        "p-014"
+      ],
+      "aliases": [
+        "Tsar"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 23736,
+          "end_char": 23740
+        },
+        {
+          "passage_id": "p-014",
+          "start_char": 24358,
+          "end_char": 24362
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "russians": {
+      "canonical": "Russians",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 2,
+      "passages": [
+        "p-014",
+        "p-015"
+      ],
+      "aliases": [
+        "Russians"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 23822,
+          "end_char": 23830
+        },
+        {
+          "passage_id": "p-015",
+          "start_char": 25878,
+          "end_char": 25886
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "rhine": {
+      "canonical": "Rhine",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Rhine"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27199,
+          "end_char": 27204
+        },
+        {
+          "passage_id": "p-016",
+          "start_char": 28187,
+          "end_char": 28192
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "first": {
+      "canonical": "first",
+      "type": "unknown",
+      "spacy_label": "ORDINAL",
+      "mentions": 2,
+      "passages": [
+        "p-016",
+        "p-019"
+      ],
+      "aliases": [
+        "first"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 28649,
+          "end_char": 28654
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33067,
+          "end_char": 33072
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "fontainebleau": {
+      "canonical": "Fontainebleau",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 2,
+      "passages": [
+        "p-017"
+      ],
+      "aliases": [
+        "Fontainebleau"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-017",
+          "start_char": 28907,
+          "end_char": 28920
+        },
+        {
+          "passage_id": "p-017",
+          "start_char": 29713,
+          "end_char": 29726
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "wellington": {
+      "canonical": "Wellington",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 2,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Wellington"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32225,
+          "end_char": 32235
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 32306,
+          "end_char": 32316
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "the imperial guard": {
+      "canonical": "the Imperial Guard",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 2,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "the Imperial Guard"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32347,
+          "end_char": 32365
+        },
+        {
+          "passage_id": "p-019",
+          "start_char": 33094,
+          "end_char": 33112
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 4
+    },
+    "ney": {
+      "canonical": "Ney",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-019",
+        "p-020"
+      ],
+      "aliases": [
+        "Ney"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32754,
+          "end_char": 32757
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34775,
+          "end_char": 34778
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "grouchy": {
+      "canonical": "Grouchy",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 2,
+      "passages": [
+        "p-019",
+        "p-020"
+      ],
+      "aliases": [
+        "Grouchy"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32769,
+          "end_char": 32776
+        },
+        {
+          "passage_id": "p-020",
+          "start_char": 34763,
+          "end_char": 34770
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 6
+    },
+    "ajaccio": {
+      "canonical": "Ajaccio",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Ajaccio"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 252,
+          "end_char": 259
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "genoa": {
+      "canonical": "Genoa",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Genoa"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 314,
+          "end_char": 319
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "carlo buonaparte": {
+      "canonical": "Carlo Buonaparte",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Carlo Buonaparte"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 343,
+          "end_char": 359
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "pasquale paoli": {
+      "canonical": "Pasquale Paoli",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Pasquale Paoli"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 416,
+          "end_char": 430
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "letizia ramolino": {
+      "canonical": "Letizia Ramolino",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Letizia Ramolino"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 555,
+          "end_char": 571
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "thirteen": {
+      "canonical": "thirteen",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "thirteen"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 654,
+          "end_char": 662
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "eight": {
+      "canonical": "eight",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "eight"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 681,
+          "end_char": 686
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "carlo": {
+      "canonical": "Carlo",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Carlo"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 1397,
+          "end_char": 1402
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "paoli": {
+      "canonical": "Paoli",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-002"
+      ],
+      "aliases": [
+        "Paoli"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-002",
+          "start_char": 1792,
+          "end_char": 1797
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the coll\u00e8ge d'autun": {
+      "canonical": "the Coll\u00e8ge d'Autun",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-003"
+      ],
+      "aliases": [
+        "the Coll\u00e8ge d'Autun"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 2107,
+          "end_char": 2126
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the royal military school": {
+      "canonical": "the Royal Military School",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-003"
+      ],
+      "aliases": [
+        "the Royal Military School"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 2530,
+          "end_char": 2555
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "caesar": {
+      "canonical": "Caesar",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-003"
+      ],
+      "aliases": [
+        "Caesar"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 3015,
+          "end_char": 3021
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "alexander the great": {
+      "canonical": "Alexander the Great",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-003"
+      ],
+      "aliases": [
+        "Alexander the Great"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 3055,
+          "end_char": 3074
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "louis antoine fauvelet de bourrienne": {
+      "canonical": "Louis Antoine Fauvelet de Bourrienne",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-003"
+      ],
+      "aliases": [
+        "Louis Antoine Fauvelet de Bourrienne"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-003",
+          "start_char": 3351,
+          "end_char": 3387
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the \u00e9cole militaire": {
+      "canonical": "the \u00c9cole Militaire",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-004"
+      ],
+      "aliases": [
+        "the \u00c9cole Militaire"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 3874,
+          "end_char": 3893
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "fifty-eight": {
+      "canonical": "fifty-eight",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-004"
+      ],
+      "aliases": [
+        "fifty-eight"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 3932,
+          "end_char": 3943
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "corsicans": {
+      "canonical": "Corsicans",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-004"
+      ],
+      "aliases": [
+        "Corsicans"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 4028,
+          "end_char": 4037
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "novellas": {
+      "canonical": "novellas",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-004"
+      ],
+      "aliases": [
+        "novellas"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 4579,
+          "end_char": 4587
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "rousseau": {
+      "canonical": "Rousseau",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-004"
+      ],
+      "aliases": [
+        "Rousseau"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 4632,
+          "end_char": 4640
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the swiss guards": {
+      "canonical": "the Swiss Guards",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-004"
+      ],
+      "aliases": [
+        "the Swiss Guards"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-004",
+          "start_char": 5183,
+          "end_char": 5199
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "republican": {
+      "canonical": "Republican",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-005"
+      ],
+      "aliases": [
+        "Republican"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 5913,
+          "end_char": 5923
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "twenty-four-year-old": {
+      "canonical": "twenty-four-year-old",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-005"
+      ],
+      "aliases": [
+        "twenty-four-year-old"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 6122,
+          "end_char": 6142
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "napoleon bonaparte": {
+      "canonical": "Napoleon Bonaparte",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-005"
+      ],
+      "aliases": [
+        "Napoleon Bonaparte"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 6166,
+          "end_char": 6184
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "twenty-four": {
+      "canonical": "twenty-four",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-005"
+      ],
+      "aliases": [
+        "twenty-four"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-005",
+          "start_char": 6870,
+          "end_char": 6881
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the army of the interior": {
+      "canonical": "the Army of the Interior",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-006"
+      ],
+      "aliases": [
+        "the Army of the Interior"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 7610,
+          "end_char": 7634
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "rose de beauharnais": {
+      "canonical": "Rose de Beauharnais",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-006"
+      ],
+      "aliases": [
+        "Rose de Beauharnais"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 7711,
+          "end_char": 7730
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "thirty-two-year-old": {
+      "canonical": "thirty-two-year-old",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-006"
+      ],
+      "aliases": [
+        "thirty-two-year-old"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-006",
+          "start_char": 7734,
+          "end_char": 7753
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "austrians": {
+      "canonical": "Austrians",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-007"
+      ],
+      "aliases": [
+        "Austrians"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 9948,
+          "end_char": 9957
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "sardinians": {
+      "canonical": "Sardinians",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-007"
+      ],
+      "aliases": [
+        "Sardinians"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 9962,
+          "end_char": 9972
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "montenotte": {
+      "canonical": "Montenotte",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-007"
+      ],
+      "aliases": [
+        "Montenotte"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 9998,
+          "end_char": 10008
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "rivoli": {
+      "canonical": "Rivoli",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-007"
+      ],
+      "aliases": [
+        "Rivoli"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 10024,
+          "end_char": 10030
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "jean-baptiste bernadotte": {
+      "canonical": "Jean-Baptiste Bernadotte",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-007"
+      ],
+      "aliases": [
+        "Jean-Baptiste Bernadotte"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 11179,
+          "end_char": 11203
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "bernadotte": {
+      "canonical": "Bernadotte",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-007"
+      ],
+      "aliases": [
+        "Bernadotte"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-007",
+          "start_char": 11287,
+          "end_char": 11297
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "38,000": {
+      "canonical": "38,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "38,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 11730,
+          "end_char": 11736
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "british india": {
+      "canonical": "British India",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "British India"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 11850,
+          "end_char": 11863
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "east": {
+      "canonical": "East",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "East"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12051,
+          "end_char": 12055
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "islam": {
+      "canonical": "Islam",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Islam"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12111,
+          "end_char": 12116
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "mamluks": {
+      "canonical": "Mamluks",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Mamluks"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12305,
+          "end_char": 12312
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the battle of the pyramids": {
+      "canonical": "the Battle of the Pyramids",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "the Battle of the Pyramids"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12316,
+          "end_char": 12342
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "nelson": {
+      "canonical": "Nelson",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Nelson"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12372,
+          "end_char": 12378
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "aboukir bay": {
+      "canonical": "Aboukir Bay",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Aboukir Bay"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12395,
+          "end_char": 12406
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "syria": {
+      "canonical": "Syria",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Syria"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12453,
+          "end_char": 12458
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "the description de l'\u00e9gypte": {
+      "canonical": "the Description de l'\u00c9gypte",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "the Description de l'\u00c9gypte"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12669,
+          "end_char": 12696
+        }
+      ],
+      "depth_tier": "supporting",
+      "prominence_score": 3
+    },
+    "hippolyte charles": {
+      "canonical": "Hippolyte Charles",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Hippolyte Charles"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 12867,
+          "end_char": 12884
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "pauline four\u00e8s": {
+      "canonical": "Pauline Four\u00e8s",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "Pauline Four\u00e8s"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 13241,
+          "end_char": 13255
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "fidelity": {
+      "canonical": "fidelity",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-008"
+      ],
+      "aliases": [
+        "fidelity"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-008",
+          "start_char": 13401,
+          "end_char": 13409
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "30,000": {
+      "canonical": "30,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-009"
+      ],
+      "aliases": [
+        "30,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-009",
+          "start_char": 13759,
+          "end_char": 13765
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "18": {
+      "canonical": "18",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-009"
+      ],
+      "aliases": [
+        "18"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-009",
+          "start_char": 14069,
+          "end_char": 14071
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the council of five hundred": {
+      "canonical": "the Council of Five Hundred",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-009"
+      ],
+      "aliases": [
+        "the Council of Five Hundred"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-009",
+          "start_char": 14147,
+          "end_char": 14174
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "council": {
+      "canonical": "Council",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-009"
+      ],
+      "aliases": [
+        "Council"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-009",
+          "start_char": 14461,
+          "end_char": 14468
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "napoleon first consul": {
+      "canonical": "Napoleon First Consul",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-009"
+      ],
+      "aliases": [
+        "Napoleon First Consul"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-009",
+          "start_char": 14591,
+          "end_char": 14612
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "first consul": {
+      "canonical": "First Consul",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-010"
+      ],
+      "aliases": [
+        "First Consul"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 15295,
+          "end_char": 15307
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the bank of france": {
+      "canonical": "the Bank of France",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-010"
+      ],
+      "aliases": [
+        "the Bank of France"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 15519,
+          "end_char": 15537
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the civil code": {
+      "canonical": "the Civil Code",
+      "type": "activity",
+      "spacy_label": "EVENT",
+      "mentions": 1,
+      "passages": [
+        "p-010"
+      ],
+      "aliases": [
+        "the Civil Code"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 15661,
+          "end_char": 15675
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "dozens": {
+      "canonical": "dozens",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-010"
+      ],
+      "aliases": [
+        "dozens"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 15725,
+          "end_char": 15731
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "forty": {
+      "canonical": "forty",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-010"
+      ],
+      "aliases": [
+        "forty"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 15798,
+          "end_char": 15803
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the catholic church": {
+      "canonical": "the Catholic Church",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-010"
+      ],
+      "aliases": [
+        "the Catholic Church"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-010",
+          "start_char": 16549,
+          "end_char": 16568
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the cathedral of notre-dame": {
+      "canonical": "the Cathedral of Notre-Dame",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-011"
+      ],
+      "aliases": [
+        "the Cathedral of Notre-Dame"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 17329,
+          "end_char": 17356
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "pius vii": {
+      "canonical": "Pius VII",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-011"
+      ],
+      "aliases": [
+        "Pius VII"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 17411,
+          "end_char": 17419
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the battle of austerlitz": {
+      "canonical": "the Battle of Austerlitz",
+      "type": "work-of-art",
+      "spacy_label": "WORK_OF_ART",
+      "mentions": 1,
+      "passages": [
+        "p-011"
+      ],
+      "aliases": [
+        "the Battle of Austerlitz"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18032,
+          "end_char": 18056
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "27,000": {
+      "canonical": "27,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-011"
+      ],
+      "aliases": [
+        "27,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18439,
+          "end_char": 18445
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "9,000": {
+      "canonical": "9,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-011"
+      ],
+      "aliases": [
+        "9,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18472,
+          "end_char": 18477
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the austro-russian": {
+      "canonical": "the Austro-Russian",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-011"
+      ],
+      "aliases": [
+        "the Austro-Russian"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-011",
+          "start_char": 18834,
+          "end_char": 18852
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the holy roman empire": {
+      "canonical": "the Holy Roman Empire",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "the Holy Roman Empire"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 19938,
+          "end_char": 19959
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the confederation of the rhine": {
+      "canonical": "the Confederation of the Rhine",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "the Confederation of the Rhine"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 19969,
+          "end_char": 19999
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "holland": {
+      "canonical": "Holland",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "Holland"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20084,
+          "end_char": 20091
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "westphalia": {
+      "canonical": "Westphalia",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "Westphalia"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20103,
+          "end_char": 20113
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "bonapartes": {
+      "canonical": "Bonapartes",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "Bonapartes"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20275,
+          "end_char": 20285
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "english": {
+      "canonical": "English",
+      "type": "unknown",
+      "spacy_label": "LANGUAGE",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "English"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 20635,
+          "end_char": 20642
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "talleyrand": {
+      "canonical": "Talleyrand",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-012"
+      ],
+      "aliases": [
+        "Talleyrand"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-012",
+          "start_char": 21102,
+          "end_char": 21112
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the ch\u00e2teau de malmaison": {
+      "canonical": "the Ch\u00e2teau de Malmaison",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-013"
+      ],
+      "aliases": [
+        "the Ch\u00e2teau de Malmaison"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-013",
+          "start_char": 21826,
+          "end_char": 21850
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "five million francs": {
+      "canonical": "five million francs",
+      "type": "unknown",
+      "spacy_label": "MONEY",
+      "mentions": 1,
+      "passages": [
+        "p-013"
+      ],
+      "aliases": [
+        "five million francs"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-013",
+          "start_char": 21865,
+          "end_char": 21884
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "empress": {
+      "canonical": "Empress",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-013"
+      ],
+      "aliases": [
+        "Empress"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-013",
+          "start_char": 21910,
+          "end_char": 21917
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "habsburg": {
+      "canonical": "Habsburg",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-013"
+      ],
+      "aliases": [
+        "Habsburg"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-013",
+          "start_char": 22087,
+          "end_char": 22095
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "rome": {
+      "canonical": "Rome",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-013"
+      ],
+      "aliases": [
+        "Rome"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-013",
+          "start_char": 22889,
+          "end_char": 22893
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "tsar alexander": {
+      "canonical": "Tsar Alexander",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-014"
+      ],
+      "aliases": [
+        "Tsar Alexander"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 23544,
+          "end_char": 23558
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "70,000": {
+      "canonical": "70,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-014"
+      ],
+      "aliases": [
+        "70,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 24073,
+          "end_char": 24079
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the napoleonic wars": {
+      "canonical": "the Napoleonic Wars",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 1,
+      "passages": [
+        "p-014"
+      ],
+      "aliases": [
+        "the Napoleonic Wars"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-014",
+          "start_char": 24134,
+          "end_char": 24153
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the battle of borodino": {
+      "canonical": "the Battle of Borodino",
+      "type": "work-of-art",
+      "spacy_label": "WORK_OF_ART",
+      "mentions": 1,
+      "passages": [
+        "p-015"
+      ],
+      "aliases": [
+        "the Battle of Borodino"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-015",
+          "start_char": 24886,
+          "end_char": 24908
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "minus thirty degrees": {
+      "canonical": "minus thirty degrees",
+      "type": "unknown",
+      "spacy_label": "QUANTITY",
+      "mentions": 1,
+      "passages": [
+        "p-015"
+      ],
+      "aliases": [
+        "minus thirty degrees"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-015",
+          "start_char": 25005,
+          "end_char": 25025
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the berezina river": {
+      "canonical": "the Berezina River",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 1,
+      "passages": [
+        "p-015"
+      ],
+      "aliases": [
+        "the Berezina River"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-015",
+          "start_char": 25125,
+          "end_char": 25143
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "fewer than 100,000": {
+      "canonical": "fewer than 100,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-015"
+      ],
+      "aliases": [
+        "fewer than 100,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-015",
+          "start_char": 26226,
+          "end_char": 26244
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "350,000": {
+      "canonical": "350,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "350,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 26860,
+          "end_char": 26867
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "prussia": {
+      "canonical": "Prussia",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Prussia"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 26970,
+          "end_char": 26977
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "sweden": {
+      "canonical": "Sweden",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Sweden"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 26988,
+          "end_char": 26994
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "alps": {
+      "canonical": "Alps",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Alps"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27210,
+          "end_char": 27214
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "pyrenees": {
+      "canonical": "Pyrenees",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Pyrenees"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27220,
+          "end_char": 27228
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "prague": {
+      "canonical": "Prague",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Prague"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27301,
+          "end_char": 27307
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "belgium": {
+      "canonical": "Belgium",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Belgium"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27349,
+          "end_char": 27356
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "rhineland": {
+      "canonical": "Rhineland",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Rhineland"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27362,
+          "end_char": 27371
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the battle of leipzig": {
+      "canonical": "the Battle of Leipzig",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "the Battle of Leipzig"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27928,
+          "end_char": 27949
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the \"battle of the nations": {
+      "canonical": "the \"Battle of the Nations",
+      "type": "unknown",
+      "spacy_label": "LAW",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "the \"Battle of the Nations"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 27968,
+          "end_char": 27994
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "germany": {
+      "canonical": "Germany",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-016"
+      ],
+      "aliases": [
+        "Germany"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-016",
+          "start_char": 28194,
+          "end_char": 28201
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "old guard": {
+      "canonical": "Old Guard",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-017"
+      ],
+      "aliases": [
+        "Old Guard"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-017",
+          "start_char": 29001,
+          "end_char": 29010
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "over 12,000": {
+      "canonical": "over 12,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-017"
+      ],
+      "aliases": [
+        "over 12,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-017",
+          "start_char": 29435,
+          "end_char": 29446
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "70 million": {
+      "canonical": "70 million",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-017"
+      ],
+      "aliases": [
+        "70 million"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-017",
+          "start_char": 29567,
+          "end_char": 29577
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "golfe-juan": {
+      "canonical": "Golfe-Juan",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "Golfe-Juan"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 30606,
+          "end_char": 30616
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "antibes": {
+      "canonical": "Antibes",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "Antibes"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 30622,
+          "end_char": 30629
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "1,000": {
+      "canonical": "1,000",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "1,000"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 30635,
+          "end_char": 30640
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "laffrey": {
+      "canonical": "Laffrey",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "Laffrey"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 30735,
+          "end_char": 30742
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "grenoble": {
+      "canonical": "Grenoble",
+      "type": "work-of-art",
+      "spacy_label": "WORK_OF_ART",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "Grenoble"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 30749,
+          "end_char": 30757
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the fifth line": {
+      "canonical": "the Fifth Line",
+      "type": "place",
+      "spacy_label": "FAC",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "the Fifth Line"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 30782,
+          "end_char": 30796
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "louis xviii": {
+      "canonical": "Louis XVIII",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-018"
+      ],
+      "aliases": [
+        "Louis XVIII"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-018",
+          "start_char": 31196,
+          "end_char": 31207
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "anglo": {
+      "canonical": "Anglo",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Anglo"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32238,
+          "end_char": 32243
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "brussels": {
+      "canonical": "Brussels",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Brussels"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32272,
+          "end_char": 32280
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "bl\u00fccher's": {
+      "canonical": "Bl\u00fccher's",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Bl\u00fccher's"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32373,
+          "end_char": 32382
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "prussians": {
+      "canonical": "Prussians",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Prussians"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32383,
+          "end_char": 32392
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "marshal ney": {
+      "canonical": "Marshal Ney",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Marshal Ney"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32494,
+          "end_char": 32505
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "marshal grouchy": {
+      "canonical": "Marshal Grouchy",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Marshal Grouchy"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32545,
+          "end_char": 32560
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "bl\u00fccher": {
+      "canonical": "Bl\u00fccher",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Bl\u00fccher"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32579,
+          "end_char": 32586
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "d'erlon": {
+      "canonical": "D'Erlon",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "D'Erlon"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32599,
+          "end_char": 32606
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the old guard": {
+      "canonical": "the Old Guard",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "the Old Guard"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32850,
+          "end_char": 32863
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the last reserve": {
+      "canonical": "the last reserve",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "the last reserve"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 32894,
+          "end_char": 32910
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "la garde": {
+      "canonical": "La Garde",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "La Garde"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 33125,
+          "end_char": 33133
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "hms bellerophon": {
+      "canonical": "HMS Bellerophon",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "HMS Bellerophon"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 33423,
+          "end_char": 33438
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the prince regent": {
+      "canonical": "the Prince Regent",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "the Prince Regent"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 33456,
+          "end_char": 33473
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "themistocles": {
+      "canonical": "Themistocles",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Themistocles"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 33506,
+          "end_char": 33518
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "athenian": {
+      "canonical": "Athenian",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-019"
+      ],
+      "aliases": [
+        "Athenian"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-019",
+          "start_char": 33525,
+          "end_char": 33533
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the south atlantic": {
+      "canonical": "the South Atlantic",
+      "type": "place",
+      "spacy_label": "LOC",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "the South Atlantic"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 33896,
+          "end_char": 33914
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "1,200 miles": {
+      "canonical": "1,200 miles",
+      "type": "unknown",
+      "spacy_label": "QUANTITY",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "1,200 miles"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 33916,
+          "end_char": 33927
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "hudson lowe": {
+      "canonical": "Hudson Lowe",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Hudson Lowe"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 33978,
+          "end_char": 33989
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "general bonaparte": {
+      "canonical": "General Bonaparte",
+      "type": "work-of-art",
+      "spacy_label": "WORK_OF_ART",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "General Bonaparte"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 34246,
+          "end_char": 34263
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "lowe": {
+      "canonical": "Lowe",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Lowe"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 34266,
+          "end_char": 34270
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "las cases": {
+      "canonical": "Las Cases",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Las Cases"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 34386,
+          "end_char": 34395
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "montholon, bertrand": {
+      "canonical": "Montholon, Bertrand",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Montholon, Bertrand"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 34407,
+          "end_char": 34426
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "egyptian": {
+      "canonical": "Egyptian",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Egyptian"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 34596,
+          "end_char": 34604
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "spanish": {
+      "canonical": "Spanish",
+      "type": "group",
+      "spacy_label": "NORP",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Spanish"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 34647,
+          "end_char": 34654
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "leipzig": {
+      "canonical": "Leipzig",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-020"
+      ],
+      "aliases": [
+        "Leipzig"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-020",
+          "start_char": 35124,
+          "end_char": 35131
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "vienna": {
+      "canonical": "Vienna",
+      "type": "place",
+      "spacy_label": "GPE",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "Vienna"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 36104,
+          "end_char": 36110
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "the french revolution": {
+      "canonical": "the French Revolution",
+      "type": "activity",
+      "spacy_label": "EVENT",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "the French Revolution"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 36645,
+          "end_char": 36666
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "revolution": {
+      "canonical": "Revolution",
+      "type": "activity",
+      "spacy_label": "EVENT",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "Revolution"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 36728,
+          "end_char": 36738
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "church": {
+      "canonical": "Church",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "Church"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 36981,
+          "end_char": 36987
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "arm\u00e9e": {
+      "canonical": "arm\u00e9e",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "arm\u00e9e"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 37093,
+          "end_char": 37098
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "t\u00eate d'arm\u00e9e": {
+      "canonical": "t\u00eate d'arm\u00e9e",
+      "type": "person",
+      "spacy_label": "PERSON",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "t\u00eate d'arm\u00e9e"
+      ],
+      "confidence": 1.0,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 37100,
+          "end_char": 37112
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "thirty-five": {
+      "canonical": "thirty-five",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "thirty-five"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 37207,
+          "end_char": 37218
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "thirty-six": {
+      "canonical": "thirty-six",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "thirty-six"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 37240,
+          "end_char": 37250
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "forty-six": {
+      "canonical": "forty-six",
+      "type": "unknown",
+      "spacy_label": "CARDINAL",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "forty-six"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 37270,
+          "end_char": 37279
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    },
+    "louis-napoleon": {
+      "canonical": "Louis-Napoleon",
+      "type": "organisation",
+      "spacy_label": "ORG",
+      "mentions": 1,
+      "passages": [
+        "p-021"
+      ],
+      "aliases": [
+        "Louis-Napoleon"
+      ],
+      "confidence": 0.8,
+      "positions": [
+        {
+          "passage_id": "p-021",
+          "start_char": 37681,
+          "end_char": 37695
+        }
+      ],
+      "depth_tier": "peripheral",
+      "prominence_score": 3
+    }
+  },
+  "temporal_expressions": [
+    {
+      "text": "15 August 1769",
+      "passage_id": "p-002",
+      "start_char": 234,
+      "end_char": 248,
+      "label": "DATE"
+    },
+    {
+      "text": "barely a year",
+      "passage_id": "p-002",
+      "start_char": 270,
+      "end_char": 283,
+      "label": "DATE"
+    },
+    {
+      "text": "nine years old",
+      "passage_id": "p-002",
+      "start_char": 1898,
+      "end_char": 1912,
+      "label": "DATE"
+    },
+    {
+      "text": "January 1779",
+      "passage_id": "p-003",
+      "start_char": 2042,
+      "end_char": 2054,
+      "label": "DATE"
+    },
+    {
+      "text": "May 1779",
+      "passage_id": "p-003",
+      "start_char": 2592,
+      "end_char": 2600,
+      "label": "DATE"
+    },
+    {
+      "text": "1785",
+      "passage_id": "p-003",
+      "start_char": 3632,
+      "end_char": 3636,
+      "label": "DATE"
+    },
+    {
+      "text": "fifteen",
+      "passage_id": "p-003",
+      "start_char": 3685,
+      "end_char": 3692,
+      "label": "DATE"
+    },
+    {
+      "text": "1785",
+      "passage_id": "p-004",
+      "start_char": 3906,
+      "end_char": 3910,
+      "label": "DATE"
+    },
+    {
+      "text": "forty-second",
+      "passage_id": "p-004",
+      "start_char": 3912,
+      "end_char": 3924,
+      "label": "TIME"
+    },
+    {
+      "text": "sixteen years old",
+      "passage_id": "p-004",
+      "start_char": 4204,
+      "end_char": 4221,
+      "label": "DATE"
+    },
+    {
+      "text": "The next eight years",
+      "passage_id": "p-004",
+      "start_char": 4399,
+      "end_char": 4419,
+      "label": "DATE"
+    },
+    {
+      "text": "1789",
+      "passage_id": "p-004",
+      "start_char": 4896,
+      "end_char": 4900,
+      "label": "DATE"
+    },
+    {
+      "text": "August 1792",
+      "passage_id": "p-004",
+      "start_char": 5153,
+      "end_char": 5164,
+      "label": "DATE"
+    },
+    {
+      "text": "September 1793",
+      "passage_id": "p-005",
+      "start_char": 5746,
+      "end_char": 5760,
+      "label": "DATE"
+    },
+    {
+      "text": "weeks",
+      "passage_id": "p-005",
+      "start_char": 6434,
+      "end_char": 6439,
+      "label": "DATE"
+    },
+    {
+      "text": "October 1795",
+      "passage_id": "p-006",
+      "start_char": 7478,
+      "end_char": 7490,
+      "label": "DATE"
+    },
+    {
+      "text": "twenty-six",
+      "passage_id": "p-006",
+      "start_char": 7643,
+      "end_char": 7653,
+      "label": "DATE"
+    },
+    {
+      "text": "last night",
+      "passage_id": "p-006",
+      "start_char": 8141,
+      "end_char": 8151,
+      "label": "TIME"
+    },
+    {
+      "text": "daily",
+      "passage_id": "p-006",
+      "start_char": 8292,
+      "end_char": 8297,
+      "label": "DATE"
+    },
+    {
+      "text": "9 March 1796",
+      "passage_id": "p-006",
+      "start_char": 8524,
+      "end_char": 8536,
+      "label": "DATE"
+    },
+    {
+      "text": "two days",
+      "passage_id": "p-006",
+      "start_char": 8538,
+      "end_char": 8546,
+      "label": "DATE"
+    },
+    {
+      "text": "March 1796",
+      "passage_id": "p-007",
+      "start_char": 9280,
+      "end_char": 9290,
+      "label": "DATE"
+    },
+    {
+      "text": "weeks",
+      "passage_id": "p-007",
+      "start_char": 9433,
+      "end_char": 9438,
+      "label": "DATE"
+    },
+    {
+      "text": "May 1798",
+      "passage_id": "p-008",
+      "start_char": 11689,
+      "end_char": 11697,
+      "label": "DATE"
+    },
+    {
+      "text": "August 1799",
+      "passage_id": "p-009",
+      "start_char": 13641,
+      "end_char": 13652,
+      "label": "DATE"
+    },
+    {
+      "text": "9 November 1799",
+      "passage_id": "p-009",
+      "start_char": 14085,
+      "end_char": 14100,
+      "label": "DATE"
+    },
+    {
+      "text": "the day",
+      "passage_id": "p-009",
+      "start_char": 14480,
+      "end_char": 14487,
+      "label": "DATE"
+    },
+    {
+      "text": "that day",
+      "passage_id": "p-009",
+      "start_char": 14665,
+      "end_char": 14673,
+      "label": "DATE"
+    },
+    {
+      "text": "eighteen-hour",
+      "passage_id": "p-010",
+      "start_char": 15393,
+      "end_char": 15406,
+      "label": "TIME"
+    },
+    {
+      "text": "1801",
+      "passage_id": "p-010",
+      "start_char": 16594,
+      "end_char": 16598,
+      "label": "DATE"
+    },
+    {
+      "text": "2 December 1804",
+      "passage_id": "p-011",
+      "start_char": 17309,
+      "end_char": 17324,
+      "label": "DATE"
+    },
+    {
+      "text": "the year before",
+      "passage_id": "p-011",
+      "start_char": 17699,
+      "end_char": 17714,
+      "label": "DATE"
+    },
+    {
+      "text": "months later",
+      "passage_id": "p-011",
+      "start_char": 17980,
+      "end_char": 17992,
+      "label": "DATE"
+    },
+    {
+      "text": "2 December 1805",
+      "passage_id": "p-011",
+      "start_char": 17997,
+      "end_char": 18012,
+      "label": "DATE"
+    },
+    {
+      "text": "day",
+      "passage_id": "p-011",
+      "start_char": 19022,
+      "end_char": 19025,
+      "label": "DATE"
+    },
+    {
+      "text": "1808",
+      "passage_id": "p-012",
+      "start_char": 20584,
+      "end_char": 20588,
+      "label": "DATE"
+    },
+    {
+      "text": "six years",
+      "passage_id": "p-012",
+      "start_char": 20612,
+      "end_char": 20621,
+      "label": "DATE"
+    },
+    {
+      "text": "30 November 1809",
+      "passage_id": "p-013",
+      "start_char": 21338,
+      "end_char": 21354,
+      "label": "DATE"
+    },
+    {
+      "text": "April 1810",
+      "passage_id": "p-013",
+      "start_char": 22031,
+      "end_char": 22041,
+      "label": "DATE"
+    },
+    {
+      "text": "March 1811",
+      "passage_id": "p-013",
+      "start_char": 22899,
+      "end_char": 22909,
+      "label": "DATE"
+    },
+    {
+      "text": "June 1812",
+      "passage_id": "p-014",
+      "start_char": 23377,
+      "end_char": 23386,
+      "label": "DATE"
+    },
+    {
+      "text": "winter",
+      "passage_id": "p-014",
+      "start_char": 23767,
+      "end_char": 23773,
+      "label": "DATE"
+    },
+    {
+      "text": "7 September",
+      "passage_id": "p-014",
+      "start_char": 24036,
+      "end_char": 24047,
+      "label": "DATE"
+    },
+    {
+      "text": "single day",
+      "passage_id": "p-014",
+      "start_char": 24120,
+      "end_char": 24130,
+      "label": "DATE"
+    },
+    {
+      "text": "14 September",
+      "passage_id": "p-014",
+      "start_char": 24243,
+      "end_char": 24255,
+      "label": "DATE"
+    },
+    {
+      "text": "five weeks",
+      "passage_id": "p-014",
+      "start_char": 24332,
+      "end_char": 24342,
+      "label": "DATE"
+    },
+    {
+      "text": "19 October 1812",
+      "passage_id": "p-015",
+      "start_char": 24749,
+      "end_char": 24764,
+      "label": "DATE"
+    },
+    {
+      "text": "December",
+      "passage_id": "p-015",
+      "start_char": 25979,
+      "end_char": 25987,
+      "label": "DATE"
+    },
+    {
+      "text": "spring 1813",
+      "passage_id": "p-016",
+      "start_char": 26875,
+      "end_char": 26886,
+      "label": "DATE"
+    },
+    {
+      "text": "the summer of 1813",
+      "passage_id": "p-016",
+      "start_char": 27311,
+      "end_char": 27329,
+      "label": "DATE"
+    },
+    {
+      "text": "October 1813",
+      "passage_id": "p-016",
+      "start_char": 27953,
+      "end_char": 27965,
+      "label": "DATE"
+    },
+    {
+      "text": "April 1814",
+      "passage_id": "p-017",
+      "start_char": 28798,
+      "end_char": 28808,
+      "label": "DATE"
+    },
+    {
+      "text": "annual",
+      "passage_id": "p-017",
+      "start_char": 29466,
+      "end_char": 29472,
+      "label": "DATE"
+    },
+    {
+      "text": "the night",
+      "passage_id": "p-017",
+      "start_char": 29665,
+      "end_char": 29674,
+      "label": "TIME"
+    },
+    {
+      "text": "months",
+      "passage_id": "p-017",
+      "start_char": 30474,
+      "end_char": 30480,
+      "label": "DATE"
+    },
+    {
+      "text": "1 March 1815",
+      "passage_id": "p-018",
+      "start_char": 30573,
+      "end_char": 30585,
+      "label": "DATE"
+    },
+    {
+      "text": "20 March",
+      "passage_id": "p-018",
+      "start_char": 31254,
+      "end_char": 31262,
+      "label": "DATE"
+    },
+    {
+      "text": "1815",
+      "passage_id": "p-018",
+      "start_char": 31594,
+      "end_char": 31598,
+      "label": "DATE"
+    },
+    {
+      "text": "the Hundred Days",
+      "passage_id": "p-018",
+      "start_char": 31793,
+      "end_char": 31809,
+      "label": "DATE"
+    },
+    {
+      "text": "7:30 PM",
+      "passage_id": "p-019",
+      "start_char": 32884,
+      "end_char": 32891,
+      "label": "TIME"
+    },
+    {
+      "text": "22 June",
+      "passage_id": "p-019",
+      "start_char": 33362,
+      "end_char": 33369,
+      "label": "DATE"
+    },
+    {
+      "text": "15 July",
+      "passage_id": "p-019",
+      "start_char": 33405,
+      "end_char": 33412,
+      "label": "DATE"
+    },
+    {
+      "text": "October 1815",
+      "passage_id": "p-020",
+      "start_char": 33848,
+      "end_char": 33860,
+      "label": "DATE"
+    },
+    {
+      "text": "hours",
+      "passage_id": "p-021",
+      "start_char": 35863,
+      "end_char": 35868,
+      "label": "TIME"
+    },
+    {
+      "text": "1814",
+      "passage_id": "p-021",
+      "start_char": 36083,
+      "end_char": 36087,
+      "label": "DATE"
+    },
+    {
+      "text": "5 May 1821",
+      "passage_id": "p-021",
+      "start_char": 37045,
+      "end_char": 37055,
+      "label": "DATE"
+    },
+    {
+      "text": "fifty-one years old",
+      "passage_id": "p-021",
+      "start_char": 37164,
+      "end_char": 37183,
+      "label": "DATE"
+    },
+    {
+      "text": "last years",
+      "passage_id": "p-021",
+      "start_char": 37380,
+      "end_char": 37390,
+      "label": "DATE"
+    },
+    {
+      "text": "a century",
+      "passage_id": "p-021",
+      "start_char": 37754,
+      "end_char": 37763,
+      "label": "DATE"
+    }
+  ],
+  "noun_chunks_top50": {
+    "him": {
+      "text": "him",
+      "mentions": 59,
+      "passages": [
+        "p-003",
+        "p-004",
+        "p-005",
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-009",
+        "p-010",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-014",
+        "p-015",
+        "p-016",
+        "p-018",
+        "p-019",
+        "p-020",
+        "p-021"
+      ]
+    },
+    "napoleon": {
+      "text": "Napoleon",
+      "mentions": 54,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-004",
+        "p-005",
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-009",
+        "p-010",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-014",
+        "p-016",
+        "p-017",
+        "p-018",
+        "p-019",
+        "p-020",
+        "p-021"
+      ]
+    },
+    "that": {
+      "text": "that",
+      "mentions": 48,
+      "passages": [
+        "p-002",
+        "p-004",
+        "p-005",
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-009",
+        "p-010",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-014",
+        "p-015",
+        "p-016",
+        "p-017",
+        "p-018",
+        "p-019",
+        "p-020",
+        "p-021"
+      ]
+    },
+    "who": {
+      "text": "who",
+      "mentions": 29,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-005",
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-009",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-015",
+        "p-016",
+        "p-017",
+        "p-018",
+        "p-019",
+        "p-021"
+      ]
+    },
+    "what": {
+      "text": "what",
+      "mentions": 22,
+      "passages": [
+        "p-005",
+        "p-008",
+        "p-009",
+        "p-010",
+        "p-012",
+        "p-013",
+        "p-015",
+        "p-016",
+        "p-018",
+        "p-021"
+      ]
+    },
+    "she": {
+      "text": "She",
+      "mentions": 19,
+      "passages": [
+        "p-002",
+        "p-006",
+        "p-011",
+        "p-013"
+      ]
+    },
+    "himself": {
+      "text": "himself",
+      "mentions": 13,
+      "passages": [
+        "p-002",
+        "p-004",
+        "p-005",
+        "p-008",
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-016",
+        "p-019"
+      ]
+    },
+    "they": {
+      "text": "they",
+      "mentions": 13,
+      "passages": [
+        "p-003",
+        "p-005",
+        "p-006",
+        "p-007",
+        "p-014",
+        "p-015",
+        "p-016",
+        "p-018",
+        "p-020"
+      ]
+    },
+    "you": {
+      "text": "you",
+      "mentions": 13,
+      "passages": [
+        "p-006",
+        "p-007",
+        "p-012",
+        "p-017",
+        "p-018",
+        "p-021"
+      ]
+    },
+    "them": {
+      "text": "them",
+      "mentions": 12,
+      "passages": [
+        "p-003",
+        "p-007",
+        "p-012",
+        "p-013",
+        "p-014",
+        "p-015",
+        "p-017"
+      ]
+    },
+    "paris": {
+      "text": "Paris",
+      "mentions": 11,
+      "passages": [
+        "p-004",
+        "p-006",
+        "p-007",
+        "p-014",
+        "p-015",
+        "p-017",
+        "p-018",
+        "p-019"
+      ]
+    },
+    "her": {
+      "text": "her",
+      "mentions": 11,
+      "passages": [
+        "p-006",
+        "p-011",
+        "p-013"
+      ]
+    },
+    "france": {
+      "text": "France",
+      "mentions": 10,
+      "passages": [
+        "p-002",
+        "p-009",
+        "p-010",
+        "p-012",
+        "p-015",
+        "p-016",
+        "p-021"
+      ]
+    },
+    "jos\u00e9phine": {
+      "text": "Jos\u00e9phine",
+      "mentions": 10,
+      "passages": [
+        "p-006",
+        "p-011",
+        "p-013",
+        "p-021"
+      ]
+    },
+    "this": {
+      "text": "This",
+      "mentions": 8,
+      "passages": [
+        "p-002",
+        "p-013",
+        "p-016",
+        "p-018",
+        "p-020",
+        "p-021"
+      ]
+    },
+    "everything": {
+      "text": "everything",
+      "mentions": 8,
+      "passages": [
+        "p-005",
+        "p-006",
+        "p-011",
+        "p-015",
+        "p-016",
+        "p-019",
+        "p-020"
+      ]
+    },
+    "the army": {
+      "text": "the army",
+      "mentions": 7,
+      "passages": [
+        "p-004",
+        "p-006",
+        "p-007",
+        "p-008",
+        "p-015",
+        "p-018"
+      ]
+    },
+    "a man": {
+      "text": "a man",
+      "mentions": 7,
+      "passages": [
+        "p-006",
+        "p-008",
+        "p-011",
+        "p-012",
+        "p-016",
+        "p-017"
+      ]
+    },
+    "egypt": {
+      "text": "Egypt",
+      "mentions": 7,
+      "passages": [
+        "p-008",
+        "p-009",
+        "p-015"
+      ]
+    },
+    "austerlitz": {
+      "text": "Austerlitz",
+      "mentions": 7,
+      "passages": [
+        "p-011",
+        "p-012",
+        "p-014"
+      ]
+    },
+    "russia": {
+      "text": "Russia",
+      "mentions": 6,
+      "passages": [
+        "p-011",
+        "p-012",
+        "p-014",
+        "p-015",
+        "p-016",
+        "p-020"
+      ]
+    },
+    "his father": {
+      "text": "His father",
+      "mentions": 5,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-021"
+      ]
+    },
+    "others": {
+      "text": "others",
+      "mentions": 5,
+      "passages": [
+        "p-003",
+        "p-005",
+        "p-008",
+        "p-021"
+      ]
+    },
+    "order": {
+      "text": "order",
+      "mentions": 5,
+      "passages": [
+        "p-004",
+        "p-010",
+        "p-021"
+      ]
+    },
+    "men": {
+      "text": "men",
+      "mentions": 5,
+      "passages": [
+        "p-004",
+        "p-010",
+        "p-012",
+        "p-018"
+      ]
+    },
+    "the battle": {
+      "text": "the Battle",
+      "mentions": 5,
+      "passages": [
+        "p-008",
+        "p-011",
+        "p-015",
+        "p-016"
+      ]
+    },
+    "which": {
+      "text": "which",
+      "mentions": 5,
+      "passages": [
+        "p-010",
+        "p-011",
+        "p-017",
+        "p-019",
+        "p-020"
+      ]
+    },
+    "power": {
+      "text": "power",
+      "mentions": 4,
+      "passages": [
+        "p-002",
+        "p-003",
+        "p-010"
+      ]
+    },
+    "something": {
+      "text": "something",
+      "mentions": 4,
+      "passages": [
+        "p-002",
+        "p-018",
+        "p-020"
+      ]
+    },
+    "joseph": {
+      "text": "Joseph",
+      "mentions": 4,
+      "passages": [
+        "p-003",
+        "p-008",
+        "p-012"
+      ]
+    },
+    "someone": {
+      "text": "someone",
+      "mentions": 4,
+      "passages": [
+        "p-003",
+        "p-006",
+        "p-009",
+        "p-012"
+      ]
+    },
+    "a way": {
+      "text": "a way",
+      "mentions": 4,
+      "passages": [
+        "p-006",
+        "p-007",
+        "p-015",
+        "p-016"
+      ]
+    },
+    "italy": {
+      "text": "Italy",
+      "mentions": 4,
+      "passages": [
+        "p-006",
+        "p-007",
+        "p-013"
+      ]
+    },
+    "nothing": {
+      "text": "nothing",
+      "mentions": 4,
+      "passages": [
+        "p-007",
+        "p-010",
+        "p-016",
+        "p-021"
+      ]
+    },
+    "waterloo": {
+      "text": "Waterloo",
+      "mentions": 4,
+      "passages": [
+        "p-010",
+        "p-019",
+        "p-020"
+      ]
+    },
+    "women": {
+      "text": "women",
+      "mentions": 4,
+      "passages": [
+        "p-010"
+      ]
+    },
+    "austria": {
+      "text": "Austria",
+      "mentions": 4,
+      "passages": [
+        "p-011",
+        "p-012",
+        "p-013",
+        "p-016"
+      ]
+    },
+    "europe": {
+      "text": "Europe",
+      "mentions": 4,
+      "passages": [
+        "p-012",
+        "p-018",
+        "p-021"
+      ]
+    },
+    "the continental system": {
+      "text": "the Continental System",
+      "mentions": 4,
+      "passages": [
+        "p-012",
+        "p-014"
+      ]
+    },
+    "the retreat": {
+      "text": "The retreat",
+      "mentions": 4,
+      "passages": [
+        "p-015",
+        "p-019"
+      ]
+    },
+    "st helena": {
+      "text": "St Helena",
+      "mentions": 4,
+      "passages": [
+        "p-015",
+        "p-020",
+        "p-021"
+      ]
+    },
+    "fate": {
+      "text": "Fate",
+      "mentions": 4,
+      "passages": [
+        "p-016",
+        "p-020"
+      ]
+    },
+    "corsica": {
+      "text": "Corsica",
+      "mentions": 3,
+      "passages": [
+        "p-002",
+        "p-004"
+      ]
+    },
+    "the island": {
+      "text": "the island",
+      "mentions": 3,
+      "passages": [
+        "p-002",
+        "p-017",
+        "p-020"
+      ]
+    },
+    "whom": {
+      "text": "whom",
+      "mentions": 3,
+      "passages": [
+        "p-002",
+        "p-020",
+        "p-021"
+      ]
+    },
+    "birth": {
+      "text": "birth",
+      "mentions": 3,
+      "passages": [
+        "p-002",
+        "p-004"
+      ]
+    },
+    "history": {
+      "text": "history",
+      "mentions": 3,
+      "passages": [
+        "p-003",
+        "p-010",
+        "p-018"
+      ]
+    },
+    "the revolution": {
+      "text": "The Revolution",
+      "mentions": 3,
+      "passages": [
+        "p-004"
+      ]
+    },
+    "his reaction": {
+      "text": "his reaction",
+      "mentions": 3,
+      "passages": [
+        "p-004",
+        "p-008",
+        "p-011"
+      ]
+    },
+    "the people": {
+      "text": "the people",
+      "mentions": 3,
+      "passages": [
+        "p-004",
+        "p-010",
+        "p-021"
+      ]
+    }
+  },
+  "gap_template": [
+    {
+      "entity": "Napoleon",
+      "nlp_type": "organisation",
+      "mentions": 57,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "French",
+      "nlp_type": "group",
+      "mentions": 14,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "France",
+      "nlp_type": "place",
+      "mentions": 12,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Paris",
+      "nlp_type": "place",
+      "mentions": 12,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Corsican",
+      "nlp_type": "group",
+      "mentions": 10,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Jos\u00e9phine",
+      "nlp_type": "person",
+      "mentions": 9,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "British",
+      "nlp_type": "group",
+      "mentions": 7,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Egypt",
+      "nlp_type": "place",
+      "mentions": 7,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Russia",
+      "nlp_type": "place",
+      "mentions": 7,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Austerlitz",
+      "nlp_type": "organisation",
+      "mentions": 6,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "two",
+      "nlp_type": "unknown",
+      "mentions": 5,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Italy",
+      "nlp_type": "place",
+      "mentions": 5,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Europe",
+      "nlp_type": "place",
+      "mentions": 5,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Joseph",
+      "nlp_type": "person",
+      "mentions": 4,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Italian",
+      "nlp_type": "group",
+      "mentions": 4,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Waterloo",
+      "nlp_type": "person",
+      "mentions": 4,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Austria",
+      "nlp_type": "place",
+      "mentions": 4,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "St Helena",
+      "nlp_type": "organisation",
+      "mentions": 4,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Corsica",
+      "nlp_type": "project",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Directory",
+      "nlp_type": "organisation",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Britain",
+      "nlp_type": "place",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "European",
+      "nlp_type": "group",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Continental System",
+      "nlp_type": "organisation",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Marie Louise",
+      "nlp_type": "person",
+      "mentions": 3,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Russian",
+      "nlp_type": "group",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Moscow",
+      "nlp_type": "place",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "thousands",
+      "nlp_type": "unknown",
+      "mentions": 3,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Elba",
+      "nlp_type": "place",
+      "mentions": 3,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Letizia",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Brienne",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "one",
+      "nlp_type": "unknown",
+      "mentions": 2,
+      "depth_tier": "central",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Bourrienne",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "second",
+      "nlp_type": "unknown",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Tuileries",
+      "nlp_type": "organisation",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Toulon",
+      "nlp_type": "organisation",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "L'\u00c9guillette",
+      "nlp_type": "organisation",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Austrian",
+      "nlp_type": "group",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Mediterranean",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Alexander",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Lucien",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Spain",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Louis",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "J\u00e9r\u00f4me",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "600,000",
+      "nlp_type": "unknown",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Tsar",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Russians",
+      "nlp_type": "group",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Rhine",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "first",
+      "nlp_type": "unknown",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Fontainebleau",
+      "nlp_type": "organisation",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Wellington",
+      "nlp_type": "place",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Imperial Guard",
+      "nlp_type": "organisation",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Ney",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Grouchy",
+      "nlp_type": "person",
+      "mentions": 2,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Ajaccio",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Genoa",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Carlo Buonaparte",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Pasquale Paoli",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Letizia Ramolino",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "thirteen",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "eight",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Carlo",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Paoli",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Coll\u00e8ge d'Autun",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Royal Military School",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Caesar",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Alexander the Great",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Louis Antoine Fauvelet de Bourrienne",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the \u00c9cole Militaire",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "fifty-eight",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Corsicans",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "novellas",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Rousseau",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Swiss Guards",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Republican",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "twenty-four-year-old",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Napoleon Bonaparte",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "twenty-four",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Army of the Interior",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Rose de Beauharnais",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "thirty-two-year-old",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Austrians",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Sardinians",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Montenotte",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Rivoli",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Jean-Baptiste Bernadotte",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Bernadotte",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "38,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "British India",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "East",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Islam",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Mamluks",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Battle of the Pyramids",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Nelson",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Aboukir Bay",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Syria",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Description de l'\u00c9gypte",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "supporting",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Hippolyte Charles",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Pauline Four\u00e8s",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "fidelity",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "30,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "18",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Council of Five Hundred",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Council",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Napoleon First Consul",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "First Consul",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Bank of France",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Civil Code",
+      "nlp_type": "activity",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "dozens",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "forty",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Catholic Church",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Cathedral of Notre-Dame",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Pius VII",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Battle of Austerlitz",
+      "nlp_type": "work-of-art",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "27,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "9,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Austro-Russian",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Holy Roman Empire",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Confederation of the Rhine",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Holland",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Westphalia",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Bonapartes",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "English",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Talleyrand",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Ch\u00e2teau de Malmaison",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "five million francs",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Empress",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Habsburg",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Rome",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Tsar Alexander",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "70,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Napoleonic Wars",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Battle of Borodino",
+      "nlp_type": "work-of-art",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "minus thirty degrees",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Berezina River",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "fewer than 100,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "350,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Prussia",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Sweden",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Alps",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Pyrenees",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Prague",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Belgium",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Rhineland",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Battle of Leipzig",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the \"Battle of the Nations",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Germany",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Old Guard",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "over 12,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "70 million",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Golfe-Juan",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Antibes",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "1,000",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Laffrey",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Grenoble",
+      "nlp_type": "work-of-art",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Fifth Line",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Louis XVIII",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Anglo",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Brussels",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Bl\u00fccher's",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Prussians",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Marshal Ney",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Marshal Grouchy",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Bl\u00fccher",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "D'Erlon",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Old Guard",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the last reserve",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "La Garde",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "HMS Bellerophon",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the Prince Regent",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Themistocles",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Athenian",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the South Atlantic",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "1,200 miles",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Hudson Lowe",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "General Bonaparte",
+      "nlp_type": "work-of-art",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Lowe",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Las Cases",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Montholon, Bertrand",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Egyptian",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Spanish",
+      "nlp_type": "group",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Leipzig",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Vienna",
+      "nlp_type": "place",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "the French Revolution",
+      "nlp_type": "activity",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Revolution",
+      "nlp_type": "activity",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Church",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "arm\u00e9e",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "t\u00eate d'arm\u00e9e",
+      "nlp_type": "person",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "thirty-five",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "thirty-six",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "forty-six",
+      "nlp_type": "unknown",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    },
+    {
+      "entity": "Louis-Napoleon",
+      "nlp_type": "organisation",
+      "mentions": 1,
+      "depth_tier": "peripheral",
+      "llm_status": "pending",
+      "mindmap_node_id": null,
+      "notes": ""
+    }
+  ]
+}

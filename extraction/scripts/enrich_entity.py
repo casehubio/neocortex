@@ -10,7 +10,7 @@ Input:  enriched.json (Phase 2a output)
 Output: enriched.json (updated in-place with Phase 2b additions)
 
 Usage:
-    python3 enrich_entity.py <enriched.json> <structure.json> [--subject "Frida Kahlo"]
+    python3 enrich_entity.py <enriched.json> <structure.json> [--subject "Subject Name"]
 """
 
 import argparse
@@ -45,7 +45,7 @@ Format: {"summary": "...", "conflicts": [{"goals": ["A", "B"], "nature": "..."}]
 
 ### 2. Relationship Stage Transitions
 For key relationships, identify stage transitions across time:
-Format: [{"other_agent": "Diego Rivera", "transitions": [{"from": "passionate", "to": "estranged", "period": "1934", "trigger": "betrayal"}]}]
+Format: [{"other_agent": "a close associate", "transitions": [{"from": "passionate", "to": "estranged", "period": "YYYY", "trigger": "betrayal"}]}]
 
 Respond with JSON only: {"goal_coherence": {...}, "relationship_stages": [...]}"""
 

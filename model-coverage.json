@@ -1,35 +1,35 @@
 {
-  "enriched_memories": 133,
-  "pad_coverage": 133,
+  "enriched_memories": 140,
+  "pad_coverage": 140,
   "occ_emotions": {
     "total": 22,
-    "present": 20,
+    "present": 21,
     "missing": [
-      "gloating",
       "happy-for"
     ],
-    "coverage_pct": 90.9,
+    "coverage_pct": 95.5,
     "counts": {
-      "admiration": 38,
-      "anger": 46,
-      "disgust": 8,
-      "distress": 61,
-      "fear": 34,
-      "gratification": 21,
-      "gratitude": 14,
-      "hate": 5,
-      "hope": 36,
-      "interest": 52,
-      "joy": 27,
-      "love": 19,
-      "pride": 67,
-      "relief": 29,
-      "remorse": 16,
-      "reproach": 18,
-      "resentment": 22,
-      "shame": 40,
-      "sorry-for": 1,
-      "surprise": 4
+      "admiration": 31,
+      "anger": 61,
+      "disgust": 3,
+      "distress": 60,
+      "fear": 41,
+      "gloating": 6,
+      "gratification": 34,
+      "gratitude": 3,
+      "hate": 2,
+      "hope": 19,
+      "interest": 29,
+      "joy": 26,
+      "love": 10,
+      "pride": 78,
+      "relief": 13,
+      "remorse": 11,
+      "reproach": 21,
+      "resentment": 16,
+      "shame": 56,
+      "sorry-for": 3,
+      "surprise": 6
     }
   },
   "action_tendencies": {
@@ -40,14 +40,14 @@
     ],
     "coverage_pct": 88.9,
     "counts": {
-      "antagonism": 48,
-      "approach": 101,
-      "attendance": 79,
-      "avoidance": 56,
-      "dominance": 53,
-      "nonattendance": 4,
-      "rejection": 27,
-      "submission": 41
+      "antagonism": 86,
+      "approach": 95,
+      "attendance": 41,
+      "avoidance": 46,
+      "dominance": 111,
+      "nonattendance": 3,
+      "rejection": 25,
+      "submission": 25
     }
   },
   "drive_axes": {
@@ -56,10 +56,10 @@
     "missing": [],
     "coverage_pct": 100.0,
     "counts": {
-      "affiliation": 133,
-      "autonomy": 133,
-      "competence": 133,
-      "curiosity": 133
+      "affiliation": 140,
+      "autonomy": 140,
+      "competence": 140,
+      "curiosity": 140
     }
   },
   "sec_dimensions": {
@@ -68,14 +68,14 @@
     "missing": [],
     "coverage_pct": 100.0,
     "counts": {
-      "adjustability": 133,
-      "conduciveness": 133,
-      "controllability": 133,
-      "external_standards": 133,
-      "internal_standards": 133,
-      "novelty": 133,
-      "relevance": 133,
-      "urgency": 133
+      "adjustability": 140,
+      "conduciveness": 140,
+      "controllability": 140,
+      "external_standards": 139,
+      "internal_standards": 139,
+      "novelty": 140,
+      "relevance": 140,
+      "urgency": 140
     }
   },
   "sub_thought_types": {
@@ -84,13 +84,13 @@
     "missing": [],
     "coverage_pct": 100.0,
     "counts": {
-      "affect-observation": 137,
-      "association": 135,
-      "causal-inference": 136,
-      "concern": 135,
-      "evaluative": 137,
-      "intention": 134,
-      "self-reflection": 135
+      "affect-observation": 145,
+      "association": 140,
+      "causal-inference": 144,
+      "concern": 142,
+      "evaluative": 143,
+      "intention": 141,
+      "self-reflection": 142
     }
   },
   "cognitive_distortions": {
@@ -99,18 +99,18 @@
     "missing": [],
     "coverage_pct": 100.0,
     "counts": {
-      "all_or_nothing": 101,
-      "catastrophizing": 46,
-      "disqualifying_positive": 4,
-      "emotional_reasoning": 54,
-      "fortune_telling": 27,
-      "labelling": 11,
-      "magnification": 24,
-      "mental_filter": 4,
-      "mind_reading": 33,
-      "overgeneralization": 29,
-      "personalization": 45,
-      "should_statements": 17
+      "all_or_nothing": 118,
+      "catastrophizing": 29,
+      "disqualifying_positive": 29,
+      "emotional_reasoning": 62,
+      "fortune_telling": 63,
+      "labelling": 15,
+      "magnification": 49,
+      "mental_filter": 5,
+      "mind_reading": 65,
+      "overgeneralization": 13,
+      "personalization": 46,
+      "should_statements": 18
     }
   }
 }

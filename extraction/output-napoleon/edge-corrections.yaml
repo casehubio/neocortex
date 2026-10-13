@@ -1,0 +1,3 @@
+# Factual edge corrections for Napoleon Bonaparte biography corpus.
+# Applied by assemble_corpus.py during edge correction pass.
+# Populated after inspecting first pipeline output.

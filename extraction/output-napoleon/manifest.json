@@ -1,0 +1,42 @@
+{
+  "mode": "fixed-point",
+  "max_passes": 5,
+  "passes": [
+    {
+      "pass": 1,
+      "status": "complete",
+      "steps_complete": [
+        "chunk",
+        "nlp_extract",
+        "gap_sweep",
+        "extract_structure",
+        "enrich_cognitive",
+        "enrich_entity",
+        "backfill"
+      ],
+      "step": null,
+      "items_done": 0,
+      "items_total": 0,
+      "new_memories": 185,
+      "new_entities": 0,
+      "new_edges": 0
+    },
+    {
+      "pass": 2,
+      "status": "complete",
+      "steps_complete": [
+        "convergence_extract",
+        "backfill_enrich",
+        "incremental_entity",
+        "backfill_new"
+      ],
+      "step": null,
+      "items_done": 0,
+      "items_total": 0,
+      "new_memories": 0,
+      "new_entities": 0,
+      "new_edges": 0
+    }
+  ],
+  "converged": true
+}

@@ -1,0 +1,1622 @@
+{
+  "overall_coverage_pct": 31.2,
+  "covered": 18,
+  "fuzzy_matched": 26,
+  "noise_dismissed": 50,
+  "real_gaps": 97,
+  "total_nlp_entities": 191,
+  "classification": {
+    "covered": [
+      {
+        "entity": "Napoleon",
+        "nlp_type": "organisation",
+        "mentions": 57,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "France",
+        "nlp_type": "place",
+        "mentions": 12,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Paris",
+        "nlp_type": "place",
+        "mentions": 12,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Jos\u00e9phine",
+        "nlp_type": "person",
+        "mentions": 9,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "British",
+        "nlp_type": "group",
+        "mentions": 7,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Egypt",
+        "nlp_type": "place",
+        "mentions": 7,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Russia",
+        "nlp_type": "place",
+        "mentions": 7,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Italy",
+        "nlp_type": "place",
+        "mentions": 5,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Austria",
+        "nlp_type": "place",
+        "mentions": 4,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "St Helena",
+        "nlp_type": "organisation",
+        "mentions": 4,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Corsica",
+        "nlp_type": "project",
+        "mentions": 3,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Moscow",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Brienne",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Toulon",
+        "nlp_type": "organisation",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "L'\u00c9guillette",
+        "nlp_type": "organisation",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Louis Antoine Fauvelet de Bourrienne",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Napoleon Bonaparte",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Rome",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      }
+    ],
+    "fuzzy_matched": [
+      {
+        "entity": "Austerlitz",
+        "nlp_type": "organisation",
+        "mentions": 6,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "austria"
+      },
+      {
+        "entity": "Joseph",
+        "nlp_type": "person",
+        "mentions": 4,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "joseph bonaparte"
+      },
+      {
+        "entity": "Directory",
+        "nlp_type": "organisation",
+        "mentions": 3,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "french directory"
+      },
+      {
+        "entity": "Britain",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "british"
+      },
+      {
+        "entity": "the Continental System",
+        "nlp_type": "organisation",
+        "mentions": 3,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "continental system"
+      },
+      {
+        "entity": "Marie Louise",
+        "nlp_type": "person",
+        "mentions": 3,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "marie louise of austria"
+      },
+      {
+        "entity": "Bourrienne",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "brienne"
+      },
+      {
+        "entity": "Alexander",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "tsar alexander i"
+      },
+      {
+        "entity": "Lucien",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "lucien bonaparte"
+      },
+      {
+        "entity": "the Coll\u00e8ge d'Autun",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "coll\u00e8ge d'autun"
+      },
+      {
+        "entity": "Caesar",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "caesar's commentaries"
+      },
+      {
+        "entity": "the Army of the Interior",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "army of the interior"
+      },
+      {
+        "entity": "British India",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "british"
+      },
+      {
+        "entity": "the Council of Five Hundred",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "council of five hundred"
+      },
+      {
+        "entity": "Council",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "council of five hundred"
+      },
+      {
+        "entity": "Napoleon First Consul",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "napoleon"
+      },
+      {
+        "entity": "the Cathedral of Notre-Dame",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "cathedral of notre-dame"
+      },
+      {
+        "entity": "Pius VII",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "pope pius vii"
+      },
+      {
+        "entity": "the Battle of Austerlitz",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "battle of austerlitz"
+      },
+      {
+        "entity": "the Ch\u00e2teau de Malmaison",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "ch\u00e2teau de malmaison"
+      },
+      {
+        "entity": "Tsar Alexander",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "tsar alexander i"
+      },
+      {
+        "entity": "the Napoleonic Wars",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "napoleonic wars"
+      },
+      {
+        "entity": "the Battle of Borodino",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "battle of borodino"
+      },
+      {
+        "entity": "the Berezina River",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "berezina river"
+      },
+      {
+        "entity": "Prussia",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "russia"
+      },
+      {
+        "entity": "Revolution",
+        "nlp_type": "activity",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "revolutionary government"
+      }
+    ],
+    "noise_dismissed": [
+      {
+        "entity": "French",
+        "nlp_type": "group",
+        "mentions": 14,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Corsican",
+        "nlp_type": "group",
+        "mentions": 10,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "two",
+        "nlp_type": "unknown",
+        "mentions": 5,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "Italian",
+        "nlp_type": "group",
+        "mentions": 4,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "European",
+        "nlp_type": "group",
+        "mentions": 3,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Russian",
+        "nlp_type": "group",
+        "mentions": 3,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "thousands",
+        "nlp_type": "unknown",
+        "mentions": 3,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "one",
+        "nlp_type": "unknown",
+        "mentions": 2,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "second",
+        "nlp_type": "unknown",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "Austrian",
+        "nlp_type": "group",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "600,000",
+        "nlp_type": "unknown",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Russians",
+        "nlp_type": "group",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "first",
+        "nlp_type": "unknown",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "thirteen",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "eight",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "fifty-eight",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Corsicans",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Republican",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "twenty-four-year-old",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "twenty-four",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "thirty-two-year-old",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Austrians",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Sardinians",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "38,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "30,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "18",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "dozens",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "forty",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "27,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "9,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "English",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "five million francs",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "70,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "minus thirty degrees",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "fewer than 100,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "350,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Pyrenees",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "the \"Battle of the Nations",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "over 12,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "70 million",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "1,000",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Anglo",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Prussians",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Athenian",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "1,200 miles",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Egyptian",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Spanish",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "thirty-five",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "thirty-six",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "forty-six",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      }
+    ],
+    "real_gaps": [
+      {
+        "entity": "Europe",
+        "nlp_type": "place",
+        "mentions": 5,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Waterloo",
+        "nlp_type": "person",
+        "mentions": 4,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Elba",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Letizia",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Tuileries",
+        "nlp_type": "organisation",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Mediterranean",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Spain",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Louis",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "J\u00e9r\u00f4me",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Tsar",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Rhine",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Fontainebleau",
+        "nlp_type": "organisation",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Wellington",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Imperial Guard",
+        "nlp_type": "organisation",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Ney",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Grouchy",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Ajaccio",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Genoa",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Carlo Buonaparte",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Pasquale Paoli",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Letizia Ramolino",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Carlo",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Paoli",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Royal Military School",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Alexander the Great",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the \u00c9cole Militaire",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "novellas",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Rousseau",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Swiss Guards",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Rose de Beauharnais",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Montenotte",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Rivoli",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Jean-Baptiste Bernadotte",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Bernadotte",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "East",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Islam",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Mamluks",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Battle of the Pyramids",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Nelson",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Aboukir Bay",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Syria",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Description de l'\u00c9gypte",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Hippolyte Charles",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Pauline Four\u00e8s",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "fidelity",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "First Consul",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Bank of France",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Civil Code",
+        "nlp_type": "activity",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Catholic Church",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Austro-Russian",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Holy Roman Empire",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Confederation of the Rhine",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Holland",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Westphalia",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Bonapartes",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Talleyrand",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Empress",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Habsburg",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Sweden",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Alps",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Prague",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Belgium",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Rhineland",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Battle of Leipzig",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Germany",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Old Guard",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Golfe-Juan",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Antibes",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Laffrey",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Grenoble",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Fifth Line",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Louis XVIII",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Brussels",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Bl\u00fccher's",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Marshal Ney",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Marshal Grouchy",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Bl\u00fccher",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "D'Erlon",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Old Guard",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the last reserve",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "La Garde",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "HMS Bellerophon",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Prince Regent",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Themistocles",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the South Atlantic",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Hudson Lowe",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "General Bonaparte",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Lowe",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Las Cases",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Montholon, Bertrand",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Leipzig",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Vienna",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the French Revolution",
+        "nlp_type": "activity",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Church",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "arm\u00e9e",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "t\u00eate d'arm\u00e9e",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Louis-Napoleon",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      }
+    ]
+  }
+}
