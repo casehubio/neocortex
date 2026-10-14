@@ -306,23 +306,6 @@ class DriveDescriptionGenerationPhaseTest {
                                 .doesNotContain("somatic only");
     }
 
-    @Test
-    void descriptionPromptRequestsBothAmbientAndAcuteExpression() {
-        seedDriveNode("gallantry", 0.9);
-        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
-
-        phase.run(TENANT, List.of());
-
-        assertThat(capturedConfigs).isNotEmpty();
-        var systemPrompt = capturedConfigs.getFirst().systemPrompt();
-        assertThat(systemPrompt).as("must request ambient/background coloring")
-                                .containsIgnoringCase("background");
-        assertThat(systemPrompt).as("must request acute activation")
-                                .containsIgnoringCase("activates");
-        assertThat(systemPrompt).as("must not only describe activation moments")
-                                .doesNotContain("when a particular motivational pull activates");
-    }
-
 
     // --- helpers ---
 

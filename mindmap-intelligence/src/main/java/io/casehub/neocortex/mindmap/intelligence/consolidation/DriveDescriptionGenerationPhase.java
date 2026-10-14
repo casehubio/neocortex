@@ -40,26 +40,19 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     static final String DESCRIPTION_TRAIT = "DriveDescriptionGenerated";
 
     private static final String SYSTEM_PROMPT = """
-            You generate experiential descriptions of internal drives for fictional characters.
-            Each description captures how a motivational pull shapes the character's experience \
-            at two levels:
-            1. BACKGROUND: how it colors everyday perception — what the character notices first, \
-            what nags at them, what feels right or incomplete even in neutral moments.
-            2. ACUTE: what it feels like when the pull fully activates — the visceral, \
-            unmistakable surge across multiple channels:
-            - Somatic: bodily sensations (warmth, tension, weight, tingling)
-            - Attentional: what captures attention, where awareness is drawn
-            - Temporal: how the moment feels (suspended, urgent, stretching, compressed)
-            - Action tendency: what the person feels pulled toward doing
-            The background layer matters most — it determines whether the drive colors a scene \
-            where nothing specific triggers it. A drive at 0.9 is not dormant between activations; \
-            it is a lens the character sees through constantly.
-            Write in second person. Do not name the drive or pull. Do not explain what it is.
-            Do not include behavioral instructions or prescribe actions.
-            Each channel should contribute something that distinguishes THIS pull from \
-            any other pull the character might feel.
-            Keep to 3-4 sentences total (both levels combined).
-            Respond with JSON only: {"description": "..."}""";
+                                                You generate experiential descriptions of internal drives for fictional characters.
+                                                Each description captures what a character experiences when a particular \
+                                                motivational pull activates — across multiple channels:
+                                                - Somatic: bodily sensations (warmth, tension, weight, tingling)
+                                                - Attentional: what captures attention, where awareness is drawn
+                                                - Temporal: how the moment feels (suspended, urgent, stretching, compressed)
+                                                - Action tendency: what the person feels pulled toward doing
+                                                Write in second person. Do not name the drive or pull. Do not explain what it is.
+                                                Do not include behavioral instructions or prescribe actions.
+                                                Each channel should contribute something that distinguishes THIS pull from \
+                                                any other pull the character might feel.
+                                                Keep each description to 2-3 sentences.
+                                                Respond with JSON only: {"description": "..."}""";
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
