@@ -14,6 +14,8 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.jspecify.annotations.Nullable;
 
+import io.casehub.neocortex.mindmap.NodeUpdate;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -118,6 +120,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 generateAndStore(tenantId, agentId, subgraphId,
                     driveType, intensity, servingMemories);
             }
+
+            generateDiscriminationText(tenantId, agentId, allCognitive);
         }
     }
 
@@ -172,12 +176,75 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         return parseDescription(responseText.toString());
     }
 
-    private String parseDescription(String json) {
+    private static final String DISCRIMINATION_SYSTEM = """
+            You generate somatic discrimination criteria for competing motivational drives.
+            Given formation memories for two drives that often co-activate, describe how \
+            the two pulls FEEL DIFFERENT in the body.
+            Use "one pull" and "the other" — do not name the drives.
+            Frame in terms of bodily sensations and the quality of the act, not memory content.
+            End with a noticing instruction: "Notice which one [somatic criterion]."
+            Do NOT mention what's broken, what needs solving, or situational content.
+            Keep to 3-4 sentences.
+            Respond with JSON only: {"discrimination": "..."}""";
+
+    private void generateDiscriminationText(String tenantId, String agentId,
+                                             List<MindMapNode> allCognitive) {
+        var competitionNodes = allCognitive.stream()
+            .filter(n -> n.traits().contains(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+            .filter(n -> agentId.equals(n.properties().get("agent-id")))
+            .toList();
+
+        for (var node : competitionNodes) {
+            String memoriesA = node.properties().getOrDefault("anchor-memories-a", "");
+            String memoriesB = node.properties().getOrDefault("anchor-memories-b", "");
+            if (memoriesA.isBlank() && memoriesB.isBlank()) continue;
+
+            try {
+                String discrimination = callDiscriminationLlm(
+                    memoriesA.replace("|", "\n"), memoriesB.replace("|", "\n"));
+                if (discrimination != null && !discrimination.isBlank()) {
+                    store.updateNode(node.id(),
+                        NodeUpdate.empty().withPropertiesToSet(
+                            Map.of("differentiation-text", discrimination)),
+                        tenantId);
+                }
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, agentId + ": discrimination generation failed (non-fatal)", e);
+            }
+        }
+    }
+
+    private String callDiscriminationLlm(String memoriesA, String memoriesB) {
+        var userPrompt = String.format("""
+                Two pulls often activate together in the same moment.
+
+                Pull A was shaped by these experiences:
+                %s
+
+                Pull B was shaped by these experiences:
+                %s
+
+                Generate a somatic discrimination criterion — how these two pulls \
+                FEEL DIFFERENT in the body. Frame as "How they differ:" followed by \
+                the criterion. The criterion must work regardless of the current situation.""",
+                memoriesA, memoriesB);
+
+        var sessionConfig = AgentSessionConfig.of(DISCRIMINATION_SYSTEM, userPrompt);
+        var responseText = new StringBuilder();
+        agentProvider.invoke(sessionConfig).subscribe().asStream()
+            .filter(e -> e instanceof AgentEvent.TextDelta)
+            .map(e -> ((AgentEvent.TextDelta) e).text())
+            .forEach(responseText::append);
+
+        return parseField(responseText.toString(), "discrimination");
+    }
+
+    private String parseField(String json, String fieldName) {
         json = json.strip();
         if (json.startsWith("```")) {
             json = json.replaceFirst("```[a-z]*\\n?", "").replaceFirst("\\n?```$", "").strip();
         }
-        int start = json.indexOf("\"description\"");
+        int start = json.indexOf("\"" + fieldName + "\"");
         if (start < 0) return null;
         int colon = json.indexOf(':', start);
         if (colon < 0) return null;
@@ -187,15 +254,15 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         var sb = new StringBuilder();
         for (int i = quote; i < json.length(); i++) {
             char c = json.charAt(i);
-            if (c == '\\' && i + 1 < json.length()) {
-                sb.append(json.charAt(++i));
-            } else if (c == '"') {
-                break;
-            } else {
-                sb.append(c);
-            }
+            if (c == '\\' && i + 1 < json.length()) { sb.append(json.charAt(++i)); }
+            else if (c == '"') { break; }
+            else { sb.append(c); }
         }
         return sb.toString();
+    }
+
+    private String parseDescription(String json) {
+        return parseField(json, "description");
     }
 
     private boolean memoryServesDrive(MindMapNode memoryNode, String driveType) {
