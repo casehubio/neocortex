@@ -9,7 +9,6 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
-import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -73,78 +72,77 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (classifier == null || topology == null) {
-            LOG.fine("Classifier or topology not available, skipping drive profile derivation");
-            return;
-        }
-
         List<MindMapNode> allCognitive = store.search(
-            MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
 
         Map<String, List<MindMapNode>> drivesByAgent = allCognitive.stream()
-            .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
-            .filter(n -> n.properties().containsKey("agent-id"))
-            .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
+                                                                   .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
+                                                                   .filter(n -> n.properties().containsKey("agent-id"))
+                                                                   .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
 
-        if (drivesByAgent.isEmpty()) return;
+        if (drivesByAgent.isEmpty()) {return;}
 
         List<MindMapNode> formativeNodes = allCognitive.stream()
-            .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
-            .toList();
+                                                       .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
+                                                       .toList();
 
         for (var agentEntry : drivesByAgent.entrySet()) {
-            String agentId = agentEntry.getKey();
+            String            agentId    = agentEntry.getKey();
             List<MindMapNode> driveNodes = agentEntry.getValue();
 
             List<MindMapNode> agentMemories = formativeNodes.stream()
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .toList();
+                                                            .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                            .toList();
 
-            if (agentMemories.isEmpty()) continue;
+            if (agentMemories.isEmpty()) {continue;}
 
             removeExistingArtifacts(tenantId, agentId, allCognitive);
 
-            Map<String, DriveProfile> profiles = deriveProfiles(driveNodes, agentMemories);
-            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) continue;
+            Map<String, DriveProfile> profiles   = deriveProfiles(driveNodes, agentMemories);
+            String                    subgraphId = findCognitiveSubgraph(tenantId, agentId);
+            if (subgraphId == null) {continue;}
 
             storeProfiles(tenantId, agentId, subgraphId, profiles);
-            detectAndStoreCompetition(tenantId, agentId, subgraphId, profiles);
+            detectAndStoreCompetition(tenantId, agentId, subgraphId, profiles, agentMemories);
         }
     }
 
     private Map<String, DriveProfile> deriveProfiles(List<MindMapNode> driveNodes,
-                                                      List<MindMapNode> formativeNodes) {
+                                                     List<MindMapNode> formativeNodes) {
         Map<String, DriveProfile> profiles = new HashMap<>();
 
         for (MindMapNode driveNode : driveNodes) {
             String driveType = driveNode.properties().get("drive-type");
-            if (driveType == null) continue;
+            if (driveType == null) {continue;}
 
             List<MindMapNode> servingMemories = formativeNodes.stream()
-                .filter(m -> memoryServesDrive(m, driveType))
-                .toList();
+                                                              .filter(m -> memoryServesDrive(m, driveType))
+                                                              .toList();
 
-            if (servingMemories.isEmpty()) continue;
+            if (servingMemories.isEmpty()) {continue;}
 
             Map<String, Double> inputActivations = new HashMap<>();
-            List<String> memoryExcerpts = new ArrayList<>();
+            List<String>        memoryExcerpts   = new ArrayList<>();
 
             for (MindMapNode memory : servingMemories) {
                 String episodeText = memory.name();
-                List<SituationActivation> activations = classifier.classify(episodeText, Map.of());
 
-                for (SituationActivation sa : activations) {
-                    inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                if (classifier != null) {
+                    List<SituationActivation> activations = classifier.classify(episodeText, Map.of());
+                    for (SituationActivation sa : activations) {
+                        inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                    }
                 }
 
                 memoryExcerpts.add(excerpt(episodeText));
             }
 
-            Set<String> mediatingNodes = traceToMediating(inputActivations.keySet());
+            Set<String> mediatingNodes = topology != null
+                                         ? traceToMediating(inputActivations.keySet())
+                                         : Set.of();
 
             profiles.put(driveType, new DriveProfile(
-                driveType, inputActivations, mediatingNodes, memoryExcerpts));
+                    driveType, inputActivations, mediatingNodes, memoryExcerpts));
         }
 
         return profiles;
@@ -170,8 +168,9 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     }
 
     private void detectAndStoreCompetition(String tenantId, String agentId,
-                                            String subgraphId,
-                                            Map<String, DriveProfile> profiles) {
+                                           String subgraphId,
+                                           Map<String, DriveProfile> profiles,
+                                           List<MindMapNode> agentMemories) {
         List<String> driveTypes = new ArrayList<>(profiles.keySet());
 
         for (int i = 0; i < driveTypes.size(); i++) {
@@ -179,37 +178,61 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 DriveProfile a = profiles.get(driveTypes.get(i));
                 DriveProfile b = profiles.get(driveTypes.get(j));
 
-                Set<String> sharedMediating = new HashSet<>(a.mediatingNodes);
-                sharedMediating.retainAll(b.mediatingNodes);
+                Set<String> sharedMediating;
+                Set<String> uniqueMediatingA;
+                Set<String> uniqueMediatingB;
 
-                if (sharedMediating.isEmpty()) continue;
-
-                Set<String> uniqueMediatingA = new HashSet<>(a.mediatingNodes);
-                uniqueMediatingA.removeAll(sharedMediating);
-                Set<String> uniqueMediatingB = new HashSet<>(b.mediatingNodes);
-                uniqueMediatingB.removeAll(sharedMediating);
+                if (!a.mediatingNodes.isEmpty() || !b.mediatingNodes.isEmpty()) {
+                    sharedMediating = new HashSet<>(a.mediatingNodes);
+                    sharedMediating.retainAll(b.mediatingNodes);
+                    if (sharedMediating.isEmpty()) {continue;}
+                    uniqueMediatingA = new HashSet<>(a.mediatingNodes);
+                    uniqueMediatingA.removeAll(sharedMediating);
+                    uniqueMediatingB = new HashSet<>(b.mediatingNodes);
+                    uniqueMediatingB.removeAll(sharedMediating);
+                } else {
+                    Set<String> catalogueA      = catalogueEntries(agentMemories, a.driveType);
+                    Set<String> catalogueB      = catalogueEntries(agentMemories, b.driveType);
+                    Set<String> sharedCatalogue = new HashSet<>(catalogueA);
+                    sharedCatalogue.retainAll(catalogueB);
+                    if (sharedCatalogue.isEmpty()) {continue;}
+                    sharedMediating  = sharedCatalogue;
+                    uniqueMediatingA = new HashSet<>(catalogueA);
+                    uniqueMediatingA.removeAll(sharedCatalogue);
+                    uniqueMediatingB = new HashSet<>(catalogueB);
+                    uniqueMediatingB.removeAll(sharedCatalogue);
+                }
 
                 String diffText = composeDifferentiationText(a, b, uniqueMediatingA, uniqueMediatingB);
 
                 var props = Map.of(
-                    "agent-id", agentId,
-                    "drive-a", a.driveType,
-                    "drive-b", b.driveType,
-                    "shared-mediating", String.join(",", sharedMediating),
-                    "unique-mediating-a", String.join(",", uniqueMediatingA),
-                    "unique-mediating-b", String.join(",", uniqueMediatingB),
-                    "differentiation-text", diffText,
-                    "anchor-memories-a", String.join("|", a.memoryExcerpts),
-                    "anchor-memories-b", String.join("|", b.memoryExcerpts));
+                        "agent-id", agentId,
+                        "drive-a", a.driveType,
+                        "drive-b", b.driveType,
+                        "shared-mediating", String.join(",", sharedMediating),
+                        "unique-mediating-a", String.join(",", uniqueMediatingA),
+                        "unique-mediating-b", String.join(",", uniqueMediatingB),
+                        "differentiation-text", diffText,
+                        "anchor-memories-a", String.join("|", a.memoryExcerpts),
+                        "anchor-memories-b", String.join("|", b.memoryExcerpts));
 
                 store.addNode(
-                    NodeInput.of("competition-" + a.driveType + "-" + b.driveType, subgraphId)
-                        .withTraits(Set.of(COMPETITION_TRAIT))
-                        .withProperties(props),
-                    tenantId);
+                        NodeInput.of("competition-" + a.driveType + "-" + b.driveType, subgraphId)
+                                 .withTraits(Set.of(COMPETITION_TRAIT))
+                                 .withProperties(props),
+                        tenantId);
             }
         }
     }
+
+    private Set<String> catalogueEntries(List<MindMapNode> memories, String driveType) {
+        return memories.stream()
+                       .filter(m -> memoryServesDrive(m, driveType))
+                       .map(m -> m.properties().get("catalogue-entry-id"))
+                       .filter(c -> c != null && !c.isBlank())
+                       .collect(Collectors.toSet());
+    }
+
 
     private String composeDifferentiationText(DriveProfile a, DriveProfile b,
                                                Set<String> uniqueA, Set<String> uniqueB) {
