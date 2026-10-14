@@ -104,6 +104,15 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             storeProfiles(tenantId, agentId, subgraphId, profiles);
             detectAndStoreCompetition(tenantId, agentId, subgraphId, profiles, agentMemories);
+
+            if (!profiles.isEmpty()) {
+                var profileSummary = profiles.entrySet().stream()
+                    .map(e -> e.getKey() + "(" + e.getValue().memoryExcerpts.size() + " memories)")
+                    .collect(Collectors.joining(", "));
+                LOG.info("drive-profile-derivation [" + agentId + "]: " + profiles.size()
+                    + " profiles — " + profileSummary
+                    + (classifier != null ? " [CAPS active]" : " [catalogue fallback]"));
+            }
         }
     }
 
@@ -221,6 +230,11 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                                  .withTraits(Set.of(COMPETITION_TRAIT))
                                  .withProperties(props),
                         tenantId);
+
+                LOG.info("drive-competition [" + agentId + "]: "
+                    + a.driveType + " vs " + b.driveType
+                    + " — shared=" + String.join(",", sharedMediating)
+                    + (a.mediatingNodes.isEmpty() ? " [catalogue]" : " [CAPS mediating]"));
             }
         }
     }

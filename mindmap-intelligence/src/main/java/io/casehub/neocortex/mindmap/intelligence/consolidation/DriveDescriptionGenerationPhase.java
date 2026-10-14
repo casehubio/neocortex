@@ -140,8 +140,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 long start = System.currentTimeMillis();
                 generateAndStore(tenantId, agentId, subgraphId,
                     driveType, intensity, servingMemories);
-                LOG.info("  " + agentId + "/" + driveType + " description: "
-                    + (System.currentTimeMillis() - start) + "ms");
+                LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
+                    + " memories, " + (System.currentTimeMillis() - start) + "ms)");
             }
 
             long discStart = System.currentTimeMillis();
