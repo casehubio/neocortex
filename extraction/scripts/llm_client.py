@@ -1,7 +1,6 @@
 """Shared LLM client factory — resolves Vertex AI or direct Anthropic from environment."""
 
 import os
-import anthropic
 
 
 def create_client():
@@ -11,6 +10,8 @@ def create_client():
     - Vertex AI: CLAUDE_CODE_USE_VERTEX=1 + ANTHROPIC_VERTEX_PROJECT_ID + CLOUD_ML_REGION
     - Direct API: ANTHROPIC_API_KEY
     """
+    import anthropic
+
     if os.environ.get('CLAUDE_CODE_USE_VERTEX') == '1':
         project_id = os.environ.get('ANTHROPIC_VERTEX_PROJECT_ID')
         region = os.environ.get('CLOUD_ML_REGION', 'us-east5')

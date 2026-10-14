@@ -54,7 +54,7 @@ def _synthetic_enriched():
              "pad": {"pleasure": -0.7, "arousal": 0.6, "dominance": -0.4},
              "occ_emotions": [{"emotion": "distress", "intensity": 0.8}]},
             {"text": "Current emotional state", "domain": "mood",
-             "event_type": "mood-snapshot",
+             "event_type": "mood-snapshot", "subject": "Frida Kahlo",
              "pad": {"pleasure": 0.2, "arousal": -0.1, "dominance": 0.3}},
         ],
         "entity_enrichments": {
@@ -102,7 +102,7 @@ def _synthetic_corpus():
              "pad": {"pleasure": -0.7, "arousal": 0.6, "dominance": -0.4},
              "occ_emotions": [{"emotion": "distress", "intensity": 0.8}]},
             {"text": "Current emotional state", "domain": "mood",
-             "event_type": "mood-snapshot",
+             "event_type": "mood-snapshot", "subject": "Frida Kahlo",
              "pad": {"pleasure": 0.2, "arousal": -0.1, "dominance": 0.3}},
         ],
         "entity_enrichments": {
