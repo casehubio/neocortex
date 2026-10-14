@@ -54,6 +54,8 @@ class ConsolidationSchedulerTest {
 
         scheduler = new ConsolidationScheduler(
             List.of(phase1, phase2), idleTracker, memoryStore, null);
+        scheduler.consolidateNow("tenant-1");
+        executedPhases.clear();
     }
 
     @Test
@@ -87,6 +89,8 @@ class ConsolidationSchedulerTest {
 
         var schedulerWithFailure = new ConsolidationScheduler(
             List.of(failing, healthy), idleTracker, memoryStore, null);
+        schedulerWithFailure.consolidateNow("tenant-1");
+        executedPhases.clear();
         schedulerWithFailure.tick();
 
         assertThat(executedPhases).containsExactly("healthy:tenant-1");
@@ -123,6 +127,7 @@ class ConsolidationSchedulerTest {
                 "m1");
         accumulator.onExperienceRecorded(event);
 
+        schedulerWithAccumulator.consolidateNow("tenant-1");
         schedulerWithAccumulator.tick();
 
         SignificanceSnapshot snapshot = accumulator.swapAndReset();
