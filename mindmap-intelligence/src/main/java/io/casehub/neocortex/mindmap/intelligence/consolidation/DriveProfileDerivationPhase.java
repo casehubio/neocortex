@@ -214,25 +214,25 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     private String composeDifferentiationText(DriveProfile a, DriveProfile b,
                                                Set<String> uniqueA, Set<String> uniqueB) {
         var sb = new StringBuilder();
-        sb.append("Two pulls are active in the same moment. ");
+        sb.append("How they differ:\n");
 
         if (!a.memoryExcerpts.isEmpty()) {
-            sb.append("One comes from ").append(a.memoryExcerpts.getFirst());
+            sb.append("One pull traces through ").append(a.memoryExcerpts.getFirst());
             if (a.memoryExcerpts.size() > 1) {
                 sb.append(", ").append(a.memoryExcerpts.get(1));
             }
-            sb.append(". ");
+            sb.append(".\n");
         }
 
         if (!b.memoryExcerpts.isEmpty()) {
-            sb.append("The other comes from ").append(b.memoryExcerpts.getFirst());
+            sb.append("The other traces through ").append(b.memoryExcerpts.getFirst());
             if (b.memoryExcerpts.size() > 1) {
                 sb.append(", ").append(b.memoryExcerpts.get(1));
             }
-            sb.append(". ");
+            sb.append(".\n");
         }
 
-        sb.append("They're both real. They're not the same.");
+        sb.append("Both are real. They're not the same.");
         return sb.toString();
     }
 
