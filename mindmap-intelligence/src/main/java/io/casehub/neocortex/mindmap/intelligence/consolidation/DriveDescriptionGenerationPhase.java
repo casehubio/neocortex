@@ -74,7 +74,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (agentProvider == null) return;
+        if (agentProvider == null) {
+            LOG.info("Drive description generation skipped — no AgentProvider");
+            return;
+        }
 
         List<MindMapNode> allCognitive = store.search(
             MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
@@ -84,11 +87,21 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             .filter(n -> n.properties().containsKey("agent-id"))
             .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
 
-        if (drivesByAgent.isEmpty()) return;
+        if (drivesByAgent.isEmpty()) {
+            LOG.info("Drive description generation skipped — no drive-intensity nodes found in " + allCognitive.size() + " cognitive nodes");
+            return;
+        }
 
         List<MindMapNode> formativeNodes = allCognitive.stream()
             .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
             .toList();
+
+        var kindCounts = allCognitive.stream()
+            .map(n -> n.properties().getOrDefault("cognitiveKind", "none"))
+            .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
+        LOG.info("Drive description generation: " + drivesByAgent.size() + " agents, "
+            + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
+            + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
 
         for (var agentEntry : drivesByAgent.entrySet()) {
             String agentId = agentEntry.getKey();

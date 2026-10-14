@@ -221,6 +221,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
             lastProcessedId = memory.memoryId();
         }
 
+        LOG.info("Experience consolidation: " + graduatedInputs.size() + " memories graduated for tenant=" + tenantId);
         if (!graduatedInputs.isEmpty()) {
             mindMapStore.addNodes(graduatedInputs, tenantId);
             for (NodeInput input : graduatedInputs) {
