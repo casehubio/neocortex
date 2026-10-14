@@ -128,7 +128,8 @@ class DriveProfileDerivationPhaseTest {
         assertThat(competitions).hasSize(1);
         String diffText = competitions.getFirst().property("differentiation-text").orElse("");
         assertThat(diffText).isNotBlank();
-        assertThat(diffText).contains("both real");
+        assertThat(diffText).contains("How they differ");
+        assertThat(diffText).contains("not the same");
     }
 
     @Test
