@@ -63,11 +63,13 @@ public class ConsolidationScheduler {
                            @ConfigProperty(name = "casehub.mindmap.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
         this(phases.stream()
-                .sorted(Comparator.comparingInt(p ->
-                    Optional.ofNullable(p.getClass().getAnnotation(
-                        jakarta.annotation.Priority.class))
-                        .map(jakarta.annotation.Priority::value)
-                        .orElse(Integer.MAX_VALUE)))
+                .sorted(Comparator.comparingInt(p -> {
+                    for (Class<?> c = p.getClass(); c != null; c = c.getSuperclass()) {
+                        var ann = c.getAnnotation(jakarta.annotation.Priority.class);
+                        if (ann != null) return ann.value();
+                    }
+                    return Integer.MAX_VALUE;
+                }))
                 .toList(),
             idleTracker, memoryStore,
             curiosityGenerator.isResolvable() ? curiosityGenerator.get() : null,
