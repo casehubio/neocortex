@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -146,6 +145,42 @@ class DriveProfileDerivationPhaseTest {
         assertThat(inputs).contains("acceptance");
         assertThat(inputs).contains("sharing");
     }
+
+
+    @Test
+    void producesProfilesWithoutClassifierOrTopology() {
+        var phaseNoDeps = new DriveProfileDerivationPhase(store, (SituationClassifier) null, (CapsTopology) null);
+
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry", "other_safety");
+
+        phaseNoDeps.run(TENANT, List.of());
+
+        var profiles = findDriveProfileNodes();
+        assertThat(profiles).hasSize(1);
+        assertThat(profiles.getFirst().property("drive-type")).hasValue("gallantry");
+        assertThat(profiles.getFirst().property("source-memory-count")).hasValue("1");
+    }
+
+    @Test
+    void detectsCompetitionViaSharedCatalogueWithoutTopology() {
+        var phaseNoDeps = new DriveProfileDerivationPhase(store, (SituationClassifier) null, (CapsTopology) null);
+
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.7);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry", "other_safety");
+        seedFormationMemory("She struggled and you helped her up", "proving-worth", "other_safety");
+
+        phaseNoDeps.run(TENANT, List.of());
+
+        var competitions = findCompetitionNodes();
+        assertThat(competitions).hasSize(1);
+        assertThat(competitions.getFirst().property("shared-mediating")).isPresent();
+        String shared = competitions.getFirst().property("shared-mediating").orElse("");
+        assertThat(shared).contains("other_safety");
+        assertThat(competitions.getFirst().property("differentiation-text")).isPresent();
+    }
+
 
     @Test
     void replacesExistingProfileOnRerun() {
