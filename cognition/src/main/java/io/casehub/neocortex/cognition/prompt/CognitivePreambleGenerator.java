@@ -13,6 +13,7 @@ public final class CognitivePreambleGenerator {
         }
         if (config.drivesEnabled()) {
             sb.append(" You have motivational drives that influence your priorities.");
+            sb.append(" Each drive is a distinct felt state. When multiple drives activate in the same moment, attend to which quality of feeling is at the front — the same situation can serve different drives differently.");
         }
         if (config.characterDrivesEnabled() && config.drivesEnabled()) {
             sb.append(" Your psychological needs — curiosity, competence, affiliation, autonomy — shift based on your interactions. Separately, your character motivations — the drives that define who you are — evolve based on your experiences.");
