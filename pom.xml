@@ -528,11 +528,6 @@
       </dependency>
       <dependency>
         <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-sqlite-support</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-knowledge-pipeline-api</artifactId>
         <version>${project.version}</version>
       </dependency>
