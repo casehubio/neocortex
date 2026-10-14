@@ -4,6 +4,7 @@ import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
@@ -14,11 +15,7 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.jspecify.annotations.Nullable;
 
-import io.casehub.neocortex.mindmap.NodeUpdate;
-
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,14 +40,19 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     static final String DESCRIPTION_TRAIT = "DriveDescriptionGenerated";
 
     private static final String SYSTEM_PROMPT = """
-            You generate somatic descriptions of internal drives for fictional characters.
-            Each description captures what a character physically feels when a particular \
-            motivational pull activates — the bodily sensations, not actions or behaviors.
-            Write in second person. Describe only somatic/bodily sensations.
-            Do not name the drive or pull. Do not explain what it is.
-            Do not include behavioral instructions or action descriptions.
-            Keep each description to 2-3 sentences.
-            Respond with JSON only: {"description": "..."}""";
+                                                You generate experiential descriptions of internal drives for fictional characters.
+                                                Each description captures what a character experiences when a particular \
+                                                motivational pull activates — across multiple channels:
+                                                - Somatic: bodily sensations (warmth, tension, weight, tingling)
+                                                - Attentional: what captures attention, where awareness is drawn
+                                                - Temporal: how the moment feels (suspended, urgent, stretching, compressed)
+                                                - Action tendency: what the person feels pulled toward doing
+                                                Write in second person. Do not name the drive or pull. Do not explain what it is.
+                                                Do not include behavioral instructions or prescribe actions.
+                                                Each channel should contribute something that distinguishes THIS pull from \
+                                                any other pull the character might feel.
+                                                Keep each description to 2-3 sentences.
+                                                Respond with JSON only: {"description": "..."}""";
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
@@ -160,54 +162,58 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     }
 
     private String callLlm(String driveType, String intensity,
-                            List<MindMapNode> servingMemories) {
+                           List<MindMapNode> servingMemories) {
         String userPrompt;
         if (servingMemories.isEmpty()) {
             userPrompt = String.format("""
-                Drive type: %s
-                Intensity: %s (scale 0.0 to 1.0)
-
-                Describe what a person feels in their body when this type of pull activates \
-                at this intensity — without naming the pull. Second person, somatic only, \
-                no behavioral instructions.""",
-                driveType, intensity);
+                                       Drive type: %s
+                                       Intensity: %s (scale 0.0 to 1.0)
+                                       
+                                       Describe what a person experiences when this type of pull activates \
+                                       at this intensity — without naming the pull. Second person, \
+                                       no behavioral instructions.""",
+                                       driveType, intensity);
         } else {
             var memoriesText = new StringBuilder();
             for (int i = 0; i < servingMemories.size(); i++) {
                 memoriesText.append(String.format("%d. %s\n", i + 1, servingMemories.get(i).name()));
             }
             userPrompt = String.format("""
-                Drive type: %s
-                Intensity: %s (scale 0.0 to 1.0)
-
-                Formation memories that shaped this pull:
-                %s
-                Given these formation memories, describe what this person feels in their body \
-                when this pull activates — without naming the pull. Second person, somatic only, \
-                no behavioral instructions.""",
-                driveType, intensity, memoriesText);
+                                       Drive type: %s
+                                       Intensity: %s (scale 0.0 to 1.0)
+                                       
+                                       Formation memories that shaped this pull:
+                                       %s
+                                       Given these formation memories, describe what this person experiences \
+                                       when this pull activates — without naming the pull. Second person, \
+                                       no behavioral instructions.""",
+                                       driveType, intensity, memoriesText);
         }
 
         var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
-        var responseText = new StringBuilder();
+        var responseText  = new StringBuilder();
         agentProvider.invoke(sessionConfig).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+                     .filter(e -> e instanceof AgentEvent.TextDelta)
+                     .map(e -> ((AgentEvent.TextDelta) e).text())
+                     .forEach(responseText::append);
 
         return parseDescription(responseText.toString());
     }
 
     private static final String DISCRIMINATION_SYSTEM = """
-            You generate somatic discrimination criteria for competing motivational drives.
-            Given formation memories for two drives that often co-activate, describe how \
-            the two pulls FEEL DIFFERENT in the body.
-            Use "one pull" and "the other" — do not name the drives.
-            Frame in terms of bodily sensations and the quality of the act, not memory content.
-            End with a noticing instruction: "Notice which one [somatic criterion]."
-            Do NOT mention what's broken, what needs solving, or situational content.
-            Keep to 3-4 sentences.
-            Respond with JSON only: {"discrimination": "..."}""";
+                                                        You generate discrimination criteria for competing motivational drives.
+                                                        Given formation memories for two drives that often co-activate, describe how \
+                                                        the two pulls FEEL DIFFERENT — across multiple channels:
+                                                        - Somatic: different bodily sensations (location, quality, movement)
+                                                        - Attentional: different things that capture attention or awareness
+                                                        - Temporal: different qualities of the moment (pace, urgency, suspension)
+                                                        - Action tendency: different things the person feels pulled to do
+                                                        Use "one pull" and "the other" — do not name the drives.
+                                                        Frame in terms of what the person experiences, not memory content.
+                                                        End with a noticing instruction: "Notice which one [multi-channel criterion]."
+                                                        Do NOT mention what's broken, what needs solving, or situational content.
+                                                        Keep to 3-4 sentences.
+                                                        Respond with JSON only: {"discrimination": "..."}""";
 
     private void generateDiscriminationText(String tenantId, String agentId,
                                              List<MindMapNode> allCognitive) {
@@ -238,25 +244,27 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     private String callDiscriminationLlm(String memoriesA, String memoriesB) {
         var userPrompt = String.format("""
-                Two pulls often activate together in the same moment.
-
-                Pull A was shaped by these experiences:
-                %s
-
-                Pull B was shaped by these experiences:
-                %s
-
-                Generate a somatic discrimination criterion — how these two pulls \
-                FEEL DIFFERENT in the body. Frame as "How they differ:" followed by \
-                the criterion. The criterion must work regardless of the current situation.""",
-                memoriesA, memoriesB);
+                                       Two pulls often activate together in the same moment.
+                                       
+                                       Pull A was shaped by these experiences:
+                                       %s
+                                       
+                                       Pull B was shaped by these experiences:
+                                       %s
+                                       
+                                       Generate a discrimination criterion — how these two pulls \
+                                       FEEL DIFFERENT in what they do to the body, where they draw attention, \
+                                       how they shape the moment, and what they pull toward. Frame as \
+                                       "How they differ:" followed by the criterion. \
+                                       The criterion must work regardless of the current situation.""",
+                                       memoriesA, memoriesB);
 
         var sessionConfig = AgentSessionConfig.of(DISCRIMINATION_SYSTEM, userPrompt);
-        var responseText = new StringBuilder();
+        var responseText  = new StringBuilder();
         agentProvider.invoke(sessionConfig).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+                     .filter(e -> e instanceof AgentEvent.TextDelta)
+                     .map(e -> ((AgentEvent.TextDelta) e).text())
+                     .forEach(responseText::append);
 
         return parseField(responseText.toString(), "discrimination");
     }
