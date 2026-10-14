@@ -39,6 +39,11 @@ class DriveDescriptionGenerationPhaseTest {
             @Override
             public Multi<AgentEvent> invoke(AgentSessionConfig config) {
                 capturedConfigs.add(config);
+                if (config.systemPrompt().contains("discrimination")) {
+                    return Multi.createFrom().items(
+                        new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: One pull is about what your hands say. "),
+                        new AgentEvent.TextDelta("The other is about what your hands can do. Notice which one moved your hands.\"}"));
+                }
                 return Multi.createFrom().items(
                     new AgentEvent.TextDelta("{\"description\": \"A warmth rises through your chest, "),
                     new AgentEvent.TextDelta("spreading into your shoulders.\"}"));
@@ -168,6 +173,46 @@ class DriveDescriptionGenerationPhaseTest {
         var descriptions = findDescriptionNodes();
         assertThat(descriptions).hasSize(1);
         assertThat(descriptions.getFirst().property("drive-type")).hasValue("gallantry");
+    }
+
+    @Test
+    void updatesCompetitionWithSomaticDiscrimination() {
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.7);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedFormationMemory("You practised until you earned the grade", "proving-worth");
+
+        store.addNode(
+            NodeInput.of("competition-gallantry-proving-worth", cognitiveSubgraphId)
+                .withTraits(java.util.Set.of(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+                .withProperties(Map.of(
+                    "agent-id", AGENT,
+                    "drive-a", "gallantry", "drive-b", "proving-worth",
+                    "differentiation-text", "Original narrative text",
+                    "anchor-memories-a", "father knelt to help",
+                    "anchor-memories-b", "practised until dark")),
+            TENANT);
+
+        phase.run(TENANT, List.of());
+
+        var competitions = store.search(MindMapQuery.of(TENANT, 200).withType(SubgraphTypes.COGNITIVE))
+            .stream()
+            .filter(n -> n.traits().contains(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+            .toList();
+        assertThat(competitions).hasSize(1);
+        String diffText = competitions.getFirst().property("differentiation-text").orElse("");
+        assertThat(diffText).isNotEqualTo("Original narrative text");
+        assertThat(diffText).isNotBlank();
+    }
+
+    @Test
+    void skipsDiscriminationWhenNoCompetitionArtifacts() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+
+        phase.run(TENANT, List.of());
+
+        assertThat(findDescriptionNodes()).hasSize(1);
     }
 
     // --- helpers ---
