@@ -113,8 +113,6 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                     .filter(m -> memoryServesDrive(m, driveType))
                     .toList();
 
-                if (servingMemories.isEmpty()) continue;
-
                 String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
 
                 generateAndStore(tenantId, agentId, subgraphId,
@@ -150,12 +148,22 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     private String callLlm(String driveType, String intensity,
                             List<MindMapNode> servingMemories) {
-        var memoriesText = new StringBuilder();
-        for (int i = 0; i < servingMemories.size(); i++) {
-            memoriesText.append(String.format("%d. %s\n", i + 1, servingMemories.get(i).name()));
-        }
+        String userPrompt;
+        if (servingMemories.isEmpty()) {
+            userPrompt = String.format("""
+                Drive type: %s
+                Intensity: %s (scale 0.0 to 1.0)
 
-        var userPrompt = String.format("""
+                Describe what a person feels in their body when this type of pull activates \
+                at this intensity — without naming the pull. Second person, somatic only, \
+                no behavioral instructions.""",
+                driveType, intensity);
+        } else {
+            var memoriesText = new StringBuilder();
+            for (int i = 0; i < servingMemories.size(); i++) {
+                memoriesText.append(String.format("%d. %s\n", i + 1, servingMemories.get(i).name()));
+            }
+            userPrompt = String.format("""
                 Drive type: %s
                 Intensity: %s (scale 0.0 to 1.0)
 
@@ -164,7 +172,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 Given these formation memories, describe what this person feels in their body \
                 when this pull activates — without naming the pull. Second person, somatic only, \
                 no behavioral instructions.""",
-            driveType, intensity, memoriesText);
+                driveType, intensity, memoriesText);
+        }
 
         var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
         var responseText = new StringBuilder();
