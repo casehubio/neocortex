@@ -218,6 +218,95 @@ class DriveDescriptionGenerationPhaseTest {
         assertThat(findDescriptionNodes()).hasSize(1);
     }
 
+    @Test
+    void crossPhasePipeline_derivationToDiscrimination() {
+        var derivationPhase = new DriveProfileDerivationPhase(store,
+                                                              (io.casehub.neocortex.caps.SituationClassifier) null,
+                                                              (io.casehub.neocortex.caps.CapsTopology) null);
+
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.7);
+        seedFormationMemoryWithCatalogue("Your father knelt to help the stranger",
+                                         "gallantry", "other_safety");
+        seedFormationMemoryWithCatalogue("She struggled and you helped her up",
+                                         "proving-worth", "other_safety");
+
+        derivationPhase.run(TENANT, List.of());
+
+        var competitionsBefore = store.search(MindMapQuery.of(TENANT, 200).withType(SubgraphTypes.COGNITIVE))
+                                      .stream()
+                                      .filter(n -> n.traits().contains(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+                                      .toList();
+        assertThat(competitionsBefore).hasSize(1);
+        String narrativeText = competitionsBefore.getFirst().property("differentiation-text").orElse("");
+        assertThat(narrativeText).contains("How they differ");
+
+        phase.run(TENANT, List.of());
+
+        var competitionsAfter = store.search(MindMapQuery.of(TENANT, 200).withType(SubgraphTypes.COGNITIVE))
+                                     .stream()
+                                     .filter(n -> n.traits().contains(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+                                     .toList();
+        assertThat(competitionsAfter).hasSize(1);
+        String updatedText = competitionsAfter.getFirst().property("differentiation-text").orElse("");
+        assertThat(updatedText).isNotEqualTo(narrativeText);
+        assertThat(updatedText).contains("hands");
+    }
+
+    @Test
+    void descriptionPromptRequestsMultiChannelExperience() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+
+        phase.run(TENANT, List.of());
+
+        assertThat(capturedConfigs).isNotEmpty();
+        var systemPrompt = capturedConfigs.getFirst().systemPrompt();
+        assertThat(systemPrompt).as("must request attentional channel")
+                                .contains("Attentional");
+        assertThat(systemPrompt).as("must request temporal channel")
+                                .contains("Temporal");
+        assertThat(systemPrompt).as("must request action tendency channel")
+                                .contains("Action tendency");
+        assertThat(systemPrompt).as("must not restrict to somatic-only")
+                                .doesNotContain("somatic only");
+    }
+
+    @Test
+    void discriminationPromptRequestsMultiChannelCriteria() {
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.7);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedFormationMemory("You practised until you earned the grade", "proving-worth");
+
+        store.addNode(
+                NodeInput.of("competition-gallantry-proving-worth", cognitiveSubgraphId)
+                         .withTraits(java.util.Set.of(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+                         .withProperties(Map.of(
+                                 "agent-id", AGENT,
+                                 "drive-a", "gallantry", "drive-b", "proving-worth",
+                                 "differentiation-text", "narrative",
+                                 "anchor-memories-a", "father knelt to help",
+                                 "anchor-memories-b", "practised until dark")),
+                TENANT);
+
+        phase.run(TENANT, List.of());
+
+        var discriminationConfigs = capturedConfigs.stream()
+                                                   .filter(c -> c.systemPrompt().contains("discrimination"))
+                                                   .toList();
+        assertThat(discriminationConfigs).isNotEmpty();
+
+        var systemPrompt = discriminationConfigs.getFirst().systemPrompt();
+        assertThat(systemPrompt).as("must request attentional channel")
+                                .contains("Attentional");
+        assertThat(systemPrompt).as("must request action tendency channel")
+                                .contains("Action tendency");
+        assertThat(systemPrompt).as("must not restrict to somatic-only")
+                                .doesNotContain("somatic only");
+    }
+
+
     // --- helpers ---
 
     private void seedDriveNode(String driveType, double intensity) {
@@ -242,6 +331,20 @@ class DriveDescriptionGenerationPhaseTest {
                     "situation-types", "formation,childhood," + driveType)),
             TENANT);
     }
+
+    private void seedFormationMemoryWithCatalogue(String episodeText, String driveType,
+                                                  String catalogueEntry) {
+        store.addNode(
+                NodeInput.of(episodeText, cognitiveSubgraphId)
+                         .withProperties(Map.of(
+                                 "source-memory-id", "mem-" + episodeText.hashCode(),
+                                 "agent-id", AGENT,
+                                 "cognitiveKind", "formative-experience",
+                                 "situation-types", "formation,childhood," + driveType,
+                                 "catalogue-entry-id", catalogueEntry)),
+                TENANT);
+    }
+
 
     private List<MindMapNode> findDescriptionNodes() {
         return store.search(MindMapQuery.of(TENANT, 200).withType(SubgraphTypes.COGNITIVE))
