@@ -49,6 +49,7 @@ public class ConsolidationScheduler {
     private final CognitiveAttentionAccumulator attentionAccumulator;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
+    private final java.util.Set<String> knownTenants = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private volatile ScheduledExecutorService executor;
 
     @Inject
@@ -131,12 +132,9 @@ public class ConsolidationScheduler {
             if (!lock.tryLock()) {return;}
             try {
                 if (!idleTracker.isIdle(Duration.ofMinutes(1))) {return;}
-                if (!memoryStore.capabilities()
-                                .contains(MemoryCapability.DISCOVER_TENANTS)) {
-                    return;
-                }
+                if (knownTenants.isEmpty()) {return;}
                 beginTickAllPhases();
-                for (String tenantId : memoryStore.discoverTenants(null, null)) {
+                for (String tenantId : knownTenants) {
                     runPhases(tenantId);
                 }
             } finally {
@@ -148,6 +146,7 @@ public class ConsolidationScheduler {
     }
 
     public void consolidateNow(String tenantId) {
+        knownTenants.add(tenantId);
         if (!lock.tryLock()) {
             LOG.info("Consolidation already running — skipping on-demand request for " + tenantId);
             return;
