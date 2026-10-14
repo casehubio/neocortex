@@ -163,7 +163,7 @@ class DriveDescriptionGenerationPhaseTest {
     }
 
     @Test
-    void skipsDrivesWithNoServingMemories() {
+    void generatesGenericDescriptionForDrivesWithNoServingMemories() {
         seedDriveNode("gallantry", 0.9);
         seedDriveNode("scheming", 0.6);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
@@ -171,8 +171,11 @@ class DriveDescriptionGenerationPhaseTest {
         phase.run(TENANT, List.of());
 
         var descriptions = findDescriptionNodes();
-        assertThat(descriptions).hasSize(1);
-        assertThat(descriptions.getFirst().property("drive-type")).hasValue("gallantry");
+        assertThat(descriptions).hasSize(2);
+        var driveTypes = descriptions.stream()
+            .map(n -> n.property("drive-type").orElse(""))
+            .toList();
+        assertThat(driveTypes).containsExactlyInAnyOrder("gallantry", "scheming");
     }
 
     @Test
