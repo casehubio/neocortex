@@ -1,12 +1,11 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.memory.CaseMemoryStore;
-import io.casehub.neocortex.memory.MemoryCapability;
 import io.casehub.neocortex.memory.cbr.FeatureStatistics;
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
-import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.MutationContext;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignal;
 import io.casehub.neocortex.mindmap.intelligence.CuriositySignalGenerator;
 import io.casehub.neocortex.mindmap.runtime.IdleTracker;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -163,18 +161,23 @@ public class ConsolidationScheduler {
 
 
     private void runPhases(String tenantId) {
-        List<String>          priority     = subgraphPriority(tenantId);
-        List<PhaseResult>     phaseResults = new ArrayList<>();
-        List<AttentionSignal> allSignals   = new ArrayList<>();
+        List<String>                priority     = subgraphPriority(tenantId);
+        List<PhaseResult>           phaseResults = new ArrayList<>();
+        List<AttentionSignal>       allSignals   = new ArrayList<>();
         List<ConsolidationArtifact> allArtifacts = new ArrayList<>();
+        LOG.info("Consolidation tick: " + phases.size() + " phases for tenant " + tenantId);
+        Instant tickStart = Instant.now();
         for (ConsolidationPhase phase : phases) {
             Instant phaseStart = Instant.now();
             MutationContext.set("consolidation:" + phase.name());
             try {
+                LOG.info("Phase START: " + phase.name() + " [tenant=" + tenantId + "]");
                 phase.run(tenantId, priority);
                 allSignals.addAll(phase.signals());
                 allArtifacts.addAll(phase.artifacts());
+                long elapsed = Duration.between(phaseStart, Instant.now()).toMillis();
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
+                LOG.info("Phase END: " + phase.name() + " [" + elapsed + "ms, tenant=" + tenantId + "]");
             } catch (Exception e) {
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));
                 LOG.log(Level.WARNING, "Phase " + phase.name()
@@ -183,6 +186,8 @@ public class ConsolidationScheduler {
                 MutationContext.clear();
             }
         }
+        long tickElapsed = Duration.between(tickStart, Instant.now()).toMillis();
+        LOG.info("Consolidation tick complete: " + tickElapsed + "ms total [tenant=" + tenantId + "]");
         if (attentionAccumulator != null && !allSignals.isEmpty()) {
             refreshUrgencyP75(allSignals);
             attentionAccumulator.addSignals(allSignals);

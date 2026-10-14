@@ -105,7 +105,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
             + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
 
+        int agentIndex = 0;
+        int totalAgents = drivesByAgent.size();
         for (var agentEntry : drivesByAgent.entrySet()) {
+            agentIndex++;
             String agentId = agentEntry.getKey();
             List<MindMapNode> driveNodes = agentEntry.getValue();
 
@@ -114,6 +117,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 .toList();
 
             if (agentMemories.isEmpty()) continue;
+
+            LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
+                + agentId + " (" + driveNodes.size() + " drives, "
+                + agentMemories.size() + " memories)");
 
             removeExistingDescriptions(tenantId, agentId, allCognitive);
 
@@ -130,11 +137,17 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
                 String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
 
+                long start = System.currentTimeMillis();
                 generateAndStore(tenantId, agentId, subgraphId,
                     driveType, intensity, servingMemories);
+                LOG.info("  " + agentId + "/" + driveType + " description: "
+                    + (System.currentTimeMillis() - start) + "ms");
             }
 
+            long discStart = System.currentTimeMillis();
             generateDiscriminationText(tenantId, agentId, allCognitive);
+            LOG.info("  " + agentId + " discrimination: "
+                + (System.currentTimeMillis() - discStart) + "ms");
         }
     }
 
