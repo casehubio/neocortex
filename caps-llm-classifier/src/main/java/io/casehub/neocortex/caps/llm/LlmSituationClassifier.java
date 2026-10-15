@@ -55,7 +55,7 @@ public class LlmSituationClassifier implements SituationClassifier {
         this.systemPrompt = buildSystemPrompt(topology);
     }
 
-    LlmSituationClassifier(AgentProvider agentProvider, CapsTopology topology) {
+    public LlmSituationClassifier(AgentProvider agentProvider, CapsTopology topology) {
         this.agentProvider = agentProvider;
         this.validNodeIds = topology.nodes().entrySet().stream()
             .filter(e -> e.getValue().type() == NodeType.INPUT)
