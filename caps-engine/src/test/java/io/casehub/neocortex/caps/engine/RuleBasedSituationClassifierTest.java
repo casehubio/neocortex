@@ -21,14 +21,20 @@ class RuleBasedSituationClassifierTest {
     }
 
     @Test
+    void classifyThrowsUnsupported() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> classifier.classify("test", Map.of()))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void emptyDescriptionReturnsEmpty() {
-        assertThat(classifier.classify("", Map.of())).isEmpty();
-        assertThat(classifier.classify(null, Map.of())).isEmpty();
+        assertThat(classifier.classifyByKeyword("", Map.of())).isEmpty();
+        assertThat(classifier.classifyByKeyword(null, Map.of())).isEmpty();
     }
 
     @Test
     void rewardKeywordMatchesRewardNode() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "She was rewarded for her hard work and praised by the teacher",
             Map.of());
 
@@ -40,7 +46,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void threatKeywordsMatchThreatNodes() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "He was attacked by a violent stranger who hurt him badly",
             Map.of());
 
@@ -50,7 +56,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void multiWordKeywordsMatch() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "She felt left out and ostracized by her peers",
             Map.of());
 
@@ -60,7 +66,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void multipleNodesCanActivate() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "He was rejected and abandoned by his family, left alone and deserted",
             Map.of());
 
@@ -71,7 +77,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void lowConfidenceFilteredOut() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "The weather was nice today and the sun was shining",
             Map.of());
 
@@ -80,7 +86,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void attachmentKeywordsMatch() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "A warm, nurturing and caring environment with consistent, reliable support",
             Map.of());
 
@@ -90,7 +96,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void autonomyKeywordsMatch() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
             "She felt powerless, trapped, and helpless with no control over the situation",
             Map.of());
 
@@ -100,7 +106,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void strongVocabularyTermProducesHighConfidence() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
                 "He was attacked violently and felt threatened",
                 Map.of());
 
@@ -113,9 +119,9 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void multipleMatchesBoostConfidence() {
-        List<SituationActivation> singleMatch = classifier.classify(
+        List<SituationActivation> singleMatch = classifier.classifyByKeyword(
                 "She was rewarded", Map.of());
-        List<SituationActivation> multiMatch = classifier.classify(
+        List<SituationActivation> multiMatch = classifier.classifyByKeyword(
                 "She was rewarded and praised, and earned a bonus", Map.of());
 
         double singleConf = singleMatch.stream()
@@ -130,7 +136,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void scenarioEvent_rivalFailure_activatesDominanceAndFailure() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
                 "The rival's scheme collapsed spectacularly — they stumbled and failed in front of everyone, humiliated and defeated",
                 Map.of());
 
@@ -140,7 +146,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void scenarioEvent_helpingOthers_activatesAcceptanceAndSharing() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
                 "She helped the newcomer feel welcomed and included, sharing what she had",
                 Map.of());
 
@@ -150,7 +156,7 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void scenarioEvent_competitionAndRecognition_activatesMultipleNodes() {
-        List<SituationActivation> result = classifier.classify(
+        List<SituationActivation> result = classifier.classifyByKeyword(
                 "His clever scheme outwitted the rival and everyone praised his brilliant plan",
                 Map.of());
 
