@@ -23,6 +23,18 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
     @Override
     public List<SituationActivation> classify(String description,
                                               Map<String, String> metadata) {
+        // Keyword matching misclassifies narrative text: "bullied" maps to dominance
+        // (the problem described), not acceptance (the gallant response). Produces
+        // wrong DriveProfileInferred inputs that actively break appraisal filtering.
+        // Use LlmSituationClassifier until NLP pipeline (#587) provides a viable path.
+        throw new UnsupportedOperationException(
+            "RuleBasedSituationClassifier disabled — keyword matching produces incorrect " +
+            "drive profiles from narrative memory text. Use LlmSituationClassifier.");
+    }
+
+    @SuppressWarnings("unused") // preserved for future NLP pipeline (#587)
+    public List<SituationActivation> classifyByKeyword(String description,
+                                                Map<String, String> metadata) {
         if (description == null || description.isBlank()) {return List.of();}
 
         String   lower  = description.toLowerCase();
