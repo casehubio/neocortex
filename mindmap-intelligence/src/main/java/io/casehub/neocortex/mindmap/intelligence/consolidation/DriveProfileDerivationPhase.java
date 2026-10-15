@@ -57,9 +57,9 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
         this.topology = topology.isResolvable() ? topology.get() : null;
     }
 
-    DriveProfileDerivationPhase(MindMapStore store,
-                                SituationClassifier classifier,
-                                CapsTopology topology) {
+    public DriveProfileDerivationPhase(MindMapStore store,
+                                       SituationClassifier classifier,
+                                       CapsTopology topology) {
         this.store = store;
         this.classifier = classifier;
         this.topology = topology;
