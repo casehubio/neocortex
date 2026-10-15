@@ -87,8 +87,9 @@ public class LlmSituationClassifier implements SituationClassifier {
 
             return parseResponse(text);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "LLM situation classification failed", e);
-            return List.of();
+            throw new ClassificationException(
+                "LLM situation classification failed for: " +
+                description.substring(0, Math.min(80, description.length())), e);
         }
     }
 
