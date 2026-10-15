@@ -86,17 +86,26 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                                                        .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
                                                        .toList();
 
+        Set<String> agentsWithProfiles = allCognitive.stream()
+            .filter(n -> n.traits().contains(PROFILE_TRAIT))
+            .map(n -> n.properties().get("agent-id"))
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+
         for (var agentEntry : drivesByAgent.entrySet()) {
             String            agentId    = agentEntry.getKey();
             List<MindMapNode> driveNodes = agentEntry.getValue();
+
+            if (agentsWithProfiles.contains(agentId)) {
+                LOG.info("drive-profile-derivation [" + agentId + "]: skipped — profiles already derived");
+                continue;
+            }
 
             List<MindMapNode> agentMemories = formativeNodes.stream()
                                                             .filter(n -> agentId.equals(n.properties().get("agent-id")))
                                                             .toList();
 
             if (agentMemories.isEmpty()) {continue;}
-
-            removeExistingArtifacts(tenantId, agentId, allCognitive);
 
             Map<String, DriveProfile> profiles   = deriveProfiles(driveNodes, agentMemories);
             String                    subgraphId = findCognitiveSubgraph(tenantId, agentId);
