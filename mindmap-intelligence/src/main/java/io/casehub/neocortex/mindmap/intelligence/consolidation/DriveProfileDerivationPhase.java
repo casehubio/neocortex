@@ -155,6 +155,14 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 memoryExcerpts.add(excerpt(episodeText));
             }
 
+            String description = driveNode.properties().get("description");
+            if (classifier != null && description != null && !description.isBlank()) {
+                List<SituationActivation> descActivations = classifier.classify(description, Map.of());
+                for (SituationActivation sa : descActivations) {
+                    inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                }
+            }
+
             Set<String> mediatingNodes = topology != null
                                          ? traceToMediating(inputActivations.keySet())
                                          : Set.of();
