@@ -26,3 +26,5 @@ extraction/iteration-log.md
 extraction/scripts/.venv/
 extraction/scripts/__pycache__/
 extraction/tests/__pycache__/
+
+.flattened-pom.xml
