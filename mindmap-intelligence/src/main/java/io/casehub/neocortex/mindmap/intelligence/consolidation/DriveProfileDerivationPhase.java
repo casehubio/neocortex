@@ -156,10 +156,15 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 String episodeText = memory.name();
 
                 if (classifier != null) {
-                    List<SituationActivation> activations = classifier.classify(
-                            episodeText, discriminationMeta);
-                    for (SituationActivation sa : activations) {
-                        inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                    try {
+                        List<SituationActivation> activations = classifier.classify(
+                                episodeText, discriminationMeta);
+                        for (SituationActivation sa : activations) {
+                            inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                        }
+                    } catch (Exception e) {
+                        LOG.warning("drive-profile-derivation: skipping memory for " + driveType
+                            + " (classification failed): " + excerpt(episodeText));
                     }
                 }
 
@@ -168,10 +173,15 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             String description = driveNode.properties().get("description");
             if (classifier != null && description != null && !description.isBlank()) {
-                List<SituationActivation> descActivations = classifier.classify(
-                        description, discriminationMeta);
-                for (SituationActivation sa : descActivations) {
-                    inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                try {
+                    List<SituationActivation> descActivations = classifier.classify(
+                            description, discriminationMeta);
+                    for (SituationActivation sa : descActivations) {
+                        inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                    }
+                } catch (Exception e) {
+                    LOG.warning("drive-profile-derivation: skipping description for " + driveType
+                        + " (classification failed): " + excerpt(description));
                 }
             }
 
@@ -199,10 +209,20 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
         }
         if (otherDrives.isEmpty()) {return Map.of();}
         return Map.of("drive-discrimination",
-                      "This experience relates to the '" + targetDrive
-                      + "' drive specifically. The agent's other drives are: " + otherDrives
-                      + "Return only the situation features that are distinctive to '"
-                      + targetDrive + "' — features that would NOT equally activate the other drives.");
+                      "DISCRIMINATIVE CLASSIFICATION — return at most 3 activations. "
+                      + "This text relates to the '" + targetDrive + "' drive. "
+                      + "The agent's OTHER drives are: " + otherDrives
+                      + "Return ONLY the nodes that DISTINGUISH '" + targetDrive
+                      + "' from the other drives listed above. "
+                      + "A node is distinctive if it would activate for '" + targetDrive
+                      + "' but NOT for the other drives. A node that would activate "
+                      + "equally for multiple drives is NOT distinctive — exclude it. "
+                      + "Example: if one drive is about helping others and another about "
+                      + "demonstrating skill, 'acceptance' distinguishes helping but "
+                      + "'reward' does not (both drives earn rewards). "
+                      + "'mastery' distinguishes skill but not helping. "
+                      + "Pick the 2-3 nodes from different categories that best separate "
+                      + "this drive from the others. Fewer is better than more.");
     }
 
 
