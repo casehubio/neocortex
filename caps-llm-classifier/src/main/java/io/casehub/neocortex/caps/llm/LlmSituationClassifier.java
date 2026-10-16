@@ -29,7 +29,7 @@ public class LlmSituationClassifier implements SituationClassifier {
 
     private static final Logger LOG = Logger.getLogger(LlmSituationClassifier.class.getName());
     private static final double CONFIDENCE_THRESHOLD = 0.3;
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration TIMEOUT = Duration.ofSeconds(120);
 
     private final AgentProvider agentProvider;
     private final ObjectMapper mapper = new ObjectMapper();
