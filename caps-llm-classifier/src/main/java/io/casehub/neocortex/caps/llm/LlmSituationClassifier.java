@@ -74,8 +74,9 @@ public class LlmSituationClassifier implements SituationClassifier {
         String userPrompt = buildUserPrompt(description, metadata);
 
         try {
-            var events = agentProvider.invoke(
-                    AgentSessionConfig.of(systemPrompt, userPrompt, TIMEOUT))
+            var config = AgentSessionConfig.of(systemPrompt, userPrompt, TIMEOUT)
+                    .withModel("haiku");
+            var events = agentProvider.invoke(config)
                 .collect().asList()
                 .await().atMost(TIMEOUT.plusSeconds(5));
 
