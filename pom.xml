@@ -6,7 +6,7 @@
 
   <groupId>io.casehub</groupId>
   <artifactId>casehub-neocortex-parent</artifactId>
-  <version>0.4-SNAPSHOT</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
 
   <name>CaseHub Neocortex - Parent</name>
@@ -135,6 +135,7 @@
   </pluginRepositories>
 
   <properties>
+    <revision>0.4-SNAPSHOT</revision>
     <quarkus.version>3.32.2</quarkus.version>
     <langchain4j.version>1.14.1</langchain4j.version>
     <langchain4j-embeddings.version>1.0.0-beta5</langchain4j-embeddings.version>
