@@ -129,6 +129,13 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                                                      List<MindMapNode> formativeNodes) {
         Map<String, DriveProfile> profiles = new HashMap<>();
 
+        Map<String, String> driveDescriptions = new HashMap<>();
+        for (MindMapNode dn : driveNodes) {
+            String dt   = dn.properties().get("drive-type");
+            String desc = dn.properties().get("description");
+            if (dt != null && desc != null) {driveDescriptions.put(dt, desc);}
+        }
+
         for (MindMapNode driveNode : driveNodes) {
             String driveType = driveNode.properties().get("drive-type");
             if (driveType == null) {continue;}
@@ -139,6 +146,9 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             if (servingMemories.isEmpty()) {continue;}
 
+            Map<String, String> discriminationMeta = buildDiscriminationMetadata(
+                    driveType, driveDescriptions);
+
             Map<String, Double> inputActivations = new HashMap<>();
             List<String>        memoryExcerpts   = new ArrayList<>();
 
@@ -146,7 +156,8 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 String episodeText = memory.name();
 
                 if (classifier != null) {
-                    List<SituationActivation> activations = classifier.classify(episodeText, Map.of());
+                    List<SituationActivation> activations = classifier.classify(
+                            episodeText, discriminationMeta);
                     for (SituationActivation sa : activations) {
                         inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                     }
@@ -157,7 +168,8 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             String description = driveNode.properties().get("description");
             if (classifier != null && description != null && !description.isBlank()) {
-                List<SituationActivation> descActivations = classifier.classify(description, Map.of());
+                List<SituationActivation> descActivations = classifier.classify(
+                        description, discriminationMeta);
                 for (SituationActivation sa : descActivations) {
                     inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                 }
@@ -173,6 +185,26 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
         return profiles;
     }
+
+    private Map<String, String> buildDiscriminationMetadata(String targetDrive,
+                                                            Map<String, String> allDriveDescriptions) {
+        var otherDrives = new StringBuilder();
+        for (var entry : allDriveDescriptions.entrySet()) {
+            if (!entry.getKey().equals(targetDrive)) {
+                String briefDesc = entry.getValue().length() > 60
+                                   ? entry.getValue().substring(0, 60) + "..."
+                                   : entry.getValue();
+                otherDrives.append(entry.getKey()).append(" — ").append(briefDesc).append("; ");
+            }
+        }
+        if (otherDrives.isEmpty()) {return Map.of();}
+        return Map.of("drive-discrimination",
+                      "This experience relates to the '" + targetDrive
+                      + "' drive specifically. The agent's other drives are: " + otherDrives
+                      + "Return only the situation features that are distinctive to '"
+                      + targetDrive + "' — features that would NOT equally activate the other drives.");
+    }
+
 
     private boolean memoryServesDrive(MindMapNode memoryNode, String driveType) {
         String situationTypes = memoryNode.properties().get("situation-types");
