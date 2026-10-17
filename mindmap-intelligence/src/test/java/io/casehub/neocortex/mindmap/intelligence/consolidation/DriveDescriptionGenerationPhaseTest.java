@@ -175,6 +175,37 @@ class DriveDescriptionGenerationPhaseTest {
     }
 
     @Test
+    void partialCoverageGeneratesOnlyMissingDrives() {
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.7);
+        seedDriveNode("protection", 0.8);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedFormationMemory("You practised until you earned the grade", "proving-worth");
+        seedFormationMemory("You noticed the loose railing before anyone else", "protection");
+
+        phase.run(TENANT, List.of());
+        assertThat(findDescriptionNodes()).hasSize(3);
+        int callsForFullRun = capturedConfigs.size();
+
+        // Simulate partial coverage: remove one description (as if interrupted)
+        var descriptions = findDescriptionNodes();
+        var protectionDesc = descriptions.stream()
+                                         .filter(n -> "protection".equals(n.properties().get("drive-type")))
+                                         .findFirst().orElseThrow();
+        store.eraseNode(protectionDesc.id(), TENANT);
+        assertThat(findDescriptionNodes()).hasSize(2);
+
+        phase.run(TENANT, List.of());
+        assertThat(findDescriptionNodes())
+                .as("partial rerun should generate only the missing drive")
+                .hasSize(3);
+        assertThat(capturedConfigs)
+                .as("only 1 new LLM call for the missing drive, not 3")
+                .hasSize(callsForFullRun + 1);
+    }
+
+
+    @Test
     void includesIntensityInStoredArtifact() {
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
