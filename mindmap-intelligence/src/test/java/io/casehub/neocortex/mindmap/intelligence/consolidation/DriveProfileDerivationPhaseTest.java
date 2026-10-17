@@ -129,7 +129,7 @@ class DriveProfileDerivationPhaseTest {
     }
 
     @Test
-    void noCompetitionWhenDrivesActivateDifferentNodes() {
+    void competitionGeneratedEvenWhenDrivesActivateDifferentNodes() {
         seedDriveNode("gallantry", 0.9);
         seedDriveNode("proving-worth", 0.7);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry", "other_safety");
@@ -138,7 +138,7 @@ class DriveProfileDerivationPhaseTest {
         phase.run(TENANT, List.of());
 
         var competitions = findCompetitionNodes();
-        assertThat(competitions).isEmpty();
+        assertThat(competitions).hasSize(1);
     }
 
     @Test
