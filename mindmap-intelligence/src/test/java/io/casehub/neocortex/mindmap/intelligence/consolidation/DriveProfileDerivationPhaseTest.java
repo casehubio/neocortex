@@ -88,6 +88,33 @@ class DriveProfileDerivationPhaseTest {
     }
 
     @Test
+    void skipsPinnedDrivesButDerivesOthers() {
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.8);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry", "other_safety");
+        seedFormationMemory("She practised every grade until it was perfect", "proving-worth", "achievement");
+
+        DriveProfileDerivationPhase.storePinnedProfile(store, TENANT, cognitiveSubgraphId,
+                                                       AGENT, "gallantry", Map.of("acceptance", 0.85, "sharing", 0.70));
+
+        phase.run(TENANT, List.of());
+
+        var inferred = findDriveProfileNodes();
+        assertThat(inferred).hasSize(1);
+        assertThat(inferred.getFirst().property("drive-type")).hasValue("proving-worth");
+
+        var pinned = store.search(MindMapQuery.of(TENANT, 200).withType(SubgraphTypes.COGNITIVE))
+                          .stream()
+                          .filter(n -> n.traits().contains("DriveProfilePinned"))
+                          .toList();
+        assertThat(pinned).hasSize(1);
+        assertThat(pinned.getFirst().property("drive-type")).hasValue("gallantry");
+        assertThat(pinned.getFirst().property("inferred-inputs")).isPresent();
+        assertThat(pinned.getFirst().property("inferred-inputs").orElse("")).contains("acceptance:0.850");
+    }
+
+
+    @Test
     void detectsCompetitionFromSharedInputNodes() {
         seedDriveNode("gallantry", 0.9);
         seedDriveNode("social-harmony", 0.8);
