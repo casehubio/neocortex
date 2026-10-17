@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class LlmSituationClassifier implements SituationClassifier {
 
     private static final Logger LOG = Logger.getLogger(LlmSituationClassifier.class.getName());
+    // Signal detection threshold (Green & Swets 1966) — minimum confidence for classification output
     private static final double CONFIDENCE_THRESHOLD = 0.3;
     private static final Duration TIMEOUT = Duration.ofSeconds(120);
 

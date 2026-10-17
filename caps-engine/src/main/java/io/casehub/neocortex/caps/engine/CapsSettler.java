@@ -86,6 +86,7 @@ public class CapsSettler {
                 NodeState ns = state.nodeStates()
                                     .getOrDefault(node.id(), NodeState.DEFAULT);
 
+                // Activation functions — Rumelhart, Hinton & Williams (1986) PDP; tanh=bipolar, logistic=unipolar
                 double newAct;
                 if (node.range() == NodeRange.BIPOLAR) {
                     newAct = Math.tanh(netInput - ns.activationThreshold());
@@ -105,6 +106,7 @@ public class CapsSettler {
                 maxDelta = Math.max(maxDelta, delta);
             }
 
+            // Two-cycle oscillation detection with mean extraction — Hopfield (1982) attractor dynamics
             if (prevPrev != null) {
                 double osc = 0.0;
                 for (var entry : topology.nodes().entrySet()) {

@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+// Personality → CAPS weight initialization — Read & Miller (2002) stable social information processing
 public class DispositionWeightMapper {
 
     private static final Logger LOG = Logger.getLogger(DispositionWeightMapper.class.getName());
