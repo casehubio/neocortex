@@ -209,22 +209,20 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
         }
         if (otherDrives.isEmpty()) {return Map.of();}
         return Map.of("drive-discrimination",
-                      "DISCRIMINATIVE CLASSIFICATION — return 3-5 activations. "
+                      "DISCRIMINATIVE CLASSIFICATION — return at most 3 activations. "
                       + "This text relates to the '" + targetDrive + "' drive. "
                       + "The agent's OTHER drives are: " + otherDrives
-                      + "Return the nodes that BEST DISTINGUISH '" + targetDrive
+                      + "Return ONLY the nodes that DISTINGUISH '" + targetDrive
                       + "' from the other drives listed above. "
-                      + "A node is distinctive if it activates MORE STRONGLY for '"
-                      + targetDrive + "' than for the other drives. "
-                      + "Exclude nodes only if they activate EQUALLY OR MORE for another drive. "
-                      + "Include nodes from any category — social, threat, achievement — "
-                      + "if they capture HOW this drive operates, even if other drives "
-                      + "also touch that category. "
-                      + "Example: if one drive helps others through social trust and "
-                      + "another gloats over achievements, 'acceptance' distinguishes "
-                      + "the helping drive even though the gloating drive also involves "
-                      + "social interaction — because acceptance is CENTRAL to helping "
-                      + "but peripheral to gloating.");
+                      + "A node is distinctive if it would activate for '" + targetDrive
+                      + "' but NOT for the other drives. A node that would activate "
+                      + "equally for multiple drives is NOT distinctive — exclude it. "
+                      + "Example: if one drive is about helping others and another about "
+                      + "demonstrating skill, 'acceptance' distinguishes helping but "
+                      + "'reward' does not (both drives earn rewards). "
+                      + "'mastery' distinguishes skill but not helping. "
+                      + "Pick the 2-3 nodes from different categories that best separate "
+                      + "this drive from the others. Fewer is better than more.");
     }
 
 
