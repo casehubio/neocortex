@@ -114,6 +114,24 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             String agentId = agentEntry.getKey();
             List<MindMapNode> driveNodes = agentEntry.getValue();
 
+            Set<String> describedDriveTypes = allCognitive.stream()
+                .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .map(n -> n.properties().get("drive-type"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+            Set<String> currentDriveTypes = driveNodes.stream()
+                .map(n -> n.properties().get("drive-type"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+            if (describedDriveTypes.containsAll(currentDriveTypes)) {
+                LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
+                    + agentId + " skipped — descriptions already exist");
+                continue;
+            }
+
             List<MindMapNode> agentMemories = formativeNodes.stream()
                 .filter(n -> agentId.equals(n.properties().get("agent-id")))
                 .toList();
@@ -124,14 +142,12 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 + agentId + " (" + driveNodes.size() + " drives, "
                 + agentMemories.size() + " memories)");
 
-            removeExistingDescriptions(tenantId, agentId, allCognitive);
-
             String subgraphId = findCognitiveSubgraph(tenantId, agentId);
             if (subgraphId == null) continue;
 
             for (MindMapNode driveNode : driveNodes) {
                 String driveType = driveNode.properties().get("drive-type");
-                if (driveType == null) continue;
+                if (driveType == null || describedDriveTypes.contains(driveType)) continue;
 
                 List<MindMapNode> servingMemories = agentMemories.stream()
                     .filter(m -> memoryServesDrive(m, driveType))
@@ -315,14 +331,6 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         String situationTypes = memoryNode.properties().get("situation-types");
         if (situationTypes == null) return false;
         return Arrays.asList(situationTypes.split(",")).contains(driveType);
-    }
-
-    private void removeExistingDescriptions(String tenantId, String agentId,
-                                             List<MindMapNode> allCognitive) {
-        allCognitive.stream()
-            .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
-            .filter(n -> agentId.equals(n.properties().get("agent-id")))
-            .forEach(n -> store.eraseNode(n.id(), tenantId));
     }
 
     private String findCognitiveSubgraph(String tenantId, String agentId) {
