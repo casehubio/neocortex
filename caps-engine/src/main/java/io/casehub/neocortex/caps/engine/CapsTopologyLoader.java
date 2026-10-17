@@ -74,8 +74,9 @@ public class CapsTopologyLoader {
                         NodeRange           range        = parseRange(nodeEntry, type);
                         List<String>        sourceModels = parseStringList(nodeEntry.path("source_models"));
                         Map<String, Double> vocabulary   = parseVocabulary(nodeEntry);
+                        String              description  = nodeEntry.path("description").asText("");
                         result.put(id, new CapsNode(id, type, range, category,
-                                                    sourceModels, vocabulary));
+                                                    sourceModels, vocabulary, description));
                     }
                 }
             }

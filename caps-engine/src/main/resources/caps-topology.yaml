@@ -22,6 +22,7 @@ nodes:
     # Source: Bowlby (1969/1982) attachment theory
     relationship:
       - id: secure_attachment
+        description: "Being cared for, comforted, or protected by someone reliable and responsive"
         vocabulary:
           nurturing: 0.8
           warmth: 0.7
@@ -36,6 +37,7 @@ nodes:
           protected: 0.5
           consistent: 0.3
       - id: inconsistent_care
+        description: "Receiving care that is unpredictable — sometimes present, sometimes absent"
         vocabulary:
           inconsistent: 0.8
           unpredictable: 0.7
@@ -45,6 +47,7 @@ nodes:
           mixed: 0.4
           sometimes: 0.3
       - id: rejection
+        description: "Being dismissed, refused, or turned away by someone whose acceptance matters"
         vocabulary:
           rejected: 0.9
           dismissed: 0.8
@@ -56,6 +59,7 @@ nodes:
           ignored: 0.5
           cold: 0.3
       - id: betrayal
+        description: "Trust violated — someone deceived, lied to, or broke faith with you"
         vocabulary:
           betrayed: 0.9
           backstabbed: 0.9
@@ -65,6 +69,7 @@ nodes:
           unfaithful: 0.7
           double-crossed: 0.8
       - id: abandonment
+        description: "Left behind or deserted by someone who was supposed to stay"
         vocabulary:
           abandoned: 0.9
           deserted: 0.8
@@ -75,6 +80,7 @@ nodes:
           left: 0.4
           alone: 0.3
       - id: neglect
+        description: "Being unseen or overlooked — needs going unnoticed or unmet"
         vocabulary:
           neglected: 0.9
           unseen: 0.8
@@ -87,6 +93,7 @@ nodes:
     # Source: Gray (1982) RST, Dickerson & Kemeny (2004), trauma research
     threat:
       - id: physical_threat
+        description: "Bodily danger — attacked, chased, trapped, or physically harmed"
         vocabulary:
           attacked: 0.9
           violence: 0.9
@@ -101,6 +108,7 @@ nodes:
           trapped: 0.5
           risk: 0.3
       - id: social_threat
+        description: "Public humiliation, shaming, or being mocked in front of others"
         vocabulary:
           humiliated: 0.9
           shamed: 0.8
@@ -111,6 +119,7 @@ nodes:
           scorned: 0.7
           judged: 0.3
       - id: psychological_threat
+        description: "Being manipulated, gaslighted, coerced, or intimidated"
         vocabulary:
           gaslighted: 0.9
           manipulated: 0.8
@@ -119,6 +128,7 @@ nodes:
           threatened: 0.6
           controlled: 0.5
       - id: unpredictable_danger
+        description: "Chaotic or volatile environment where anything could happen without warning"
         vocabulary:
           chaotic: 0.8
           volatile: 0.8
@@ -130,6 +140,7 @@ nodes:
     # Source: McClelland (1961) achievement motivation, Winter (1973) nPow
     achievement:
       - id: mastery
+        description: "Demonstrating competence — solving, building, or accomplishing through skill"
         vocabulary:
           mastered: 0.9
           accomplished: 0.8
@@ -140,6 +151,7 @@ nodes:
           solved: 0.5
           learned: 0.3
       - id: failure
+        description: "Falling short, making mistakes, being defeated or proven incompetent"
         vocabulary:
           failed: 0.9
           incompetent: 0.8
@@ -156,6 +168,7 @@ nodes:
           struggle: 0.3
           slip: 0.3
       - id: performance_judged
+        description: "Being evaluated, tested, or scrutinized for competence"
         vocabulary:
           scrutinized: 0.8
           criticized: 0.7
@@ -166,6 +179,7 @@ nodes:
           judged: 0.4
           examined: 0.4
       - id: competence_recognition
+        description: "Being praised, acknowledged, or recognized for ability"
         vocabulary:
           brilliant: 0.8
           masterful: 0.8
@@ -184,6 +198,7 @@ nodes:
     # ostracism, McClelland nPow, Winter (1973), Bandura (1977)
     social:
       - id: acceptance
+        description: "Being welcomed, included, or embraced by a group or individual"
         vocabulary:
           embraced: 0.8
           welcomed: 0.8
@@ -198,6 +213,7 @@ nodes:
           greeted: 0.3
           noticed: 0.2
       - id: exclusion
+        description: "Being shut out, ostracized, or deliberately left out of a group"
         vocabulary:
           ostracized: 0.9
           shunned: 0.8
@@ -210,6 +226,7 @@ nodes:
           ignored: 0.4
           forgotten: 0.3
       - id: dominance
+        description: "Having power or control over others — commanding, directing, overpowering"
         vocabulary:
           dominated: 0.9
           overpowered: 0.9
@@ -224,6 +241,7 @@ nodes:
           pressure: 0.4
           direct: 0.3
       - id: submission
+        description: "Yielding, surrendering, or deferring to another's will"
         vocabulary:
           submitted: 0.8
           surrendered: 0.8
@@ -233,6 +251,7 @@ nodes:
           gave in: 0.4
           deferred: 0.4
       - id: modeling_observed
+        description: "Watching someone else act and learning from their behavior"
         vocabulary:
           modeled: 0.8
           imitated: 0.8
@@ -246,6 +265,7 @@ nodes:
     # Source: evolutionary resource competition, Hobfoll (1989) COR theory
     resource:
       - id: scarcity
+        description: "Not having enough — deprivation, hunger, lacking essential resources"
         vocabulary:
           deprived: 0.8
           poverty: 0.8
@@ -256,6 +276,7 @@ nodes:
           insufficient: 0.4
           without: 0.3
       - id: abundance
+        description: "Having plenty — surplus, wealth, resources freely available"
         vocabulary:
           wealthy: 0.7
           surplus: 0.7
@@ -264,6 +285,7 @@ nodes:
           provided: 0.4
           enough: 0.3
       - id: competition
+        description: "Contesting with others for a prize, advantage, or scarce resource"
         vocabulary:
           competed: 0.8
           fought over: 0.8
@@ -276,6 +298,7 @@ nodes:
           scheme: 0.5
           race: 0.4
       - id: sharing
+        description: "Giving or distributing resources cooperatively"
         vocabulary:
           generous: 0.7
           cooperative: 0.6
@@ -288,6 +311,7 @@ nodes:
     # Seligman (1975) learned helplessness
     autonomy:
       - id: agency_granted
+        description: "Having freedom to act independently — empowered, autonomous, self-directed"
         vocabulary:
           autonomy: 0.8
           empowered: 0.8
@@ -296,6 +320,7 @@ nodes:
           choice: 0.5
           allowed: 0.3
       - id: controlled
+        description: "Being constrained, directed, or micromanaged with no choice"
         vocabulary:
           micromanaged: 0.8
           no choice: 0.8
@@ -305,6 +330,7 @@ nodes:
           confined: 0.5
           constrained: 0.5
       - id: choice_available
+        description: "Having options open — alternatives exist and decisions are possible"
         vocabulary:
           free to: 0.7
           options: 0.5
@@ -313,6 +339,7 @@ nodes:
           decide: 0.4
           opportunity: 0.4
       - id: powerlessness
+        description: "Feeling trapped, helpless, or unable to affect the outcome"
         vocabulary:
           powerless: 0.9
           helpless: 0.8
@@ -325,6 +352,7 @@ nodes:
     # Source: Gray (1982) RST BAS/BIS, Skinner (1953) operant conditioning
     consequence:
       - id: reward
+        description: "Positive outcome — a plan succeeding, a goal achieved, something desired obtained or won"
         vocabulary:
           triumph: 0.8
           rewarded: 0.8
@@ -340,6 +368,7 @@ nodes:
           received: 0.3
           found: 0.2
       - id: punishment
+        description: "Negative consequence imposed — being disciplined, penalized, or scolded"
         vocabulary:
           punished: 0.9
           disciplined: 0.7
@@ -348,6 +377,7 @@ nodes:
           reprimanded: 0.6
           consequences: 0.5
       - id: reward_removal
+        description: "Something valued being taken away, confiscated, or withheld"
         vocabulary:
           taken away: 0.8
           deprived: 0.7
@@ -356,6 +386,7 @@ nodes:
           lost: 0.5
           removed: 0.5
       - id: aversive_removal
+        description: "Relief from something negative — escaping, avoiding, or freed from a bad situation"
         vocabulary:
           relief: 0.8
           escaped: 0.7

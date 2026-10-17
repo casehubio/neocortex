@@ -133,6 +133,23 @@ class CapsTopologyLoaderTest {
     }
 
     @Test
+    void inputNodesHaveDescriptions() {
+        var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
+        var reward   = topology.nodes().get("reward");
+
+        assertThat(reward.description()).isNotEmpty();
+        assertThat(reward.description()).contains("plan succeeding");
+
+        var secureAttachment = topology.nodes().get("secure_attachment");
+        assertThat(secureAttachment.description()).isNotEmpty();
+
+        // Mediating nodes don't have descriptions — only input nodes do
+        var selfWorth = topology.nodes().get("self_worth");
+        assertThat(selfWorth.description()).isEmpty();
+    }
+
+
+    @Test
     void allInputNodesHaveConnections() {
         var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
         var inputNodeIds = topology.nodes().values().stream()
