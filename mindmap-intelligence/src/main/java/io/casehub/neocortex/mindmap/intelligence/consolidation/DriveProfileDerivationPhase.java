@@ -42,6 +42,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
         DriveProfileDerivationPhase.class.getName());
 
     static final String PROFILE_TRAIT = "DriveProfileInferred";
+    static final String PINNED_PROFILE_TRAIT = "DriveProfilePinned";
     static final String COMPETITION_TRAIT = "DriveCompetitionInferred";
 
     private final MindMapStore store;
@@ -86,20 +87,40 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                                                        .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
                                                        .toList();
 
-        Set<String> agentsWithProfiles = allCognitive.stream()
-            .filter(n -> n.traits().contains(PROFILE_TRAIT))
-            .map(n -> n.properties().get("agent-id"))
-            .filter(id -> id != null)
-            .collect(Collectors.toSet());
+        Set<String> pinnedDriveKeys = allCognitive.stream()
+                                                  .filter(n -> n.traits().contains(PINNED_PROFILE_TRAIT))
+                                                  .map(n -> n.properties().get("agent-id") + "/" + n.properties().get("drive-type"))
+                                                  .filter(k -> !k.startsWith("null"))
+                                                  .collect(Collectors.toSet());
+
+        Set<String> inferredDriveKeys = allCognitive.stream()
+                                                    .filter(n -> n.traits().contains(PROFILE_TRAIT))
+                                                    .map(n -> n.properties().get("agent-id") + "/" + n.properties().get("drive-type"))
+                                                    .filter(k -> !k.startsWith("null"))
+                                                    .collect(Collectors.toSet());
 
         for (var agentEntry : drivesByAgent.entrySet()) {
             String            agentId    = agentEntry.getKey();
             List<MindMapNode> driveNodes = agentEntry.getValue();
 
-            if (agentsWithProfiles.contains(agentId)) {
-                LOG.info("drive-profile-derivation [" + agentId + "]: skipped — profiles already derived");
-                continue;
-            }
+            List<MindMapNode> drivesToDerive = driveNodes.stream()
+                                                         .filter(dn -> {
+                                                             String dt = dn.properties().get("drive-type");
+                                                             if (dt == null) {return false;}
+                                                             String key = agentId + "/" + dt;
+                                                             if (pinnedDriveKeys.contains(key)) {
+                                                                 LOG.info("drive-profile-derivation [" + agentId + "/" + dt + "]: skipped — pinned");
+                                                                 return false;
+                                                             }
+                                                             if (inferredDriveKeys.contains(key)) {
+                                                                 LOG.info("drive-profile-derivation [" + agentId + "/" + dt + "]: skipped — already derived");
+                                                                 return false;
+                                                             }
+                                                             return true;
+                                                         })
+                                                         .toList();
+
+            if (drivesToDerive.isEmpty()) {continue;}
 
             List<MindMapNode> agentMemories = formativeNodes.stream()
                                                             .filter(n -> agentId.equals(n.properties().get("agent-id")))
@@ -107,7 +128,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             if (agentMemories.isEmpty()) {continue;}
 
-            Map<String, DriveProfile> profiles   = deriveProfiles(driveNodes, agentMemories);
+            Map<String, DriveProfile> profiles   = deriveProfiles(drivesToDerive, driveNodes, agentMemories);
             String                    subgraphId = findCognitiveSubgraph(tenantId, agentId);
             if (subgraphId == null) {continue;}
 
@@ -116,27 +137,28 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             if (!profiles.isEmpty()) {
                 var profileSummary = profiles.entrySet().stream()
-                    .map(e -> e.getKey() + "(" + e.getValue().memoryExcerpts.size() + " memories)")
-                    .collect(Collectors.joining(", "));
+                                             .map(e -> e.getKey() + "(" + e.getValue().memoryExcerpts.size() + " memories)")
+                                             .collect(Collectors.joining(", "));
                 LOG.info("drive-profile-derivation [" + agentId + "]: " + profiles.size()
-                    + " profiles — " + profileSummary
-                    + (classifier != null ? " [CAPS active]" : " [catalogue fallback]"));
+                         + " profiles — " + profileSummary
+                         + (classifier != null ? " [CAPS active]" : " [catalogue fallback]"));
             }
         }
     }
 
-    private Map<String, DriveProfile> deriveProfiles(List<MindMapNode> driveNodes,
+    private Map<String, DriveProfile> deriveProfiles(List<MindMapNode> drivesToDerive,
+                                                     List<MindMapNode> allDriveNodes,
                                                      List<MindMapNode> formativeNodes) {
         Map<String, DriveProfile> profiles = new HashMap<>();
 
         Map<String, String> driveDescriptions = new HashMap<>();
-        for (MindMapNode dn : driveNodes) {
+        for (MindMapNode dn : allDriveNodes) {
             String dt   = dn.properties().get("drive-type");
             String desc = dn.properties().get("description");
             if (dt != null && desc != null) {driveDescriptions.put(dt, desc);}
         }
 
-        for (MindMapNode driveNode : driveNodes) {
+        for (MindMapNode driveNode : drivesToDerive) {
             String driveType = driveNode.properties().get("drive-type");
             if (driveType == null) {continue;}
 
@@ -164,7 +186,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                         }
                     } catch (Exception e) {
                         LOG.warning("drive-profile-derivation: skipping memory for " + driveType
-                            + " (classification failed): " + excerpt(episodeText));
+                                    + " (classification failed): " + excerpt(episodeText));
                     }
                 }
 
@@ -181,7 +203,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                     }
                 } catch (Exception e) {
                     LOG.warning("drive-profile-derivation: skipping description for " + driveType
-                        + " (classification failed): " + excerpt(description));
+                                + " (classification failed): " + excerpt(description));
                 }
             }
 
@@ -369,6 +391,29 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 tenantId);
         }
     }
+
+    /**
+     * Stores a pinned profile that won't be re-derived. Use after validating
+     * a derived profile to freeze it.
+     */
+    public static void storePinnedProfile(MindMapStore store, String tenantId,
+                                          String subgraphId, String agentId,
+                                          String driveType, Map<String, Double> inputActivations) {
+        String inputsJson = inputActivations.entrySet().stream()
+                                            .map(e -> e.getKey() + ":" + String.format("%.3f", e.getValue()))
+                                            .collect(Collectors.joining(","));
+
+        store.addNode(
+                NodeInput.of("drive-profile-pinned-" + driveType, subgraphId)
+                         .withTraits(Set.of(PINNED_PROFILE_TRAIT))
+                         .withProperties(Map.of(
+                                 "agent-id", agentId,
+                                 "drive-type", driveType,
+                                 "inferred-inputs", inputsJson,
+                                 "source-memory-count", "0")),
+                tenantId);
+    }
+
 
     private void removeExistingArtifacts(String tenantId, String agentId,
                                           List<MindMapNode> allCognitive) {
