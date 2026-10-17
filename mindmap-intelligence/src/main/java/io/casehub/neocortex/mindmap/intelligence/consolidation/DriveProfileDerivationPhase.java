@@ -208,12 +208,18 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
             }
         }
         if (otherDrives.isEmpty()) {return Map.of();}
+
+        String targetDesc = allDriveDescriptions.get(targetDrive);
+        String targetClause = targetDesc != null
+                              ? "'" + targetDrive + "' (" + targetDesc.substring(0, Math.min(80, targetDesc.length())) + ")"
+                              : "'" + targetDrive + "'";
+
         return Map.of("drive-discrimination",
                       "DISCRIMINATIVE CLASSIFICATION — return at most 3 activations. "
-                      + "This text relates to the '" + targetDrive + "' drive. "
+                      + "This text relates to the drive " + targetClause + ". "
                       + "The agent's OTHER drives are: " + otherDrives
-                      + "Return ONLY the nodes that DISTINGUISH '" + targetDrive
-                      + "' from the other drives listed above. "
+                      + "Return ONLY the nodes that DISTINGUISH " + targetClause
+                      + " from the other drives listed above. "
                       + "A node is distinctive if it would activate for '" + targetDrive
                       + "' but NOT for the other drives. A node that would activate "
                       + "equally for multiple drives is NOT distinctive — exclude it. "
