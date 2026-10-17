@@ -45,6 +45,7 @@ public class CapsWeightUpdater {
                                                      new ConnectionWeight(conn.defaultWeight(), 0.0, 1.0,
                                                                           provenancePrecision(conn.provenance())));
 
+            // Rescorla-Wagner (1972) prediction error: ΔW = α × β × (λ - V)
             double predicted       = cw.effectiveWeight() * sourceActivation;
             double predictionError = outcomeValence - predicted;
 

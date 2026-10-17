@@ -136,7 +136,8 @@ public class CognitionDefaultBeans {
                     agentProviderInstance.get());
         }
 
-        // Fallback: 4-check Scherer pipeline with keyword-based checks
+        // Scherer (2001) SEC model — multilevel sequential checking (relevance → implication → coping → norm)
+        // In Scherer, Schorr & Johnstone (Eds.), Appraisal Processes in Emotion
         return new io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy(
                 new io.casehub.neocortex.cognition.appraisal.RelevanceCheck(),
                 new io.casehub.neocortex.cognition.appraisal.ImplicationCheck(),

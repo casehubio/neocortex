@@ -44,6 +44,7 @@ public class ConcernBasedSalienceStrategy implements SalienceStrategy {
         return new PerceivedSituation(context.observation(), salience);
     }
 
+    // Asymmetric overlap normalized by larger set — Jaccard variant
     private static double keywordOverlap(Set<String> a, Set<String> b) {
         if (a.isEmpty() || b.isEmpty()) return 0.0;
         long shared = a.stream().filter(b::contains).count();

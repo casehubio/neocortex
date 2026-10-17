@@ -39,6 +39,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     static final String DESCRIPTION_TRAIT = "DriveDescriptionGenerated";
 
+    // Multi-channel expression: somatic (Barrett 2017, Damasio 1994), attentional (Easterbrook 1959),
+    // temporal (Barrett 2017 prediction), action tendency (Frijda 1986)
     private static final String SYSTEM_PROMPT = """
                                                 You generate experiential descriptions of internal drives for fictional characters.
                                                 Each description captures what a character experiences when a particular \
@@ -213,6 +215,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         return parseDescription(responseText.toString());
     }
 
+    // Multi-channel discrimination — same expression model as SYSTEM_PROMPT
     private static final String DISCRIMINATION_SYSTEM = """
                                                         You generate discrimination criteria for competing motivational drives.
                                                         Given formation memories for two drives that often co-activate, describe how \

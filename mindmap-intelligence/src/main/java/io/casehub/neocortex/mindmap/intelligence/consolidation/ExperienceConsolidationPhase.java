@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+// Models sleep-dependent memory consolidation — Walker (2017), Stickgold & Walker (2013)
 @ApplicationScoped
 @Priority(15)
 public class ExperienceConsolidationPhase implements ConsolidationPhase {
