@@ -291,7 +291,6 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 if (!a.mediatingNodes.isEmpty() || !b.mediatingNodes.isEmpty()) {
                     sharedMediating = new HashSet<>(a.mediatingNodes);
                     sharedMediating.retainAll(b.mediatingNodes);
-                    if (sharedMediating.isEmpty()) {continue;}
                     uniqueMediatingA = new HashSet<>(a.mediatingNodes);
                     uniqueMediatingA.removeAll(sharedMediating);
                     uniqueMediatingB = new HashSet<>(b.mediatingNodes);
@@ -301,7 +300,6 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                     Set<String> catalogueB      = catalogueEntries(agentMemories, b.driveType);
                     Set<String> sharedCatalogue = new HashSet<>(catalogueA);
                     sharedCatalogue.retainAll(catalogueB);
-                    if (sharedCatalogue.isEmpty()) {continue;}
                     sharedMediating  = sharedCatalogue;
                     uniqueMediatingA = new HashSet<>(catalogueA);
                     uniqueMediatingA.removeAll(sharedCatalogue);
