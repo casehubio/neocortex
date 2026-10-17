@@ -140,15 +140,38 @@ class DriveDescriptionGenerationPhaseTest {
     }
 
     @Test
-    void replacesExistingDescriptionsOnRerun() {
+    void skipsExistingDescriptionsOnRerun() {
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
 
         phase.run(TENANT, List.of());
         assertThat(findDescriptionNodes()).hasSize(1);
+        int callsAfterFirstRun = capturedConfigs.size();
 
         phase.run(TENANT, List.of());
         assertThat(findDescriptionNodes()).hasSize(1);
+        assertThat(capturedConfigs).as("no LLM calls on rerun — descriptions already exist")
+            .hasSize(callsAfterFirstRun);
+    }
+
+    @Test
+    void descriptionsPreservedAcrossReruns() {
+        seedDriveNode("gallantry", 0.9);
+        seedDriveNode("proving-worth", 0.7);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedFormationMemory("You practised until you earned the grade", "proving-worth");
+
+        phase.run(TENANT, List.of());
+        var firstRunDescriptions = findDescriptionNodes();
+        assertThat(firstRunDescriptions).hasSize(2);
+
+        phase.run(TENANT, List.of());
+        var secondRunDescriptions = findDescriptionNodes();
+        assertThat(secondRunDescriptions).hasSize(2);
+        assertThat(secondRunDescriptions.stream().map(MindMapNode::id).toList())
+            .as("same node IDs — originals preserved, not replaced")
+            .containsExactlyInAnyOrderElementsOf(
+                firstRunDescriptions.stream().map(MindMapNode::id).toList());
     }
 
     @Test
