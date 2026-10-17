@@ -17,13 +17,13 @@ class LlmSituationClassifierTest {
     private static final CapsTopology TOPOLOGY = new CapsTopology(1,
         Map.of(
             "reward", new CapsNode("reward", NodeType.INPUT, NodeRange.UNIPOLAR,
-                "consequence", List.of("operant"), List.of("rewarded", "praised")),
+                "consequence", List.of("operant"), Map.of("rewarded", 0.8, "praised", 0.5)),
             "punishment", new CapsNode("punishment", NodeType.INPUT, NodeRange.UNIPOLAR,
-                "consequence", List.of("operant"), List.of("punished")),
+                "consequence", List.of("operant"), Map.of("punished", 0.9)),
             "rejection", new CapsNode("rejection", NodeType.INPUT, NodeRange.UNIPOLAR,
-                "relationship", List.of("attachment"), List.of("rejected")),
+                "relationship", List.of("attachment"), Map.of("rejected", 0.9)),
             "approach", new CapsNode("approach", NodeType.OUTPUT, NodeRange.UNIPOLAR,
-                "approach_avoidance", List.of(), List.of())
+                "approach_avoidance", List.of(), Map.of())
         ),
         List.of(), Map.of(), List.of(),
         new WeightUpdateParameters(0.01, 0.25, 0.1, 0.5, 0.95,

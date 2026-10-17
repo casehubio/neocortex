@@ -3,7 +3,6 @@ package io.casehub.neocortex.caps.llm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -132,30 +130,35 @@ public class LlmSituationClassifier implements SituationClassifier {
 
     private static String buildSystemPrompt(CapsTopology topology) {
         var sb = new StringBuilder("""
-            You are a psychological situation classifier. Given a description of \
-            an experience, classify it into one or more CAPS input node activations.
-
-            Respond with a JSON object:
-            {"activations": [{"node": "node_id", "confidence": 0.0-1.0}]}
-
-            Rules:
-            - Only use node IDs from the list below
-            - confidence reflects how strongly the description matches the node
-            - Multiple nodes can activate for the same description
-            - Minimum confidence threshold is 0.3
-            - Respond with valid JSON only
-
-            Available input nodes:
-            """);
+                                   You are a psychological situation classifier. Given a description of \
+                                   an experience, classify it into one or more CAPS input node activations.
+                                   
+                                   Respond with a JSON object:
+                                   {"activations": [{"node": "node_id", "confidence": 0.0-1.0}]}
+                                   
+                                   Rules:
+                                   - Only use node IDs from the list below
+                                   - confidence reflects how strongly the description matches the node
+                                   - Multiple nodes can activate for the same description
+                                   - Minimum confidence threshold is 0.3
+                                   - Respond with valid JSON only
+                                   
+                                   Available input nodes:
+                                   """);
 
         if (topology != null) {
             topology.nodes().forEach((id, node) -> {
                 if (node.type() == NodeType.INPUT) {
-                    sb.append("- ").append(id)
-                        .append(" (").append(node.category()).append(")")
-                        .append(node.vocabulary().isEmpty() ? "" :
-                            " — vocabulary: " + String.join(", ", node.vocabulary().keySet()))
-                        .append("\n");
+                    sb.append("- ").append(id);
+                    if (!node.description().isEmpty()) {
+                        sb.append(" (").append(node.category())
+                          .append(": ").append(node.description()).append(")");
+                    } else {
+                        sb.append(" (").append(node.category()).append(")");
+                    }
+                    sb.append(node.vocabulary().isEmpty() ? "" :
+                              " — vocabulary: " + String.join(", ", node.vocabulary().keySet()));
+                    sb.append("\n");
                 }
             });
         }
