@@ -113,6 +113,46 @@ class DriveProfileDerivationPhaseTest {
         assertThat(pinned.getFirst().property("inferred-inputs").orElse("")).contains("acceptance:0.850");
     }
 
+    @Test
+    void skipsAlreadyInferredDrivesOnSecondRun() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry", "other_safety");
+
+        phase.run(TENANT, List.of());
+        var firstRun = findDriveProfileNodes();
+        assertThat(firstRun).hasSize(1);
+        String firstInputs = firstRun.getFirst().property("inferred-inputs").orElse("");
+
+        // Second run — drive already has DriveProfileInferred, should be skipped
+        phase.run(TENANT, List.of());
+        var secondRun = findDriveProfileNodes();
+        assertThat(secondRun).hasSize(1);
+        assertThat(secondRun.getFirst().property("inferred-inputs").orElse(""))
+                .as("profile should be unchanged — drive was skipped, not re-derived")
+                .isEqualTo(firstInputs);
+    }
+
+    @Test
+    void skipsInferredButDerivesNewDriveAddedLater() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry", "other_safety");
+
+        phase.run(TENANT, List.of());
+        assertThat(findDriveProfileNodes()).hasSize(1);
+
+        // Add a second drive after first derivation
+        seedDriveNode("proving-worth", 0.7);
+        seedFormationMemory("You practised until you earned the grade", "proving-worth", "self_efficacy");
+
+        phase.run(TENANT, List.of());
+        var profiles = findDriveProfileNodes();
+        assertThat(profiles).hasSize(2);
+        var driveTypes = profiles.stream()
+                                 .map(n -> n.property("drive-type").orElse(""))
+                                 .collect(java.util.stream.Collectors.toSet());
+        assertThat(driveTypes).containsExactlyInAnyOrder("gallantry", "proving-worth");
+    }
+
 
     @Test
     void detectsCompetitionFromSharedInputNodes() {
