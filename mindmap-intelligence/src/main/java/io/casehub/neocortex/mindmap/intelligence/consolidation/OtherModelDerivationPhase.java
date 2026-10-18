@@ -39,24 +39,46 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
 
     static final String OTHER_MODEL_TRAIT = "OtherModelDerived";
 
+    // Multi-channel empathic sensing mirrors DriveDescriptionGenerationPhase's
+// somatic/attentional/temporal/action-tendency channels (Barrett 2017, Damasio 1994,
+// Easterbrook 1959, Frijda 1986), applied to sensing another person's state.
+// Cognitive channels from Ong, Zaki & Goodman (2019) third-person appraisal.
     private static final String SYSTEM_PROMPT = """
-        You generate empathic sensing descriptions for fictional characters.
-
-        Given a character's formation memories and their relationship with another character,
-        generate what they would physically sense when they notice the other person is in distress.
-
-        Not what they think, conclude, or decide to do — what they FEEL in their body when they
-        pick up that something is wrong with someone they have a bond with. The tightening in the
-        chest, the shift in attention, the pull toward or away from.
-
-        Ground it in the specific relationship and memories. A protector senses differently from
-        a schemer. A character shaped by abandonment notices withdrawal differently from one
-        shaped by competition.
-
-        Write in second person. 2-3 sentences. Do not name emotions or drives explicitly.
-        Do not prescribe action or interpretation.
-
-        Respond with JSON only: {"empathic_reading": "..."}""";
+                                                You generate mental models that one fictional character holds about another.
+                                                
+                                                Given a character's formation memories, drives, and their relationship with another character,
+                                                generate how they understand and sense this other person across these dimensions:
+                                                
+                                                EMPATHIC SENSING — what they experience across four channels when they notice the other
+                                                person is in distress:
+                                                - Somatic: bodily sensations (chest, stomach, hands, jaw)
+                                                - Attentional: where awareness is drawn, what they notice first
+                                                - Temporal: how the moment feels (compressed, stretched, suspended)
+                                                - Action tendency: what they feel pulled toward doing (not what they decide — the pull itself)
+                                                Integrate all four naturally into 2-3 sentences. Do not label the channels.
+                                                
+                                                INFERRED VALUES — what they believe the other person cares about most deeply. What
+                                                motivates them, what they protect, what they'd sacrifice for. A felt understanding,
+                                                not a list. 1-2 sentences.
+                                                
+                                                APPRAISAL SENSITIVITIES — what kinds of situations hit the other person hardest.
+                                                The specific vulnerabilities the observer has noticed — what makes them withdraw,
+                                                what makes them fight, what shuts them down. 1-2 sentences.
+                                                
+                                                RELATIONAL UNDERSTANDING — what the bond between these two people is built on.
+                                                The unspoken contract. What each gives and receives. 1-2 sentences.
+                                                
+                                                Write all dimensions in second person. Do not name emotions or drives explicitly.
+                                                Do not prescribe action or interpretation. Ground everything in the specific
+                                                memories and relationship provided.
+                                                
+                                                Respond with JSON only:
+                                                {
+                                                  "empathic_sensing": "...",
+                                                  "inferred_values": "...",
+                                                  "appraisal_sensitivities": "...",
+                                                  "relational_understanding": "..."
+                                                }""";
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
@@ -151,31 +173,33 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
     }
 
     private void generateAndStore(String tenantId, String agentId, String targetId,
-                                   String subgraphId,
-                                   List<MindMapNode> formationMemories,
-                                   List<MindMapNode> driveNodes,
-                                   List<MindMapNode> relationalSchemas) {
+                                  String subgraphId,
+                                  List<MindMapNode> formationMemories,
+                                  List<MindMapNode> driveNodes,
+                                  List<MindMapNode> relationalSchemas) {
         try {
-            String reading = callLlm(formationMemories, driveNodes, relationalSchemas);
-            if (reading == null || reading.isBlank()) return;
+            Map<String, String> model = callLlm(formationMemories, driveNodes, relationalSchemas);
+            if (model == null || model.isEmpty()) {return;}
+
+            var props = new java.util.HashMap<String, String>();
+            props.put("agent-id", agentId);
+            props.put("target-id", targetId);
+            model.forEach((k, v) -> {if (v != null && !v.isBlank()) {props.put(k, v);}});
 
             store.addNode(
-                NodeInput.of("other-model-" + agentId + "-" + targetId, subgraphId)
-                    .withTraits(Set.of(OTHER_MODEL_TRAIT))
-                    .withProperties(Map.of(
-                        "agent-id", agentId,
-                        "target-id", targetId,
-                        "empathic-reading", reading)),
-                tenantId);
+                    NodeInput.of("other-model-" + agentId + "-" + targetId, subgraphId)
+                             .withTraits(Set.of(OTHER_MODEL_TRAIT))
+                             .withProperties(props),
+                    tenantId);
         } catch (Exception e) {
             LOG.log(Level.WARNING,
-                agentId + "→" + targetId + ": other-model derivation failed (non-fatal)", e);
+                    agentId + "→" + targetId + ": other-model derivation failed (non-fatal)", e);
         }
     }
 
-    private String callLlm(List<MindMapNode> formationMemories,
-                           List<MindMapNode> driveNodes,
-                           List<MindMapNode> relationalSchemas) {
+    private Map<String, String> callLlm(List<MindMapNode> formationMemories,
+                                        List<MindMapNode> driveNodes,
+                                        List<MindMapNode> relationalSchemas) {
         var sb = new StringBuilder();
 
         sb.append("Character's drives:\n");
@@ -192,43 +216,52 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
         if (!relationalSchemas.isEmpty()) {
             sb.append("\nRelationship with the other person:\n");
             for (var schema : relationalSchemas) {
-                sb.append("- ").append(schema.name()).append("\n");
+                var desc = schema.properties().get("schema");
+                sb.append("- ").append(desc != null ? desc : schema.name()).append("\n");
             }
         }
 
-        sb.append("\nDescribe what this character physically senses when they pick up ");
-        sb.append("that the other person is in distress. Ground it in the memories and relationship above.");
+        sb.append("\nGenerate the four-dimension mental model for how this character ");
+        sb.append("understands and senses this other person.");
 
         var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, sb.toString());
-        var responseText = new StringBuilder();
+        var responseText  = new StringBuilder();
         agentProvider.invoke(sessionConfig).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+                     .filter(e -> e instanceof AgentEvent.TextDelta)
+                     .map(e -> ((AgentEvent.TextDelta) e).text())
+                     .forEach(responseText::append);
 
-        return parseReading(responseText.toString());
+        return parseModel(responseText.toString());
     }
 
-    private String parseReading(String json) {
+    private Map<String, String> parseModel(String json) {
         json = json.strip();
         if (json.startsWith("```")) {
             json = json.replaceFirst("```[a-z]*\\n?", "").replaceFirst("\\n?```$", "").strip();
         }
-        int start = json.indexOf("\"empathic_reading\"");
-        if (start < 0) return null;
-        int colon = json.indexOf(':', start);
-        if (colon < 0) return null;
-        int quote = json.indexOf('"', colon + 1);
-        if (quote < 0) return null;
-        quote++;
-        var sb = new StringBuilder();
-        for (int i = quote; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (c == '\\' && i + 1 < json.length()) { sb.append(json.charAt(++i)); }
-            else if (c == '"') { break; }
-            else { sb.append(c); }
+        var result = new java.util.HashMap<String, String>();
+        for (String key : List.of("empathic_sensing", "inferred_values", "appraisal_sensitivities", "relational_understanding")) {
+            String dashed = key.replace('_', '-');
+            int    start  = json.indexOf("\"" + key + "\"");
+            if (start < 0) {continue;}
+            int colon = json.indexOf(':', start);
+            if (colon < 0) {continue;}
+            int quote = json.indexOf('"', colon + 1);
+            if (quote < 0) {continue;}
+            quote++;
+            var sb = new StringBuilder();
+            for (int i = quote; i < json.length(); i++) {
+                char c = json.charAt(i);
+                if (c == '\\' && i + 1 < json.length()) {sb.append(json.charAt(++i));} else if (c == '"') {
+                    break;
+                } else {sb.append(c);}
+            }
+            String value = sb.toString().strip();
+            if (!value.isEmpty()) {
+                result.put(dashed, value);
+            }
         }
-        return sb.toString();
+        return result;
     }
 
     private String findCognitiveSubgraph(String tenantId, String agentId) {
