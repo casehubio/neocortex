@@ -1,9 +1,6 @@
 package io.casehub.neocortex.memory.cbr.embedding;
 
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 
@@ -12,30 +9,20 @@ import static org.assertj.core.api.Assertions.*;
 
 class EmbeddingTextSimilarityTest {
 
-    static EmbeddingModel stubModel() {
-        return new EmbeddingModel() {
+    static DenseEmbedder stubModel() {
+        return new DenseEmbedder() {
             @Override
-            public Response<Embedding> embed(TextSegment segment) {
-                return Response.from(vectorFor(segment.text()));
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-                return Response.from(segments.stream()
-                    .map(s -> vectorFor(s.text())).toList());
+            public float[] embed(String text) {
+                return switch (text) {
+                    case "hello" -> new float[]{1.0f, 0.0f, 0.0f};
+                    case "hi" -> new float[]{0.9f, 0.1f, 0.0f};
+                    case "goodbye" -> new float[]{0.0f, 1.0f, 0.0f};
+                    default -> new float[]{0.0f, 0.0f, 1.0f};
+                };
             }
 
             @Override
             public int dimension() { return 3; }
-
-            private Embedding vectorFor(String text) {
-                return switch (text) {
-                    case "hello" -> Embedding.from(new float[]{1.0f, 0.0f, 0.0f});
-                    case "hi" -> Embedding.from(new float[]{0.9f, 0.1f, 0.0f});
-                    case "goodbye" -> Embedding.from(new float[]{0.0f, 1.0f, 0.0f});
-                    default -> Embedding.from(new float[]{0.0f, 0.0f, 1.0f});
-                };
-            }
         };
     }
 
@@ -64,17 +51,11 @@ class EmbeddingTextSimilarityTest {
 
     @Test
     void negativeCosineClampedToZero() {
-        EmbeddingModel negModel = new EmbeddingModel() {
+        DenseEmbedder negModel = new DenseEmbedder() {
             @Override
-            public Response<Embedding> embed(TextSegment segment) {
-                if (segment.text().equals("a")) return Response.from(Embedding.from(new float[]{1.0f, 0.0f}));
-                return Response.from(Embedding.from(new float[]{-1.0f, 0.0f}));
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-                return Response.from(segments.stream()
-                    .map(s -> embed(s).content()).toList());
+            public float[] embed(String text) {
+                if (text.equals("a")) return new float[]{1.0f, 0.0f};
+                return new float[]{-1.0f, 0.0f};
             }
 
             @Override
@@ -86,14 +67,9 @@ class EmbeddingTextSimilarityTest {
 
     @Test
     void embedFailurePropagates() {
-        EmbeddingModel failingModel = new EmbeddingModel() {
+        DenseEmbedder failingModel = new DenseEmbedder() {
             @Override
-            public Response<Embedding> embed(TextSegment segment) {
-                throw new RuntimeException("Embedding service unavailable");
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
+            public float[] embed(String text) {
                 throw new RuntimeException("Embedding service unavailable");
             }
 
@@ -108,17 +84,11 @@ class EmbeddingTextSimilarityTest {
     @Test
     void queryEmbeddingCachedAcrossCalls() {
         int[] callCount = {0};
-        EmbeddingModel countingModel = new EmbeddingModel() {
+        DenseEmbedder countingModel = new DenseEmbedder() {
             @Override
-            public Response<Embedding> embed(TextSegment segment) {
+            public float[] embed(String text) {
                 callCount[0]++;
-                return Response.from(Embedding.from(new float[]{1.0f, 0.0f, 0.0f}));
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-                return Response.from(segments.stream()
-                    .map(s -> embed(s).content()).toList());
+                return new float[]{1.0f, 0.0f, 0.0f};
             }
 
             @Override
@@ -134,17 +104,16 @@ class EmbeddingTextSimilarityTest {
     @Test
     void precomputeBatchEmbedsAndWarmsCache() {
         int[] embedAllCalls = {0};
-        EmbeddingModel batchModel = new EmbeddingModel() {
+        DenseEmbedder batchModel = new DenseEmbedder() {
             @Override
-            public Response<Embedding> embed(TextSegment segment) {
-                return Response.from(Embedding.from(new float[]{1.0f, 0.0f, 0.0f}));
+            public float[] embed(String text) {
+                return new float[]{1.0f, 0.0f, 0.0f};
             }
 
             @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
+            public List<float[]> embedBatch(List<String> texts) {
                 embedAllCalls[0]++;
-                return Response.from(segments.stream()
-                    .map(s -> Embedding.from(new float[]{1.0f, 0.0f, 0.0f})).toList());
+                return texts.stream().map(t -> new float[]{1.0f, 0.0f, 0.0f}).toList();
             }
 
             @Override
@@ -162,17 +131,16 @@ class EmbeddingTextSimilarityTest {
     @Test
     void precomputeSkipsAlreadyCached() {
         int[] embedAllCalls = {0};
-        EmbeddingModel batchModel = new EmbeddingModel() {
+        DenseEmbedder batchModel = new DenseEmbedder() {
             @Override
-            public Response<Embedding> embed(TextSegment segment) {
-                return Response.from(Embedding.from(new float[]{1.0f, 0.0f, 0.0f}));
+            public float[] embed(String text) {
+                return new float[]{1.0f, 0.0f, 0.0f};
             }
 
             @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
+            public List<float[]> embedBatch(List<String> texts) {
                 embedAllCalls[0]++;
-                return Response.from(segments.stream()
-                    .map(s -> Embedding.from(new float[]{1.0f, 0.0f, 0.0f})).toList());
+                return texts.stream().map(t -> new float[]{1.0f, 0.0f, 0.0f}).toList();
             }
 
             @Override

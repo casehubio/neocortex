@@ -6,7 +6,7 @@ import io.casehub.neocortex.inference.MultiModalEmbedder;
 import io.casehub.neocortex.rag.CursorStore;
 import io.casehub.neocortex.rag.EmbeddingIngestor;
 import io.casehub.neocortex.rag.MetadataExtractor;
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.inference.splade.SparseEmbedder;
 import io.casehub.neocortex.rag.runtime.BM25IndexRegistry;
 import io.casehub.neocortex.rag.runtime.CorpusIngestionService;
@@ -147,7 +147,7 @@ public class RagAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MultiModalEmbedder multiModalEmbedder(
-            EmbeddingModel denseModel,
+            DenseEmbedder denseModel,
             ObjectProvider<SparseEmbedder> sparseEmbedder,
             RagConfig config) {
         int maxSeqLen = config.maxSequenceLength().orElse(512);

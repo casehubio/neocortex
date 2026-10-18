@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryScanRequest;
@@ -64,7 +64,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
             Instance<GraduationScorer> scorer,
             Instance<GraduationClassifier> classifier,
             Instance<ExperienceConsolidationConfig> config,
-            Instance<EmbeddingModel> embeddingModel) {
+            Instance<DenseEmbedder> embeddingModel) {
         this.memoryStore  = memoryStore;
         this.mindMapStore = mindMapStore;
         this.scorer       = scorer.isResolvable() ? scorer.get() : new DefaultGraduationScorer();
@@ -77,7 +77,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         if (tsEnabled) {
             double         embThreshold = c.textSimilarity().embeddingThreshold();
             double         kwThreshold  = c.textSimilarity().keywordThreshold();
-            EmbeddingModel model        = embeddingModel.isResolvable() ? embeddingModel.get() : null;
+            DenseEmbedder  model         = embeddingModel.isResolvable() ? embeddingModel.get() : null;
             this.textSimilarity = new TextSimilarityCorroborator(model, embThreshold, kwThreshold);
         } else {
             this.textSimilarity = null;

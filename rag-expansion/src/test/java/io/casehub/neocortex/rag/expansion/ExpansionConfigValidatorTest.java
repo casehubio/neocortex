@@ -1,6 +1,6 @@
 package io.casehub.neocortex.rag.expansion;
 
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.Test;
@@ -38,12 +38,15 @@ class ExpansionConfigValidatorTest {
                 emptyInstance());
         var record = captureWarning(validator);
         assertThat(record).isNotNull();
-        assertThat(record.getMessage()).contains("no EmbeddingModel available");
+        assertThat(record.getMessage()).contains("no DenseEmbedder available");
     }
 
     @Test
     void noWarningWhenDriftEnabledAndEmbeddingModelPresent() {
-        EmbeddingModel model = segments -> {throw new UnsupportedOperationException();};
+        DenseEmbedder model = new DenseEmbedder() {
+            @Override public float[] embed(String text) { throw new UnsupportedOperationException(); }
+            @Override public int dimension() { return 3; }
+        };
         var validator = validatorWith(
                 stubConfig(Optional.of("llm"), stubDriftConfig(true, 0.7)),
                 presentInstance(model));
@@ -87,7 +90,7 @@ class ExpansionConfigValidatorTest {
     }
 
     private ExpansionConfigValidator validatorWith(ExpansionConfig config,
-                                                   Instance<EmbeddingModel> embeddingModel) {
+                                                   Instance<DenseEmbedder> embeddingModel) {
         var validator = new ExpansionConfigValidator();
         validator.config         = config;
         validator.embeddingModel = embeddingModel;

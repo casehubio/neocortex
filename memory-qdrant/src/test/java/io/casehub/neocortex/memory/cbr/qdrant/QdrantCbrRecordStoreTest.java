@@ -1,9 +1,6 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
@@ -49,7 +46,7 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
         return cachedStore;
     }
 
-    private QdrantCbrRecordStore createStore(EmbeddingModel embeddingModel, boolean allowMigration) {
+    private QdrantCbrRecordStore createStore(DenseEmbedder embeddingModel, boolean allowMigration) {
         int testId = TEST_COUNTER.incrementAndGet();
         QdrantCbrConfig config = testConfig(testId, allowMigration);
         QdrantClient client = new QdrantClient(
@@ -83,7 +80,7 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
             QdrantGrpcClient.newBuilder(qdrant.getHost(), qdrant.getMappedPort(6334), false).build());
         var collectionManager1 = new CbrCollectionManager(client, config1);
         var store1 = new QdrantCbrRecordStore(collectionManager1,
-                                              (dev.langchain4j.model.embedding.EmbeddingModel) null, config1,
+                                              (DenseEmbedder) null, config1,
                                               (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
 
         store1.registerSchema(CbrRecordSchema.of("dim-test",
@@ -112,7 +109,7 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
             QdrantGrpcClient.newBuilder(qdrant.getHost(), qdrant.getMappedPort(6334), false).build());
         var collectionManager1 = new CbrCollectionManager(client, config1);
         var store1 = new QdrantCbrRecordStore(collectionManager1,
-                                              (dev.langchain4j.model.embedding.EmbeddingModel) null, config1,
+                                              (DenseEmbedder) null, config1,
                                               (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
 
         store1.registerSchema(CbrRecordSchema.of("dim-migrate",
@@ -228,7 +225,7 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
         var config1  = testConfig(sharedTestId, false);
         var manager1 = new CbrCollectionManager(client, config1);
         var store1   = new QdrantCbrRecordStore(manager1,
-                                                (dev.langchain4j.model.embedding.EmbeddingModel) null, config1,
+                                                (DenseEmbedder) null, config1,
                                                 (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
         store1.registerSchema(CbrRecordSchema.of("splade-evolve",
                                                  FeatureField.categorical("cat")));
@@ -297,7 +294,7 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
         var config1  = testConfig(sharedTestId, false);
         var manager1 = new CbrCollectionManager(client, config1);
         var store1   = new QdrantCbrRecordStore(manager1,
-                                                (dev.langchain4j.model.embedding.EmbeddingModel) null, config1,
+                                                (DenseEmbedder) null, config1,
                                                 (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
         store1.registerSchema(CbrRecordSchema.of("bm25-evolve",
                                                  FeatureField.categorical("cat")));
@@ -355,19 +352,9 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
     }
 
 
-    private record StubEmbeddingModel(int dim) implements EmbeddingModel {
-        @Override public Response<Embedding> embed(String text) {
-            float[] vec = new float[dim];
-            return new Response<>(new Embedding(vec));
-        }
-        @Override public Response<Embedding> embed(TextSegment segment) {
-            return embed(segment.text());
-        }
-        @Override public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-            List<Embedding> embeddings = segments.stream()
-                .map(s -> new Embedding(new float[dim]))
-                .toList();
-            return new Response<>(embeddings);
+    private record StubEmbeddingModel(int dim) implements DenseEmbedder {
+        @Override public float[] embed(String text) {
+            return new float[dim];
         }
         @Override public int dimension() { return dim; }
     }
@@ -376,60 +363,34 @@ class QdrantCbrRecordStoreTest extends CbrRecordStoreContractTest {
      * Embedding model that produces different vectors for different texts based on keyword presence.
      * Uses simple heuristics to simulate semantic similarity.
      */
-    private record SemanticStubEmbeddingModel(int dim) implements EmbeddingModel {
+    private record SemanticStubEmbeddingModel(int dim) implements DenseEmbedder {
         @Override
-        public Response<Embedding> embed(String text) {
+        public float[] embed(String text) {
             float[] vec = new float[dim];
             String lower = text.toLowerCase();
 
-            // Dimension 0: early game concepts
             if (lower.contains("early") || lower.contains("marine") || lower.contains("rush")) {
                 vec[0] = 1.0f;
             }
-
-            // Dimension 1: defense concepts
             if (lower.contains("defense") || lower.contains("defending") || lower.contains("bunker") ||
                 lower.contains("stop") || lower.contains("attack")) {
                 vec[1] = 1.0f;
             }
-
-            // Dimension 2: late game / economy concepts
             if (lower.contains("late") || lower.contains("economy") || lower.contains("expansion") ||
                 lower.contains("expand") || lower.contains("base")) {
                 vec[2] = 1.0f;
             }
-
-            // Dimension 3: management / strategic concepts
             if (lower.contains("management") || lower.contains("third")) {
                 vec[3] = 1.0f;
             }
 
-            // Normalize to unit vector for cosine similarity
             float norm = 0.0f;
-            for (float v : vec) {
-                norm += v * v;
-            }
+            for (float v : vec) { norm += v * v; }
             if (norm > 0) {
                 norm = (float) Math.sqrt(norm);
-                for (int i = 0; i < vec.length; i++) {
-                    vec[i] /= norm;
-                }
+                for (int i = 0; i < vec.length; i++) { vec[i] /= norm; }
             }
-
-            return new Response<>(new Embedding(vec));
-        }
-
-        @Override
-        public Response<Embedding> embed(TextSegment segment) {
-            return embed(segment.text());
-        }
-
-        @Override
-        public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-            List<Embedding> embeddings = segments.stream()
-                .map(s -> embed(s.text()).content())
-                .toList();
-            return new Response<>(embeddings);
+            return vec;
         }
 
         @Override

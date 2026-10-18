@@ -1,7 +1,7 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import dev.langchain4j.data.embedding.Embedding;
+
 import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
 import io.qdrant.client.grpc.JsonWithInt.Value;
@@ -73,9 +73,8 @@ class CbrPointBuilderTest {
     void buildPoint_withEmbedding_hasVectors() {
         var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
         float[] vector = {0.1f, 0.2f, 0.3f, 0.4f};
-        Embedding embedding = Embedding.from(vector);
         PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
-            "e1", "d1", "t1", "c1", embedding, "dense");
+            "e1", "d1", "t1", "c1", vector, "dense");
 
         assertThat(point.hasVectors()).isTrue();
         assertThat(point.hasId()).isTrue();
@@ -167,10 +166,9 @@ class CbrPointBuilderTest {
     void buildPoint_withDenseAndSparseAndBm25_allVectorsPresent() {
         var cbrRecord = new CbrGuidanceRecord("problem", "solution", null, null, null, null);
         float[] vector = {0.1f, 0.2f, 0.3f, 0.4f};
-        Embedding embedding = Embedding.from(vector);
         Map<Integer, Float> sparse = Map.of(5, 0.8f, 12, 0.3f);
         PointStruct point = CbrPointBuilder.buildPoint(cbrRecord, "type",
-                                                       "e1", "d1", "t1", "c1", embedding, "dense",
+                                                       "e1", "d1", "t1", "c1", vector, "dense",
                                                        sparse, "sparse", "expanded text", "bm25", "Qdrant/bm25", "");
 
         var vectors = point.getVectors().getVectors().getVectorsMap();

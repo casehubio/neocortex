@@ -1,6 +1,6 @@
 package io.casehub.neocortex.rag.runtime;
 
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.ChangeListener;
 import io.casehub.neocortex.corpus.ChangeSet;
 import io.casehub.neocortex.corpus.ChangeSource;
@@ -256,7 +256,7 @@ class CorpusIngestionServiceTest {
                 stubReader(Map.of("docs/long.md", longBody))
         );
 
-        service().processBinding(binding, DocumentSplitters.recursive(200, 20));
+        service().processBinding(binding, TextChunker.recursive(200, 20));
 
         List<ChunkInput> chunks = ingestor.getChunks(CORPUS);
         assertThat(chunks.size()).isGreaterThan(1);
@@ -544,7 +544,7 @@ class CorpusIngestionServiceTest {
                 listMetaExtractor
         );
 
-        service().processBinding(binding, DocumentSplitters.recursive(200, 20));
+        service().processBinding(binding, TextChunker.recursive(200, 20));
 
         List<ChunkInput> chunks = ingestor.getChunks(CORPUS);
         assertThat(chunks.size()).isGreaterThan(1);

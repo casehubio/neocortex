@@ -4,9 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
+import io.casehub.neocortex.inference.Embeddings;
 import io.casehub.neocortex.fusion.CamelCaseExpander;
 import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.neocortex.fusion.ScoreFusion;
@@ -76,7 +75,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     private static final TypeReference<List<CbrPlanStep>>   PLAN_TRACE_TYPE = new TypeReference<>() {};
 
     private final CbrCollectionManager collectionManager;
-    private final EmbeddingModel embeddingModel;
+    private final DenseEmbedder embeddingModel;
     private final SparseEmbedder sparseEmbedder;
     private final QdrantCbrConfig config;
     private final CaseMemoryStore              delegate;
@@ -84,7 +83,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
 
     @Inject
     QdrantCbrRecordStore(CbrCollectionManager collectionManager,
-                         Instance<EmbeddingModel> embeddingModelInstance,
+                         Instance<DenseEmbedder> embeddingModelInstance,
                          QdrantCbrConfig config,
                          Instance<CaseMemoryStore> delegateInstance,
                          Instance<SparseEmbedder> sparseEmbedderInstance) {
@@ -96,7 +95,7 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     QdrantCbrRecordStore(CbrCollectionManager collectionManager,
-                         EmbeddingModel embeddingModel,
+                         DenseEmbedder embeddingModel,
                          QdrantCbrConfig config,
                          CaseMemoryStore delegate,
                          SparseEmbedder sparseEmbedder) {
@@ -167,9 +166,9 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
             mid = delegate.store(memoryInput);
         }
 
-        Embedding embedding = null;
+        float[] embedding = null;
         if (embeddingModel != null) {
-            embedding = embeddingModel.embed(TextSegment.from(cbrRecord.problem())).content();
+            embedding = embeddingModel.embed(cbrRecord.problem());
         }
 
         Map<Integer, Float> sparseEmbedding = null;
@@ -330,11 +329,11 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     @SuppressWarnings("unchecked")
     private <C extends CbrRecord> List<CbrMatch<C>> retrieveSemanticOnly(
             CbrQuery query, Class<C> caseClass, String collection, Filter filter) {
-        Embedding queryEmbedding = embeddingModel.embed(TextSegment.from(query.problem())).content();
+        float[] queryEmbedding = embeddingModel.embed(query.problem());
 
         SearchPoints.Builder searchBuilder = SearchPoints.newBuilder()
             .setCollectionName(collection)
-            .addAllVector(queryEmbedding.vectorAsList())
+            .addAllVector(Embeddings.toFloatList(queryEmbedding))
             .setVectorName(config.denseVectorName())
             .setFilter(filter)
             .setLimit(query.topK() * config.oversampleFactor())
@@ -364,8 +363,8 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
             CbrQuery query, Class<C> caseClass, String collection, Filter filter,
             CbrRecordSchema schema) {
 
-        Embedding denseEmbedding = (embeddingModel != null)
-            ? embeddingModel.embed(TextSegment.from(query.problem())).content() : null;
+        float[] denseEmbedding = (embeddingModel != null)
+            ? embeddingModel.embed(query.problem()) : null;
 
         Map<Integer, Float> sparseEmbedding = (sparseEmbedder != null && config.spladeEnabled() && query.problem() != null)
             ? sparseEmbedder.embed(query.problem()) : null;
@@ -512,10 +511,10 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     private List<ScoredPoint> executeDenseSearch(String collection, Filter filter,
-                                                 CbrQuery query, Embedding queryEmbedding) {
+                                                 CbrQuery query, float[] queryEmbedding) {
         SearchPoints.Builder searchBuilder = SearchPoints.newBuilder()
             .setCollectionName(collection)
-            .addAllVector(queryEmbedding.vectorAsList())
+            .addAllVector(Embeddings.toFloatList(queryEmbedding))
             .setVectorName(config.denseVectorName())
             .setFilter(filter)
             .setLimit(query.topK() * config.oversampleFactor())

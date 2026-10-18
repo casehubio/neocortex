@@ -1,9 +1,6 @@
 package io.casehub.neocortex.rag.runtime;
 
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
-import dev.langchain4j.data.segment.TextSegment;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.ChangeSet;
 import io.casehub.neocortex.corpus.ChangeType;
 import io.casehub.neocortex.corpus.ChangedEntry;
@@ -94,7 +91,7 @@ public class CorpusIngestionService {
 
     private void doProcessWatchEvent(CorpusIngestionBinding binding,
                                      List<ChangedEntry> entries,
-                                     DocumentSplitter splitter) {
+                                     TextChunker splitter) {
         CorpusRef corpusRef = binding.corpusRef();
         boolean anyFailure = false;
 
@@ -147,7 +144,7 @@ public class CorpusIngestionService {
         processBinding(binding, null);
     }
 
-    public void processBinding(CorpusIngestionBinding binding, DocumentSplitter splitter) {
+    public void processBinding(CorpusIngestionBinding binding, TextChunker splitter) {
         ReentrantLock lock = locks.computeIfAbsent(binding.name(), k -> new ReentrantLock());
         if (!lock.tryLock()) {
             LOG.fine(() -> "Skipping corpus '" + binding.name() + "' — already being processed");
@@ -164,7 +161,7 @@ public class CorpusIngestionService {
         reconcile(corpusName, binding, null);
     }
 
-    public void reconcile(String corpusName, CorpusIngestionBinding binding, DocumentSplitter splitter) {
+    public void reconcile(String corpusName, CorpusIngestionBinding binding, TextChunker splitter) {
         ReentrantLock lock = locks.computeIfAbsent(binding.name(), k -> new ReentrantLock());
         if (!lock.tryLock()) {
             LOG.fine(() -> "Skipping reconciliation for corpus '" + binding.name() + "' — already being processed");
@@ -177,7 +174,7 @@ public class CorpusIngestionService {
         }
     }
 
-    private void doProcessBinding(CorpusIngestionBinding binding, DocumentSplitter splitter) {
+    private void doProcessBinding(CorpusIngestionBinding binding, TextChunker splitter) {
         Optional<String> existingCursor = cursorStore.load(binding.name());
 
         ChangeSet changeSet;
@@ -242,7 +239,7 @@ public class CorpusIngestionService {
         }
     }
 
-    private void doReconcile(String corpusName, CorpusIngestionBinding binding, DocumentSplitter splitter) {
+    private void doReconcile(String corpusName, CorpusIngestionBinding binding, TextChunker splitter) {
         CorpusRef corpusRef = binding.corpusRef();
 
         ChangeSet fullScan = binding.changeSource().fullScan();
@@ -295,19 +292,18 @@ public class CorpusIngestionService {
         cursorStore.save(corpusName, fullScan.newCursor());
     }
 
-    public List<ChunkInput> chunkDocument(String path, ExtractionResult result, DocumentSplitter splitter) {
+    public List<ChunkInput> chunkDocument(String path, ExtractionResult result, TextChunker splitter) {
         if (result.body().isBlank()) {
             return List.of();
         }
         if (splitter == null) {
             return List.of(new ChunkInput(result.body(), path, result.metadata(), result.listMetadata()));
         }
-        Document doc = Document.from(result.body());
-        List<TextSegment> segments = splitter.split(doc);
+        List<String> segments = splitter.chunk(result.body());
         List<ChunkInput> chunks = new ArrayList<>(segments.size());
-        for (TextSegment segment : segments) {
-            if (!segment.text().isBlank()) {
-                chunks.add(new ChunkInput(segment.text(), path, result.metadata(), result.listMetadata()));
+        for (String segment : segments) {
+            if (!segment.isBlank()) {
+                chunks.add(new ChunkInput(segment, path, result.metadata(), result.listMetadata()));
             }
         }
         return chunks;
@@ -374,7 +370,7 @@ public class CorpusIngestionService {
         return corpusConfig.mode();
     }
 
-    static DocumentSplitter splitterFor(String corpusName, IngestionConfig config) {
+    static TextChunker splitterFor(String corpusName, IngestionConfig config) {
         if (config == null) return null;
         var corpusConfig = config.corpora().get(corpusName);
         if (corpusConfig == null || "none".equalsIgnoreCase(corpusConfig.chunking())) {
@@ -383,7 +379,7 @@ public class CorpusIngestionService {
         if ("recursive".equalsIgnoreCase(corpusConfig.chunking())) {
             int maxSize = corpusConfig.chunkingMaxSize().orElse(1000);
             int overlap = corpusConfig.chunkingOverlapSize().orElse(200);
-            return DocumentSplitters.recursive(maxSize, overlap);
+            return TextChunker.recursive(maxSize, overlap);
         }
         return null;
     }

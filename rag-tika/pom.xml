@@ -21,10 +21,7 @@
       <artifactId>casehub-neocortex-rag-api</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>dev.langchain4j</groupId>
-      <artifactId>langchain4j</artifactId>
-    </dependency>
+
     <!-- Apache Tika for document parsing (PDF, DOCX, HTML, etc.) -->
     <dependency>
       <groupId>org.apache.tika</groupId>

@@ -1,7 +1,6 @@
 package io.casehub.neocortex.examples.rag;
 
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.zip.CorpusConfig;
 import io.casehub.neocortex.corpus.zip.ZipChangeSource;
 import io.casehub.neocortex.corpus.zip.ZipCorpusStore;
@@ -41,7 +40,7 @@ public final class ZipCorpusIngestDemo {
         );
 
         var service = new CorpusIngestionService(ingestor, cursorStore);
-        DocumentSplitter splitter = DocumentSplitters.recursive(500, 50);
+        TextChunker splitter = TextChunker.recursive(500, 50);
 
         System.out.println("=== Ingesting from ZIP corpus ===");
         service.processBinding(binding, splitter);

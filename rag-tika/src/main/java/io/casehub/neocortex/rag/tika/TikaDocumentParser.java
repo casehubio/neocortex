@@ -1,10 +1,6 @@
 package io.casehub.neocortex.rag.tika;
 
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.Metadata;
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
-import dev.langchain4j.data.segment.TextSegment;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.rag.ChunkInput;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -27,7 +23,7 @@ public class TikaDocumentParser {
 
     private final int chunkSize;
     private final int chunkOverlap;
-    private final DocumentSplitter splitter;
+    private final TextChunker chunker;
 
     @Inject
     public TikaDocumentParser(TikaConfig config) {
@@ -37,7 +33,7 @@ public class TikaDocumentParser {
     public TikaDocumentParser(int chunkSize, int chunkOverlap) {
         this.chunkSize = chunkSize;
         this.chunkOverlap = chunkOverlap;
-        this.splitter = DocumentSplitters.recursive(chunkSize, chunkOverlap);
+        this.chunker = TextChunker.recursive(chunkSize, chunkOverlap);
     }
 
     public List<ChunkInput> parse(InputStream content, String sourceDocumentId,
@@ -55,7 +51,7 @@ public class TikaDocumentParser {
 
             String text = handler.toString();
 
-            // Convert Tika metadata to LangChain4j metadata
+            // Extract Tika metadata
             Map<String, String> extractedMetadata = new HashMap<>();
             for (String name : tikaMetadata.names()) {
                 String value = tikaMetadata.get(name);
@@ -64,21 +60,15 @@ public class TikaDocumentParser {
                 }
             }
 
-            // Create LangChain4j Document with extracted metadata
-            Metadata langchainMetadata = Metadata.from(extractedMetadata);
-            Document document = Document.from(text, langchainMetadata);
+            // Chunk text
+            List<String> segments = chunker.chunk(text);
 
-            // Split document into segments
-            List<TextSegment> segments = splitter.split(document);
-
-            // Convert segments to ChunkInput with merged metadata
+            // Convert chunks to ChunkInput with merged metadata
             List<ChunkInput> chunks = new ArrayList<>(segments.size());
-            for (TextSegment segment : segments) {
+            for (String segment : segments) {
                 Map<String, String> merged = new HashMap<>(metadata); // caller-provided metadata
-                segment.metadata().toMap().forEach((k, v) -> {
-                    if (v != null) merged.putIfAbsent(k, v.toString());
-                });
-                chunks.add(new ChunkInput(segment.text(), sourceDocumentId, merged));
+                extractedMetadata.forEach(merged::putIfAbsent);
+                chunks.add(new ChunkInput(segment, sourceDocumentId, merged));
             }
             return Collections.unmodifiableList(chunks);
 

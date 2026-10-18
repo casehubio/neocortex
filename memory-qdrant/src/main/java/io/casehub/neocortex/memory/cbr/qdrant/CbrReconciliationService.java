@@ -1,8 +1,6 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.fusion.CamelCaseExpander;
 import io.casehub.neocortex.inference.splade.SparseEmbedder;
 import io.casehub.neocortex.memory.*;
@@ -32,7 +30,7 @@ public class CbrReconciliationService {
     private static final int DEFAULT_PAGE_SIZE = 100;
 
     private final CbrCollectionManager collectionManager;
-    private final EmbeddingModel embeddingModel;
+    private final DenseEmbedder embeddingModel;
     private final SparseEmbedder sparseEmbedder;
     private final QdrantCbrConfig config;
     private final CaseMemoryStore delegate;
@@ -40,7 +38,7 @@ public class CbrReconciliationService {
 
     @Inject
     CbrReconciliationService(CbrCollectionManager collectionManager,
-                              Instance<EmbeddingModel> embeddingModelInstance,
+                              Instance<DenseEmbedder> embeddingModelInstance,
                               QdrantCbrConfig config,
                               Instance<CaseMemoryStore> delegateInstance,
                               Instance<MeterRegistry> meterRegistryInstance,
@@ -54,7 +52,7 @@ public class CbrReconciliationService {
     }
 
     CbrReconciliationService(CbrCollectionManager collectionManager,
-                              EmbeddingModel embeddingModel,
+                              DenseEmbedder embeddingModel,
                               QdrantCbrConfig config,
                               CaseMemoryStore delegate,
                               MeterRegistry meterRegistry) {
@@ -62,7 +60,7 @@ public class CbrReconciliationService {
     }
 
     CbrReconciliationService(CbrCollectionManager collectionManager,
-                              EmbeddingModel embeddingModel,
+                              DenseEmbedder embeddingModel,
                               QdrantCbrConfig config,
                               CaseMemoryStore delegate,
                               MeterRegistry meterRegistry,
@@ -126,9 +124,9 @@ public class CbrReconciliationService {
                     }
                     CbrRecord cbrRecord = maybeCbrRecord.get();
 
-                    Embedding embedding = null;
+                    float[] embedding = null;
                     if (embeddingModel != null) {
-                        embedding = embeddingModel.embed(TextSegment.from(cbrRecord.problem())).content();
+                        embedding = embeddingModel.embed(cbrRecord.problem());
                     }
 
                     Map<Integer, Float> sparseEmbedding = null;

@@ -1,9 +1,6 @@
 package io.casehub.neocortex.rag.runtime;
 
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.inference.EmbeddingMode;
 import io.casehub.neocortex.inference.InferenceInput;
 import io.casehub.neocortex.inference.InferenceModel;
@@ -25,24 +22,9 @@ class SeparateModelEmbedderTest {
 
     @Test
     void denseOnlyEmbed() {
-        EmbeddingModel denseModel = new EmbeddingModel() {
-            @Override
-            public Response<Embedding> embed(String text) {
-                return Response.from(Embedding.from(new float[]{1f, 2f, 3f}));
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-                List<Embedding> embeddings = segments.stream()
-                                                     .map(seg -> Embedding.from(new float[]{1f, 2f, 3f}))
-                                                     .toList();
-                return Response.from(embeddings);
-            }
-
-            @Override
-            public int dimension() {
-                return 3;
-            }
+        DenseEmbedder denseModel = new DenseEmbedder() {
+            @Override public float[] embed(String text) { return new float[]{1f, 2f, 3f}; }
+            @Override public int dimension() { return 3; }
         };
         SeparateModelEmbedder embedder = new SeparateModelEmbedder(denseModel, 512);
 
@@ -58,24 +40,9 @@ class SeparateModelEmbedderTest {
 
     @Test
     void denseAndSparseEmbed() {
-        EmbeddingModel denseModel = new EmbeddingModel() {
-            @Override
-            public Response<Embedding> embed(String text) {
-                return Response.from(Embedding.from(new float[]{1f, 2f}));
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-                List<Embedding> embeddings = segments.stream()
-                                                     .map(seg -> Embedding.from(new float[]{1f, 2f}))
-                                                     .toList();
-                return Response.from(embeddings);
-            }
-
-            @Override
-            public int dimension() {
-                return 2;
-            }
+        DenseEmbedder denseModel = new DenseEmbedder() {
+            @Override public float[] embed(String text) { return new float[]{1f, 2f}; }
+            @Override public int dimension() { return 2; }
         };
         InferenceModel sparseModel = rank2StubModel(new float[]{0f, 0.5f, 0f, 2.0f});
         SparseEmbedder sparse      = new SparseEmbedder(sparseModel);
@@ -90,24 +57,9 @@ class SeparateModelEmbedderTest {
 
     @Test
     void embedBatch() {
-        EmbeddingModel denseModel = new EmbeddingModel() {
-            @Override
-            public Response<Embedding> embed(String text) {
-                return Response.from(Embedding.from(new float[]{1f, 2f}));
-            }
-
-            @Override
-            public Response<List<Embedding>> embedAll(List<TextSegment> segments) {
-                List<Embedding> embeddings = segments.stream()
-                                                     .map(seg -> Embedding.from(new float[]{1f, 2f}))
-                                                     .toList();
-                return Response.from(embeddings);
-            }
-
-            @Override
-            public int dimension() {
-                return 2;
-            }
+        DenseEmbedder denseModel = new DenseEmbedder() {
+            @Override public float[] embed(String text) { return new float[]{1f, 2f}; }
+            @Override public int dimension() { return 2; }
         };
 
         SeparateModelEmbedder embedder = new SeparateModelEmbedder(denseModel, 512);

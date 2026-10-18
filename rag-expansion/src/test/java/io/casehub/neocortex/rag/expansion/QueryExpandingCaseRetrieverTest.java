@@ -1,9 +1,6 @@
 package io.casehub.neocortex.rag.expansion;
 
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.rag.CaseRetriever;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.QueryExpander;
@@ -279,7 +276,10 @@ class QueryExpandingCaseRetrieverTest {
         };
         QueryExpander expander = query -> List.of(query.withExpansion("expanded text"));
 
-        EmbeddingModel failingModel = segments -> {throw new RuntimeException("ONNX error");};
+        DenseEmbedder failingModel = new DenseEmbedder() {
+            @Override public float[] embed(String text) { throw new RuntimeException("ONNX error"); }
+            @Override public int dimension() { return 3; }
+        };
         var            retriever    = new QueryExpandingCaseRetriever(delegate, expander);
         retriever.embeddingModel = ExpansionConfigValidatorTest.presentInstance(failingModel);
         retriever.meterRegistry  = ExpansionConfigValidatorTest.emptyInstance();
@@ -331,12 +331,13 @@ class QueryExpandingCaseRetrieverTest {
     @Test
     void driftDetectionUsesSingleBatchEmbedCall() {
         var embedCallCount = new int[]{0};
-        EmbeddingModel countingModel = segments -> {
-            embedCallCount[0]++;
-            List<Embedding> embeddings = segments.stream()
-                                                 .map(s -> Embedding.from(new float[]{1.0f, 0.0f, 0.0f}))
-                                                 .toList();
-            return Response.from(embeddings);
+        DenseEmbedder countingModel = new DenseEmbedder() {
+            @Override public float[] embed(String text) { return new float[]{1.0f, 0.0f, 0.0f}; }
+            @Override public List<float[]> embedBatch(List<String> texts) {
+                embedCallCount[0]++;
+                return texts.stream().map(t -> new float[]{1.0f, 0.0f, 0.0f}).toList();
+            }
+            @Override public int dimension() { return 3; }
         };
         CaseRetriever delegate = (query, corpus, maxResults, filter) ->
                                          List.of(chunk(query.searchText(), "doc", 0.9));
@@ -367,7 +368,7 @@ class QueryExpandingCaseRetrieverTest {
                 });
     }
 
-    private static class StubEmbeddingModel implements EmbeddingModel {
+    private static class StubEmbeddingModel implements DenseEmbedder {
         private final Map<String, float[]> vectors;
 
         StubEmbeddingModel(Map<String, float[]> vectors) {
@@ -375,15 +376,12 @@ class QueryExpandingCaseRetrieverTest {
         }
 
         @Override
-        public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
-            List<Embedding> embeddings = textSegments.stream()
-                                                     .map(s -> {
-                                                         float[] vec = vectors.getOrDefault(s.text(), new float[]{0.5f, 0.5f, 0.5f});
-                                                         return Embedding.from(vec);
-                                                     })
-                                                     .toList();
-            return Response.from(embeddings);
+        public float[] embed(String text) {
+            return vectors.getOrDefault(text, new float[]{0.5f, 0.5f, 0.5f});
         }
+
+        @Override
+        public int dimension() { return 3; }
     }
 
 

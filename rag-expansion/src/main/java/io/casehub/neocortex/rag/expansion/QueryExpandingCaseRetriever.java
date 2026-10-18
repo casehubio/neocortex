@@ -1,10 +1,8 @@
 package io.casehub.neocortex.rag.expansion;
 
 import io.casehub.neocortex.fusion.ScoreFusion;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.store.embedding.CosineSimilarity;
+import io.casehub.neocortex.inference.DenseEmbedder;
+import io.casehub.neocortex.inference.Embeddings;
 import io.casehub.neocortex.rag.CaseRetriever;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.PayloadFilter;
@@ -40,7 +38,7 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
     private final QueryExpander expander;
     @Inject
     @Any
-    Instance<EmbeddingModel> embeddingModel;
+    Instance<DenseEmbedder> embeddingModel;
 
     @Inject
     Instance<MeterRegistry> meterRegistry;
@@ -118,14 +116,14 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
                 return expanded;
             }
 
-            List<TextSegment> segments = new ArrayList<>(expandedOnly.size() + 1);
-            segments.add(TextSegment.from(original.text()));
+            List<String> texts = new ArrayList<>(expandedOnly.size() + 1);
+            texts.add(original.text());
             for (var q : expandedOnly) {
-                segments.add(TextSegment.from(q.searchText()));
+                texts.add(q.searchText());
             }
 
-            List<Embedding> embeddings        = embeddingModel.get().embedAll(segments).content();
-            Embedding       originalEmbedding = embeddings.get(0);
+            List<float[]> embeddings        = embeddingModel.get().embedBatch(texts);
+            float[]       originalEmbedding = embeddings.get(0);
 
             String                      mode  = config.mode().orElse("unknown");
             ExpansionConfig.DriftConfig drift = config.drift();
@@ -136,7 +134,7 @@ public class QueryExpandingCaseRetriever implements CaseRetriever {
 
             Set<RetrievalQuery> toDrop = new HashSet<>();
             for (int i = 0; i < expandedOnly.size(); i++) {
-                double    similarity = CosineSimilarity.between(originalEmbedding, embeddings.get(i + 1));
+                double    similarity = Embeddings.cosineSimilarity(originalEmbedding, embeddings.get(i + 1));
                 final int idx        = i;
 
                 LOG.fine(() -> String.format("Drift: similarity=%.4f threshold=%.4f query='%s'",

@@ -1,6 +1,6 @@
 package io.casehub.neocortex.examples.rag;
 
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.zip.FlatChangeSource;
 import io.casehub.neocortex.corpus.zip.FlatCorpusStore;
 import io.casehub.neocortex.rag.CaseRetriever;
@@ -58,7 +58,7 @@ class RagPipelineIT {
             "examples", CORPUS, changeSource, store, new YamlFrontmatterExtractor());
 
         var service = new CorpusIngestionService(ingestor, cursorStore);
-        service.processBinding(binding, DocumentSplitters.recursive(500, 50));
+        service.processBinding(binding, TextChunker.recursive(500, 50));
 
         assertThat(ingestor.listDocuments(CORPUS))
             .hasSize(CorpusTestSupport.documentCount());

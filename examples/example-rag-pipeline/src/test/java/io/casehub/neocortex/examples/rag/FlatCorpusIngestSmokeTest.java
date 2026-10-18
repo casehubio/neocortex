@@ -1,6 +1,6 @@
 package io.casehub.neocortex.examples.rag;
 
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.zip.FlatChangeSource;
 import io.casehub.neocortex.corpus.zip.FlatCorpusStore;
 import io.casehub.neocortex.rag.CorpusRef;
@@ -43,7 +43,7 @@ class FlatCorpusIngestSmokeTest {
             "examples", CORPUS, changeSource, store, new YamlFrontmatterExtractor());
 
         var service = new CorpusIngestionService(ingestor, cursorStore);
-        service.processBinding(binding, DocumentSplitters.recursive(500, 50));
+        service.processBinding(binding, TextChunker.recursive(500, 50));
 
         assertThat(ingestor.getChunks(CORPUS)).isNotEmpty();
         assertThat(ingestor.listDocuments(CORPUS)).hasSize(CorpusTestSupport.documentCount());
@@ -58,7 +58,7 @@ class FlatCorpusIngestSmokeTest {
             "examples", CORPUS, changeSource, store, new YamlFrontmatterExtractor());
 
         var service = new CorpusIngestionService(ingestor, cursorStore);
-        var splitter = DocumentSplitters.recursive(500, 50);
+        var splitter = TextChunker.recursive(500, 50);
 
         service.processBinding(binding, splitter);
         int firstRunChunks = ingestor.getChunks(CORPUS).size();
@@ -78,7 +78,7 @@ class FlatCorpusIngestSmokeTest {
             "examples", CORPUS, changeSource, store, new YamlFrontmatterExtractor());
 
         var service = new CorpusIngestionService(ingestor, cursorStore);
-        service.processBinding(binding, DocumentSplitters.recursive(500, 50));
+        service.processBinding(binding, TextChunker.recursive(500, 50));
 
         var chunks = ingestor.getChunks(CORPUS);
         var chunkWithMetadata = chunks.stream()

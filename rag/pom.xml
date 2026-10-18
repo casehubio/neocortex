@@ -61,11 +61,7 @@
       <artifactId>casehub-neocortex-corpus</artifactId>
     </dependency>
 
-    <!-- LangChain4j — TextSegment, DocumentSplitters -->
-    <dependency>
-      <groupId>dev.langchain4j</groupId>
-      <artifactId>langchain4j</artifactId>
-    </dependency>
+
 
     <!-- Quarkus scheduler — @Scheduled for polling loop -->
     <dependency>

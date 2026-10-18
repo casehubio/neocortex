@@ -1,7 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.memory.Memory;
 
 import java.util.Arrays;
@@ -12,11 +11,11 @@ import java.util.Set;
 
 class TextSimilarityCorroborator {
 
-    private final EmbeddingModel embeddingModel;
+    private final DenseEmbedder embeddingModel;
     private final double embeddingThreshold;
     private final double keywordThreshold;
 
-    TextSimilarityCorroborator(EmbeddingModel embeddingModel,
+    TextSimilarityCorroborator(DenseEmbedder embeddingModel,
                                double embeddingThreshold,
                                double keywordThreshold) {
         this.embeddingModel = embeddingModel;
@@ -35,14 +34,12 @@ class TextSimilarityCorroborator {
     }
 
     private int countByEmbedding(Memory target, List<Memory> candidates) {
-        float[] targetEmbedding = embeddingModel.embed(TextSegment.from(target.text()))
-                                                 .content().vector();
+        float[] targetEmbedding = embeddingModel.embed(target.text());
         int count = 0;
         for (Memory candidate : candidates) {
             if (candidate.memoryId().equals(target.memoryId())) continue;
             if (candidate.text() == null || candidate.text().isBlank()) continue;
-            float[] candidateEmbedding = embeddingModel.embed(TextSegment.from(candidate.text()))
-                                                        .content().vector();
+            float[] candidateEmbedding = embeddingModel.embed(candidate.text());
             double similarity = cosineSimilarity(targetEmbedding, candidateEmbedding);
             if (similarity >= embeddingThreshold) {
                 count++;

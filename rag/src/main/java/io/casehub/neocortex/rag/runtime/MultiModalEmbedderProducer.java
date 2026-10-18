@@ -1,6 +1,6 @@
 package io.casehub.neocortex.rag.runtime;
 
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.inference.MultiModalEmbedder;
 import io.casehub.neocortex.inference.splade.SparseEmbedder;
 import io.quarkus.arc.DefaultBean;
@@ -12,7 +12,7 @@ import jakarta.inject.Inject;
 
 /**
  * CDI producer for MultiModalEmbedder. Creates SeparateModelEmbedder by composing
- * EmbeddingModel (dense, required) and SparseEmbedder (sparse, optional).
+ * DenseEmbedder (dense, required) and SparseEmbedder (sparse, optional).
  * <p>
  * Displaced by higher-priority beans (e.g., native BGE-M3 producer) when present.
  */
@@ -27,11 +27,11 @@ public class MultiModalEmbedderProducer {
     @IfBuildProperty(name = "casehub.rag.embedder.enabled", stringValue = "true",
                      enableIfMissing = true)
     MultiModalEmbedder separateModelEmbedder(
-            Instance<EmbeddingModel> denseModel,
+            Instance<DenseEmbedder> denseModel,
             Instance<SparseEmbedder> sparseEmbedder) {
         if (denseModel.isUnsatisfied()) {
             throw new IllegalStateException(
-                "No EmbeddingModel available — provide a LangChain4j EmbeddingModel bean "
+                "No DenseEmbedder available — provide a DenseEmbedder bean "
                 + "or configure BGE-M3. Set casehub.rag.embedder.enabled=false to disable RAG.");
         }
         int maxSeqLen = config.maxSequenceLength().orElse(512);

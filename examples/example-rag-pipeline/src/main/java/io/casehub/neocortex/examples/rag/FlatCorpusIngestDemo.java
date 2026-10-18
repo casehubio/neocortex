@@ -1,7 +1,6 @@
 package io.casehub.neocortex.examples.rag;
 
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.zip.FlatChangeSource;
 import io.casehub.neocortex.corpus.zip.FlatCorpusStore;
 import io.casehub.neocortex.rag.CorpusRef;
@@ -27,7 +26,7 @@ public final class FlatCorpusIngestDemo {
         );
 
         var service = new CorpusIngestionService(ingestor, cursorStore);
-        DocumentSplitter splitter = DocumentSplitters.recursive(500, 50);
+        TextChunker splitter = TextChunker.recursive(500, 50);
 
         System.out.println("=== Initial Ingestion ===");
         service.processBinding(binding, splitter);

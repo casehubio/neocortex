@@ -1,9 +1,6 @@
 package io.casehub.neocortex.memory.cbr.qdrant;
 
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
@@ -158,30 +155,17 @@ class QdrantCbrDenseSearchTest {
      * Deterministic embedding model for testing. Maps known text strings to
      * fixed unit vectors so cosine similarity is predictable.
      */
-    static class DeterministicEmbeddingModel implements EmbeddingModel {
+    static class DeterministicEmbeddingModel implements DenseEmbedder {
         private static final Map<String, float[]> KNOWN_VECTORS = Map.of(
             "alpha", new float[]{1.0f, 0.0f, 0.0f, 0.0f},
-            "alpha-ish", new float[]{0.9f, 0.436f, 0.0f, 0.0f},  // cos(alpha, alpha-ish) ≈ 0.9
+            "alpha-ish", new float[]{0.9f, 0.436f, 0.0f, 0.0f},
             "beta", new float[]{0.0f, 1.0f, 0.0f, 0.0f},
             "gamma", new float[]{0.0f, 0.0f, 1.0f, 0.0f}
         );
 
         @Override
-        public Response<Embedding> embed(String text) {
-            return Response.from(Embedding.from(vectorFor(text)));
-        }
-
-        @Override
-        public Response<Embedding> embed(TextSegment segment) {
-            return embed(segment.text());
-        }
-
-        @Override
-        public Response<java.util.List<Embedding>> embedAll(java.util.List<TextSegment> segments) {
-            java.util.List<Embedding> embeddings = segments.stream()
-                .map(segment -> Embedding.from(vectorFor(segment.text())))
-                .toList();
-            return Response.from(embeddings);
+        public float[] embed(String text) {
+            return vectorFor(text);
         }
 
         @Override

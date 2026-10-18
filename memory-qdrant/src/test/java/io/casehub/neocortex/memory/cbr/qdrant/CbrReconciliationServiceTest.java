@@ -79,7 +79,7 @@ class CbrReconciliationServiceTest {
     @Test
     void reconcile_noDelegate_returnsNoOp() {
         var service = new CbrReconciliationService(collectionManager,
-            (dev.langchain4j.model.embedding.EmbeddingModel) null, config,
+            (io.casehub.neocortex.inference.DenseEmbedder) null, config,
             (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
         var result = service.reconcile("test-type", TENANT);
         assertThat(result.orphansRemoved()).isZero();
@@ -196,7 +196,7 @@ class CbrReconciliationServiceTest {
     @Test
     void discoverTenants_noDelegate_throwsIllegalState() {
         var noDelegate = new CbrReconciliationService(collectionManager,
-            (dev.langchain4j.model.embedding.EmbeddingModel) null, config,
+            (io.casehub.neocortex.inference.DenseEmbedder) null, config,
             (io.casehub.neocortex.memory.CaseMemoryStore) null, null);
         assertThatThrownBy(() -> noDelegate.discoverTenants("type"))
             .isInstanceOf(IllegalStateException.class);

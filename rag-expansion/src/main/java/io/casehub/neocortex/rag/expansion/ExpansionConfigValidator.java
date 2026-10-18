@@ -1,6 +1,6 @@
 package io.casehub.neocortex.rag.expansion;
 
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import io.casehub.neocortex.inference.DenseEmbedder;
 import io.quarkus.arc.properties.IfBuildProperty;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +22,7 @@ public class ExpansionConfigValidator {
 
     @Inject
     @Any
-    Instance<EmbeddingModel> embeddingModel;
+    Instance<DenseEmbedder> embeddingModel;
 
     void onStartup(@Observes StartupEvent event) {
         if (config.mode().isEmpty()) {
@@ -38,7 +38,7 @@ public class ExpansionConfigValidator {
                         "casehub.rag.expansion.drift.threshold must be in [0.0, 1.0], got " + drift.threshold());
             }
             if (!embeddingModel.isResolvable()) {
-                LOG.warning("Drift detection enabled but no EmbeddingModel available"
+                LOG.warning("Drift detection enabled but no DenseEmbedder available"
                             + " — drift detection will be inactive.");
             }
         }

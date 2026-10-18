@@ -2,7 +2,7 @@ package io.casehub.neocortex.memory.cbr.qdrant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.embedding.Embedding;
+import io.casehub.neocortex.inference.Embeddings;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
 import io.qdrant.client.PointIdFactory;
@@ -36,7 +36,7 @@ final class CbrPointBuilder {
     static PointStruct buildPoint(CbrRecord cbrRecord, String caseType,
                                   String entityId, String domainName,
                                   String tenantId, String caseId,
-                                  Embedding embedding, String denseVectorName) {
+                                  float[] embedding, String denseVectorName) {
         return buildPoint(cbrRecord, caseType, entityId, domainName, tenantId, caseId,
                           embedding, denseVectorName, null, null, null, null, null, "");
     }
@@ -44,7 +44,7 @@ final class CbrPointBuilder {
     static PointStruct buildPoint(CbrRecord cbrRecord, String caseType,
                                   String entityId, String domainName,
                                   String tenantId, String caseId,
-                                  Embedding embedding, String denseVectorName,
+                                  float[] embedding, String denseVectorName,
                                   Map<Integer, Float> sparseEmbedding, String sparseVectorName,
                                   String bm25Text, String bm25VectorName, String bm25Model,
                                   String scopeValue) {
@@ -116,7 +116,7 @@ final class CbrPointBuilder {
         // Build named vectors
         Map<String, Vector> namedVectors = new HashMap<>();
         if (embedding != null) {
-            namedVectors.put(denseVectorName, VectorFactory.vector(embedding.vectorAsList()));
+            namedVectors.put(denseVectorName, VectorFactory.vector(Embeddings.toFloatList(embedding)));
         } else {
             namedVectors.put(denseVectorName, VectorFactory.vector(List.of(0.0f)));
         }
