@@ -385,7 +385,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
             }
             visited.addAll(component);
 
-            if (component.size() >= 2) {
+            if (component.size() >= 3) {
                 String integrationText = composeIntegrationText(component, profiles);
                 String drivesStr       = component.stream().sorted().collect(Collectors.joining(","));
 
@@ -419,7 +419,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
         var sb = new StringBuilder();
         sb.append("How they work together:\n");
-        sb.append("These pulls are one movement. ");
+        sb.append("These pulls are one movement, not ").append(chainDrives.size()).append(". ");
 
         var memories = new ArrayList<String>();
         for (String dt : chainDrives) {
