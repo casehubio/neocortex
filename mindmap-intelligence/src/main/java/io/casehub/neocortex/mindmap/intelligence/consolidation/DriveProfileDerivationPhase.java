@@ -100,6 +100,12 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                                                     .filter(k -> !k.startsWith("null"))
                                                     .collect(Collectors.toSet());
 
+        Set<String> existingIntegrationKeys = allCognitive.stream()
+                                                        .filter(n -> n.traits().contains(INTEGRATION_TRAIT))
+                                                        .map(n -> n.properties().get("agent-id"))
+                                                        .filter(k -> k != null)
+                                                        .collect(Collectors.toSet());
+
         for (var agentEntry : drivesByAgent.entrySet()) {
             String            agentId    = agentEntry.getKey();
             List<MindMapNode> driveNodes = agentEntry.getValue();
@@ -121,29 +127,31 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                                                          })
                                                          .toList();
 
-            if (drivesToDerive.isEmpty()) {continue;}
-
             List<MindMapNode> agentMemories = formativeNodes.stream()
                                                             .filter(n -> agentId.equals(n.properties().get("agent-id")))
                                                             .toList();
 
-            if (agentMemories.isEmpty()) {continue;}
+            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
 
-            Map<String, DriveProfile> profiles   = deriveProfiles(drivesToDerive, driveNodes, agentMemories);
-            String                    subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) {continue;}
+            if (!drivesToDerive.isEmpty() && !agentMemories.isEmpty() && subgraphId != null) {
+                Map<String, DriveProfile> profiles = deriveProfiles(drivesToDerive, driveNodes, agentMemories);
+                storeProfiles(tenantId, agentId, subgraphId, profiles);
+                detectAndStoreCompetition(tenantId, agentId, subgraphId, profiles, agentMemories);
+                detectAndStoreIntegration(tenantId, agentId, subgraphId, profiles);
 
-            storeProfiles(tenantId, agentId, subgraphId, profiles);
-            detectAndStoreCompetition(tenantId, agentId, subgraphId, profiles, agentMemories);
-            detectAndStoreIntegration(tenantId, agentId, subgraphId, profiles);
-
-            if (!profiles.isEmpty()) {
-                var profileSummary = profiles.entrySet().stream()
-                                             .map(e -> e.getKey() + "(" + e.getValue().memoryExcerpts.size() + " memories)")
-                                             .collect(Collectors.joining(", "));
-                LOG.info("drive-profile-derivation [" + agentId + "]: " + profiles.size()
-                         + " profiles — " + profileSummary
-                         + (classifier != null ? " [CAPS active]" : " [catalogue fallback]"));
+                if (!profiles.isEmpty()) {
+                    var profileSummary = profiles.entrySet().stream()
+                                                 .map(e -> e.getKey() + "(" + e.getValue().memoryExcerpts.size() + " memories)")
+                                                 .collect(Collectors.joining(", "));
+                    LOG.info("drive-profile-derivation [" + agentId + "]: " + profiles.size()
+                             + " profiles — " + profileSummary
+                             + (classifier != null ? " [CAPS active]" : " [catalogue fallback]"));
+                }
+            } else if (!existingIntegrationKeys.contains(agentId) && subgraphId != null && driveNodes.size() >= 3) {
+                Map<String, DriveProfile> existingProfiles = loadExistingProfiles(allCognitive, agentId);
+                if (existingProfiles.size() >= 3) {
+                    detectAndStoreIntegration(tenantId, agentId, subgraphId, existingProfiles);
+                }
             }
         }
     }
@@ -508,6 +516,30 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 tenantId);
     }
 
+
+    private Map<String, DriveProfile> loadExistingProfiles(List<MindMapNode> allCognitive, String agentId) {
+        Map<String, DriveProfile> result = new HashMap<>();
+        allCognitive.stream()
+                    .filter(n -> (n.traits().contains(PROFILE_TRAIT) || n.traits().contains(PINNED_PROFILE_TRAIT)))
+                    .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                    .forEach(n -> {
+                        String driveType = n.properties().get("drive-type");
+                        String inputsStr = n.properties().get("inferred-inputs");
+                        if (driveType == null || inputsStr == null) {return;}
+                        Map<String, Double> inputs = new HashMap<>();
+                        for (String pair : inputsStr.split(",")) {
+                            String[] kv = pair.split(":");
+                            if (kv.length == 2) {
+                                try {
+                                    inputs.put(kv[0].trim(), Double.parseDouble(kv[1].trim()));
+                                } catch (NumberFormatException ignored) {}
+                            }
+                        }
+                        Set<String> mediating = topology != null ? traceToMediating(inputs.keySet()) : Set.of();
+                        result.put(driveType, new DriveProfile(driveType, inputs, mediating, List.of()));
+                    });
+        return result;
+    }
 
     private void removeExistingArtifacts(String tenantId, String agentId,
                                           List<MindMapNode> allCognitive) {

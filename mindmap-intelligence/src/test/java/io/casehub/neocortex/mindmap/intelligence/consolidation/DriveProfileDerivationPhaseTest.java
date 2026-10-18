@@ -223,6 +223,77 @@ class DriveProfileDerivationPhaseTest {
 
     // --- helpers ---
 
+
+    @Test
+    void detectsIntegrationChainFromThreeDrivesWithSharedMediating() {
+        // Use text the mock classifier recognises:
+        // knelt/stranger → acceptance+sharing → other_safety (2 paths)
+        // practised/grade → mastery+competence_recognition → self_efficacy+self_worth (3 paths)
+        // struggled/helped → acceptance+sharing → other_safety (2 paths)
+        // loyalty + protection both go through acceptance/sharing → other_safety
+        // suspicion goes through mastery/competence_recognition → self_efficacy + self_worth
+        // loyalty∩protection = {other_safety} = 1 — not enough
+        // Need 3 drives sharing ≥2 mediating. Use all memory types so each drive hits multiple mediating.
+        seedDriveNode("loyalty", 0.9);
+        seedDriveNode("protection", 0.8);
+        seedDriveNode("suspicion", 0.6);
+        // loyalty: knelt → acceptance,sharing → other_safety; ALSO practised → mastery,comp_recog → self_efficacy,self_worth
+        seedFormationMemory("Your father knelt to help the stranger", "loyalty", "other_safety");
+        seedFormationMemory("You practised the grade every night", "loyalty", "self_worth");
+        // protection: struggled → acceptance,sharing → other_safety; ALSO practised → self_efficacy,self_worth
+        seedFormationMemory("She struggled and you helped her through it", "protection", "other_safety");
+        seedFormationMemory("You practised until you earned the grade", "protection", "self_worth");
+        // suspicion: knelt → acceptance,sharing → other_safety; ALSO practised → self_efficacy,self_worth
+        seedFormationMemory("The stranger knelt but something was wrong", "suspicion", "self_efficacy");
+        seedFormationMemory("You practised reading people the hard way", "suspicion", "self_worth");
+
+        phase.run(TENANT, List.of());
+
+        var integrations = findIntegrationNodes();
+        // All 3 drives hit acceptance+sharing → other_safety AND mastery+comp_recog → self_efficacy+self_worth
+        // Each pair shares ≥2 mediating nodes → connected component of 3
+        assertThat(integrations).as("integration should be detected for drives sharing mediating nodes").isNotEmpty();
+        String drives = integrations.getFirst().property("drives").orElse("");
+        assertThat(drives).contains("loyalty");
+        assertThat(drives).contains("protection");
+        String text = integrations.getFirst().property("integration-text").orElse("");
+        assertThat(text).contains("How they work together");
+    }
+
+    @Test
+    void integrationDetectedFromExistingProfilesOnSecondRun() {
+        seedDriveNode("loyalty", 0.9);
+        seedDriveNode("protection", 0.8);
+        seedDriveNode("suspicion", 0.6);
+        seedFormationMemory("Your father knelt to help the stranger", "loyalty", "other_safety");
+        seedFormationMemory("You practised the grade every night", "loyalty", "self_worth");
+        seedFormationMemory("She struggled and you helped her through it", "protection", "other_safety");
+        seedFormationMemory("You practised until you earned the grade", "protection", "self_worth");
+        seedFormationMemory("The stranger knelt but something was wrong", "suspicion", "self_efficacy");
+        seedFormationMemory("You practised reading people the hard way", "suspicion", "self_worth");
+
+        // First run: derives profiles + competition + integration
+        phase.run(TENANT, List.of());
+        assertThat(findIntegrationNodes()).as("integration created on first run").isNotEmpty();
+
+        // Remove integration artifacts to simulate the pre-fix state
+        findIntegrationNodes().forEach(n -> store.eraseNode(n.id(), TENANT));
+        assertThat(findIntegrationNodes()).isEmpty();
+
+        // Second run: profiles already exist → fallback path should detect integration
+        phase.run(TENANT, List.of());
+
+        var integrations = findIntegrationNodes();
+        assertThat(integrations).as("integration should be detected from existing profiles").isNotEmpty();
+    }
+
+    private List<MindMapNode> findIntegrationNodes() {
+        return store.search(MindMapQuery.of(TENANT, 200).withType(SubgraphTypes.COGNITIVE))
+                    .stream()
+                    .filter(n -> n.traits().contains("DriveIntegrationInferred"))
+                    .toList();
+    }
+
     private void seedDriveNode(String driveType, double intensity) {
         store.addNode(
             NodeInput.of(driveType, cognitiveSubgraphId)
