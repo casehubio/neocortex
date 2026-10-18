@@ -44,6 +44,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     static final String PROFILE_TRAIT = "DriveProfileInferred";
     static final String PINNED_PROFILE_TRAIT = "DriveProfilePinned";
     static final String COMPETITION_TRAIT = "DriveCompetitionInferred";
+    static final String INTEGRATION_TRAIT = "DriveIntegrationInferred";
 
     private final MindMapStore store;
     private final SituationClassifier classifier;
@@ -134,6 +135,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             storeProfiles(tenantId, agentId, subgraphId, profiles);
             detectAndStoreCompetition(tenantId, agentId, subgraphId, profiles, agentMemories);
+            detectAndStoreIntegration(tenantId, agentId, subgraphId, profiles);
 
             if (!profiles.isEmpty()) {
                 var profileSummary = profiles.entrySet().stream()
@@ -334,6 +336,100 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
         }
     }
 
+    // Lindquist & Barrett (2008): emotional complexity = differentiation + integration.
+// Semerari et al. (2003) S6: drives relate as a coherent narrative.
+    private void detectAndStoreIntegration(String tenantId, String agentId,
+                                           String subgraphId,
+                                           Map<String, DriveProfile> profiles) {
+        if (profiles.size() < 3) {return;}
+
+        // Build adjacency: two drives are "connected" if they share mediating nodes
+        List<String>             driveTypes = new ArrayList<>(profiles.keySet());
+        Map<String, Set<String>> adjacency  = new HashMap<>();
+        for (String dt : driveTypes) {adjacency.put(dt, new HashSet<>());}
+
+        for (int i = 0; i < driveTypes.size(); i++) {
+            for (int j = i + 1; j < driveTypes.size(); j++) {
+                DriveProfile a      = profiles.get(driveTypes.get(i));
+                DriveProfile b      = profiles.get(driveTypes.get(j));
+                Set<String>  shared = new HashSet<>(a.mediatingNodes);
+                shared.retainAll(b.mediatingNodes);
+                if (shared.size() >= 2) {
+                    adjacency.get(driveTypes.get(i)).add(driveTypes.get(j));
+                    adjacency.get(driveTypes.get(j)).add(driveTypes.get(i));
+                }
+            }
+        }
+
+        // Find connected components of size 3+ — these are integrated chains
+        Set<String> visited = new HashSet<>();
+        for (String dt : driveTypes) {
+            if (visited.contains(dt)) {continue;}
+            Set<String> component = new HashSet<>();
+            var         queue     = new ArrayList<String>();
+            queue.add(dt);
+            while (!queue.isEmpty()) {
+                String current = queue.removeFirst();
+                if (!component.add(current)) {continue;}
+                for (String neighbor : adjacency.get(current)) {
+                    if (!component.contains(neighbor)) {queue.add(neighbor);}
+                }
+            }
+            visited.addAll(component);
+
+            if (component.size() >= 3) {
+                String integrationText = composeIntegrationText(component, profiles);
+                String drivesStr       = component.stream().sorted().collect(Collectors.joining(","));
+
+                store.addNode(
+                        NodeInput.of("integration-" + drivesStr.replace(",", "-"), subgraphId)
+                                 .withTraits(Set.of(INTEGRATION_TRAIT))
+                                 .withProperties(Map.of(
+                                         "agent-id", agentId,
+                                         "drives", drivesStr,
+                                         "integration-text", integrationText)),
+                        tenantId);
+
+                LOG.info("drive-integration [" + agentId + "]: chain=" + drivesStr);
+            }
+        }
+    }
+
+    private String composeIntegrationText(Set<String> chainDrives,
+                                          Map<String, DriveProfile> profiles) {
+        // Find the shared mediating nodes across the chain
+        Set<String> commonMediating = null;
+        for (String dt : chainDrives) {
+            DriveProfile p = profiles.get(dt);
+            if (p == null) {continue;}
+            if (commonMediating == null) {
+                commonMediating = new HashSet<>(p.mediatingNodes);
+            } else {
+                commonMediating.retainAll(p.mediatingNodes);
+            }
+        }
+
+        var sb = new StringBuilder();
+        sb.append("How they work together:\n");
+        sb.append("These pulls are one movement, not ").append(chainDrives.size()).append(". ");
+
+        var memories = new ArrayList<String>();
+        for (String dt : chainDrives) {
+            DriveProfile p = profiles.get(dt);
+            if (p != null && !p.memoryExcerpts.isEmpty()) {
+                memories.add(p.memoryExcerpts.getFirst());
+            }
+        }
+        if (memories.size() >= 2) {
+            sb.append("They trace through the same ground — ");
+            sb.append(String.join(", ", memories));
+            sb.append(". ");
+        }
+        sb.append("When they all pull at once, that's not confusion — that's the full weight of what you are.");
+        return sb.toString();
+    }
+
+
     private Set<String> catalogueEntries(List<MindMapNode> memories, String driveType) {
         return memories.stream()
                        .filter(m -> memoryServesDrive(m, driveType))
@@ -416,7 +512,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     private void removeExistingArtifacts(String tenantId, String agentId,
                                           List<MindMapNode> allCognitive) {
         allCognitive.stream()
-            .filter(n -> n.traits().contains(PROFILE_TRAIT) || n.traits().contains(COMPETITION_TRAIT))
+            .filter(n -> n.traits().contains(PROFILE_TRAIT) || n.traits().contains(COMPETITION_TRAIT) || n.traits().contains(INTEGRATION_TRAIT))
             .filter(n -> agentId.equals(n.properties().get("agent-id")))
             .forEach(n -> store.eraseNode(n.id(), tenantId));
     }
