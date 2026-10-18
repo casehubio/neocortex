@@ -1,11 +1,13 @@
 package io.casehub.neocortex.rag.expansion;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentInvocationResult;
+import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSessionInit;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentEvent;
 import io.casehub.neocortex.rag.RetrievalQuery;
+import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -22,12 +24,12 @@ class LlmQueryExpanderTest {
     @Test
     void expandCallsChatModelWithDefaultPrompt() {
         var capturedPrompt = new String[1];
-        ChatModel mockModel = stubChatModel(prompt -> {
+        AgentProvider mockProvider = stubAgentProvider(prompt -> {
             capturedPrompt[0] = prompt;
             return "Diabetes is a chronic condition characterized by elevated blood sugar.";
         });
 
-        var expander = new LlmQueryExpander(mockModel, stubConfig(Optional.empty()));
+        var expander = new LlmQueryExpander(mockProvider, stubConfig(Optional.empty()));
         var results = expander.expand(RetrievalQuery.of("what is diabetes?"));
 
         assertThat(results).hasSize(1);
@@ -35,14 +37,13 @@ class LlmQueryExpanderTest {
         assertThat(result.text()).isEqualTo("what is diabetes?");
         assertThat(result.expandedText()).isEqualTo(
             "Diabetes is a chronic condition characterized by elevated blood sugar.");
-        assertThat(capturedPrompt[0]).contains("what is diabetes?");
-        assertThat(capturedPrompt[0]).contains("write a short passage");
+        assertThat(capturedPrompt[0]).isEqualTo("what is diabetes?");
     }
 
     @Test
     void expandUsesCustomPromptTemplate() {
-        ChatModel mockModel = stubChatModel(prompt -> "custom response");
-        var expander = new LlmQueryExpander(mockModel,
+        AgentProvider mockProvider = stubAgentProvider(prompt -> "custom response");
+        var expander = new LlmQueryExpander(mockProvider,
             stubConfig(Optional.of("Custom: %s")));
         var results = expander.expand(RetrievalQuery.of("test query"));
 
@@ -52,8 +53,8 @@ class LlmQueryExpanderTest {
 
     @Test
     void expandPreservesOriginalText() {
-        ChatModel mockModel = stubChatModel(prompt -> "hypothetical passage");
-        var expander = new LlmQueryExpander(mockModel, stubConfig(Optional.empty()));
+        AgentProvider mockProvider = stubAgentProvider(prompt -> "hypothetical passage");
+        var expander = new LlmQueryExpander(mockProvider, stubConfig(Optional.empty()));
 
         var query = RetrievalQuery.of("my question");
         var results = expander.expand(query);
@@ -64,19 +65,18 @@ class LlmQueryExpanderTest {
         assertThat(result.searchText()).isEqualTo("hypothetical passage");
     }
 
-    /**
-     * Creates a ChatModel stub that intercepts via doChat,
-     * extracts the user message text, and delegates to the handler.
-     */
-    private static ChatModel stubChatModel(Function<String, String> handler) {
-        return new ChatModel() {
-            @Override
-            public ChatResponse doChat(ChatRequest request) {
-                String userText = ((UserMessage) request.messages().get(0)).singleText();
-                String response = handler.apply(userText);
-                return ChatResponse.builder()
-                    .aiMessage(AiMessage.from(response))
-                    .build();
+    private static AgentProvider stubAgentProvider(Function<String, String> handler) {
+        return new AgentProvider() {
+            @Override public Multi<AgentEvent> invoke(AgentSessionConfig config) {
+                String response = handler.apply(config.userPrompt());
+                return Multi.createFrom().items(new AgentEvent.TextDelta(response));
+            }
+            @Override public AgentSession openSession(AgentSessionInit init) {
+                throw new UnsupportedOperationException();
+            }
+            @Override public AgentInvocationResult invokeBlocking(String systemPrompt, String userPrompt, java.time.Duration timeout) {
+                String response = handler.apply(userPrompt);
+                return new AgentInvocationResult(response, 0, 0, 0, 0, 0, null, 0L, null, null);
             }
         };
     }
@@ -84,8 +84,8 @@ class LlmQueryExpanderTest {
     @Test
     void expandReturnsMultipleHypotheticals() {
         var callCount = new AtomicInteger();
-        ChatModel model = stubChatModel(prompt -> "hypothetical " + callCount.incrementAndGet());
-        var expander = new LlmQueryExpander(model, stubConfig(Optional.empty(), 3));
+        AgentProvider provider = stubAgentProvider(prompt -> "hypothetical " + callCount.incrementAndGet());
+        var expander = new LlmQueryExpander(provider, stubConfig(Optional.empty(), 3));
         var result = expander.expand(RetrievalQuery.of("test query"));
 
         assertThat(result).hasSize(3);
@@ -99,8 +99,8 @@ class LlmQueryExpanderTest {
 
     @Test
     void expandDefaultCountIsOne() {
-        ChatModel model = stubChatModel(prompt -> "single hypothetical");
-        var expander = new LlmQueryExpander(model, stubConfig(Optional.empty(), 1));
+        AgentProvider provider = stubAgentProvider(prompt -> "single hypothetical");
+        var expander = new LlmQueryExpander(provider, stubConfig(Optional.empty(), 1));
         var result = expander.expand(RetrievalQuery.of("test"));
 
         assertThat(result).hasSize(1);
@@ -113,7 +113,7 @@ class LlmQueryExpanderTest {
         var allStarted = new CountDownLatch(n);
         var proceed = new CountDownLatch(1);
 
-        ChatModel model = stubChatModel(prompt -> {
+        AgentProvider provider = stubAgentProvider(prompt -> {
             allStarted.countDown();
             try {
                 proceed.await(5, TimeUnit.SECONDS);
@@ -123,7 +123,7 @@ class LlmQueryExpanderTest {
             return "hypothetical";
         });
 
-        var expander = new LlmQueryExpander(model, stubConfig(Optional.empty(), n));
+        var expander = new LlmQueryExpander(provider, stubConfig(Optional.empty(), n));
 
         var future = CompletableFuture.supplyAsync(() ->
             expander.expand(RetrievalQuery.of("test")));

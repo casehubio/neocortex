@@ -30,10 +30,9 @@
       <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-inference-api</artifactId>
     </dependency>
-    <!-- ChatModel still used by LlmQueryExpander/StepBackQueryExpander — blocked by platform#637 -->
     <dependency>
-      <groupId>dev.langchain4j</groupId>
-      <artifactId>langchain4j-core</artifactId>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-platform-agent-api</artifactId>
     </dependency>
 
     <dependency>

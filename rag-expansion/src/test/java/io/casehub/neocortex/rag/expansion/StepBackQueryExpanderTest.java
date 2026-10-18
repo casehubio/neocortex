@@ -1,10 +1,12 @@
 package io.casehub.neocortex.rag.expansion;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
+import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentInvocationResult;
+import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSessionInit;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentEvent;
+import io.smallrye.mutiny.Multi;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import org.junit.jupiter.api.Test;
 
@@ -17,8 +19,8 @@ class StepBackQueryExpanderTest {
 
     @Test
     void expandReturnsOriginalAndAbstract() {
-        ChatModel model = stubChatModel(prompt -> "What are NSAIDs?");
-        var expander = new StepBackQueryExpander(model, stubConfig(Optional.empty()));
+        AgentProvider provider = stubAgentProvider(prompt -> "What are NSAIDs?");
+        var expander = new StepBackQueryExpander(provider, stubConfig(Optional.empty()));
         var result = expander.expand(RetrievalQuery.of("side effects of ibuprofen for liver patients"));
 
         assertThat(result).hasSize(2);
@@ -30,21 +32,20 @@ class StepBackQueryExpanderTest {
     @Test
     void expandUsesDefaultPromptTemplate() {
         var capturedPrompt = new String[1];
-        ChatModel model = stubChatModel(prompt -> {
+        AgentProvider provider = stubAgentProvider(prompt -> {
             capturedPrompt[0] = prompt;
             return "abstract question";
         });
-        var expander = new StepBackQueryExpander(model, stubConfig(Optional.empty()));
+        var expander = new StepBackQueryExpander(provider, stubConfig(Optional.empty()));
         expander.expand(RetrievalQuery.of("test query"));
 
-        assertThat(capturedPrompt[0]).contains("test query");
-        assertThat(capturedPrompt[0]).contains("more general, abstract version");
+        assertThat(capturedPrompt[0]).isEqualTo("test query");
     }
 
     @Test
     void expandUsesCustomPromptTemplate() {
-        ChatModel model = stubChatModel(prompt -> "custom abstract");
-        var expander = new StepBackQueryExpander(model,
+        AgentProvider provider = stubAgentProvider(prompt -> "custom abstract");
+        var expander = new StepBackQueryExpander(provider,
             stubConfig(Optional.of("Step back from: %s")));
         var result = expander.expand(RetrievalQuery.of("specific question"));
 
@@ -54,8 +55,8 @@ class StepBackQueryExpanderTest {
 
     @Test
     void expandPreservesOriginalExpansion() {
-        ChatModel model = stubChatModel(prompt -> "abstract");
-        var expander = new StepBackQueryExpander(model, stubConfig(Optional.empty()));
+        AgentProvider provider = stubAgentProvider(prompt -> "abstract");
+        var expander = new StepBackQueryExpander(provider, stubConfig(Optional.empty()));
         var query = new RetrievalQuery("original", "prior expansion", java.util.Map.of());
         var result = expander.expand(query);
 
@@ -64,15 +65,18 @@ class StepBackQueryExpanderTest {
         assertThat(result.get(1).text()).isEqualTo("abstract");
     }
 
-    private static ChatModel stubChatModel(Function<String, String> handler) {
-        return new ChatModel() {
-            @Override
-            public ChatResponse doChat(ChatRequest request) {
-                String userText = ((UserMessage) request.messages().get(0)).singleText();
-                String response = handler.apply(userText);
-                return ChatResponse.builder()
-                    .aiMessage(AiMessage.from(response))
-                    .build();
+    private static AgentProvider stubAgentProvider(Function<String, String> handler) {
+        return new AgentProvider() {
+            @Override public Multi<AgentEvent> invoke(AgentSessionConfig config) {
+                String response = handler.apply(config.userPrompt());
+                return Multi.createFrom().items(new AgentEvent.TextDelta(response));
+            }
+            @Override public AgentSession openSession(AgentSessionInit init) {
+                throw new UnsupportedOperationException();
+            }
+            @Override public AgentInvocationResult invokeBlocking(String systemPrompt, String userPrompt, java.time.Duration timeout) {
+                String response = handler.apply(userPrompt);
+                return new AgentInvocationResult(response, 0, 0, 0, 0, 0, null, 0L, null, null);
             }
         };
     }

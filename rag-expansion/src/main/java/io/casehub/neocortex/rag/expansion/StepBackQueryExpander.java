@@ -1,39 +1,43 @@
 package io.casehub.neocortex.rag.expansion;
 
-import dev.langchain4j.model.chat.ChatModel;
+import io.casehub.platform.agent.AgentProvider;
 import io.casehub.neocortex.rag.QueryExpander;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.time.Duration;
 import java.util.List;
 
 @ApplicationScoped
 @IfBuildProperty(name = "casehub.rag.expansion.mode", stringValue = "step-back")
 public class StepBackQueryExpander implements QueryExpander {
 
-    static final String DEFAULT_PROMPT =
-        "Given the question below, generate a more general, abstract version "
+    private static final Duration TIMEOUT = Duration.ofMinutes(1);
+
+    static final String DEFAULT_SYSTEM_PROMPT =
+        "Generate a more general, abstract version of the user's question "
         + "that captures the underlying concept. The step-back question should "
         + "be broader and help retrieve foundational knowledge. "
-        + "Return only the step-back question, nothing else.\n\n"
-        + "Original question: %s\n\nStep-back question:";
+        + "Return only the step-back question, nothing else.";
 
-    private final ChatModel chatModel;
+    private final AgentProvider agentProvider;
     private final ExpansionConfig config;
 
     @Inject
-    public StepBackQueryExpander(ChatModel chatModel, ExpansionConfig config) {
-        this.chatModel = chatModel;
+    public StepBackQueryExpander(AgentProvider agentProvider, ExpansionConfig config) {
+        this.agentProvider = agentProvider;
         this.config = config;
     }
 
     @Override
     public List<RetrievalQuery> expand(RetrievalQuery query) {
-        String prompt = config.stepBackPromptTemplate().orElse(DEFAULT_PROMPT)
-            .formatted(query.text());
-        String stepBack = chatModel.chat(prompt);
+        String systemPrompt = config.stepBackPromptTemplate()
+                .map(t -> t.contains("%s") ? t.formatted("the user's question") : t)
+                .orElse(DEFAULT_SYSTEM_PROMPT);
+        String stepBack = agentProvider.invokeBlocking(
+                systemPrompt, query.text(), TIMEOUT).text();
         return List.of(
             query,
             RetrievalQuery.of(stepBack)
