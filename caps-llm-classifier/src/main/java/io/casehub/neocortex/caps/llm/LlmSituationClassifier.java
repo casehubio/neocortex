@@ -36,8 +36,11 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final AgentProvider agentProvider;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
+    private static final long IDLE_TIMEOUT_MS = 5_000;
+
     private final Set<String> validNodeIds;
     private volatile AgentSession session;
+    private volatile long lastQueryTime;
 
     @Inject
     public LlmSituationClassifier(Instance<AgentProvider> agentProviderInstance,
@@ -74,11 +77,18 @@ public synchronized List<SituationActivation> classify(String description,
         return List.of();
     }
 
+    if (session != null && System.currentTimeMillis() - lastQueryTime > IDLE_TIMEOUT_MS) {
+        LOG.info("Classifier session idle for " + IDLE_TIMEOUT_MS + "ms — releasing");
+        try { session.close(); } catch (Exception e) { /* ignore */ }
+        session = null;
+    }
+
     if (session == null) {
         session = agentProvider.openSession(
             AgentSessionInit.of(systemPrompt).withModel("haiku"));
     }
 
+    lastQueryTime = System.currentTimeMillis();
     String userPrompt = buildUserPrompt(description, metadata);
 
     try {
