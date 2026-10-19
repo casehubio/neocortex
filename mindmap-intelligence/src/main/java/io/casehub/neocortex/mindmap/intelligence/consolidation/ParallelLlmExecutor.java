@@ -19,21 +19,28 @@ final class ParallelLlmExecutor {
     private static final int DEFAULT_CONCURRENCY = 6;
     private static final int DEFAULT_CLEAR_THRESHOLD_TOKENS = 50_000;
 
-    static void execute(AgentProvider provider, String systemPrompt,
-                        List<Consumer<AgentSession>> tasks) {
-        execute(provider, systemPrompt, DEFAULT_CONCURRENCY, tasks);
+    static SessionMetrics execute(AgentProvider provider, String systemPrompt,
+                                   String phaseName, List<Consumer<AgentSession>> tasks) {
+        return execute(provider, systemPrompt, phaseName, DEFAULT_CONCURRENCY, tasks);
     }
 
-    static void execute(AgentProvider provider, String systemPrompt,
-                        int concurrency, List<Consumer<AgentSession>> tasks) {
-        if (tasks.isEmpty()) return;
+    static SessionMetrics execute(AgentProvider provider, String systemPrompt,
+                                   String phaseName, int concurrency,
+                                   List<Consumer<AgentSession>> tasks) {
+        var metrics = new SessionMetrics(phaseName);
+        if (tasks.isEmpty()) return metrics;
         int poolSize = Math.min(concurrency, tasks.size());
+
+        LOG.info("[" + phaseName + "] starting " + tasks.size() + " tasks with " + poolSize + " sessions");
+        long startTime = System.currentTimeMillis();
 
         var sessionPool = new ArrayBlockingQueue<AgentSession>(poolSize);
         for (int i = 0; i < poolSize; i++) {
             sessionPool.add(new SizeAwareSession(
                 provider.openSession(AgentSessionInit.of(systemPrompt)),
-                DEFAULT_CLEAR_THRESHOLD_TOKENS));
+                DEFAULT_CLEAR_THRESHOLD_TOKENS,
+                phaseName + "-" + i,
+                metrics));
         }
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -69,5 +76,8 @@ final class ParallelLlmExecutor {
         for (var session : sessionPool) {
             try { session.close(); } catch (Exception e) { /* ignore */ }
         }
+
+        metrics.executionCompleted(System.currentTimeMillis() - startTime);
+        return metrics;
     }
 }

@@ -165,7 +165,7 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
             }
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, tasks);
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "self-standard-derivation", tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
