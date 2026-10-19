@@ -36,7 +36,7 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final AgentProvider agentProvider;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
-    private static final long IDLE_TIMEOUT_MS = 5_000;
+    private static final long IDLE_TIMEOUT_MS = 60_000;
 
     private final Set<String> validNodeIds;
     private volatile AgentSession session;
