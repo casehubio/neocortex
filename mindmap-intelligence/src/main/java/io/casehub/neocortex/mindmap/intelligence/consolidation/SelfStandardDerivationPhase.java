@@ -223,7 +223,6 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
                .filter(e -> e instanceof AgentEvent.TextDelta)
                .map(e -> ((AgentEvent.TextDelta) e).text())
                .forEach(responseText::append);
-        session.clear();
 
         return parseSelfStandard(responseText.toString());
     }

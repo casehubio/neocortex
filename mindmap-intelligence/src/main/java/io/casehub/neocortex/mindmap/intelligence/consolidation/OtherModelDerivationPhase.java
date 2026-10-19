@@ -232,7 +232,6 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
                .filter(e -> e instanceof AgentEvent.TextDelta)
                .map(e -> ((AgentEvent.TextDelta) e).text())
                .forEach(responseText::append);
-        session.clear();
 
         return parseModel(responseText.toString());
     }

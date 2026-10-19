@@ -84,7 +84,6 @@ public class LlmSituationClassifier implements SituationClassifier {
             var events = session.query(userPrompt)
                                 .collect().asList()
                                 .await().atMost(TIMEOUT.plusSeconds(5));
-            session.clear();
 
             String text = events.stream()
                                 .filter(AgentEvent.TextDelta.class::isInstance)
