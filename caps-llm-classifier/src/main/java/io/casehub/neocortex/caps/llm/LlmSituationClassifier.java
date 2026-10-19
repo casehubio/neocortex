@@ -9,8 +9,11 @@ import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentSessionInit;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
@@ -34,6 +37,7 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
     private final Set<String> validNodeIds;
+    private volatile AgentSession session;
 
     @Inject
     public LlmSituationClassifier(Instance<AgentProvider> agentProviderInstance,
@@ -64,32 +68,55 @@ public class LlmSituationClassifier implements SituationClassifier {
     }
 
     @Override
-    public List<SituationActivation> classify(String description,
-                                               Map<String, String> metadata) {
-        if (agentProvider == null || description == null || description.isBlank()) {
-            return List.of();
-        }
+public synchronized List<SituationActivation> classify(String description,
+                                                        Map<String, String> metadata) {
+    if (agentProvider == null || description == null || description.isBlank()) {
+        return List.of();
+    }
 
-        String userPrompt = buildUserPrompt(description, metadata);
+    if (session == null) {
+        session = agentProvider.openSession(
+            AgentSessionInit.of(systemPrompt).withModel("haiku"));
+    }
 
-        try {
-            var config = AgentSessionConfig.of(systemPrompt, userPrompt, TIMEOUT)
-                    .withModel("haiku");
-            var events = agentProvider.invoke(config)
-                .collect().asList()
-                .await().atMost(TIMEOUT.plusSeconds(5));
+    String userPrompt = buildUserPrompt(description, metadata);
 
-            String text = events.stream()
-                                .filter(AgentEvent.TextDelta.class::isInstance)
-                                .map(AgentEvent.TextDelta.class::cast)
-                                .map(AgentEvent.TextDelta::text)
-                                .collect(Collectors.joining());
+    try {
+        var events = session.query(userPrompt)
+            .collect().asList()
+            .await().atMost(TIMEOUT.plusSeconds(5));
 
-            return parseResponse(text);
-        } catch (Exception e) {
-            throw new ClassificationException(
-                    "LLM situation classification failed for: " +
-                    description.substring(0, Math.min(80, description.length())), e);
+        String text = events.stream()
+            .filter(AgentEvent.TextDelta.class::isInstance)
+            .map(AgentEvent.TextDelta.class::cast)
+            .map(AgentEvent.TextDelta::text)
+            .collect(Collectors.joining());
+
+        return parseResponse(text);
+    } catch (Exception e) {
+        throw new ClassificationException(
+            "LLM situation classification failed for: " +
+            description.substring(0, Math.min(80, description.length())), e);
+    }
+}
+
+
+    void onConsolidationCompleted(@Observes io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationCompleted event) {
+        releaseSession();
+    }
+
+
+    @PreDestroy
+    void shutdown() {
+        releaseSession();
+    }
+
+
+    synchronized void releaseSession() {
+        if (session != null) {
+            LOG.info("Releasing classifier session");
+            try {session.close();} catch (Exception e) { /* ignore */ }
+            session = null;
         }
     }
 
