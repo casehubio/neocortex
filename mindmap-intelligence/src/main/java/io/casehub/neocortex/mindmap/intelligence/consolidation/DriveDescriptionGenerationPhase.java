@@ -230,7 +230,6 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                .filter(e -> e instanceof AgentEvent.TextDelta)
                .map(e -> ((AgentEvent.TextDelta) e).text())
                .forEach(responseText::append);
-        session.clear();
 
         return parseDescription(responseText.toString());
     }
@@ -300,7 +299,6 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                .filter(e -> e instanceof AgentEvent.TextDelta)
                .map(e -> ((AgentEvent.TextDelta) e).text())
                .forEach(responseText::append);
-        session.clear();
 
         return parseField(responseText.toString(), "discrimination");
     }
