@@ -138,10 +138,9 @@ class LlmSituationClassifierTest {
         return new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                return Multi.createFrom().items(
-                    (AgentEvent) new AgentEvent.TextDelta(response),
-                    new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false));
+                throw new UnsupportedOperationException();
             }
+
             @Override
             public io.casehub.platform.agent.AgentSession openSession(
                     io.casehub.platform.agent.AgentSessionInit init) {
