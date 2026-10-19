@@ -176,7 +176,7 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
             }
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, tasks);
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "other-model-derivation", tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String targetId,

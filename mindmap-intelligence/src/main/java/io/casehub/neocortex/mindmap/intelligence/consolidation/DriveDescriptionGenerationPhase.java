@@ -175,8 +175,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             });
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, descTasks);
-        ParallelLlmExecutor.execute(agentProvider, DISCRIMINATION_SYSTEM, discTasks);
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "drive-description", descTasks);
+        ParallelLlmExecutor.execute(agentProvider, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,

@@ -155,7 +155,7 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
             }
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, tasks);
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "priority-signature-derivation", tasks);
     }
 
     private List<String[]> generatePairs(List<MindMapNode> driveNodes) {
