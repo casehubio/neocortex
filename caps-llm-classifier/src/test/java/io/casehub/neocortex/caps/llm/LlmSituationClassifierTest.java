@@ -1,6 +1,11 @@
 package io.casehub.neocortex.caps.llm;
 
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.CapsNode;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.NodeRange;
+import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.SituationActivation;
+import io.casehub.neocortex.caps.WeightUpdateParameters;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
@@ -133,14 +138,28 @@ class LlmSituationClassifierTest {
         return new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                return Multi.createFrom().items(
-                    (AgentEvent) new AgentEvent.TextDelta(response),
-                    new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false, null, null));
+                throw new UnsupportedOperationException();
             }
+
             @Override
             public io.casehub.platform.agent.AgentSession openSession(
                     io.casehub.platform.agent.AgentSessionInit init) {
-                throw new UnsupportedOperationException();
+                return new io.casehub.platform.agent.AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String userPrompt) {
+                        return Multi.createFrom().items(
+                                (AgentEvent) new AgentEvent.TextDelta(response),
+                                new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false, null, null));
+                    }
+
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {
+                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                    }
+
+                    @Override
+                    public void close(java.time.Duration timeout) {}
+                };
             }
         };
     }

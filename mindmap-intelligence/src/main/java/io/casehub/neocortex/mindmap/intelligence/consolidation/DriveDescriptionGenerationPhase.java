@@ -8,7 +8,8 @@ import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -84,12 +85,12 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
 
         List<MindMapNode> allCognitive = store.search(
-            MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
 
         Map<String, List<MindMapNode>> drivesByAgent = allCognitive.stream()
-            .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
-            .filter(n -> n.properties().containsKey("agent-id"))
-            .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
+                                                                   .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
+                                                                   .filter(n -> n.properties().containsKey("agent-id"))
+                                                                   .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
 
         if (drivesByAgent.isEmpty()) {
             LOG.info("Drive description generation skipped — no drive-intensity nodes found in " + allCognitive.size() + " cognitive nodes");
@@ -97,102 +98,105 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
 
         List<MindMapNode> formativeNodes = allCognitive.stream()
-            .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
-            .toList();
+                                                       .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
+                                                       .toList();
 
         var kindCounts = allCognitive.stream()
-            .map(n -> n.properties().getOrDefault("cognitiveKind", "none"))
-            .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
+                                     .map(n -> n.properties().getOrDefault("cognitiveKind", "none"))
+                                     .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
         LOG.info("Drive description generation: " + drivesByAgent.size() + " agents, "
-            + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
-            + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
+                 + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
+                 + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
 
-        int agentIndex = 0;
-        int totalAgents = drivesByAgent.size();
-        for (var agentEntry : drivesByAgent.entrySet()) {
-            agentIndex++;
-            String agentId = agentEntry.getKey();
-            List<MindMapNode> driveNodes = agentEntry.getValue();
+        try (AgentSession descSession = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT));
+             AgentSession discSession = agentProvider.openSession(AgentSessionInit.of(DISCRIMINATION_SYSTEM))) {
+            int agentIndex  = 0;
+            int totalAgents = drivesByAgent.size();
+            for (var agentEntry : drivesByAgent.entrySet()) {
+                agentIndex++;
+                String            agentId    = agentEntry.getKey();
+                List<MindMapNode> driveNodes = agentEntry.getValue();
 
-            Set<String> describedDriveTypes = allCognitive.stream()
-                .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .map(n -> n.properties().get("drive-type"))
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toSet());
+                Set<String> describedDriveTypes = allCognitive.stream()
+                                                              .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
+                                                              .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                              .map(n -> n.properties().get("drive-type"))
+                                                              .filter(java.util.Objects::nonNull)
+                                                              .collect(Collectors.toSet());
 
-            Set<String> currentDriveTypes = driveNodes.stream()
-                .map(n -> n.properties().get("drive-type"))
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toSet());
+                Set<String> currentDriveTypes = driveNodes.stream()
+                                                          .map(n -> n.properties().get("drive-type"))
+                                                          .filter(java.util.Objects::nonNull)
+                                                          .collect(Collectors.toSet());
 
-            if (describedDriveTypes.containsAll(currentDriveTypes)) {
+                if (describedDriveTypes.containsAll(currentDriveTypes)) {
+                    LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
+                             + agentId + " skipped — descriptions already exist");
+                    continue;
+                }
+
+                List<MindMapNode> agentMemories = formativeNodes.stream()
+                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                                .toList();
+
+                if (agentMemories.isEmpty()) {continue;}
+
                 LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
-                    + agentId + " skipped — descriptions already exist");
-                continue;
+                         + agentId + " (" + driveNodes.size() + " drives, "
+                         + agentMemories.size() + " memories)");
+
+                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+                if (subgraphId == null) {continue;}
+
+                for (MindMapNode driveNode : driveNodes) {
+                    String driveType = driveNode.properties().get("drive-type");
+                    if (driveType == null || describedDriveTypes.contains(driveType)) {continue;}
+
+                    List<MindMapNode> servingMemories = agentMemories.stream()
+                                                                     .filter(m -> memoryServesDrive(m, driveType))
+                                                                     .toList();
+
+                    String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
+
+                    long start = System.currentTimeMillis();
+                    generateAndStore(descSession, tenantId, agentId, subgraphId,
+                                     driveType, intensity, servingMemories);
+                    LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
+                             + " memories, " + (System.currentTimeMillis() - start) + "ms)");
+                }
+
+                long discStart = System.currentTimeMillis();
+                generateDiscriminationText(discSession, tenantId, agentId, allCognitive);
+                LOG.info("  " + agentId + " discrimination: "
+                         + (System.currentTimeMillis() - discStart) + "ms");
             }
-
-            List<MindMapNode> agentMemories = formativeNodes.stream()
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .toList();
-
-            if (agentMemories.isEmpty()) continue;
-
-            LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
-                + agentId + " (" + driveNodes.size() + " drives, "
-                + agentMemories.size() + " memories)");
-
-            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) continue;
-
-            for (MindMapNode driveNode : driveNodes) {
-                String driveType = driveNode.properties().get("drive-type");
-                if (driveType == null || describedDriveTypes.contains(driveType)) continue;
-
-                List<MindMapNode> servingMemories = agentMemories.stream()
-                    .filter(m -> memoryServesDrive(m, driveType))
-                    .toList();
-
-                String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
-
-                long start = System.currentTimeMillis();
-                generateAndStore(tenantId, agentId, subgraphId,
-                    driveType, intensity, servingMemories);
-                LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
-                    + " memories, " + (System.currentTimeMillis() - start) + "ms)");
-            }
-
-            long discStart = System.currentTimeMillis();
-            generateDiscriminationText(tenantId, agentId, allCognitive);
-            LOG.info("  " + agentId + " discrimination: "
-                + (System.currentTimeMillis() - discStart) + "ms");
         }
     }
 
-    private void generateAndStore(String tenantId, String agentId, String subgraphId,
-                                   String driveType, String intensity,
-                                   List<MindMapNode> servingMemories) {
+    private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
+                                  String driveType, String intensity,
+                                  List<MindMapNode> servingMemories) {
         try {
-            String description = callLlm(driveType, intensity, servingMemories);
-            if (description == null || description.isBlank()) return;
+            String description = callLlm(session, driveType, intensity, servingMemories);
+            if (description == null || description.isBlank()) {return;}
 
             store.addNode(
-                NodeInput.of("drive-description-" + driveType, subgraphId)
-                    .withTraits(Set.of(DESCRIPTION_TRAIT))
-                    .withProperties(Map.of(
-                        "agent-id", agentId,
-                        "drive-type", driveType,
-                        "drive-intensity", intensity,
-                        "generated-description", description,
-                        "source-memory-count", String.valueOf(servingMemories.size()))),
-                tenantId);
+                    NodeInput.of("drive-description-" + driveType, subgraphId)
+                             .withTraits(Set.of(DESCRIPTION_TRAIT))
+                             .withProperties(Map.of(
+                                     "agent-id", agentId,
+                                     "drive-type", driveType,
+                                     "drive-intensity", intensity,
+                                     "generated-description", description,
+                                     "source-memory-count", String.valueOf(servingMemories.size()))),
+                    tenantId);
         } catch (Exception e) {
             LOG.log(Level.WARNING,
-                agentId + "/" + driveType + ": description generation failed (non-fatal)", e);
+                    agentId + "/" + driveType + ": description generation failed (non-fatal)", e);
         }
     }
 
-    private String callLlm(String driveType, String intensity,
+    private String callLlm(AgentSession session, String driveType, String intensity,
                            List<MindMapNode> servingMemories) {
         String userPrompt;
         if (servingMemories.isEmpty()) {
@@ -221,12 +225,12 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                        driveType, intensity, memoriesText);
         }
 
-        var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
-        var responseText  = new StringBuilder();
-        agentProvider.invoke(sessionConfig).subscribe().asStream()
-                     .filter(e -> e instanceof AgentEvent.TextDelta)
-                     .map(e -> ((AgentEvent.TextDelta) e).text())
-                     .forEach(responseText::append);
+        var responseText = new StringBuilder();
+        session.query(userPrompt).subscribe().asStream()
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
+        session.clear();
 
         return parseDescription(responseText.toString());
     }
@@ -247,26 +251,26 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                                         Keep to 3-4 sentences.
                                                         Respond with JSON only: {"discrimination": "..."}""";
 
-    private void generateDiscriminationText(String tenantId, String agentId,
-                                             List<MindMapNode> allCognitive) {
+    private void generateDiscriminationText(AgentSession session, String tenantId, String agentId,
+                                            List<MindMapNode> allCognitive) {
         var competitionNodes = allCognitive.stream()
-            .filter(n -> n.traits().contains(DriveProfileDerivationPhase.COMPETITION_TRAIT))
-            .filter(n -> agentId.equals(n.properties().get("agent-id")))
-            .toList();
+                                           .filter(n -> n.traits().contains(DriveProfileDerivationPhase.COMPETITION_TRAIT))
+                                           .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                           .toList();
 
         for (var node : competitionNodes) {
             String memoriesA = node.properties().getOrDefault("anchor-memories-a", "");
             String memoriesB = node.properties().getOrDefault("anchor-memories-b", "");
-            if (memoriesA.isBlank() && memoriesB.isBlank()) continue;
+            if (memoriesA.isBlank() && memoriesB.isBlank()) {continue;}
 
             try {
-                String discrimination = callDiscriminationLlm(
-                    memoriesA.replace("|", "\n"), memoriesB.replace("|", "\n"));
+                String discrimination = callDiscriminationLlm(session,
+                                                              memoriesA.replace("|", "\n"), memoriesB.replace("|", "\n"));
                 if (discrimination != null && !discrimination.isBlank()) {
                     store.updateNode(node.id(),
-                        NodeUpdate.empty().withPropertiesToSet(
-                            Map.of("differentiation-text", discrimination)),
-                        tenantId);
+                                     NodeUpdate.empty().withPropertiesToSet(
+                                             Map.of("differentiation-text", discrimination)),
+                                     tenantId);
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, agentId + ": discrimination generation failed (non-fatal)", e);
@@ -274,7 +278,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
     }
 
-    private String callDiscriminationLlm(String memoriesA, String memoriesB) {
+    private String callDiscriminationLlm(AgentSession session, String memoriesA, String memoriesB) {
         var userPrompt = String.format("""
                                        Two pulls often activate together in the same moment.
                                        
@@ -291,12 +295,12 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                        The criterion must work regardless of the current situation.""",
                                        memoriesA, memoriesB);
 
-        var sessionConfig = AgentSessionConfig.of(DISCRIMINATION_SYSTEM, userPrompt);
-        var responseText  = new StringBuilder();
-        agentProvider.invoke(sessionConfig).subscribe().asStream()
-                     .filter(e -> e instanceof AgentEvent.TextDelta)
-                     .map(e -> ((AgentEvent.TextDelta) e).text())
-                     .forEach(responseText::append);
+        var responseText = new StringBuilder();
+        session.query(userPrompt).subscribe().asStream()
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
+        session.clear();
 
         return parseField(responseText.toString(), "discrimination");
     }

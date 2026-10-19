@@ -7,7 +7,8 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -108,77 +109,79 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
         }
 
         List<MindMapNode> allCognitive = store.search(
-            MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
 
         Map<String, List<MindMapNode>> drivesByAgent = allCognitive.stream()
-            .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
-            .filter(n -> n.properties().containsKey("agent-id"))
-            .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
+                                                                   .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
+                                                                   .filter(n -> n.properties().containsKey("agent-id"))
+                                                                   .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
 
-        if (drivesByAgent.isEmpty()) return;
+        if (drivesByAgent.isEmpty()) {return;}
 
         List<MindMapNode> formativeNodes = allCognitive.stream()
-            .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
-            .toList();
+                                                       .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
+                                                       .toList();
 
         List<MindMapNode> relationalNodes = allCognitive.stream()
-            .filter(n -> "relational-schema".equals(n.properties().get("cognitiveKind")))
-            .toList();
+                                                        .filter(n -> "relational-schema".equals(n.properties().get("cognitiveKind")))
+                                                        .toList();
 
         Set<String> existingModels = allCognitive.stream()
-            .filter(n -> n.traits().contains(OTHER_MODEL_TRAIT))
-            .map(n -> n.properties().get("agent-id") + "→" + n.properties().get("target-id"))
-            .collect(Collectors.toSet());
+                                                 .filter(n -> n.traits().contains(OTHER_MODEL_TRAIT))
+                                                 .map(n -> n.properties().get("agent-id") + "→" + n.properties().get("target-id"))
+                                                 .collect(Collectors.toSet());
 
-        for (var agentEntry : drivesByAgent.entrySet()) {
-            String agentId = agentEntry.getKey();
+        try (AgentSession session = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT))) {
+            for (var agentEntry : drivesByAgent.entrySet()) {
+                String agentId = agentEntry.getKey();
 
-            List<MindMapNode> agentMemories = formativeNodes.stream()
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .toList();
-            if (agentMemories.isEmpty()) continue;
+                List<MindMapNode> agentMemories = formativeNodes.stream()
+                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                                .toList();
+                if (agentMemories.isEmpty()) {continue;}
 
-            List<MindMapNode> agentRelations = relationalNodes.stream()
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .toList();
+                List<MindMapNode> agentRelations = relationalNodes.stream()
+                                                                  .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                                  .toList();
 
-            Set<String> targetIds = agentRelations.stream()
-                .map(n -> n.properties().get("target-id"))
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toSet());
+                Set<String> targetIds = agentRelations.stream()
+                                                      .map(n -> n.properties().get("target-id"))
+                                                      .filter(java.util.Objects::nonNull)
+                                                      .collect(Collectors.toSet());
 
-            for (String otherAgentId : drivesByAgent.keySet()) {
-                if (otherAgentId.equals(agentId)) continue;
-                targetIds.add(otherAgentId);
-            }
+                for (String otherAgentId : drivesByAgent.keySet()) {
+                    if (otherAgentId.equals(agentId)) {continue;}
+                    targetIds.add(otherAgentId);
+                }
 
-            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) continue;
+                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+                if (subgraphId == null) {continue;}
 
-            for (String targetId : targetIds) {
-                String key = agentId + "→" + targetId;
-                if (existingModels.contains(key)) continue;
+                for (String targetId : targetIds) {
+                    String key = agentId + "→" + targetId;
+                    if (existingModels.contains(key)) {continue;}
 
-                List<MindMapNode> relevantRelations = agentRelations.stream()
-                    .filter(n -> targetId.equals(n.properties().get("target-id")))
-                    .toList();
+                    List<MindMapNode> relevantRelations = agentRelations.stream()
+                                                                        .filter(n -> targetId.equals(n.properties().get("target-id")))
+                                                                        .toList();
 
-                long start = System.currentTimeMillis();
-                generateAndStore(tenantId, agentId, targetId, subgraphId,
-                    agentMemories, agentEntry.getValue(), relevantRelations);
-                LOG.info("Other-model " + agentId + "→" + targetId
-                    + " (" + (System.currentTimeMillis() - start) + "ms)");
+                    long start = System.currentTimeMillis();
+                    generateAndStore(session, tenantId, agentId, targetId, subgraphId,
+                                     agentMemories, agentEntry.getValue(), relevantRelations);
+                    LOG.info("Other-model " + agentId + "→" + targetId
+                             + " (" + (System.currentTimeMillis() - start) + "ms)");
+                }
             }
         }
     }
 
-    private void generateAndStore(String tenantId, String agentId, String targetId,
+    private void generateAndStore(AgentSession session, String tenantId, String agentId, String targetId,
                                   String subgraphId,
                                   List<MindMapNode> formationMemories,
                                   List<MindMapNode> driveNodes,
                                   List<MindMapNode> relationalSchemas) {
         try {
-            Map<String, String> model = callLlm(formationMemories, driveNodes, relationalSchemas);
+            Map<String, String> model = callLlm(session, formationMemories, driveNodes, relationalSchemas);
             if (model == null || model.isEmpty()) {return;}
 
             var props = new java.util.HashMap<String, String>();
@@ -197,7 +200,7 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
         }
     }
 
-    private Map<String, String> callLlm(List<MindMapNode> formationMemories,
+    private Map<String, String> callLlm(AgentSession session, List<MindMapNode> formationMemories,
                                         List<MindMapNode> driveNodes,
                                         List<MindMapNode> relationalSchemas) {
         var sb = new StringBuilder();
@@ -224,12 +227,12 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
         sb.append("\nGenerate the four-dimension mental model for how this character ");
         sb.append("understands and senses this other person.");
 
-        var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, sb.toString());
-        var responseText  = new StringBuilder();
-        agentProvider.invoke(sessionConfig).subscribe().asStream()
-                     .filter(e -> e instanceof AgentEvent.TextDelta)
-                     .map(e -> ((AgentEvent.TextDelta) e).text())
-                     .forEach(responseText::append);
+        var responseText = new StringBuilder();
+        session.query(sb.toString()).subscribe().asStream()
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
+        session.clear();
 
         return parseModel(responseText.toString());
     }

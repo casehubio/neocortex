@@ -7,7 +7,8 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -82,12 +83,12 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
         }
 
         List<MindMapNode> allCognitive = store.search(
-            MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
 
         Map<String, List<MindMapNode>> drivesByAgent = allCognitive.stream()
-            .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
-            .filter(n -> n.properties().containsKey("agent-id"))
-            .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
+                                                                   .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
+                                                                   .filter(n -> n.properties().containsKey("agent-id"))
+                                                                   .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
 
         if (drivesByAgent.isEmpty()) {
             LOG.info("Self-standard derivation skipped — no drive-intensity nodes found in " + allCognitive.size() + " cognitive nodes");
@@ -95,104 +96,106 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
         }
 
         List<MindMapNode> formativeNodes = allCognitive.stream()
-            .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
-            .toList();
+                                                       .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
+                                                       .toList();
 
         var kindCounts = allCognitive.stream()
-            .map(n -> n.properties().getOrDefault("cognitiveKind", "none"))
-            .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
+                                     .map(n -> n.properties().getOrDefault("cognitiveKind", "none"))
+                                     .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
         LOG.info("Self-standard derivation: " + drivesByAgent.size() + " agents, "
-            + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
-            + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
+                 + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
+                 + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
 
-        int agentIndex = 0;
-        int totalAgents = drivesByAgent.size();
-        for (var agentEntry : drivesByAgent.entrySet()) {
-            agentIndex++;
-            String agentId = agentEntry.getKey();
-            List<MindMapNode> driveNodes = agentEntry.getValue();
+        try (AgentSession session = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT))) {
+            int agentIndex  = 0;
+            int totalAgents = drivesByAgent.size();
+            for (var agentEntry : drivesByAgent.entrySet()) {
+                agentIndex++;
+                String            agentId    = agentEntry.getKey();
+                List<MindMapNode> driveNodes = agentEntry.getValue();
 
-            Set<String> derivedDriveTypes = allCognitive.stream()
-                .filter(n -> n.traits().contains(SELF_STANDARD_TRAIT))
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .map(n -> n.properties().get("drive-type"))
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toSet());
+                Set<String> derivedDriveTypes = allCognitive.stream()
+                                                            .filter(n -> n.traits().contains(SELF_STANDARD_TRAIT))
+                                                            .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                            .map(n -> n.properties().get("drive-type"))
+                                                            .filter(java.util.Objects::nonNull)
+                                                            .collect(Collectors.toSet());
 
-            Set<String> currentDriveTypes = driveNodes.stream()
-                .map(n -> n.properties().get("drive-type"))
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toSet());
+                Set<String> currentDriveTypes = driveNodes.stream()
+                                                          .map(n -> n.properties().get("drive-type"))
+                                                          .filter(java.util.Objects::nonNull)
+                                                          .collect(Collectors.toSet());
 
-            if (derivedDriveTypes.containsAll(currentDriveTypes)) {
+                if (derivedDriveTypes.containsAll(currentDriveTypes)) {
+                    LOG.info("Self-standard derivation [" + agentIndex + "/" + totalAgents + "]: "
+                             + agentId + " skipped — self-standards already exist");
+                    continue;
+                }
+
+                List<MindMapNode> agentMemories = formativeNodes.stream()
+                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                                .toList();
+
+                if (agentMemories.isEmpty()) {continue;}
+
                 LOG.info("Self-standard derivation [" + agentIndex + "/" + totalAgents + "]: "
-                    + agentId + " skipped — self-standards already exist");
-                continue;
-            }
+                         + agentId + " (" + driveNodes.size() + " drives, "
+                         + agentMemories.size() + " memories)");
 
-            List<MindMapNode> agentMemories = formativeNodes.stream()
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .toList();
+                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+                if (subgraphId == null) {continue;}
 
-            if (agentMemories.isEmpty()) continue;
+                for (MindMapNode driveNode : driveNodes) {
+                    String driveType = driveNode.properties().get("drive-type");
+                    if (driveType == null || derivedDriveTypes.contains(driveType)) {continue;}
 
-            LOG.info("Self-standard derivation [" + agentIndex + "/" + totalAgents + "]: "
-                + agentId + " (" + driveNodes.size() + " drives, "
-                + agentMemories.size() + " memories)");
+                    List<MindMapNode> servingMemories = agentMemories.stream()
+                                                                     .filter(m -> memoryServesDrive(m, driveType))
+                                                                     .toList();
 
-            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) continue;
+                    String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
 
-            for (MindMapNode driveNode : driveNodes) {
-                String driveType = driveNode.properties().get("drive-type");
-                if (driveType == null || derivedDriveTypes.contains(driveType)) continue;
-
-                List<MindMapNode> servingMemories = agentMemories.stream()
-                    .filter(m -> memoryServesDrive(m, driveType))
-                    .toList();
-
-                String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
-
-                long start = System.currentTimeMillis();
-                generateAndStore(tenantId, agentId, subgraphId,
-                    driveType, intensity, servingMemories);
-                LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
-                    + " memories, " + (System.currentTimeMillis() - start) + "ms)");
+                    long start = System.currentTimeMillis();
+                    generateAndStore(session, tenantId, agentId, subgraphId,
+                                     driveType, intensity, servingMemories);
+                    LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
+                             + " memories, " + (System.currentTimeMillis() - start) + "ms)");
+                }
             }
         }
     }
 
-    private void generateAndStore(String tenantId, String agentId, String subgraphId,
-                                   String driveType, String intensity,
-                                   List<MindMapNode> servingMemories) {
+    private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
+                                  String driveType, String intensity,
+                                  List<MindMapNode> servingMemories) {
         try {
-            String selfStandard = callLlm(driveType, intensity, servingMemories);
-            if (selfStandard == null || selfStandard.isBlank()) return;
+            String selfStandard = callLlm(session, driveType, intensity, servingMemories);
+            if (selfStandard == null || selfStandard.isBlank()) {return;}
 
             store.addNode(
-                NodeInput.of("self-standard-" + driveType, subgraphId)
-                    .withTraits(Set.of(SELF_STANDARD_TRAIT))
-                    .withProperties(Map.of(
-                        "agent-id", agentId,
-                        "drive-type", driveType,
-                        "drive-intensity", intensity,
-                        "self-standard", selfStandard,
-                        "source-memory-count", String.valueOf(servingMemories.size()))),
-                tenantId);
+                    NodeInput.of("self-standard-" + driveType, subgraphId)
+                             .withTraits(Set.of(SELF_STANDARD_TRAIT))
+                             .withProperties(Map.of(
+                                     "agent-id", agentId,
+                                     "drive-type", driveType,
+                                     "drive-intensity", intensity,
+                                     "self-standard", selfStandard,
+                                     "source-memory-count", String.valueOf(servingMemories.size()))),
+                    tenantId);
         } catch (Exception e) {
             LOG.log(Level.WARNING,
-                agentId + "/" + driveType + ": self-standard derivation failed (non-fatal)", e);
+                    agentId + "/" + driveType + ": self-standard derivation failed (non-fatal)", e);
         }
     }
 
-    private String callLlm(String driveType, String intensity,
+    private String callLlm(AgentSession session, String driveType, String intensity,
                            List<MindMapNode> servingMemories) {
         String userPrompt;
         if (servingMemories.isEmpty()) {
             userPrompt = String.format("""
                                        Drive type: %s
                                        Intensity: %s (scale 0.0 to 1.0)
-
+                                       
                                        Describe what self-evaluation feels like for a person regarding this \
                                        type of pull at this intensity — the quiet certainty when they meet \
                                        their own standard, and the weight when they don't. Second person, \
@@ -206,7 +209,7 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
             userPrompt = String.format("""
                                        Drive type: %s
                                        Intensity: %s (scale 0.0 to 1.0)
-
+                                       
                                        Formation memories that shaped this pull:
                                        %s
                                        Based on these memories, describe what self-evaluation feels like for this character \
@@ -215,12 +218,12 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
                                        driveType, intensity, memoriesText);
         }
 
-        var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
-        var responseText  = new StringBuilder();
-        agentProvider.invoke(sessionConfig).subscribe().asStream()
-                     .filter(e -> e instanceof AgentEvent.TextDelta)
-                     .map(e -> ((AgentEvent.TextDelta) e).text())
-                     .forEach(responseText::append);
+        var responseText = new StringBuilder();
+        session.query(userPrompt).subscribe().asStream()
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
+        session.clear();
 
         return parseSelfStandard(responseText.toString());
     }
