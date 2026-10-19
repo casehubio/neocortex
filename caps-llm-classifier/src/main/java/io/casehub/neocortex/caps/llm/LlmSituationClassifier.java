@@ -9,9 +9,7 @@ import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
-import jakarta.annotation.PreDestroy;
+import io.casehub.platform.agent.AgentSessionConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -36,7 +34,6 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
     private final Set<String> validNodeIds;
-    private AgentSession session;
 
     @Inject
     public LlmSituationClassifier(Instance<AgentProvider> agentProviderInstance,
@@ -67,23 +64,20 @@ public class LlmSituationClassifier implements SituationClassifier {
     }
 
     @Override
-    public synchronized List<SituationActivation> classify(String description,
-                                                           Map<String, String> metadata) {
+    public List<SituationActivation> classify(String description,
+                                               Map<String, String> metadata) {
         if (agentProvider == null || description == null || description.isBlank()) {
             return List.of();
-        }
-
-        if (session == null) {
-            session = agentProvider.openSession(
-                    AgentSessionInit.of(systemPrompt).withModel("haiku"));
         }
 
         String userPrompt = buildUserPrompt(description, metadata);
 
         try {
-            var events = session.query(userPrompt)
-                                .collect().asList()
-                                .await().atMost(TIMEOUT.plusSeconds(5));
+            var config = AgentSessionConfig.of(systemPrompt, userPrompt, TIMEOUT)
+                    .withModel("haiku");
+            var events = agentProvider.invoke(config)
+                .collect().asList()
+                .await().atMost(TIMEOUT.plusSeconds(5));
 
             String text = events.stream()
                                 .filter(AgentEvent.TextDelta.class::isInstance)
@@ -96,14 +90,6 @@ public class LlmSituationClassifier implements SituationClassifier {
             throw new ClassificationException(
                     "LLM situation classification failed for: " +
                     description.substring(0, Math.min(80, description.length())), e);
-        }
-    }
-
-
-    @PreDestroy
-    void shutdown() {
-        if (session != null) {
-            session.close();
         }
     }
 

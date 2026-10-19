@@ -106,63 +106,66 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
                  + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
                  + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
 
-        try (AgentSession session = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT))) {
-            int agentIndex  = 0;
-            int totalAgents = drivesByAgent.size();
-            for (var agentEntry : drivesByAgent.entrySet()) {
-                agentIndex++;
-                String            agentId    = agentEntry.getKey();
-                List<MindMapNode> driveNodes = agentEntry.getValue();
+        var tasks = new java.util.ArrayList<java.util.function.Consumer<AgentSession>>();
+        int agentIndex = 0;
+        int totalAgents = drivesByAgent.size();
+        for (var agentEntry : drivesByAgent.entrySet()) {
+            agentIndex++;
+            String agentId = agentEntry.getKey();
+            List<MindMapNode> driveNodes = agentEntry.getValue();
 
-                Set<String> derivedDriveTypes = allCognitive.stream()
-                                                            .filter(n -> n.traits().contains(SELF_STANDARD_TRAIT))
-                                                            .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                            .map(n -> n.properties().get("drive-type"))
-                                                            .filter(java.util.Objects::nonNull)
-                                                            .collect(Collectors.toSet());
+            Set<String> derivedDriveTypes = allCognitive.stream()
+                .filter(n -> n.traits().contains(SELF_STANDARD_TRAIT))
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .map(n -> n.properties().get("drive-type"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
 
-                Set<String> currentDriveTypes = driveNodes.stream()
-                                                          .map(n -> n.properties().get("drive-type"))
-                                                          .filter(java.util.Objects::nonNull)
-                                                          .collect(Collectors.toSet());
+            Set<String> currentDriveTypes = driveNodes.stream()
+                .map(n -> n.properties().get("drive-type"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
 
-                if (derivedDriveTypes.containsAll(currentDriveTypes)) {
-                    LOG.info("Self-standard derivation [" + agentIndex + "/" + totalAgents + "]: "
-                             + agentId + " skipped — self-standards already exist");
-                    continue;
-                }
-
-                List<MindMapNode> agentMemories = formativeNodes.stream()
-                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                                .toList();
-
-                if (agentMemories.isEmpty()) {continue;}
-
+            if (derivedDriveTypes.containsAll(currentDriveTypes)) {
                 LOG.info("Self-standard derivation [" + agentIndex + "/" + totalAgents + "]: "
-                         + agentId + " (" + driveNodes.size() + " drives, "
-                         + agentMemories.size() + " memories)");
+                    + agentId + " skipped — self-standards already exist");
+                continue;
+            }
 
-                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-                if (subgraphId == null) {continue;}
+            List<MindMapNode> agentMemories = formativeNodes.stream()
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .toList();
 
-                for (MindMapNode driveNode : driveNodes) {
-                    String driveType = driveNode.properties().get("drive-type");
-                    if (driveType == null || derivedDriveTypes.contains(driveType)) {continue;}
+            if (agentMemories.isEmpty()) continue;
 
-                    List<MindMapNode> servingMemories = agentMemories.stream()
-                                                                     .filter(m -> memoryServesDrive(m, driveType))
-                                                                     .toList();
+            LOG.info("Self-standard derivation [" + agentIndex + "/" + totalAgents + "]: "
+                + agentId + " (" + driveNodes.size() + " drives, "
+                + agentMemories.size() + " memories)");
 
-                    String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
+            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+            if (subgraphId == null) continue;
 
+            for (MindMapNode driveNode : driveNodes) {
+                String driveType = driveNode.properties().get("drive-type");
+                if (driveType == null || derivedDriveTypes.contains(driveType)) continue;
+
+                List<MindMapNode> servingMemories = agentMemories.stream()
+                    .filter(m -> memoryServesDrive(m, driveType))
+                    .toList();
+
+                String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
+
+                tasks.add(session -> {
                     long start = System.currentTimeMillis();
                     generateAndStore(session, tenantId, agentId, subgraphId,
-                                     driveType, intensity, servingMemories);
+                        driveType, intensity, servingMemories);
                     LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
-                             + " memories, " + (System.currentTimeMillis() - start) + "ms)");
-                }
+                        + " memories, " + (System.currentTimeMillis() - start) + "ms)");
+                });
             }
         }
+
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
