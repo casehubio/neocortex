@@ -1,6 +1,8 @@
 package io.casehub.neocortex.rag.expansion;
 
+import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.neocortex.rag.QueryExpander;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.quarkus.arc.properties.IfBuildProperty;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @IfBuildProperty(name = "casehub.rag.expansion.mode", stringValue = "llm")
@@ -42,8 +45,7 @@ public class LlmQueryExpander implements QueryExpander {
                 .orElse(DEFAULT_SYSTEM_PROMPT);
 
         if (n == 1) {
-            String hypothetical = agentProvider.invokeBlocking(
-                    systemPrompt, query.text(), TIMEOUT).text();
+            String hypothetical = callLlm(systemPrompt, query.text());
             return List.of(query.withExpansion(hypothetical));
         }
 
@@ -51,8 +53,7 @@ public class LlmQueryExpander implements QueryExpander {
             List<Future<RetrievalQuery>> futures = new ArrayList<>(n);
             for (int i = 0; i < n; i++) {
                 futures.add(executor.submit(() -> {
-                    String hypothetical = agentProvider.invokeBlocking(
-                            systemPrompt, query.text(), TIMEOUT).text();
+                    String hypothetical = callLlm(systemPrompt, query.text());
                     return query.withExpansion(hypothetical);
                 }));
             }
@@ -70,5 +71,16 @@ public class LlmQueryExpander implements QueryExpander {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
+    }
+
+    private String callLlm(String systemPrompt, String userPrompt) {
+        var events = agentProvider.invoke(AgentSessionConfig.of(systemPrompt, userPrompt, TIMEOUT))
+                .collect().asList()
+                .await().atMost(TIMEOUT.plusSeconds(5));
+        return events.stream()
+                .filter(AgentEvent.TextDelta.class::isInstance)
+                .map(AgentEvent.TextDelta.class::cast)
+                .map(AgentEvent.TextDelta::text)
+                .collect(Collectors.joining());
     }
 }

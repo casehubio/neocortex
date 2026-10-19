@@ -1,6 +1,8 @@
 package io.casehub.neocortex.rag.expansion;
 
+import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.neocortex.rag.QueryExpander;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.quarkus.arc.properties.IfBuildProperty;
@@ -9,6 +11,7 @@ import jakarta.inject.Inject;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @IfBuildProperty(name = "casehub.rag.expansion.mode", stringValue = "step-back")
@@ -36,8 +39,14 @@ public class StepBackQueryExpander implements QueryExpander {
         String systemPrompt = config.stepBackPromptTemplate()
                 .map(t -> t.contains("%s") ? t.formatted("the user's question") : t)
                 .orElse(DEFAULT_SYSTEM_PROMPT);
-        String stepBack = agentProvider.invokeBlocking(
-                systemPrompt, query.text(), TIMEOUT).text();
+        var events = agentProvider.invoke(AgentSessionConfig.of(systemPrompt, query.text(), TIMEOUT))
+                .collect().asList()
+                .await().atMost(TIMEOUT.plusSeconds(5));
+        String stepBack = events.stream()
+                .filter(AgentEvent.TextDelta.class::isInstance)
+                .map(AgentEvent.TextDelta.class::cast)
+                .map(AgentEvent.TextDelta::text)
+                .collect(Collectors.joining());
         return List.of(
             query,
             RetrievalQuery.of(stepBack)

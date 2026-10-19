@@ -1,7 +1,6 @@
 package io.casehub.neocortex.rag.expansion;
 
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentInvocationResult;
 import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.AgentSession;
@@ -73,10 +72,6 @@ class StepBackQueryExpanderTest {
             }
             @Override public AgentSession openSession(AgentSessionInit init) {
                 throw new UnsupportedOperationException();
-            }
-            @Override public AgentInvocationResult invokeBlocking(String systemPrompt, String userPrompt, java.time.Duration timeout) {
-                String response = handler.apply(userPrompt);
-                return new AgentInvocationResult(response, 0, 0, 0, 0, 0, null, 0L, null, null);
             }
         };
     }
