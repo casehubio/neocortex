@@ -26,34 +26,47 @@ class SelfStandardDerivationPhaseTest {
     private InMemoryMindMapStore store;
     private SelfStandardDerivationPhase phase;
     private String cognitiveSubgraphId;
-    private List<AgentSessionConfig> capturedConfigs;
+    private List<String> capturedUserPrompts;
     private static final String TENANT = "t1";
     private static final String AGENT = "peter-perfect";
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryMindMapStore();
-        capturedConfigs = new CopyOnWriteArrayList<>();
+        store               = new InMemoryMindMapStore();
+        capturedUserPrompts = new CopyOnWriteArrayList<>();
 
         AgentProvider provider = new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                capturedConfigs.add(config);
-                return Multi.createFrom().items(
-                    new AgentEvent.TextDelta("{\"self_standard\": \"When you meet this standard, a quiet warmth settles behind your sternum. "),
-                    new AgentEvent.TextDelta("When you fall short, a weight gathers at the base of your throat.\"}"));
+                throw new UnsupportedOperationException();
             }
 
             @Override
             public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException("not needed in test");
+                return new AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String userPrompt) {
+                        capturedUserPrompts.add(userPrompt);
+                        return Multi.createFrom().items(
+                                new AgentEvent.TextDelta("{\"self_standard\": \"When you meet this standard, a quiet warmth settles behind your sternum. "),
+                                new AgentEvent.TextDelta("When you fall short, a weight gathers at the base of your throat.\"}"));
+                    }
+
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {
+                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                    }
+
+                    @Override
+                    public void close(java.time.Duration timeout) {}
+                };
             }
         };
 
         phase = new SelfStandardDerivationPhase(store, provider);
 
         cognitiveSubgraphId = store.createSubgraph(
-            new SubgraphInput("cognitive-" + AGENT, SubgraphTypes.COGNITIVE, null), TENANT);
+                new SubgraphInput("cognitive-" + AGENT, SubgraphTypes.COGNITIVE, null), TENANT);
     }
 
     @Test
@@ -110,11 +123,11 @@ class SelfStandardDerivationPhaseTest {
 
         phase.run(TENANT, List.of());
 
-        assertThat(capturedConfigs).hasSize(1);
-        var config = capturedConfigs.getFirst();
-        assertThat(config.userPrompt()).contains("gallantry");
-        assertThat(config.userPrompt()).contains("0.9");
-        assertThat(config.userPrompt()).contains("knelt to help the stranger");
+        assertThat(capturedUserPrompts).hasSize(1);
+        var userPrompt = capturedUserPrompts.getFirst();
+        assertThat(userPrompt).contains("gallantry");
+        assertThat(userPrompt).contains("0.9");
+        assertThat(userPrompt).contains("knelt to help the stranger");
     }
 
     @Test
@@ -141,11 +154,11 @@ class SelfStandardDerivationPhaseTest {
 
         phase.run(TENANT, List.of());
         assertThat(findSelfStandardNodes()).hasSize(1);
-        int callsAfterFirstRun = capturedConfigs.size();
+        int callsAfterFirstRun = capturedUserPrompts.size();
 
         phase.run(TENANT, List.of());
         assertThat(findSelfStandardNodes()).hasSize(1);
-        assertThat(capturedConfigs).as("no LLM calls on rerun — self-standards already exist")
+        assertThat(capturedUserPrompts).as("no LLM calls on rerun — self-standards already exist")
             .hasSize(callsAfterFirstRun);
     }
 
@@ -180,7 +193,7 @@ class SelfStandardDerivationPhaseTest {
 
         phase.run(TENANT, List.of());
         assertThat(findSelfStandardNodes()).hasSize(3);
-        int callsForFullRun = capturedConfigs.size();
+        int callsForFullRun = capturedUserPrompts.size();
 
         // Simulate partial coverage: remove one self-standard (as if interrupted)
         var nodes = findSelfStandardNodes();
@@ -194,7 +207,7 @@ class SelfStandardDerivationPhaseTest {
         assertThat(findSelfStandardNodes())
                 .as("partial rerun should generate only the missing drive")
                 .hasSize(3);
-        assertThat(capturedConfigs)
+        assertThat(capturedUserPrompts)
                 .as("only 1 new LLM call for the missing drive, not 3")
                 .hasSize(callsForFullRun + 1);
     }

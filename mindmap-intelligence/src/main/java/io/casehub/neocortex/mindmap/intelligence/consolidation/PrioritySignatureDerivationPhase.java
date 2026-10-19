@@ -7,7 +7,8 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -97,57 +98,59 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
         }
 
         List<MindMapNode> allCognitive = store.search(
-            MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
 
         Map<String, List<MindMapNode>> drivesByAgent = allCognitive.stream()
-            .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
-            .filter(n -> n.properties().containsKey("agent-id"))
-            .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
+                                                                   .filter(n -> "drive-intensity".equals(n.properties().get("cognitiveKind")))
+                                                                   .filter(n -> n.properties().containsKey("agent-id"))
+                                                                   .collect(Collectors.groupingBy(n -> n.properties().get("agent-id")));
 
-        if (drivesByAgent.isEmpty()) return;
+        if (drivesByAgent.isEmpty()) {return;}
 
         List<MindMapNode> formativeNodes = allCognitive.stream()
-            .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
-            .toList();
+                                                       .filter(n -> "formative-experience".equals(n.properties().get("cognitiveKind")))
+                                                       .toList();
 
         Set<String> existingSignatures = allCognitive.stream()
-            .filter(n -> n.traits().contains(PRIORITY_SIG_TRAIT))
-            .map(n -> n.properties().get("agent-id") + ":" + n.properties().get("drive-pair"))
-            .collect(Collectors.toSet());
+                                                     .filter(n -> n.traits().contains(PRIORITY_SIG_TRAIT))
+                                                     .map(n -> n.properties().get("agent-id") + ":" + n.properties().get("drive-pair"))
+                                                     .collect(Collectors.toSet());
 
         Map<String, MindMapNode> descriptionsByKey = allCognitive.stream()
-            .filter(n -> n.traits().contains("DriveDescriptionGenerated"))
-            .collect(Collectors.toMap(
-                n -> n.properties().get("agent-id") + ":" + n.properties().get("drive-type"),
-                n -> n, (a, b) -> a));
+                                                                 .filter(n -> n.traits().contains("DriveDescriptionGenerated"))
+                                                                 .collect(Collectors.toMap(
+                                                                         n -> n.properties().get("agent-id") + ":" + n.properties().get("drive-type"),
+                                                                         n -> n, (a, b) -> a));
 
-        for (var agentEntry : drivesByAgent.entrySet()) {
-            String agentId = agentEntry.getKey();
-            List<MindMapNode> driveNodes = agentEntry.getValue();
-            if (driveNodes.size() < 2) continue;
+        try (AgentSession session = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT))) {
+            for (var agentEntry : drivesByAgent.entrySet()) {
+                String            agentId    = agentEntry.getKey();
+                List<MindMapNode> driveNodes = agentEntry.getValue();
+                if (driveNodes.size() < 2) {continue;}
 
-            List<MindMapNode> agentMemories = formativeNodes.stream()
-                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                .toList();
-            if (agentMemories.isEmpty()) continue;
+                List<MindMapNode> agentMemories = formativeNodes.stream()
+                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                                                                .toList();
+                if (agentMemories.isEmpty()) {continue;}
 
-            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) continue;
+                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+                if (subgraphId == null) {continue;}
 
-            List<String[]> pairs = generatePairs(driveNodes);
+                List<String[]> pairs = generatePairs(driveNodes);
 
-            for (String[] pair : pairs) {
-                String pairKey = pair[0] + "+" + pair[1];
-                if (existingSignatures.contains(agentId + ":" + pairKey)) continue;
+                for (String[] pair : pairs) {
+                    String pairKey = pair[0] + "+" + pair[1];
+                    if (existingSignatures.contains(agentId + ":" + pairKey)) {continue;}
 
-                String descA = getDescription(descriptionsByKey, agentId, pair[0]);
-                String descB = getDescription(descriptionsByKey, agentId, pair[1]);
+                    String descA = getDescription(descriptionsByKey, agentId, pair[0]);
+                    String descB = getDescription(descriptionsByKey, agentId, pair[1]);
 
-                long start = System.currentTimeMillis();
-                generateAndStore(tenantId, agentId, subgraphId, pair[0], pair[1],
-                    descA, descB, agentMemories);
-                LOG.info("Priority-sig " + agentId + " " + pairKey
-                    + " (" + (System.currentTimeMillis() - start) + "ms)");
+                    long start = System.currentTimeMillis();
+                    generateAndStore(session, tenantId, agentId, subgraphId, pair[0], pair[1],
+                                     descA, descB, agentMemories);
+                    LOG.info("Priority-sig " + agentId + " " + pairKey
+                             + " (" + (System.currentTimeMillis() - start) + "ms)");
+                }
             }
         }
     }
@@ -172,40 +175,40 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
         return node != null ? node.properties().getOrDefault("generated-description", "") : "";
     }
 
-    private void generateAndStore(String tenantId, String agentId, String subgraphId,
-                                   String driveA, String driveB,
-                                   String descA, String descB,
-                                   List<MindMapNode> formationMemories) {
+    private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
+                                  String driveA, String driveB,
+                                  String descA, String descB,
+                                  List<MindMapNode> formationMemories) {
         try {
-            String signature = callLlm(driveA, driveB, descA, descB, formationMemories);
-            if (signature == null || signature.isBlank()) return;
+            String signature = callLlm(session, driveA, driveB, descA, descB, formationMemories);
+            if (signature == null || signature.isBlank()) {return;}
 
             store.addNode(
-                NodeInput.of("priority-sig-" + driveA + "-" + driveB, subgraphId)
-                    .withTraits(Set.of(PRIORITY_SIG_TRAIT))
-                    .withProperties(Map.of(
-                        "agent-id", agentId,
-                        "drive-pair", driveA + "+" + driveB,
-                        "drive-a", driveA,
-                        "drive-b", driveB,
-                        "priority-signature", signature)),
-                tenantId);
+                    NodeInput.of("priority-sig-" + driveA + "-" + driveB, subgraphId)
+                             .withTraits(Set.of(PRIORITY_SIG_TRAIT))
+                             .withProperties(Map.of(
+                                     "agent-id", agentId,
+                                     "drive-pair", driveA + "+" + driveB,
+                                     "drive-a", driveA,
+                                     "drive-b", driveB,
+                                     "priority-signature", signature)),
+                    tenantId);
         } catch (Exception e) {
             LOG.log(Level.WARNING,
-                agentId + " " + driveA + "+" + driveB + ": priority signature derivation failed (non-fatal)", e);
+                    agentId + " " + driveA + "+" + driveB + ": priority signature derivation failed (non-fatal)", e);
         }
     }
 
-    private String callLlm(String driveA, String driveB,
+    private String callLlm(AgentSession session, String driveA, String driveB,
                            String descA, String descB,
                            List<MindMapNode> formationMemories) {
         var sb = new StringBuilder();
 
         sb.append("Two competing pulls:\n\n");
         sb.append("Pull A (").append(driveA).append("):\n");
-        if (!descA.isBlank()) sb.append(descA).append("\n\n");
+        if (!descA.isBlank()) {sb.append(descA).append("\n\n");}
         sb.append("Pull B (").append(driveB).append("):\n");
-        if (!descB.isBlank()) sb.append(descB).append("\n\n");
+        if (!descB.isBlank()) {sb.append(descB).append("\n\n");}
 
         sb.append("Formation memories that shaped this character:\n");
         for (int i = 0; i < formationMemories.size(); i++) {
@@ -216,12 +219,12 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
         sb.append("activate at the same time — the physical process of one beginning ");
         sb.append("to take precedence over the other. Do not say which one wins.");
 
-        var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, sb.toString());
         var responseText = new StringBuilder();
-        agentProvider.invoke(sessionConfig).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+        session.query(sb.toString()).subscribe().asStream()
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
+        session.clear();
 
         return parseSignature(responseText.toString());
     }

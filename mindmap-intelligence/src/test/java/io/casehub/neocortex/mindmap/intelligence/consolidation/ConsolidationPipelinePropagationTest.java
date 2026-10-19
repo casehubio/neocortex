@@ -80,16 +80,28 @@ class ConsolidationPipelinePropagationTest {
         AgentProvider mockProvider = new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                if (config.systemPrompt().contains("discrimination")) {
-                    return Multi.createFrom().items(
-                        new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: mock discrimination text.\"}"));
-                }
-                return Multi.createFrom().items(
-                    new AgentEvent.TextDelta("{\"description\": \"Mock somatic description for testing.\"}"));
+                throw new UnsupportedOperationException();
             }
             @Override
             public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
+                boolean isDiscrimination = init.systemPrompt().contains("discrimination");
+                return new AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String userPrompt) {
+                        if (isDiscrimination) {
+                            return Multi.createFrom().items(
+                                new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: mock discrimination text.\"}"));
+                        }
+                        return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"Mock somatic description for testing.\"}"));
+                    }
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {
+                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                    }
+                    @Override
+                    public void close(java.time.Duration timeout) {}
+                };
             }
         };
 
@@ -123,12 +135,23 @@ class ConsolidationPipelinePropagationTest {
         AgentProvider mockProvider = new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                return Multi.createFrom().items(
-                    new AgentEvent.TextDelta("{\"description\": \"Mock somatic.\"}"));
+                throw new UnsupportedOperationException();
             }
             @Override
             public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
+                return new AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String userPrompt) {
+                        return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"Mock somatic.\"}"));
+                    }
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {
+                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                    }
+                    @Override
+                    public void close(java.time.Duration timeout) {}
+                };
             }
         };
 
@@ -160,12 +183,23 @@ class ConsolidationPipelinePropagationTest {
         AgentProvider mockProvider = new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                return Multi.createFrom().items(
-                    new AgentEvent.TextDelta("{\"description\": \"Generic description.\"}"));
+                throw new UnsupportedOperationException();
             }
             @Override
             public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
+                return new AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String userPrompt) {
+                        return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"Generic description.\"}"));
+                    }
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {
+                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                    }
+                    @Override
+                    public void close(java.time.Duration timeout) {}
+                };
             }
         };
 

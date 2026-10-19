@@ -26,39 +26,57 @@ class DriveDescriptionGenerationPhaseTest {
     private InMemoryMindMapStore store;
     private DriveDescriptionGenerationPhase phase;
     private String cognitiveSubgraphId;
-    private List<AgentSessionConfig> capturedConfigs;
+    private List<String> capturedUserPrompts;
+    private List<AgentSessionInit> capturedInits;
+
     private static final String TENANT = "t1";
     private static final String AGENT = "peter-perfect";
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryMindMapStore();
-        capturedConfigs = new CopyOnWriteArrayList<>();
+        store               = new InMemoryMindMapStore();
+        capturedUserPrompts = new CopyOnWriteArrayList<>();
+        capturedInits       = new CopyOnWriteArrayList<>();
 
         AgentProvider provider = new AgentProvider() {
             @Override
             public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                capturedConfigs.add(config);
-                if (config.systemPrompt().contains("discrimination")) {
-                    return Multi.createFrom().items(
-                        new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: One pull is about what your hands say. "),
-                        new AgentEvent.TextDelta("The other is about what your hands can do. Notice which one moved your hands.\"}"));
-                }
-                return Multi.createFrom().items(
-                    new AgentEvent.TextDelta("{\"description\": \"A warmth rises through your chest, "),
-                    new AgentEvent.TextDelta("spreading into your shoulders.\"}"));
+                throw new UnsupportedOperationException();
             }
 
             @Override
             public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException("not needed in test");
+                capturedInits.add(init);
+                boolean isDiscrimination = init.systemPrompt().contains("discrimination");
+                return new AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String userPrompt) {
+                        capturedUserPrompts.add(userPrompt);
+                        if (isDiscrimination) {
+                            return Multi.createFrom().items(
+                                    new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: One pull is about what your hands say. "),
+                                    new AgentEvent.TextDelta("The other is about what your hands can do. Notice which one moved your hands.\"}"));
+                        }
+                        return Multi.createFrom().items(
+                                new AgentEvent.TextDelta("{\"description\": \"A warmth rises through your chest, "),
+                                new AgentEvent.TextDelta("spreading into your shoulders.\"}"));
+                    }
+
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {
+                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                    }
+
+                    @Override
+                    public void close(java.time.Duration timeout) {}
+                };
             }
         };
 
         phase = new DriveDescriptionGenerationPhase(store, provider);
 
         cognitiveSubgraphId = store.createSubgraph(
-            new SubgraphInput("cognitive-" + AGENT, SubgraphTypes.COGNITIVE, null), TENANT);
+                new SubgraphInput("cognitive-" + AGENT, SubgraphTypes.COGNITIVE, null), TENANT);
     }
 
     @Test
@@ -115,11 +133,11 @@ class DriveDescriptionGenerationPhaseTest {
 
         phase.run(TENANT, List.of());
 
-        assertThat(capturedConfigs).hasSize(1);
-        var config = capturedConfigs.getFirst();
-        assertThat(config.userPrompt()).contains("gallantry");
-        assertThat(config.userPrompt()).contains("0.9");
-        assertThat(config.userPrompt()).contains("knelt to help the stranger");
+        assertThat(capturedUserPrompts).hasSize(1);
+        var userPrompt = capturedUserPrompts.getFirst();
+        assertThat(userPrompt).contains("gallantry");
+        assertThat(userPrompt).contains("0.9");
+        assertThat(userPrompt).contains("knelt to help the stranger");
     }
 
     @Test
@@ -146,11 +164,11 @@ class DriveDescriptionGenerationPhaseTest {
 
         phase.run(TENANT, List.of());
         assertThat(findDescriptionNodes()).hasSize(1);
-        int callsAfterFirstRun = capturedConfigs.size();
+        int callsAfterFirstRun = capturedUserPrompts.size();
 
         phase.run(TENANT, List.of());
         assertThat(findDescriptionNodes()).hasSize(1);
-        assertThat(capturedConfigs).as("no LLM calls on rerun — descriptions already exist")
+        assertThat(capturedUserPrompts).as("no LLM calls on rerun — descriptions already exist")
             .hasSize(callsAfterFirstRun);
     }
 
@@ -185,7 +203,7 @@ class DriveDescriptionGenerationPhaseTest {
 
         phase.run(TENANT, List.of());
         assertThat(findDescriptionNodes()).hasSize(3);
-        int callsForFullRun = capturedConfigs.size();
+        int callsForFullRun = capturedUserPrompts.size();
 
         // Simulate partial coverage: remove one description (as if interrupted)
         var descriptions = findDescriptionNodes();
@@ -199,7 +217,7 @@ class DriveDescriptionGenerationPhaseTest {
         assertThat(findDescriptionNodes())
                 .as("partial rerun should generate only the missing drive")
                 .hasSize(3);
-        assertThat(capturedConfigs)
+        assertThat(capturedUserPrompts)
                 .as("only 1 new LLM call for the missing drive, not 3")
                 .hasSize(callsForFullRun + 1);
     }
@@ -314,8 +332,11 @@ class DriveDescriptionGenerationPhaseTest {
 
         phase.run(TENANT, List.of());
 
-        assertThat(capturedConfigs).isNotEmpty();
-        var systemPrompt = capturedConfigs.getFirst().systemPrompt();
+        assertThat(capturedInits).isNotEmpty();
+        var systemPrompt = capturedInits.stream()
+                                        .filter(i -> !i.systemPrompt().contains("discrimination"))
+                                        .findFirst().orElseThrow()
+                                        .systemPrompt();
         assertThat(systemPrompt).as("must request attentional channel")
                                 .contains("Attentional");
         assertThat(systemPrompt).as("must request temporal channel")
@@ -346,12 +367,12 @@ class DriveDescriptionGenerationPhaseTest {
 
         phase.run(TENANT, List.of());
 
-        var discriminationConfigs = capturedConfigs.stream()
-                                                   .filter(c -> c.systemPrompt().contains("discrimination"))
-                                                   .toList();
-        assertThat(discriminationConfigs).isNotEmpty();
+        var discriminationInits = capturedInits.stream()
+                                               .filter(i -> i.systemPrompt().contains("discrimination"))
+                                               .toList();
+        assertThat(discriminationInits).isNotEmpty();
 
-        var systemPrompt = discriminationConfigs.getFirst().systemPrompt();
+        var systemPrompt = discriminationInits.getFirst().systemPrompt();
         assertThat(systemPrompt).as("must request attentional channel")
                                 .contains("Attentional");
         assertThat(systemPrompt).as("must request action tendency channel")
