@@ -18,7 +18,7 @@ import static org.assertj.core.data.Offset.offset;
 class LlmImplicationCheckTest {
 
     private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false);
+            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
 
     private AgentProvider mockProvider(Map<String, String> responses) {
         return new AgentProvider() {

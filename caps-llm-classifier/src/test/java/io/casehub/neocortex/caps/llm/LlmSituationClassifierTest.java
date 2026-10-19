@@ -135,7 +135,7 @@ class LlmSituationClassifierTest {
             public Multi<AgentEvent> invoke(AgentSessionConfig config) {
                 return Multi.createFrom().items(
                     (AgentEvent) new AgentEvent.TextDelta(response),
-                    new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false));
+                    new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false, null, null));
             }
             @Override
             public io.casehub.platform.agent.AgentSession openSession(

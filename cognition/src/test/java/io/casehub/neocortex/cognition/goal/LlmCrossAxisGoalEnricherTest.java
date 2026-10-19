@@ -39,7 +39,7 @@ class LlmCrossAxisGoalEnricherTest {
         when(agentProvider.invoke(any(AgentSessionConfig.class)))
                 .thenReturn(Multi.createFrom().items(
                         new AgentEvent.TextDelta("Explore and master new knowledge domains"),
-                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false)));
+                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false, null, null)));
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("knowledge-seeking", 0.8,
@@ -61,7 +61,7 @@ class LlmCrossAxisGoalEnricherTest {
     void returnsNull_whenLlmReturnsError() {
         when(agentProvider.invoke(any(AgentSessionConfig.class)))
                 .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 100L, 80L, "test", 1, true)));
+                        new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 100L, 80L, "test", 1, true, null, null)));
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
@@ -76,7 +76,7 @@ class LlmCrossAxisGoalEnricherTest {
         when(agentProvider.invoke(any(AgentSessionConfig.class)))
                 .thenReturn(Multi.createFrom().items(
                         new AgentEvent.TextDelta("   "),
-                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false)));
+                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false, null, null)));
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
@@ -105,7 +105,7 @@ class LlmCrossAxisGoalEnricherTest {
         when(agentProvider.invoke(configCaptor.capture()))
                 .thenReturn(Multi.createFrom().items(
                         new AgentEvent.TextDelta("enriched goal"),
-                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false)));
+                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false, null, null)));
 
         var episode = new IndividualEpisode("ep-1", Instant.now(), null,
                 List.of(), "Had a breakthrough in research", 0.8, List.of());

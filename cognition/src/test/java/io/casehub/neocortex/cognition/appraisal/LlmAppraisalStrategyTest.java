@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LlmAppraisalStrategyTest {
 
     private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false);
+            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
 
     @Test
     void parsesJsonAndProducesEmotions() {

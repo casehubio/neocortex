@@ -57,7 +57,7 @@ class NarrativePipelineTest {
             return Multi.createFrom().items(
                     new AgentEvent.TextDelta(response),
                     new AgentEvent.InvocationComplete(
-                            100, 50, 0, 0, 0, 0.001, 500L, 400L, "test", 1, false));
+                            100, 50, 0, 0, 0, 0.001, 500L, 400L, "test", 1, false, null, null));
         }
 
         @Override
