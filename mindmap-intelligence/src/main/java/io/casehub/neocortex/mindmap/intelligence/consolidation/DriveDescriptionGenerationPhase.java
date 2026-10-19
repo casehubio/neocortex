@@ -108,69 +108,75 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                  + drivesByAgent.values().stream().mapToInt(List::size).sum() + " drives, "
                  + formativeNodes.size() + " formative memories. Node kinds: " + kindCounts);
 
-        try (AgentSession descSession = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT));
-             AgentSession discSession = agentProvider.openSession(AgentSessionInit.of(DISCRIMINATION_SYSTEM))) {
-            int agentIndex  = 0;
-            int totalAgents = drivesByAgent.size();
-            for (var agentEntry : drivesByAgent.entrySet()) {
-                agentIndex++;
-                String            agentId    = agentEntry.getKey();
-                List<MindMapNode> driveNodes = agentEntry.getValue();
+        var descTasks = new java.util.ArrayList<java.util.function.Consumer<AgentSession>>();
+        var discTasks = new java.util.ArrayList<java.util.function.Consumer<AgentSession>>();
+        int agentIndex = 0;
+        int totalAgents = drivesByAgent.size();
+        for (var agentEntry : drivesByAgent.entrySet()) {
+            agentIndex++;
+            String agentId = agentEntry.getKey();
+            List<MindMapNode> driveNodes = agentEntry.getValue();
 
-                Set<String> describedDriveTypes = allCognitive.stream()
-                                                              .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
-                                                              .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                              .map(n -> n.properties().get("drive-type"))
-                                                              .filter(java.util.Objects::nonNull)
-                                                              .collect(Collectors.toSet());
+            Set<String> describedDriveTypes = allCognitive.stream()
+                .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .map(n -> n.properties().get("drive-type"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
 
-                Set<String> currentDriveTypes = driveNodes.stream()
-                                                          .map(n -> n.properties().get("drive-type"))
-                                                          .filter(java.util.Objects::nonNull)
-                                                          .collect(Collectors.toSet());
+            Set<String> currentDriveTypes = driveNodes.stream()
+                .map(n -> n.properties().get("drive-type"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
 
-                if (describedDriveTypes.containsAll(currentDriveTypes)) {
-                    LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
-                             + agentId + " skipped — descriptions already exist");
-                    continue;
-                }
-
-                List<MindMapNode> agentMemories = formativeNodes.stream()
-                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                                .toList();
-
-                if (agentMemories.isEmpty()) {continue;}
-
+            if (describedDriveTypes.containsAll(currentDriveTypes)) {
                 LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
-                         + agentId + " (" + driveNodes.size() + " drives, "
-                         + agentMemories.size() + " memories)");
-
-                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-                if (subgraphId == null) {continue;}
-
-                for (MindMapNode driveNode : driveNodes) {
-                    String driveType = driveNode.properties().get("drive-type");
-                    if (driveType == null || describedDriveTypes.contains(driveType)) {continue;}
-
-                    List<MindMapNode> servingMemories = agentMemories.stream()
-                                                                     .filter(m -> memoryServesDrive(m, driveType))
-                                                                     .toList();
-
-                    String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
-
-                    long start = System.currentTimeMillis();
-                    generateAndStore(descSession, tenantId, agentId, subgraphId,
-                                     driveType, intensity, servingMemories);
-                    LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
-                             + " memories, " + (System.currentTimeMillis() - start) + "ms)");
-                }
-
-                long discStart = System.currentTimeMillis();
-                generateDiscriminationText(discSession, tenantId, agentId, allCognitive);
-                LOG.info("  " + agentId + " discrimination: "
-                         + (System.currentTimeMillis() - discStart) + "ms");
+                    + agentId + " skipped — descriptions already exist");
+                continue;
             }
+
+            List<MindMapNode> agentMemories = formativeNodes.stream()
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .toList();
+
+            if (agentMemories.isEmpty()) continue;
+
+            LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
+                + agentId + " (" + driveNodes.size() + " drives, "
+                + agentMemories.size() + " memories)");
+
+            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+            if (subgraphId == null) continue;
+
+            for (MindMapNode driveNode : driveNodes) {
+                String driveType = driveNode.properties().get("drive-type");
+                if (driveType == null || describedDriveTypes.contains(driveType)) continue;
+
+                List<MindMapNode> servingMemories = agentMemories.stream()
+                    .filter(m -> memoryServesDrive(m, driveType))
+                    .toList();
+
+                String intensity = driveNode.properties().getOrDefault("intensity", "0.5");
+
+                descTasks.add(session -> {
+                    long start = System.currentTimeMillis();
+                    generateAndStore(session, tenantId, agentId, subgraphId,
+                        driveType, intensity, servingMemories);
+                    LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
+                        + " memories, " + (System.currentTimeMillis() - start) + "ms)");
+                });
+            }
+
+            discTasks.add(session -> {
+                long discStart = System.currentTimeMillis();
+                generateDiscriminationText(session, tenantId, agentId, allCognitive);
+                LOG.info("  " + agentId + " discrimination: "
+                    + (System.currentTimeMillis() - discStart) + "ms");
+            });
         }
+
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, descTasks);
+        ParallelLlmExecutor.execute(agentProvider, DISCRIMINATION_SYSTEM, discTasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,

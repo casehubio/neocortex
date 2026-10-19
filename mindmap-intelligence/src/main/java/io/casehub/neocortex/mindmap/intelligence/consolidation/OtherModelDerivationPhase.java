@@ -131,48 +131,52 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
                                                  .map(n -> n.properties().get("agent-id") + "→" + n.properties().get("target-id"))
                                                  .collect(Collectors.toSet());
 
-        try (AgentSession session = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT))) {
-            for (var agentEntry : drivesByAgent.entrySet()) {
-                String agentId = agentEntry.getKey();
+        var tasks = new java.util.ArrayList<java.util.function.Consumer<AgentSession>>();
+        for (var agentEntry : drivesByAgent.entrySet()) {
+            String agentId = agentEntry.getKey();
 
-                List<MindMapNode> agentMemories = formativeNodes.stream()
-                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                                .toList();
-                if (agentMemories.isEmpty()) {continue;}
+            List<MindMapNode> agentMemories = formativeNodes.stream()
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .toList();
+            if (agentMemories.isEmpty()) continue;
 
-                List<MindMapNode> agentRelations = relationalNodes.stream()
-                                                                  .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                                  .toList();
+            List<MindMapNode> agentRelations = relationalNodes.stream()
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .toList();
 
-                Set<String> targetIds = agentRelations.stream()
-                                                      .map(n -> n.properties().get("target-id"))
-                                                      .filter(java.util.Objects::nonNull)
-                                                      .collect(Collectors.toSet());
+            Set<String> targetIds = agentRelations.stream()
+                .map(n -> n.properties().get("target-id"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
 
-                for (String otherAgentId : drivesByAgent.keySet()) {
-                    if (otherAgentId.equals(agentId)) {continue;}
-                    targetIds.add(otherAgentId);
-                }
+            for (String otherAgentId : drivesByAgent.keySet()) {
+                if (otherAgentId.equals(agentId)) continue;
+                targetIds.add(otherAgentId);
+            }
 
-                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-                if (subgraphId == null) {continue;}
+            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+            if (subgraphId == null) continue;
 
-                for (String targetId : targetIds) {
-                    String key = agentId + "→" + targetId;
-                    if (existingModels.contains(key)) {continue;}
+            List<MindMapNode> driveNodes = agentEntry.getValue();
+            for (String targetId : targetIds) {
+                String key = agentId + "→" + targetId;
+                if (existingModels.contains(key)) continue;
 
-                    List<MindMapNode> relevantRelations = agentRelations.stream()
-                                                                        .filter(n -> targetId.equals(n.properties().get("target-id")))
-                                                                        .toList();
+                List<MindMapNode> relevantRelations = agentRelations.stream()
+                    .filter(n -> targetId.equals(n.properties().get("target-id")))
+                    .toList();
 
+                tasks.add(session -> {
                     long start = System.currentTimeMillis();
                     generateAndStore(session, tenantId, agentId, targetId, subgraphId,
-                                     agentMemories, agentEntry.getValue(), relevantRelations);
+                        agentMemories, driveNodes, relevantRelations);
                     LOG.info("Other-model " + agentId + "→" + targetId
-                             + " (" + (System.currentTimeMillis() - start) + "ms)");
-                }
+                        + " (" + (System.currentTimeMillis() - start) + "ms)");
+                });
             }
         }
+
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String targetId,

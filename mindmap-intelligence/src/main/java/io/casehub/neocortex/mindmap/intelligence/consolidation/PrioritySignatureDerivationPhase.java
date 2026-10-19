@@ -122,37 +122,40 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
                                                                          n -> n.properties().get("agent-id") + ":" + n.properties().get("drive-type"),
                                                                          n -> n, (a, b) -> a));
 
-        try (AgentSession session = agentProvider.openSession(AgentSessionInit.of(SYSTEM_PROMPT))) {
-            for (var agentEntry : drivesByAgent.entrySet()) {
-                String            agentId    = agentEntry.getKey();
-                List<MindMapNode> driveNodes = agentEntry.getValue();
-                if (driveNodes.size() < 2) {continue;}
+        var tasks = new java.util.ArrayList<java.util.function.Consumer<AgentSession>>();
+        for (var agentEntry : drivesByAgent.entrySet()) {
+            String agentId = agentEntry.getKey();
+            List<MindMapNode> driveNodes = agentEntry.getValue();
+            if (driveNodes.size() < 2) continue;
 
-                List<MindMapNode> agentMemories = formativeNodes.stream()
-                                                                .filter(n -> agentId.equals(n.properties().get("agent-id")))
-                                                                .toList();
-                if (agentMemories.isEmpty()) {continue;}
+            List<MindMapNode> agentMemories = formativeNodes.stream()
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .toList();
+            if (agentMemories.isEmpty()) continue;
 
-                String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-                if (subgraphId == null) {continue;}
+            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+            if (subgraphId == null) continue;
 
-                List<String[]> pairs = generatePairs(driveNodes);
+            List<String[]> pairs = generatePairs(driveNodes);
 
-                for (String[] pair : pairs) {
-                    String pairKey = pair[0] + "+" + pair[1];
-                    if (existingSignatures.contains(agentId + ":" + pairKey)) {continue;}
+            for (String[] pair : pairs) {
+                String pairKey = pair[0] + "+" + pair[1];
+                if (existingSignatures.contains(agentId + ":" + pairKey)) continue;
 
-                    String descA = getDescription(descriptionsByKey, agentId, pair[0]);
-                    String descB = getDescription(descriptionsByKey, agentId, pair[1]);
+                String descA = getDescription(descriptionsByKey, agentId, pair[0]);
+                String descB = getDescription(descriptionsByKey, agentId, pair[1]);
 
+                tasks.add(session -> {
                     long start = System.currentTimeMillis();
                     generateAndStore(session, tenantId, agentId, subgraphId, pair[0], pair[1],
-                                     descA, descB, agentMemories);
+                        descA, descB, agentMemories);
                     LOG.info("Priority-sig " + agentId + " " + pairKey
-                             + " (" + (System.currentTimeMillis() - start) + "ms)");
-                }
+                        + " (" + (System.currentTimeMillis() - start) + "ms)");
+                });
             }
         }
+
+        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, tasks);
     }
 
     private List<String[]> generatePairs(List<MindMapNode> driveNodes) {
