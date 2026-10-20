@@ -8,14 +8,9 @@ import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.AgentSessionInit;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
+import io.casehub.platform.agent.session.PooledSession;
+import io.casehub.platform.agent.session.SessionPool;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,44 +20,19 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-@ApplicationScoped
 public class LlmSituationClassifier implements SituationClassifier {
 
     private static final Logger LOG = Logger.getLogger(LlmSituationClassifier.class.getName());
-    // Signal detection threshold (Green & Swets 1966) — minimum confidence for classification output
     private static final double CONFIDENCE_THRESHOLD = 0.3;
     private static final Duration TIMEOUT = Duration.ofSeconds(120);
 
-    private final AgentProvider agentProvider;
+    private final SessionPool sessionPool;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
-    private static final int SESSION_POOL_SIZE = 6;
-
     private final Set<String> validNodeIds;
-    private final java.util.concurrent.ArrayBlockingQueue<AgentSession> sessionPool = new java.util.concurrent.ArrayBlockingQueue<>(SESSION_POOL_SIZE);
-    private final java.util.concurrent.atomic.AtomicInteger createdSessions = new java.util.concurrent.atomic.AtomicInteger();
 
-    @Inject
-    public LlmSituationClassifier(Instance<AgentProvider> agentProviderInstance,
-                                   Instance<CapsTopology> topologyInstance) {
-        this.agentProvider = agentProviderInstance.isResolvable()
-            ? agentProviderInstance.get() : null;
-
-        CapsTopology topology = topologyInstance.isResolvable()
-            ? topologyInstance.get() : null;
-
-        this.validNodeIds = topology != null
-            ? topology.nodes().entrySet().stream()
-                .filter(e -> e.getValue().type() == NodeType.INPUT)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet())
-            : Set.of();
-
-        this.systemPrompt = buildSystemPrompt(topology);
-    }
-
-    public LlmSituationClassifier(AgentProvider agentProvider, CapsTopology topology) {
-        this.agentProvider = agentProvider;
+    public LlmSituationClassifier(SessionPool sessionPool, CapsTopology topology) {
+        this.sessionPool = sessionPool;
         this.validNodeIds = topology.nodes().entrySet().stream()
             .filter(e -> e.getValue().type() == NodeType.INPUT)
             .map(Map.Entry::getKey)
@@ -71,74 +41,33 @@ public class LlmSituationClassifier implements SituationClassifier {
     }
 
     @Override
-public List<SituationActivation> classify(String description,
-                                           Map<String, String> metadata) {
-    if (agentProvider == null || description == null || description.isBlank()) {
-        return List.of();
-    }
-
-    AgentSession session = acquireSession();
-    try {
-        String userPrompt = buildUserPrompt(description, metadata);
-        var events = session.query(userPrompt)
-            .collect().asList()
-            .await().atMost(TIMEOUT.plusSeconds(5));
-
-        String text = events.stream()
-            .filter(AgentEvent.TextDelta.class::isInstance)
-            .map(AgentEvent.TextDelta.class::cast)
-            .map(AgentEvent.TextDelta::text)
-            .collect(Collectors.joining());
-
-        return parseResponse(text);
-    } catch (Exception e) {
-        throw new ClassificationException(
-            "LLM situation classification failed for: " +
-            description.substring(0, Math.min(80, description.length())), e);
-    } finally {
-        sessionPool.offer(session);
-    }
-}
-
-
-    private AgentSession acquireSession() {
-        AgentSession session = sessionPool.poll();
-        if (session != null) {return session;}
-
-        if (createdSessions.incrementAndGet() <= SESSION_POOL_SIZE) {
-            return agentProvider.openSession(AgentSessionInit.of(systemPrompt).withModel("haiku"));
+    public List<SituationActivation> classify(String description,
+                                               Map<String, String> metadata) {
+        if (description == null || description.isBlank()) {
+            return List.of();
         }
 
-        createdSessions.decrementAndGet();
+        var init = AgentSessionInit.of(systemPrompt).withModel("haiku");
+        PooledSession session = sessionPool.checkout(init);
         try {
-            return sessionPool.take();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted waiting for classifier session", e);
-        }
-    }
+            String userPrompt = buildUserPrompt(description, metadata);
+            var events = session.query(userPrompt)
+                .collect().asList()
+                .await().atMost(TIMEOUT);
 
-    void onConsolidationCompleted(@Observes io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationCompleted event) {
-        releaseAllSessions();
-    }
+            String text = events.stream()
+                .filter(AgentEvent.TextDelta.class::isInstance)
+                .map(AgentEvent.TextDelta.class::cast)
+                .map(AgentEvent.TextDelta::text)
+                .collect(Collectors.joining());
 
-
-    @PreDestroy
-    void shutdown() {
-        releaseAllSessions();
-    }
-
-
-    void releaseAllSessions() {
-        int          closed = 0;
-        AgentSession s;
-        while ((s = sessionPool.poll()) != null) {
-            try {s.close();} catch (Exception e) { /* ignore */ }
-            closed++;
-        }
-        createdSessions.set(0);
-        if (closed > 0) {
-            LOG.info("Released " + closed + " classifier sessions");
+            return parseResponse(text);
+        } catch (Exception e) {
+            throw new ClassificationException(
+                "LLM situation classification failed for: " +
+                description.substring(0, Math.min(80, description.length())), e);
+        } finally {
+            session.close();
         }
     }
 
@@ -181,17 +110,17 @@ public List<SituationActivation> classify(String description,
         var sb = new StringBuilder("""
                                    You are a psychological situation classifier. Given a description of \
                                    an experience, classify it into one or more CAPS input node activations.
-                                   
+
                                    Respond with a JSON object:
                                    {"activations": [{"node": "node_id", "confidence": 0.0-1.0}]}
-                                   
+
                                    Rules:
                                    - Only use node IDs from the list below
                                    - confidence reflects how strongly the description matches the node
                                    - Multiple nodes can activate for the same description
                                    - Minimum confidence threshold is 0.3
                                    - Respond with valid JSON only
-                                   
+
                                    Available input nodes:
                                    """);
 

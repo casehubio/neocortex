@@ -202,6 +202,11 @@
       </dependency>
       <dependency>
         <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-agent-session-core</artifactId>
+        <version>${casehub-platform-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
         <artifactId>casehub-platform-schema-generator</artifactId>
         <version>${casehub-platform-api.version}</version>
       </dependency>
