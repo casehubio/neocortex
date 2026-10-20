@@ -36,7 +36,7 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final AgentProvider agentProvider;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
-    private static final int SESSION_POOL_SIZE = 3;
+    private static final int SESSION_POOL_SIZE = 6;
 
     private final Set<String> validNodeIds;
     private final java.util.concurrent.ArrayBlockingQueue<AgentSession> sessionPool = new java.util.concurrent.ArrayBlockingQueue<>(SESSION_POOL_SIZE);
