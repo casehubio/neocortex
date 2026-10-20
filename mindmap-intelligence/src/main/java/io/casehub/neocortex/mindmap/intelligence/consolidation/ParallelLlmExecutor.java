@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 final class ParallelLlmExecutor {
 
     private static final Logger LOG = Logger.getLogger(ParallelLlmExecutor.class.getName());
-    private static final int DEFAULT_CONCURRENCY = 5;
+    private static final int DEFAULT_CONCURRENCY = 3;
     private static final int DEFAULT_CLEAR_THRESHOLD_TOKENS = 50_000;
 
     static SessionMetrics execute(AgentProvider provider, String systemPrompt,
