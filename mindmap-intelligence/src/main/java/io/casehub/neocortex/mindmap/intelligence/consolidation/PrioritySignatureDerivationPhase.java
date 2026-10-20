@@ -8,7 +8,6 @@ import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -72,6 +71,7 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
+    private volatile io.casehub.platform.agent.SessionRegistry sessionRegistry;
 
     @Inject
     public PrioritySignatureDerivationPhase(MindMapStore store,
@@ -89,6 +89,12 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
     public String name() {
         return "priority-signature-derivation";
     }
+
+    @Override
+    public void setSessionRegistry(io.casehub.platform.agent.SessionRegistry registry) {
+        this.sessionRegistry = registry;
+    }
+
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
@@ -155,7 +161,12 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
             }
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "priority-signature-derivation", tasks);
+        var registry = this.sessionRegistry;
+        if (registry != null) {
+            ParallelLlmExecutor.execute(registry, SYSTEM_PROMPT, "priority-signature-derivation", tasks);
+        } else {
+            ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "priority-signature-derivation", tasks);
+        }
     }
 
     private List<String[]> generatePairs(List<MindMapNode> driveNodes) {
