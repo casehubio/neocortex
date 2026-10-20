@@ -8,7 +8,6 @@ import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -83,6 +82,7 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
+    private volatile io.casehub.platform.agent.SessionRegistry sessionRegistry;
 
     @Inject
     public OtherModelDerivationPhase(MindMapStore store,
@@ -100,6 +100,12 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
     public String name() {
         return "other-model-derivation";
     }
+
+    @Override
+    public void setSessionRegistry(io.casehub.platform.agent.SessionRegistry registry) {
+        this.sessionRegistry = registry;
+    }
+
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
@@ -176,7 +182,12 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
             }
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "other-model-derivation", tasks);
+        var registry = this.sessionRegistry;
+        if (registry != null) {
+            ParallelLlmExecutor.execute(registry, SYSTEM_PROMPT, "other-model-derivation", tasks);
+        } else {
+            ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "other-model-derivation", tasks);
+        }
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String targetId,

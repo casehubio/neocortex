@@ -9,7 +9,6 @@ import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -59,6 +58,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
+    private volatile io.casehub.platform.agent.SessionRegistry sessionRegistry;
 
     @Inject
     public DriveDescriptionGenerationPhase(MindMapStore store,
@@ -76,6 +76,12 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     public String name() {
         return "drive-description-generation";
     }
+
+    @Override
+    public void setSessionRegistry(io.casehub.platform.agent.SessionRegistry registry) {
+        this.sessionRegistry = registry;
+    }
+
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
@@ -175,8 +181,14 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             });
         }
 
-        ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "drive-description", descTasks);
-        ParallelLlmExecutor.execute(agentProvider, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
+        var registry = this.sessionRegistry;
+        if (registry != null) {
+            ParallelLlmExecutor.execute(registry, SYSTEM_PROMPT, "drive-description", descTasks);
+            ParallelLlmExecutor.execute(registry, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
+        } else {
+            ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "drive-description", descTasks);
+            ParallelLlmExecutor.execute(agentProvider, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
+        }
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
