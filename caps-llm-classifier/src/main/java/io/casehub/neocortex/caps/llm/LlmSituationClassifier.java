@@ -151,4 +151,27 @@ public class LlmSituationClassifier implements SituationClassifier {
         if (start < 0 || end <= start) return null;
         return text.substring(start, end + 1);
     }
+
+    public static SessionPool createPool(io.casehub.platform.agent.AgentBackend backend, int maxActive) {
+        return new SessionPool(backend,
+                               new io.casehub.platform.agent.session.SessionPoolConfig(
+                                       "classifier", backend.key(), 0, maxActive,
+                                       java.time.Duration.ofSeconds(120), java.time.Duration.ofSeconds(5)));
+    }
+
+    public static SessionPool createPool(io.casehub.platform.agent.AgentProvider provider, int maxActive) {
+        io.casehub.platform.agent.AgentBackend backend = new io.casehub.platform.agent.AgentBackend() {
+            @Override
+            public String key()                                                                                     {return "provider-adapter";}
+
+            @Override
+            public io.casehub.platform.agent.AgentSession openSession(AgentSessionInit init)                        {return provider.openSession(init);}
+
+            @Override
+            public io.smallrye.mutiny.Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {return provider.invoke(config);}
+        };
+        return createPool(backend, maxActive);
+    }
+
+
 }
