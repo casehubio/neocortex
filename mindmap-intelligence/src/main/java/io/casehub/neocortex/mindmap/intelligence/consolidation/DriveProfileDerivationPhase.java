@@ -171,40 +171,47 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
             Map<String, String> discriminationMeta = buildDiscriminationMetadata(
                     driveType, driveDescriptions);
 
-            Map<String, Double> inputActivations = new HashMap<>();
-            List<String>        memoryExcerpts   = new ArrayList<>();
+            var inputActivations = new java.util.concurrent.ConcurrentHashMap<String, Double>();
+            var memoryExcerpts = java.util.Collections.synchronizedList(new ArrayList<String>());
 
-            for (MindMapNode memory : servingMemories) {
-                String episodeText = memory.name();
-
-                if (classifier != null) {
-                    try {
-                        List<SituationActivation> activations = classifier.classify(
-                                episodeText, discriminationMeta);
-                        for (SituationActivation sa : activations) {
-                            inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+            try (var classifyExecutor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+                var futures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+                for (MindMapNode memory : servingMemories) {
+                    String episodeText = memory.name();
+                    memoryExcerpts.add(excerpt(episodeText));
+                    if (classifier != null) {
+                        futures.add(classifyExecutor.submit(() -> {
+                            try {
+                                List<SituationActivation> activations = classifier.classify(
+                                        episodeText, discriminationMeta);
+                                for (SituationActivation sa : activations) {
+                                    inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                                }
+                            } catch (Exception e) {
+                                LOG.warning("drive-profile-derivation: skipping memory for " + driveType
+                                            + " (classification failed): " + excerpt(episodeText));
+                            }
+                            return null;
+                        }));
+                    }
+                }
+                String description = driveNode.properties().get("description");
+                if (classifier != null && description != null && !description.isBlank()) {
+                    futures.add(classifyExecutor.submit(() -> {
+                        try {
+                            List<SituationActivation> descActivations = classifier.classify(
+                                    description, discriminationMeta);
+                            for (SituationActivation sa : descActivations) {
+                                inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                            }
+                        } catch (Exception e) {
+                            LOG.warning("drive-profile-derivation: skipping description for " + driveType
+                                        + " (classification failed): " + excerpt(description));
                         }
-                    } catch (Exception e) {
-                        LOG.warning("drive-profile-derivation: skipping memory for " + driveType
-                                    + " (classification failed): " + excerpt(episodeText));
-                    }
+                        return null;
+                    }));
                 }
-
-                memoryExcerpts.add(excerpt(episodeText));
-            }
-
-            String description = driveNode.properties().get("description");
-            if (classifier != null && description != null && !description.isBlank()) {
-                try {
-                    List<SituationActivation> descActivations = classifier.classify(
-                            description, discriminationMeta);
-                    for (SituationActivation sa : descActivations) {
-                        inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
-                    }
-                } catch (Exception e) {
-                    LOG.warning("drive-profile-derivation: skipping description for " + driveType
-                                + " (classification failed): " + excerpt(description));
-                }
+                for (var f : futures) { try { f.get(); } catch (Exception e) { /* logged */ } }
             }
 
             Set<String> mediatingNodes = topology != null

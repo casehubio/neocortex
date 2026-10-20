@@ -36,11 +36,11 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final AgentProvider agentProvider;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
-    private static final long IDLE_TIMEOUT_MS = 60_000;
+    private static final int SESSION_POOL_SIZE = 5;
 
     private final Set<String> validNodeIds;
-    private volatile AgentSession session;
-    private volatile long lastQueryTime;
+    private final java.util.concurrent.ArrayBlockingQueue<AgentSession> sessionPool = new java.util.concurrent.ArrayBlockingQueue<>(SESSION_POOL_SIZE);
+    private final java.util.concurrent.atomic.AtomicInteger createdSessions = new java.util.concurrent.atomic.AtomicInteger();
 
     @Inject
     public LlmSituationClassifier(Instance<AgentProvider> agentProviderInstance,
@@ -71,27 +71,15 @@ public class LlmSituationClassifier implements SituationClassifier {
     }
 
     @Override
-public synchronized List<SituationActivation> classify(String description,
-                                                        Map<String, String> metadata) {
+public List<SituationActivation> classify(String description,
+                                           Map<String, String> metadata) {
     if (agentProvider == null || description == null || description.isBlank()) {
         return List.of();
     }
 
-    if (session != null && System.currentTimeMillis() - lastQueryTime > IDLE_TIMEOUT_MS) {
-        LOG.info("Classifier session idle for " + IDLE_TIMEOUT_MS + "ms — releasing");
-        try { session.close(); } catch (Exception e) { /* ignore */ }
-        session = null;
-    }
-
-    if (session == null) {
-        session = agentProvider.openSession(
-            AgentSessionInit.of(systemPrompt).withModel("haiku"));
-    }
-
-    lastQueryTime = System.currentTimeMillis();
-    String userPrompt = buildUserPrompt(description, metadata);
-
+    AgentSession session = acquireSession();
     try {
+        String userPrompt = buildUserPrompt(description, metadata);
         var events = session.query(userPrompt)
             .collect().asList()
             .await().atMost(TIMEOUT.plusSeconds(5));
@@ -107,26 +95,50 @@ public synchronized List<SituationActivation> classify(String description,
         throw new ClassificationException(
             "LLM situation classification failed for: " +
             description.substring(0, Math.min(80, description.length())), e);
+    } finally {
+        sessionPool.offer(session);
     }
 }
 
 
+    private AgentSession acquireSession() {
+        AgentSession session = sessionPool.poll();
+        if (session != null) {return session;}
+
+        if (createdSessions.incrementAndGet() <= SESSION_POOL_SIZE) {
+            return agentProvider.openSession(AgentSessionInit.of(systemPrompt).withModel("haiku"));
+        }
+
+        createdSessions.decrementAndGet();
+        try {
+            return sessionPool.take();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted waiting for classifier session", e);
+        }
+    }
+
     void onConsolidationCompleted(@Observes io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationCompleted event) {
-        releaseSession();
+        releaseAllSessions();
     }
 
 
     @PreDestroy
     void shutdown() {
-        releaseSession();
+        releaseAllSessions();
     }
 
 
-    synchronized void releaseSession() {
-        if (session != null) {
-            LOG.info("Releasing classifier session");
-            try {session.close();} catch (Exception e) { /* ignore */ }
-            session = null;
+    void releaseAllSessions() {
+        int          closed = 0;
+        AgentSession s;
+        while ((s = sessionPool.poll()) != null) {
+            try {s.close();} catch (Exception e) { /* ignore */ }
+            closed++;
+        }
+        createdSessions.set(0);
+        if (closed > 0) {
+            LOG.info("Released " + closed + " classifier sessions");
         }
     }
 

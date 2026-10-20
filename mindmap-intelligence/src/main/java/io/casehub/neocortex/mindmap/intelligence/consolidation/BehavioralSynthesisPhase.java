@@ -114,16 +114,23 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 LOG.info("Auto-initialized CAPS state for agent " + agentId);
             }
 
-            Map<String, Double> experienceActivations = new HashMap<>();
+            var experienceActivations = new java.util.concurrent.ConcurrentHashMap<String, Double>();
 
-            for (MindMapNode node : agentNodes) {
-                List<SituationActivation> activations = classifier.classify(
-                    node.name(), nodeMetadata(node));
-
-                for (SituationActivation sa : activations) {
-                    experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+            try (var classifyExecutor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+                var classifyFutures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+                for (MindMapNode node : agentNodes) {
+                    classifyFutures.add(classifyExecutor.submit(() -> {
+                        List<SituationActivation> activations = classifier.classify(
+                            node.name(), nodeMetadata(node));
+                        for (SituationActivation sa : activations) {
+                            experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                        }
+                        return null;
+                    }));
                 }
-
+                for (var f : classifyFutures) {
+                    try { f.get(); } catch (Exception e) { /* logged by classifier */ }
+                }
             }
 
             String dominantInput = experienceActivations.entrySet().stream()
