@@ -6,12 +6,18 @@ import io.casehub.neocortex.caps.NodeRange;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.WeightUpdateParameters;
+import io.casehub.platform.agent.AgentBackend;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSessionInit;
+import io.casehub.platform.agent.session.SessionPool;
+import io.casehub.platform.agent.session.SessionPoolConfig;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -36,11 +42,42 @@ class LlmSituationClassifierTest {
             new double[]{-2.0, 2.0}, new double[]{0.1, 3.0}, 0.6));
 
     @Test
+    void classify_usesSessionPoolCheckoutAndRelease() {
+        var pool = stubPool("""
+                            {"activations": [{"node": "reward", "confidence": 0.8}]}
+                            """);
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+
+        var result = classifier.classify("Got rewarded", Map.of());
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().nodeId()).isEqualTo("reward");
+
+        // session returned to pool — second call succeeds without exhaustion
+        var result2 = classifier.classify("Got rewarded again", Map.of());
+        assertThat(result2).hasSize(1);
+    }
+
+    @Test
+    void classify_releasesSessionOnParseFailure() {
+        var pool       = stubPool("garbled response no json");
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+
+        // garbled response → empty list (no valid JSON activations)
+        var result = classifier.classify("test", Map.of());
+        assertThat(result).isEmpty();
+
+        // session returned to pool — second call succeeds
+        var result2 = classifier.classify("test again", Map.of());
+        assertThat(result2).isEmpty();
+    }
+
+    @Test
     void parsesValidResponse() {
-        var classifier = new LlmSituationClassifier(stubProvider(
-            """
+        var pool = stubPool("""
             {"activations": [{"node": "reward", "confidence": 0.8}, {"node": "rejection", "confidence": 0.5}]}
-            """), TOPOLOGY);
+            """);
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify(
             "Was rewarded and then rejected", Map.of());
@@ -58,10 +95,10 @@ class LlmSituationClassifierTest {
 
     @Test
     void filtersInvalidNodeIds() {
-        var classifier = new LlmSituationClassifier(stubProvider(
-            """
+        var pool = stubPool("""
             {"activations": [{"node": "reward", "confidence": 0.8}, {"node": "nonexistent", "confidence": 0.9}]}
-            """), TOPOLOGY);
+            """);
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -71,10 +108,10 @@ class LlmSituationClassifierTest {
 
     @Test
     void filtersOutputNodes() {
-        var classifier = new LlmSituationClassifier(stubProvider(
-            """
+        var pool = stubPool("""
             {"activations": [{"node": "approach", "confidence": 0.9}]}
-            """), TOPOLOGY);
+            """);
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -83,10 +120,10 @@ class LlmSituationClassifierTest {
 
     @Test
     void filtersBelowThreshold() {
-        var classifier = new LlmSituationClassifier(stubProvider(
-            """
+        var pool = stubPool("""
             {"activations": [{"node": "reward", "confidence": 0.1}]}
-            """), TOPOLOGY);
+            """);
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -95,12 +132,12 @@ class LlmSituationClassifierTest {
 
     @Test
     void handlesMarkdownWrappedJson() {
-        var classifier = new LlmSituationClassifier(stubProvider(
-            """
+        var pool = stubPool("""
             ```json
             {"activations": [{"node": "reward", "confidence": 0.7}]}
             ```
-            """), TOPOLOGY);
+            """);
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -109,8 +146,8 @@ class LlmSituationClassifierTest {
 
     @Test
     void handlesGarbledResponse() {
-        var classifier = new LlmSituationClassifier(stubProvider(
-            "I think the situation involves reward"), TOPOLOGY);
+        var pool = stubPool("I think the situation involves reward");
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -119,7 +156,8 @@ class LlmSituationClassifierTest {
 
     @Test
     void returnsEmptyForNullDescription() {
-        var classifier = new LlmSituationClassifier(stubProvider("{}"), TOPOLOGY);
+        var pool = stubPool("{}");
+        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
 
         assertThat(classifier.classify(null, Map.of())).isEmpty();
         assertThat(classifier.classify("", Map.of())).isEmpty();
@@ -134,33 +172,27 @@ class LlmSituationClassifierTest {
             .isEqualTo("{\"a\": 1}");
     }
 
-    private static AgentProvider stubProvider(String response) {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public io.casehub.platform.agent.AgentSession openSession(
-                    io.casehub.platform.agent.AgentSessionInit init) {
-                return new io.casehub.platform.agent.AgentSession() {
-                    @Override
-                    public Multi<AgentEvent> query(String userPrompt) {
+    private static SessionPool stubPool(String response) {
+        AgentBackend backend = new AgentBackend() {
+            @Override public String key() { return "stub"; }
+            @Override public AgentSession openSession(AgentSessionInit init) {
+                return new AgentSession() {
+                    @Override public Multi<AgentEvent> query(String prompt) {
                         return Multi.createFrom().items(
-                                (AgentEvent) new AgentEvent.TextDelta(response),
-                                new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false, null, null));
+                            (AgentEvent) new AgentEvent.TextDelta(response),
+                            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0, 0, null, 1, false, null, null));
                     }
-
-                    @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {
-                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
-                    }
-
-                    @Override
-                    public void close(java.time.Duration timeout) {}
+                    @Override public Uni<Void> interrupt() { return Uni.createFrom().voidItem(); }
+                    @Override public void close(Duration timeout) {}
+                    @Override public void clear() {}
                 };
             }
+            @Override public Multi<AgentEvent> invoke(AgentSessionConfig config) {
+                throw new UnsupportedOperationException();
+            }
         };
+        return new SessionPool(backend,
+            new SessionPoolConfig("test-classifier", "stub", 0, 6,
+                Duration.ofSeconds(60), Duration.ofSeconds(5)));
     }
 }
