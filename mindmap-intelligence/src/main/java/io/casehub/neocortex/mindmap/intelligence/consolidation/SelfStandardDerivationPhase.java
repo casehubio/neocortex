@@ -6,8 +6,9 @@ import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -53,14 +54,10 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
                                                 Respond with JSON only: {"self_standard": "..."}""";
 
     private final MindMapStore store;
-    private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
+    private volatile SessionPipeline sessionPipeline;
 
     @Inject
     public SelfStandardDerivationPhase(MindMapStore store) {
-        this.store = store;
-    }
-
-    SelfStandardDerivationPhase(MindMapStore store, AgentProvider agentProvider) {
         this.store = store;
     }
 
@@ -70,7 +67,7 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
     }
 
     @Override
-    public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
+    public void setSessionPipeline(SessionPipeline pipeline) {
         this.sessionPipeline = pipeline;
     }
 
@@ -170,7 +167,7 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
             LOG.warning("Self-standard derivation skipped — no SessionPipeline");
             return;
         }
-        io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "self-standard-derivation", tasks);
+        ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "self-standard-derivation", tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,

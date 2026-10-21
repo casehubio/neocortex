@@ -15,16 +15,14 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
+import io.casehub.platform.agent.session.SessionPipeline;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -77,35 +75,29 @@ class ConsolidationPipelinePropagationTest {
 
         var competitions = findByTrait(DriveProfileDerivationPhase.COMPETITION_TRAIT, AGENT_A);
 
-        AgentProvider mockProvider = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                throw new UnsupportedOperationException();
-            }
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                boolean isDiscrimination = init.systemPrompt().contains("discrimination");
-                return new AgentSession() {
-                    @Override
-                    public Multi<AgentEvent> query(String userPrompt) {
-                        if (isDiscrimination) {
-                            return Multi.createFrom().items(
-                                new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: mock discrimination text.\"}"));
-                        }
+        SessionPipeline pipeline = StubPipelines.create(init -> {
+            boolean isDiscrimination = init.systemPrompt().contains("discrimination");
+            return new AgentSession() {
+                @Override
+                public Multi<AgentEvent> query(String userPrompt) {
+                    if (isDiscrimination) {
                         return Multi.createFrom().items(
-                            new AgentEvent.TextDelta("{\"description\": \"Mock somatic description for testing.\"}"));
+                            new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: mock discrimination text.\"}"));
                     }
-                    @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {
-                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
-                    }
-                    @Override
-                    public void close(java.time.Duration timeout) {}
-                };
-            }
-        };
+                    return Multi.createFrom().items(
+                        new AgentEvent.TextDelta("{\"description\": \"Mock somatic description for testing.\"}"));
+                }
+                @Override
+                public io.smallrye.mutiny.Uni<Void> interrupt() {
+                    return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                }
+                @Override
+                public void close(java.time.Duration timeout) {}
+            };
+        });
 
-        var descPhase = new DriveDescriptionGenerationPhase(store, mockProvider);
+        var descPhase = new DriveDescriptionGenerationPhase(store);
+        descPhase.setSessionPipeline(pipeline);
         descPhase.run(TENANT, List.of());
 
         var descriptions = findByTrait(DriveDescriptionGenerationPhase.DESCRIPTION_TRAIT, AGENT_A);
@@ -132,30 +124,22 @@ class ConsolidationPipelinePropagationTest {
         seedAgent(AGENT_B, List.of("scheming"),
             List.of(mem("Noticed the keys", "scheming")));
 
-        AgentProvider mockProvider = new AgentProvider() {
+        SessionPipeline pipeline = StubPipelines.create(init -> new AgentSession() {
             @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                throw new UnsupportedOperationException();
+            public Multi<AgentEvent> query(String userPrompt) {
+                return Multi.createFrom().items(
+                    new AgentEvent.TextDelta("{\"description\": \"Mock somatic.\"}"));
             }
             @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                return new AgentSession() {
-                    @Override
-                    public Multi<AgentEvent> query(String userPrompt) {
-                        return Multi.createFrom().items(
-                            new AgentEvent.TextDelta("{\"description\": \"Mock somatic.\"}"));
-                    }
-                    @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {
-                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
-                    }
-                    @Override
-                    public void close(java.time.Duration timeout) {}
-                };
+            public io.smallrye.mutiny.Uni<Void> interrupt() {
+                return io.smallrye.mutiny.Uni.createFrom().voidItem();
             }
-        };
+            @Override
+            public void close(java.time.Duration timeout) {}
+        });
 
-        var descPhase = new DriveDescriptionGenerationPhase(store, mockProvider);
+        var descPhase = new DriveDescriptionGenerationPhase(store);
+        descPhase.setSessionPipeline(pipeline);
         descPhase.run(TENANT, List.of());
 
         assertThat(findByTrait(DriveDescriptionGenerationPhase.DESCRIPTION_TRAIT, AGENT_A))
@@ -180,30 +164,22 @@ class ConsolidationPipelinePropagationTest {
             .withProperties(Map.of("cognitiveKind", "drive-intensity", "agent-id", AGENT_A,
                 "drive-type", "other-drive", "intensity", "0.7", "description", "x")), TENANT);
 
-        AgentProvider mockProvider = new AgentProvider() {
+        SessionPipeline pipeline = StubPipelines.create(init -> new AgentSession() {
             @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                throw new UnsupportedOperationException();
+            public Multi<AgentEvent> query(String userPrompt) {
+                return Multi.createFrom().items(
+                    new AgentEvent.TextDelta("{\"description\": \"Generic description.\"}"));
             }
             @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                return new AgentSession() {
-                    @Override
-                    public Multi<AgentEvent> query(String userPrompt) {
-                        return Multi.createFrom().items(
-                            new AgentEvent.TextDelta("{\"description\": \"Generic description.\"}"));
-                    }
-                    @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {
-                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
-                    }
-                    @Override
-                    public void close(java.time.Duration timeout) {}
-                };
+            public io.smallrye.mutiny.Uni<Void> interrupt() {
+                return io.smallrye.mutiny.Uni.createFrom().voidItem();
             }
-        };
+            @Override
+            public void close(java.time.Duration timeout) {}
+        });
 
-        var descPhase = new DriveDescriptionGenerationPhase(store, mockProvider);
+        var descPhase = new DriveDescriptionGenerationPhase(store);
+        descPhase.setSessionPipeline(pipeline);
         descPhase.run(TENANT, List.of());
 
         var descriptions = findByTrait(DriveDescriptionGenerationPhase.DESCRIPTION_TRAIT, AGENT_A);

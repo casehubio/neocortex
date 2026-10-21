@@ -2,6 +2,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
+import io.casehub.platform.agent.session.SessionPipeline;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ public interface ConsolidationPhase {
 
     default void beginTick() {}
 
-    default void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {}
+    default void setSessionPipeline(SessionPipeline pipeline) {}
 
 
     default List<AttentionSignal> signals() {return List.of();}

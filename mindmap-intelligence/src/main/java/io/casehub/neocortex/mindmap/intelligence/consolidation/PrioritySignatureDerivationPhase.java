@@ -7,6 +7,8 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -67,7 +69,7 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
         Respond with JSON only: {"priority_signature": "..."}""";
 
     private final MindMapStore store;
-    private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
+    private volatile SessionPipeline sessionPipeline;
 
     @Inject
     public PrioritySignatureDerivationPhase(MindMapStore store) {
@@ -80,7 +82,7 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
     }
 
     @Override
-    public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
+    public void setSessionPipeline(SessionPipeline pipeline) {
         this.sessionPipeline = pipeline;
     }
 
@@ -155,7 +157,7 @@ public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
             LOG.warning("Priority signature derivation skipped — no SessionPipeline");
             return;
         }
-        io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "priority-signature-derivation", tasks);
+        ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "priority-signature-derivation", tasks);
     }
 
     private List<String[]> generatePairs(List<MindMapNode> driveNodes) {
