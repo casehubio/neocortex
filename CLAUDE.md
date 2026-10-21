@@ -304,7 +304,7 @@ The C2 native image gate passed (ONNX Runtime JNI + HuggingFace Tokenizers JNI b
 
 ## Cognitive Corpus Coverage Protocol
 
-The cognitive extraction pipeline (in `blocks-ui/examples/cognitive-workbench/`) produces a biographical corpus that feeds the cognitive engine. The pipeline has four stages, each with a coverage gate. The field registry (#514) is the source of truth for what fields exist.
+The cognitive extraction pipeline (in `casehub-mosaic/examples/cognitive-workbench/`) produces a biographical corpus that feeds the cognitive engine. The pipeline has four stages, each with a coverage gate. The field registry (#514) is the source of truth for what fields exist.
 
 ### Four-Stage Coverage Chain
 
