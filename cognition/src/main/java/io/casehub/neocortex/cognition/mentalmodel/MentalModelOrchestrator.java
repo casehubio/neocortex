@@ -1,8 +1,8 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Clock;
@@ -18,7 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class MentalModelOrchestrator {
 
@@ -38,27 +37,28 @@ public class MentalModelOrchestrator {
             Only include entries with confidence >= 0.3.""";
 
     private final MentalModelMemory modelMemory;
-    private final AgentProvider agentProvider;
     private final MentalModelConfig config;
     private final Clock clock;
+    private volatile SessionPipeline sessionPipeline;
 
     private final ConcurrentHashMap<String, SubjectMentalState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public MentalModelOrchestrator(MentalModelMemory modelMemory,
-                                   AgentProvider agentProvider,
                                    MentalModelConfig config) {
-        this(modelMemory, agentProvider, config, Clock.systemUTC());
+        this(modelMemory, config, Clock.systemUTC());
     }
 
     MentalModelOrchestrator(MentalModelMemory modelMemory,
-                            AgentProvider agentProvider,
                             MentalModelConfig config,
                             Clock clock) {
         this.modelMemory = modelMemory;
-        this.agentProvider = agentProvider;
         this.config = config;
         this.clock = clock;
+    }
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
     public void record(MentalStateSignal signal,
@@ -312,8 +312,7 @@ public class MentalModelOrchestrator {
                     currentBeliefs, currentDesires, currentIntentions,
                     lines.length, recentText);
 
-            var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
-            var textResult = invokeText(sessionConfig);
+            var textResult = invokeText(SYSTEM_PROMPT, userPrompt);
             if (textResult == null) return;
             applyInferenceResult(state, textResult);
         } catch (Exception e) {
@@ -321,25 +320,19 @@ public class MentalModelOrchestrator {
         }
     }
 
-    private @Nullable String invokeText(AgentSessionConfig config) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+        var pipeline = this.sessionPipeline;
+        if (pipeline == null) return null;
         try {
-            var events = agentProvider.invoke(config)
-                    .collect().asList()
-                    .await().atMost(Duration.ofMinutes(1));
-
-            boolean hasError = events.stream()
-                    .filter(AgentEvent.InvocationComplete.class::isInstance)
-                    .map(AgentEvent.InvocationComplete.class::cast)
-                    .anyMatch(AgentEvent.InvocationComplete::isError);
-            if (hasError) return null;
-
-            var text = events.stream()
-                    .filter(AgentEvent.TextDelta.class::isInstance)
-                    .map(AgentEvent.TextDelta.class::cast)
-                    .map(AgentEvent.TextDelta::text)
-                    .collect(Collectors.joining());
-
-            return text.isBlank() ? null : text;
+            var responseText = new StringBuilder();
+            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "mental-model",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
+            return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);
             return null;

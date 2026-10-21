@@ -4,12 +4,14 @@ import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.memory.ReflectionEntry;
 import io.casehub.neocortex.summarisation.ContentSummariser;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.jspecify.annotations.Nullable;
 
+import java.io.StringReader;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -22,10 +24,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import java.io.StringReader;
 
 public class NarrativeContentSummariser
         implements ContentSummariser<ReflectionEntry, NarrativeState> {
@@ -51,21 +49,21 @@ public class NarrativeContentSummariser
 
             Respond with JSON only. No explanation outside the JSON.""";
 
-    private final AgentProvider agentProvider;
     private final NarrativeConfig config;
     private final Clock clock;
+    private volatile SessionPipeline sessionPipeline;
 
-    public NarrativeContentSummariser(AgentProvider agentProvider,
-                                       NarrativeConfig config) {
-        this(agentProvider, config, Clock.systemUTC());
+    public NarrativeContentSummariser(NarrativeConfig config) {
+        this(config, Clock.systemUTC());
     }
 
-    NarrativeContentSummariser(AgentProvider agentProvider,
-                                NarrativeConfig config,
-                                Clock clock) {
-        this.agentProvider = agentProvider;
+    NarrativeContentSummariser(NarrativeConfig config, Clock clock) {
         this.config = config;
         this.clock = clock;
+    }
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
     @Override
@@ -85,8 +83,7 @@ public class NarrativeContentSummariser
 
         var userPrompt = assembleUserPrompt(previous, reflections);
 
-        String responseText = invokeText(
-                AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt));
+        String responseText = invokeText(SYSTEM_PROMPT, userPrompt);
         if (responseText == null) {
             return CompletableFuture.completedFuture(previous);
         }
@@ -146,25 +143,19 @@ public class NarrativeContentSummariser
         return CompletableFuture.completedFuture(state);
     }
 
-    private @Nullable String invokeText(AgentSessionConfig sessionConfig) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+        var pipeline = this.sessionPipeline;
+        if (pipeline == null) return null;
         try {
-            var events = agentProvider.invoke(sessionConfig)
-                    .collect().asList()
-                    .await().atMost(Duration.ofMinutes(1));
-
-            boolean hasError = events.stream()
-                    .filter(AgentEvent.InvocationComplete.class::isInstance)
-                    .map(AgentEvent.InvocationComplete.class::cast)
-                    .anyMatch(AgentEvent.InvocationComplete::isError);
-            if (hasError) return null;
-
-            var text = events.stream()
-                    .filter(AgentEvent.TextDelta.class::isInstance)
-                    .map(AgentEvent.TextDelta.class::cast)
-                    .map(AgentEvent.TextDelta::text)
-                    .collect(Collectors.joining());
-
-            return text.isBlank() ? null : text;
+            var responseText = new StringBuilder();
+            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "narrative-summariser",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
+            return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);
             return null;

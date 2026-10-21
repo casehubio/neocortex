@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-final class StubPipelines {
+public final class StubPipelines {
 
     private StubPipelines() {}
 
