@@ -21,6 +21,7 @@
     <module>inference-inmem</module>
     <module>inference-bge-m3</module>
     <module>inference-quarkus</module>
+    <module>inference-bayes</module>
     <module>fusion-api</module>
     <module>thing-api</module>
     <module>cognitive-api</module>
@@ -299,6 +300,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-inference-quarkus</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-inference-bayes</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
