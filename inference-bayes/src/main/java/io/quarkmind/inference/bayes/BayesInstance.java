@@ -24,6 +24,7 @@ import io.quarkmind.inference.bayes.graph.GraphNode;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -815,6 +816,106 @@ public class BayesInstance<T> {
             }
         }
         return kl;
+    }
+
+    public MapAssignment mapInference() {
+        CliqueState[] mapCliques = new CliqueState[cliqueStates.length];
+        for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+            mapCliques[clique.getId()] = clique.createState();
+        }
+        SeparatorState[] mapSeps = new SeparatorState[separatorStates.length];
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            mapSeps[sep.getId()] = sep.createState();
+        }
+
+        for (int i = 0; i < likelyhoods.length; i++) {
+            BayesLikelyhood l = likelyhoods[i];
+            if (l != null) {
+                int family = l.getVariable().getFamily();
+                l.multiplyInto(mapCliques[family].getPotentials());
+                BayesAbsorption.normalize(mapCliques[family].getPotentials());
+            }
+        }
+
+        mapCollectChild(tree.getRoot(), tree.getRoot(), mapCliques, mapSeps);
+        mapDistributeChild(tree.getRoot(), tree.getRoot(), mapCliques, mapSeps);
+
+        Map<String, Object> assignment = new LinkedHashMap<>();
+        for (Map.Entry<String, BayesVariable> entry : variables.entrySet()) {
+            BayesVariable var         = entry.getValue();
+            double[]      maxMarginal = mapMaxMarginalize(var, mapCliques);
+            int           best        = 0;
+            for (int i = 1; i < maxMarginal.length; i++) {
+                if (maxMarginal[i] > maxMarginal[best]) {best = i;}
+            }
+            assignment.put(var.getName(), var.getOutcomes()[best]);
+        }
+
+        return new MapAssignment(assignment);
+    }
+
+    private void mapCollectChild(JunctionTreeClique clique, JunctionTreeClique startClique,
+                                 CliqueState[] cliques, SeparatorState[] seps) {
+        for (JunctionTreeSeparator sep : clique.getChildren()) {
+            mapCollectChild(sep.getChild(), startClique, cliques, seps);
+        }
+        if (clique.getParentSeparator() != null && clique != startClique) {
+            mapPassMessage(clique, clique.getParentSeparator(),
+                           clique.getParentSeparator().getParent(), cliques, seps);
+        }
+    }
+
+    private void mapDistributeChild(JunctionTreeClique clique, JunctionTreeClique startClique,
+                                    CliqueState[] cliques, SeparatorState[] seps) {
+        if (clique.getParentSeparator() != null && clique != startClique) {
+            mapPassMessage(clique.getParentSeparator().getParent(),
+                           clique.getParentSeparator(), clique, cliques, seps);
+        }
+        for (JunctionTreeSeparator sep : clique.getChildren()) {
+            mapDistributeChild(sep.getChild(), startClique, cliques, seps);
+        }
+    }
+
+    private void mapPassMessage(JunctionTreeClique sourceClique, JunctionTreeSeparator sep,
+                                JunctionTreeClique targetClique,
+                                CliqueState[] cliques, SeparatorState[] seps) {
+        double[] sepPots    = seps[sep.getId()].getPotentials();
+        double[] oldSepPots = Arrays.copyOf(sepPots, sepPots.length);
+
+        BayesVariable[] sepVars = sep.getValues().toArray(new BayesVariable[sep.getValues().size()]);
+
+        mapProject(sepVars, cliques[sourceClique.getId()], seps[sep.getId()]);
+        absorb(sepVars, cliques[targetClique.getId()], seps[sep.getId()], oldSepPots);
+        LogSpace.normalize(cliques[targetClique.getId()].getPotentials());
+    }
+
+    private static void mapProject(BayesVariable[] sepVars, CliqueState clique, SeparatorState separator) {
+        BayesVariable[] vars = clique.getJunctionTreeClique().getValues().toArray(
+                new BayesVariable[clique.getJunctionTreeClique().getValues().size()]);
+        int[] sepVarPos            = PotentialMultiplier.createSubsetVarPos(vars, sepVars);
+        int   sepVarNumberOfStates = PotentialMultiplier.createNumberOfStates(sepVars);
+        int[] sepVarMultipliers    = PotentialMultiplier.createIndexMultipliers(sepVars, sepVarNumberOfStates);
+
+        MaxProjection p = new MaxProjection(vars, clique.getPotentials(),
+                                            sepVarPos, sepVarMultipliers, separator.getPotentials());
+        p.project();
+    }
+
+    private double[] mapMaxMarginalize(BayesVariable var, CliqueState[] cliques) {
+        CliqueState        cliqueState = cliques[var.getFamily()];
+        JunctionTreeClique jtNode      = cliqueState.getJunctionTreeClique();
+        BayesVariable[]    srcVars     = jtNode.getValues().toArray(new BayesVariable[jtNode.getValues().size()]);
+        BayesVariable[]    trgVars     = new BayesVariable[]{var};
+
+        int[] trgVarPos            = PotentialMultiplier.createSubsetVarPos(srcVars, trgVars);
+        int   trgVarNumberOfStates = PotentialMultiplier.createNumberOfStates(trgVars);
+        int[] trgVarMultipliers    = PotentialMultiplier.createIndexMultipliers(trgVars, trgVarNumberOfStates);
+
+        double[] result = new double[var.getOutcomes().length];
+        new MaxProjection(srcVars, cliqueState.getPotentials(),
+                          trgVarPos, trgVarMultipliers, result).project();
+        LogSpace.toProbSpace(result);
+        return result;
     }
 
 
