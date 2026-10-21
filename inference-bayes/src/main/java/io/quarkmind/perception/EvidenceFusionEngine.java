@@ -10,15 +10,16 @@ import io.quarkmind.inference.bayes.graph.GraphNode;
 
 public class EvidenceFusionEngine {
 
-    private JunctionTree network;
-    private BayesInstance<?> instance;
-    private String targetVariable;
-    private String[] outcomeNames;
+    private       JunctionTree          network;
+    private       BayesInstance<?>      instance;
+    private       String                targetVariable;
+    private       String[]              outcomeNames;
+    private final java.util.Set<String> activeEvidence = new java.util.HashSet<>();
 
     public void initialize(BayesNetwork graph, String targetVariable) {
         this.targetVariable = targetVariable;
-        this.network = new JunctionTreeBuilder(graph).build();
-        this.instance = new BayesInstance<>(network);
+        this.network        = new JunctionTreeBuilder(graph).build();
+        this.instance       = new BayesInstance<>(network, true);
 
         for (GraphNode<BayesVariable> node : graph) {
             if (node.getContent().getName().equals(targetVariable)) {
@@ -30,6 +31,7 @@ public class EvidenceFusionEngine {
 
     public void setEvidence(String variable, double[] likelihood) {
         instance.setLikelyhood(variable, likelihood);
+        activeEvidence.add(variable);
     }
 
     public void update() {
@@ -46,6 +48,9 @@ public class EvidenceFusionEngine {
     }
 
     public void reset() {
-        this.instance = new BayesInstance<>(network);
+        for (String variable : activeEvidence) {
+            instance.unsetLikelyhood(variable);
+        }
+        activeEvidence.clear();
     }
 }

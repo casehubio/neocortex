@@ -18,9 +18,9 @@
  */
 package io.quarkmind.inference.bayes;
 
+import io.quarkmind.inference.bayes.bitmask.BitMask;
 import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.graph.GraphNode;
-import io.quarkmind.inference.bayes.bitmask.BitMask;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -347,6 +347,15 @@ public class BayesInstance<T> {
         this.likelyhoods[id] = null;
         dirty = dirty.set(id);
     }
+
+    public void unsetLikelyhood(String varName) {
+        BayesVariable var = variables.get(varName);
+        if (var == null) {
+            throw new IllegalArgumentException("Variable name does not exist: " + varName);
+        }
+        unsetLikelyhood(var);
+    }
+
 
     public void setLikelyhood(BayesVariable var, double[] distribution) {
         GraphNode node = graph.getNode( var.getId() );

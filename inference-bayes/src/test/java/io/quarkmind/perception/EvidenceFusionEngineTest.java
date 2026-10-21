@@ -6,7 +6,9 @@ import io.quarkmind.inference.bayes.graph.GraphNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EvidenceFusionEngineTest {
 
@@ -79,4 +81,29 @@ class EvidenceFusionEngineTest {
         String[] names = engine.getOutcomeNames();
         assertArrayEquals(new String[]{"RUSH", "MACRO", "TECH"}, names);
     }
+
+    @Test
+    void resetUsesRetractionNotRebuild() {
+        engine.setEvidence("RushDet", new double[]{0.9, 0.1});
+        engine.setEvidence("EcoDet", new double[]{0.1, 0.9});
+        engine.update();
+
+        double[] beforeReset = engine.marginalize();
+        assertTrue(beforeReset[0] > 0.3, "RUSH should be elevated before reset");
+
+        engine.reset();
+        engine.update();
+
+        double[] afterReset = engine.marginalize();
+        assertEquals(0.25, afterReset[0], 0.05, "RUSH prior ~ 0.25 after reset");
+        assertEquals(0.45, afterReset[1], 0.05, "MACRO prior ~ 0.45 after reset");
+
+        // verify retraction path: set new evidence after reset, should work
+        engine.setEvidence("EcoDet", new double[]{0.95, 0.05});
+        engine.update();
+        double[] afterNewEvidence = engine.marginalize();
+        assertTrue(afterNewEvidence[1] > afterNewEvidence[0],
+                   "MACRO should dominate with strong eco evidence");
+    }
+
 }
