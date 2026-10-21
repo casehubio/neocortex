@@ -56,6 +56,8 @@ public class BayesInstance<T> {
     private double[][] oldSepBuffer;
     private double[][] absorbBuffer;
 
+    private boolean              statesInitialized;
+
     private GlobalUpdateListener globalUpdateListener;
     private PassMessageListener  passMessageListener;
     private int                  statDirtyCount;
@@ -64,9 +66,30 @@ public class BayesInstance<T> {
 
 
     public BayesInstance(JunctionTree tree, boolean enableFastRetract) {
-        this(tree);
+        this(tree, enableFastRetract, false);
+    }
+
+    public BayesInstance(JunctionTree tree, boolean enableFastRetract, boolean lazyInit) {
+        this.graph = tree.getGraph();
+        this.tree = tree;
+        variables = new HashMap<>();
+        fieldNames = new HashMap<>();
+        likelyhoods = new BayesLikelyhood[graph.size()];
+        previousLikelyhoods = new BayesLikelyhood[graph.size()];
+        dirty = BitMask.getEmpty(graph.size());
+        decided = BitMask.getEmpty(graph.size());
         this.enableFastRetract = enableFastRetract;
+
+        for (GraphNode<BayesVariable> node : graph) {
+            variables.put(node.getContent().getName(), node.getContent());
+        }
+
+        if (!lazyInit) {
+            initStates();
+        }
+
         if (enableFastRetract) {
+            ensureStatesInitialized();
             calibratedCliquePots = new double[tree.getJunctionTreeNodes().length][];
             for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
                 calibratedCliquePots[clique.getId()] =
@@ -81,23 +104,23 @@ public class BayesInstance<T> {
     }
 
     public BayesInstance(JunctionTree tree) {
-        this.graph = tree.getGraph();
-        this.tree = tree;
-        variables = new HashMap<>();
-        fieldNames = new HashMap<>();
-        likelyhoods = new BayesLikelyhood[graph.size()];
-        previousLikelyhoods = new BayesLikelyhood[graph.size()];
-        dirty = BitMask.getEmpty(graph.size());
-        decided = BitMask.getEmpty(graph.size());
-        this.enableFastRetract = false;
+        this(tree, false, false);
+    }
 
+    private void ensureStatesInitialized() {
+        if (!statesInitialized) {
+            initStates();
+        }
+    }
+
+    private void initStates() {
         cliqueStates = new CliqueState[tree.getJunctionTreeNodes().length];
         for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
             cliqueStates[clique.getId()] = clique.createState();
         }
 
         separatorStates = new SeparatorState[tree.getJunctionTreeSeparators().length];
-        for ( JunctionTreeSeparator sep : tree.getJunctionTreeSeparators() ) {
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
             separatorStates[sep.getId()] = sep.createState();
         }
 
@@ -115,10 +138,10 @@ public class BayesInstance<T> {
 
         varStates = new BayesVariableState[graph.size()];
         for (GraphNode<BayesVariable> node : graph) {
-            BayesVariable var = node.getContent();
-            variables.put(var.getName(), var);
-            varStates[var.getId()] = var.createState();
+            varStates[node.getContent().getId()] = node.getContent().createState();
         }
+
+        statesInitialized = true;
     }
 
     private void snapshotSeparators() {
@@ -431,6 +454,7 @@ public class BayesInstance<T> {
 
 
     public void globalUpdate() {
+        ensureStatesInitialized();
         if (!isDecided()) {
             throw new IllegalStateException("Cannot perform global update while one or more variables are undecided");
         }
@@ -552,6 +576,7 @@ public class BayesInstance<T> {
      * bypassing all incremental optimisations. Used by benchmarks as the permanent baseline.
      */
     public void globalUpdateForced() {
+        ensureStatesInitialized();
         if ( !isDecided() ) {
             throw new IllegalStateException("Cannot perform global update while one or more variables are undecided");
         }
@@ -749,6 +774,7 @@ public class BayesInstance<T> {
     }
 
     public BayesVariableState marginalize(String name) {
+        ensureStatesInitialized();
         BayesVariable var = this.variables.get(name);
         if ( var == null ) {
             throw new IllegalArgumentException("Variable name does not exist '" + name + "'" );
@@ -837,6 +863,7 @@ public class BayesInstance<T> {
     }
 
     public MapAssignment mapInference() {
+        ensureStatesInitialized();
         CliqueState[] mapCliques = new CliqueState[cliqueStates.length];
         for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
             mapCliques[clique.getId()] = clique.createState();
