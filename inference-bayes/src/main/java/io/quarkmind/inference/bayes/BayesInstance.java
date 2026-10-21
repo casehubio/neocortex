@@ -57,6 +57,8 @@ public class BayesInstance<T> {
     private double[][] absorbBuffer;
 
     private boolean              statesInitialized;
+    private boolean              parallelEnabled;
+
 
     private GlobalUpdateListener globalUpdateListener;
     private PassMessageListener  passMessageListener;
@@ -222,7 +224,11 @@ public class BayesInstance<T> {
         // post-collect snapshot for use in subsequent Phase 2 calls.
         snapshotDirtyPathSeparators();
 
-        distributeEvidence(tree.getRoot());
+        if (parallelEnabled) {
+            distributeChildEvidenceParallel(tree.getRoot(), tree.getRoot());
+        } else {
+            distributeEvidence(tree.getRoot());
+        }
 
         // Clean up subtreeHasDirty after retractionUpdate is complete
         Arrays.fill(subtreeHasDirty, false);
@@ -337,6 +343,15 @@ public class BayesInstance<T> {
     public void setPassMessageListener(PassMessageListener passMessageListener) {
         this.passMessageListener = passMessageListener;
     }
+
+    public void setParallelEnabled(boolean parallelEnabled) {
+        this.parallelEnabled = parallelEnabled;
+    }
+
+    public boolean isParallelEnabled() {
+        return parallelEnabled;
+    }
+
 
     public Map<String, BayesVariable> getVariables() {
         return variables;
@@ -510,7 +525,11 @@ public class BayesInstance<T> {
         }
 
         snapshotSeparators();
-        distributeEvidence(tree.getRoot());
+        if (parallelEnabled) {
+            distributeChildEvidenceParallel(tree.getRoot(), tree.getRoot());
+        } else {
+            distributeEvidence(tree.getRoot());
+        }
 
         if (enableFastRetract) {
             saveCalibrated();
@@ -701,6 +720,28 @@ public class BayesInstance<T> {
         List<JunctionTreeSeparator> seps = clique.getChildren();
         for ( JunctionTreeSeparator sep : seps ) {
             distributeChildEvidence(sep.getChild(), startClique);
+        }
+    }
+
+    private void distributeChildEvidenceParallel(JunctionTreeClique clique, JunctionTreeClique startClique) {
+        if (clique.getParentSeparator() != null && clique != startClique) {
+            passMessage(clique.getParentSeparator().getParent(), clique.getParentSeparator(), clique);
+        }
+
+        List<JunctionTreeSeparator> seps = clique.getChildren();
+        if (seps.size() > 1) {
+            List<Thread> threads = new java.util.ArrayList<>(seps.size());
+            for (JunctionTreeSeparator sep : seps) {
+                threads.add(Thread.ofVirtual().start(() ->
+                                                             distributeChildEvidenceParallel(sep.getChild(), startClique)));
+            }
+            for (Thread t : threads) {
+                try {t.join();} catch (InterruptedException e) {Thread.currentThread().interrupt();}
+            }
+        } else {
+            for (JunctionTreeSeparator sep : seps) {
+                distributeChildEvidenceParallel(sep.getChild(), startClique);
+            }
         }
     }
 
