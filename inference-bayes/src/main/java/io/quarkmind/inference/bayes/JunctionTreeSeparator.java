@@ -68,12 +68,12 @@ public class JunctionTreeSeparator {
     public SeparatorState createState() {
         int numberOfStates = PotentialMultiplier.createNumberOfStates(values);
         double[]  potentials = new double[numberOfStates];
-        Arrays.fill(potentials, 1);
+        Arrays.fill(potentials, 0.0);
         return new SeparatorState(this, potentials);
     }
 
     public void resetState(SeparatorState sepSet) {
-        Arrays.fill(sepSet.getPotentials(), 1);
+        Arrays.fill(sepSet.getPotentials(), 0.0);
     }
 
     public List<BayesVariable> getValues() {

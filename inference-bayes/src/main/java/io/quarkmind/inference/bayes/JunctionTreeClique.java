@@ -47,7 +47,7 @@ public class JunctionTreeClique {
 
         int numberOfStates = PotentialMultiplier.createNumberOfStates(values);
         potentials = new double[numberOfStates];
-        Arrays.fill(potentials, 1);
+        Arrays.fill(potentials, 0.0);
         family = new ArrayList();
     }
 

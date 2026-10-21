@@ -39,7 +39,7 @@ public class BayesProjection {
 
         this.trgVarPos = trgVarPos;
         this.trgVarPosMultipliers = trgVarPosMultipliers;
-        Arrays.fill(trgPotentials, 0); // reset the contents, as it will be re-assigned as part of the recurse
+        Arrays.fill(trgPotentials, LogSpace.LOG_ZERO);
         this.trgPotentials = trgPotentials;
 
 
@@ -78,7 +78,16 @@ public class BayesProjection {
                 recurse(currentVar + 1, nextParentKeyPos);
             } else {
                 //sum += srcPotentials[srcPotentialIndex];
-                trgPotentials[trgPotentialIndex] += srcPotentials[srcPotentialIndex++];
+                double a = trgPotentials[trgPotentialIndex];
+                double b = srcPotentials[srcPotentialIndex++];
+                if (a == LogSpace.LOG_ZERO) {
+                    trgPotentials[trgPotentialIndex] = b;
+                } else if (b == LogSpace.LOG_ZERO) {
+                    // trgPotentials[trgPotentialIndex] stays as a
+                } else {
+                    double max = Math.max(a, b);
+                    trgPotentials[trgPotentialIndex] = max + Math.log(Math.exp(a - max) + Math.exp(b - max));
+                }
             }
             if ( isTrgVar ) {
                 trgPotentialIndex += trgVarPosMultipliers[targetVarPos];

@@ -1221,13 +1221,7 @@ public class OpenBitSet implements BitMask {
     @Override
     public BitMask setAll(BitMask mask) {
         if (mask instanceof OpenBitSet) {
-            union((OpenBitSet)mask);
-        } else if (mask instanceof AllSetBitMask) {
-            return AllSetBitMask.get();
-        } else if (mask instanceof AllSetButLastBitMask) {
-            return isSet(0) ? AllSetBitMask.get() : AllSetButLastBitMask.get();
-        } else if (mask instanceof EmptyButLastBitMask) {
-            return set(0);
+            union((OpenBitSet) mask);
         } else if (mask instanceof LongBitMask) {
             this.bits[0] |= ((LongBitMask) mask).asLong();
         }
@@ -1243,16 +1237,7 @@ public class OpenBitSet implements BitMask {
     @Override
     public BitMask resetAll(BitMask mask) {
         if (mask instanceof OpenBitSet) {
-            remove((OpenBitSet)mask);
-        } else if (mask instanceof AllSetBitMask) {
-            Arrays.fill(this.bits, 0L);
-        } else if (mask instanceof AllSetButLastBitMask) {
-            this.bits[0] = isSet(0) ? 1L : 0L;
-            for (int i = 1; i < this.bits.length; i++) {
-                this.bits[i] = 0L;
-            }
-        } else if (mask instanceof EmptyButLastBitMask) {
-            return reset(0);
+            remove((OpenBitSet) mask);
         } else if (mask instanceof LongBitMask) {
             this.bits[0] &= (-1L - ((LongBitMask) mask).asLong());
         }
@@ -1276,21 +1261,13 @@ public class OpenBitSet implements BitMask {
 
     @Override
     public boolean intersects(BitMask mask) {
-        if (mask.isAllSet()) {
-            return !isEmpty();
+        if (mask instanceof OpenBitSet) {
+            return intersects((OpenBitSet) mask);
         }
-        if (mask instanceof AllSetButLastBitMask) {
-            return nextSetBit(1) != -1;
+        if (mask instanceof LongBitMask) {
+            return (this.bits[0] & ((LongBitMask) mask).asLong()) != 0;
         }
-        if (mask instanceof EmptyBitMask) {
-            return false;
-        }
-        if (mask instanceof EmptyButLastBitMask) {
-            return isSet(0);
-        }
-        return mask instanceof OpenBitSet ?
-               intersects((OpenBitSet)mask) :
-               (this.bits[0] & ((LongBitMask)mask).asLong()) != 0;
+        return false;
     }
 
     @Override

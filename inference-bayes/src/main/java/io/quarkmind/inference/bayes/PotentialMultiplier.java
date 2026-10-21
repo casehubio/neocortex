@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PotentialMultiplier {
+    static final double EPSILON = 1e-15;
+
     //    BayesVariable   var;
     int             varPos;
     int[]           parentVarPos;
@@ -101,8 +103,8 @@ public class PotentialMultiplier {
     public void divide(int currentVar, int parentKeyPos) {
         int numberOfOutcomes = vars[currentVar].getOutcomes().length;
 
-        boolean isParent = false;
-        int nextParentKeyPos = parentKeyPos;
+        boolean isParent         = false;
+        int     nextParentKeyPos = parentKeyPos;
         if (parentVarPos.length > 0 && parentKeyPos < parentVarPos.length && parentVarPos[parentKeyPos] == currentVar) {
             nextParentKeyPos++;
             isParent = true;
@@ -114,7 +116,7 @@ public class PotentialMultiplier {
             if (currentVar < vars.length - 1) {
                 divide(currentVar + 1, nextParentKeyPos);
             } else {
-                trgPotentials[trgPotentialIndex++] /= varPotential[varProbabilityTableRow][path[varPos]];
+                trgPotentials[trgPotentialIndex++] -= varPotential[varProbabilityTableRow][path[varPos]];
             }
             if (isParent) {
                 varProbabilityTableRow += parentIndexMultipliers[parentKeyPos];
@@ -147,7 +149,7 @@ public class PotentialMultiplier {
             if (currentVar < vars.length - 1) {
                 multiple(currentVar + 1, nextParentKeyPos);
             } else {
-                trgPotentials[trgPotentialIndex++] *= varPotential[varProbabilityTableRow][path[varPos]];
+                trgPotentials[trgPotentialIndex++] += varPotential[varProbabilityTableRow][path[varPos]];
             }
             if ( isParent ) {
                 varProbabilityTableRow += parentIndexMultipliers[parentKeyPos];

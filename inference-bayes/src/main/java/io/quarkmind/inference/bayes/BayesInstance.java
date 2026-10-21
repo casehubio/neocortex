@@ -53,6 +53,9 @@ public class BayesInstance<T> {
 
     private GlobalUpdateListener globalUpdateListener;
     private PassMessageListener  passMessageListener;
+    private int                  statDirtyCount;
+    private long                 statLastPropNanos;
+    private int                  statRetractionCount;
 
 
     public BayesInstance(JunctionTree tree, boolean enableFastRetract) {
@@ -129,26 +132,23 @@ public class BayesInstance<T> {
 
     private boolean isRetractable() {
         for (int varId = 0; varId < likelyhoods.length; varId++) {
-            if (!dirty.isSet(varId)) continue;
-            if (previousLikelyhoods[varId] == null) return false;
-            // New evidence has hard evidence (zero) → will cause zeros post-update, not retractable
+            if (!dirty.isSet(varId)) {continue;}
+            if (previousLikelyhoods[varId] == null) {return false;}
             BayesLikelyhood newL = likelyhoods[varId];
             if (newL != null) {
                 for (double v : newL.getDistribution()) {
-                    if (v == 0.0) return false;
+                    if (v == 0.0) {return false;}
                 }
             }
-            // Calibrated clique has zeros → division unsafe
             int cliqueId = varStates[varId].getVariable().getFamily();
             for (double v : calibratedCliquePots[cliqueId]) {
-                if (v == 0.0) return false;
+                if (v == LogSpace.LOG_ZERO) {return false;}
             }
         }
-        // Also check separators on the dirty path for zeros (division safety)
         for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
             if (subtreeHasDirty[sep.getChild().getId()]) {
                 for (double v : calibratedSepPots[sep.getId()]) {
-                    if (v == 0.0) return false;
+                    if (v == LogSpace.LOG_ZERO) {return false;}
                 }
             }
         }
@@ -374,26 +374,80 @@ public class BayesInstance<T> {
         }
     }
 
+    public void setHardEvidence(String varName, String state) {
+        BayesVariable var = variables.get(varName);
+        if (var == null) {
+            throw new IllegalArgumentException("Variable name does not exist: " + varName);
+        }
+        Object[] outcomes   = var.getOutcomes();
+        int      stateIndex = -1;
+        for (int i = 0; i < outcomes.length; i++) {
+            if (state.equals(outcomes[i])) {
+                stateIndex = i;
+                break;
+            }
+        }
+        if (stateIndex == -1) {
+            throw new IllegalArgumentException("State '" + state + "' does not exist for variable '" + varName + "'");
+        }
+        setHardEvidence(var, stateIndex);
+    }
+
+    public void setHardEvidence(BayesVariable var, int stateIndex) {
+        Object[] outcomes = var.getOutcomes();
+        if (stateIndex < 0 || stateIndex >= outcomes.length) {
+            throw new IndexOutOfBoundsException("State index " + stateIndex + " out of range for variable '" + var.getName() + "' with " + outcomes.length + " states");
+        }
+        double[] distribution = new double[outcomes.length];
+        distribution[stateIndex] = 1.0;
+        setLikelyhood(var, distribution);
+    }
+
+    public void batchSetEvidence(Map<String, double[]> evidence) {
+        for (int i = 0; i < likelyhoods.length; i++) {
+            if (likelyhoods[i] != null) {
+                String varName = likelyhoods[i].getVariable().getName();
+                if (!evidence.containsKey(varName)) {
+                    BayesVariable var = variables.get(varName);
+                    unsetLikelyhood(var);
+                }
+            }
+        }
+        for (Map.Entry<String, double[]> entry : evidence.entrySet()) {
+            setLikelyhood(entry.getKey(), entry.getValue());
+        }
+    }
+
+
     public void globalUpdate() {
-        if ( !isDecided() ) {
+        if (!isDecided()) {
             throw new IllegalStateException("Cannot perform global update while one or more variables are undecided");
         }
-        if ( calibrated && !isDirty() ) {                    // Phase 1
+        if (calibrated && !isDirty()) {                    // Phase 1
             return;
         }
 
+        int dirtyCount = 0;
+        for (int i = 0; i < likelyhoods.length; i++) {
+            if (dirty.isSet(i)) {dirtyCount++;}
+        }
+        statDirtyCount = dirtyCount;
+        long startNanos = System.nanoTime();
+
         boolean dirtySubtreesComputed = false;
-        if ( calibrated && enableFastRetract ) {
+        if (calibrated && enableFastRetract) {
             computeDirtySubtrees();
             dirtySubtreesComputed = true;
-            if ( isRetractable() ) {                         // Phase 3
+            if (isRetractable()) {                         // Phase 3
                 if (globalUpdateListener != null) {
                     globalUpdateListener.beforeGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
                 }
                 retractionUpdate();
                 saveCalibrated();
-                dirty = BitMask.getEmpty(likelyhoods.length);
+                dirty      = BitMask.getEmpty(likelyhoods.length);
                 calibrated = true;
+                statRetractionCount++;
+                statLastPropNanos = System.nanoTime() - startNanos;
                 if (globalUpdateListener != null) {
                     globalUpdateListener.afterGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
                 }
@@ -401,11 +455,11 @@ public class BayesInstance<T> {
             }
         }
 
-        if ( calibrated ) {                                  // Phase 2 setup
-            if ( !dirtySubtreesComputed ) computeDirtySubtrees();
+        if (calibrated) {                                  // Phase 2 setup
+            if (!dirtySubtreesComputed) {computeDirtySubtrees();}
         }
 
-        if ( isDirty() ) {
+        if (isDirty()) {
             reset();
         }
         applyEvidence();
@@ -414,7 +468,7 @@ public class BayesInstance<T> {
             globalUpdateListener.beforeGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
         }
 
-        if ( calibrated ) {
+        if (calibrated) {
             collectEvidenceIncremental(tree.getRoot());
         } else {
             collectEvidence(tree.getRoot());
@@ -423,13 +477,14 @@ public class BayesInstance<T> {
         snapshotSeparators();
         distributeEvidence(tree.getRoot());
 
-        if ( enableFastRetract ) {
+        if (enableFastRetract) {
             saveCalibrated();
         }
 
-        dirty = BitMask.getEmpty(likelyhoods.length);
+        dirty      = BitMask.getEmpty(likelyhoods.length);
         calibrated = true;
         Arrays.fill(subtreeHasDirty, false);
+        statLastPropNanos = System.nanoTime() - startNanos;
 
         if (globalUpdateListener != null) {
             globalUpdateListener.afterGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
@@ -641,6 +696,7 @@ public class BayesInstance<T> {
         }
 
         absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots);
+        LogSpace.normalize(cliqueStates[targetClique.getId()].getPotentials());
         if ( passMessageListener != null ) {
             passMessageListener.afterAbsorb(sourceClique, sep, targetClique, oldSepPots);
         }
@@ -684,15 +740,10 @@ public class BayesInstance<T> {
     }
 
     public void marginalize(BayesVariableState varState) {
-        CliqueState cliqueState = cliqueStates[varState.getVariable().getFamily()];
-        JunctionTreeClique jtNode = cliqueState.getJunctionTreeClique();
-        new Marginalizer(jtNode.getValues().toArray( new BayesVariable[jtNode.getValues().size()]), cliqueState.getPotentials(), varState.getVariable(), varState.getDistribution() );
-//        System.out.print( varState.getVariable().getName() + " " );
-//        for ( double d : varState.getDistribution() ) {
-//            System.out.print(d);
-//            System.out.print(" ");
-//        }
-//        System.out.println(" ");
+        CliqueState        cliqueState = cliqueStates[varState.getVariable().getFamily()];
+        JunctionTreeClique jtNode      = cliqueState.getJunctionTreeClique();
+        new Marginalizer(jtNode.getValues().toArray(new BayesVariable[jtNode.getValues().size()]), cliqueState.getPotentials(), varState.getVariable(), varState.getDistribution());
+        LogSpace.toProbSpace(varState.getDistribution());
     }
 
     public SeparatorState[] getSeparatorStates() {
@@ -706,4 +757,65 @@ public class BayesInstance<T> {
     public BayesVariableState[] getVarStates() {
         return varStates;
     }
+
+    public BayesStats getStats() {
+        int evidenceCount = 0;
+        for (BayesLikelyhood l : likelyhoods) {
+            if (l != null) {evidenceCount++;}
+        }
+        int maxCliqueSize = 0;
+        for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+            int size = clique.getValues().size();
+            if (size > maxCliqueSize) {maxCliqueSize = size;}
+        }
+        return new BayesStats(
+                statDirtyCount,
+                statLastPropNanos,
+                statRetractionCount,
+                tree.getJunctionTreeNodes().length,
+                maxCliqueSize,
+                evidenceCount
+        );
+    }
+
+    public double sensitivity(String evidenceVariable, String targetVariable) {
+        BayesVariable evVar = variables.get(evidenceVariable);
+        if (evVar == null) {
+            throw new IllegalArgumentException("Variable name does not exist: " + evidenceVariable);
+        }
+        if (likelyhoods[evVar.getId()] == null) {
+            return 0.0;
+        }
+        BayesVariable tgtVar = variables.get(targetVariable);
+        if (tgtVar == null) {
+            throw new IllegalArgumentException("Variable name does not exist: " + targetVariable);
+        }
+
+        double[] currentPosterior = marginalize(targetVariable).getDistribution().clone();
+
+        BayesInstance<?> without = new BayesInstance<>(tree);
+        for (int i = 0; i < likelyhoods.length; i++) {
+            if (i != evVar.getId() && likelyhoods[i] != null) {
+                without.setLikelyhood(likelyhoods[i]);
+            }
+        }
+        without.globalUpdateForced();
+        double[] withoutPosterior = without.marginalize(targetVariable).getDistribution();
+
+        return klDivergence(currentPosterior, withoutPosterior);
+    }
+
+    static double klDivergence(double[] p, double[] q) {
+        double kl = 0.0;
+        for (int i = 0; i < p.length; i++) {
+            if (p[i] > 0.0 && q[i] > 0.0) {
+                kl += p[i] * Math.log(p[i] / q[i]);
+            } else if (p[i] > 0.0) {
+                return Double.POSITIVE_INFINITY;
+            }
+        }
+        return kl;
+    }
+
+
 }

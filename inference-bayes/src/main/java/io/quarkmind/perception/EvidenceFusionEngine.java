@@ -34,6 +34,18 @@ public class EvidenceFusionEngine {
         activeEvidence.add(variable);
     }
 
+    public void setHardEvidence(String variable, String state) {
+        instance.setHardEvidence(variable, state);
+        activeEvidence.add(variable);
+    }
+
+    public void setAllEvidence(java.util.Map<String, double[]> evidence) {
+        instance.batchSetEvidence(evidence);
+        activeEvidence.clear();
+        activeEvidence.addAll(evidence.keySet());
+    }
+
+
     public void update() {
         instance.globalUpdate();
     }
@@ -42,6 +54,20 @@ public class EvidenceFusionEngine {
         BayesVariableState state = instance.marginalize(targetVariable);
         return state.getDistribution();
     }
+
+    public java.util.Map<String, Double> getVariableSensitivities() {
+        java.util.Map<String, Double>                       sensitivities = new java.util.LinkedHashMap<>();
+        java.util.List<java.util.Map.Entry<String, Double>> entries       = new java.util.ArrayList<>();
+        for (String variable : activeEvidence) {
+            entries.add(java.util.Map.entry(variable, instance.sensitivity(variable, targetVariable)));
+        }
+        entries.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        for (var entry : entries) {
+            sensitivities.put(entry.getKey(), entry.getValue());
+        }
+        return sensitivities;
+    }
+
 
     public String[] getOutcomeNames() {
         return outcomeNames.clone();

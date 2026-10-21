@@ -73,33 +73,35 @@ public class JunctionTree {
         }
     }
 
-    public void multipleVarNodePotential(GraphNode<BayesVariable> varNode, double[] potentials, BayesVariable[] vars, int[] multipliers ) {
-
+    public void multipleVarNodePotential(GraphNode<BayesVariable> varNode, double[] potentials, BayesVariable[] vars, int[] multipliers) {
         BayesVariable[] parents = new BayesVariable[varNode.getInEdges().size()];
-        for ( int i = 0; i < parents.length; i++ ) {
+        for (int i = 0; i < parents.length; i++) {
             parents[i] = (BayesVariable) varNode.getInEdges().get(i).getOutGraphNode().getContent();
         }
 
-        int[] parentVarPos = PotentialMultiplier.createSubsetVarPos(vars, parents);
-
-        int parentsNumberOfStates = PotentialMultiplier.createNumberOfStates(parents);
+        int[] parentVarPos           = PotentialMultiplier.createSubsetVarPos(vars, parents);
+        int   parentsNumberOfStates  = PotentialMultiplier.createNumberOfStates(parents);
         int[] parentIndexMultipliers = PotentialMultiplier.createIndexMultipliers(parents, parentsNumberOfStates);
 
-        BayesVariable var = varNode.getContent();
-        int varPos = -1;
-        for( int i = 0; i < vars.length; i++) {
-            if ( vars[i] == var)  {
+        BayesVariable var    = varNode.getContent();
+        int           varPos = -1;
+        for (int i = 0; i < vars.length; i++) {
+            if (vars[i] == var) {
                 varPos = i;
                 break;
             }
         }
-        if ( varPos == -1 || varPos == vars.length ) {
-            throw new IllegalStateException( "Unable to find Variable in set" );
+        if (varPos == -1 || varPos == vars.length) {
+            throw new IllegalStateException("Unable to find Variable in set");
         }
 
-        PotentialMultiplier m = new PotentialMultiplier(varNode.getContent().getProbabilityTable(), varPos, parentVarPos, parentIndexMultipliers,
-                                                        vars, multipliers, potentials);
+        double[][] logCpt = new double[var.getProbabilityTable().length][];
+        for (int i = 0; i < logCpt.length; i++) {
+            logCpt[i] = LogSpace.toLogSpaceCopy(var.getProbabilityTable()[i]);
+        }
 
+        PotentialMultiplier m = new PotentialMultiplier(logCpt, varPos, parentVarPos, parentIndexMultipliers,
+                                                        vars, multipliers, potentials);
         m.multiple();
     }
 

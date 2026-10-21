@@ -45,8 +45,9 @@ public class BayesLikelyhood {
             parents[i] = (BayesVariable) varNode.getInEdges().get(i).getOutGraphNode().getContent();
         }
 
+        double[] logDistribution = LogSpace.toLogSpaceCopy(distribution);
         varPotential = new double[ this.variable.getProbabilityTable().length ][];
-        Arrays.fill(varPotential, distribution);
+        Arrays.fill(varPotential, logDistribution);
 
         BayesVariable[] vars = jtNode.getValues().toArray( new BayesVariable[jtNode.getValues().size()] );
         int numberOfStates = PotentialMultiplier.createNumberOfStates(vars);

@@ -55,28 +55,13 @@ public class BayesAbsorption {
     }
 
     public static void normalize(double[] array) {
-        double sum = 0.0;
-        for ( int i = 0, length = array.length; i < length; i++ ) {
-            sum += array[i];
-        }
-
-        for ( int i = 0, length = array.length; i < length; i++ ) {
-            if (sum != 0) {
-                array[i] = array[i]/sum;
-            }
-        }
+        LogSpace.normalize(array);
     }
 
     public static double[] dividePotentials(double[] potentials, double[] oldPotentials) {
-        double[] absorbedPotentials = Arrays.copyOf( potentials, potentials.length);
-        for ( int i = 0; i < potentials.length; i++ ) {
-            double oldP = oldPotentials[i];
-            if (oldP == 0.0) {
-                absorbedPotentials[i] = 0.0;
-            //} else if (Math.abs(Yvalue) < 1e-20) { // is this necessary?
-            } else {
-                absorbedPotentials[i] /= oldP;
-            }
+        double[] absorbedPotentials = Arrays.copyOf(potentials, potentials.length);
+        for (int i = 0; i < potentials.length; i++) {
+            absorbedPotentials[i] -= oldPotentials[i];
         }
         return absorbedPotentials;
     }
@@ -99,7 +84,7 @@ public class BayesAbsorption {
                 recurse(currentVar + 1, nextParentKeyPos);
             } else {
                 //sum += srcPotentials[srcPotentialIndex];
-                trgPotentials[trgPotentialIndex++] *= srcPotentials[srcPotentialIndex];
+                trgPotentials[trgPotentialIndex++] += srcPotentials[srcPotentialIndex];
             }
             if ( isSepVar ) {
                 srcPotentialIndex += srcVarPosMultipliers[targetVarPos];

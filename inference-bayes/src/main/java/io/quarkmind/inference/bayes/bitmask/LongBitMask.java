@@ -19,11 +19,11 @@
 
 package io.quarkmind.inference.bayes.bitmask;
 
-public class LongBitMask extends SingleLongBitMask implements BitMask {
+public class LongBitMask implements BitMask {
 
     private long mask;
 
-    public LongBitMask() { }
+    public LongBitMask() {}
 
     public LongBitMask(long mask) {
         this.mask = mask;
@@ -32,7 +32,7 @@ public class LongBitMask extends SingleLongBitMask implements BitMask {
     @Override
     public BitMask set(int index) {
         if (index >= 64) {
-            return BitMask.getEmpty(index+1).setAll(this).set(index);
+            return BitMask.getEmpty(index + 1).setAll(this).set(index);
         }
         this.mask = this.mask | (1L << index);
         return this;
@@ -42,14 +42,8 @@ public class LongBitMask extends SingleLongBitMask implements BitMask {
     public BitMask setAll(BitMask mask) {
         if (mask instanceof LongBitMask) {
             this.mask |= ((LongBitMask) mask).asLong();
-        } else if (mask instanceof AllSetBitMask) {
-            return AllSetBitMask.get();
-        } else if (mask instanceof AllSetButLastBitMask) {
-            return isSet(0) ? AllSetBitMask.get() : AllSetButLastBitMask.get();
         } else if (mask instanceof OpenBitSet) {
             return mask.setAll(this);
-        } else if (mask instanceof EmptyButLastBitMask) {
-            return set(0);
         }
         return this;
     }
@@ -66,14 +60,6 @@ public class LongBitMask extends SingleLongBitMask implements BitMask {
     public BitMask resetAll(BitMask mask) {
         if (mask instanceof LongBitMask) {
             this.mask &= (-1L - ((LongBitMask) mask).asLong());
-        } else if (mask instanceof AllSetBitMask) {
-            this.mask &= 0;
-        } else if (mask instanceof AllSetButLastBitMask) {
-            this.mask &= Long.MIN_VALUE;
-        } else if (mask instanceof EmptyButLastBitMask) {
-            reset(0);
-        } else if (!(mask instanceof EmptyBitMask)) {
-            throw new RuntimeException("Cannot resetAll a LongBitMask with a " + mask.getClass().getSimpleName());
         }
         return this;
     }
@@ -97,7 +83,7 @@ public class LongBitMask extends SingleLongBitMask implements BitMask {
     @Override
     public boolean intersects(BitMask mask) {
         return mask instanceof LongBitMask ?
-               (this.mask & ((LongBitMask)mask).asLong()) != 0 :
+               (this.mask & ((LongBitMask) mask).asLong()) != 0 :
                mask.intersects(this);
     }
 
@@ -112,22 +98,22 @@ public class LongBitMask extends SingleLongBitMask implements BitMask {
 
     @Override
     public String getInstancingStatement() {
-        BitMask normalizedMask = normalize();
-        return normalizedMask instanceof LongBitMask ?
-               "new " + LongBitMask.class.getCanonicalName() + "(" + mask + "L)" :
-               normalizedMask.getInstancingStatement();
+        return "new " + LongBitMask.class.getCanonicalName() + "(" + mask + "L)";
     }
 
-    private BitMask normalize() {
-        if (mask == 0L) {
-            return EmptyBitMask.get();
-        } else if (mask == 1L) {
-            return EmptyButLastBitMask.get();
-        } else if (mask == Long.MAX_VALUE) {
-            return AllSetButLastBitMask.get();
-        } else if (mask == -1L) {
-            return AllSetBitMask.get();
-        }
-        return this;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {return true;}
+        return o instanceof LongBitMask && mask == ((LongBitMask) o).mask;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (mask ^ (mask >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return "" + mask;
     }
 }
