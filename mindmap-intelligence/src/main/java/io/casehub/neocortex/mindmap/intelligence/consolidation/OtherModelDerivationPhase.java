@@ -6,13 +6,10 @@ import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -81,19 +78,11 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
                                                 }""";
 
     private final MindMapStore store;
-    private final @Nullable AgentProvider agentProvider;
     private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
     @Inject
-    public OtherModelDerivationPhase(MindMapStore store,
-                                      Instance<AgentProvider> agentProvider) {
-        this(store, agentProvider.isResolvable() ? agentProvider.get() : null);
-    }
-
-    OtherModelDerivationPhase(MindMapStore store,
-                               @Nullable AgentProvider agentProvider) {
+    public OtherModelDerivationPhase(MindMapStore store) {
         this.store = store;
-        this.agentProvider = agentProvider;
     }
 
     @Override
@@ -109,8 +98,8 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (agentProvider == null) {
-            LOG.info("Other-model derivation skipped — no AgentProvider");
+        if (sessionPipeline == null) {
+            LOG.info("Other-model derivation skipped — no SessionPipeline");
             return;
         }
 
@@ -183,11 +172,11 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
         }
 
         var pipeline = this.sessionPipeline;
-        if (pipeline != null) {
-            ParallelLlmExecutor.execute(pipeline, SYSTEM_PROMPT, "other-model-derivation", tasks);
-        } else {
-            ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "other-model-derivation", tasks);
+        if (pipeline == null) {
+            LOG.warning("Other-model derivation skipped — no SessionPipeline");
+            return;
         }
+        io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "other-model-derivation", tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String targetId,

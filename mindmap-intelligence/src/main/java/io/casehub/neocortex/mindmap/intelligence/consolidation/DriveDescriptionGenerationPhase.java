@@ -11,9 +11,7 @@ import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,19 +55,15 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                                 Respond with JSON only: {"description": "..."}""";
 
     private final MindMapStore store;
-    private final @Nullable AgentProvider agentProvider;
     private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
     @Inject
-    public DriveDescriptionGenerationPhase(MindMapStore store,
-                                            Instance<AgentProvider> agentProvider) {
-        this(store, agentProvider.isResolvable() ? agentProvider.get() : null);
+    public DriveDescriptionGenerationPhase(MindMapStore store) {
+        this.store = store;
     }
 
-    DriveDescriptionGenerationPhase(MindMapStore store,
-                                    @Nullable AgentProvider agentProvider) {
+    DriveDescriptionGenerationPhase(MindMapStore store, AgentProvider agentProvider) {
         this.store = store;
-        this.agentProvider = agentProvider;
     }
 
     @Override
@@ -85,7 +79,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (agentProvider == null) {
+        if (sessionPipeline == null) {
             LOG.info("Drive description generation skipped — no AgentProvider");
             return;
         }
@@ -182,13 +176,12 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
 
         var pipeline = this.sessionPipeline;
-        if (pipeline != null) {
-            ParallelLlmExecutor.execute(pipeline, SYSTEM_PROMPT, "drive-description", descTasks);
-            ParallelLlmExecutor.execute(pipeline, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
-        } else {
-            ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "drive-description", descTasks);
-            ParallelLlmExecutor.execute(agentProvider, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
+        if (pipeline == null) {
+            LOG.warning("Drive description generation skipped — no SessionPipeline");
+            return;
         }
+        io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "drive-description", descTasks);
+        io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 6, DISCRIMINATION_SYSTEM, "drive-discrimination", discTasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,

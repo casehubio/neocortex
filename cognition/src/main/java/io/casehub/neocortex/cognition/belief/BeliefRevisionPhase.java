@@ -11,11 +11,11 @@ import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.api.identity.PrincipalId;
+import org.jspecify.annotations.Nullable;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,13 +45,12 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
     private final MindMapStore mindMapStore;
     private final @Nullable AgentProvider agentProvider;
     private final BeliefRevisionConfig config;
+    private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
     @Inject
     public BeliefRevisionPhase(MindMapStore mindMapStore,
-                               Instance<AgentProvider> agentProvider,
                                Instance<BeliefRevisionConfig> config) {
-        this(mindMapStore,
-             agentProvider.isResolvable() ? agentProvider.get() : null,
+        this(mindMapStore, null,
              config.isResolvable() ? config.get() : BeliefRevisionConfig.defaults());
     }
 
@@ -63,6 +62,11 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
     }
 
     @Override
+    public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
+    }
+
+    @Override
     public String name() {
         return "belief-revision";
     }
@@ -70,7 +74,7 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
         if (!config.enabled()) return;
-        if (agentProvider == null) return;
+        if (sessionPipeline == null && agentProvider == null) return;
         var subgraphs = mindMapStore.listSubgraphs(tenantId);
         var cognitiveSubgraphs = subgraphs.stream()
             .filter(sg -> "cognitive".equals(sg.type()))
@@ -216,12 +220,24 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
                 - revisedBelief: what the character should now believe (one sentence, their perspective)""",
                 agentId, beliefsText, evidenceText);
 
-        var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
         var responseText = new StringBuilder();
-        agentProvider.invoke(sessionConfig).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+        var pipeline = this.sessionPipeline;
+        if (pipeline != null) {
+            io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 1, SYSTEM_PROMPT, "belief-revision",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
+        } else if (agentProvider != null) {
+            agentProvider.invoke(AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt)).subscribe().asStream()
+                .filter(e -> e instanceof AgentEvent.TextDelta)
+                .map(e -> ((AgentEvent.TextDelta) e).text())
+                .forEach(responseText::append);
+        } else {
+            return List.of();
+        }
 
         return parseContradictions(responseText.toString());
     }

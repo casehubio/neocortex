@@ -10,9 +10,7 @@ import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,19 +53,15 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
                                                 Respond with JSON only: {"self_standard": "..."}""";
 
     private final MindMapStore store;
-    private final @Nullable AgentProvider agentProvider;
     private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
     @Inject
-    public SelfStandardDerivationPhase(MindMapStore store,
-                                        Instance<AgentProvider> agentProvider) {
-        this(store, agentProvider.isResolvable() ? agentProvider.get() : null);
+    public SelfStandardDerivationPhase(MindMapStore store) {
+        this.store = store;
     }
 
-    SelfStandardDerivationPhase(MindMapStore store,
-                                 @Nullable AgentProvider agentProvider) {
+    SelfStandardDerivationPhase(MindMapStore store, AgentProvider agentProvider) {
         this.store = store;
-        this.agentProvider = agentProvider;
     }
 
     @Override
@@ -83,8 +77,8 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
-        if (agentProvider == null) {
-            LOG.info("Self-standard derivation skipped — no AgentProvider");
+        if (sessionPipeline == null) {
+            LOG.info("Self-standard derivation skipped — no SessionPipeline");
             return;
         }
 
@@ -172,11 +166,11 @@ public class SelfStandardDerivationPhase implements ConsolidationPhase {
         }
 
         var pipeline = this.sessionPipeline;
-        if (pipeline != null) {
-            ParallelLlmExecutor.execute(pipeline, SYSTEM_PROMPT, "self-standard-derivation", tasks);
-        } else {
-            ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "self-standard-derivation", tasks);
+        if (pipeline == null) {
+            LOG.warning("Self-standard derivation skipped — no SessionPipeline");
+            return;
         }
+        io.casehub.platform.agent.session.ParallelLlmExecutor.execute(pipeline, "consolidation", 6, SYSTEM_PROMPT, "self-standard-derivation", tasks);
     }
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
