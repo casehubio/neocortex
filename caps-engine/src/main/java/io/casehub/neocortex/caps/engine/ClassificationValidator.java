@@ -38,7 +38,7 @@ public class ClassificationValidator {
         var filtered = activations.stream()
             .filter(a -> a.nodeId() != null && validNodeIds.contains(a.nodeId()))
             .filter(a -> a.confidence() >= CONFIDENCE_THRESHOLD)
-            .map(a -> new SituationActivation(a.nodeId(), Math.min(1.0, a.confidence())))
+            .map(a -> new SituationActivation(a.nodeId(), Math.min(1.0, a.confidence()), a.source()))
             .toList();
         return SituationContext.from(filtered);
     }
