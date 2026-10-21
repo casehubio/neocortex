@@ -3,7 +3,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.AgentSessionInit;
-import io.casehub.platform.agent.SessionRegistry;
+import io.casehub.platform.agent.session.SessionPipeline;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -114,28 +114,26 @@ final class ParallelLlmExecutor {
         return metrics;
     }
 
-    static SessionMetrics execute(SessionRegistry registry, String systemPrompt,
+    static SessionMetrics execute(SessionPipeline pipeline, String systemPrompt,
                                   String phaseName, List<Consumer<AgentSession>> tasks) {
-        return execute(registry, systemPrompt, phaseName, DEFAULT_CONCURRENCY, tasks);
+        return execute(pipeline, systemPrompt, phaseName, DEFAULT_CONCURRENCY, tasks);
     }
 
-    static SessionMetrics execute(SessionRegistry registry, String systemPrompt,
+    static SessionMetrics execute(SessionPipeline pipeline, String systemPrompt,
                                   String phaseName, int concurrency,
                                   List<Consumer<AgentSession>> tasks) {
         var metrics = new SessionMetrics(phaseName);
         if (tasks.isEmpty()) {return metrics;}
         int poolSize = Math.min(concurrency, tasks.size());
 
-        LOG.info("[" + phaseName + "] starting " + tasks.size() + " tasks with " + poolSize + " sessions (registry)");
+        LOG.info("[" + phaseName + "] starting " + tasks.size() + " tasks with " + poolSize + " sessions (pipeline)");
         long startTime = System.currentTimeMillis();
 
         var sessionIds  = new ArrayList<String>();
         var sessionPool = new ArrayBlockingQueue<AgentSession>(poolSize);
         for (int i = 0; i < poolSize; i++) {
             String id = phaseName + ":" + i;
-            AgentSession session = registry.openSession(id,
-                                                        AgentSessionInit.of(systemPrompt),
-                                                        Duration.ofSeconds(REGISTRY_TIMEOUT_SECONDS));
+            AgentSession session = pipeline.openSession(id, AgentSessionInit.of(systemPrompt));
             if (session != null) {
                 sessionIds.add(id);
                 sessionPool.add(session);
@@ -150,20 +148,40 @@ final class ParallelLlmExecutor {
                      + " sessions (capacity limited)");
         }
 
+        var admission = pipeline.admission();
+
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             var futures = new ArrayList<Future<?>>();
             for (Consumer<AgentSession> task : tasks) {
                 futures.add(executor.submit(() -> {
-                    AgentSession session;
                     try {
-                        session = sessionPool.take();
+                        if (!admission.tryAcquirePriority(Duration.ofSeconds(REGISTRY_TIMEOUT_SECONDS))) {
+                            LOG.warning("[" + phaseName + "] timeout acquiring AIMD permit");
+                            return null;
+                        }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         return null;
                     }
+
+                    AgentSession session;
+                    try {
+                        session = sessionPool.take();
+                    } catch (InterruptedException e) {
+                        admission.release();
+                        Thread.currentThread().interrupt();
+                        return null;
+                    }
+
                     try {
                         task.accept(session);
+                        admission.release();
                     } catch (Exception e) {
+                        if (SessionPipeline.isCapacityError(e)) {
+                            admission.rollback();
+                        } else {
+                            admission.release();
+                        }
                         LOG.log(Level.WARNING, "Parallel LLM task failed (non-fatal)", e);
                     } finally {
                         try {
@@ -181,7 +199,7 @@ final class ParallelLlmExecutor {
         }
 
         for (String id : sessionIds) {
-            registry.releaseSession(id);
+            pipeline.releaseSession(id);
         }
 
         metrics.executionCompleted(System.currentTimeMillis() - startTime);

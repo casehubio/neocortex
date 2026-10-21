@@ -82,7 +82,7 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
 
     private final MindMapStore store;
     private final @Nullable AgentProvider agentProvider;
-    private volatile io.casehub.platform.agent.SessionRegistry sessionRegistry;
+    private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
     @Inject
     public OtherModelDerivationPhase(MindMapStore store,
@@ -102,8 +102,8 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
     }
 
     @Override
-    public void setSessionRegistry(io.casehub.platform.agent.SessionRegistry registry) {
-        this.sessionRegistry = registry;
+    public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
 
@@ -182,9 +182,9 @@ public class OtherModelDerivationPhase implements ConsolidationPhase {
             }
         }
 
-        var registry = this.sessionRegistry;
-        if (registry != null) {
-            ParallelLlmExecutor.execute(registry, SYSTEM_PROMPT, "other-model-derivation", tasks);
+        var pipeline = this.sessionPipeline;
+        if (pipeline != null) {
+            ParallelLlmExecutor.execute(pipeline, SYSTEM_PROMPT, "other-model-derivation", tasks);
         } else {
             ParallelLlmExecutor.execute(agentProvider, SYSTEM_PROMPT, "other-model-derivation", tasks);
         }

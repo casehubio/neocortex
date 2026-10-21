@@ -11,7 +11,7 @@ public interface ConsolidationPhase {
 
     default void beginTick() {}
 
-    default void setSessionRegistry(io.casehub.platform.agent.SessionRegistry registry) {}
+    default void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {}
 
 
     default List<AttentionSignal> signals() {return List.of();}

@@ -49,7 +49,7 @@ public class ConsolidationScheduler {
     private final long intervalMinutes;
     private final java.util.Set<String> knownTenants = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private volatile ScheduledExecutorService executor;
-    private volatile io.casehub.platform.agent.SessionRegistry sessionRegistry;
+    private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
     @Inject
     ConsolidationScheduler(Instance<ConsolidationPhase> phases,
@@ -160,8 +160,8 @@ public class ConsolidationScheduler {
         }
     }
 
-    public void setSessionRegistry(io.casehub.platform.agent.SessionRegistry registry) {
-        this.sessionRegistry = registry;
+    public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
 
@@ -172,9 +172,9 @@ public class ConsolidationScheduler {
         List<ConsolidationArtifact> allArtifacts = new ArrayList<>();
         LOG.info("Consolidation tick: " + phases.size() + " phases for tenant " + tenantId);
         Instant tickStart = Instant.now();
-        var registry = this.sessionRegistry;
+        var pipeline = this.sessionPipeline;
         for (ConsolidationPhase phase : phases) {
-            phase.setSessionRegistry(registry);
+            phase.setSessionPipeline(pipeline);
             Instant phaseStart = Instant.now();
             MutationContext.set("consolidation:" + phase.name());
             try {
