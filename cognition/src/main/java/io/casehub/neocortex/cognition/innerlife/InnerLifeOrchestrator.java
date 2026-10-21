@@ -1,13 +1,13 @@
 package io.casehub.neocortex.cognition.innerlife;
 
+import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.neocortex.cognition.core.TokenJaccardDistance;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
-import io.casehub.neocortex.summarisation.LevelEvent;
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
+import io.casehub.neocortex.summarisation.LevelEvent;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.jspecify.annotations.Nullable;
@@ -42,25 +42,27 @@ public class InnerLifeOrchestrator {
             content to empty string.""";
 
     private final ReflectionOrchestrator reflectionOrchestrator;
-    private final AgentProvider            agentProvider;
     private final List<CivilityConstraint> civilityConstraints;
     private final InnerLifeConfig          config;
     private final DriveOrchestrator        driveOrchestrator;
+    private volatile SessionPipeline sessionPipeline;
 
     private final ConcurrentHashMap<String, AgentState> agentStates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public InnerLifeOrchestrator(
             final ReflectionOrchestrator reflectionOrchestrator,
-            final AgentProvider agentProvider,
             final List<CivilityConstraint> civilityConstraints,
             final InnerLifeConfig config,
             final DriveOrchestrator driveOrchestrator) {
         this.reflectionOrchestrator = reflectionOrchestrator;
-        this.agentProvider = agentProvider;
         this.civilityConstraints = civilityConstraints;
         this.config = config;
         this.driveOrchestrator = driveOrchestrator;
+    }
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
     public void observe(final LevelEvent<?> event, final AgentDescriptor descriptor) {
@@ -158,11 +160,10 @@ public class InnerLifeOrchestrator {
                 config.maxReflectionSources());
 
         var userPrompt    = assemblePrompt(descriptor, eventSnapshot, reflections, channelContext);
-        var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
 
         MotivationAssessment assessment;
         try {
-            var responseText = invokeText(sessionConfig);
+            var responseText = invokeText(SYSTEM_PROMPT, userPrompt);
             if (responseText == null) {
                 throw new RuntimeException("LLM invocation returned empty");
             }
@@ -255,25 +256,19 @@ public class InnerLifeOrchestrator {
         return sb.toString();
     }
 
-    private @Nullable String invokeText(AgentSessionConfig config) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+        var pipeline = this.sessionPipeline;
+        if (pipeline == null) return null;
         try {
-            var events = agentProvider.invoke(config)
-                    .collect().asList()
-                    .await().atMost(Duration.ofMinutes(1));
-
-            boolean hasError = events.stream()
-                    .filter(AgentEvent.InvocationComplete.class::isInstance)
-                    .map(AgentEvent.InvocationComplete.class::cast)
-                    .anyMatch(AgentEvent.InvocationComplete::isError);
-            if (hasError) return null;
-
-            var text = events.stream()
-                    .filter(AgentEvent.TextDelta.class::isInstance)
-                    .map(AgentEvent.TextDelta.class::cast)
-                    .map(AgentEvent.TextDelta::text)
-                    .collect(Collectors.joining());
-
-            return text.isBlank() ? null : text;
+            var responseText = new StringBuilder();
+            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "inner-life",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
+            return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);
             return null;

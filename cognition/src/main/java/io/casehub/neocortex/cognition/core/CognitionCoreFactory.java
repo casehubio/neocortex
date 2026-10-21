@@ -18,7 +18,6 @@ import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.mindmap.MindMapStore;
-import io.casehub.platform.agent.AgentProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -47,7 +46,6 @@ public class CognitionCoreFactory {
     @Inject Instance<GoalProposalOrchestrator> goals;
     @Inject Instance<MemoryHygieneOrchestrator> memoryHygiene;
     @Inject Instance<InnerLifeOrchestrator> innerLife;
-    @Inject Instance<AgentProvider> agentProvider;
     @Inject Instance<MindMapStore> mindMapStore;
     @Inject Instance<NeedTierMappingProvider> needTierMapping;
     @Inject Instance<CognitiveAttentionMediator> attentionMediator;
@@ -69,7 +67,7 @@ public class CognitionCoreFactory {
                 resolve(userModel), resolve(mentalModel),
                 resolve(strategy), resolve(narrative),
                 resolve(goals), resolve(memoryHygiene),
-                resolve(innerLife), resolve(agentProvider),
+                resolve(innerLife),
                 config,
                 resolve(mindMapStore), resolve(needTierMapping),
                 resolve(attentionMediator), resolve(engagementPersister),
