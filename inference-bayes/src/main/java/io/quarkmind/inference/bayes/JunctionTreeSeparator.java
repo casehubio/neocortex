@@ -18,8 +18,8 @@
  */
 package io.quarkmind.inference.bayes;
 
-import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.bitmask.OpenBitSet;
+import io.quarkmind.inference.bayes.graph.Graph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +29,8 @@ public class JunctionTreeSeparator {
     private int                 id;
     private OpenBitSet bitSet;
     private List<BayesVariable> values;
+    private BayesVariable[]     varsArray;
+
     private JunctionTreeClique  parent;
     private JunctionTreeClique  child;
     //private double[]            potentials;
@@ -47,6 +49,7 @@ public class JunctionTreeSeparator {
         for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
             values.add(graph.getNode(i).getContent());
         }
+        varsArray = values.toArray(new BayesVariable[values.size()]);
     }
 
     public OpenBitSet getBitSet() {
@@ -79,6 +82,11 @@ public class JunctionTreeSeparator {
     public List<BayesVariable> getValues() {
         return values;
     }
+
+    public BayesVariable[] getVarsArray() {
+        return varsArray;
+    }
+
 
     @Override
     public String toString() {

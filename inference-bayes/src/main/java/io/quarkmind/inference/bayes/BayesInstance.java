@@ -52,6 +52,10 @@ public class BayesInstance<T> {
     private double[][] calibratedCliquePots;
     private double[][] calibratedSepPots;
 
+    // Pre-allocated message buffers — eliminates per-tick allocations
+    private double[][] oldSepBuffer;
+    private double[][] absorbBuffer;
+
     private GlobalUpdateListener globalUpdateListener;
     private PassMessageListener  passMessageListener;
     private int                  statDirtyCount;
@@ -100,8 +104,13 @@ public class BayesInstance<T> {
         subtreeHasDirty = new boolean[tree.getJunctionTreeNodes().length];
 
         sepPotSnapshots = new double[tree.getJunctionTreeSeparators().length][];
+        oldSepBuffer = new double[tree.getJunctionTreeSeparators().length][];
+        absorbBuffer = new double[tree.getJunctionTreeSeparators().length][];
         for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
-            sepPotSnapshots[sep.getId()] = new double[separatorStates[sep.getId()].getPotentials().length];
+            int size = separatorStates[sep.getId()].getPotentials().length;
+            sepPotSnapshots[sep.getId()] = new double[size];
+            oldSepBuffer[sep.getId()] = new double[size];
+            absorbBuffer[sep.getId()] = new double[size];
         }
 
         varStates = new BayesVariableState[graph.size()];
@@ -230,10 +239,11 @@ public class BayesInstance<T> {
      */
     private void injectCalibratedAndAbsorb(JunctionTreeSeparator sep, JunctionTreeClique targetClique) {
         double[] sepPots = separatorStates[sep.getId()].getPotentials();
-        double[] oldSepPots = Arrays.copyOf(sepPots, sepPots.length);
+        double[] oldSepPots = oldSepBuffer[sep.getId()];
+        System.arraycopy(sepPots, 0, oldSepPots, 0, sepPots.length);
         System.arraycopy(calibratedSepPots[sep.getId()], 0, sepPots, 0, sepPots.length);
-        BayesVariable[] sepVars = sep.getValues().toArray(new BayesVariable[sep.getValues().size()]);
-        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots);
+        BayesVariable[] sepVars = sep.getVarsArray();
+        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots, absorbBuffer[sep.getId()]);
     }
 
     private void snapshotDirtyPathSeparators() {
@@ -280,7 +290,7 @@ public class BayesInstance<T> {
         for (GraphNode<BayesVariable> node : graph) {
             BayesVariable var = node.getContent();
             BayesVariableState varState =  varStates[var.getId()];
-            varState.setDistribution( new double[ varState.getDistribution().length]);
+            Arrays.fill(varState.getDistribution(), 0.0);
         }
     }
 
@@ -501,16 +511,13 @@ public class BayesInstance<T> {
      */
     private void injectSnapshotAndAbsorb(JunctionTreeSeparator sep, JunctionTreeClique targetClique) {
         double[] sepPots = separatorStates[sep.getId()].getPotentials();
+        double[] oldSepPots = oldSepBuffer[sep.getId()];
+        System.arraycopy(sepPots, 0, oldSepPots, 0, sepPots.length);
 
-        // oldSepPots = current post-reset state = all 1.0
-        double[] oldSepPots = Arrays.copyOf(sepPots, sepPots.length);
-
-        // Restore the calibrated snapshot into the separator
         System.arraycopy(sepPotSnapshots[sep.getId()], 0, sepPots, 0, sepPots.length);
 
-        // Absorb snapshot into target (no project — source clique not involved)
-        BayesVariable[] sepVars = sep.getValues().toArray(new BayesVariable[sep.getValues().size()]);
-        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots);
+        BayesVariable[] sepVars = sep.getVarsArray();
+        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots, absorbBuffer[sep.getId()]);
     }
 
     private void collectChildEvidenceIncremental(JunctionTreeClique clique, JunctionTreeClique startClique) {
@@ -683,9 +690,10 @@ public class BayesInstance<T> {
      */
     public void passMessage( JunctionTreeClique sourceClique, JunctionTreeSeparator sep, JunctionTreeClique targetClique) {
         double[] sepPots = separatorStates[sep.getId()].getPotentials();
-        double[] oldSepPots = Arrays.copyOf(sepPots, sepPots.length);
+        double[] oldSepPots = oldSepBuffer[sep.getId()];
+        System.arraycopy(sepPots, 0, oldSepPots, 0, sepPots.length);
 
-        BayesVariable[] sepVars = sep.getValues().toArray(new BayesVariable[sep.getValues().size()]);
+        BayesVariable[] sepVars = sep.getVarsArray();
 
         if ( passMessageListener != null ) {
             passMessageListener.beforeProjectAndAbsorb(sourceClique, sep, targetClique, oldSepPots);
@@ -696,7 +704,7 @@ public class BayesInstance<T> {
             passMessageListener.afterProject(sourceClique, sep, targetClique, oldSepPots);
         }
 
-        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots);
+        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots, absorbBuffer[sep.getId()]);
         LogSpace.normalize(cliqueStates[targetClique.getId()].getPotentials());
         if ( passMessageListener != null ) {
             passMessageListener.afterAbsorb(sourceClique, sep, targetClique, oldSepPots);
@@ -706,7 +714,7 @@ public class BayesInstance<T> {
     //private static void project(BayesVariable[] sepVars, JunctionTreeNode node, JunctionTreeSeparator sep) {
     private static void project(BayesVariable[] sepVars, CliqueState clique, SeparatorState separator) {
         //JunctionTreeNode node, JunctionTreeSeparator sep
-        BayesVariable[] vars = clique.getJunctionTreeClique().getValues().toArray(new BayesVariable[clique.getJunctionTreeClique().getValues().size()]);
+        BayesVariable[] vars = clique.getJunctionTreeClique().getVarsArray();
         int[] sepVarPos = PotentialMultiplier.createSubsetVarPos(vars, sepVars);
 
         int sepVarNumberOfStates = PotentialMultiplier.createNumberOfStates(sepVars);
@@ -716,10 +724,8 @@ public class BayesInstance<T> {
         p.project();
     }
 
-    //private static void absorb(BayesVariable[] sepVars, JunctionTreeNode node, JunctionTreeSeparator sep, double[] oldSepPots ) {
     private static void absorb(BayesVariable[] sepVars, CliqueState clique, SeparatorState separator, double[] oldSepPots ) {
-        //BayesVariable[] vars = node.getValues().toArray( new BayesVariable[node.getValues().size()] );
-        BayesVariable[] vars = clique.getJunctionTreeClique().getValues().toArray(new BayesVariable[clique.getJunctionTreeClique().getValues().size()]);
+        BayesVariable[] vars = clique.getJunctionTreeClique().getVarsArray();
 
         int[] sepVarPos = PotentialMultiplier.createSubsetVarPos(vars, sepVars);
 
@@ -728,6 +734,18 @@ public class BayesInstance<T> {
 
         BayesAbsorption p = new BayesAbsorption(sepVarPos, oldSepPots, separator.getPotentials(), sepVarMultipliers, vars, clique.getPotentials());
         p.absorb();
+    }
+
+    private static void absorb(BayesVariable[] sepVars, CliqueState clique, SeparatorState separator, double[] oldSepPots, double[] workspace) {
+        BayesVariable[] vars = clique.getJunctionTreeClique().getVarsArray();
+
+        int[] sepVarPos = PotentialMultiplier.createSubsetVarPos(vars, sepVars);
+
+        int sepVarNumberOfStates = PotentialMultiplier.createNumberOfStates(sepVars);
+        int[] sepVarMultipliers = PotentialMultiplier.createIndexMultipliers(sepVars, sepVarNumberOfStates);
+
+        BayesAbsorption p = new BayesAbsorption(sepVarPos, oldSepPots, separator.getPotentials(), sepVarMultipliers, vars, clique.getPotentials());
+        p.absorb(workspace);
     }
 
     public BayesVariableState marginalize(String name) {

@@ -18,8 +18,8 @@
  */
 package io.quarkmind.inference.bayes;
 
-import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.bitmask.OpenBitSet;
+import io.quarkmind.inference.bayes.graph.Graph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +34,8 @@ public class JunctionTreeClique {
 
     private double[] potentials;
     private List<BayesVariable> family;
+    private BayesVariable[]     varsArray;
+
 
     public JunctionTreeClique(int id, Graph<BayesVariable> graph, OpenBitSet bitSet) {
         this.id = id;
@@ -48,6 +50,7 @@ public class JunctionTreeClique {
         int numberOfStates = PotentialMultiplier.createNumberOfStates(values);
         potentials = new double[numberOfStates];
         Arrays.fill(potentials, 0.0);
+        varsArray = values.toArray(new BayesVariable[values.size()]);
         family = new ArrayList();
     }
 
@@ -66,6 +69,11 @@ public class JunctionTreeClique {
     public List<BayesVariable> getValues() {
         return values;
     }
+
+    public BayesVariable[] getVarsArray() {
+        return varsArray;
+    }
+
 
     public List<BayesVariable> getFamily() {
         return family;
@@ -92,7 +100,7 @@ public class JunctionTreeClique {
     }
 
     public void resetState(CliqueState cliqueState) {
-        cliqueState.setPotentials( Arrays.copyOf(potentials, potentials.length) );
+        System.arraycopy(potentials, 0, cliqueState.getPotentials(), 0, potentials.length);
     }
 
     @Override

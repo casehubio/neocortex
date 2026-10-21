@@ -54,6 +54,24 @@ public class BayesAbsorption {
         normalize(trgPotentials);
     }
 
+    public void absorb(double[] workspace) {
+        dividePotentials(srcPotentials, oldSrcPotentials, workspace);
+        srcPotentials = workspace;
+
+        trgPotentialIndex = 0;
+        srcPotentialIndex = 0;
+        recurse(0, 0);
+        normalize(trgPotentials);
+    }
+
+    public static void dividePotentials(double[] potentials, double[] oldPotentials, double[] result) {
+        System.arraycopy(potentials, 0, result, 0, potentials.length);
+        for (int i = 0; i < potentials.length; i++) {
+            result[i] -= oldPotentials[i];
+        }
+    }
+
+
     public static void normalize(double[] array) {
         LogSpace.normalize(array);
     }
