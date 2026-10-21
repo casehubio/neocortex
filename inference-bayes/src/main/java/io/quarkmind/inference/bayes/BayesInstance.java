@@ -148,6 +148,7 @@ public class BayesInstance<T> {
 
     private void snapshotSeparators() {
         for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            if (sep == null) continue;
             double[] current = separatorStates[sep.getId()].getPotentials();
             System.arraycopy(current, 0, sepPotSnapshots[sep.getId()], 0, current.length);
         }
@@ -156,10 +157,12 @@ public class BayesInstance<T> {
     private void saveCalibrated() {
         if (!enableFastRetract) return;
         for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+            if (clique == null) continue;
             double[] src = cliqueStates[clique.getId()].getPotentials();
             System.arraycopy(src, 0, calibratedCliquePots[clique.getId()], 0, src.length);
         }
         for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            if (sep == null) continue;
             double[] src = separatorStates[sep.getId()].getPotentials();
             System.arraycopy(src, 0, calibratedSepPots[sep.getId()], 0, src.length);
         }
@@ -309,16 +312,19 @@ public class BayesInstance<T> {
 
     public void reset() {
         for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+            if (clique == null) continue;
             clique.resetState(cliqueStates[clique.getId()]);
         }
 
-        for ( JunctionTreeSeparator sep : tree.getJunctionTreeSeparators() ) {
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            if (sep == null) continue;
             sep.resetState(separatorStates[sep.getId()]);
         }
 
         for (GraphNode<BayesVariable> node : graph) {
             BayesVariable var = node.getContent();
-            BayesVariableState varState =  varStates[var.getId()];
+            BayesVariableState varState = varStates[var.getId()];
+            if (varState == null) continue;
             Arrays.fill(varState.getDistribution(), 0.0);
         }
     }
@@ -851,6 +857,7 @@ public class BayesInstance<T> {
         }
         int maxCliqueSize = 0;
         for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+            if (clique == null) continue;
             int size = clique.getValues().size();
             if (size > maxCliqueSize) {maxCliqueSize = size;}
         }
@@ -890,6 +897,122 @@ public class BayesInstance<T> {
 
         return klDivergence(currentPosterior, withoutPosterior);
     }
+
+    @SuppressWarnings("unchecked")
+    public BayesVariable addLeafVariable(String name, Object[] outcomes, double[][] cpt, String parentName) {
+        ensureStatesInitialized();
+        BayesVariable parent = variables.get(parentName);
+        if (parent == null) {
+            throw new IllegalArgumentException("Parent variable not found: " + parentName);
+        }
+        if (variables.containsKey(name)) {
+            throw new IllegalArgumentException("Variable already exists: " + name);
+        }
+
+        GraphNode<BayesVariable> newNode = graph.addNode();
+        BayesVariable            newVar  = new BayesVariable<>(name, newNode.getId(), outcomes, cpt);
+        newNode.setContent(newVar);
+
+        io.quarkmind.inference.bayes.graph.impl.EdgeImpl edge = new io.quarkmind.inference.bayes.graph.impl.EdgeImpl();
+        edge.setOutGraphNode(graph.getNode(parent.getId()));
+        edge.setInGraphNode(newNode);
+
+        int                                             newCliqueId   = tree.getJunctionTreeNodes().length;
+        io.quarkmind.inference.bayes.bitmask.OpenBitSet newCliqueBits = new io.quarkmind.inference.bayes.bitmask.OpenBitSet(graph.size());
+        newCliqueBits.set(parent.getId());
+        newCliqueBits.set(newVar.getId());
+        JunctionTreeClique newClique = new JunctionTreeClique(newCliqueId, graph, newCliqueBits);
+        newVar.setFamily(newCliqueId);
+        newClique.addToFamily(newVar);
+
+        BayesVariable[] cliqueVars  = newClique.getVarsArray();
+        int             numStates   = PotentialMultiplier.createNumberOfStates(cliqueVars);
+        int[]           multipliers = PotentialMultiplier.createIndexMultipliers(cliqueVars, numStates);
+        tree.multipleVarNodePotential(newNode, newClique.getPotentials(), cliqueVars, multipliers);
+
+        int                                             newSepId     = tree.getJunctionTreeSeparators().length;
+        JunctionTreeClique                              parentClique = tree.getJunctionTreeNodes()[parent.getFamily()];
+        io.quarkmind.inference.bayes.bitmask.OpenBitSet sepBits      = new io.quarkmind.inference.bayes.bitmask.OpenBitSet(graph.size());
+        sepBits.set(parent.getId());
+        JunctionTreeSeparator newSep = new JunctionTreeSeparator(newSepId, parentClique, newClique, sepBits, graph);
+
+        JunctionTreeClique[] newJtNodes = Arrays.copyOf(tree.getJunctionTreeNodes(), newCliqueId + 1);
+        newJtNodes[newCliqueId] = newClique;
+        tree.setJunctionTreeNodes(newJtNodes);
+
+        JunctionTreeSeparator[] newJtSeps = Arrays.copyOf(tree.getJunctionTreeSeparators(), newSepId + 1);
+        newJtSeps[newSepId] = newSep;
+        tree.setJunctionTreeSeparators(newJtSeps);
+
+        likelyhoods         = Arrays.copyOf(likelyhoods, graph.size());
+        previousLikelyhoods = Arrays.copyOf(previousLikelyhoods, graph.size());
+
+        cliqueStates              = Arrays.copyOf(cliqueStates, newCliqueId + 1);
+        cliqueStates[newCliqueId] = newClique.createState();
+
+        separatorStates           = Arrays.copyOf(separatorStates, newSepId + 1);
+        separatorStates[newSepId] = newSep.createState();
+
+        varStates                 = Arrays.copyOf(varStates, graph.size());
+        varStates[newVar.getId()] = newVar.createState();
+
+        subtreeHasDirty = Arrays.copyOf(subtreeHasDirty, newCliqueId + 1);
+
+        int sepSize = separatorStates[newSepId].getPotentials().length;
+        sepPotSnapshots           = Arrays.copyOf(sepPotSnapshots, newSepId + 1);
+        sepPotSnapshots[newSepId] = new double[sepSize];
+        oldSepBuffer              = Arrays.copyOf(oldSepBuffer, newSepId + 1);
+        oldSepBuffer[newSepId]    = new double[sepSize];
+        absorbBuffer              = Arrays.copyOf(absorbBuffer, newSepId + 1);
+        absorbBuffer[newSepId]    = new double[sepSize];
+
+        if (enableFastRetract) {
+            calibratedCliquePots              = Arrays.copyOf(calibratedCliquePots, newCliqueId + 1);
+            calibratedCliquePots[newCliqueId] = new double[cliqueStates[newCliqueId].getPotentials().length];
+            calibratedSepPots                 = Arrays.copyOf(calibratedSepPots, newSepId + 1);
+            calibratedSepPots[newSepId]       = new double[sepSize];
+        }
+
+        dirty   = BitMask.getEmpty(graph.size());
+        decided = BitMask.getEmpty(graph.size());
+        variables.put(name, newVar);
+        calibrated = false;
+
+        return newVar;
+    }
+
+    public void removeLeafVariable(String name) {
+        ensureStatesInitialized();
+        BayesVariable var = variables.get(name);
+        if (var == null) {
+            throw new IllegalArgumentException("Variable not found: " + name);
+        }
+
+        int                cliqueId = var.getFamily();
+        JunctionTreeClique clique   = tree.getJunctionTreeNodes()[cliqueId];
+        if (!clique.getChildren().isEmpty()) {
+            throw new IllegalStateException("Cannot remove non-leaf variable: has children in junction tree");
+        }
+
+        JunctionTreeSeparator parentSep = clique.getParentSeparator();
+        if (parentSep == null) {
+            throw new IllegalStateException("Cannot remove root variable");
+        }
+
+        parentSep.getParent().getChildren().remove(parentSep);
+
+        tree.getJunctionTreeNodes()[cliqueId]               = null;
+        tree.getJunctionTreeSeparators()[parentSep.getId()] = null;
+        cliqueStates[cliqueId]                              = null;
+        separatorStates[parentSep.getId()]                  = null;
+        varStates[var.getId()]                              = null;
+        likelyhoods[var.getId()]                            = null;
+        previousLikelyhoods[var.getId()]                    = null;
+
+        variables.remove(name);
+        calibrated = false;
+    }
+
 
     static double klDivergence(double[] p, double[] q) {
         double kl = 0.0;

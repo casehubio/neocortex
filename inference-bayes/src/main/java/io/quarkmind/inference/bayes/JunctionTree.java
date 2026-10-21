@@ -117,4 +117,9 @@ public class JunctionTree {
         this.jtNodes = jtNodes;
     }
 
+    public void setJunctionTreeSeparators(JunctionTreeSeparator[] jtSeps) {
+        this.jtSeps = jtSeps;
+    }
+
+
 }
