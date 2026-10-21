@@ -2,14 +2,13 @@ package io.casehub.neocortex.cognition.appraisal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 
-import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class LlmCopingCheck implements SecCheck {
 
@@ -38,10 +37,12 @@ public class LlmCopingCheck implements SecCheck {
             SecDimensions.CONTROLLABILITY, 0.5,
             SecDimensions.ADJUSTABILITY, 0.5));
 
-    private final AgentProvider agentProvider;
+    private volatile SessionPipeline sessionPipeline;
 
-    public LlmCopingCheck(AgentProvider agentProvider) {
-        this.agentProvider = agentProvider;
+    public LlmCopingCheck() {}
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
     @Override
@@ -65,24 +66,17 @@ public class LlmCopingCheck implements SecCheck {
     }
 
     private String invokeLlm(String observation) {
-        var events = agentProvider.invoke(
-                        AgentSessionConfig.of(SYSTEM_PROMPT, "Situation: " + observation))
-                .collect().asList()
-                .await().atMost(Duration.ofMinutes(1));
-
-        boolean hasError = events.stream()
-                .filter(AgentEvent.InvocationComplete.class::isInstance)
-                .map(AgentEvent.InvocationComplete.class::cast)
-                .anyMatch(AgentEvent.InvocationComplete::isError);
-        if (hasError) return null;
-
-        String text = events.stream()
-                .filter(AgentEvent.TextDelta.class::isInstance)
-                .map(AgentEvent.TextDelta.class::cast)
-                .map(AgentEvent.TextDelta::text)
-                .collect(Collectors.joining());
-
-        return text.isEmpty() ? null : text;
+        var pipeline = this.sessionPipeline;
+        if (pipeline == null) return null;
+        var responseText = new StringBuilder();
+        ParallelLlmExecutor.execute(pipeline, "tick", 1, SYSTEM_PROMPT, "llm-coping",
+            List.of(session -> {
+                session.query("Situation: " + observation).subscribe().asStream()
+                    .filter(e -> e instanceof AgentEvent.TextDelta)
+                    .map(e -> ((AgentEvent.TextDelta) e).text())
+                    .forEach(responseText::append);
+            }));
+        return responseText.isEmpty() ? null : responseText.toString();
     }
 
     private static double clamp(double v) {

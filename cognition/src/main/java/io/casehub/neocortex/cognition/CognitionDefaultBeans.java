@@ -132,8 +132,7 @@ public class CognitionDefaultBeans {
     @Singleton
     io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy() {
         if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
-            return new io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy(
-                    agentProviderInstance.get());
+            return new io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy();
         }
 
         // Scherer (2001) SEC model — multilevel sequential checking (relevance → implication → coping → norm)
@@ -151,8 +150,7 @@ public class CognitionDefaultBeans {
     @Singleton
     io.casehub.neocortex.cognition.goal.DeductiveGoalFormationStrategy deductiveGoalFormationStrategy() {
         if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
-            return new io.casehub.neocortex.cognition.goal.LlmDeductiveGoalFormationStrategy(
-                    agentProviderInstance.get());
+            return new io.casehub.neocortex.cognition.goal.LlmDeductiveGoalFormationStrategy();
         }
         return new io.casehub.neocortex.cognition.goal.NoOpDeductiveGoalFormationStrategy();
     }
