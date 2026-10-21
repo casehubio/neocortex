@@ -1,27 +1,25 @@
 package io.casehub.neocortex.cognition.belief;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.cognitive.ConfidenceOrigin;
-import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionConfig;
-import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.api.identity.PrincipalId;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,15 +27,29 @@ class BeliefRevisionPhaseTest {
 
     private static final String TENANT = "test-tenant";
     private InMemoryMindMapStore store;
-    private CountingAgentProvider agentProvider;
+    private AtomicInteger callCount;
+    private AtomicReference<String> response;
     private BeliefRevisionPhase phase;
     private String cognitiveSubgraphId;
 
     @BeforeEach
     void setUp() {
         store = new InMemoryMindMapStore();
-        agentProvider = new CountingAgentProvider();
-        phase = new BeliefRevisionPhase(store, agentProvider, BeliefRevisionConfig.defaults());
+        callCount = new AtomicInteger();
+        response = new AtomicReference<>("{\"contradictions\": []}");
+
+        phase = new BeliefRevisionPhase(store, BeliefRevisionConfig.defaults());
+        phase.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                callCount.incrementAndGet();
+                return Multi.createFrom().item(new AgentEvent.TextDelta(response.get()));
+            }
+            @Override
+            public Uni<Void> interrupt() { return Uni.createFrom().voidItem(); }
+            @Override
+            public void close(Duration timeout) {}
+        }));
         cognitiveSubgraphId = store.createSubgraph(
                 new SubgraphInput("cognitive-agent1", SubgraphTypes.COGNITIVE, null), TENANT);
     }
@@ -48,11 +60,11 @@ class BeliefRevisionPhaseTest {
         addEvidence("Observed: the housekeeper made a cake", "agent1");
 
         phase.run(TENANT, List.of());
-        int firstPassCalls = agentProvider.callCount();
+        int firstPassCalls = callCount.get();
         assertThat(firstPassCalls).isGreaterThan(0);
 
         phase.run(TENANT, List.of());
-        assertThat(agentProvider.callCount())
+        assertThat(callCount.get())
                 .as("Second pass with no new evidence should not call LLM")
                 .isEqualTo(firstPassCalls);
     }
@@ -63,12 +75,12 @@ class BeliefRevisionPhaseTest {
         addEvidence("Observed: guardian left", "agent1");
 
         phase.run(TENANT, List.of());
-        int firstPassCalls = agentProvider.callCount();
+        int firstPassCalls = callCount.get();
 
         addEvidence("Observed: Peter-Perfect stayed and helped", "agent1");
 
         phase.run(TENANT, List.of());
-        assertThat(agentProvider.callCount())
+        assertThat(callCount.get())
                 .as("New evidence should trigger another LLM call")
                 .isGreaterThan(firstPassCalls);
     }
@@ -82,7 +94,7 @@ class BeliefRevisionPhaseTest {
         phase.run(TENANT, List.of());
         phase.run(TENANT, List.of());
 
-        assertThat(agentProvider.callCount())
+        assertThat(callCount.get())
                 .as("Three passes with same evidence should produce exactly one LLM call")
                 .isEqualTo(1);
     }
@@ -92,7 +104,7 @@ class BeliefRevisionPhaseTest {
         addBeliefWithConfidence("Nobody cares about me", "agent1", 0.25);
         addEvidence("The housekeeper made a birthday cake for you", "agent1");
 
-        agentProvider.setResponse("""
+        response.set("""
                 {"contradictions": [{
                     "beliefNodeId": "any",
                     "beliefText": "Nobody cares about me",
@@ -119,7 +131,7 @@ class BeliefRevisionPhaseTest {
         addBeliefWithConfidence("Nobody cares about me", "agent1", 0.25);
         addEvidence("The housekeeper made a birthday cake for you", "agent1");
 
-        agentProvider.setResponse("""
+        response.set("""
                 {"contradictions": [{
                     "beliefNodeId": "any",
                     "beliefText": "Nobody cares about me",
@@ -131,12 +143,12 @@ class BeliefRevisionPhaseTest {
                 """);
 
         phase.run(TENANT, List.of());
-        int callsAfterRevision = agentProvider.callCount();
+        int callsAfterRevision = callCount.get();
 
-        agentProvider.setResponse("{\"contradictions\": []}");
+        response.set("{\"contradictions\": []}");
 
         phase.run(TENANT, List.of());
-        assertThat(agentProvider.callCount())
+        assertThat(callCount.get())
                 .as("After a revision, cursor advances — next pass does not re-process same evidence")
                 .isEqualTo(callsAfterRevision);
     }
@@ -144,12 +156,23 @@ class BeliefRevisionPhaseTest {
     @Test
     void beliefOscillation_trustRevisedThenRebuilt() {
         var aggressiveConfig = new BeliefRevisionConfig(true, 0.5, 0.3, 0.4);
-        phase = new BeliefRevisionPhase(store, agentProvider, aggressiveConfig);
+        phase = new BeliefRevisionPhase(store, aggressiveConfig);
+        phase.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                callCount.incrementAndGet();
+                return Multi.createFrom().item(new AgentEvent.TextDelta(response.get()));
+            }
+            @Override
+            public Uni<Void> interrupt() { return Uni.createFrom().voidItem(); }
+            @Override
+            public void close(Duration timeout) {}
+        }));
 
         addBeliefWithConfidence("People always abandon me", "agent1", 0.25);
         addEvidence("Peter-Perfect stayed and helped you", "agent1");
 
-        agentProvider.setResponse("""
+        response.set("""
                 {"contradictions": [{
                     "beliefNodeId": "any",
                     "beliefText": "People always abandon me",
@@ -170,7 +193,7 @@ class BeliefRevisionPhaseTest {
 
         addEvidence("Peter-Perfect left without saying goodbye", "agent1");
 
-        agentProvider.setResponse("""
+        response.set("""
                 {"contradictions": [{
                     "beliefNodeId": "any",
                     "beliefText": "Some people stay when it matters",
@@ -203,7 +226,7 @@ class BeliefRevisionPhaseTest {
         phase.run(TENANT, List.of());
         phase.run(TENANT, List.of());
 
-        assertThat(agentProvider.callCount())
+        assertThat(callCount.get())
                 .as("Five consolidation passes with same evidence should produce exactly one LLM call")
                 .isEqualTo(1);
     }
@@ -231,27 +254,4 @@ class BeliefRevisionPhaseTest {
                 TENANT);
     }
 
-    static class CountingAgentProvider implements AgentProvider {
-        private final AtomicInteger calls = new AtomicInteger();
-        private String response = "{\"contradictions\": []}";
-
-        void setResponse(String response) {
-            this.response = response;
-        }
-
-        int callCount() {
-            return calls.get();
-        }
-
-        @Override
-        public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-            calls.incrementAndGet();
-            return Multi.createFrom().item(new AgentEvent.TextDelta(response));
-        }
-
-        @Override
-        public AgentSession openSession(AgentSessionInit init) {
-            throw new UnsupportedOperationException();
-        }
-    }
 }
