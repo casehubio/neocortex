@@ -55,6 +55,10 @@
       <artifactId>casehub-platform-agent-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-platform-agent-session-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.smallrye.reactive</groupId>
       <artifactId>mutiny</artifactId>
     </dependency>

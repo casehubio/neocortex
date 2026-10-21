@@ -1,17 +1,26 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.platform.agent.AgentBackend;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.AgentSessionInit;
-import io.casehub.platform.agent.SessionRegistry;
+import io.casehub.platform.agent.BackendInstanceRegistry;
+import io.casehub.platform.agent.config.PoolDeclaration;
+import io.casehub.platform.agent.gate.AimdAdmissionStrategy;
+import io.casehub.platform.agent.session.SessionLifecycleManager;
+import io.casehub.platform.agent.session.SessionPipeline;
+import io.casehub.platform.agent.session.SessionPoolRegistry;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -19,9 +28,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ParallelLlmExecutorRegistryTest {
 
+    private SessionPoolRegistry poolRegistry;
+    private SessionLifecycleManager sessionManager;
+    private SessionPipeline pipeline;
+
+    @BeforeEach
+    void setUp() {
+        var decl = new PoolDeclaration("test-pool", "test", "stub",
+                0, 20, null, Map.of(), Map.of());
+        poolRegistry = new SessionPoolRegistry(List.of(decl), stubBackendRegistry());
+        sessionManager = new SessionLifecycleManager(poolRegistry);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (pipeline != null) pipeline.shutdown();
+        sessionManager.shutdown();
+        poolRegistry.shutdown();
+    }
+
     @Test
-    void executesAllTasksThroughRegistrySessions() {
-        var registry = new StubRegistry(6);
+    void executesAllTasksThroughPipelineSessions() {
+        var admission = new AimdAdmissionStrategy(6, 5, Duration.ofSeconds(10));
+        pipeline = new SessionPipeline(sessionManager, "stub", admission, 50_000);
         var completed = new AtomicInteger();
 
         List<Consumer<AgentSession>> tasks = new ArrayList<>();
@@ -32,92 +61,80 @@ class ParallelLlmExecutorRegistryTest {
             });
         }
 
-        var metrics = ParallelLlmExecutor.execute(registry, "system", "test-phase", 3, tasks);
+        var metrics = ParallelLlmExecutor.execute(pipeline, "system", "test-phase", 3, tasks);
 
         assertThat(completed.get()).isEqualTo(10);
-        assertThat(registry.openCount.get()).isEqualTo(3);
-        assertThat(registry.releaseCount.get()).isEqualTo(3);
-        assertThat(registry.sessionCount()).isEqualTo(0);
-    }
-
-    @Test
-    void usesFewerSessionsWhenCapacityLimited() {
-        var registry = new StubRegistry(2);
-        var completed = new AtomicInteger();
-
-        List<Consumer<AgentSession>> tasks = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
-            tasks.add(session -> completed.incrementAndGet());
-        }
-
-        ParallelLlmExecutor.execute(registry, "system", "limited-phase", 4, tasks);
-
-        assertThat(completed.get()).isEqualTo(6);
-        assertThat(registry.openCount.get()).isEqualTo(2);
-        assertThat(registry.releaseCount.get()).isEqualTo(2);
+        assertThat(pipeline.sessionCount()).isEqualTo(0);
     }
 
     @Test
     void releasesSessionsEvenWhenTasksFail() {
-        var registry = new StubRegistry(3);
+        var admission = new AimdAdmissionStrategy(6, 5, Duration.ofSeconds(10));
+        pipeline = new SessionPipeline(sessionManager, "stub", admission, 50_000);
 
         List<Consumer<AgentSession>> tasks = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             tasks.add(session -> { throw new RuntimeException("task failed"); });
         }
 
-        ParallelLlmExecutor.execute(registry, "system", "failing-phase", 2, tasks);
+        ParallelLlmExecutor.execute(pipeline, "system", "failing-phase", 2, tasks);
 
-        assertThat(registry.releaseCount.get()).isEqualTo(2);
-        assertThat(registry.sessionCount()).isEqualTo(0);
+        assertThat(pipeline.sessionCount()).isEqualTo(0);
     }
 
     @Test
     void emptyTaskListReturnsImmediately() {
-        var registry = new StubRegistry(3);
+        var admission = new AimdAdmissionStrategy(6, 5, Duration.ofSeconds(10));
+        pipeline = new SessionPipeline(sessionManager, "stub", admission, 50_000);
 
-        var metrics = ParallelLlmExecutor.execute(registry, "system", "empty-phase", List.of());
+        var metrics = ParallelLlmExecutor.execute(pipeline, "system", "empty-phase", List.of());
 
-        assertThat(registry.openCount.get()).isEqualTo(0);
-        assertThat(registry.releaseCount.get()).isEqualTo(0);
+        assertThat(pipeline.sessionCount()).isEqualTo(0);
     }
 
-    // --- Test infrastructure ---
+    @Test
+    void aimdPermitsControlConcurrency() {
+        var admission = new AimdAdmissionStrategy(2, 5, Duration.ofSeconds(10));
+        pipeline = new SessionPipeline(sessionManager, "stub", admission, 50_000);
+        var maxConcurrent = new AtomicInteger(0);
+        var currentConcurrent = new AtomicInteger(0);
 
-    static class StubRegistry implements SessionRegistry {
-        private final int maxSessions;
-        private final ConcurrentHashMap<String, AgentSession> sessions = new ConcurrentHashMap<>();
-        final AtomicInteger openCount = new AtomicInteger();
-        final AtomicInteger releaseCount = new AtomicInteger();
-
-        StubRegistry(int maxSessions) {
-            this.maxSessions = maxSessions;
+        List<Consumer<AgentSession>> tasks = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            tasks.add(session -> {
+                int c = currentConcurrent.incrementAndGet();
+                maxConcurrent.updateAndGet(m -> Math.max(m, c));
+                try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                currentConcurrent.decrementAndGet();
+            });
         }
 
-        @Override
-        public AgentSession openSession(String id, AgentSessionInit init) {
-            return openSession(id, init, null);
-        }
+        ParallelLlmExecutor.execute(pipeline, "system", "concurrency-phase", 4, tasks);
 
-        @Override
-        public AgentSession openSession(String id, AgentSessionInit init, Duration timeout) {
-            if (sessions.size() >= maxSessions) return null;
-            var session = new StubSession();
-            sessions.put(id, session);
-            openCount.incrementAndGet();
-            return session;
-        }
+        assertThat(maxConcurrent.get()).isLessThanOrEqualTo(2);
+        assertThat(admission.activeCount()).isEqualTo(0);
+    }
 
-        @Override
-        public void releaseSession(String id) {
-            if (sessions.remove(id) != null) {
-                releaseCount.incrementAndGet();
+    private static BackendInstanceRegistry stubBackendRegistry() {
+        return new BackendInstanceRegistry() {
+            private final AgentBackend stub = new StubBackend();
+            @Override public void register(AgentBackend backend) {}
+            @Override public Optional<AgentBackend> resolve(String key, String instanceId) {
+                return "stub".equals(key) ? Optional.of(stub) : Optional.empty();
             }
-        }
+            @Override public List<AgentBackend> resolveByKey(String key) {
+                return "stub".equals(key) ? List.of(stub) : List.of();
+            }
+        };
+    }
 
-        @Override
-        public int sessionCount() {
-            return sessions.size();
+    static class StubBackend implements AgentBackend {
+        @Override public String key() { return "stub"; }
+        @Override public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
+            return Multi.createFrom().item(new AgentEvent.TextDelta("response"));
+        }
+        @Override public AgentSession openSession(AgentSessionInit init) {
+            return new StubSession();
         }
     }
 
@@ -126,16 +143,8 @@ class ParallelLlmExecutorRegistryTest {
         public Multi<AgentEvent> query(String prompt) {
             return Multi.createFrom().item(new AgentEvent.TextDelta("response"));
         }
-
-        @Override
-        public Uni<Void> interrupt() {
-            return Uni.createFrom().voidItem();
-        }
-
-        @Override
-        public void clear() {}
-
-        @Override
-        public void close(Duration maxWait) {}
+        @Override public Uni<Void> interrupt() { return Uni.createFrom().voidItem(); }
+        @Override public void clear() {}
+        @Override public void close(Duration maxWait) {}
     }
 }
