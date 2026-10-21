@@ -46,6 +46,33 @@ class ClassificationAuditLogTest {
     }
 
     @Test
+    void writesSourceRangesWhenPresent(@TempDir Path tempDir) throws IOException {
+        var logFile = tempDir.resolve("classification-audit.jsonl");
+        var log     = new ClassificationAuditLog(logFile);
+
+        var activations = List.of(
+                new SituationActivation("deception_detected", 0.7, new int[]{120, 185}),
+                new SituationActivation("threat_perception", 0.6)
+                                 );
+        log.write(47, "penelope-pitstop", "inline", List.of(),
+                  activations, "Covert coordination detected");
+
+        var node = mapper.readTree(Files.readAllLines(logFile).getFirst());
+        var acts = node.get("activations");
+
+        var first = acts.get(0);
+        assertThat(first.get("node").asText()).isEqualTo("deception_detected");
+        assertThat(first.has("source")).isTrue();
+        assertThat(first.get("source").get(0).asInt()).isEqualTo(120);
+        assertThat(first.get("source").get(1).asInt()).isEqualTo(185);
+
+        var second = acts.get(1);
+        assertThat(second.get("node").asText()).isEqualTo("threat_perception");
+        assertThat(second.has("source")).isFalse();
+    }
+
+
+    @Test
     void appendsMultipleEntries(@TempDir Path tempDir) throws IOException {
         var logFile = tempDir.resolve("classification-audit.jsonl");
         var log = new ClassificationAuditLog(logFile);

@@ -48,6 +48,12 @@ public class ClassificationAuditLog {
             ObjectNode a = actArray.addObject();
             a.put("node", act.nodeId());
             a.put("confidence", act.confidence());
+            if (act.source() != null) {
+                ArrayNode sourceArray = a.putArray("source");
+                for (int offset : act.source()) {
+                    sourceArray.add(offset);
+                }
+            }
         }
 
         root.put("reasoning", reasoning);
