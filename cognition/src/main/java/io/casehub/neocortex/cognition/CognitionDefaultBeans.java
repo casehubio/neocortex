@@ -36,7 +36,7 @@ public class CognitionDefaultBeans {
 
     @Produces @DefaultBean @Singleton
     BeliefRevisionConfig beliefRevisionConfig() {
-        return BeliefRevisionConfig.defaults();
+        return new BeliefRevisionConfig(false, 0.15, 0.3, 0.6);
     }
 
     @Produces @DefaultBean @Singleton

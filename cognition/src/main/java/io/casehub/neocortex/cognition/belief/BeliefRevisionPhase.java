@@ -69,6 +69,7 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
+        if (!config.enabled()) return;
         if (agentProvider == null) return;
         var subgraphs = mindMapStore.listSubgraphs(tenantId);
         var cognitiveSubgraphs = subgraphs.stream()

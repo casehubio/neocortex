@@ -143,7 +143,7 @@ class BeliefRevisionPhaseTest {
 
     @Test
     void beliefOscillation_trustRevisedThenRebuilt() {
-        var aggressiveConfig = new BeliefRevisionConfig(0.5, 0.3, 0.4);
+        var aggressiveConfig = new BeliefRevisionConfig(true, 0.5, 0.3, 0.4);
         phase = new BeliefRevisionPhase(store, agentProvider, aggressiveConfig);
 
         addBeliefWithConfidence("People always abandon me", "agent1", 0.25);
