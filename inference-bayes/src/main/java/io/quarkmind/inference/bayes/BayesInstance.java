@@ -20,7 +20,7 @@ package io.quarkmind.inference.bayes;
 
 import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.graph.GraphNode;
-import io.quarkmind.inference.bayes.bitmask.BitMaskUtil;
+import io.quarkmind.inference.bayes.bitmask.BitMask;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,15 +33,44 @@ public class BayesInstance<T> {
     private Map<String, BayesVariable> variables;
     private Map<String, BayesVariable> fieldNames;
     private BayesLikelyhood[]          likelyhoods;
-    private long                       dirty;
-    private long                       decided;
+    private BayesLikelyhood[]          previousLikelyhoods;
+    private BitMask                    dirty;
+    private BitMask                    decided;
+    private boolean                    calibrated;
 
     private CliqueState[]        cliqueStates;
     private SeparatorState[]     separatorStates;
     private BayesVariableState[] varStates;
 
+    // Phase 2: dirty subtree tracking + separator snapshots
+    private boolean[] subtreeHasDirty;
+    private double[][] sepPotSnapshots;
+
+    // Phase 3: calibrated snapshots for fast evidence retraction
+    private boolean enableFastRetract;
+    private double[][] calibratedCliquePots;
+    private double[][] calibratedSepPots;
+
     private GlobalUpdateListener globalUpdateListener;
     private PassMessageListener  passMessageListener;
+
+
+    public BayesInstance(JunctionTree tree, boolean enableFastRetract) {
+        this(tree);
+        this.enableFastRetract = enableFastRetract;
+        if (enableFastRetract) {
+            calibratedCliquePots = new double[tree.getJunctionTreeNodes().length][];
+            for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+                calibratedCliquePots[clique.getId()] =
+                        new double[cliqueStates[clique.getId()].getPotentials().length];
+            }
+            calibratedSepPots = new double[tree.getJunctionTreeSeparators().length][];
+            for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+                calibratedSepPots[sep.getId()] =
+                        new double[separatorStates[sep.getId()].getPotentials().length];
+            }
+        }
+    }
 
     public BayesInstance(JunctionTree tree) {
         this.graph = tree.getGraph();
@@ -49,6 +78,10 @@ public class BayesInstance<T> {
         variables = new HashMap<>();
         fieldNames = new HashMap<>();
         likelyhoods = new BayesLikelyhood[graph.size()];
+        previousLikelyhoods = new BayesLikelyhood[graph.size()];
+        dirty = BitMask.getEmpty(graph.size());
+        decided = BitMask.getEmpty(graph.size());
+        this.enableFastRetract = false;
 
         cliqueStates = new CliqueState[tree.getJunctionTreeNodes().length];
         for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
@@ -60,11 +93,177 @@ public class BayesInstance<T> {
             separatorStates[sep.getId()] = sep.createState();
         }
 
+        subtreeHasDirty = new boolean[tree.getJunctionTreeNodes().length];
+
+        sepPotSnapshots = new double[tree.getJunctionTreeSeparators().length][];
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            sepPotSnapshots[sep.getId()] = new double[separatorStates[sep.getId()].getPotentials().length];
+        }
+
         varStates = new BayesVariableState[graph.size()];
         for (GraphNode<BayesVariable> node : graph) {
             BayesVariable var = node.getContent();
             variables.put(var.getName(), var);
             varStates[var.getId()] = var.createState();
+        }
+    }
+
+    private void snapshotSeparators() {
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            double[] current = separatorStates[sep.getId()].getPotentials();
+            System.arraycopy(current, 0, sepPotSnapshots[sep.getId()], 0, current.length);
+        }
+    }
+
+    private void saveCalibrated() {
+        if (!enableFastRetract) return;
+        for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
+            double[] src = cliqueStates[clique.getId()].getPotentials();
+            System.arraycopy(src, 0, calibratedCliquePots[clique.getId()], 0, src.length);
+        }
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            double[] src = separatorStates[sep.getId()].getPotentials();
+            System.arraycopy(src, 0, calibratedSepPots[sep.getId()], 0, src.length);
+        }
+    }
+
+    private boolean isRetractable() {
+        for (int varId = 0; varId < likelyhoods.length; varId++) {
+            if (!dirty.isSet(varId)) continue;
+            if (previousLikelyhoods[varId] == null) return false;
+            // New evidence has hard evidence (zero) → will cause zeros post-update, not retractable
+            BayesLikelyhood newL = likelyhoods[varId];
+            if (newL != null) {
+                for (double v : newL.getDistribution()) {
+                    if (v == 0.0) return false;
+                }
+            }
+            // Calibrated clique has zeros → division unsafe
+            int cliqueId = varStates[varId].getVariable().getFamily();
+            for (double v : calibratedCliquePots[cliqueId]) {
+                if (v == 0.0) return false;
+            }
+        }
+        // Also check separators on the dirty path for zeros (division safety)
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            if (subtreeHasDirty[sep.getChild().getId()]) {
+                for (double v : calibratedSepPots[sep.getId()]) {
+                    if (v == 0.0) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void retractionUpdate() {
+        for (int varId = 0; varId < likelyhoods.length; varId++) {
+            if (!dirty.isSet(varId)) continue;
+
+            int cliqueId = varStates[varId].getVariable().getFamily();
+            double[] cliquePots = cliqueStates[cliqueId].getPotentials();
+
+            // Restore calibrated clique potentials as starting point
+            System.arraycopy(calibratedCliquePots[cliqueId], 0, cliquePots, 0, cliquePots.length);
+
+            // Divide out old evidence
+            BayesLikelyhood old = previousLikelyhoods[varId];
+            if (old != null) {
+                old.divideFrom(cliquePots);
+            }
+
+            // Multiply in new evidence
+            BayesLikelyhood newL = likelyhoods[varId];
+            if (newL != null) {
+                newL.multiplyInto(cliquePots);
+            }
+
+            BayesAbsorption.normalize(cliquePots);
+        }
+
+        // Incremental collect using calibrated separator state as the no-op reference
+        // (do NOT modify sepPotSnapshots — it must retain its post-collect values for Phase 2 fallback)
+        collectEvidenceRetract(tree.getRoot());
+
+        // After retraction collect, update sepPotSnapshots only for dirty-path separators
+        // (those that passMessage actually updated). Clean-path seps keep their existing
+        // post-collect snapshot for use in subsequent Phase 2 calls.
+        snapshotDirtyPathSeparators();
+
+        distributeEvidence(tree.getRoot());
+
+        // Clean up subtreeHasDirty after retractionUpdate is complete
+        Arrays.fill(subtreeHasDirty, false);
+    }
+
+    /**
+     * Incremental collect for the Phase 3 retraction path.
+     * Uses calibratedSepPots (post-distribute) as the no-op reference for clean separators,
+     * leaving sepPotSnapshots untouched.
+     */
+    private void collectEvidenceRetract(JunctionTreeClique startClique) {
+        collectChildEvidenceRetract(startClique, startClique);
+    }
+
+    private void collectChildEvidenceRetract(JunctionTreeClique clique, JunctionTreeClique startClique) {
+        List<JunctionTreeSeparator> seps = clique.getChildren();
+        for (JunctionTreeSeparator sep : seps) {
+            collectChildEvidenceRetract(sep.getChild(), startClique);
+        }
+
+        if (clique.getParentSeparator() != null && clique != startClique) {
+            JunctionTreeSeparator parentSep = clique.getParentSeparator();
+            JunctionTreeClique parent = parentSep.getParent();
+
+            if (subtreeHasDirty[clique.getId()]) {
+                passMessage(clique, parentSep, parent); // dirty: recompute
+            } else {
+                injectCalibratedAndAbsorb(parentSep, parent); // clean: inject calibrated (no-op)
+            }
+        }
+    }
+
+    /**
+     * Like injectSnapshotAndAbsorb, but uses calibratedSepPots instead of sepPotSnapshots.
+     * Since calibratedSepPots equals the current separator state (both post-distribute),
+     * the absorption ratio is 1.0 — effectively a no-op.
+     */
+    private void injectCalibratedAndAbsorb(JunctionTreeSeparator sep, JunctionTreeClique targetClique) {
+        double[] sepPots = separatorStates[sep.getId()].getPotentials();
+        double[] oldSepPots = Arrays.copyOf(sepPots, sepPots.length);
+        System.arraycopy(calibratedSepPots[sep.getId()], 0, sepPots, 0, sepPots.length);
+        BayesVariable[] sepVars = sep.getValues().toArray(new BayesVariable[sep.getValues().size()]);
+        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots);
+    }
+
+    private void snapshotDirtyPathSeparators() {
+        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
+            // A separator is on the dirty path if the child clique has a dirty subtree
+            // (i.e., passMessage was called for it during retraction collect).
+            if (sep.getChild() != null && subtreeHasDirty[sep.getChild().getId()]) {
+                double[] current = separatorStates[sep.getId()].getPotentials();
+                System.arraycopy(current, 0, sepPotSnapshots[sep.getId()], 0, current.length);
+            }
+        }
+    }
+
+    private void computeDirtySubtrees() {
+        Arrays.fill(subtreeHasDirty, false);
+        for (int varId = 0; varId < likelyhoods.length; varId++) {
+            if (dirty.isSet(varId)) {
+                int cliqueId = varStates[varId].getVariable().getFamily();
+                markSubtreeDirtyUpward(tree.getJunctionTreeNodes()[cliqueId]);
+            }
+        }
+    }
+
+    private void markSubtreeDirtyUpward(JunctionTreeClique clique) {
+        if (subtreeHasDirty[clique.getId()]) {
+            return; // already marked — ancestor path already processed
+        }
+        subtreeHasDirty[clique.getId()] = true;
+        JunctionTreeSeparator parentSep = clique.getParentSeparator();
+        if (parentSep != null) {
+            markSubtreeDirtyUpward(parentSep.getParent());
         }
     }
 
@@ -83,6 +282,11 @@ public class BayesInstance<T> {
             varState.setDistribution( new double[ varState.getDistribution().length]);
         }
     }
+
+    public void setTargetClass(Class<T> targetClass) {
+    }
+
+
 
     public GlobalUpdateListener getGlobalUpdateListener() {
         return globalUpdateListener;
@@ -115,18 +319,18 @@ public class BayesInstance<T> {
     public void setDecided(BayesVariable var, boolean bool) {
         // note this is reversed, when the bit is on, the var is undecided. Default state is decided
         if ( !bool ) {
-            decided = BitMaskUtil.set(decided, var.getId());
+            decided = decided.set(var.getId());
         } else {
-            decided = BitMaskUtil.reset(decided, var.getId());
+            decided = decided.reset(var.getId());
         }
     }
 
     public boolean isDecided() {
-        return decided == 0; // >0 means one ore more variables are undecided
+        return decided.isEmpty();
     }
 
     public boolean isDirty() {
-        return dirty > 0; // >0 means ore or more variables are dirty
+        return !dirty.isEmpty();
     }
 
     public void setLikelyhood(String varName, double[] distribution) {
@@ -139,8 +343,9 @@ public class BayesInstance<T> {
 
     public void unsetLikelyhood(BayesVariable var) {
         int id = var.getId();
+        previousLikelyhoods[id] = this.likelyhoods[id];
         this.likelyhoods[id] = null;
-        dirty = BitMaskUtil.set(dirty, id);
+        dirty = dirty.set(id);
     }
 
     public void setLikelyhood(BayesVariable var, double[] distribution) {
@@ -154,22 +359,137 @@ public class BayesInstance<T> {
         int id = likelyhood.getVariable().getId();
         BayesLikelyhood old = this.likelyhoods[id];
         if ( old == null || !old.equals( likelyhood ) ) {
+            previousLikelyhoods[id] = old;
             this.likelyhoods[likelyhood.getVariable().getId()] = likelyhood;
-            dirty = BitMaskUtil.set(dirty, id);
+            dirty = dirty.set(id);
         }
     }
 
     public void globalUpdate() {
         if ( !isDecided() ) {
-            throw new IllegalStateException("Cannot perform global upset, while one ore more variables are undecided" );
+            throw new IllegalStateException("Cannot perform global update while one or more variables are undecided");
         }
+        if ( calibrated && !isDirty() ) {                    // Phase 1
+            return;
+        }
+
+        boolean dirtySubtreesComputed = false;
+        if ( calibrated && enableFastRetract ) {
+            computeDirtySubtrees();
+            dirtySubtreesComputed = true;
+            if ( isRetractable() ) {                         // Phase 3
+                if (globalUpdateListener != null) {
+                    globalUpdateListener.beforeGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
+                }
+                retractionUpdate();
+                saveCalibrated();
+                dirty = BitMask.getEmpty(likelyhoods.length);
+                calibrated = true;
+                if (globalUpdateListener != null) {
+                    globalUpdateListener.afterGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
+                }
+                return;
+            }
+        }
+
+        if ( calibrated ) {                                  // Phase 2 setup
+            if ( !dirtySubtreesComputed ) computeDirtySubtrees();
+        }
+
         if ( isDirty() ) {
             reset();
         }
         applyEvidence();
-        //recurseGlobalUpdate(tree.getRoot());
+
+        if (globalUpdateListener != null) {
+            globalUpdateListener.beforeGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
+        }
+
+        if ( calibrated ) {
+            collectEvidenceIncremental(tree.getRoot());
+        } else {
+            collectEvidence(tree.getRoot());
+        }
+
+        snapshotSeparators();
+        distributeEvidence(tree.getRoot());
+
+        if ( enableFastRetract ) {
+            saveCalibrated();
+        }
+
+        dirty = BitMask.getEmpty(likelyhoods.length);
+        calibrated = true;
+        Arrays.fill(subtreeHasDirty, false);
+
+        if (globalUpdateListener != null) {
+            globalUpdateListener.afterGlobalUpdate(cliqueStates[tree.getRoot().getId()]);
+        }
+    }
+
+    /**
+     * For a clean (non-dirty) subtree: restore the calibrated separator snapshot
+     * and absorb it into the target clique. After reset(), separator potentials are
+     * all 1.0, so oldSepPots = {1.0,...} and absorb gives:
+     *   target[i] = targetInit[i] * snapshot[j] / 1.0
+     * which correctly injects the previously calibrated message without recomputing it.
+     */
+    private void injectSnapshotAndAbsorb(JunctionTreeSeparator sep, JunctionTreeClique targetClique) {
+        double[] sepPots = separatorStates[sep.getId()].getPotentials();
+
+        // oldSepPots = current post-reset state = all 1.0
+        double[] oldSepPots = Arrays.copyOf(sepPots, sepPots.length);
+
+        // Restore the calibrated snapshot into the separator
+        System.arraycopy(sepPotSnapshots[sep.getId()], 0, sepPots, 0, sepPots.length);
+
+        // Absorb snapshot into target (no project — source clique not involved)
+        BayesVariable[] sepVars = sep.getValues().toArray(new BayesVariable[sep.getValues().size()]);
+        absorb(sepVars, cliqueStates[targetClique.getId()], separatorStates[sep.getId()], oldSepPots);
+    }
+
+    private void collectChildEvidenceIncremental(JunctionTreeClique clique, JunctionTreeClique startClique) {
+        List<JunctionTreeSeparator> seps = clique.getChildren();
+        for (JunctionTreeSeparator sep : seps) {
+            collectChildEvidenceIncremental(sep.getChild(), startClique);
+        }
+
+        if (clique.getParentSeparator() != null && clique != startClique) {
+            JunctionTreeSeparator parentSep = clique.getParentSeparator();
+            JunctionTreeClique parent = parentSep.getParent();
+
+            if (subtreeHasDirty[clique.getId()]) {
+                passMessage(clique, parentSep, parent); // dirty: recompute
+            } else {
+                injectSnapshotAndAbsorb(parentSep, parent); // clean: inject snapshot
+            }
+        }
+    }
+
+    private void collectEvidenceIncremental(JunctionTreeClique clique) {
+        if (clique.getParentSeparator() != null) {
+            // Non-root start: fall back to full path (unreachable via globalUpdate())
+            collectParentEvidence(clique.getParentSeparator().getParent(),
+                    clique.getParentSeparator(), clique, clique);
+        }
+        collectChildEvidenceIncremental(clique, clique);
+    }
+
+    /**
+     * Always performs the full reset + applyEvidence + collect + distribute sequence,
+     * bypassing all incremental optimisations. Used by benchmarks as the permanent baseline.
+     */
+    public void globalUpdateForced() {
+        if ( !isDecided() ) {
+            throw new IllegalStateException("Cannot perform global update while one or more variables are undecided");
+        }
+        reset();
+        applyEvidence();
         globalUpdate(tree.getRoot());
-        dirty = 0;
+        snapshotSeparators();
+        saveCalibrated();
+        dirty = BitMask.getEmpty(likelyhoods.length);
+        calibrated = true;
     }
 
     public void applyEvidence() {
@@ -353,16 +673,6 @@ public class BayesInstance<T> {
         marginalize( varState );
         return varState;
     }
-
-//    public T createBayesFact() {
-//        Object[] args = new Object[targetParameterMap.length];
-//        args[0] = this;
-//        try {
-//            return targetConstructor.newInstance( args );
-//        } catch (Exception e) {
-//            throw new RuntimeException( "Unable to instantiate " + targetClass.getSimpleName() + " " + Arrays.asList( args ), e );
-//        }
-//    }
 
     public void marginalize(BayesVariableState varState) {
         CliqueState cliqueState = cliqueStates[varState.getVariable().getFamily()];

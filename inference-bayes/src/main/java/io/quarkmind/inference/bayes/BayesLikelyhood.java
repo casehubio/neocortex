@@ -55,7 +55,7 @@ public class BayesLikelyhood {
         parentVarPos = PotentialMultiplier.createSubsetVarPos(vars, parents);
         int parentsNumberOfStates = PotentialMultiplier.createNumberOfStates(parents);
         parentIndexMultipliers = PotentialMultiplier.createIndexMultipliers(parents, parentsNumberOfStates);
-//
+
         varPos = -1;
         for( int i = 0; i < vars.length; i++) {
             if ( vars[i] == variable)  {
@@ -82,15 +82,12 @@ public class BayesLikelyhood {
 
         m.multiple();
 
-//        int j = 0;
-//        int jlength = distribution.length;
-//        for ( int i = 0, length = potential.length; i < length; i++ ) {
-//            potential[i] = potential[i] * distribution[j++];
-//            if ( j == jlength ) {
-//                j = 0;
-//            }
-//        }
+    }
 
+    public void divideFrom(double[] trgPotential) {
+        PotentialMultiplier m = new PotentialMultiplier(varPotential, varPos, parentVarPos, parentIndexMultipliers,
+                                                        vars, multipliers, trgPotential);
+        m.divide();
     }
 
     @Override

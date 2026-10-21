@@ -59,7 +59,7 @@ public class JunctionTreeBuilder {
     public JunctionTree build(boolean init) {
         moralize();
         List<OpenBitSet>  cliques = triangulate();
-        return junctionTree(cliques, init);
+        return junctionTree( cliques, init);
     }
 
 
@@ -240,7 +240,7 @@ public class JunctionTreeBuilder {
             JunctionTreeClique node = new JunctionTreeClique( i, graph, cliques.get(i));
             jtNodes[i] = node;
             sepGraphs[i] = new SeparatorSet[graph.size()][graph.size()];
-            mapVarNodeToCliques(varNodeToCliques, i, cliques.get(i));
+            mapVarNodeToCliques(varNodeToCliques, i, cliques.get(i), cliques.size());
         }
 
         for ( int i = 0, j = 0, length = cliques.size()-1; i < length; ) {
@@ -262,7 +262,7 @@ public class JunctionTreeBuilder {
 
         mapNodeToCliqueFamily(varNodeToCliques, jtNodes);
 
-        return new JunctionTree(null, null, graph, jtNodes[0], jtNodes, jtSeps, init);
+        return new JunctionTree(graph, jtNodes[0], jtNodes, jtSeps, init);
     }
 
 
@@ -321,7 +321,7 @@ public class JunctionTreeBuilder {
             GraphNode<BayesVariable> varNode = graph.getNode( i );
 
             // Get OpenBitSet for parents
-            OpenBitSet parents = new OpenBitSet();
+            OpenBitSet parents = new OpenBitSet(graph.size());
             int count = 0;
             for ( Edge edge : varNode.getInEdges() ) {
                 parents.set( edge.getOutGraphNode().getId() );
@@ -362,11 +362,11 @@ public class JunctionTreeBuilder {
      * @param id
      * @param clique
      */
-    public void mapVarNodeToCliques(OpenBitSet[] nodeToCliques, int id, OpenBitSet clique) {
+    public void mapVarNodeToCliques(OpenBitSet[] nodeToCliques, int id, OpenBitSet clique, int numCliques) {
         for ( int i = clique.nextSetBit(0); i >= 0; i = clique.nextSetBit( i + 1 ) ) {
              OpenBitSet cliques = nodeToCliques[i];
             if ( cliques == null ) {
-                cliques = new OpenBitSet();
+                cliques = new OpenBitSet(numCliques);
                 nodeToCliques[i] = cliques;
             }
             cliques.set(id);

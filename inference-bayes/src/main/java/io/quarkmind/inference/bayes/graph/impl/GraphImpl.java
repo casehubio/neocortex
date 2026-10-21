@@ -51,6 +51,13 @@ public class GraphImpl<T> implements Graph<T>, Iterable<GraphNode<T>> {
         return graphStore.size();
     }
 
+
+    public void addEdge(GraphNode<T> parent, GraphNode<T> child) {
+        EdgeImpl e = new EdgeImpl();
+        e.setOutGraphNode(parent);
+        e.setInGraphNode(child);
+    }
+
     @Override
     public Iterator<GraphNode<T>> iterator() {
         return graphStore.iterator();

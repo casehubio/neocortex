@@ -48,11 +48,4 @@ public class BayesNetwork extends GraphImpl<BayesVariable> {
     public String getPackageName() {
         return packageName;
     }
-
-    public void addEdge(io.quarkmind.inference.bayes.graph.GraphNode<BayesVariable> parent, io.quarkmind.inference.bayes.graph.GraphNode<BayesVariable> child) {
-        io.quarkmind.inference.bayes.graph.impl.EdgeImpl edge = new io.quarkmind.inference.bayes.graph.impl.EdgeImpl();
-        edge.setOutGraphNode(parent);
-        edge.setInGraphNode(child);
-    }
-
 }

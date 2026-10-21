@@ -92,6 +92,39 @@ public class PotentialMultiplier {
         multiple(0, 0);
     }
 
+    public void divide() {
+        varProbabilityTableRow = 0;
+        trgPotentialIndex = 0;
+        divide(0, 0);
+    }
+
+    public void divide(int currentVar, int parentKeyPos) {
+        int numberOfOutcomes = vars[currentVar].getOutcomes().length;
+
+        boolean isParent = false;
+        int nextParentKeyPos = parentKeyPos;
+        if (parentVarPos.length > 0 && parentKeyPos < parentVarPos.length && parentVarPos[parentKeyPos] == currentVar) {
+            nextParentKeyPos++;
+            isParent = true;
+        }
+
+        for (int j = 0; j < numberOfOutcomes; j++) {
+            path[currentVar] = j;
+
+            if (currentVar < vars.length - 1) {
+                divide(currentVar + 1, nextParentKeyPos);
+            } else {
+                trgPotentials[trgPotentialIndex++] /= varPotential[varProbabilityTableRow][path[varPos]];
+            }
+            if (isParent) {
+                varProbabilityTableRow += parentIndexMultipliers[parentKeyPos];
+            }
+        }
+        if (isParent) {
+            varProbabilityTableRow -= (parentIndexMultipliers[parentKeyPos] * numberOfOutcomes);
+        }
+    }
+
     public void multiple(int currentVar, int parentKeyPos) {
         // This performs a depth first recursion of the clique's variables.
         // It uses the intrinsic ordering between data structures.

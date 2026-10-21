@@ -23,26 +23,18 @@ import io.quarkmind.inference.bayes.graph.GraphNode;
 
 import java.util.List;
 
-public class JunctionTree{
+public class JunctionTree {
     private Graph<BayesVariable>    graph;
     private JunctionTreeClique      root;
     private JunctionTreeClique[]    jtNodes;
     private JunctionTreeSeparator[] jtSeps;
-    private String namespace;
-    private String name;
 
     public JunctionTree(Graph<BayesVariable> graph, JunctionTreeClique root, JunctionTreeClique[] jtNodes, JunctionTreeSeparator[] jtSeps) {
-        this( null, null, graph, root, jtNodes, jtSeps, true );
+        this( graph, root, jtNodes, jtSeps, true );
     }
 
 
-    public JunctionTree(String namespace, String name, Graph<BayesVariable> graph, JunctionTreeClique root, JunctionTreeClique[] jtNodes, JunctionTreeSeparator[] jtSeps) {
-        this( namespace, name, graph, root, jtNodes, jtSeps, true );
-    }
-
-    public JunctionTree(String namespace, String name, Graph<BayesVariable> graph, JunctionTreeClique root, JunctionTreeClique[] jtNodes, JunctionTreeSeparator[] jtSeps, boolean init) {
-        this.namespace = namespace;
-        this.name = name;
+    public JunctionTree(Graph<BayesVariable> graph, JunctionTreeClique root, JunctionTreeClique[] jtNodes, JunctionTreeSeparator[] jtSeps, boolean init) {
         this.graph = graph;
         this.root = root;
         this.jtNodes = jtNodes;
@@ -123,11 +115,4 @@ public class JunctionTree{
         this.jtNodes = jtNodes;
     }
 
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public String getName() {
-        return this.name;
-    }
 }
