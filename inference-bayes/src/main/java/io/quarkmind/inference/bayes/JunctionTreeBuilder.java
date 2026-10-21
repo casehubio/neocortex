@@ -18,10 +18,10 @@
  */
 package io.quarkmind.inference.bayes;
 
+import io.quarkmind.inference.bayes.bitmask.OpenBitSet;
 import io.quarkmind.inference.bayes.graph.Edge;
 import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.graph.GraphNode;
-import io.quarkmind.inference.bayes.bitmask.OpenBitSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +60,111 @@ public class JunctionTreeBuilder {
         moralize();
         List<OpenBitSet>  cliques = triangulate();
         return junctionTree( cliques, init);
+    }
+
+    public JunctionTree buildOptimal() {
+        if (graph.size() > 10) {
+            throw new IllegalStateException("Optimal ordering only feasible for networks with 10 or fewer variables, got " + graph.size());
+        }
+        moralize();
+        List<OpenBitSet> cliques = triangulateOptimal();
+        return junctionTree(cliques, true);
+    }
+
+    private List<OpenBitSet> triangulateOptimal() {
+        int   n    = graph.size();
+        int[] perm = new int[n];
+        for (int i = 0; i < n; i++) {perm[i] = i;}
+
+        int[] bestOrder         = perm.clone();
+        int   bestMaxCliqueSize = simulateMaxCliqueSize(perm);
+
+        while (nextPermutation(perm)) {
+            int maxClique = simulateMaxCliqueSize(perm);
+            if (maxClique < bestMaxCliqueSize) {
+                bestMaxCliqueSize = maxClique;
+                bestOrder         = perm.clone();
+            }
+        }
+
+        return eliminateInOrder(bestOrder);
+    }
+
+    private int simulateMaxCliqueSize(int[] order) {
+        boolean[][] simAdj        = cloneAdjacencyMarix(adjacencyMatrix);
+        int         maxCliqueSize = 0;
+        int         n             = simAdj.length;
+
+        for (int v : order) {
+            int cliqueSize = 1;
+            for (int j = 0; j < n; j++) {
+                if (simAdj[v][j]) {cliqueSize++;}
+            }
+            if (cliqueSize > maxCliqueSize) {maxCliqueSize = cliqueSize;}
+
+            boolean[] adjList = simAdj[v];
+            for (int i = 0; i < n; i++) {
+                if (!adjList[i]) {continue;}
+                for (int j = i + 1; j < n; j++) {
+                    if (!adjList[j] || simAdj[i][j]) {continue;}
+                    simAdj[i][j] = true;
+                    simAdj[j][i] = true;
+                }
+            }
+            for (int j = 0; j < n; j++) {
+                simAdj[v][j] = false;
+                simAdj[j][v] = false;
+            }
+        }
+
+        return maxCliqueSize;
+    }
+
+    private List<OpenBitSet> eliminateInOrder(int[] order) {
+        boolean[][]      simAdj  = cloneAdjacencyMarix(adjacencyMatrix);
+        List<OpenBitSet> cliques = new ArrayList<>();
+        int              n       = simAdj.length;
+
+        for (int v : order) {
+            OpenBitSet cliqueBitSet = new OpenBitSet(n);
+            cliqueBitSet.set(v);
+            for (int j = 0; j < n; j++) {
+                if (simAdj[v][j]) {cliqueBitSet.set(j);}
+            }
+            updateCliques(cliques, cliqueBitSet);
+
+            boolean[] adjList = simAdj[v];
+            for (int i = 0; i < n; i++) {
+                if (!adjList[i]) {continue;}
+                for (int j = i + 1; j < n; j++) {
+                    if (!adjList[j] || simAdj[i][j]) {continue;}
+                    connect(adjacencyMatrix, i, j);
+                    connect(simAdj, i, j);
+                }
+            }
+            for (int j = 0; j < n; j++) {
+                disconnect(simAdj, v, j);
+            }
+        }
+
+        return cliques;
+    }
+
+    private static boolean nextPermutation(int[] arr) {
+        int i = arr.length - 2;
+        while (i >= 0 && arr[i] >= arr[i + 1]) {i--;}
+        if (i < 0) {return false;}
+        int j = arr.length - 1;
+        while (arr[j] <= arr[i]) {j--;}
+        int tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+        for (int lo = i + 1, hi = arr.length - 1; lo < hi; lo++, hi--) {
+            tmp     = arr[lo];
+            arr[lo] = arr[hi];
+            arr[hi] = tmp;
+        }
+        return true;
     }
 
 
