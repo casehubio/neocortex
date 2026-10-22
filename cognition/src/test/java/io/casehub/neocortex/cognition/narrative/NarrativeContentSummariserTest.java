@@ -1,11 +1,9 @@
 package io.casehub.neocortex.cognition.narrative;
 
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.memory.ReflectionEntry;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionConfig;
-import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,41 +21,11 @@ class NarrativeContentSummariserTest {
     private static final Instant EARLIER = Instant.parse("2026-09-12T10:00:00Z");
     private static final Clock CLOCK = Clock.fixed(FIXED_NOW, ZoneOffset.UTC);
 
-    private TestAgentProvider agentProvider;
     private NarrativeContentSummariser summariser;
-
-    static class TestAgentProvider implements AgentProvider {
-        private String response;
-        int invocationCount = 0;
-        String lastUserPrompt;
-        boolean shouldThrow = false;
-
-        TestAgentProvider(String response) {
-            this.response = response;
-        }
-
-        void setResponse(String response) {
-            this.response = response;
-        }
-
-        @Override
-        public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-            invocationCount++;
-            lastUserPrompt = config.userPrompt();
-            if (shouldThrow) {
-                return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
-            }
-            return Multi.createFrom().items(
-                    new AgentEvent.TextDelta(response),
-                    new AgentEvent.InvocationComplete(
-                            100, 50, 0, 0, 0, 0.001, 500L, 400L, "test", 1, false, null, null));
-        }
-
-        @Override
-        public AgentSession openSession(AgentSessionInit init) {
-            throw new UnsupportedOperationException();
-        }
-    }
+    private String llmResponse;
+    private int invocationCount;
+    private String lastUserPrompt;
+    private boolean shouldThrow;
 
     private static final String VALID_RESPONSE = """
             {
@@ -85,9 +53,26 @@ class NarrativeContentSummariserTest {
 
     @BeforeEach
     void setUp() {
-        agentProvider = new TestAgentProvider(VALID_RESPONSE);
-        summariser = new NarrativeContentSummariser(agentProvider,
-                NarrativeConfig.defaults(), CLOCK);
+        llmResponse = VALID_RESPONSE;
+        invocationCount = 0;
+        lastUserPrompt = null;
+        shouldThrow = false;
+        summariser = buildSummariser(NarrativeConfig.defaults());
+    }
+
+    private NarrativeContentSummariser buildSummariser(NarrativeConfig config) {
+        var s = new NarrativeContentSummariser(config, CLOCK);
+        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                invocationCount++;
+                lastUserPrompt = prompt;
+                if (shouldThrow) return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
+                return Multi.createFrom().item(new AgentEvent.TextDelta(llmResponse));
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return s;
     }
 
     private ReflectionEntry reflection(String insight) {
@@ -147,7 +132,7 @@ class NarrativeContentSummariserTest {
 
     @Test
     void summarise_llmFailure_returnsPrevious() {
-        agentProvider.shouldThrow = true;
+        shouldThrow = true;
         var state = existingState(List.of());
 
         var items = List.of(reflection("some insight"));
@@ -158,7 +143,7 @@ class NarrativeContentSummariserTest {
 
     @Test
     void summarise_parseFailure_returnsPrevious() {
-        agentProvider.setResponse("not valid json at all");
+        llmResponse = ("not valid json at all");
         var state = existingState(List.of());
 
         var items = List.of(reflection("some insight"));
@@ -173,7 +158,7 @@ class NarrativeContentSummariserTest {
         var result = summariser.summarise(List.of(), state).toCompletableFuture().join();
 
         assertThat(result).isSameAs(state);
-        assertThat(agentProvider.invocationCount).isZero();
+        assertThat(invocationCount).isZero();
     }
 
     @Test
@@ -194,13 +179,13 @@ class NarrativeContentSummariserTest {
     void summarise_maxReflectionsCapped() {
         var config = new NarrativeConfig(NarrativeSynthesisGate.defaults(),
                 20, 10, 0.1, 2, "domain", "case-type");
-        var capped = new NarrativeContentSummariser(agentProvider, config, CLOCK);
+        var capped = buildSummariser(config);
 
         var items = List.of(
                 reflection("a"), reflection("b"), reflection("c"));
         capped.summarise(items, null).toCompletableFuture().join();
 
-        assertThat(agentProvider.lastUserPrompt)
+        assertThat(lastUserPrompt)
                 .contains("0. a")
                 .contains("1. b")
                 .doesNotContain("2. c");
@@ -208,7 +193,7 @@ class NarrativeContentSummariserTest {
 
     @Test
     void summarise_emptyResult_returnsPrevious() {
-        agentProvider.setResponse("""
+        llmResponse = ("""
                 { "newEpisodes": [], "themes": [] }
                 """);
         var state = existingState(List.of());
@@ -222,7 +207,7 @@ class NarrativeContentSummariserTest {
     void summarise_noPruning_allEpisodesKept() {
         var config = new NarrativeConfig(NarrativeSynthesisGate.defaults(),
                 1, 10, 0.1, 100, "domain", "case-type");
-        var small = new NarrativeContentSummariser(agentProvider, config, CLOCK);
+        var small = buildSummariser(config);
 
         var existing = new IndividualEpisode("ep-old", Instant.EPOCH, null,
                 List.of(), "old", 0.5, List.of());

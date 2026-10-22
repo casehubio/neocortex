@@ -7,9 +7,7 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,42 +36,33 @@ class DriveDescriptionGenerationPhaseTest {
         capturedUserPrompts = new CopyOnWriteArrayList<>();
         capturedInits       = new CopyOnWriteArrayList<>();
 
-        AgentProvider provider = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                capturedInits.add(init);
-                boolean isDiscrimination = init.systemPrompt().contains("discrimination");
-                return new AgentSession() {
-                    @Override
-                    public Multi<AgentEvent> query(String userPrompt) {
-                        capturedUserPrompts.add(userPrompt);
-                        if (isDiscrimination) {
-                            return Multi.createFrom().items(
-                                    new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: One pull is about what your hands say. "),
-                                    new AgentEvent.TextDelta("The other is about what your hands can do. Notice which one moved your hands.\"}"));
-                        }
+        phase = new DriveDescriptionGenerationPhase(store);
+        phase.setSessionPipeline(StubPipelines.create(init -> {
+            capturedInits.add(init);
+            boolean isDiscrimination = init.systemPrompt().contains("discrimination");
+            return new AgentSession() {
+                @Override
+                public Multi<AgentEvent> query(String userPrompt) {
+                    capturedUserPrompts.add(userPrompt);
+                    if (isDiscrimination) {
                         return Multi.createFrom().items(
-                                new AgentEvent.TextDelta("{\"description\": \"A warmth rises through your chest, "),
-                                new AgentEvent.TextDelta("spreading into your shoulders.\"}"));
+                                new AgentEvent.TextDelta("{\"discrimination\": \"How they differ: One pull is about what your hands say. "),
+                                new AgentEvent.TextDelta("The other is about what your hands can do. Notice which one moved your hands.\"}"));
                     }
+                    return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"A warmth rises through your chest, "),
+                            new AgentEvent.TextDelta("spreading into your shoulders.\"}"));
+                }
 
-                    @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {
-                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
-                    }
+                @Override
+                public io.smallrye.mutiny.Uni<Void> interrupt() {
+                    return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                }
 
-                    @Override
-                    public void close(java.time.Duration timeout) {}
-                };
-            }
-        };
-
-        phase = new DriveDescriptionGenerationPhase(store, provider);
+                @Override
+                public void close(java.time.Duration timeout) {}
+            };
+        }));
 
         cognitiveSubgraphId = store.createSubgraph(
                 new SubgraphInput("cognitive-" + AGENT, SubgraphTypes.COGNITIVE, null), TENANT);
@@ -85,8 +74,8 @@ class DriveDescriptionGenerationPhaseTest {
     }
 
     @Test
-    void skipsWhenNoAgentProvider() {
-        var noLlmPhase = new DriveDescriptionGenerationPhase(store, (AgentProvider) null);
+    void skipsWhenNoSessionPipeline() {
+        var noLlmPhase = new DriveDescriptionGenerationPhase(store);
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
 

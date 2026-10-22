@@ -1,45 +1,39 @@
 package io.casehub.neocortex.cognition.goal;
 
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.narrative.DerivedTheme;
 import io.casehub.neocortex.cognition.narrative.IndividualEpisode;
 import io.casehub.neocortex.cognition.narrative.NarrativeScope;
 import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
 import io.smallrye.mutiny.Multi;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class LlmCrossAxisGoalEnricherTest {
 
-    private AgentProvider agentProvider;
-    private LlmCrossAxisGoalEnricher enricher;
-
-    @BeforeEach
-    void setUp() {
-        agentProvider = mock(AgentProvider.class);
-        enricher = new LlmCrossAxisGoalEnricher(agentProvider);
+    private LlmCrossAxisGoalEnricher enricherWith(String response) {
+        var e = new LlmCrossAxisGoalEnricher();
+        e.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                return Multi.createFrom().item(new AgentEvent.TextDelta(response));
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return e;
     }
 
     @Test
     void enriches_whenLlmReturnsText() {
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("Explore and master new knowledge domains"),
-                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false, null, null)));
+        var enricher = enricherWith("Explore and master new knowledge domains");
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("knowledge-seeking", 0.8,
@@ -59,9 +53,14 @@ class LlmCrossAxisGoalEnricherTest {
 
     @Test
     void returnsNull_whenLlmReturnsError() {
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 100L, 80L, "test", 1, true, null, null)));
+        var enricher = new LlmCrossAxisGoalEnricher();
+        enricher.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                return Multi.createFrom().empty();
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
@@ -73,10 +72,7 @@ class LlmCrossAxisGoalEnricherTest {
 
     @Test
     void returnsNull_whenLlmReturnsBlank() {
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("   "),
-                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false, null, null)));
+        var enricher = enricherWith("   ");
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
@@ -88,8 +84,14 @@ class LlmCrossAxisGoalEnricherTest {
 
     @Test
     void returnsNull_whenInvocationThrows() {
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().failure(new RuntimeException("timeout")));
+        var enricher = new LlmCrossAxisGoalEnricher();
+        enricher.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                return Multi.createFrom().failure(new RuntimeException("timeout"));
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
 
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
@@ -101,11 +103,16 @@ class LlmCrossAxisGoalEnricherTest {
 
     @Test
     void promptIncludesEpisodes() {
-        var configCaptor = ArgumentCaptor.forClass(AgentSessionConfig.class);
-        when(agentProvider.invoke(configCaptor.capture()))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("enriched goal"),
-                        new AgentEvent.InvocationComplete(10, 5, 0, 0, 0, 0.001, 200L, 150L, "test", 1, false, null, null)));
+        var capturedPrompt = new String[1];
+        var enricher = new LlmCrossAxisGoalEnricher();
+        enricher.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                capturedPrompt[0] = prompt;
+                return Multi.createFrom().item(new AgentEvent.TextDelta("enriched goal"));
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
 
         var episode = new IndividualEpisode("ep-1", Instant.now(), null,
                 List.of(), "Had a breakthrough in research", 0.8, List.of());
@@ -115,8 +122,7 @@ class LlmCrossAxisGoalEnricherTest {
 
         enricher.enrich(proposal(DriveAxis.CURIOSITY, 0.8), narrative, theme);
 
-        var config = configCaptor.getValue();
-        assertThat(config.userPrompt()).contains("breakthrough in research");
+        assertThat(capturedPrompt[0]).contains("breakthrough in research");
     }
 
     private DriveGoalProposal proposal(DriveAxis axis, double intensity) {

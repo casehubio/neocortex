@@ -1,15 +1,15 @@
 package io.casehub.neocortex.cognition.innerlife;
 
-import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
-import io.casehub.neocortex.cognition.drive.DriveProfile;
-import io.casehub.neocortex.summarisation.EventLevel;
-import io.casehub.neocortex.summarisation.LevelEvent;
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentDisposition;
+import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
+import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
+import io.casehub.neocortex.summarisation.EventLevel;
+import io.casehub.neocortex.summarisation.LevelEvent;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.AgentSession;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,14 +28,12 @@ import static org.mockito.Mockito.when;
 class InnerLifeOrchestratorTest {
 
     private ReflectionOrchestrator reflectionOrchestrator;
-    private AgentProvider agentProvider;
     private DriveOrchestrator driveOrchestrator;
     private AgentDescriptor descriptor;
 
     @BeforeEach
     void setUp() {
         reflectionOrchestrator = mock(ReflectionOrchestrator.class);
-        agentProvider = mock(AgentProvider.class);
         driveOrchestrator = mock(DriveOrchestrator.class);
         descriptor = mock(AgentDescriptor.class);
         when(descriptor.agentId()).thenReturn("agent-1");
@@ -51,8 +49,19 @@ class InnerLifeOrchestratorTest {
 
     private InnerLifeOrchestrator makeOrchestrator(CivilityConstraint... constraints) {
         return new InnerLifeOrchestrator(
-                reflectionOrchestrator, agentProvider, List.of(constraints),
+                reflectionOrchestrator, List.of(constraints),
                 InnerLifeConfig.defaults(), driveOrchestrator);
+    }
+
+    private void setLlmResponse(InnerLifeOrchestrator orch, String... deltas) {
+        orch.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                var items = java.util.Arrays.stream(deltas).map(AgentEvent.TextDelta::new).toArray(AgentEvent[]::new);
+                return Multi.createFrom().items(items);
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
     }
 
     private LevelEvent<String> event(String text) {
@@ -68,7 +77,6 @@ class InnerLifeOrchestratorTest {
         assertThat(result).isInstanceOf(InnerLifeTick.Silent.class);
         assertThat(((InnerLifeTick.Silent) result).reason()).contains("test deny");
         verify(reflectionOrchestrator, never()).reflect(anyString(), anyString(), any(), anyInt());
-        verify(agentProvider, never()).invoke(any());
     }
 
     @Test
@@ -91,9 +99,7 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("I noticed some things"));
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("{\"score\": 0.2, \"content\": \"\", \"channelHint\": null}")));
+        setLlmResponse(orch, "{\"score\": 0.2, \"content\": \"\", \"channelHint\": null}");
 
         var result = orch.tick(descriptor, "context");
 
@@ -110,9 +116,7 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("I have something to say"));
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("{\"score\": 0.85, \"content\": \"Hello everyone!\", \"channelHint\": \"#general\"}")));
+        setLlmResponse(orch, "{\"score\": 0.85, \"content\": \"Hello everyone!\", \"channelHint\": \"#general\"}");
 
         var result = orch.tick(descriptor, "context");
 
@@ -133,9 +137,7 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("thinking"));
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("not valid json")));
+        setLlmResponse(orch, "not valid json");
 
         var result = orch.tick(descriptor, "context");
 
@@ -153,11 +155,7 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("thoughts"));
-        when(agentProvider.invoke(any(AgentSessionConfig.class)))
-                .thenReturn(Multi.createFrom().items(
-                        new AgentEvent.TextDelta("{\"score\": 0.9, "),
-                        new AgentEvent.TextDelta("\"content\": \"Hi!\", "),
-                        new AgentEvent.TextDelta("\"channelHint\": null}")));
+        setLlmResponse(orch, "{\"score\": 0.9, ", "\"content\": \"Hi!\", ", "\"channelHint\": null}");
 
         var result = orch.tick(descriptor, "context");
 

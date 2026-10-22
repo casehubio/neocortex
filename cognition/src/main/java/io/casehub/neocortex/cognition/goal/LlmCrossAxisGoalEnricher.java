@@ -3,14 +3,13 @@ package io.casehub.neocortex.cognition.goal;
 import io.casehub.neocortex.cognition.narrative.DerivedTheme;
 import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
-import java.time.Duration;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
 
@@ -20,12 +19,13 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
             "You are a goal formation analyst. Generate a concise, specific "
             + "compound goal description that combines the given drive axes. "
             + "Respond with a single sentence only.";
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
-    private final AgentProvider agentProvider;
+    private volatile SessionPipeline sessionPipeline;
 
-    public LlmCrossAxisGoalEnricher(AgentProvider agentProvider) {
-        this.agentProvider = agentProvider;
+    public LlmCrossAxisGoalEnricher() {}
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
     @Override
@@ -33,9 +33,7 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
                                                NarrativeState narrative,
                                                DerivedTheme sourceTheme) {
         String prompt = buildPrompt(heuristic, narrative, sourceTheme);
-        var config = AgentSessionConfig.of(SYSTEM_PROMPT, prompt, TIMEOUT);
-
-        String text = invokeText(config);
+        String text = invokeText(prompt);
         if (text == null) return null;
 
         return new DriveGoalProposal(heuristic.axis(), heuristic.goalName(),
@@ -45,24 +43,19 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
                 heuristic.proposalAttributes());
     }
 
-    private @Nullable String invokeText(AgentSessionConfig config) {
+    private @Nullable String invokeText(String userPrompt) {
+        var pipeline = this.sessionPipeline;
+        if (pipeline == null) return null;
         try {
-            var events = agentProvider.invoke(config)
-                    .collect().asList()
-                    .await().atMost(Duration.ofMinutes(1));
-
-            boolean hasError = events.stream()
-                    .filter(AgentEvent.InvocationComplete.class::isInstance)
-                    .map(AgentEvent.InvocationComplete.class::cast)
-                    .anyMatch(AgentEvent.InvocationComplete::isError);
-            if (hasError) return null;
-
-            var text = events.stream()
-                    .filter(AgentEvent.TextDelta.class::isInstance)
-                    .map(AgentEvent.TextDelta.class::cast)
-                    .map(AgentEvent.TextDelta::text)
-                    .collect(Collectors.joining());
-
+            var responseText = new StringBuilder();
+            ParallelLlmExecutor.execute(pipeline, "tick", 1, SYSTEM_PROMPT, "cross-axis-enrichment",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
+            var text = responseText.toString();
             return text.isBlank() ? null : text;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed for cross-axis goal enrichment", e);

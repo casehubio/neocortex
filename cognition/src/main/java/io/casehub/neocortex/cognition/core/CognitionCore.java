@@ -52,8 +52,8 @@ import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
@@ -102,7 +102,7 @@ public class CognitionCore {
     private final @Nullable NarrativeOrchestrator narrative;
     private final @Nullable GoalProposalOrchestrator goals;
     private final @Nullable MemoryHygieneOrchestrator memoryHygiene;
-    private final @Nullable AgentProvider agentProvider;
+    private volatile SessionPipeline sessionPipeline;
     private final CognitionConfig config;
     private final Map<CognitionPhase, List<CognitionTickParticipant>> customParticipants = new EnumMap<>(CognitionPhase.class);
     private final @Nullable MindMapStore mindMapStore;
@@ -138,7 +138,7 @@ public class CognitionCore {
                          @Nullable GoalProposalOrchestrator goals,
                          @Nullable MemoryHygieneOrchestrator memoryHygiene) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
-             goals, memoryHygiene, null, null, CognitionConfig.all());
+             goals, memoryHygiene, null, CognitionConfig.all());
     }
 
     public CognitionCore(MoodOrchestrator mood,
@@ -150,10 +150,9 @@ public class CognitionCore {
                          @Nullable GoalProposalOrchestrator goals,
                          @Nullable MemoryHygieneOrchestrator memoryHygiene,
                          @Nullable InnerLifeOrchestrator innerLife,
-                         @Nullable AgentProvider agentProvider,
                          CognitionConfig config) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
-             goals, memoryHygiene, innerLife, agentProvider, config, null, null, null, null, null, null, null);
+             goals, memoryHygiene, innerLife, config, null, null, null, null, null, null, null);
     }
 
     public CognitionCore(MoodOrchestrator mood,
@@ -165,7 +164,6 @@ public class CognitionCore {
                          @Nullable GoalProposalOrchestrator goals,
                          @Nullable MemoryHygieneOrchestrator memoryHygiene,
                          @Nullable InnerLifeOrchestrator innerLife,
-                         @Nullable AgentProvider agentProvider,
                          CognitionConfig config,
                          @Nullable MindMapStore mindMapStore,
                          @Nullable NeedTierMappingProvider needTierMappingProvider,
@@ -183,7 +181,6 @@ public class CognitionCore {
         this.goals = goals;
         this.memoryHygiene = memoryHygiene;
         this.innerLife = innerLife;
-        this.agentProvider = agentProvider;
         this.config = config;
         this.mindMapStore = mindMapStore;
         this.needTierMapping = (needTierMappingProvider != null ? needTierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();
@@ -192,6 +189,14 @@ public class CognitionCore {
         this.temporalFocus = temporalFocus;
         this.reflectionOrchestrator = reflectionOrchestrator;
         this.consolidationMediator = consolidationMediator;
+    }
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
+        if (userModel != null) userModel.setSessionPipeline(pipeline);
+        if (mentalModel != null) mentalModel.setSessionPipeline(pipeline);
+        if (strategy != null) strategy.setSessionPipeline(pipeline);
+        if (innerLife != null) innerLife.setSessionPipeline(pipeline);
     }
 
     public void tick(String agentId, String tenantId,
@@ -335,7 +340,7 @@ public class CognitionCore {
 
     private void appraiseMood(String agentId, String tenantId,
                               String userMessage, String response) {
-        if (agentProvider == null) return;
+        if (sessionPipeline == null) return;
         try {
             var truncatedMsg = userMessage.length() > 200
                                ? userMessage.substring(0, 200) + "..." : userMessage;
@@ -343,12 +348,14 @@ public class CognitionCore {
                                 ? response.substring(0, 200) + "..." : response;
             var userPrompt = "Other person said:\n" + truncatedMsg
                              + "\n\nAgent responded:\n" + truncatedResp;
-            var sessionConfig = AgentSessionConfig.of(MOOD_APPRAISAL_PROMPT, userPrompt);
             var responseText = new StringBuilder();
-            agentProvider.invoke(sessionConfig).subscribe().asStream()
-                .filter(e -> e instanceof AgentEvent.TextDelta)
-                .map(e -> ((AgentEvent.TextDelta) e).text())
-                .forEach(responseText::append);
+            ParallelLlmExecutor.execute(sessionPipeline, "tick", 1, MOOD_APPRAISAL_PROMPT, "mood-appraisal",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
             var json = responseText.toString();
             var jsonStart = json.indexOf('{');
             var jsonEnd = json.lastIndexOf('}');
@@ -389,17 +396,19 @@ public class CognitionCore {
 
     private void extractAndRecordMentalState(String agentId, String subjectId,
                                              String tenantId, String utterance) {
-        if (agentProvider != null) {
+        if (sessionPipeline != null) {
             try {
                 var truncated = utterance.length() > 500
                                 ? utterance.substring(0, 500) + "..." : utterance;
-                var sessionConfig = AgentSessionConfig.of(BDI_EXTRACTION_PROMPT,
-                                                   "What " + subjectId + " said:\n" + truncated);
+                var userPrompt = "What " + subjectId + " said:\n" + truncated;
                 var responseText = new StringBuilder();
-                agentProvider.invoke(sessionConfig).subscribe().asStream()
-                    .filter(e -> e instanceof AgentEvent.TextDelta)
-                    .map(e -> ((AgentEvent.TextDelta) e).text())
-                    .forEach(responseText::append);
+                ParallelLlmExecutor.execute(sessionPipeline, "tick", 1, BDI_EXTRACTION_PROMPT, "bdi-extraction",
+                    List.of(session -> {
+                        session.query(userPrompt).subscribe().asStream()
+                            .filter(e -> e instanceof AgentEvent.TextDelta)
+                            .map(e -> ((AgentEvent.TextDelta) e).text())
+                            .forEach(responseText::append);
+                    }));
                 var json = responseText.toString();
                 recordExtractedSignals(agentId, subjectId, tenantId, json);
                 return;

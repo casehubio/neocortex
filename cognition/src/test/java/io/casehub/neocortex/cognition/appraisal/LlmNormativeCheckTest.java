@@ -1,11 +1,10 @@
 package io.casehub.neocortex.cognition.appraisal;
 
-import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
+import io.casehub.platform.agent.AgentEvent;
+import io.casehub.platform.agent.AgentSession;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 
@@ -17,31 +16,22 @@ import static org.assertj.core.data.Offset.offset;
 
 class LlmNormativeCheckTest {
 
-    private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
-
-    private AgentProvider mockProvider(Map<String, String> responses) {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                String prompt = config.userPrompt();
+    private LlmNormativeCheck checkWith(Map<String, String> responses) {
+        var check = new LlmNormativeCheck();
+        check.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
                 for (var entry : responses.entrySet()) {
                     if (prompt.contains(entry.getKey())) {
-                        return Multi.createFrom().items(
-                                new AgentEvent.TextDelta(entry.getValue()), COMPLETE);
+                        return Multi.createFrom().item(new AgentEvent.TextDelta(entry.getValue()));
                     }
                 }
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta(
-                                "{\"internal_standards\": 1.0, \"external_standards\": 1.0}"),
-                        COMPLETE);
+                return Multi.createFrom().item(new AgentEvent.TextDelta(
+                        "{\"internal_standards\": 1.0, \"external_standards\": 1.0}"));
             }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return check;
     }
 
     private AppraisalContext contextFor(String observation) {
@@ -53,9 +43,9 @@ class LlmNormativeCheckTest {
 
     @Test
     void normViolation_returnsLowStandards() {
-        var check = new LlmNormativeCheck(mockProvider(Map.of(
+        var check = checkWith(Map.of(
                 "ignoring the code review",
-                "{\"internal_standards\": 0.7, \"external_standards\": 0.3}")));
+                "{\"internal_standards\": 0.7, \"external_standards\": 0.3}"));
         var result = check.evaluate(contextFor(
                 "Someone on the team keeps ignoring the code review process"));
         assertThat(result.dimension(SecDimensions.EXTERNAL_STANDARDS))
@@ -64,9 +54,9 @@ class LlmNormativeCheckTest {
 
     @Test
     void slaViolation_returnsLowBothStandards() {
-        var check = new LlmNormativeCheck(mockProvider(Map.of(
+        var check = checkWith(Map.of(
                 "violates our SLA",
-                "{\"internal_standards\": 0.35, \"external_standards\": 0.2}")));
+                "{\"internal_standards\": 0.35, \"external_standards\": 0.2}"));
         var result = check.evaluate(contextFor(
                 "The client reported a critical bug that violates our SLA commitments"));
         assertThat(result.dimension(SecDimensions.INTERNAL_STANDARDS))
@@ -77,9 +67,9 @@ class LlmNormativeCheckTest {
 
     @Test
     void normalSituation_returnsHighStandards() {
-        var check = new LlmNormativeCheck(mockProvider(Map.of(
+        var check = checkWith(Map.of(
                 "deployed the new feature",
-                "{\"internal_standards\": 0.95, \"external_standards\": 0.9}")));
+                "{\"internal_standards\": 0.95, \"external_standards\": 0.9}"));
         var result = check.evaluate(contextFor(
                 "I successfully deployed the new feature and all tests are passing"));
         assertThat(result.dimension(SecDimensions.INTERNAL_STANDARDS))
@@ -88,18 +78,14 @@ class LlmNormativeCheckTest {
 
     @Test
     void fallsBackToFullComplianceOnError() {
-        AgentProvider failingProvider = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
+        var check = new LlmNormativeCheck();
+        check.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
             }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
-        var check = new LlmNormativeCheck(failingProvider);
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
         var result = check.evaluate(contextFor("anything"));
         assertThat(result.dimension(SecDimensions.INTERNAL_STANDARDS))
                 .isCloseTo(1.0, offset(0.01));

@@ -7,10 +7,7 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionConfig;
-import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,35 +32,24 @@ class SelfStandardDerivationPhaseTest {
         store               = new InMemoryMindMapStore();
         capturedUserPrompts = new CopyOnWriteArrayList<>();
 
-        AgentProvider provider = new AgentProvider() {
+        phase = new SelfStandardDerivationPhase(store);
+        phase.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
             @Override
-            public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-                throw new UnsupportedOperationException();
+            public Multi<AgentEvent> query(String userPrompt) {
+                capturedUserPrompts.add(userPrompt);
+                return Multi.createFrom().items(
+                        new AgentEvent.TextDelta("{\"self_standard\": \"When you meet this standard, a quiet warmth settles behind your sternum. "),
+                        new AgentEvent.TextDelta("When you fall short, a weight gathers at the base of your throat.\"}"));
             }
 
             @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                return new AgentSession() {
-                    @Override
-                    public Multi<AgentEvent> query(String userPrompt) {
-                        capturedUserPrompts.add(userPrompt);
-                        return Multi.createFrom().items(
-                                new AgentEvent.TextDelta("{\"self_standard\": \"When you meet this standard, a quiet warmth settles behind your sternum. "),
-                                new AgentEvent.TextDelta("When you fall short, a weight gathers at the base of your throat.\"}"));
-                    }
-
-                    @Override
-                    public io.smallrye.mutiny.Uni<Void> interrupt() {
-                        return io.smallrye.mutiny.Uni.createFrom().voidItem();
-                    }
-
-                    @Override
-                    public void close(java.time.Duration timeout) {}
-                };
+            public io.smallrye.mutiny.Uni<Void> interrupt() {
+                return io.smallrye.mutiny.Uni.createFrom().voidItem();
             }
-        };
 
-        phase = new SelfStandardDerivationPhase(store, provider);
+            @Override
+            public void close(java.time.Duration timeout) {}
+        }));
 
         cognitiveSubgraphId = store.createSubgraph(
                 new SubgraphInput("cognitive-" + AGENT, SubgraphTypes.COGNITIVE, null), TENANT);
@@ -75,8 +61,8 @@ class SelfStandardDerivationPhaseTest {
     }
 
     @Test
-    void skipsWhenNoAgentProvider() {
-        var noLlmPhase = new SelfStandardDerivationPhase(store, (AgentProvider) null);
+    void skipsWhenNoSessionPipeline() {
+        var noLlmPhase = new SelfStandardDerivationPhase(store);
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
 

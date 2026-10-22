@@ -1,22 +1,32 @@
 package io.casehub.neocortex.cognition.appraisal.experiment;
 
-import io.casehub.neocortex.cognition.appraisal.*;
+import io.casehub.neocortex.cognition.appraisal.AppraisalContext;
+import io.casehub.neocortex.cognition.appraisal.HabituationState;
+import io.casehub.neocortex.cognition.appraisal.LlmCopingCheck;
+import io.casehub.neocortex.cognition.appraisal.LlmImplicationCheck;
+import io.casehub.neocortex.cognition.appraisal.LlmNormativeCheck;
+import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
+import io.casehub.neocortex.cognition.appraisal.RelevanceCheck;
+import io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig;
+import io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy;
+import io.casehub.neocortex.cognition.appraisal.SecCheck;
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSession;
+import io.casehub.platform.agent.session.SessionPipeline;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LlmPipelineDiscriminationTest {
-
-    private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
 
     private static final Map<String, String> SCENARIO_RESPONSES = new LinkedHashMap<>();
 
@@ -53,39 +63,37 @@ class LlmPipelineDiscriminationTest {
                 "{\"relevance\": 0.15, \"conduciveness\": 0.05, \"controllability\": 0.7, \"adjustability\": 0.7, \"internal_standards\": 0.95, \"external_standards\": 0.95}");
     }
 
-    private AgentProvider mockProvider() {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                String prompt = config.userPrompt();
+    private SessionPipeline mockPipeline() {
+        return StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
                 for (var entry : SCENARIO_RESPONSES.entrySet()) {
                     if (prompt.contains(entry.getKey())) {
-                        return Multi.createFrom().items(
-                                new AgentEvent.TextDelta(entry.getValue()), COMPLETE);
+                        return Multi.createFrom().item(new AgentEvent.TextDelta(entry.getValue()));
                     }
                 }
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta(
-                                "{\"relevance\": 0.0, \"conduciveness\": 0.0, \"controllability\": 0.5, \"adjustability\": 0.5, \"internal_standards\": 1.0, \"external_standards\": 1.0}"),
-                        COMPLETE);
+                return Multi.createFrom().item(new AgentEvent.TextDelta(
+                        "{\"relevance\": 0.0, \"conduciveness\": 0.0, \"controllability\": 0.5, \"adjustability\": 0.5, \"internal_standards\": 1.0, \"external_standards\": 1.0}"));
             }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        });
+    }
 
-            @Override
-            public io.casehub.platform.agent.AgentSession openSession(
-                    io.casehub.platform.agent.AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
+    private <T extends SecCheck> T withPipeline(T check, SessionPipeline pipeline) {
+        try {
+            check.getClass().getMethod("setSessionPipeline", SessionPipeline.class).invoke(check, pipeline);
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return check;
     }
 
     @Test
     void llmPipeline_producesDiverseEmotions() {
-        var provider = mockProvider();
+        var pipeline = mockPipeline();
         var strategy = new SchererAppraisalStrategy(
                 new RelevanceCheck(),
-                new LlmImplicationCheck(provider),
-                new LlmCopingCheck(provider),
-                new LlmNormativeCheck(provider),
+                withPipeline(new LlmImplicationCheck(), pipeline),
+                withPipeline(new LlmCopingCheck(), pipeline),
+                withPipeline(new LlmNormativeCheck(), pipeline),
                 SchererAppraisalConfig.allEnabled());
 
         Set<String> allEmotionTypes = new LinkedHashSet<>();
@@ -130,12 +138,12 @@ class LlmPipelineDiscriminationTest {
 
     @Test
     void llmPipeline_mostScenariosProduceEmotions() {
-        var provider = mockProvider();
+        var pipeline = mockPipeline();
         var strategy = new SchererAppraisalStrategy(
                 new RelevanceCheck(),
-                new LlmImplicationCheck(provider),
-                new LlmCopingCheck(provider),
-                new LlmNormativeCheck(provider),
+                withPipeline(new LlmImplicationCheck(), pipeline),
+                withPipeline(new LlmCopingCheck(), pipeline),
+                withPipeline(new LlmNormativeCheck(), pipeline),
                 SchererAppraisalConfig.allEnabled());
 
         int scenariosWithEmotions = 0;

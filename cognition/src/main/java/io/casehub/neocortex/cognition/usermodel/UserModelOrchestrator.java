@@ -2,19 +2,19 @@ package io.casehub.neocortex.cognition.usermodel;
 
 import io.casehub.neocortex.cognition.relationship.RelationshipStageConfig;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
+import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class UserModelOrchestrator {
 
@@ -35,18 +35,20 @@ public class UserModelOrchestrator {
             Empty string if no data at all.""";
 
     private final UserProfileMemory profileMemory;
-    private final AgentProvider agentProvider;
     private final UserModelConfig config;
+    private volatile SessionPipeline sessionPipeline;
 
     private final ConcurrentHashMap<String, SubjectState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public UserModelOrchestrator(UserProfileMemory profileMemory,
-                                 AgentProvider agentProvider,
                                  UserModelConfig config) {
         this.profileMemory = profileMemory;
-        this.agentProvider = agentProvider;
         this.config = config;
+    }
+
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
     }
 
     public void record(InteractionSignal signal,
@@ -302,8 +304,7 @@ public class UserModelOrchestrator {
                     previousPrefs != null ? previousPrefs : "not yet assessed",
                     lines.length, recentText);
 
-            var sessionConfig = AgentSessionConfig.of(SYSTEM_PROMPT, userPrompt);
-            var responseText = invokeText(sessionConfig);
+            var responseText = invokeText(SYSTEM_PROMPT, userPrompt);
             if (responseText == null) return null;
             return parseResult(responseText);
         } catch (Exception e) {
@@ -312,25 +313,19 @@ public class UserModelOrchestrator {
         }
     }
 
-    private @Nullable String invokeText(AgentSessionConfig config) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+        var pipeline = this.sessionPipeline;
+        if (pipeline == null) return null;
         try {
-            var events = agentProvider.invoke(config)
-                    .collect().asList()
-                    .await().atMost(Duration.ofMinutes(1));
-
-            boolean hasError = events.stream()
-                    .filter(AgentEvent.InvocationComplete.class::isInstance)
-                    .map(AgentEvent.InvocationComplete.class::cast)
-                    .anyMatch(AgentEvent.InvocationComplete::isError);
-            if (hasError) return null;
-
-            var text = events.stream()
-                    .filter(AgentEvent.TextDelta.class::isInstance)
-                    .map(AgentEvent.TextDelta.class::cast)
-                    .map(AgentEvent.TextDelta::text)
-                    .collect(Collectors.joining());
-
-            return text.isBlank() ? null : text;
+            var responseText = new StringBuilder();
+            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "user-model",
+                List.of(session -> {
+                    session.query(userPrompt).subscribe().asStream()
+                        .filter(e -> e instanceof AgentEvent.TextDelta)
+                        .map(e -> ((AgentEvent.TextDelta) e).text())
+                        .forEach(responseText::append);
+                }));
+            return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);
             return null;

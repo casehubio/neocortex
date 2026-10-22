@@ -6,10 +6,11 @@ import io.casehub.neocortex.cognition.appraisal.HabituationState;
 import io.casehub.neocortex.cognition.appraisal.LlmCopingCheck;
 import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
 import io.casehub.neocortex.cognition.appraisal.SecDimensions;
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.AgentSession;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -24,41 +25,29 @@ import static org.assertj.core.data.Offset.offset;
 
 class LlmBoundaryTest {
 
-    private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
-
-    private AgentProvider mockProvider(Map<String, String> scenarioResponses) {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                String userPrompt = config.userPrompt();
+    private LlmCopingCheck copingCheckWith(Map<String, String> scenarioResponses) {
+        var check = new LlmCopingCheck();
+        check.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
                 for (var entry : scenarioResponses.entrySet()) {
-                    if (userPrompt.contains(entry.getKey())) {
-                        return Multi.createFrom().items(
-                                new AgentEvent.TextDelta(entry.getValue()),
-                                COMPLETE);
+                    if (prompt.contains(entry.getKey())) {
+                        return Multi.createFrom().item(new AgentEvent.TextDelta(entry.getValue()));
                     }
                 }
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta("{\"controllability\": 0.5, \"adjustability\": 0.5}"),
-                        COMPLETE);
+                return Multi.createFrom().item(new AgentEvent.TextDelta(
+                        "{\"controllability\": 0.5, \"adjustability\": 0.5}"));
             }
-
-            @Override
-            public io.casehub.platform.agent.AgentSession openSession(
-                    io.casehub.platform.agent.AgentSessionInit init) {
-                throw new UnsupportedOperationException("not needed for experiment");
-            }
-        };
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return check;
     }
 
     @Test
     void llmCopingCheck_returnsValidSecResult() {
-        var provider = mockProvider(Map.of(
+        var check = copingCheckWith(Map.of(
                 "locked", "{\"controllability\": 0.15, \"adjustability\": 0.2}",
                 "tools and training", "{\"controllability\": 0.9, \"adjustability\": 0.85}"));
-
-        var check = new LlmCopingCheck(provider);
 
         var lockedCtx = contextFor("The door is locked and I don't have the key");
         var equippedCtx = contextFor("I can handle this — I have all the tools and training I need");
@@ -107,7 +96,7 @@ class LlmBoundaryTest {
                 "{\"controllability\": 0.7, \"adjustability\": 0.7}");
 
         var keywordCheck = new CopingCheck();
-        var llmCheck = new LlmCopingCheck(mockProvider(scenarioResponses));
+        var llmCheck = copingCheckWith(scenarioResponses);
 
         int agreementCount = 0;
         int divergenceCount = 0;

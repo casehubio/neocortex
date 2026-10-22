@@ -3,7 +3,6 @@ package io.casehub.neocortex.cognition.strategy;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +31,6 @@ class StrategyLearningOrchestratorTest {
 
     private StrategyMemory strategyMemory;
     private ReflectionOrchestrator reflectionOrchestrator;
-    private AgentProvider agentProvider;
     private StrategyLearningOrchestrator orchestrator;
     private Clock clock;
 
@@ -40,10 +38,9 @@ class StrategyLearningOrchestratorTest {
     void setUp() {
         strategyMemory         = mock(StrategyMemory.class);
         reflectionOrchestrator = mock(ReflectionOrchestrator.class);
-        agentProvider          = mock(AgentProvider.class);
         clock                  = Clock.fixed(Instant.parse("2026-08-21T00:00:00Z"), ZoneId.of("UTC"));
         orchestrator           = new StrategyLearningOrchestrator(
-                strategyMemory, reflectionOrchestrator, agentProvider,
+                strategyMemory, reflectionOrchestrator,
                 StrategyLearningConfig.defaults(), clock);
     }
 
@@ -262,11 +259,18 @@ class StrategyLearningOrchestratorTest {
                 .thenAnswer(inv -> storedEvidence.size());
         when(testStrategyMemory.recentEvidence(any(), any(), anyInt()))
                 .thenAnswer(inv -> new ArrayList<>(storedEvidence));
-        mockLlmResponse("{\"guidelines\":[\"use specific examples\"],\"dimensionDeltas\":{}}");
-
         var testOrchestrator = new StrategyLearningOrchestrator(
                 testStrategyMemory,
-                (a, t, s, m) -> List.of(), agentProvider, config, clock);
+                (a, t, s, m) -> List.of(), config, clock);
+        testOrchestrator.setSessionPipeline(io.casehub.neocortex.cognition.belief.StubPipelines.create(
+            init -> new io.casehub.platform.agent.AgentSession() {
+                @Override public Multi<AgentEvent> query(String prompt) {
+                    return Multi.createFrom().item(new AgentEvent.TextDelta(
+                        "{\"guidelines\":[\"use specific examples\"],\"dimensionDeltas\":{}}"));
+                }
+                @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+                @Override public void close(java.time.Duration timeout) {}
+            }));
 
         for (int i = 0; i < 2; i++) {
             storedEvidence.add(new EngagementEvidence(
@@ -484,9 +488,13 @@ class StrategyLearningOrchestratorTest {
     }
 
     private void mockLlmResponse(String text) {
-        var textDelta = mock(AgentEvent.TextDelta.class);
-        when(textDelta.text()).thenReturn(text);
-        when(agentProvider.invoke(any()))
-                .thenReturn(Multi.createFrom().item(textDelta));
+        orchestrator.setSessionPipeline(io.casehub.neocortex.cognition.belief.StubPipelines.create(
+            init -> new io.casehub.platform.agent.AgentSession() {
+                @Override public Multi<AgentEvent> query(String prompt) {
+                    return Multi.createFrom().item(new AgentEvent.TextDelta(text));
+                }
+                @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+                @Override public void close(java.time.Duration timeout) {}
+            }));
     }
 }
