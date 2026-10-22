@@ -53,20 +53,7 @@ public class NarrativeContentSummariser
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
 
-    public NarrativeContentSummariser(NarrativeConfig config) {
-        this(config, Clock.systemUTC(), null);
-    }
-
-    public NarrativeContentSummariser(NarrativeConfig config,
-                                       @Nullable SessionPipeline sessionPipeline) {
-        this(config, Clock.systemUTC(), sessionPipeline);
-    }
-
-    NarrativeContentSummariser(NarrativeConfig config, Clock clock) {
-        this(config, clock, null);
-    }
-
-    NarrativeContentSummariser(NarrativeConfig config, Clock clock,
+    public NarrativeContentSummariser(NarrativeConfig config, Clock clock,
                                 @Nullable SessionPipeline sessionPipeline) {
         this.config = config;
         this.clock = clock;

@@ -41,7 +41,7 @@ class StrategyLearningOrchestratorTest {
         clock                  = Clock.fixed(Instant.parse("2026-08-21T00:00:00Z"), ZoneId.of("UTC"));
         orchestrator           = new StrategyLearningOrchestrator(
                 strategyMemory, reflectionOrchestrator,
-                StrategyLearningConfig.defaults(), clock);
+                StrategyLearningConfig.defaults(), clock, null);
     }
 
     // --- record + tick: tier 1 ---

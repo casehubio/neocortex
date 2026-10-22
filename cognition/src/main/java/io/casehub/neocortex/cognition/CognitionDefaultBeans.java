@@ -34,6 +34,14 @@ public class CognitionDefaultBeans {
     @Inject
     Instance<SessionPipeline> sessionPipelineInstance;
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    java.time.Clock clock() {
+        return java.time.Clock.systemUTC();
+    }
+
+
     @Produces @DefaultBean @Singleton
     BeliefRevisionConfig beliefRevisionConfig() {
         return new BeliefRevisionConfig(false, 0.15, 0.3, 0.6);

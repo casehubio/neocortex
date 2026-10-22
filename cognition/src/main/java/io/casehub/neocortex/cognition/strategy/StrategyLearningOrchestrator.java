@@ -71,26 +71,6 @@ public class StrategyLearningOrchestrator {
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
-                                        ReflectionOrchestrator reflectionOrchestrator,
-                                        StrategyLearningConfig config) {
-        this(strategyMemory, reflectionOrchestrator, config, Clock.systemUTC(), null);
-    }
-
-    public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
-                                        ReflectionOrchestrator reflectionOrchestrator,
-                                        StrategyLearningConfig config,
-                                        @Nullable SessionPipeline sessionPipeline) {
-        this(strategyMemory, reflectionOrchestrator, config, Clock.systemUTC(), sessionPipeline);
-    }
-
-    StrategyLearningOrchestrator(StrategyMemory strategyMemory,
-                                 ReflectionOrchestrator reflectionOrchestrator,
-                                 StrategyLearningConfig config,
-                                 Clock clock) {
-        this(strategyMemory, reflectionOrchestrator, config, clock, null);
-    }
-
-    StrategyLearningOrchestrator(StrategyMemory strategyMemory,
                                  ReflectionOrchestrator reflectionOrchestrator,
                                  StrategyLearningConfig config,
                                  Clock clock,

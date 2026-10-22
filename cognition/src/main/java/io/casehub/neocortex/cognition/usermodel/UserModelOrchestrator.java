@@ -42,11 +42,6 @@ public class UserModelOrchestrator {
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public UserModelOrchestrator(UserProfileMemory profileMemory,
-                                 UserModelConfig config) {
-        this(profileMemory, config, null);
-    }
-
-    public UserModelOrchestrator(UserProfileMemory profileMemory,
                                  UserModelConfig config,
                                  @Nullable SessionPipeline sessionPipeline) {
         this.profileMemory = profileMemory;

@@ -22,7 +22,7 @@ import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import org.jspecify.annotations.Nullable;
+
 
 import java.util.function.Consumer;
 
@@ -61,13 +61,10 @@ public class CognitionCoreFactory {
     @Inject Instance<CaseMemoryStore> memoryStore;
     @Inject Instance<io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant> subThoughtParticipant;
     @Inject Instance<io.casehub.neocortex.knowledge.TermNormalizer> termNormalizer;
+    @Inject Instance<SessionPipeline> sessionPipeline;
     @Inject Instance<Consumer<EngagementEvent>> engagementPersister;
 
     public CognitionCore create(CognitionConfig config) {
-        return create(config, null);
-    }
-
-    public CognitionCore create(CognitionConfig config, @Nullable SessionPipeline sessionPipeline) {
         var builder = CognitivePipelineBuilder.create(resolve(mood), resolve(drives))
                                               .userModel(resolve(userModel))
                                               .mentalModel(resolve(mentalModel))
@@ -84,7 +81,7 @@ public class CognitionCoreFactory {
                                               .temporalFocus(resolve(temporalFocus))
                                               .reflectionOrchestrator(resolve(reflectionOrchestrator))
                                               .consolidationMediator(resolve(consolidationMediator))
-                                              .sessionPipeline(sessionPipeline);
+                                              .sessionPipeline(resolve(sessionPipeline));
 
         if (defaultsRegistry.isResolvable()) {
             builder.defaultsRegistry(defaultsRegistry.get());

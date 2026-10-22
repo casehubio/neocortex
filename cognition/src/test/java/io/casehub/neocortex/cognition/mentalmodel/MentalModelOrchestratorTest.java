@@ -30,7 +30,7 @@ class MentalModelOrchestratorTest {
         MockitoAnnotations.openMocks(this);
         fixedClock = Clock.fixed(Instant.parse("2026-08-20T12:00:00Z"), ZoneOffset.UTC);
         orchestrator = new MentalModelOrchestrator(memory,
-                MentalModelConfig.defaults(), fixedClock);
+                MentalModelConfig.defaults(), fixedClock, null);
     }
 
     @Test
@@ -120,14 +120,14 @@ class MentalModelOrchestratorTest {
                 "mental-model", "mental-model");
 
         var clock0 = Clock.fixed(t0, ZoneOffset.UTC);
-        var orch = new MentalModelOrchestrator(memory, shortHalfLife, clock0);
+        var orch = new MentalModelOrchestrator(memory, shortHalfLife, clock0, null);
         orch.record(new MentalStateSignal.VerbalCue("I think X", CueType.BELIEF_STATEMENT),
                 "a", "u", "t");
         orch.tick("a", "u", "t");
 
         var t1 = t0.plus(Duration.ofHours(2));
         var clock1 = Clock.fixed(t1, ZoneOffset.UTC);
-        var orch2 = new MentalModelOrchestrator(memory, shortHalfLife, clock1);
+        var orch2 = new MentalModelOrchestrator(memory, shortHalfLife, clock1, null);
 
         var snapshot = new MentalModelSnapshot("a", "u", "t",
                 List.of(new AttributedState("i_think_x", "I think X", 0.8, 1, t0, BdiDimension.BELIEF)),
@@ -152,7 +152,7 @@ class MentalModelOrchestratorTest {
 
         var t1 = t0.plus(Duration.ofMinutes(10));
         var clock1 = Clock.fixed(t1, ZoneOffset.UTC);
-        var orch = new MentalModelOrchestrator(memory, fastDecay, clock1);
+        var orch = new MentalModelOrchestrator(memory, fastDecay, clock1, null);
 
         var snapshot = new MentalModelSnapshot("a", "u", "t",
                 List.of(new AttributedState("old_belief", "stale", 0.8, 3, t0, BdiDimension.BELIEF)),
@@ -192,7 +192,7 @@ class MentalModelOrchestratorTest {
         var t1 = t0.plus(Duration.ofDays(5));
         var clock1 = Clock.fixed(t1, ZoneOffset.UTC);
         var orch = new MentalModelOrchestrator(memory,
-                MentalModelConfig.defaults(), clock1);
+                MentalModelConfig.defaults(), clock1, null);
 
         var snapshot = new MentalModelSnapshot("a", "u", "t",
                 List.of(new AttributedState("old", "very old belief", 0.1, 1, t0, BdiDimension.BELIEF)),
@@ -277,7 +277,7 @@ class MentalModelOrchestratorTest {
                 0.1, 0.3, 3, Duration.ofMinutes(5), 20, 5,
                 Duration.ofHours(24), Duration.ofMinutes(1),
                 "mental-model", "mental-model");
-        var orch = new MentalModelOrchestrator(memory, smallBuffer, fixedClock);
+        var orch = new MentalModelOrchestrator(memory, smallBuffer, fixedClock, null);
 
         for (int i = 0; i < 10; i++) {
             orch.record(new MentalStateSignal.BehavioralCue(

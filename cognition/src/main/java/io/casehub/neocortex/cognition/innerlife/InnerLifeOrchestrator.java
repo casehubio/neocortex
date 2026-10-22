@@ -54,14 +54,6 @@ public class InnerLifeOrchestrator {
             final ReflectionOrchestrator reflectionOrchestrator,
             final List<CivilityConstraint> civilityConstraints,
             final InnerLifeConfig config,
-            final DriveOrchestrator driveOrchestrator) {
-        this(reflectionOrchestrator, civilityConstraints, config, driveOrchestrator, null);
-    }
-
-    public InnerLifeOrchestrator(
-            final ReflectionOrchestrator reflectionOrchestrator,
-            final List<CivilityConstraint> civilityConstraints,
-            final InnerLifeConfig config,
             final DriveOrchestrator driveOrchestrator,
             @Nullable SessionPipeline sessionPipeline) {
         this.reflectionOrchestrator = reflectionOrchestrator;

@@ -45,23 +45,6 @@ public class MentalModelOrchestrator {
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public MentalModelOrchestrator(MentalModelMemory modelMemory,
-                                   MentalModelConfig config) {
-        this(modelMemory, config, Clock.systemUTC(), null);
-    }
-
-    public MentalModelOrchestrator(MentalModelMemory modelMemory,
-                                   MentalModelConfig config,
-                                   @Nullable SessionPipeline sessionPipeline) {
-        this(modelMemory, config, Clock.systemUTC(), sessionPipeline);
-    }
-
-    MentalModelOrchestrator(MentalModelMemory modelMemory,
-                            MentalModelConfig config,
-                            Clock clock) {
-        this(modelMemory, config, clock, null);
-    }
-
-    MentalModelOrchestrator(MentalModelMemory modelMemory,
                             MentalModelConfig config,
                             Clock clock,
                             @Nullable SessionPipeline sessionPipeline) {
