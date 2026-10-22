@@ -4,7 +4,7 @@ import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.memory.ReflectionEntry;
 import io.casehub.neocortex.summarisation.ContentSummariser;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -51,19 +51,22 @@ public class NarrativeContentSummariser
 
     private final NarrativeConfig config;
     private final Clock clock;
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
     public NarrativeContentSummariser(NarrativeConfig config) {
-        this(config, Clock.systemUTC());
+        this(config, Clock.systemUTC(), null);
     }
 
-    NarrativeContentSummariser(NarrativeConfig config, Clock clock) {
+    public NarrativeContentSummariser(NarrativeConfig config,
+                                       @Nullable SessionPipeline sessionPipeline) {
+        this(config, Clock.systemUTC(), sessionPipeline);
+    }
+
+    NarrativeContentSummariser(NarrativeConfig config, Clock clock,
+                                @Nullable SessionPipeline sessionPipeline) {
         this.config = config;
         this.clock = clock;
-    }
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+        this.sessionPipeline = sessionPipeline;
     }
 
     @Override
@@ -147,14 +150,12 @@ public class NarrativeContentSummariser
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
+            var session = pipeline.openSession("narrative-summariser", AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
-            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "narrative-summariser",
-                List.of(session -> {
-                    session.query(userPrompt).subscribe().asStream()
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .forEach(responseText::append);
-                }));
+            session.query(userPrompt).subscribe().asStream()
+                .filter(e -> e instanceof AgentEvent.TextDelta)
+                .map(e -> ((AgentEvent.TextDelta) e).text())
+                .forEach(responseText::append);
             return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);

@@ -3,8 +3,9 @@ package io.casehub.neocortex.cognition.appraisal;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,12 +48,10 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
               }
             }""";
 
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
-    public LlmAppraisalStrategy() {}
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+    public LlmAppraisalStrategy(@Nullable SessionPipeline sessionPipeline) {
+        this.sessionPipeline = sessionPipeline;
     }
 
     @Override
@@ -112,14 +111,12 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         String userMessage = buildUserMessage(context);
+        var session = pipeline.openSession("llm-appraisal", AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
-        ParallelLlmExecutor.execute(pipeline, "tick", 1, SYSTEM_PROMPT, "llm-appraisal",
-            List.of(session -> {
-                session.query(userMessage).subscribe().asStream()
-                    .filter(e -> e instanceof AgentEvent.TextDelta)
-                    .map(e -> ((AgentEvent.TextDelta) e).text())
-                    .forEach(responseText::append);
-            }));
+        session.query(userMessage).subscribe().asStream()
+            .filter(e -> e instanceof AgentEvent.TextDelta)
+            .map(e -> ((AgentEvent.TextDelta) e).text())
+            .forEach(responseText::append);
         return responseText.isEmpty() ? null : responseText.toString();
     }
 

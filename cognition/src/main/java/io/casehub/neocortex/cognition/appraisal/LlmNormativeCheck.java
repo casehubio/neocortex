@@ -2,10 +2,10 @@ package io.casehub.neocortex.cognition.appraisal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
+import org.jspecify.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,12 +40,10 @@ public class LlmNormativeCheck implements SecCheck {
             SecDimensions.INTERNAL_STANDARDS, 1.0,
             SecDimensions.EXTERNAL_STANDARDS, 1.0));
 
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
-    public LlmNormativeCheck() {}
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+    public LlmNormativeCheck(@Nullable SessionPipeline sessionPipeline) {
+        this.sessionPipeline = sessionPipeline;
     }
 
     @Override
@@ -71,14 +69,12 @@ public class LlmNormativeCheck implements SecCheck {
     private String invokeLlm(String observation) {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
+        var session = pipeline.openSession("llm-normative", AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
-        ParallelLlmExecutor.execute(pipeline, "tick", 1, SYSTEM_PROMPT, "llm-normative",
-            List.of(session -> {
-                session.query("Situation: " + observation).subscribe().asStream()
-                    .filter(e -> e instanceof AgentEvent.TextDelta)
-                    .map(e -> ((AgentEvent.TextDelta) e).text())
-                    .forEach(responseText::append);
-            }));
+        session.query("Situation: " + observation).subscribe().asStream()
+            .filter(e -> e instanceof AgentEvent.TextDelta)
+            .map(e -> ((AgentEvent.TextDelta) e).text())
+            .forEach(responseText::append);
         return responseText.isEmpty() ? null : responseText.toString();
     }
 

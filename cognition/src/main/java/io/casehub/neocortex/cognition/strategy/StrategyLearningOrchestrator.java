@@ -8,7 +8,7 @@ import io.casehub.neocortex.memory.cbr.TrendSpec;
 import io.casehub.neocortex.memory.cbr.TrendType;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
@@ -65,7 +65,7 @@ public class StrategyLearningOrchestrator {
     private final ReflectionOrchestrator reflectionOrchestrator;
     private final StrategyLearningConfig config;
     private final Clock clock;
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
     private final ConcurrentHashMap<String, AgentLearningState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -73,21 +73,26 @@ public class StrategyLearningOrchestrator {
     public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
                                         ReflectionOrchestrator reflectionOrchestrator,
                                         StrategyLearningConfig config) {
-        this(strategyMemory, reflectionOrchestrator, config, Clock.systemUTC());
+        this(strategyMemory, reflectionOrchestrator, config, Clock.systemUTC(), null);
+    }
+
+    public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
+                                        ReflectionOrchestrator reflectionOrchestrator,
+                                        StrategyLearningConfig config,
+                                        @Nullable SessionPipeline sessionPipeline) {
+        this(strategyMemory, reflectionOrchestrator, config, Clock.systemUTC(), sessionPipeline);
     }
 
     StrategyLearningOrchestrator(StrategyMemory strategyMemory,
                                  ReflectionOrchestrator reflectionOrchestrator,
                                  StrategyLearningConfig config,
-                                 Clock clock) {
+                                 Clock clock,
+                                 @Nullable SessionPipeline sessionPipeline) {
         this.strategyMemory         = strategyMemory;
         this.reflectionOrchestrator = reflectionOrchestrator;
         this.config                 = config;
         this.clock                  = clock;
-    }
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+        this.sessionPipeline        = sessionPipeline;
     }
 
     public void record(EngagementSignal signal, String agentId,
@@ -643,14 +648,12 @@ public class StrategyLearningOrchestrator {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
+            var session = pipeline.openSession("strategy-learning", AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
-            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "strategy-learning",
-                List.of(session -> {
-                    session.query(userPrompt).subscribe().asStream()
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .forEach(responseText::append);
-                }));
+            session.query(userPrompt).subscribe().asStream()
+                .filter(e -> e instanceof AgentEvent.TextDelta)
+                .map(e -> ((AgentEvent.TextDelta) e).text())
+                .forEach(responseText::append);
             return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);

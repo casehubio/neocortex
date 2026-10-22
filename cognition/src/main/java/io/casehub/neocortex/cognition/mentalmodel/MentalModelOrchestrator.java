@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
@@ -39,26 +39,30 @@ public class MentalModelOrchestrator {
     private final MentalModelMemory modelMemory;
     private final MentalModelConfig config;
     private final Clock clock;
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
     private final ConcurrentHashMap<String, SubjectMentalState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public MentalModelOrchestrator(MentalModelMemory modelMemory,
                                    MentalModelConfig config) {
-        this(modelMemory, config, Clock.systemUTC());
+        this(modelMemory, config, Clock.systemUTC(), null);
+    }
+
+    public MentalModelOrchestrator(MentalModelMemory modelMemory,
+                                   MentalModelConfig config,
+                                   @Nullable SessionPipeline sessionPipeline) {
+        this(modelMemory, config, Clock.systemUTC(), sessionPipeline);
     }
 
     MentalModelOrchestrator(MentalModelMemory modelMemory,
                             MentalModelConfig config,
-                            Clock clock) {
+                            Clock clock,
+                            @Nullable SessionPipeline sessionPipeline) {
         this.modelMemory = modelMemory;
         this.config = config;
         this.clock = clock;
-    }
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+        this.sessionPipeline = sessionPipeline;
     }
 
     public void record(MentalStateSignal signal,
@@ -324,14 +328,12 @@ public class MentalModelOrchestrator {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
+            var session = pipeline.openSession("mental-model", AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
-            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "mental-model",
-                List.of(session -> {
-                    session.query(userPrompt).subscribe().asStream()
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .forEach(responseText::append);
-                }));
+            session.query(userPrompt).subscribe().asStream()
+                .filter(e -> e instanceof AgentEvent.TextDelta)
+                .map(e -> ((AgentEvent.TextDelta) e).text())
+                .forEach(responseText::append);
             return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);

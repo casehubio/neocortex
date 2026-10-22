@@ -2,7 +2,7 @@ package io.casehub.neocortex.cognition.usermodel;
 
 import io.casehub.neocortex.cognition.relationship.RelationshipStageConfig;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
@@ -36,19 +36,22 @@ public class UserModelOrchestrator {
 
     private final UserProfileMemory profileMemory;
     private final UserModelConfig config;
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
     private final ConcurrentHashMap<String, SubjectState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public UserModelOrchestrator(UserProfileMemory profileMemory,
                                  UserModelConfig config) {
-        this.profileMemory = profileMemory;
-        this.config = config;
+        this(profileMemory, config, null);
     }
 
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+    public UserModelOrchestrator(UserProfileMemory profileMemory,
+                                 UserModelConfig config,
+                                 @Nullable SessionPipeline sessionPipeline) {
+        this.profileMemory = profileMemory;
+        this.config = config;
+        this.sessionPipeline = sessionPipeline;
     }
 
     public void record(InteractionSignal signal,
@@ -317,14 +320,12 @@ public class UserModelOrchestrator {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
+            var session = pipeline.openSession("user-model", AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
-            ParallelLlmExecutor.execute(pipeline, "tick", 1, systemPrompt, "user-model",
-                List.of(session -> {
-                    session.query(userPrompt).subscribe().asStream()
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .forEach(responseText::append);
-                }));
+            session.query(userPrompt).subscribe().asStream()
+                .filter(e -> e instanceof AgentEvent.TextDelta)
+                .map(e -> ((AgentEvent.TextDelta) e).text())
+                .forEach(responseText::append);
             return responseText.isEmpty() ? null : responseText.toString();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed", e);

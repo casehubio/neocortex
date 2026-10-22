@@ -3,11 +3,9 @@ package io.casehub.neocortex.cognition.goal;
 import io.casehub.neocortex.cognition.narrative.DerivedTheme;
 import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,12 +18,10 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
             + "compound goal description that combines the given drive axes. "
             + "Respond with a single sentence only.";
 
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
-    public LlmCrossAxisGoalEnricher() {}
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+    public LlmCrossAxisGoalEnricher(@Nullable SessionPipeline sessionPipeline) {
+        this.sessionPipeline = sessionPipeline;
     }
 
     @Override
@@ -47,14 +43,12 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
+            var session = pipeline.openSession("cross-axis-enrichment", AgentSessionInit.of(SYSTEM_PROMPT));
             var responseText = new StringBuilder();
-            ParallelLlmExecutor.execute(pipeline, "tick", 1, SYSTEM_PROMPT, "cross-axis-enrichment",
-                List.of(session -> {
-                    session.query(userPrompt).subscribe().asStream()
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .forEach(responseText::append);
-                }));
+            session.query(userPrompt).subscribe().asStream()
+                .filter(e -> e instanceof AgentEvent.TextDelta)
+                .map(e -> ((AgentEvent.TextDelta) e).text())
+                .forEach(responseText::append);
             var text = responseText.toString();
             return text.isBlank() ? null : text;
         } catch (Exception e) {

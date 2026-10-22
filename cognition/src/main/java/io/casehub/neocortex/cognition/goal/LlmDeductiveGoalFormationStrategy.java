@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.ParallelLlmExecutor;
+import io.casehub.platform.agent.session.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,12 +51,10 @@ public class LlmDeductiveGoalFormationStrategy implements DeductiveGoalFormation
 
             Return an empty array [] if no novel goals emerge.""";
 
-    private volatile SessionPipeline sessionPipeline;
+    private final @Nullable SessionPipeline sessionPipeline;
 
-    public LlmDeductiveGoalFormationStrategy() {}
-
-    public void setSessionPipeline(SessionPipeline pipeline) {
-        this.sessionPipeline = pipeline;
+    public LlmDeductiveGoalFormationStrategy(@Nullable SessionPipeline sessionPipeline) {
+        this.sessionPipeline = sessionPipeline;
     }
 
     @Override
@@ -105,14 +104,12 @@ public class LlmDeductiveGoalFormationStrategy implements DeductiveGoalFormation
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         String userMessage = buildUserMessage(context);
+        var session = pipeline.openSession("deductive-goal-formation", AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
-        ParallelLlmExecutor.execute(pipeline, "tick", 1, SYSTEM_PROMPT, "deductive-goal-formation",
-            List.of(session -> {
-                session.query(userMessage).subscribe().asStream()
-                    .filter(e -> e instanceof AgentEvent.TextDelta)
-                    .map(e -> ((AgentEvent.TextDelta) e).text())
-                    .forEach(responseText::append);
-            }));
+        session.query(userMessage).subscribe().asStream()
+            .filter(e -> e instanceof AgentEvent.TextDelta)
+            .map(e -> ((AgentEvent.TextDelta) e).text())
+            .forEach(responseText::append);
         return responseText.isEmpty() ? null : responseText.toString();
     }
 
