@@ -834,6 +834,22 @@ public class BayesInstance<T> {
         return varStates;
     }
 
+    public JunctionTree getJunctionTree() {
+        return tree;
+    }
+
+    public Map<String, double[]> getEvidenceVariables() {
+        Map<String, double[]> evidence = new LinkedHashMap<>();
+        for (int i = 0; i < likelyhoods.length; i++) {
+            if (likelyhoods[i] != null) {
+                evidence.put(likelyhoods[i].getVariable().getName(),
+                             likelyhoods[i].getDistribution());
+            }
+        }
+        return evidence;
+    }
+
+
     public BayesStats getStats() {
         int evidenceCount = 0;
         for (BayesLikelyhood l : likelyhoods) {
