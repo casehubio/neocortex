@@ -193,6 +193,10 @@ public class CognitionCore {
 
     public void setSessionPipeline(SessionPipeline pipeline) {
         this.sessionPipeline = pipeline;
+        if (userModel != null) userModel.setSessionPipeline(pipeline);
+        if (mentalModel != null) mentalModel.setSessionPipeline(pipeline);
+        if (strategy != null) strategy.setSessionPipeline(pipeline);
+        if (innerLife != null) innerLife.setSessionPipeline(pipeline);
     }
 
     public void tick(String agentId, String tenantId,
