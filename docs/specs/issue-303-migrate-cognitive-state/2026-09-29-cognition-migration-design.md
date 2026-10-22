@@ -1,7 +1,7 @@
 # Cognition Migration Design — blocks#303
 
 **Date:** 2026-09-29
-**Issue:** casehubio/blocks#303
+**Issue:** casehubio/agency#303
 **Scope:** Migrate entire social cognition layer from blocks to neocortex
 
 ## Problem
@@ -291,9 +291,9 @@ work via CDI discovery — moving them just changes which jar they ship in.
 
 ## References
 
-- casehubio/blocks#303 — original issue
-- casehubio/blocks#296 — established the pattern (OCC emotions moved to neocortex)
-- casehubio/blocks#298 — parent epic
+- casehubio/agency#303 — original issue
+- casehubio/agency#296 — established the pattern (OCC emotions moved to neocortex)
+- casehubio/agency#298 — parent epic
 - neocortex CLAUDE.md — module structure and conventions
 - rag-query-augmentation — precedent for AgentProvider usage in neocortex
 - cognitive-index — Instance<> graceful degradation patterns

@@ -8,7 +8,7 @@
 
 The system has four temporal data sources — MindMap nodes (future events via `validFrom`, recent changes via `updatedAt`), text memories (`createdAt`), experience events (`timestamp`), and CBR cases (`storedAt`) — but no unified way to answer "what happened recently?" or "what's coming up?" across them.
 
-`CuriositySignalGenerator` in casehub-blocks currently iterates all nodes in all subgraphs checking `validFrom` — an O(n) full-graph scan. With temporal query predicates now on MindMapQuery (#236), `MemoryQuery.since`, and `CbrQuery.notBefore`, each store can answer time-range queries efficiently. What's missing is the aggregation layer that queries them all and merges the results into a single chronological timeline.
+`CuriositySignalGenerator` in casehub-agency currently iterates all nodes in all subgraphs checking `validFrom` — an O(n) full-graph scan. With temporal query predicates now on MindMapQuery (#236), `MemoryQuery.since`, and `CbrQuery.notBefore`, each store can answer time-range queries efficiently. What's missing is the aggregation layer that queries them all and merges the results into a single chronological timeline.
 
 ## Design
 

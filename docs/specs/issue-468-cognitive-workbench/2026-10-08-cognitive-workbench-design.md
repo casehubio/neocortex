@@ -164,7 +164,7 @@ Maps `CognitionApi.graph()` response to React Flow `GraphModel`. Handles node po
 
 Located at `examples/cognitive-workbench-backend` in blocks-ui. Dependencies:
 - neocortex: mindmap-sqlite, memory-sqlite, caps-engine, cognitive-index, cognitive-observability-sqlite, cognition, memory-seeding
-- casehub-blocks: casehub-blocks-speech-ws, casehub-blocks-speech-sherpa, casehub-platform-agent-api (same dependencies as avatar-demo — shared modules, not duplicated)
+- casehub-agency: casehub-agency-speech-ws, casehub-agency-speech-sherpa, casehub-platform-agent-api (same dependencies as avatar-demo — shared modules, not duplicated)
 
 ### Stores
 

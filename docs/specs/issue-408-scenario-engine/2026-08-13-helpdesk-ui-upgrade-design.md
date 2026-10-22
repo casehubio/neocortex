@@ -133,9 +133,9 @@ Lit + Vite (continuation of existing helpdesk app). The shell component is a sin
 ### Dependencies (new)
 
 - `@casehubio/pages-component` — `EventStreamController` (Lit Reactive Controller for WebSocket push)
-- `@casehubio/blocks-ui-kpi-metric-row` — KPI metric cards
+- `@casehubio/agency-ui-kpi-metric-row` — KPI metric cards
 - `@casehubio/pages-table` — interactive data table
-- `@casehubio/blocks-ui-blocks-timeline` — strategy-driven timeline
+- `@casehubio/agency-ui-blocks-timeline` — strategy-driven timeline
 
 Package names must be verified against each package's `package.json` `name` field — directory names don't always match (GE-20260803-17fc03).
 

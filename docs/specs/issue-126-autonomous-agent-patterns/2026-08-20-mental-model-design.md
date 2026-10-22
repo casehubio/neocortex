@@ -1,6 +1,6 @@
 # MentalModel Design — Theory of Mind with BDI Tracking
 
-**Issue:** casehubio/blocks#123
+**Issue:** casehubio/agency#123
 **Date:** 2026-08-20
 **Decisions:** D23-D31
 
@@ -256,7 +256,7 @@ sealed interface MentalModelTick {
 
 ## Package Placement
 
-`io.casehub.blocks.agentic.social` — alongside PersonalityEvolutionOrchestrator, InnerLifeOrchestrator, and UserModelOrchestrator. MentalModel is the fourth member of the social cognition family: how the agent models others' cognitive states (D22 extended).
+`io.casehub.agency.agentic.social` — alongside PersonalityEvolutionOrchestrator, InnerLifeOrchestrator, and UserModelOrchestrator. MentalModel is the fourth member of the social cognition family: how the agent models others' cognitive states (D22 extended).
 
 **Cross-orchestrator integration:** MentalModel is architecturally independent — it doesn't call or depend on the other orchestrators. Integration happens at the consumer level: consumers can feed MentalModel projections into InnerLife's motivation assessment, or use UserModel's relationship stage to set confidence priors for MentalModel. These are consumer-side compositions, not built into blocks.
 

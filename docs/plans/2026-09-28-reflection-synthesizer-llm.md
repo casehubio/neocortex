@@ -376,9 +376,9 @@ Refs #338"
 ### Task 2: LlmReflectionSynthesizer — prompt building, LLM call, response parsing
 
 **Files:**
-- Create: `blocks-core/src/main/java/io/casehub/blocks/agentic/social/reflection/LlmReflectionSynthesizer.java`
+- Create: `blocks-core/src/main/java/io/casehub/agency/agentic/social/reflection/LlmReflectionSynthesizer.java`
 - Modify: `blocks-core/pom.xml` — add `casehub-neocortex-memory-core` dependency
-- Create: `blocks-core/src/test/java/io/casehub/blocks/agentic/social/reflection/LlmReflectionSynthesizerTest.java`
+- Create: `blocks-core/src/test/java/io/casehub/agency/agentic/social/reflection/LlmReflectionSynthesizerTest.java`
 
 **Interfaces:**
 - Consumes: `ReflectionSynthesizer` SPI (memory-api), `TrajectoryGrouper` (memory-core), `AgentProvider` (platform-agent-api), `Memory` (memory-api), `CaseMemoryStore` (memory-api)
@@ -397,7 +397,7 @@ Add to `blocks-core/pom.xml` dependencies section:
 - [ ] **Step 2: Write failing tests for LlmReflectionSynthesizer**
 
 ```java
-package io.casehub.blocks.agentic.social.reflection;
+package io.casehub.agency.agentic.social.reflection;
 
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
@@ -590,7 +590,7 @@ Expected: compilation failure (LlmReflectionSynthesizer not found)
 - [ ] **Step 4: Implement LlmReflectionSynthesizer**
 
 ```java
-package io.casehub.blocks.agentic.social.reflection;
+package io.casehub.agency.agentic.social.reflection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -845,8 +845,8 @@ Expected: all 7 tests PASS
 ```bash
 git -C /Users/mdproctor/claude/casehub/slots/203/blocks add \
   blocks-core/pom.xml \
-  blocks-core/src/main/java/io/casehub/blocks/agentic/social/reflection/LlmReflectionSynthesizer.java \
-  blocks-core/src/test/java/io/casehub/blocks/agentic/social/reflection/LlmReflectionSynthesizerTest.java
+  blocks-core/src/main/java/io/casehub/agency/agentic/social/reflection/LlmReflectionSynthesizer.java \
+  blocks-core/src/test/java/io/casehub/agency/agentic/social/reflection/LlmReflectionSynthesizerTest.java
 git -C /Users/mdproctor/claude/casehub/slots/203/blocks commit -m "feat(#320): LlmReflectionSynthesizer — LLM-backed heuristic extraction
 
 @Alternative @Priority(1) implementing ReflectionSynthesizer.

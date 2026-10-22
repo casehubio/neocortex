@@ -605,23 +605,23 @@ implementation of #381 begins:
 - **Agent runtime push receiver** — the mechanism for waking an idle
   LLM agent (WebSocket, queue, CLI invocation). The mediator's queue
   is the hook point. The runtime concern is a separate spec.
-  → File on casehubio/blocks.
+  → File on casehubio/agency.
 - **Scheduled briefings** — no periodic "morning wake." Event-driven
   only. Schedule can be layered at runtime level via cron-triggered
   consolidation tick. → File on casehubio/neocortex.
 - **Cost management** — explicit token budgets per push. The minimum
   interval guard provides implicit cost control. Explicit budget
-  constraints deferred to runtime. → File on casehubio/blocks.
+  constraints deferred to runtime. → File on casehubio/agency.
 - **Wacky-manor refactor** — the design enables wacky-manor to delete
   CognitiveBudget and use platform attention, but the actual refactor
-  is follow-up work. → File on casehubio/blocks (or wacky-manor repo).
+  is follow-up work. → File on casehubio/agency (or wacky-manor repo).
 
 ## References
 
 - casehubio/neocortex#381 — issue body (architecture sketch, design questions)
-- casehubio/blocks#303 — cognitive state migration plan (layer placement)
-- casehubio/blocks#298 — cognitive emotion architecture epic
-- casehubio/blocks#296 — goal-aware cognitive loop (immediate
+- casehubio/agency#303 — cognitive state migration plan (layer placement)
+- casehubio/agency#298 — cognitive emotion architecture epic
+- casehubio/agency#296 — goal-aware cognitive loop (immediate
   prerequisite). This spec directly addresses #296's requirement for
   a `CognitiveAttentionAccumulator` that fires CDI events on
   threshold-crossing. Remaining #296 requirements not covered here:

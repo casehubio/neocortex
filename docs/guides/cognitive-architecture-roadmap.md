@@ -105,7 +105,7 @@ Audited all public types in `memory-api`, `mindmap-api`, `fusion-api`, `rag-api`
 
 Clean areas: mindmap-api, fusion-api, rag-api — no terminology violations found. No `effectiveFrom`, `emotion`, or `valence` misuse. `startDate` in mindmap-intelligence is a domain term (project start date), not a temporal bound.
 
-Cross-repo adoption checklist filed as casehubio/blocks#218.
+Cross-repo adoption checklist filed as casehubio/agency#218.
 
 **Scope:** S — renames only, no behavioural changes.
 

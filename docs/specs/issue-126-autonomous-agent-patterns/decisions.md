@@ -197,7 +197,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D15: Package placement — blocks.memory (top-level)
 
-**Choice:** New top-level package io.casehub.blocks.memory — parallel to blocks.summarisation
+**Choice:** New top-level package io.casehub.agency.memory — parallel to blocks.summarisation
 **Alternatives:**
 - agentic.memory — signals "agentic-specific" but memory hygiene is orthogonal to agentic orchestration; a non-agentic app with CBR could use it
 - agentic.personality — conflates memory lifecycle with personality
@@ -291,7 +291,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D22: Package placement — blocks.agentic.social
 
-**Choice:** All three social cognition orchestrators live in `io.casehub.blocks.agentic.social`: PersonalityEvolution (self-model), InnerLife (self-expression), UserModel (other-model).
+**Choice:** All three social cognition orchestrators live in `io.casehub.agency.agentic.social`: PersonalityEvolution (self-model), InnerLife (self-expression), UserModel (other-model).
 **Alternatives:**
 - blocks.agentic.personality — captures only the first orchestrator's concern. "Personality" doesn't describe user modeling or proactive initiation.
 - blocks.user (new top-level) — signals infrastructure not agentic-specific, but UserModel is specifically about agent social cognition
@@ -525,7 +525,7 @@ Note: probe() returns Drifted (not EvolutionPending) when the dominant exceeds o
 
 ## D39: Package placement — blocks.agentic.social
 
-**Choice:** io.casehub.blocks.agentic.social, alongside PersonalityEvolution, InnerLife, UserModel, MentalModel.
+**Choice:** io.casehub.agency.agentic.social, alongside PersonalityEvolution, InnerLife, UserModel, MentalModel.
 **Alternatives:** None worth exploring — StrategyLearning is social cognition (metacognitive self-improvement of interaction strategies).
 **Rationale:** Fifth member of the social cognition package: self-model (PersonalityEvolution), self-expression (InnerLife), other-model (UserModel), other-mind (MentalModel), self-improvement (StrategyLearning).
 **Trade-offs:** None.

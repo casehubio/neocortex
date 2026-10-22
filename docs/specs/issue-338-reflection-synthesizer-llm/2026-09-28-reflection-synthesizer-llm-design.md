@@ -1,7 +1,7 @@
 # LLM-Backed ReflectionSynthesizer — Heuristic Extraction from Experience Trajectories
 
-**Issue:** casehubio/neocortex#338 (infrastructure), casehubio/blocks#320 (LLM implementation)
-**Epic:** casehubio/neocortex#253, casehubio/blocks#311
+**Issue:** casehubio/neocortex#338 (infrastructure), casehubio/agency#320 (LLM implementation)
+**Epic:** casehubio/neocortex#253, casehubio/agency#311
 **Date:** 2026-09-28
 
 ## Overview

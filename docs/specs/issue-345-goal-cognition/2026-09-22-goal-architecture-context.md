@@ -97,7 +97,7 @@ Key structural facts:
 
 #### blocks (behavioral — largest goal subsystem)
 
-**`io.casehub.blocks.agentic.social.goal` package (500+ lines orchestrator):**
+**`io.casehub.agency.agentic.social.goal` package (500+ lines orchestrator):**
 - `GoalProposalOrchestrator` — full drive-based goal lifecycle:
   - Per-tick evaluation of drive states → goal proposals
   - Uses `DriveOrchestrator` for drive signals, `NarrativeOrchestrator` for narrative context
@@ -401,11 +401,11 @@ Blocks refactoring (generics + factory patterns) still benefits blocks independe
 - `io.casehub.engine.internal.routing.GoalRevisionEvaluator` — revision orchestration
 - `io.casehub.engine.internal.routing.GoalAbandonmentEvaluator` — failure-threshold abandonment
 - `io.casehub.engine.internal.routing.GoalOutcomeRecorder` — worker outcome → goal signal
-- `io.casehub.blocks.agentic.social.goal.GoalProposalOrchestrator` — drive-based goal lifecycle
-- `io.casehub.blocks.agentic.social.goal.LlmDriveGoalFormationStrategy` — LLM drive→goal formation
-- `io.casehub.blocks.agentic.social.goal.*GoalMapper` — per-drive-axis mappers
-- `io.casehub.blocks.agentic.social.GoalOutcomePressureSource` — outcome→trait pressure
-- `io.casehub.blocks.agentic.social.prompt.GoalPromptSection` — goal prompt rendering
+- `io.casehub.agency.agentic.social.goal.GoalProposalOrchestrator` — drive-based goal lifecycle
+- `io.casehub.agency.agentic.social.goal.LlmDriveGoalFormationStrategy` — LLM drive→goal formation
+- `io.casehub.agency.agentic.social.goal.*GoalMapper` — per-drive-axis mappers
+- `io.casehub.agency.agentic.social.GoalOutcomePressureSource` — outcome→trait pressure
+- `io.casehub.agency.agentic.social.prompt.GoalPromptSection` — goal prompt rendering
 - `io.casehub.desiredstate.api.GoalCompiler` — generic goal→graph compilation
 - `io.casehub.desiredstate.api.DesiredStateGraph` — dependency DAG with Dependency edges
 - `io.casehub.desiredstate.api.Phase` — lifecycle phase with CompletionCondition
@@ -414,9 +414,9 @@ Blocks refactoring (generics + factory patterns) still benefits blocks independe
 - `io.casehub.neocortex.cognitive.index.DescriptorView` — zero-eidos-dep identity view
 - `io.casehub.neocortex.mindmap.intelligence.CuriositySignalGenerator` — pattern for goal-driven attention
 - `io.casehub.neocortex.memory.experience.GraduationClassifier` — pattern for goal recognition
-- `io.casehub.blocks.agentic.decomposition.LlmDecomposition` — recursive LLM goal decomposition (prose → DagPlan)
-- `io.casehub.blocks.agentic.decomposition.HeuristicDecomposition` — rule-based decomposition
-- `io.casehub.blocks.agentic.decomposition.CapabilityDependencyDecomposition` — dependency-aware decomposition
+- `io.casehub.agency.agentic.decomposition.LlmDecomposition` — recursive LLM goal decomposition (prose → DagPlan)
+- `io.casehub.agency.agentic.decomposition.HeuristicDecomposition` — rule-based decomposition
+- `io.casehub.agency.agentic.decomposition.CapabilityDependencyDecomposition` — dependency-aware decomposition
 - `io.casehub.engine.planning.decomposition.GoapDecompositionStrategy` — GOAP decomposition
 - `io.casehub.engine.planning.decomposition.ExplicitHtnDecompositionStrategy` — HTN decomposition
 - `io.casehub.engine.planning.decomposition.DefaultGoalDecomposer` — orchestrates decomposition per AgentGoal
