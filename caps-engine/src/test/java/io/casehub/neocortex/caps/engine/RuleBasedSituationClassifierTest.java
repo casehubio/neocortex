@@ -21,9 +21,8 @@ class RuleBasedSituationClassifierTest {
     }
 
     @Test
-    void classifyThrowsUnsupported() {
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> classifier.classify("test", Map.of()))
-            .isInstanceOf(UnsupportedOperationException.class);
+    void classifyReturnsEmptyWhenKeywordMatchingDisabled() {
+        assertThat(classifier.classify("test", Map.of())).isEmpty();
     }
 
     @Test
