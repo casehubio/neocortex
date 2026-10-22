@@ -50,8 +50,8 @@ class CognitivePipelineBuilderTest {
     @Test
     void buildWithOptionalOrchestratorsWiresThem() {
         var userModel   = new io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator(null, io.casehub.neocortex.cognition.usermodel.UserModelConfig.defaults(), null);
-        var mentalModel = new io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator(null, io.casehub.neocortex.cognition.mentalmodel.MentalModelConfig.defaults(), null);
-        var strategy    = new io.casehub.neocortex.cognition.strategy.StrategyLearningOrchestrator(null, null, io.casehub.neocortex.cognition.strategy.StrategyLearningConfig.defaults(), null);
+        var mentalModel = new io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator(null, io.casehub.neocortex.cognition.mentalmodel.MentalModelConfig.defaults(), java.time.Clock.systemUTC(), null);
+        var strategy    = new io.casehub.neocortex.cognition.strategy.StrategyLearningOrchestrator(null, null, io.casehub.neocortex.cognition.strategy.StrategyLearningConfig.defaults(), java.time.Clock.systemUTC(), null);
         var innerLife   = new io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator(null, java.util.List.of(), io.casehub.neocortex.cognition.innerlife.InnerLifeConfig.defaults(), drives, null);
         var goals       = new io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator(drives, java.util.List.of(), null, java.util.Optional.empty(), null, null, null, io.casehub.neocortex.cognition.goal.GoalProposalConfig.defaults(), io.casehub.neocortex.cognition.goal.GoalEscalationConfig.defaults(), java.time.Clock.systemUTC());
 
