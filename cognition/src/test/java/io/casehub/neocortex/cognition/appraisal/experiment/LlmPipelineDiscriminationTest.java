@@ -9,7 +9,6 @@ import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
 import io.casehub.neocortex.cognition.appraisal.RelevanceCheck;
 import io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig;
 import io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy;
-import io.casehub.neocortex.cognition.appraisal.SecCheck;
 import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
@@ -79,21 +78,14 @@ class LlmPipelineDiscriminationTest {
         });
     }
 
-    private <T extends SecCheck> T withPipeline(T check, SessionPipeline pipeline) {
-        try {
-            check.getClass().getMethod("setSessionPipeline", SessionPipeline.class).invoke(check, pipeline);
-        } catch (Exception e) { throw new RuntimeException(e); }
-        return check;
-    }
-
     @Test
     void llmPipeline_producesDiverseEmotions() {
         var pipeline = mockPipeline();
         var strategy = new SchererAppraisalStrategy(
                 new RelevanceCheck(),
-                withPipeline(new LlmImplicationCheck(), pipeline),
-                withPipeline(new LlmCopingCheck(), pipeline),
-                withPipeline(new LlmNormativeCheck(), pipeline),
+                new LlmImplicationCheck(pipeline),
+                new LlmCopingCheck(pipeline),
+                new LlmNormativeCheck(pipeline),
                 SchererAppraisalConfig.allEnabled());
 
         Set<String> allEmotionTypes = new LinkedHashSet<>();
@@ -141,9 +133,9 @@ class LlmPipelineDiscriminationTest {
         var pipeline = mockPipeline();
         var strategy = new SchererAppraisalStrategy(
                 new RelevanceCheck(),
-                withPipeline(new LlmImplicationCheck(), pipeline),
-                withPipeline(new LlmCopingCheck(), pipeline),
-                withPipeline(new LlmNormativeCheck(), pipeline),
+                new LlmImplicationCheck(pipeline),
+                new LlmCopingCheck(pipeline),
+                new LlmNormativeCheck(pipeline),
                 SchererAppraisalConfig.allEnabled());
 
         int scenariosWithEmotions = 0;

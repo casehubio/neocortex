@@ -48,20 +48,24 @@ class InnerLifeOrchestratorTest {
     }
 
     private InnerLifeOrchestrator makeOrchestrator(CivilityConstraint... constraints) {
-        return new InnerLifeOrchestrator(
-                reflectionOrchestrator, List.of(constraints),
-                InnerLifeConfig.defaults(), driveOrchestrator);
+        return makeOrchestrator(null, constraints);
     }
 
-    private void setLlmResponse(InnerLifeOrchestrator orch, String... deltas) {
-        orch.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+    private InnerLifeOrchestrator makeOrchestrator(io.casehub.platform.agent.session.SessionPipeline pipeline, CivilityConstraint... constraints) {
+        return new InnerLifeOrchestrator(
+                reflectionOrchestrator, List.of(constraints),
+                InnerLifeConfig.defaults(), driveOrchestrator, pipeline);
+    }
+
+    private static io.casehub.platform.agent.session.SessionPipeline stubPipeline(String... deltas) {
+        return StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 var items = java.util.Arrays.stream(deltas).map(AgentEvent.TextDelta::new).toArray(AgentEvent[]::new);
                 return Multi.createFrom().items(items);
             }
             @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
             @Override public void close(java.time.Duration timeout) {}
-        }));
+        });
     }
 
     private LevelEvent<String> event(String text) {
@@ -91,7 +95,7 @@ class InnerLifeOrchestratorTest {
 
     @Test
     void tickReturnsSilentWhenBelowMotivationThreshold() {
-        var orch = makeOrchestrator(ctx -> new CivilityCheck.Permitted());
+        var orch = makeOrchestrator(stubPipeline("{\"score\": 0.2, \"content\": \"\", \"channelHint\": null}"), ctx -> new CivilityCheck.Permitted());
 
         for (int i = 0; i < 5; i++) {
             orch.observe(event("novel content " + i + " unique " + System.nanoTime()), descriptor);
@@ -99,7 +103,6 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("I noticed some things"));
-        setLlmResponse(orch, "{\"score\": 0.2, \"content\": \"\", \"channelHint\": null}");
 
         var result = orch.tick(descriptor, "context");
 
@@ -108,7 +111,7 @@ class InnerLifeOrchestratorTest {
 
     @Test
     void tickReturnsInitiatedWhenAboveMotivationThreshold() {
-        var orch = makeOrchestrator(ctx -> new CivilityCheck.Permitted());
+        var orch = makeOrchestrator(stubPipeline("{\"score\": 0.85, \"content\": \"Hello everyone!\", \"channelHint\": \"#general\"}"), ctx -> new CivilityCheck.Permitted());
 
         for (int i = 0; i < 5; i++) {
             orch.observe(event("novel content " + i + " unique " + System.nanoTime()), descriptor);
@@ -116,7 +119,6 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("I have something to say"));
-        setLlmResponse(orch, "{\"score\": 0.85, \"content\": \"Hello everyone!\", \"channelHint\": \"#general\"}");
 
         var result = orch.tick(descriptor, "context");
 
@@ -129,7 +131,7 @@ class InnerLifeOrchestratorTest {
 
     @Test
     void tickReturnsSilentOnMalformedLlmResponse() {
-        var orch = makeOrchestrator(ctx -> new CivilityCheck.Permitted());
+        var orch = makeOrchestrator(stubPipeline("not valid json"), ctx -> new CivilityCheck.Permitted());
 
         for (int i = 0; i < 5; i++) {
             orch.observe(event("novel content " + i + " unique " + System.nanoTime()), descriptor);
@@ -137,7 +139,6 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("thinking"));
-        setLlmResponse(orch, "not valid json");
 
         var result = orch.tick(descriptor, "context");
 
@@ -147,7 +148,7 @@ class InnerLifeOrchestratorTest {
 
     @Test
     void multipleTextDeltasAreConcatenated() {
-        var orch = makeOrchestrator(ctx -> new CivilityCheck.Permitted());
+        var orch = makeOrchestrator(stubPipeline("{\"score\": 0.9, ", "\"content\": \"Hi!\", ", "\"channelHint\": null}"), ctx -> new CivilityCheck.Permitted());
 
         for (int i = 0; i < 5; i++) {
             orch.observe(event("novel content " + i + " unique " + System.nanoTime()), descriptor);
@@ -155,7 +156,6 @@ class InnerLifeOrchestratorTest {
 
         when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
                 .thenReturn(List.of("thoughts"));
-        setLlmResponse(orch, "{\"score\": 0.9, ", "\"content\": \"Hi!\", ", "\"channelHint\": null}");
 
         var result = orch.tick(descriptor, "context");
 

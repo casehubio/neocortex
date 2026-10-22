@@ -6,7 +6,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
 import io.casehub.neocortex.summarisation.LevelEvent;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;

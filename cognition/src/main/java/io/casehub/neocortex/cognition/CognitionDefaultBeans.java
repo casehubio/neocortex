@@ -18,7 +18,7 @@ import io.casehub.neocortex.cognition.narrative.NarrativeConfig;
 import io.casehub.neocortex.cognition.personality.PersonalityEvolutionConfig;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
-import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.session.SessionPipeline;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -32,7 +32,7 @@ import java.util.Set;
 public class CognitionDefaultBeans {
 
     @Inject
-    Instance<AgentProvider> agentProviderInstance;
+    Instance<SessionPipeline> sessionPipelineInstance;
 
     @Produces @DefaultBean @Singleton
     BeliefRevisionConfig beliefRevisionConfig() {
@@ -131,8 +131,8 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy() {
-        if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
-            return new io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy();
+        if (sessionPipelineInstance != null && sessionPipelineInstance.isResolvable()) {
+            return new io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy(sessionPipelineInstance.get());
         }
 
         // Scherer (2001) SEC model — multilevel sequential checking (relevance → implication → coping → norm)
@@ -149,8 +149,8 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     io.casehub.neocortex.cognition.goal.DeductiveGoalFormationStrategy deductiveGoalFormationStrategy() {
-        if (agentProviderInstance != null && agentProviderInstance.isResolvable()) {
-            return new io.casehub.neocortex.cognition.goal.LlmDeductiveGoalFormationStrategy();
+        if (sessionPipelineInstance != null && sessionPipelineInstance.isResolvable()) {
+            return new io.casehub.neocortex.cognition.goal.LlmDeductiveGoalFormationStrategy(sessionPipelineInstance.get());
         }
         return new io.casehub.neocortex.cognition.goal.NoOpDeductiveGoalFormationStrategy();
     }

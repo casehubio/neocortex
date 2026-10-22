@@ -20,8 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LlmCrossAxisGoalEnricherTest {
 
     private LlmCrossAxisGoalEnricher enricherWith(String response) {
-        var e = new LlmCrossAxisGoalEnricher();
-        e.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var e = new LlmCrossAxisGoalEnricher(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }
@@ -53,8 +52,7 @@ class LlmCrossAxisGoalEnricherTest {
 
     @Test
     void returnsNull_whenLlmReturnsError() {
-        var enricher = new LlmCrossAxisGoalEnricher();
-        enricher.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var enricher = new LlmCrossAxisGoalEnricher(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().empty();
             }
@@ -84,8 +82,7 @@ class LlmCrossAxisGoalEnricherTest {
 
     @Test
     void returnsNull_whenInvocationThrows() {
-        var enricher = new LlmCrossAxisGoalEnricher();
-        enricher.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var enricher = new LlmCrossAxisGoalEnricher(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("timeout"));
             }
@@ -104,8 +101,7 @@ class LlmCrossAxisGoalEnricherTest {
     @Test
     void promptIncludesEpisodes() {
         var capturedPrompt = new String[1];
-        var enricher = new LlmCrossAxisGoalEnricher();
-        enricher.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var enricher = new LlmCrossAxisGoalEnricher(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 capturedPrompt[0] = prompt;
                 return Multi.createFrom().item(new AgentEvent.TextDelta("enriched goal"));

@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
@@ -53,6 +53,12 @@ public class MentalModelOrchestrator {
                                    MentalModelConfig config,
                                    @Nullable SessionPipeline sessionPipeline) {
         this(modelMemory, config, Clock.systemUTC(), sessionPipeline);
+    }
+
+    MentalModelOrchestrator(MentalModelMemory modelMemory,
+                            MentalModelConfig config,
+                            Clock clock) {
+        this(modelMemory, config, clock, null);
     }
 
     MentalModelOrchestrator(MentalModelMemory modelMemory,

@@ -61,8 +61,7 @@ class NarrativeContentSummariserTest {
     }
 
     private NarrativeContentSummariser buildSummariser(NarrativeConfig config) {
-        var s = new NarrativeContentSummariser(config, CLOCK);
-        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var s = new NarrativeContentSummariser(config, CLOCK, StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 invocationCount++;
                 lastUserPrompt = prompt;

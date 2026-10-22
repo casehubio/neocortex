@@ -26,8 +26,7 @@ import static org.assertj.core.data.Offset.offset;
 class LlmBoundaryTest {
 
     private LlmCopingCheck copingCheckWith(Map<String, String> scenarioResponses) {
-        var check = new LlmCopingCheck();
-        check.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var check = new LlmCopingCheck(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 for (var entry : scenarioResponses.entrySet()) {
                     if (prompt.contains(entry.getKey())) {

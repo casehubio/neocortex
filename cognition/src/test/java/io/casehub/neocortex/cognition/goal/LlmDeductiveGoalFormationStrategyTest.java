@@ -50,8 +50,7 @@ class LlmDeductiveGoalFormationStrategyTest {
     @Test
     void includesDispositionInPrompt() {
         var capturedPrompt = new String[1];
-        var strategy = new LlmDeductiveGoalFormationStrategy();
-        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var strategy = new LlmDeductiveGoalFormationStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 capturedPrompt[0] = prompt;
                 return Multi.createFrom().item(new AgentEvent.TextDelta("[]"));
@@ -82,8 +81,7 @@ class LlmDeductiveGoalFormationStrategyTest {
     @Test
     void includesMoodInPrompt() {
         var capturedPrompt = new String[1];
-        var strategy = new LlmDeductiveGoalFormationStrategy();
-        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var strategy = new LlmDeductiveGoalFormationStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 capturedPrompt[0] = prompt;
                 return Multi.createFrom().item(new AgentEvent.TextDelta("[]"));
@@ -149,8 +147,7 @@ class LlmDeductiveGoalFormationStrategyTest {
     }
 
     private static LlmDeductiveGoalFormationStrategy stubStrategy(String response) {
-        var s = new LlmDeductiveGoalFormationStrategy();
-        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var s = new LlmDeductiveGoalFormationStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }
@@ -161,8 +158,7 @@ class LlmDeductiveGoalFormationStrategyTest {
     }
 
     private static LlmDeductiveGoalFormationStrategy errorStrategy() {
-        var s = new LlmDeductiveGoalFormationStrategy();
-        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var s = new LlmDeductiveGoalFormationStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
             }

@@ -18,9 +18,11 @@ import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -62,39 +64,45 @@ public class CognitionCoreFactory {
     @Inject Instance<Consumer<EngagementEvent>> engagementPersister;
 
     public CognitionCore create(CognitionConfig config) {
-        var core = new CognitionCore(
-                resolve(mood), resolve(drives),
-                resolve(userModel), resolve(mentalModel),
-                resolve(strategy), resolve(narrative),
-                resolve(goals), resolve(memoryHygiene),
-                resolve(innerLife),
-                config,
-                resolve(mindMapStore), resolve(needTierMapping),
-                resolve(attentionMediator), resolve(engagementPersister),
-                resolve(temporalFocus), resolve(reflectionOrchestrator),
-                resolve(consolidationMediator));
+        return create(config, null);
+    }
+
+    public CognitionCore create(CognitionConfig config, @Nullable SessionPipeline sessionPipeline) {
+        var builder = CognitivePipelineBuilder.create(resolve(mood), resolve(drives))
+                                              .userModel(resolve(userModel))
+                                              .mentalModel(resolve(mentalModel))
+                                              .strategy(resolve(strategy))
+                                              .narrative(resolve(narrative))
+                                              .goals(resolve(goals))
+                                              .memoryHygiene(resolve(memoryHygiene))
+                                              .innerLife(resolve(innerLife))
+                                              .config(config)
+                                              .mindMapStore(resolve(mindMapStore))
+                                              .needTierMappingProvider(resolve(needTierMapping))
+                                              .attentionMediator(resolve(attentionMediator))
+                                              .engagementPersister(resolve(engagementPersister))
+                                              .temporalFocus(resolve(temporalFocus))
+                                              .reflectionOrchestrator(resolve(reflectionOrchestrator))
+                                              .consolidationMediator(resolve(consolidationMediator))
+                                              .sessionPipeline(sessionPipeline);
 
         if (defaultsRegistry.isResolvable()) {
-            core.setDefaultsRegistry(defaultsRegistry.get());
+            builder.defaultsRegistry(defaultsRegistry.get());
         }
-
         if (appraisalStrategy.isResolvable() && salienceStrategy.isResolvable()) {
-            core.configureAppraisal(appraisalStrategy.get(), salienceStrategy.get());
+            builder.appraisal(appraisalStrategy.get(), salienceStrategy.get());
         }
-
         if (memoryStore.isResolvable() && mood.isResolvable()) {
-            core.configureGutFeeling(memoryStore.get(), mood.get());
+            builder.gutFeeling(memoryStore.get());
         }
-
         if (subThoughtParticipant.isResolvable()) {
-            core.configureSubThoughts(subThoughtParticipant.get());
+            builder.subThoughts(subThoughtParticipant.get());
         }
-
         if (mindMapStore.isResolvable() && termNormalizer.isResolvable()) {
-            core.configureDriveGoalBridge(mindMapStore.get(), termNormalizer.get());
+            builder.driveGoalBridge(mindMapStore.get(), termNormalizer.get());
         }
 
-        return core;
+        return builder.build();
     }
 
     private static <T> T resolve(Instance<T> instance) {

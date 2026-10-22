@@ -8,7 +8,7 @@ import io.casehub.neocortex.memory.cbr.TrendSpec;
 import io.casehub.neocortex.memory.cbr.TrendType;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
@@ -81,6 +81,13 @@ public class StrategyLearningOrchestrator {
                                         StrategyLearningConfig config,
                                         @Nullable SessionPipeline sessionPipeline) {
         this(strategyMemory, reflectionOrchestrator, config, Clock.systemUTC(), sessionPipeline);
+    }
+
+    StrategyLearningOrchestrator(StrategyMemory strategyMemory,
+                                 ReflectionOrchestrator reflectionOrchestrator,
+                                 StrategyLearningConfig config,
+                                 Clock clock) {
+        this(strategyMemory, reflectionOrchestrator, config, clock, null);
     }
 
     StrategyLearningOrchestrator(StrategyMemory strategyMemory,

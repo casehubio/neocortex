@@ -133,8 +133,7 @@ class LlmAppraisalStrategyTest {
     @Test
     void includesDispositionInPromptWhenAvailable() {
         var capturedMessage = new String[1];
-        var strategy = new LlmAppraisalStrategy();
-        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 capturedMessage[0] = prompt;
                 var json = """
@@ -165,8 +164,7 @@ class LlmAppraisalStrategyTest {
     @Test
     void omitsDispositionFromPromptWhenNull() {
         var capturedMessage = new String[1];
-        var strategy = new LlmAppraisalStrategy();
-        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 capturedMessage[0] = prompt;
                 var json = """
@@ -195,8 +193,7 @@ class LlmAppraisalStrategyTest {
     }
 
     private static LlmAppraisalStrategy stubStrategy(String response) {
-        var strategy = new LlmAppraisalStrategy();
-        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }
@@ -207,8 +204,7 @@ class LlmAppraisalStrategyTest {
     }
 
     private static LlmAppraisalStrategy errorStrategy() {
-        var strategy = new LlmAppraisalStrategy();
-        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
             }

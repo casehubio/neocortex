@@ -43,8 +43,7 @@ class NarrativePipelineTest {
             """;
 
     private static NarrativeContentSummariser stubSummariser(String response) {
-        var s = new NarrativeContentSummariser(NarrativeConfig.defaults());
-        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var s = new NarrativeContentSummariser(NarrativeConfig.defaults(), StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }

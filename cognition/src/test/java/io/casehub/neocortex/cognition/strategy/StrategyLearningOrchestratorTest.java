@@ -261,8 +261,8 @@ class StrategyLearningOrchestratorTest {
                 .thenAnswer(inv -> new ArrayList<>(storedEvidence));
         var testOrchestrator = new StrategyLearningOrchestrator(
                 testStrategyMemory,
-                (a, t, s, m) -> List.of(), config, clock);
-        testOrchestrator.setSessionPipeline(io.casehub.neocortex.cognition.belief.StubPipelines.create(
+                (a, t, s, m) -> List.of(), config, clock,
+                io.casehub.neocortex.cognition.belief.StubPipelines.create(
             init -> new io.casehub.platform.agent.AgentSession() {
                 @Override public Multi<AgentEvent> query(String prompt) {
                     return Multi.createFrom().item(new AgentEvent.TextDelta(
@@ -488,13 +488,16 @@ class StrategyLearningOrchestratorTest {
     }
 
     private void mockLlmResponse(String text) {
-        orchestrator.setSessionPipeline(io.casehub.neocortex.cognition.belief.StubPipelines.create(
+        var pipeline = io.casehub.neocortex.cognition.belief.StubPipelines.create(
             init -> new io.casehub.platform.agent.AgentSession() {
                 @Override public Multi<AgentEvent> query(String prompt) {
                     return Multi.createFrom().item(new AgentEvent.TextDelta(text));
                 }
                 @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
                 @Override public void close(java.time.Duration timeout) {}
-            }));
+            });
+        orchestrator = new StrategyLearningOrchestrator(
+                strategyMemory, reflectionOrchestrator,
+                StrategyLearningConfig.defaults(), clock, pipeline);
     }
 }

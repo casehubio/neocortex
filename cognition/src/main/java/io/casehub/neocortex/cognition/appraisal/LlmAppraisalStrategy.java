@@ -3,7 +3,7 @@ package io.casehub.neocortex.cognition.appraisal;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 

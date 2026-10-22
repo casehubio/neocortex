@@ -17,8 +17,7 @@ import static org.assertj.core.data.Offset.offset;
 class LlmNormativeCheckTest {
 
     private LlmNormativeCheck checkWith(Map<String, String> responses) {
-        var check = new LlmNormativeCheck();
-        check.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var check = new LlmNormativeCheck(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 for (var entry : responses.entrySet()) {
                     if (prompt.contains(entry.getKey())) {
@@ -78,8 +77,7 @@ class LlmNormativeCheckTest {
 
     @Test
     void fallsBackToFullComplianceOnError() {
-        var check = new LlmNormativeCheck();
-        check.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+        var check = new LlmNormativeCheck(StubPipelines.create(init -> new AgentSession() {
             @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
             }

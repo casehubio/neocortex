@@ -3,7 +3,7 @@ package io.casehub.neocortex.cognition.goal;
 import io.casehub.neocortex.cognition.narrative.DerivedTheme;
 import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 import java.util.logging.Level;

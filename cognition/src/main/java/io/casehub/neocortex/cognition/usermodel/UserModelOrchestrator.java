@@ -2,7 +2,7 @@ package io.casehub.neocortex.cognition.usermodel;
 
 import io.casehub.neocortex.cognition.relationship.RelationshipStageConfig;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 

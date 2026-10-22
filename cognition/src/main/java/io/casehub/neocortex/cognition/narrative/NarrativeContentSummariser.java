@@ -4,7 +4,7 @@ import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.memory.ReflectionEntry;
 import io.casehub.neocortex.summarisation.ContentSummariser;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.session.AgentSessionInit;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -60,6 +60,10 @@ public class NarrativeContentSummariser
     public NarrativeContentSummariser(NarrativeConfig config,
                                        @Nullable SessionPipeline sessionPipeline) {
         this(config, Clock.systemUTC(), sessionPipeline);
+    }
+
+    NarrativeContentSummariser(NarrativeConfig config, Clock clock) {
+        this(config, clock, null);
     }
 
     NarrativeContentSummariser(NarrativeConfig config, Clock clock,
