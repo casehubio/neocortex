@@ -27,6 +27,8 @@ public class BayesVariable<T> {
     private T[]              outcomes;
     private int              familyIndex;
     private String[]         given;
+    private String           description;
+
 
     public BayesVariable(String name, int id, T[] outcomes, double[][] probabilities) {
         this( name, id, outcomes, probabilities, new String[0]);
@@ -67,6 +69,11 @@ public class BayesVariable<T> {
     public void setFamily(int familyIndex) {
         this.familyIndex = familyIndex;
     }
+
+    public String getDescription() {return description;}
+
+    public void setDescription(String description) {this.description = description;}
+
 
     public BayesVariableState createState() {
         return new BayesVariableState(this, new double[outcomes.length]);
