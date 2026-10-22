@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.appraisal;
 
+import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
@@ -15,14 +16,10 @@ import io.casehub.neocortex.mindmap.SubgraphTypes;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class AppraisalTickParticipant implements CognitionTickParticipant {
 
@@ -41,6 +38,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final ConcurrentHashMap<String, AppraisalResult> results = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, HabituationState> habituationStates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Map<String, Double>> concernSaliences = new ConcurrentHashMap<>();
+    private final @Nullable SituationClassifier                  situationClassifier;
+    private final ConcurrentHashMap<String, ChannelWeightProfile> channelWeights  = new ConcurrentHashMap<>();
+
 
     public Map<String, Double> currentConcernSalience(String agentId, String tenantId) {
         return concernSaliences.getOrDefault(agentId + ":" + tenantId, Map.of());
@@ -83,14 +83,29 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore,
             AppraisalThresholds thresholds) {
-        this.salienceStrategy  = salienceStrategy;
-        this.appraisalStrategy = appraisalStrategy;
-        this.driveOrchestrator = driveOrchestrator;
-        this.moodOrchestrator  = moodOrchestrator;
-        this.defaultsRegistry  = defaultsRegistry;
-        this.config            = config;
-        this.mindMapStore      = mindMapStore;
-        this.thresholds        = thresholds;
+        this(salienceStrategy, appraisalStrategy, driveOrchestrator,
+             moodOrchestrator, defaultsRegistry, config, mindMapStore, thresholds, null);
+    }
+
+    public AppraisalTickParticipant(
+            SalienceStrategy salienceStrategy,
+            AppraisalStrategy appraisalStrategy,
+            DriveOrchestrator driveOrchestrator,
+            MoodOrchestrator moodOrchestrator,
+            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            CognitionConfig config,
+            @Nullable MindMapStore mindMapStore,
+            AppraisalThresholds thresholds,
+            @Nullable SituationClassifier situationClassifier) {
+        this.salienceStrategy     = salienceStrategy;
+        this.appraisalStrategy    = appraisalStrategy;
+        this.driveOrchestrator    = driveOrchestrator;
+        this.moodOrchestrator     = moodOrchestrator;
+        this.defaultsRegistry     = defaultsRegistry;
+        this.config               = config;
+        this.mindMapStore         = mindMapStore;
+        this.thresholds           = thresholds;
+        this.situationClassifier  = situationClassifier;
     }
 
 
@@ -148,7 +163,20 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             concernSaliences.put(agentKey, situation.salience());
         }
 
+        if (situationClassifier != null && observation != null) {
+            try {
+                var activations = situationClassifier.classify(observation, Map.of());
+                channelWeights.put(agentKey, TopologyChannelWeighter.weight(activations));
+            } catch (Exception e) {
+                channelWeights.put(agentKey, ChannelWeightProfile.DEFAULT);
+            }
+        }
+
         bridgeToMood(result, context);
+    }
+
+    public Optional<ChannelWeightProfile> currentChannelWeights(String agentId, String tenantId) {
+        return Optional.ofNullable(channelWeights.get(agentId + ":" + tenantId));
     }
 
     public Optional<AppraisalResult> currentResult(String agentId, String tenantId) {

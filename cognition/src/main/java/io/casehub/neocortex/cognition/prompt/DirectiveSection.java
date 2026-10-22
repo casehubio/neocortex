@@ -42,7 +42,11 @@ public class DirectiveSection implements CognitionPromptRenderer {
                     + "tendencies shaped by accumulated experience — let them color your "
                     + "responses naturally. Transient signals are gut reactions to the "
                     + "current situation — weaker, contextual, and may not apply. When they "
-                    + "conflict, established patterns take precedence:")
+                    + "conflict, established patterns take precedence:"),
+            Map.entry("ChannelEmphasisPromptSection",
+            "This situation shifts which channels of your inner experience are most "
+                    + "vivid right now. Foreground the channels marked below — let them "
+                    + "shape your internal monologue and what you notice:")
     );
 
     private static final Map<String, BlockTag> TAGS = Map.ofEntries(
@@ -66,6 +70,7 @@ public class DirectiveSection implements CognitionPromptRenderer {
             Map.entry("DomainActivationPromptSection", BlockTag.PERSONALITY),
             Map.entry("SocialComparisonPromptSection", BlockTag.SOCIAL),
             Map.entry("SubThoughtPromptSection", BlockTag.APPRAISAL),
+            Map.entry("ChannelEmphasisPromptSection", BlockTag.APPRAISAL),
             Map.entry("EntityKnowledgePromptSection", BlockTag.MENTAL_MODEL)
     );
 

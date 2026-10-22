@@ -20,6 +20,7 @@ import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
 import io.casehub.neocortex.cognition.prompt.AttentionPromptSection;
+import io.casehub.neocortex.cognition.prompt.ChannelEmphasisPromptSection;
 import io.casehub.neocortex.cognition.prompt.BehavioralPromptSection;
 import io.casehub.neocortex.cognition.prompt.CharacterDrivePromptSection;
 import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
@@ -596,6 +597,7 @@ public class CognitionCore {
         var appraisalActive = config.appraisalEnabled() && appraisalParticipant != null;
         if (appraisalActive) {
             sections.add(new AppraisalPromptSection(appraisalParticipant));
+            sections.add(new ChannelEmphasisPromptSection(appraisalParticipant));
         }
         if (config.characterDrivesEnabled() && !appraisalActive && mindMapStore != null) {
             sections.add(new CharacterDrivePromptSection(mindMapStore));
@@ -657,15 +659,20 @@ public class CognitionCore {
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
             io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
+        configureAppraisal(appraisalStrategy, salienceStrategy, defaultsRegistry, null);
+    }
+
+    public void configureAppraisal(
+            io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
+            io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
+            io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.caps.@Nullable SituationClassifier situationClassifier) {
         this.appraisalParticipant = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config, mindMapStore);
+                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config, mindMapStore,
+                io.casehub.neocortex.cognition.appraisal.AppraisalThresholds.defaults(), situationClassifier);
         addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
     }
 
-    /**
-     * Configures appraisal using the stored defaults registry (set via {@link #setDefaultsRegistry}).
-     * The registry provides disposition axes per-agent automatically.
-     */
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy) {
