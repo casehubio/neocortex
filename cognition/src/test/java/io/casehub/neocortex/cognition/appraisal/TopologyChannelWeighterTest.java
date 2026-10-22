@@ -1,0 +1,122 @@
+package io.casehub.neocortex.cognition.appraisal;
+
+import io.casehub.neocortex.caps.SituationActivation;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
+
+class TopologyChannelWeighterTest {
+
+    @Test
+    void emptyActivationsReturnDefault() {
+        var profile = TopologyChannelWeighter.weight(List.of());
+        assertThat(profile.isDefault()).isTrue();
+    }
+
+    @Test
+    void nullActivationsReturnDefault() {
+        var profile = TopologyChannelWeighter.weight(null);
+        assertThat(profile.isDefault()).isTrue();
+    }
+
+    @Test
+    void threatActivationElevatesSomaticAndActionTendency() {
+        var activations = List.of(
+                new SituationActivation("physical_threat", 0.8));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        assertThat(profile.somatic()).isCloseTo(0.35, offset(0.01));
+        assertThat(profile.actionTendency()).isCloseTo(0.40, offset(0.01));
+        assertThat(profile.attentional()).isCloseTo(0.10, offset(0.01));
+    }
+
+    @Test
+    void socialActivationElevatesAttentional() {
+        var activations = List.of(
+                new SituationActivation("acceptance", 0.9));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        assertThat(profile.attentional()).isCloseTo(0.35, offset(0.01));
+        assertThat(profile.somatic()).isCloseTo(0.20, offset(0.01));
+    }
+
+    @Test
+    void autonomyActivationElevatesActionTendency() {
+        var activations = List.of(
+                new SituationActivation("powerlessness", 0.7));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        assertThat(profile.actionTendency()).isCloseTo(0.40, offset(0.01));
+    }
+
+    @Test
+    void resourceActivationElevatesTemporal() {
+        var activations = List.of(
+                new SituationActivation("scarcity", 0.6));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        assertThat(profile.temporal()).isCloseTo(0.30, offset(0.01));
+    }
+
+    @Test
+    void multipleActivationsBlendByConfidence() {
+        var activations = List.of(
+                new SituationActivation("physical_threat", 0.8),
+                new SituationActivation("acceptance", 0.4));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        // Threat (0.8 conf) dominates over social (0.4 conf)
+        // somatic should be between threat's 0.35 and social's 0.20, closer to threat
+        assertThat(profile.somatic()).isGreaterThan(0.28);
+        assertThat(profile.actionTendency()).isGreaterThan(0.33);
+        // Attentional should be between threat's 0.10 and social's 0.35, but threat-weighted
+        assertThat(profile.attentional()).isLessThan(0.25);
+    }
+
+    @Test
+    void sameCategoryActivationsReinforce() {
+        var activations = List.of(
+                new SituationActivation("physical_threat", 0.6),
+                new SituationActivation("psychological_threat", 0.5));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        // Both map to threat category — result should be threat profile
+        assertThat(profile.somatic()).isCloseTo(0.35, offset(0.01));
+        assertThat(profile.actionTendency()).isCloseTo(0.40, offset(0.01));
+    }
+
+    @Test
+    void unknownNodeIdIsIgnored() {
+        var activations = List.of(
+                new SituationActivation("unknown_node", 0.9),
+                new SituationActivation("physical_threat", 0.5));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        // Unknown node ignored — only threat contributes
+        assertThat(profile.somatic()).isCloseTo(0.35, offset(0.01));
+    }
+
+    @Test
+    void allUnknownNodesReturnDefault() {
+        var activations = List.of(
+                new SituationActivation("unknown_a", 0.8),
+                new SituationActivation("unknown_b", 0.6));
+        var profile = TopologyChannelWeighter.weight(activations);
+
+        assertThat(profile.isDefault()).isTrue();
+    }
+
+    @Test
+    void profileWeightsSumToOne() {
+        for (var category : TopologyChannelWeighter.knownCategories()) {
+            var profile = TopologyChannelWeighter.profileForCategory(category);
+            double sum = profile.somatic() + profile.attentional()
+                       + profile.temporal() + profile.actionTendency();
+            assertThat(sum).as("Category " + category + " weights sum")
+                           .isCloseTo(1.0, offset(0.01));
+        }
+    }
+}
