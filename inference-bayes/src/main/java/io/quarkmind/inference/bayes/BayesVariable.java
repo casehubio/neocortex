@@ -54,6 +54,11 @@ public class BayesVariable<T> {
         return probabilityTable;
     }
 
+    public void setProbabilityTable(double[][] probabilityTable) {
+        this.probabilityTable = probabilityTable;
+    }
+
+
     public T[] getOutcomes() {
         return outcomes;
     }
