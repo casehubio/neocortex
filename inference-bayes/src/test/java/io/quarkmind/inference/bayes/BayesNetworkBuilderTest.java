@@ -221,6 +221,77 @@ class BayesNetworkBuilderTest {
     }
 
     @Test
+    void decisionNode_createsUniformPrior() {
+        InfluenceDiagram diagram = BayesNetworkBuilder.create()
+            .variable("weather", "sunny", "rainy").prior(0.7, 0.3)
+            .decision("umbrella", "take", "leave")
+            .utility("comfort").given("weather", "umbrella").utilities(
+                8, 4,
+                2, 7)
+            .buildInfluenceDiagram();
+
+        assertNotNull(diagram);
+        assertTrue(diagram.decisionNodeNames().contains("umbrella"));
+        assertEquals(1, diagram.utilityNodes().size());
+
+        BayesInstance<?> instance = new BayesInstance<>(
+            new JunctionTreeBuilder(diagram.network()).build());
+        instance.globalUpdate();
+        double[] umbrellaMargin = instance.marginalize("umbrella").getDistribution();
+        assertEquals(0.5, umbrellaMargin[0], 0.01);
+        assertEquals(0.5, umbrellaMargin[1], 0.01);
+    }
+
+    @Test
+    void influenceDiagram_missingDecision_throws() {
+        assertThrows(IllegalStateException.class, () ->
+            BayesNetworkBuilder.create()
+                .variable("A", "yes", "no").prior(0.5, 0.5)
+                .utility("U").given("A").utilities(10, 5)
+                .buildInfluenceDiagram());
+    }
+
+    @Test
+    void influenceDiagram_missingUtility_throws() {
+        assertThrows(IllegalStateException.class, () ->
+            BayesNetworkBuilder.create()
+                .decision("D", "yes", "no")
+                .buildInfluenceDiagram());
+    }
+
+    @Test
+    void influenceDiagram_utilityUndeclaredParent_throws() {
+        assertThrows(IllegalStateException.class, () ->
+            BayesNetworkBuilder.create()
+                .decision("D", "yes", "no")
+                .utility("U").given("D", "missing").utilities(1, 2, 3, 4)
+                .buildInfluenceDiagram());
+    }
+
+    @Test
+    void influenceDiagram_utilityWrongDimension_throws() {
+        assertThrows(IllegalStateException.class, () ->
+            BayesNetworkBuilder.create()
+                .variable("A", "yes", "no").prior(0.5, 0.5)
+                .decision("D", "yes", "no")
+                .utility("U").given("A", "D").utilities(1, 2, 3)
+                .buildInfluenceDiagram());
+    }
+
+    @Test
+    void existingBuild_ignoresDecisionAndUtility() {
+        BayesNetwork net = BayesNetworkBuilder.create()
+            .variable("A", "yes", "no").prior(0.5, 0.5)
+            .decision("D", "yes", "no")
+            .utility("U").given("A", "D").utilities(10, 5, 2, 8)
+            .build();
+
+        int count = 0;
+        for (var node : net) { count++; }
+        assertEquals(2, count);
+    }
+
+    @Test
     void ternaryChain_matchesFixture() {
         int n = 4;
         var b = BayesNetworkBuilder.create();

@@ -3,15 +3,20 @@ package io.quarkmind.inference.bayes;
 import io.quarkmind.inference.bayes.graph.GraphNode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BayesNetworkBuilder {
 
     private final String name;
     private final List<VariableDefinition> variables = new ArrayList<>();
     private final Map<String, VariableDefinition> variablesByName = new LinkedHashMap<>();
+    private final List<UtilityDefinition> utilities = new ArrayList<>();
+    private final Set<String> decisionNames = new LinkedHashSet<>();
     private VariableDefinition current;
 
     private BayesNetworkBuilder(String name) {
@@ -38,8 +43,33 @@ public class BayesNetworkBuilder {
         return new VariableDef(this);
     }
 
+    public DecisionDef decision(String name, String... outcomes) {
+        finalizeCurrent();
+        if (variablesByName.containsKey(name)) {
+            throw new IllegalStateException("Duplicate variable name: '" + name + "'");
+        }
+        if (outcomes.length < 2) {
+            throw new IllegalStateException("Decision '" + name + "' must have at least 2 outcomes");
+        }
+        double[] uniform = new double[outcomes.length];
+        Arrays.fill(uniform, 1.0 / outcomes.length);
+        current = new VariableDefinition(name, outcomes);
+        current.prior = uniform;
+        decisionNames.add(name);
+        return new DecisionDef(this);
+    }
+
+    public UtilityDef utility(String name) {
+        finalizeCurrent();
+        return new UtilityDef(this, name);
+    }
+
     public BayesNetwork build() {
         return doBuild();
+    }
+
+    public InfluenceDiagram buildInfluenceDiagram() {
+        return doBuildInfluenceDiagram();
     }
 
     public JunctionTree buildJunctionTree() {
@@ -100,6 +130,89 @@ public class BayesNetworkBuilder {
 
     BayesInstance<?> doBuildInstance(boolean enableFastRetract) {
         return new BayesInstance<>(doBuildJunctionTree(), enableFastRetract);
+    }
+
+    InfluenceDiagram doBuildInfluenceDiagram() {
+        finalizeCurrent();
+        validateInfluenceDiagram();
+        ensureUtilityParentConnectivity();
+        BayesNetwork network = doBuild();
+        List<UtilityNode> utilityNodes = new ArrayList<>();
+        for (UtilityDefinition def : utilities) {
+            utilityNodes.add(new UtilityNode(def.name, def.parents, def.utilities));
+        }
+        return new InfluenceDiagram(network, Set.copyOf(decisionNames), List.copyOf(utilityNodes));
+    }
+
+    private void validateInfluenceDiagram() {
+        validate();
+        if (decisionNames.isEmpty()) {
+            throw new IllegalStateException("Influence diagram requires at least one decision node");
+        }
+        if (utilities.isEmpty()) {
+            throw new IllegalStateException("Influence diagram requires at least one utility node");
+        }
+        for (UtilityDefinition util : utilities) {
+            int expectedSize = 1;
+            for (String parentName : util.parents) {
+                VariableDefinition parentDef = variablesByName.get(parentName);
+                if (parentDef == null) {
+                    throw new IllegalStateException("Utility node '" + util.name
+                        + "' references undeclared parent '" + parentName + "'");
+                }
+                expectedSize *= parentDef.outcomes.length;
+            }
+            if (util.utilities.length != expectedSize) {
+                throw new IllegalStateException("Utility node '" + util.name
+                    + "': utilities array has " + util.utilities.length
+                    + " values but expected " + expectedSize
+                    + " (product of parent outcome counts)");
+            }
+        }
+    }
+
+    private void ensureUtilityParentConnectivity() {
+        for (UtilityDefinition util : utilities) {
+            List<String> chanceParents = new ArrayList<>();
+            List<String> decisionParents = new ArrayList<>();
+            for (String parent : util.parents) {
+                if (decisionNames.contains(parent)) {
+                    decisionParents.add(parent);
+                } else {
+                    chanceParents.add(parent);
+                }
+            }
+            if (chanceParents.isEmpty()) continue;
+            for (String decName : decisionParents) {
+                VariableDefinition decDef = variablesByName.get(decName);
+                if (decDef == null) continue;
+                List<String> newParents = new ArrayList<>();
+                if (decDef.parents != null) {
+                    newParents.addAll(Arrays.asList(decDef.parents));
+                }
+                boolean added = false;
+                for (String chance : chanceParents) {
+                    if (!newParents.contains(chance)) {
+                        newParents.add(chance);
+                        added = true;
+                    }
+                }
+                if (added) {
+                    decDef.parents = newParents.toArray(new String[0]);
+                    int parentCombinations = 1;
+                    for (String pName : decDef.parents) {
+                        parentCombinations *= variablesByName.get(pName).outcomes.length;
+                    }
+                    double[][] cpt = new double[parentCombinations][decDef.outcomes.length];
+                    double uniformVal = 1.0 / decDef.outcomes.length;
+                    for (double[] row : cpt) {
+                        Arrays.fill(row, uniformVal);
+                    }
+                    decDef.cpt = cpt;
+                    decDef.prior = null;
+                }
+            }
+        }
     }
 
     private void validate() {
@@ -251,6 +364,14 @@ public class BayesNetworkBuilder {
             return builder.variable(name, outcomes);
         }
 
+        public DecisionDef decision(String name, String... outcomes) {
+            return builder.decision(name, outcomes);
+        }
+
+        public UtilityDef utility(String name) {
+            return builder.utility(name);
+        }
+
         public BayesNetwork build() {
             return builder.doBuild();
         }
@@ -266,6 +387,87 @@ public class BayesNetworkBuilder {
         public BayesInstance<?> buildInstance(boolean enableFastRetract) {
             return builder.doBuildInstance(enableFastRetract);
         }
+
+        public InfluenceDiagram buildInfluenceDiagram() {
+            return builder.doBuildInfluenceDiagram();
+        }
+    }
+
+    public static class DecisionDef {
+        private final BayesNetworkBuilder builder;
+
+        DecisionDef(BayesNetworkBuilder builder) {
+            this.builder = builder;
+        }
+
+        public DecisionDef description(String description) {
+            builder.current.description = description;
+            return this;
+        }
+
+        public VariableDef variable(String name, String... outcomes) {
+            return builder.variable(name, outcomes);
+        }
+
+        public DecisionDef decision(String name, String... outcomes) {
+            return builder.decision(name, outcomes);
+        }
+
+        public UtilityDef utility(String name) {
+            return builder.utility(name);
+        }
+
+        public BayesNetwork build() {
+            return builder.doBuild();
+        }
+
+        public JunctionTree buildJunctionTree() {
+            return builder.doBuildJunctionTree();
+        }
+
+        public BayesInstance<?> buildInstance() {
+            return builder.doBuildInstance(true);
+        }
+
+        public BayesInstance<?> buildInstance(boolean enableFastRetract) {
+            return builder.doBuildInstance(enableFastRetract);
+        }
+
+        public InfluenceDiagram buildInfluenceDiagram() {
+            return builder.doBuildInfluenceDiagram();
+        }
+    }
+
+    public static class UtilityDef {
+        private final BayesNetworkBuilder builder;
+        private final String name;
+
+        UtilityDef(BayesNetworkBuilder builder, String name) {
+            this.builder = builder;
+            this.name = name;
+        }
+
+        public UtilityParentedDef given(String... parents) {
+            UtilityDefinition def = new UtilityDefinition(name);
+            def.parents = parents;
+            return new UtilityParentedDef(builder, def);
+        }
+    }
+
+    public static class UtilityParentedDef {
+        private final BayesNetworkBuilder builder;
+        private final UtilityDefinition def;
+
+        UtilityParentedDef(BayesNetworkBuilder builder, UtilityDefinition def) {
+            this.builder = builder;
+            this.def = def;
+        }
+
+        public CompleteDef utilities(double... values) {
+            def.utilities = values;
+            builder.utilities.add(def);
+            return new CompleteDef(builder);
+        }
     }
 
     private static class VariableDefinition {
@@ -279,6 +481,16 @@ public class BayesNetworkBuilder {
         VariableDefinition(String name, String[] outcomes) {
             this.name = name;
             this.outcomes = outcomes;
+        }
+    }
+
+    private static class UtilityDefinition {
+        final String name;
+        String[] parents;
+        double[] utilities;
+
+        UtilityDefinition(String name) {
+            this.name = name;
         }
     }
 }
