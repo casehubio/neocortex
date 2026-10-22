@@ -128,6 +128,12 @@ public class CognitionCore {
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
     private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 
+    private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong moodSkipped = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong moodError = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bdiSuccess = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bdiFallback = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bdiSkipped = new java.util.concurrent.atomic.AtomicLong();
 
     public CognitionCore(MoodOrchestrator mood,
                          DriveOrchestrator drives,
@@ -338,9 +344,26 @@ public class CognitionCore {
         }
     }
 
+    public record CognitiveTickMetrics(long moodSuccess, long moodSkipped, long moodError,
+                                       long bdiSuccess, long bdiFallback, long bdiSkipped) {
+        public long moodTotal() { return moodSuccess + moodSkipped + moodError; }
+        public long bdiTotal() { return bdiSuccess + bdiFallback + bdiSkipped; }
+        public double moodSuccessRate() { return moodTotal() == 0 ? 0 : (double) moodSuccess / moodTotal(); }
+        public double bdiSuccessRate() { return bdiTotal() == 0 ? 0 : (double) bdiSuccess / bdiTotal(); }
+    }
+
+    public CognitiveTickMetrics tickMetrics() {
+        return new CognitiveTickMetrics(
+            moodSuccess.get(), moodSkipped.get(), moodError.get(),
+            bdiSuccess.get(), bdiFallback.get(), bdiSkipped.get());
+    }
+
     private void appraiseMood(String agentId, String tenantId,
                               String userMessage, String response) {
-        if (sessionPipeline == null) return;
+        if (sessionPipeline == null) {
+            moodSkipped.incrementAndGet();
+            return;
+        }
         try {
             var truncatedMsg = userMessage.length() > 200
                                ? userMessage.substring(0, 200) + "..." : userMessage;
@@ -371,8 +394,10 @@ public class CognitionCore {
                 mood.record(new MoodSignal.InteractionAppraisal(p, a, d,
                                                                 cause.isEmpty() ? "interaction" : cause),
                             agentId, tenantId);
+                moodSuccess.incrementAndGet();
             }
         } catch (Exception e) {
+            moodError.incrementAndGet();
             LOG.log(System.Logger.Level.WARNING, "Mood appraisal failed", e);
         }
     }
@@ -411,11 +436,15 @@ public class CognitionCore {
                     }));
                 var json = responseText.toString();
                 recordExtractedSignals(agentId, subjectId, tenantId, json);
+                bdiSuccess.incrementAndGet();
                 return;
             } catch (Exception e) {
+                bdiFallback.incrementAndGet();
                 LOG.log(System.Logger.Level.WARNING,
                         "LLM BDI extraction failed, falling back to heuristic", e);
             }
+        } else {
+            bdiSkipped.incrementAndGet();
         }
         mentalModel.record(new MentalStateSignal.VerbalCue(
                 utterance.length() > 100 ? utterance.substring(0, 100) : utterance,
