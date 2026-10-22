@@ -172,22 +172,9 @@ public class BayesInstance<T> {
         for (int varId = 0; varId < likelyhoods.length; varId++) {
             if (!dirty.isSet(varId)) {continue;}
             if (previousLikelyhoods[varId] == null) {return false;}
-            BayesLikelyhood newL = likelyhoods[varId];
-            if (newL != null) {
-                for (double v : newL.getDistribution()) {
-                    if (v == 0.0) {return false;}
-                }
-            }
-            int cliqueId = varStates[varId].getVariable().getFamily();
-            for (double v : calibratedCliquePots[cliqueId]) {
-                if (v == LogSpace.LOG_ZERO) {return false;}
-            }
-        }
-        for (JunctionTreeSeparator sep : tree.getJunctionTreeSeparators()) {
-            if (subtreeHasDirty[sep.getChild().getId()]) {
-                for (double v : calibratedSepPots[sep.getId()]) {
-                    if (v == LogSpace.LOG_ZERO) {return false;}
-                }
+            BayesLikelyhood old = previousLikelyhoods[varId];
+            for (double v : old.getDistribution()) {
+                if (v == 0.0) {return false;}
             }
         }
         return true;
@@ -236,6 +223,7 @@ public class BayesInstance<T> {
         // Clean up subtreeHasDirty after retractionUpdate is complete
         Arrays.fill(subtreeHasDirty, false);
     }
+
 
     /**
      * Incremental collect for the Phase 3 retraction path.

@@ -67,7 +67,11 @@ public class BayesAbsorption {
     public static void dividePotentials(double[] potentials, double[] oldPotentials, double[] result) {
         System.arraycopy(potentials, 0, result, 0, potentials.length);
         for (int i = 0; i < potentials.length; i++) {
-            result[i] -= oldPotentials[i];
+            if (result[i] == LogSpace.LOG_ZERO && oldPotentials[i] == LogSpace.LOG_ZERO) {
+                result[i] = 0.0;
+            } else {
+                result[i] -= oldPotentials[i];
+            }
         }
     }
 
@@ -79,7 +83,11 @@ public class BayesAbsorption {
     public static double[] dividePotentials(double[] potentials, double[] oldPotentials) {
         double[] absorbedPotentials = Arrays.copyOf(potentials, potentials.length);
         for (int i = 0; i < potentials.length; i++) {
-            absorbedPotentials[i] -= oldPotentials[i];
+            if (absorbedPotentials[i] == LogSpace.LOG_ZERO && oldPotentials[i] == LogSpace.LOG_ZERO) {
+                absorbedPotentials[i] = 0.0;
+            } else {
+                absorbedPotentials[i] -= oldPotentials[i];
+            }
         }
         return absorbedPotentials;
     }
