@@ -24,37 +24,61 @@ public class DegreeAccumulator {
     private final double allowance;
     private final double threshold;
     private final double decay;
-    private double level;
+    private final double slowAllowance;
+    private final double slowThreshold;
+    private double fastLevel;
+    private double slowLevel;
 
     public DegreeAccumulator(double allowance, double threshold, double decay) {
+        this(allowance, threshold, decay, allowance, Double.MAX_VALUE);
+    }
+
+    public DegreeAccumulator(double allowance, double threshold, double decay,
+                             double slowAllowance, double slowThreshold) {
         this.allowance = allowance;
         this.threshold = threshold;
         this.decay = decay;
-        this.level = 0.0;
+        this.slowAllowance = slowAllowance;
+        this.slowThreshold = slowThreshold;
+        this.fastLevel = 0.0;
+        this.slowLevel = 0.0;
     }
 
     public static DegreeAccumulator withDefaults() {
-        return new DegreeAccumulator(DEFAULT_ALLOWANCE, DEFAULT_THRESHOLD, DEFAULT_DECAY);
+        return fromConfig(DegreeAccumulatorConfig.defaults());
+    }
+
+    public static DegreeAccumulator fromConfig(DegreeAccumulatorConfig config) {
+        return new DegreeAccumulator(config.allowance(), config.threshold(), config.decay(),
+                config.slowAllowance(), config.slowThreshold());
     }
 
     /**
-     * Accumulate a degree signal. Returns true if the threshold was crossed
-     * (classification should fire). Resets the accumulator on firing.
+     * Accumulate a degree signal. Returns true if either channel crossed its
+     * threshold (classification should fire). Resets both channels on firing.
      */
     public boolean accumulate(double degree) {
-        level = Math.max(0.0, level * decay + degree - allowance);
-        if (level >= threshold) {
-            level = 0.0;
-            return true;
+        fastLevel = Math.max(0.0, fastLevel * decay + degree - allowance);
+        slowLevel = Math.max(0.0, slowLevel + degree - slowAllowance);
+
+        boolean fired = fastLevel >= threshold || slowLevel >= slowThreshold;
+        if (fired) {
+            fastLevel = 0.0;
+            slowLevel = 0.0;
         }
-        return false;
+        return fired;
     }
 
     public double currentLevel() {
-        return level;
+        return fastLevel;
+    }
+
+    public double slowLevel() {
+        return slowLevel;
     }
 
     public void reset() {
-        level = 0.0;
+        fastLevel = 0.0;
+        slowLevel = 0.0;
     }
 }

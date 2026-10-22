@@ -70,4 +70,52 @@ class DegreeAccumulatorTest {
         var acc = DegreeAccumulator.withDefaults();
         assertThat(acc.accumulate(0.1)).isFalse();
     }
+
+    @Test
+    void sustainedModerateDegreeFiresSlowChannel() {
+        var     config     = new DegreeAccumulatorConfig(0.2, 1.0, 0.85, 0.15, 2.0);
+        var     acc        = DegreeAccumulator.fromConfig(config);
+        boolean fired      = false;
+        int     fireAtTick = -1;
+        for (int i = 1; i <= 20; i++) {
+            if (acc.accumulate(0.3)) {
+                fired      = true;
+                fireAtTick = i;
+                break;
+            }
+        }
+        assertThat(fired).as("slow channel should fire for sustained degree=0.3").isTrue();
+        assertThat(fireAtTick).as("should fire around tick 14").isBetween(12, 16);
+    }
+
+    @Test
+    void slowChannelDoesNotFireForNoise() {
+        var config = new DegreeAccumulatorConfig(0.2, 1.0, 0.85, 0.15, 2.0);
+        var acc    = DegreeAccumulator.fromConfig(config);
+        for (int i = 0; i < 100; i++) {
+            assertThat(acc.accumulate(0.1)).isFalse();
+        }
+    }
+
+    @Test
+    void fromConfigPreservesParameters() {
+        var config = new DegreeAccumulatorConfig(0.3, 1.5, 0.9, 0.1, 3.0);
+        var acc    = DegreeAccumulator.fromConfig(config);
+        // High threshold: degree=0.9 → fast level = 0.6, needs more ticks
+        assertThat(acc.accumulate(0.9)).isFalse();
+        assertThat(acc.accumulate(0.9)).isFalse(); // 0.6*0.9 + 0.6 = 1.14 < 1.5
+        assertThat(acc.accumulate(0.9)).isTrue();  // should exceed 1.5
+    }
+
+    @Test
+    void firingResetssBothChannels() {
+        var config = new DegreeAccumulatorConfig(0.2, 1.0, 0.85, 0.15, 2.0);
+        var acc    = DegreeAccumulator.fromConfig(config);
+        // Force fire via fast channel
+        acc.accumulate(0.9);
+        acc.accumulate(0.9); // fires
+        assertThat(acc.currentLevel()).isEqualTo(0.0);
+        assertThat(acc.slowLevel()).isEqualTo(0.0);
+    }
+
 }
