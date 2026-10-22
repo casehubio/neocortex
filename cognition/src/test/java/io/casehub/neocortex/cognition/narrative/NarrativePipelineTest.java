@@ -1,21 +1,18 @@
 package io.casehub.neocortex.cognition.narrative;
 
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.memory.ReflectionEntry;
 import io.casehub.neocortex.memory.ReflectionQueryStore;
 import io.casehub.neocortex.summarisation.DefaultSummarisationPipelineFactory;
 import io.casehub.neocortex.summarisation.LevelEventBus;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionConfig;
-import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -45,25 +42,16 @@ class NarrativePipelineTest {
             }
             """;
 
-    static class TestAgentProvider implements AgentProvider {
-        private final String response;
-
-        TestAgentProvider(String response) {
-            this.response = response;
-        }
-
-        @Override
-        public Multi<AgentEvent> invoke(AgentSessionConfig config) {
-            return Multi.createFrom().items(
-                    new AgentEvent.TextDelta(response),
-                    new AgentEvent.InvocationComplete(
-                            100, 50, 0, 0, 0, 0.001, 500L, 400L, "test", 1, false, null, null));
-        }
-
-        @Override
-        public AgentSession openSession(AgentSessionInit init) {
-            throw new UnsupportedOperationException();
-        }
+    private static NarrativeContentSummariser stubSummariser(String response) {
+        var s = new NarrativeContentSummariser(NarrativeConfig.defaults());
+        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                return Multi.createFrom().item(new AgentEvent.TextDelta(response));
+            }
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return s;
     }
 
     @Test
@@ -86,9 +74,7 @@ class NarrativePipelineTest {
         var narrativeMemory = mock(NarrativeMemory.class);
         when(narrativeMemory.load(any(), any())).thenReturn(null);
 
-        var agentProvider = new TestAgentProvider(VALID_RESPONSE);
-        var summariser = new NarrativeContentSummariser(agentProvider,
-                NarrativeConfig.defaults());
+        var summariser = stubSummariser(VALID_RESPONSE);
 
         var pipelineFactory = new DefaultSummarisationPipelineFactory();
 
@@ -119,9 +105,7 @@ class NarrativePipelineTest {
         var narrativeMemory = mock(NarrativeMemory.class);
         when(narrativeMemory.load(any(), any())).thenReturn(existingState);
 
-        var agentProvider = new TestAgentProvider(VALID_RESPONSE);
-        var summariser = new NarrativeContentSummariser(agentProvider,
-                NarrativeConfig.defaults());
+        var summariser = stubSummariser(VALID_RESPONSE);
 
         var pipelineFactory = new DefaultSummarisationPipelineFactory();
 

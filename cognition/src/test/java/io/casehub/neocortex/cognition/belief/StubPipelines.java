@@ -23,7 +23,7 @@ public final class StubPipelines {
 
     private StubPipelines() {}
 
-    static SessionPipeline create(Function<AgentSessionInit, AgentSession> sessionFactory) {
+    public static SessionPipeline create(Function<AgentSessionInit, AgentSession> sessionFactory) {
         AgentBackend backend = new AgentBackend() {
             @Override
             public String key() { return "stub"; }

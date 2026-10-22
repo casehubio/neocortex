@@ -1,13 +1,12 @@
 package io.casehub.neocortex.cognition.appraisal;
 
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +17,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LlmAppraisalStrategyTest {
-
-    private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
 
     @Test
     void parsesJsonAndProducesEmotions() {
@@ -36,7 +32,7 @@ class LlmAppraisalStrategyTest {
                     "external-standards": 1.0
                   }
                 }""";
-        var strategy = new LlmAppraisalStrategy(stubProvider(json));
+        var strategy = stubStrategy(json);
         var ctx = context("Clara is missing from the room",
                 List.of(new Drive("protection", DriveCategory.CHARACTER, 0.8, "")));
 
@@ -62,7 +58,7 @@ class LlmAppraisalStrategyTest {
                     "external-standards": 1.0
                   }
                 }""";
-        var strategy = new LlmAppraisalStrategy(stubProvider(json));
+        var strategy = stubStrategy(json);
         var ctx = context("A hidden inscription reveals the puzzle's answer",
                 List.of(new Drive("curiosity", DriveCategory.CHARACTER, 0.7, "")));
 
@@ -76,7 +72,7 @@ class LlmAppraisalStrategyTest {
 
     @Test
     void fallsBackToEmptyOnLlmFailure() {
-        var strategy = new LlmAppraisalStrategy(errorProvider());
+        var strategy = errorStrategy();
         var ctx = context("some situation",
                 List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
 
@@ -88,7 +84,7 @@ class LlmAppraisalStrategyTest {
 
     @Test
     void fallsBackToEmptyOnMalformedJson() {
-        var strategy = new LlmAppraisalStrategy(stubProvider("not json at all"));
+        var strategy = stubStrategy("not json at all");
         var ctx = context("some situation",
                 List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
 
@@ -105,7 +101,7 @@ class LlmAppraisalStrategyTest {
                   "narrative": "You feel alert.",
                   "dimensions": { "relevance": 0.6, "novelty": 0.7, "conduciveness": 0.0 }
                 }""";
-        var strategy = new LlmAppraisalStrategy(stubProvider(json));
+        var strategy = stubStrategy(json);
         var ctx = context("something happens",
                 List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
 
@@ -121,7 +117,7 @@ class LlmAppraisalStrategyTest {
                   "narrative": "Uneasy calm.",
                   "dimensions": { "relevance": 0.5, "conduciveness": -0.2 }
                 }""";
-        var strategy = new LlmAppraisalStrategy(stubProvider(json));
+        var strategy = stubStrategy(json);
         var mood = new MoodState("a1", "t1", Instant.now(), -0.3, 0.2, 0.1,
                 "prior", null, null, Map.of());
         var ctx = new AppraisalContext(
@@ -137,25 +133,20 @@ class LlmAppraisalStrategyTest {
     @Test
     void includesDispositionInPromptWhenAvailable() {
         var capturedMessage = new String[1];
-        AgentProvider capturingProvider = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                capturedMessage[0] = config.userPrompt();
+        var strategy = new LlmAppraisalStrategy();
+        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
                 var json = """
                            {
                              "narrative": "A surge of defiance.",
                              "dimensions": { "relevance": 0.7, "conduciveness": -0.3 }
                            }""";
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta(json), COMPLETE);
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
             }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
-        var strategy = new LlmAppraisalStrategy(capturingProvider);
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
         var disposition = new DispositionAxes(
                 "assertive", "low", "high", "high", "confrontational");
         var ctx = new AppraisalContext(
@@ -174,25 +165,20 @@ class LlmAppraisalStrategyTest {
     @Test
     void omitsDispositionFromPromptWhenNull() {
         var capturedMessage = new String[1];
-        AgentProvider capturingProvider = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                capturedMessage[0] = config.userPrompt();
+        var strategy = new LlmAppraisalStrategy();
+        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
                 var json = """
                            {
                              "narrative": "Calm.",
                              "dimensions": { "relevance": 0.3, "conduciveness": 0.1 }
                            }""";
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta(json), COMPLETE);
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
             }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
-        var strategy = new LlmAppraisalStrategy(capturingProvider);
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
         var ctx      = context("a quiet morning", List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
 
         strategy.appraise(ctx);
@@ -208,32 +194,27 @@ class LlmAppraisalStrategyTest {
                 HabituationState.empty(), null);
     }
 
-    private static AgentProvider stubProvider(String response) {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta(response), COMPLETE);
+    private static LlmAppraisalStrategy stubStrategy(String response) {
+        var strategy = new LlmAppraisalStrategy();
+        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return strategy;
     }
 
-    private static AgentProvider errorProvider() {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
+    private static LlmAppraisalStrategy errorStrategy() {
+        var strategy = new LlmAppraisalStrategy();
+        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
             }
-
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return strategy;
     }
 }

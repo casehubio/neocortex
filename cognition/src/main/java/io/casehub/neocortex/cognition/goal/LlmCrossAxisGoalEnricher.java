@@ -55,7 +55,8 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
                         .map(e -> ((AgentEvent.TextDelta) e).text())
                         .forEach(responseText::append);
                 }));
-            return responseText.isEmpty() ? null : responseText.toString();
+            var text = responseText.toString();
+            return text.isBlank() ? null : text;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Agent invocation failed for cross-axis goal enrichment", e);
             return null;

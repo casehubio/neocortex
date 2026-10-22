@@ -1,14 +1,13 @@
 package io.casehub.neocortex.cognition.goal;
 
+import io.casehub.neocortex.cognition.belief.StubPipelines;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.drive.DriveIntensity;
 import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.platform.agent.AgentEvent;
-import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSession;
-import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.Test;
 
@@ -19,9 +18,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LlmDeductiveGoalFormationStrategyTest {
-
-    private static final AgentEvent.InvocationComplete COMPLETE =
-            new AgentEvent.InvocationComplete(0, 0, 0, 0, 0, null, 0L, 0L, null, 0, false, null, null);
 
     @Test
     void parsesMultiGoalJsonResponse() {
@@ -40,7 +36,7 @@ class LlmDeductiveGoalFormationStrategyTest {
                     "driveContributions": { "AUTONOMY": 0.7 }
                   }
                 ]""";
-        var strategy = new LlmDeductiveGoalFormationStrategy(stubProvider(json));
+        var strategy = stubStrategy(json);
         var ctx = contextWithDrives();
 
         var proposals = strategy.propose(ctx);
@@ -54,19 +50,15 @@ class LlmDeductiveGoalFormationStrategyTest {
     @Test
     void includesDispositionInPrompt() {
         var capturedPrompt = new String[1];
-        AgentProvider capturing = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                capturedPrompt[0] = config.userPrompt();
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta("[]"), COMPLETE);
+        var strategy = new LlmDeductiveGoalFormationStrategy();
+        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                capturedPrompt[0] = prompt;
+                return Multi.createFrom().item(new AgentEvent.TextDelta("[]"));
             }
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
-        var strategy = new LlmDeductiveGoalFormationStrategy(capturing);
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
         var disposition = new DispositionAxes(
                 "competitive", "flexible", "bold", "high", "competitive");
         var profile = new DriveProfile("a1", "t1",
@@ -90,19 +82,15 @@ class LlmDeductiveGoalFormationStrategyTest {
     @Test
     void includesMoodInPrompt() {
         var capturedPrompt = new String[1];
-        AgentProvider capturing = new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                capturedPrompt[0] = config.userPrompt();
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta("[]"), COMPLETE);
+        var strategy = new LlmDeductiveGoalFormationStrategy();
+        strategy.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                capturedPrompt[0] = prompt;
+                return Multi.createFrom().item(new AgentEvent.TextDelta("[]"));
             }
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
-        var strategy = new LlmDeductiveGoalFormationStrategy(capturing);
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
         var mood = new MoodState("a1", "t1", Instant.now(), -0.5, 0.8, 0.3,
                 "anxious", null, null, Map.of());
         var profile = new DriveProfile("a1", "t1", Map.of(), 0.0, DriveAxis.CURIOSITY, Instant.now());
@@ -117,13 +105,13 @@ class LlmDeductiveGoalFormationStrategyTest {
 
     @Test
     void returnsEmptyOnLlmFailure() {
-        var strategy = new LlmDeductiveGoalFormationStrategy(errorProvider());
+        var strategy = errorStrategy();
         assertThat(strategy.propose(contextWithDrives())).isEmpty();
     }
 
     @Test
     void returnsEmptyOnMalformedJson() {
-        var strategy = new LlmDeductiveGoalFormationStrategy(stubProvider("not json"));
+        var strategy = stubStrategy("not json");
         assertThat(strategy.propose(contextWithDrives())).isEmpty();
     }
 
@@ -135,7 +123,7 @@ class LlmDeductiveGoalFormationStrategyTest {
 
     @Test
     void handlesEmptyArrayResponse() {
-        var strategy = new LlmDeductiveGoalFormationStrategy(stubProvider("[]"));
+        var strategy = stubStrategy("[]");
         assertThat(strategy.propose(contextWithDrives())).isEmpty();
     }
 
@@ -146,7 +134,7 @@ class LlmDeductiveGoalFormationStrategyTest {
                   { "description": "no name", "reasoning": "r", "driveContributions": {} },
                   { "goalName": "valid", "description": "d", "reasoning": "r", "driveContributions": { "CURIOSITY": 0.5 } }
                 ]""";
-        var strategy = new LlmDeductiveGoalFormationStrategy(stubProvider(json));
+        var strategy = stubStrategy(json);
         var proposals = strategy.propose(contextWithDrives());
         assertThat(proposals).hasSize(1);
         assertThat(proposals.get(0).goalName()).isEqualTo("valid");
@@ -160,30 +148,27 @@ class LlmDeductiveGoalFormationStrategyTest {
                 "a1", "t1", profile, null, List.of(), List.of(), null, List.of(), 3);
     }
 
-    private static AgentProvider stubProvider(String response) {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
-                return Multi.createFrom().items(
-                        new AgentEvent.TextDelta(response), COMPLETE);
+    private static LlmDeductiveGoalFormationStrategy stubStrategy(String response) {
+        var s = new LlmDeductiveGoalFormationStrategy();
+        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
+                return Multi.createFrom().item(new AgentEvent.TextDelta(response));
             }
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return s;
     }
 
-    private static AgentProvider errorProvider() {
-        return new AgentProvider() {
-            @Override
-            public Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {
+    private static LlmDeductiveGoalFormationStrategy errorStrategy() {
+        var s = new LlmDeductiveGoalFormationStrategy();
+        s.setSessionPipeline(StubPipelines.create(init -> new AgentSession() {
+            @Override public Multi<AgentEvent> query(String prompt) {
                 return Multi.createFrom().failure(new RuntimeException("LLM unavailable"));
             }
-            @Override
-            public AgentSession openSession(AgentSessionInit init) {
-                throw new UnsupportedOperationException();
-            }
-        };
+            @Override public io.smallrye.mutiny.Uni<Void> interrupt() { return io.smallrye.mutiny.Uni.createFrom().voidItem(); }
+            @Override public void close(java.time.Duration timeout) {}
+        }));
+        return s;
     }
 }
