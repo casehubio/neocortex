@@ -52,7 +52,7 @@ public class EvidenceFusionEngine {
 
     public double[] marginalize() {
         BayesVariableState state = instance.marginalize(targetVariable);
-        return state.getDistribution();
+        return state.getDistribution().clone();
     }
 
     public java.util.Map<String, Double> getVariableSensitivities() {

@@ -329,10 +329,6 @@ public class BayesInstance<T> {
         }
     }
 
-    public void setTargetClass(Class<T> targetClass) {
-    }
-
-
 
     public GlobalUpdateListener getGlobalUpdateListener() {
         return globalUpdateListener;
@@ -365,10 +361,6 @@ public class BayesInstance<T> {
 
     public Map<String, BayesVariable> getFieldNames() {
         return fieldNames;
-    }
-
-    public void setDecided(String varName, boolean bool) {
-
     }
 
     public void setDecided(BayesVariable var, boolean bool) {
@@ -413,6 +405,10 @@ public class BayesInstance<T> {
 
 
     public void setLikelyhood(BayesVariable var, double[] distribution) {
+        if (distribution.length != var.getOutcomes().length) {
+            throw new IllegalArgumentException("Distribution length " + distribution.length
+                    + " does not match variable '" + var.getName() + "' outcome count " + var.getOutcomes().length);
+        }
         GraphNode node = graph.getNode( var.getId() );
         JunctionTreeClique clique = tree.getJunctionTreeNodes( )[var.getFamily()];
 
@@ -976,6 +972,7 @@ public class BayesInstance<T> {
         dirty   = BitMask.getEmpty(graph.size());
         decided = BitMask.getEmpty(graph.size());
         variables.put(name, newVar);
+        fieldNames.put(name, newVar);
         calibrated = false;
 
         return newVar;
@@ -1010,6 +1007,7 @@ public class BayesInstance<T> {
         previousLikelyhoods[var.getId()]                    = null;
 
         variables.remove(name);
+        dirty = dirty.reset(var.getId());
         calibrated = false;
     }
 

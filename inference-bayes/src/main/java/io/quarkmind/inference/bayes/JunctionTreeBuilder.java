@@ -406,7 +406,7 @@ public class JunctionTreeBuilder {
                 // connection made, remove from the graph, before recursion
                 sepGraph[set.getId1()][set.getId2()] = null;
                 sepGraph[set.getId2()][set.getId1()] = null;
-                createJunctionTreeGraph(sepGraph, child, jtNodes, jtSeps, i);
+                i = createJunctionTreeGraph(sepGraph, child, jtNodes, jtSeps, i);
             }
         }
         return i;

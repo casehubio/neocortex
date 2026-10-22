@@ -5,7 +5,6 @@ import io.quarkmind.inference.bayes.BayesVariable;
 import io.quarkmind.inference.bayes.JunctionTree;
 import io.quarkmind.inference.bayes.JunctionTreeBuilder;
 import io.quarkmind.inference.bayes.graph.Graph;
-import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.graph.GraphNode;
 import io.quarkmind.inference.bayes.graph.impl.EdgeImpl;
 
@@ -125,5 +124,96 @@ public class BayesNetworkFixtures {
 
         return graph;
     }
+
+    /**
+     * Builds a polytree that produces a junction tree with branching at depth > 1.
+     * Structure: A→B, A→C, B→D, B→E, C→F, C→G.
+     * After triangulation, the JT has nested branching — root clique has multiple
+     * children, and those children have their own children.
+     */
+    public static JunctionTree buildPolyTree() {
+        Graph<BayesVariable> graph = new BayesNetwork();
+
+        @SuppressWarnings("unchecked")
+        GraphNode<BayesVariable>[] nodes = new GraphNode[7];
+        for (int i = 0; i < 7; i++) {
+            nodes[i] = graph.addNode();
+        }
+
+        nodes[0].setContent(new BayesVariable<String>("A", 0,
+                                                      new String[]{"false", "true"}, new double[][]{{0.5, 0.5}}));
+        nodes[1].setContent(new BayesVariable<String>("B", 1,
+                                                      new String[]{"false", "true"}, new double[][]{{0.7, 0.3}, {0.4, 0.6}}));
+        nodes[2].setContent(new BayesVariable<String>("C", 2,
+                                                      new String[]{"false", "true"}, new double[][]{{0.6, 0.4}, {0.3, 0.7}}));
+        nodes[3].setContent(new BayesVariable<String>("D", 3,
+                                                      new String[]{"false", "true"}, new double[][]{{0.8, 0.2}, {0.2, 0.8}}));
+        nodes[4].setContent(new BayesVariable<String>("E", 4,
+                                                      new String[]{"false", "true"}, new double[][]{{0.9, 0.1}, {0.5, 0.5}}));
+        nodes[5].setContent(new BayesVariable<String>("F", 5,
+                                                      new String[]{"false", "true"}, new double[][]{{0.7, 0.3}, {0.4, 0.6}}));
+        nodes[6].setContent(new BayesVariable<String>("G", 6,
+                                                      new String[]{"false", "true"}, new double[][]{{0.6, 0.4}, {0.1, 0.9}}));
+
+        // A→B, A→C
+        EdgeImpl e1 = new EdgeImpl();
+        e1.setOutGraphNode(nodes[0]);
+        e1.setInGraphNode(nodes[1]);
+        EdgeImpl e2 = new EdgeImpl();
+        e2.setOutGraphNode(nodes[0]);
+        e2.setInGraphNode(nodes[2]);
+        // B→D, B→E
+        EdgeImpl e3 = new EdgeImpl();
+        e3.setOutGraphNode(nodes[1]);
+        e3.setInGraphNode(nodes[3]);
+        EdgeImpl e4 = new EdgeImpl();
+        e4.setOutGraphNode(nodes[1]);
+        e4.setInGraphNode(nodes[4]);
+        // C→F, C→G
+        EdgeImpl e5 = new EdgeImpl();
+        e5.setOutGraphNode(nodes[2]);
+        e5.setInGraphNode(nodes[5]);
+        EdgeImpl e6 = new EdgeImpl();
+        e6.setOutGraphNode(nodes[2]);
+        e6.setInGraphNode(nodes[6]);
+
+        return new JunctionTreeBuilder(graph).build();
+    }
+
+    /**
+     * Builds a chain of {@code n} ternary variables (3 states each).
+     * var_0 has prior [0.5, 0.3, 0.2]. Each subsequent variable has CPT:
+     * parent=0: [0.6, 0.3, 0.1], parent=1: [0.2, 0.5, 0.3], parent=2: [0.1, 0.2, 0.7].
+     */
+    public static JunctionTree buildTernaryChain(int n) {
+        if (n < 2) {throw new IllegalArgumentException("Chain must have at least 2 variables");}
+
+        Graph<BayesVariable> graph = new BayesNetwork();
+
+        @SuppressWarnings("unchecked")
+        GraphNode<BayesVariable>[] nodes = new GraphNode[n];
+        for (int i = 0; i < n; i++) {
+            nodes[i] = graph.addNode();
+        }
+
+        nodes[0].setContent(new BayesVariable<String>(
+                varName(0), nodes[0].getId(),
+                new String[]{"low", "med", "high"},
+                new double[][]{{0.5, 0.3, 0.2}}));
+
+        for (int i = 1; i < n; i++) {
+            nodes[i].setContent(new BayesVariable<String>(
+                    varName(i), nodes[i].getId(),
+                    new String[]{"low", "med", "high"},
+                    new double[][]{{0.6, 0.3, 0.1}, {0.2, 0.5, 0.3}, {0.1, 0.2, 0.7}}));
+
+            EdgeImpl edge = new EdgeImpl();
+            edge.setOutGraphNode(nodes[i - 1]);
+            edge.setInGraphNode(nodes[i]);
+        }
+
+        return new JunctionTreeBuilder(graph).build();
+    }
+
 
 }
