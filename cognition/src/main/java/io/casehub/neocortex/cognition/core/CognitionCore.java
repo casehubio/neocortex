@@ -128,6 +128,15 @@ public class CognitionCore {
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
     private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 
+    private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong moodSkipped = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong moodFallback = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong moodError = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bdiSuccess = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bdiFallback = new java.util.concurrent.atomic.AtomicLong();
+    private final java.util.concurrent.atomic.AtomicLong bdiSkipped = new java.util.concurrent.atomic.AtomicLong();
+    private static final double MOOD_FALLBACK_DECAY = 0.5;
+    private final java.util.concurrent.ConcurrentHashMap<String, double[]> lastMoodDelta = new java.util.concurrent.ConcurrentHashMap<>();
 
     public CognitionCore(MoodOrchestrator mood,
                          DriveOrchestrator drives,
@@ -338,9 +347,31 @@ public class CognitionCore {
         }
     }
 
+    public record CognitiveTickMetrics(long moodSuccess, long moodFallback, long moodSkipped, long moodError,
+                                       long bdiSuccess, long bdiFallback, long bdiSkipped) {
+        public long moodTotal() { return moodSuccess + moodFallback + moodSkipped + moodError; }
+        public long bdiTotal() { return bdiSuccess + bdiFallback + bdiSkipped; }
+        public double moodSuccessRate() { return moodTotal() == 0 ? 0 : (double) moodSuccess / moodTotal(); }
+        public double moodSignalRate() { return moodTotal() == 0 ? 0 : (double) (moodSuccess + moodFallback) / moodTotal(); }
+        public double bdiSuccessRate() { return bdiTotal() == 0 ? 0 : (double) bdiSuccess / bdiTotal(); }
+    }
+
+    public CognitiveTickMetrics tickMetrics() {
+        return new CognitiveTickMetrics(
+            moodSuccess.get(), moodFallback.get(), moodSkipped.get(), moodError.get(),
+            bdiSuccess.get(), bdiFallback.get(), bdiSkipped.get());
+    }
+
+    public void seedMoodFallback(String agentId, double p, double a, double d) {
+        lastMoodDelta.put(agentId, new double[]{p, a, d});
+    }
+
     private void appraiseMood(String agentId, String tenantId,
                               String userMessage, String response) {
-        if (sessionPipeline == null) return;
+        if (sessionPipeline == null) {
+            applyMoodFallback(agentId, tenantId);
+            return;
+        }
         try {
             var truncatedMsg = userMessage.length() > 200
                                ? userMessage.substring(0, 200) + "..." : userMessage;
@@ -368,13 +399,38 @@ public class CognitionCore {
                 p = Math.clamp(p, -0.3, 0.3);
                 a = Math.clamp(a, -0.3, 0.3);
                 d = Math.clamp(d, -0.3, 0.3);
+                lastMoodDelta.put(agentId, new double[]{p, a, d});
                 mood.record(new MoodSignal.InteractionAppraisal(p, a, d,
                                                                 cause.isEmpty() ? "interaction" : cause),
                             agentId, tenantId);
+                moodSuccess.incrementAndGet();
             }
         } catch (Exception e) {
-            LOG.log(System.Logger.Level.WARNING, "Mood appraisal failed", e);
+            applyMoodFallback(agentId, tenantId);
+            moodError.incrementAndGet();
+            LOG.log(System.Logger.Level.WARNING, "Mood appraisal failed, applied fallback", e);
         }
+    }
+
+    private void applyMoodFallback(String agentId, String tenantId) {
+        double[] prior = lastMoodDelta.get(agentId);
+        if (prior == null) {
+            moodSkipped.incrementAndGet();
+            return;
+        }
+        double p = prior[0] * MOOD_FALLBACK_DECAY;
+        double a = prior[1] * MOOD_FALLBACK_DECAY;
+        double d = prior[2] * MOOD_FALLBACK_DECAY;
+        prior[0] = p;
+        prior[1] = a;
+        prior[2] = d;
+        if (Math.abs(p) < 0.01 && Math.abs(a) < 0.01 && Math.abs(d) < 0.01) {
+            lastMoodDelta.remove(agentId);
+            moodSkipped.incrementAndGet();
+            return;
+        }
+        mood.record(new MoodSignal.InteractionAppraisal(p, a, d, "fallback"), agentId, tenantId);
+        moodFallback.incrementAndGet();
     }
 
     private InteractionSignal deriveQualitySignal(String agentId, String tenantId,
@@ -411,11 +467,15 @@ public class CognitionCore {
                     }));
                 var json = responseText.toString();
                 recordExtractedSignals(agentId, subjectId, tenantId, json);
+                bdiSuccess.incrementAndGet();
                 return;
             } catch (Exception e) {
+                bdiFallback.incrementAndGet();
                 LOG.log(System.Logger.Level.WARNING,
                         "LLM BDI extraction failed, falling back to heuristic", e);
             }
+        } else {
+            bdiSkipped.incrementAndGet();
         }
         mentalModel.record(new MentalStateSignal.VerbalCue(
                 utterance.length() > 100 ? utterance.substring(0, 100) : utterance,

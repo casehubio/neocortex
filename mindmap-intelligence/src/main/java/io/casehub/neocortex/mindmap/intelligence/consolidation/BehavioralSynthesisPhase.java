@@ -388,7 +388,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 for (String nodeId : targetNodes) {
                     combinedActivations.merge(nodeId, intensity, Math::max);
                 }
-            } else {
+            } else if (classifier != null) {
                 String description = node.properties().get("description");
                 if (description == null || description.isBlank()) {continue;}
                 var activations = classifier.classify(description, Map.of());
