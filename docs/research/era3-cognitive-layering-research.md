@@ -1264,3 +1264,21 @@ Principles P85-P88 documented in CHARACTER-EMERGENCE-FINDINGS.md Phase 10. See t
 - Gray, J. A. (1982). The Neuropsychology of Anxiety. BAS/BIS approach-avoidance.
 - McClelland, D. C. (1961). The Achieving Society. Achievement motivation and task focus.
 - Barrett, L. F. (2017). How Emotions Are Made. Constructed emotion — temporal experience as context-dependent prediction.
+
+---
+
+## Supporting Research Files
+
+Standalone literature reviews and research that informed era3 implementation decisions. All in `docs/research/`:
+
+| File | Informed | How |
+|---|---|---|
+| `UNIFIED-PERSONALITY-MODEL-SYNTHESIS.md` | Phases 1-4 capability plan | Cross-mapped 9 psychological models (AMPD, Big Five, Schema Therapy, IPC, PAD, HiTOP, Psychopathy, Dark Triad, Attachment) into the dimensional framework used for personality parameterisation |
+| `interpersonal-relationship-models.md` | Phase 2 ToM implementation | 7 dimensional frameworks (IPC, Attachment, Object Relations, Sternberg, McCroskey/McCain, Baldwin Relational Schemas, PPR) for per-relationship modeling. PD-specific distortion filters |
+| `schema-therapy-research-2026-10-07.md` | Phase 1 self-standards | 18 Early Maladaptive Schemas, schema modes, Cluster B PD profiles. Developmental cascade from childhood needs → schemas → attachment → traits → PD |
+| `memory-retrieval-models-research.md` | Phase 6 consolidation trigger | Hybrid multi-signal retrieval (tag filtering + PAD proximity + importance tiers). Bower 1981, Park et al. 2023 |
+| `psychopathy-models-research.md` | Antisocial personality dimension | PCL-R four-factor, Triarchic model, Dark Triad/Tetrad. Meanness-driven appraisal modification, attention bottleneck, affective inversion |
+| `consolidation-trigger-literature-2026-10-22.md` | Phase 6 consolidation trigger | CUSUM critique with Park/Shinde/CLS convergence. Direct source for P93 |
+| `2026-09-23-computational-emotion-research.md` | Phase 1 self-conscious emotions | OCC model: 22 emotion types, appraisal dimensions, computational implementations (relocated from agency) |
+| `structured-personality-composition-in-llm-agents.md` | Overall architecture | Research paper draft — 5-axis Eidos coordinate system, 4-layer experiment, composition compatibility matrix |
+| `llm-autonomy-landscape-2026.md` | Competitive positioning | 9-project landscape survey with capability taxonomy and fit-gap matrix |
