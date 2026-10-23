@@ -155,4 +155,58 @@ class NetworkSpecTest {
         assertThat(spec.edges()).isEmpty();
     }
 
+
+    @Test
+    void withVariableLockedChangesStatus() {
+        var v = new VariableSpec("A", List.of("y", "n"), "", SpecStatus.PROPOSED, null);
+        var spec = new NetworkSpec("test", List.of(v), List.of(), "desc")
+                           .withVariableLocked("A");
+        assertThat(spec.variables().get(0).status()).isEqualTo(SpecStatus.LOCKED);
+    }
+
+    @Test
+    void withEdgeLockedChangesStatus() {
+        var a    = new VariableSpec("A", List.of("y", "n"), "", SpecStatus.PROPOSED, null);
+        var b    = new VariableSpec("B", List.of("y", "n"), "", SpecStatus.PROPOSED, null);
+        var edge = new EdgeSpec("A", "B", "cause", SpecStatus.PROPOSED);
+        var spec = new NetworkSpec("test", List.of(a, b), List.of(edge), "desc")
+                           .withEdgeLocked("A", "B");
+        assertThat(spec.edges().get(0).status()).isEqualTo(SpecStatus.LOCKED);
+    }
+
+    @Test
+    void withEdgeAcceptedChangesStatus() {
+        var a    = new VariableSpec("A", List.of("y", "n"), "", SpecStatus.PROPOSED, null);
+        var b    = new VariableSpec("B", List.of("y", "n"), "", SpecStatus.PROPOSED, null);
+        var edge = new EdgeSpec("A", "B", "cause", SpecStatus.PROPOSED);
+        var spec = new NetworkSpec("test", List.of(a, b), List.of(edge), "desc")
+                           .withEdgeAccepted("A", "B");
+        assertThat(spec.edges().get(0).status()).isEqualTo(SpecStatus.ACCEPTED);
+    }
+
+    @Test
+    void withVariableNotFoundThrows() {
+        var spec = new NetworkSpec("test", List.of(), List.of(), "desc");
+        assertThatThrownBy(() -> spec.withVariableAccepted("Missing"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+    }
+
+    @Test
+    void withEdgeNotFoundThrows() {
+        var spec = new NetworkSpec("test", List.of(), List.of(), "desc");
+        assertThatThrownBy(() -> spec.withEdgeAccepted("A", "B"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+    }
+
+    @Test
+    void immutabilityOfOriginalSpec() {
+        var a        = new VariableSpec("A", List.of("y", "n"), "", SpecStatus.PROPOSED, null);
+        var spec     = new NetworkSpec("test", List.of(a), List.of(), "desc");
+        var modified = spec.withVariableAccepted("A");
+        assertThat(spec.variables().get(0).status()).isEqualTo(SpecStatus.PROPOSED);
+        assertThat(modified.variables().get(0).status()).isEqualTo(SpecStatus.ACCEPTED);
+    }
+
 }

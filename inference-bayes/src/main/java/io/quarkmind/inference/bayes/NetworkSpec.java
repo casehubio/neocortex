@@ -140,7 +140,15 @@ public record NetworkSpec(
             return direct.values();
         }
         if (spec instanceof CptSpec.NoisyOr noisyOr) {
-            return NoisyOrExpander.expand(noisyOr, numOutcomes);
+            Map<String, ParentInfluence> byParent = new HashMap<>();
+            for (var pi : noisyOr.parentInfluences()) byParent.put(pi.parentName(), pi);
+            var ordered = new ArrayList<ParentInfluence>();
+            for (String p : parents) {
+                var pi = byParent.get(p);
+                if (pi != null) ordered.add(pi);
+            }
+            var filtered = new CptSpec.NoisyOr(ordered, noisyOr.leak());
+            return NoisyOrExpander.expand(filtered, numOutcomes);
         }
         throw new IllegalStateException("Unknown CptSpec type: " + spec.getClass());
     }
