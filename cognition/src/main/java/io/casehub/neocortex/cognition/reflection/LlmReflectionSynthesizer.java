@@ -15,13 +15,13 @@ import io.casehub.neocortex.memory.reflection.runtime.TrajectoryOutcome;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
-import jakarta.annotation.Nullable;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Alternative
 @Priority(1)
@@ -66,20 +67,20 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
         - Do not repeat existing insights listed at the end of the input
         - Respond with valid JSON only""";
 
-    private final @Nullable SessionPipeline sessionPipeline;
+    private final Instance<SessionPipeline> pipelineInstance;
     private final Instance<CaseMemoryStore> storeInstance;
 
     @Inject
-    public LlmReflectionSynthesizer(@Nullable SessionPipeline sessionPipeline,
-                                    Instance<CaseMemoryStore> storeInstance) {
-        this.sessionPipeline = sessionPipeline;
-        this.storeInstance   = storeInstance;
+    public LlmReflectionSynthesizer(Instance<SessionPipeline> pipelineInstance,
+                                     Instance<CaseMemoryStore> storeInstance) {
+        this.pipelineInstance = pipelineInstance;
+        this.storeInstance = storeInstance;
     }
 
     @Override
     public List<ReflectionEvent> synthesize(String agentId, String tenantId,
                                              List<Memory> sources, int targetLevel) {
-        if (sessionPipeline == null) return List.of();
+        if (pipelineInstance.isUnsatisfied()) return List.of();
         if (sources.isEmpty()) return List.of();
 
         var trajectories = TrajectoryGrouper.group(sources);
@@ -103,16 +104,33 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
     }
 
     private String invokeLlm(String userPrompt) {
-        var session = sessionPipeline.openSession("reflection",
-                                                  AgentSessionInit.of(SYSTEM_PROMPT));
+        var pipeline = pipelineInstance.get();
+        String id = "reflection-" + Thread.currentThread().threadId();
+        var session = pipeline.openSession(id, AgentSessionInit.of(SYSTEM_PROMPT));
+        try {
+            var events = session.query(userPrompt)
+                .collect().asList()
+                .await().atMost(Duration.ofMinutes(2));
 
-        var responseText = new StringBuilder();
-        session.query(userPrompt).subscribe().asStream()
-               .filter(e -> e instanceof AgentEvent.TextDelta)
-               .map(e -> ((AgentEvent.TextDelta) e).text())
-               .forEach(responseText::append);
+            boolean hasError = events.stream()
+                .filter(AgentEvent.InvocationComplete.class::isInstance)
+                .map(AgentEvent.InvocationComplete.class::cast)
+                .anyMatch(AgentEvent.InvocationComplete::isError);
+            if (hasError) {
+                LOG.warning("LLM reflection invocation completed with error flag");
+                return null;
+            }
 
-        return responseText.isEmpty() ? null : responseText.toString();
+            String text = events.stream()
+                .filter(AgentEvent.TextDelta.class::isInstance)
+                .map(AgentEvent.TextDelta.class::cast)
+                .map(AgentEvent.TextDelta::text)
+                .collect(Collectors.joining());
+
+            return text.isEmpty() ? null : text;
+        } finally {
+            pipeline.releaseSession(id);
+        }
     }
 
     private Map<String, Set<String>> buildTurnIndex(List<Memory> sources) {

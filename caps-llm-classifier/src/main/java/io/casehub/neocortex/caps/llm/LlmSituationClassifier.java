@@ -9,8 +9,7 @@ import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
-import io.casehub.platform.agent.session.PooledSession;
-import io.casehub.platform.agent.session.SessionPool;
+import io.casehub.platform.agent.session.SessionPipeline;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,13 +25,15 @@ public class LlmSituationClassifier implements SituationClassifier {
     private static final double CONFIDENCE_THRESHOLD = 0.3;
     private static final Duration TIMEOUT = Duration.ofSeconds(120);
 
-    private final SessionPool sessionPool;
+    private final SessionPipeline pipeline;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
+    private final String sessionId;
     private final Set<String> validNodeIds;
 
-    public LlmSituationClassifier(SessionPool sessionPool, CapsTopology topology) {
-        this.sessionPool = sessionPool;
+    public LlmSituationClassifier(SessionPipeline pipeline, CapsTopology topology) {
+        this.pipeline = pipeline;
+        this.sessionId = "classifier-" + System.identityHashCode(this);
         this.validNodeIds = topology.nodes().entrySet().stream()
             .filter(e -> e.getValue().type() == NodeType.INPUT)
             .map(Map.Entry::getKey)
@@ -48,7 +49,7 @@ public class LlmSituationClassifier implements SituationClassifier {
         }
 
         var init = AgentSessionInit.of(systemPrompt).withModel("haiku");
-        PooledSession session = sessionPool.checkout(init);
+        var session = pipeline.openSession(sessionId, init);
         try {
             String userPrompt = buildUserPrompt(description, metadata);
             var events = session.query(userPrompt)
@@ -67,7 +68,7 @@ public class LlmSituationClassifier implements SituationClassifier {
                 "LLM situation classification failed for: " +
                 description.substring(0, Math.min(80, description.length())), e);
         } finally {
-            session.close();
+            pipeline.releaseSession(sessionId);
         }
     }
 
@@ -151,27 +152,5 @@ public class LlmSituationClassifier implements SituationClassifier {
         if (start < 0 || end <= start) return null;
         return text.substring(start, end + 1);
     }
-
-    public static SessionPool createPool(io.casehub.platform.agent.AgentBackend backend, int maxActive) {
-        return new SessionPool(backend,
-                               new io.casehub.platform.agent.session.SessionPoolConfig(
-                                       "classifier", backend.key(), 0, maxActive,
-                                       java.time.Duration.ofSeconds(120), java.time.Duration.ofSeconds(5)));
-    }
-
-    public static SessionPool createPool(io.casehub.platform.agent.AgentProvider provider, int maxActive) {
-        io.casehub.platform.agent.AgentBackend backend = new io.casehub.platform.agent.AgentBackend() {
-            @Override
-            public String key()                                                                                     {return "provider-adapter";}
-
-            @Override
-            public io.casehub.platform.agent.AgentSession openSession(AgentSessionInit init)                        {return provider.openSession(init);}
-
-            @Override
-            public io.smallrye.mutiny.Multi<AgentEvent> invoke(io.casehub.platform.agent.AgentSessionConfig config) {return provider.invoke(config);}
-        };
-        return createPool(backend, maxActive);
-    }
-
 
 }
