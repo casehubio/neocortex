@@ -65,6 +65,7 @@ public final class CognitivePipelineBuilder {
     private @Nullable CognitiveDefaultsRegistry defaultsRegistry;
     private @Nullable AppraisalStrategy appraisalStrategy;
     private @Nullable SalienceStrategy salienceStrategy;
+    private io.casehub.neocortex.caps.@Nullable SituationClassifier situationClassifier;
     private @Nullable CaseMemoryStore gutFeelingMemoryStore;
     private @Nullable SubThoughtTickParticipant subThoughtParticipant;
     private @Nullable MindMapStore driveGoalBridgeMindMapStore;
@@ -170,6 +171,11 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder situationClassifier(io.casehub.neocortex.caps.@Nullable SituationClassifier situationClassifier) {
+        this.situationClassifier = situationClassifier;
+        return this;
+    }
+
     public CognitivePipelineBuilder gutFeeling(@Nullable CaseMemoryStore memoryStore) {
         this.gutFeelingMemoryStore = memoryStore;
         return this;
@@ -198,7 +204,8 @@ public final class CognitivePipelineBuilder {
             core.setDefaultsRegistry(defaultsRegistry);
         }
         if (appraisalStrategy != null && salienceStrategy != null) {
-            core.configureAppraisal(appraisalStrategy, salienceStrategy);
+            core.configureAppraisal(appraisalStrategy, salienceStrategy,
+                    defaultsRegistry, situationClassifier);
         }
         if (gutFeelingMemoryStore != null) {
             core.configureGutFeeling(gutFeelingMemoryStore, mood);
