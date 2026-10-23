@@ -1045,3 +1045,222 @@ This gives a per-character bias score. Characters with high divergence (>0.5) sh
 **Finding (P83):** Direct `agentProvider.invoke()` — CLI process spawn per LLM call — is the single largest throughput bottleneck. 14 of 17 call sites in neocortex are in the scenario tick loop or consolidation path. Each spawn takes 3-5 seconds of overhead before the LLM even starts. Migrating to sticky SessionPipeline sessions (open once, reuse forever, clear on token budget) is the highest-impact performance improvement available. Filed as neocortex#640.
 
 **Finding (P84):** The `clearAtTokens` threshold (currently hardcoded at 80k) determines when a session's conversation history is cleared. LLMs degrade with context length ("lost in the middle" effect). The optimal threshold is model-dependent and should be expressed as a percentage of the model's context window (40-60% is the sweet spot), not an absolute token count. Filed as casehubio/examples#131.
+
+---
+
+## Phase 4: Multi-Channel Drive Expression (casehubio/examples #122)
+
+### Problem
+
+The thinking prompt that guides each character's inner voice funnelled all drive expression through a single channel — somatic sensation: "What do you feel in your body right now? A tightness, a warmth, a prickle, a numbness? Start there — in the body, not the head." With 17 drives, many sharing similar body signatures (scheming=tension, protection=tension, suspicion=tension), a single somatic channel cannot carry enough discriminating information.
+
+### Theory applied
+
+**Damasio's somatic marker hypothesis** provides the theoretical anchor for body-based drive expression. But Dunn, Dalgleish, and Lawrence (2006) ran a critical evaluation: patients with impaired decision-making showed no somatic marker deficits, and patients with somatic marker deficits sometimes decided fine. Somatic markers are neither necessary nor sufficient alone.
+
+**Scherer's Component Process Model (2001)** provides the organising framework. Five synchronised subsystems during an emotion episode: cognitive appraisal, neurophysiological support (body), motivational executive (action tendencies), motor expression (face/voice/gesture), and subjective feeling. Text-based agents lack motor expression; four of Scherer's five map to text channels.
+
+The four channels derive from targeted sources:
+
+1. **Somatic** — Damasio (1994). Body signals that bias decision-making. Necessary but not sufficient alone.
+2. **Attentional** — Easterbrook (1959). Emotional arousal narrows the attentional field to the most relevant cues. Different drives narrow attention differently: scheming scans for leverage, protection for threats, curiosity for novelty. Inherently discriminating.
+3. **Temporal** — Barrett (2017), theory of constructed emotion. Time perception is part of the brain's predictive model during emotion. Fear compresses time into urgency. Care stretches it into patience. Play suspends it.
+4. **Action tendency** — Frijda (1986). Emotions ARE action tendencies — constitutive, not consequential. The pull toward shielding IS protection. The pull toward manoeuvring IS scheming. Most discriminating channel.
+
+### Eval results
+
+128-event smoke test, GENERIC profile (no pop-culture priors), 5 characters, 43 dialogue events with thinking.
+
+**Discrimination scores:**
+- Somatic-only: **2.16** average
+- Multi-channel (somatic + attentional + temporal + action tendency): **3.97** average
+
+**Per-channel observations:**
+
+| Channel | Discriminating? | Evidence |
+|---|---|---|
+| Somatic | Low — shared signatures across drives | Tension maps to scheming, protection, AND suspicion |
+| Attentional | High — drive-specific scanning | Ant Hill Mob: threats/exits. Hooded Claw: people as resources. Dastardly: valuables |
+| Temporal | Moderate — absent in calm states | 3/5 characters express on first turn. Consistent with Barrett: temporal experience constructed during high-arousal emotion |
+| Action tendency | Highest — unique signature per drive | "Staying close to her" = protection. "Fizzing in fingers toward treasure" = greed. Frijda confirmed |
+
+### Findings
+
+**Finding (P89):** Somatic markers are necessary but not sufficient for drive discrimination. A single body-sensation channel cannot distinguish 17 drives that share similar physiological signatures. Four channels (somatic, attentional, temporal, action tendency) provide discriminating dimensions — confirmed by eval data (2.16 → 3.97) and consistent with Dunn et al.'s (2006) clinical findings and Scherer's (2001) multi-component model.
+
+**Finding (P90):** Attentional narrowing (Easterbrook 1959) is inherently drive-specific and produces character-level signatures that body sensations alone cannot. Three characters scanning the same room see completely different things because their drives filter attention differently.
+
+### References
+
+- Damasio, A. (1994). Descartes' Error. Somatic marker hypothesis.
+- Dunn, B. D., Dalgleish, T., & Lawrence, A. D. (2006). The somatic marker hypothesis: A critical evaluation. Neuroscience & Biobehavioral Reviews, 30(2), 239-271.
+- Scherer, K. R. (2001). Appraisal considered as a process of multi-level sequential checking. In Appraisal Processes in Emotion (pp. 92-120). Component Process Model.
+- Easterbrook, J. A. (1959). The effect of emotion on cue utilization and the organization of behavior. Psychological Review, 66(3), 183-201.
+- Barrett, L. F. (2017). How Emotions Are Made: The Secret Life of the Brain. Theory of constructed emotion.
+- Frijda, N. H. (1986). The Emotions. Action tendency as constitutive of emotion.
+
+---
+
+## Phase 5: Discriminative Drive Profiles (casehubio/examples #115)
+
+### Problem
+
+LLM-derived drive profiles were too broad. When the classifier was asked "what situation features does this memory evoke?", it produced a comprehensive inventory — gallantry's profile contained 7 nodes spanning 5 CAPS categories (reward, social, threat, achievement, power). Every situation touched at least one node. Every drive rendered everywhere.
+
+```
+gallantry (kitchen-sink): reward:0.850, acceptance:0.750, physical_threat:0.850,
+  performance_judged:0.650, competence_recognition:0.850, social_threat:0.450,
+  agency_granted:0.600
+```
+
+### Theory applied
+
+The root cause is the classification question itself. "What features does this memory contain?" produces an associative inventory. A memory about helping someone at school touches acceptance (warmth), reward (satisfaction), competence (fixing), physical_threat (danger), mastery (skill). All true. All useless for discrimination.
+
+The fix: contrastive (discriminative) derivation. The classifier sees each memory alongside the agent's OTHER drives. Instead of "what features does this memory contain?", the question becomes "what features are distinctive to this drive, compared to the agent's other drives?" The metadata tells the classifier: *this memory serves gallantry; the agent also has protection and proving-worth; return only features that would NOT equally activate those other drives.*
+
+### Three-layer compositional fix
+
+1. **Discriminative derivation.** The contrastive prompt narrows profiles to drive-specific features. Gallantry → `acceptance:0.800, sharing:0.700, secure_attachment:0.750, reward:0.500` (4 social nodes). Proving-worth → `mastery:0.900, competence_recognition:0.850, performance_judged:0.800, failure:0.700` (4 achievement nodes). Zero overlap.
+
+2. **Relative overlap threshold.** Instead of `overlap > 0`, use `overlap / profileTotal >= 0.15`. The situation must activate a meaningful fraction of the drive's profile pattern, not just any shared node.
+
+3. **Derive and pin.** Derivation runs once per character definition. Result stored as `DriveProfileInferred` in the cognitive subgraph. Runtime uses the pinned profile — no LLM calls, no non-determinism.
+
+### Eval results
+
+**Cross-matrix test** (13 scenarios, 3 characters, deterministic): **13/13 pass**
+
+| Scenario | gallantry | proving-worth | scheming | self-preservation |
+|---|---|---|---|---|
+| PP alone workshop | **0.000** | 0.492 ✓ | — | — |
+| PP alone crash | **0.000** | 0.000 | — | — |
+| PP with Clara warmth | **0.582** ✓ | 0.154 ✓ | — | — |
+| HC alone plotting | — | — | **0.600** ✓ | 0.000 |
+| HC alone danger | — | — | 0.000 | **0.881** ✓ |
+
+Cross-matrix runs in **0.2 seconds** — no LLM, no Quarkus boot.
+
+**Pipeline test** (LLM-derived profiles, real classification): **4/8 pass.** LLM discrimination incomplete — generic nodes still leak through. The prompt engineering gap: 13/13 with hand-curated discriminative profiles, 4/8 with LLM-derived. The 40% gap is prompt refinement, not architecture.
+
+### Findings
+
+**Finding (P91):** Classification asks "what's here?" — discrimination asks "what distinguishes this from that?" Broad classification questions produce kitchen-sink profiles that match every situation. Contrastive prompting narrows profiles to the distinctive features of each drive, eliminating cross-drive contamination at derivation time.
+
+**Finding (P92):** The derive-and-pin workflow separates the non-deterministic step (LLM profile derivation) from the deterministic step (runtime filtering). Derivation runs once, is inspectable, and pins the result. Runtime filtering with fixed profiles is reproducible, fast (0.2s), and testable without LLM calls.
+
+### References
+
+- Contrastive prompting methodology is novel — no direct literature citation. The principle of discrimination vs classification aligns with prototype theory (Rosch 1975) and exemplar models (Nosofsky 1986) in categorisation research.
+
+---
+
+## Phase 6: Consolidation Trigger Architecture (neocortex #661)
+
+### Problem
+
+In a 50-tick scenario with 5 characters, the `DegreeAccumulator` with CUSUM temporal decay produced **zero drive adaptation**. Character drives remained at seed values throughout. The mood system (tuned separately) showed rich dynamics, but personality profiles were frozen.
+
+The mechanism: with decay=0.85, each tick erodes 15% of accumulated signal. For a character accumulating one interaction per tick at an increment below the allowance threshold (0.15), the steady-state signal is roughly 6.7 — permanently below the firing threshold. Slow-building personality changes are silently suppressed.
+
+### Theory applied
+
+CUSUM (Page 1954) is designed for anomaly detection in stationary processes — industrial quality control, where old signals genuinely are less relevant. The decay assumption ("old evidence is less relevant") does not hold for consolidation scheduling. Old un-processed experiences are MORE urgent, not less. A character who witnessed betrayal 15 ticks ago and hasn't consolidated has a larger behavioural inconsistency than one who saw it 2 ticks ago.
+
+Three independent lines of work converge on monotonic accumulation:
+
+**Park et al. (2023) — Generative Agents ("Smallville").** Monotonic importance accumulation for reflection. Each observation scored 1-10 importance. Cumulative sum exceeds ~150 → reflection fires. No decay. Threshold ≈ 15-20 interactions.
+
+**Shinde (2026) — Sleep-Consolidated Memory (SCM).** Four triggers, ANY sufficient: memory entropy > 0.9 (uniform importance distribution = decision paralysis), conflict density > 0.3 (contradictions in memory graph), time elapsed > 1 hour (safety net), manual forcing. All three automatic triggers are monotonically increasing. None use decay.
+
+**McClelland et al. (1995); Kumaran, Hassabis & McClelland (2016) — Complementary Learning Systems.** The 2016 update: replay frequency should be proportional to the *divergence* between new experience and existing structure. The more novel the experience — the more it contradicts the consolidated model — the more urgent the integration. The opposite of decay.
+
+### Architecture
+
+Replacement design uses three monotonic signals:
+
+1. **Event count** — Park et al. baseline. Monotonic count of un-processed experiences per agent. Every experience counts until consolidated. Target: 5-10 interactions (Smallville finding: users notice inconsistency within 3-5 interactions).
+
+2. **Divergence accumulation** — CLS 2016 insight. Weight each experience by how much it diverges from the current consolidated personality model. When appraisal produces a result contradicting the consolidated self-model, that experience contributes more. Monotonic — divergence doesn't decay.
+
+3. **Time ceiling** — SCM safety net. Existing `manor.consolidation.interval-ticks` property. Ensures consolidation fires even when event count and divergence stay low.
+
+Per-agent tracking (not per-tenant) — each character accumulates independently. Observability hooks at 3 logging levels for tuning.
+
+The `DegreeAccumulator` itself remains valid for CAPS situation classification, where detecting shifts in a stationary behavioural pattern IS the right model. The fix: right mechanism for right job.
+
+### Findings
+
+**Finding (P93):** CUSUM temporal decay inverts the urgency model for consolidation. Old un-processed experiences are more urgent than recent ones — they represent a larger gap between experienced behaviour and consolidated self-model. Three independent systems (Generative Agents, SCM, CLS) converge on monotonic accumulation with no decay. CUSUM remains correct for situation classification where stationarity holds.
+
+### References
+
+- Page, E. S. (1954). Continuous inspection schemes. Biometrika, 41(1/2), 100-115. CUSUM.
+- Park, J. S., O'Brien, J. C., et al. (2023). Generative Agents: Interactive Simulacra of Human Behavior. Stanford.
+- Shinde, S. (2026). Sleep-Consolidated Memory for Autonomous Agents. SCM.
+- McClelland, J. L., McNaughton, B. L., & O'Reilly, R. C. (1995). Why there are complementary learning systems in the hippocampus and neocortex. Psychological Review, 102(3), 419-457.
+- Kumaran, D., Hassabis, D., & McClelland, J. L. (2016). What learning systems do intelligent agents need? Complementary Learning Systems Theory Updated. Trends in Cognitive Sciences, 20(7), 512-534.
+- Kirkpatrick, J., et al. (2017). Overcoming catastrophic forgetting in neural networks. PNAS. (EWC — related but different approach.)
+
+---
+
+## Phase 7: Situation-Dependent Channel Weighting (neocortex #668)
+
+### Problem
+
+Phase 4 established four-channel drive expression. But the thinking prompt weighted all four channels equally regardless of situation. Easterbrook (1959) showed emotional arousal narrows the attentional field — high-threat situations should suppress attentional breadth and foreground somatic/action tendency. Equal weighting ignores the situation.
+
+Phase 4 eval already showed the temporal channel's absence in calm states — Barrett (2017) predicts this: temporal experience is constructed during high-arousal emotion, not during contentment.
+
+### Architecture
+
+`TopologyChannelWeighter` maps CAPS situation activations to a `ChannelWeightProfile` (four normalised weights summing to 1.0). Seven category profiles, each literature-grounded:
+
+| Category | Som | Att | Temp | Act | Literature basis |
+|---|---|---|---|---|---|
+| threat | 0.35 | 0.10 | 0.15 | 0.40 | Easterbrook (1959); Frijda (1986) fight/flight |
+| relationship | 0.25 | 0.30 | 0.25 | 0.20 | Bowlby (1969) interpersonal attention |
+| achievement | 0.15 | 0.30 | 0.25 | 0.30 | McClelland (1961) task focus |
+| social | 0.20 | 0.35 | 0.15 | 0.30 | Baumeister & Leary (1995) belongingness |
+| resource | 0.15 | 0.25 | 0.30 | 0.30 | Hobfoll (1989) resource planning |
+| autonomy | 0.25 | 0.15 | 0.20 | 0.40 | Deci & Ryan (2000); Seligman (1975) |
+| consequence | 0.20 | 0.20 | 0.30 | 0.30 | Gray (1982) BAS/BIS |
+
+Multi-category activations blend by confidence. `AppraisalTickParticipant` classifies per tick via `SituationClassifier`, caches profile. `ChannelEmphasisPromptSection` renders foreground/background guidance when weights deviate from default.
+
+### Eval results — empirical validation
+
+6 scenarios classified by real LLM (`AgentProvider` via Opus):
+
+| Scenario | Som | Att | Temp | Act | Dominant |
+|---|---|---|---|---|---|
+| Beam collapse — physical threat | **0.32** | **0.12** | 0.17 | **0.40** | action-tendency |
+| Warm welcome — social acceptance | 0.22 | **0.33** | 0.18 | 0.27 | attentional |
+| Key competition — resource contest | 0.20 | 0.24 | 0.24 | **0.32** | action-tendency |
+| Locked door — powerlessness | 0.24 | 0.22 | 0.22 | **0.31** | action-tendency |
+| Generator repair — mastery | 0.19 | 0.24 | 0.24 | **0.33** | action-tendency |
+| Quiet afternoon — neutral | 0.25 | 0.25 | 0.25 | 0.25 | default |
+
+Key findings:
+- **Easterbrook validated**: threat attentional = 0.12 (52% below default). Somatic = 0.32 (28% above). Action tendency = 0.40 (60% above).
+- **Social attention validated**: acceptance attentional = 0.33 — only scenario where attentional is dominant. Social situations demand interpersonal cue attention.
+- **Neutral stability**: zero delta from default. Classifier returns empty activations for psychologically inert scenes. No noise injection.
+- **Frijda confirmed**: action tendency dominant in 4/5 non-neutral scenarios. The pull to act is consistently the strongest channel signal.
+- **Cross-category blending works**: competition activated 4 categories; confidence-weighted blend produced coherent weights.
+
+### Findings
+
+Principles P85-P88 documented in CHARACTER-EMERGENCE-FINDINGS.md Phase 10. See that document for the full principle table.
+
+### References
+
+- Easterbrook, J. A. (1959). The effect of emotion on cue utilization. Cue utilisation hypothesis — attentional narrowing under arousal.
+- Frijda, N. H. (1986). The Emotions. Action tendencies as constitutive of emotion.
+- Bowlby, J. (1969). Attachment and Loss. Interpersonal attention in attachment relationships.
+- Baumeister, R. F., & Leary, M. R. (1995). The need to belong. Psychological Bulletin, 117(3), 497-529. Social cue attention.
+- Deci, E. L., & Ryan, R. M. (2000). The "what" and "why" of goal pursuits. Psychological Inquiry, 11(4), 227-268. Self-determination and autonomy.
+- Seligman, M. E. P. (1975). Helplessness: On Depression, Development, and Death. Learned helplessness and autonomy loss.
+- Hobfoll, S. E. (1989). Conservation of resources. American Psychologist, 44(3), 513-524. Resource planning horizon.
+- Gray, J. A. (1982). The Neuropsychology of Anxiety. BAS/BIS approach-avoidance.
+- McClelland, D. C. (1961). The Achieving Society. Achievement motivation and task focus.
+- Barrett, L. F. (2017). How Emotions Are Made. Constructed emotion — temporal experience as context-dependent prediction.
