@@ -11,8 +11,12 @@ import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.agent.AgentSessionInit;
-import io.casehub.platform.agent.session.SessionPool;
-import io.casehub.platform.agent.session.SessionPoolConfig;
+import io.casehub.platform.agent.BackendInstanceRegistry;
+import io.casehub.platform.agent.config.PoolDeclaration;
+import io.casehub.platform.agent.gate.AimdAdmissionStrategy;
+import io.casehub.platform.agent.session.SessionLifecycleManager;
+import io.casehub.platform.agent.session.SessionPipeline;
+import io.casehub.platform.agent.session.SessionPoolRegistry;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import org.junit.jupiter.api.Test;
@@ -20,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,42 +47,42 @@ class LlmSituationClassifierTest {
             new double[]{-2.0, 2.0}, new double[]{0.1, 3.0}, 0.6));
 
     @Test
-    void classify_usesSessionPoolCheckoutAndRelease() {
-        var pool = stubPool("""
+    void classify_usesPipelineOpenAndRelease() {
+        var pipeline = stubPipeline("""
                             {"activations": [{"node": "reward", "confidence": 0.8}]}
                             """);
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         var result = classifier.classify("Got rewarded", Map.of());
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().nodeId()).isEqualTo("reward");
 
-        // session returned to pool — second call succeeds without exhaustion
+        // session released — second call succeeds
         var result2 = classifier.classify("Got rewarded again", Map.of());
         assertThat(result2).hasSize(1);
     }
 
     @Test
-    void classify_releasesSessionOnParseFailure() {
-        var pool       = stubPool("garbled response no json");
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+    void classify_releasesPipelineOnParseFailure() {
+        var pipeline   = stubPipeline("garbled response no json");
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         // garbled response → empty list (no valid JSON activations)
         var result = classifier.classify("test", Map.of());
         assertThat(result).isEmpty();
 
-        // session returned to pool — second call succeeds
+        // session released — second call succeeds
         var result2 = classifier.classify("test again", Map.of());
         assertThat(result2).isEmpty();
     }
 
     @Test
     void parsesValidResponse() {
-        var pool = stubPool("""
+        var pipeline = stubPipeline("""
             {"activations": [{"node": "reward", "confidence": 0.8}, {"node": "rejection", "confidence": 0.5}]}
             """);
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify(
             "Was rewarded and then rejected", Map.of());
@@ -95,10 +100,10 @@ class LlmSituationClassifierTest {
 
     @Test
     void filtersInvalidNodeIds() {
-        var pool = stubPool("""
+        var pipeline = stubPipeline("""
             {"activations": [{"node": "reward", "confidence": 0.8}, {"node": "nonexistent", "confidence": 0.9}]}
             """);
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -108,10 +113,10 @@ class LlmSituationClassifierTest {
 
     @Test
     void filtersOutputNodes() {
-        var pool = stubPool("""
+        var pipeline = stubPipeline("""
             {"activations": [{"node": "approach", "confidence": 0.9}]}
             """);
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -120,10 +125,10 @@ class LlmSituationClassifierTest {
 
     @Test
     void filtersBelowThreshold() {
-        var pool = stubPool("""
+        var pipeline = stubPipeline("""
             {"activations": [{"node": "reward", "confidence": 0.1}]}
             """);
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -132,12 +137,12 @@ class LlmSituationClassifierTest {
 
     @Test
     void handlesMarkdownWrappedJson() {
-        var pool = stubPool("""
+        var pipeline = stubPipeline("""
             ```json
             {"activations": [{"node": "reward", "confidence": 0.7}]}
             ```
             """);
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -146,8 +151,8 @@ class LlmSituationClassifierTest {
 
     @Test
     void handlesGarbledResponse() {
-        var pool = stubPool("I think the situation involves reward");
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var pipeline = stubPipeline("I think the situation involves reward");
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         List<SituationActivation> result = classifier.classify("test", Map.of());
 
@@ -156,8 +161,8 @@ class LlmSituationClassifierTest {
 
     @Test
     void returnsEmptyForNullDescription() {
-        var pool = stubPool("{}");
-        var classifier = new LlmSituationClassifier(pool, TOPOLOGY);
+        var pipeline = stubPipeline("{}");
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
 
         assertThat(classifier.classify(null, Map.of())).isEmpty();
         assertThat(classifier.classify("", Map.of())).isEmpty();
@@ -172,7 +177,7 @@ class LlmSituationClassifierTest {
             .isEqualTo("{\"a\": 1}");
     }
 
-    private static SessionPool stubPool(String response) {
+    private static SessionPipeline stubPipeline(String response) {
         AgentBackend backend = new AgentBackend() {
             @Override public String key() { return "stub"; }
             @Override public AgentSession openSession(AgentSessionInit init) {
@@ -191,8 +196,15 @@ class LlmSituationClassifierTest {
                 throw new UnsupportedOperationException();
             }
         };
-        return new SessionPool(backend,
-            new SessionPoolConfig("test-classifier", "stub", 0, 6,
-                Duration.ofSeconds(60), Duration.ofSeconds(5)));
+        BackendInstanceRegistry registry = new BackendInstanceRegistry() {
+            @Override public void register(AgentBackend b) {}
+            @Override public Optional<AgentBackend> resolve(String key, String instanceId) { return Optional.of(backend); }
+            @Override public List<AgentBackend> resolveByKey(String key) { return List.of(backend); }
+        };
+        var pool = new PoolDeclaration("test", "test", "stub", 0, 20, null, Map.of(), Map.of());
+        var poolRegistry = new SessionPoolRegistry(List.of(pool), registry);
+        var lifecycleManager = new SessionLifecycleManager(poolRegistry);
+        return new SessionPipeline(lifecycleManager, "stub",
+                new AimdAdmissionStrategy(6, 5, Duration.ofSeconds(10)), 50_000);
     }
 }
