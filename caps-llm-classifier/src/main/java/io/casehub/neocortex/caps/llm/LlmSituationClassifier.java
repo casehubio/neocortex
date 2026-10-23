@@ -26,13 +26,19 @@ public class LlmSituationClassifier implements SituationClassifier {
     private static final Duration TIMEOUT = Duration.ofSeconds(120);
 
     private final SessionPipeline pipeline;
+    private final String model;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
     private final String sessionId;
     private final Set<String> validNodeIds;
 
     public LlmSituationClassifier(SessionPipeline pipeline, CapsTopology topology) {
+        this(pipeline, topology, "haiku");
+    }
+
+    public LlmSituationClassifier(SessionPipeline pipeline, CapsTopology topology, String model) {
         this.pipeline = pipeline;
+        this.model = model;
         this.sessionId = "classifier-" + System.identityHashCode(this);
         this.validNodeIds = topology.nodes().entrySet().stream()
             .filter(e -> e.getValue().type() == NodeType.INPUT)
@@ -48,7 +54,7 @@ public class LlmSituationClassifier implements SituationClassifier {
             return List.of();
         }
 
-        var init = AgentSessionInit.of(systemPrompt).withModel("haiku");
+        var init = AgentSessionInit.of(systemPrompt).withModel(model);
         var session = pipeline.openSession(sessionId, init);
         try {
             String userPrompt = buildUserPrompt(description, metadata);
