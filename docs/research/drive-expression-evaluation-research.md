@@ -502,3 +502,17 @@ Drive differentiation working correctly: protection at 5 for danger, 1 for non-d
 - Smith, C.A. & Kirby, L.D. (2009). Putting appraisal in context. *Cognition & Emotion, 23*(7), 1352-1372.
 - Tracy, J.L. & Robins, R.W. (2004). Putting the self into self-conscious emotions.
 - Warriner, A.B. et al. (2013). Norms of valence, arousal, and dominance for 13,915 English lemmas. *Behavior Research Methods, 45*, 1191-1207.
+
+## Supporting Research Files
+
+Architecture design papers and foundational research that underpin this era's pipeline work. Blog entries in `docs/blog/`; research files in `docs/research/`:
+
+| File | Informed | How |
+|---|---|---|
+| `blog/2026-10-04-mdp01-mechanical-psychology-caps-engine.md` | Journals 1, 4-5 (CAPS integration) | Foundational CAPS engine architecture: 6-model composition (Bowlby, Gray BIS/BAS, Beck CBT, Rescorla-Wagner, Bandura, SDT), dual-weight design, settling algorithm, topology-as-data |
+| `blog/2026-10-05-mdp01-computational-appraisal-for-llm-agents.md` | Journal 6 (encoding gap) | CARMA appraisal architecture: SEC pipeline composability, OCC taxonomy, Gebhard ALMA PAD projections, personality-parameterised habituation, emotion-before-generation separation |
+| `blog/2026-10-07-mdp01-when-personality-drowns-in-its-own-thoughts.md` | Journals 2-3 (formation memory) | Arousal-gated tiering: three-tier cognitive section architecture (core/contextual/supplementary), personalityDominance PAD scalar, Kahneman dual-process, binary vs gradual rendering |
+| `pre-era-wiring-problem-2026-09-20.md` | Journal 1 (wiring problem) | Application-layer wiring audit: two-pipeline discovery (CognitionCore vs CharacterCognition), 15 findings, adapter pattern. Different layer from Journal 1's cognitive-pipeline wiring |
+| `pre-era-needs-pyramid-2026-09-19.md` | Drive→tier routing | 5-tier Maslow-derived needs model, decay formula, saturation constraint, drive→tier routing table |
+| `pre-era-proving-emergence-2026-09-28.md` | Eval methodology | Paired state probe methodology, per-subsystem emergence validation (trust 5, persona 4, drives 3, mood 1→3), cognitive signal strength hierarchy |
+| `2026-09-14-measurement-driven-cognition-findings.md` | Journal 2 (formation memory audit) | A/B empirical evidence: cognitive state as DATA beats INSTRUCTIONS — reinforces P11 from era1 and era2 Journal 2's formation memory findings |
