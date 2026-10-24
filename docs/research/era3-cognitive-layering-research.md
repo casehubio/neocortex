@@ -1282,3 +1282,6 @@ Standalone literature reviews and research that informed era3 implementation dec
 | `2026-09-23-computational-emotion-research.md` | Phase 1 self-conscious emotions | OCC model: 22 emotion types, appraisal dimensions, computational implementations (relocated from agency) |
 | `structured-personality-composition-in-llm-agents.md` | Overall architecture | Research paper draft — 5-axis Eidos coordinate system, 4-layer experiment, composition compatibility matrix |
 | `llm-autonomy-landscape-2026.md` | Competitive positioning | 9-project landscape survey with capability taxonomy and fit-gap matrix |
+| `2026-09-14-measurement-driven-cognition-findings.md` | Design principles (P11 reinforcement) | A/B data: 7-orchestrator cognitive stack vs baseline. Empirical evidence that cognitive state as DATA beats INSTRUCTIONS (relocated from agency) |
+| `pre-era-needs-pyramid-2026-09-19.md` | Drive-to-tier routing | 5-tier Maslow-derived needs model, decay-toward-resting formula, saturation constraint, qualitative rendering |
+| `pre-era-proving-emergence-2026-09-28.md` | Eval methodology | Paired state probe methodology, per-subsystem emergence results (trust 5, persona 4, drives 3, mood 1→3), cognitive signal strength hierarchy |
