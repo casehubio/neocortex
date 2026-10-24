@@ -117,12 +117,14 @@
     <repository>
       <id>central</id>
       <url>https://repo.maven.apache.org/maven2</url>
-      <releases><enabled>true</enabled></releases>
+      <releases><enabled>false</enabled></releases>
       <snapshots><enabled>false</enabled></snapshots>
     </repository>
     <repository>
       <id>github</id>
       <url>https://maven.pkg.github.com/casehubio/*</url>
+      <releases><enabled>false</enabled></releases>
+
       <snapshots><enabled>true</enabled></snapshots>
     </repository>
   </repositories>
