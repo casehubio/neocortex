@@ -73,6 +73,11 @@ public class EvidenceFusionEngine {
         return outcomeNames.clone();
     }
 
+    public io.quarkmind.inference.bayes.BayesStats getStats() {
+        return instance.getStats();
+    }
+
+
     public void reset() {
         for (String variable : activeEvidence) {
             instance.unsetLikelyhood(variable);
