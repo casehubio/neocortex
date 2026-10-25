@@ -4,6 +4,8 @@ import io.quarkmind.inference.bayes.BayesInstance;
 import io.quarkmind.inference.bayes.BayesNetwork;
 import io.quarkmind.inference.bayes.BayesVariable;
 import io.quarkmind.inference.bayes.BayesVariableState;
+import io.quarkmind.inference.bayes.ExplanationEngine;
+import io.quarkmind.inference.bayes.ExplanationTrace;
 import io.quarkmind.inference.bayes.JunctionTree;
 import io.quarkmind.inference.bayes.JunctionTreeBuilder;
 import io.quarkmind.inference.bayes.MapAssignment;
@@ -11,6 +13,7 @@ import io.quarkmind.inference.bayes.graph.GraphNode;
 
 public class EvidenceFusionEngine {
 
+    private       BayesNetwork          graph;
     private       JunctionTree          network;
     private       BayesInstance<?>      instance;
     private       String                targetVariable;
@@ -18,6 +21,7 @@ public class EvidenceFusionEngine {
     private final java.util.Set<String> activeEvidence = new java.util.HashSet<>();
 
     public void initialize(BayesNetwork graph, String targetVariable) {
+        this.graph          = graph;
         this.targetVariable = targetVariable;
         this.network        = new JunctionTreeBuilder(graph).build();
         this.instance       = new BayesInstance<>(network, true);
@@ -58,6 +62,10 @@ public class EvidenceFusionEngine {
 
     public MapAssignment mapInference() {
         return instance.mapInference();
+    }
+
+    public ExplanationTrace explain() {
+        return ExplanationEngine.explain(graph, instance, targetVariable);
     }
 
 
