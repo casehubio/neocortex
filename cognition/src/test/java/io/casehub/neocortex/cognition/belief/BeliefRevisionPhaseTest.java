@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.belief;
 
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;

@@ -262,7 +262,7 @@ class StrategyLearningOrchestratorTest {
         var testOrchestrator = new StrategyLearningOrchestrator(
                 testStrategyMemory,
                 (a, t, s, m) -> List.of(), config, clock,
-                io.casehub.neocortex.cognition.belief.StubPipelines.create(
+                io.casehub.neocortex.session.testing.StubPipelines.create(
             init -> new io.casehub.platform.agent.AgentSession() {
                 @Override public Multi<AgentEvent> query(String prompt) {
                     return Multi.createFrom().item(new AgentEvent.TextDelta(
@@ -488,7 +488,7 @@ class StrategyLearningOrchestratorTest {
     }
 
     private void mockLlmResponse(String text) {
-        var pipeline = io.casehub.neocortex.cognition.belief.StubPipelines.create(
+        var pipeline = io.casehub.neocortex.session.testing.StubPipelines.create(
             init -> new io.casehub.platform.agent.AgentSession() {
                 @Override public Multi<AgentEvent> query(String prompt) {
                     return Multi.createFrom().item(new AgentEvent.TextDelta(text));

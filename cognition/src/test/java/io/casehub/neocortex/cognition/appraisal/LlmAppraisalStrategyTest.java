@@ -1,6 +1,6 @@
 package io.casehub.neocortex.cognition.appraisal;
 
-import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;

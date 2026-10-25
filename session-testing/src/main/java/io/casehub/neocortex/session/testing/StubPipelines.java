@@ -1,4 +1,4 @@
-package io.casehub.neocortex.mindmap.intelligence.consolidation;
+package io.casehub.neocortex.session.testing;
 
 import io.casehub.platform.agent.AgentBackend;
 import io.casehub.platform.agent.AgentEvent;
@@ -12,18 +12,20 @@ import io.casehub.platform.agent.session.SessionLifecycleManager;
 import io.casehub.platform.agent.session.SessionPipeline;
 import io.casehub.platform.agent.session.SessionPoolRegistry;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-final class StubPipelines {
+public final class StubPipelines {
 
     private StubPipelines() {}
 
-    static SessionPipeline create(Function<AgentSessionInit, AgentSession> sessionFactory) {
+    public static SessionPipeline create(Function<AgentSessionInit, AgentSession> sessionFactory) {
         AgentBackend backend = new AgentBackend() {
             @Override
             public String key() { return "stub"; }
@@ -59,5 +61,58 @@ final class StubPipelines {
         var lifecycleManager = new SessionLifecycleManager(poolRegistry);
         return new SessionPipeline(lifecycleManager, "stub",
                 new AimdAdmissionStrategy(6, 5, Duration.ofSeconds(10)), 50_000);
+    }
+
+    public static SessionPipeline returning(String... textDeltas) {
+        return create(init -> stubSession(textDeltas));
+    }
+
+    public static SessionPipeline empty() {
+        return returning();
+    }
+
+    public static SessionPipeline returningJson(String json) {
+        return returning(json);
+    }
+
+    public static SessionPipeline counting(AtomicInteger counter, String... textDeltas) {
+        return create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                counter.incrementAndGet();
+                var items = java.util.Arrays.stream(textDeltas)
+                        .map(AgentEvent.TextDelta::new)
+                        .toArray(AgentEvent[]::new);
+                return Multi.createFrom().items(items);
+            }
+
+            @Override
+            public Uni<Void> interrupt() {
+                return Uni.createFrom().voidItem();
+            }
+
+            @Override
+            public void close(Duration timeout) {}
+        });
+    }
+
+    private static AgentSession stubSession(String... textDeltas) {
+        return new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                var items = java.util.Arrays.stream(textDeltas)
+                        .map(AgentEvent.TextDelta::new)
+                        .toArray(AgentEvent[]::new);
+                return Multi.createFrom().items(items);
+            }
+
+            @Override
+            public Uni<Void> interrupt() {
+                return Uni.createFrom().voidItem();
+            }
+
+            @Override
+            public void close(Duration timeout) {}
+        };
     }
 }

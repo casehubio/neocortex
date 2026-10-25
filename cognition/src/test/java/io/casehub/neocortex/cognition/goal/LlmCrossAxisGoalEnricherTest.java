@@ -1,6 +1,6 @@
 package io.casehub.neocortex.cognition.goal;
 
-import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.narrative.DerivedTheme;
 import io.casehub.neocortex.cognition.narrative.IndividualEpisode;
