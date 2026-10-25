@@ -4,12 +4,17 @@ import io.casehub.yaml.jackson.YamlMappers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 final class EvalCharacterLoader {
+    private static final Pattern INLINE_ANNOTATION =
+            Pattern.compile("\\{\\{serves:\\s*([\\w-]+)\\|(\\w+):\\s*(.*?)\\}\\}");
+
 
     private EvalCharacterLoader() {}
 
@@ -44,36 +49,49 @@ final class EvalCharacterLoader {
     @SuppressWarnings("unchecked")
     private static EvalCharacterData parseCharacter(Map<String, Object> raw) {
         var drives = raw.containsKey("drives")
-                ? ((List<Map<String, Object>>) raw.get("drives")).stream()
-                        .map(m -> new EvalCharacterData.Drive(
-                                (String) m.get("type"),
-                                ((Number) m.get("intensity")).doubleValue(),
-                                (String) m.get("description"),
-                                (String) m.get("context")))
-                        .toList()
-                : List.<EvalCharacterData.Drive>of();
+                     ? ((List<Map<String, Object>>) raw.get("drives")).stream()
+                                                                      .map(m -> new EvalCharacterData.Drive(
+                                                                              (String) m.get("type"),
+                                                                              ((Number) m.get("intensity")).doubleValue(),
+                                                                              (String) m.get("description"),
+                                                                              (String) m.get("context")))
+                                                                      .toList()
+                     : List.<EvalCharacterData.Drive>of();
 
         var memories = raw.containsKey("formation-memories")
-                ? ((List<Map<String, Object>>) raw.get("formation-memories")).stream()
-                        .map(m -> {
-                            var annotations = List.<EvalCharacterData.DriveAnnotation>of();
-                            if (m.containsKey("serves")) {
-                                String driveType = (String) m.get("serves");
-                                String episode = (String) m.get("episode");
-                                annotations = List.of(new EvalCharacterData.DriveAnnotation(
-                                        driveType, "strong", episode, 0, episode.length()));
-                            }
-                            return new EvalCharacterData.FormationMemory(
-                                    ((Number) m.get("age")).intValue(),
-                                    (String) m.get("episode"),
-                                    ((Number) m.getOrDefault("pleasure", 0.0)).doubleValue(),
-                                    ((Number) m.getOrDefault("arousal", 0.0)).doubleValue(),
-                                    ((Number) m.getOrDefault("dominance", 0.0)).doubleValue(),
-                                    annotations);
-                        })
-                        .toList()
-                : List.<EvalCharacterData.FormationMemory>of();
+                       ? ((List<Map<String, Object>>) raw.get("formation-memories")).stream()
+                                                                                    .map(m -> {
+                                                                                        String episode = (String) m.get("episode");
+                                                                                        String serves  = (String) m.get("serves");
+                                                                                        return new EvalCharacterData.FormationMemory(
+                                                                                                ((Number) m.get("age")).intValue(),
+                                                                                                episode,
+                                                                                                ((Number) m.getOrDefault("pleasure", 0.0)).doubleValue(),
+                                                                                                ((Number) m.getOrDefault("arousal", 0.0)).doubleValue(),
+                                                                                                ((Number) m.getOrDefault("dominance", 0.0)).doubleValue(),
+                                                                                                parseAnnotations(serves, episode));
+                                                                                    })
+                                                                                    .toList()
+                       : List.<EvalCharacterData.FormationMemory>of();
 
         return new EvalCharacterData(drives, memories);
     }
+
+    private static List<EvalCharacterData.DriveAnnotation> parseAnnotations(String serves, String episode) {
+        var annotations = new ArrayList<EvalCharacterData.DriveAnnotation>();
+        if (serves != null) {
+            var parts  = serves.split("\\|", 2);
+            var drive  = parts[0].strip();
+            var degree = parts.length > 1 ? parts[1].strip() : "strong";
+            annotations.add(new EvalCharacterData.DriveAnnotation(drive, degree, episode, 0, episode.length()));
+        }
+        var matcher = INLINE_ANNOTATION.matcher(episode);
+        while (matcher.find()) {
+            annotations.add(new EvalCharacterData.DriveAnnotation(
+                    matcher.group(1), matcher.group(2), matcher.group(3).strip(),
+                    matcher.start(), matcher.end()));
+        }
+        return List.copyOf(annotations);
+    }
+
 }
