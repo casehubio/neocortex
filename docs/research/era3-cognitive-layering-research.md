@@ -1010,6 +1010,7 @@ Future work: replace the NONE default with a mechanical threat classifier from r
 | 6 | #652 Demand-driven classification | CUSUM+leaky integrator degree accumulation | VALIDATED — 22/23 ticks fire, defaults well-calibrated |
 | 7 | #653 Inline vs external classification | Dual-mode with bias audit | VALIDATED — 41 audit entries, source provenance, bias endpoint |
 | 8 | #650 Elastic session scheduling | SessionPipeline with AIMD admission | PARTIALLY VALIDATED — consolidation deadlock found and fixed |
+| 9 | #685 Biographical CAPS weight seeding | Structured inputActivations + CapsEngine.updateWeights() | IMPLEMENTED — enrichment prompt constrained to 30 topology node IDs, handler seeds weights from disposition + biography |
 
 ---
 
@@ -1264,6 +1265,80 @@ Principles P85-P88 documented in CHARACTER-EMERGENCE-FINDINGS.md Phase 10. See t
 - Gray, J. A. (1982). The Neuropsychology of Anxiety. BAS/BIS approach-avoidance.
 - McClelland, D. C. (1961). The Achieving Society. Achievement motivation and task focus.
 - Barrett, L. F. (2017). How Emotions Are Made. Constructed emotion — temporal experience as context-dependent prediction.
+
+---
+
+## Phase 8: Biographical CAPS Weight Seeding (neocortex #685)
+
+### Problem
+
+The corpus.json contains `caps_patterns` per entity — recurring situation-response activation patterns extracted from biographical data. Six patterns for Frida Kahlo alone: betrayal leading to autonomy assertion, confinement leading to creative sublimation, pain leading to artistic transformation. But `EntityEnrichmentHandler` stored them as flat MindMap node properties: `caps-pattern-0-pattern=physical_immobility_or_confinement → isolation_threat + loss_of_agency → CREATIVE_SUBLIMATION`. Inert key-value pairs. The CAPS engine starts from a blank slate every evaluation. Biographical patterns are decoration on a node the settling algorithm never reads.
+
+### Theory applied
+
+**Mischel & Shoda (1995) — CAPS.** Personality is not a set of trait scores but a pattern of situation-response connections. The if-then signatures — "if betrayed, then autonomy assertion" — ARE the personality, not a downstream effect of it. Two people with identical average behaviour across situations can have radically different personalities because their situation-response mappings differ.
+
+**Read & Miller (2002) — Virtual Personalities.** Computational translation of CAPS: personality is the connection weight matrix in a constraint-satisfaction network. Input nodes represent situations. Output nodes represent behavioural tendencies. The weights between them — and the mediating nodes that modulate the signal — determine which inputs produce which outputs. Change the weights, change the personality.
+
+The existing `DispositionWeightMapper` implements the *trait-level* layer: cooperative characters have boosted acceptance-to-self-worth connections, bold characters have amplified BAS connections. But disposition says "this character is bold" — it does not say "this character has been betrayed repeatedly and learned to assert autonomy in response." Disposition gives temperament. Biography gives learned patterns.
+
+### The vocabulary gap
+
+The enrichment pipeline produced pattern strings using narrative terms: `romantic_betrayal_or_abandonment`, `physical_immobility_or_confinement`, `intellectual_or_artistic_underrecognition`. The CAPS engine's `updateWeights()` expects `Map<String, Double>` keyed by topology input node IDs: `betrayal`, `abandonment`, `controlled`, `powerlessness`. The narrative terms are for human readers. The engine needs coordinates in its own vocabulary.
+
+No amount of post-hoc parsing bridges this gap reliably. The fix is upstream: constrain the enrichment prompt to produce structured `input_activations` referencing the topology's own 30 input node IDs.
+
+### Architecture
+
+Three layers, each closing one gap:
+
+**1. Enrichment prompt** (`enrich_entity.py`): The DRIVES_CAPS_SYSTEM prompt now provides all 30 topology input node IDs — relationship nodes (betrayal, abandonment, rejection, neglect, secure_attachment, inconsistent_care), threat nodes (physical_threat, social_threat, psychological_threat, unpredictable_danger), achievement, social, resource, autonomy, and consequence nodes. The LLM maps biographical narrative onto these coordinates, producing `input_activations: {"betrayal": 0.9, "abandonment": 0.6}` alongside the narrative pattern string. The narrative stays for documentation. The activations feed the engine.
+
+**2. Data model** (`CapsPattern` record): Extended with `inputActivations` (`Map<String, Double>`) and `confidence` (`Double`). `convert_corpus.py` passes both through instead of stripping them. Backward-compatible — both fields are optional.
+
+**3. Importer** (`EntityEnrichmentHandler`): Injects `CapsEngine`. When caps_patterns contain structured `input_activations`, reads the agent's disposition from `BiographyProfile.dispositionProfiles()`, calls `CapsEngine.initializeAgent()` to create the baseline weight matrix, then iterates every pattern and calls `updateWeights()`. Parameter mapping:
+
+| CAPS pattern field | updateWeights() parameter | Mapping |
+|---|---|---|
+| `inputActivations` | `inputActivations` | Direct — topology node IDs to activation levels |
+| `frequency` | `outcomeIntensity` | frequency / 5.0 (normalised to 0.0-1.0) |
+| `confidence` | `salienceMultiplier` | Direct (0.0-1.0, defaults to 1.0 if absent) |
+| — | `outcomeValence` | 1.0 (positive reinforcement — these are learned patterns) |
+| — | `reinforcementSchedule` | "variable_ratio" (biographical patterns are intermittently reinforced) |
+
+After all patterns are applied, `saveState()` persists the seeded `AgentCapsState`.
+
+### What changes at runtime
+
+Before: every character starts with disposition-derived weights only. A character with a rich history of betrayal-driven autonomy assertion settles identically to one who has never been betrayed.
+
+After: Frida Kahlo's CAPS network arrives at the first runtime event with strengthened betrayal-to-autonomy connections. A betrayal stimulus activates her abandonment and betrayal input nodes, and the signal propagates through a weight matrix shaped by three biographical instances of this pattern at 0.87 confidence. The settling result differs measurably from a character who shares Frida's disposition but lacks her history.
+
+### Interaction with existing layers
+
+**Disposition (init)** provides temperament-level weights via `DispositionWeightMapper`. Bold → amplified BAS connections. Cooperative → boosted acceptance-to-self-worth. This is the Read & Miller (2002) stable social information processing baseline.
+
+**Biography (seed)** provides experience-level weights via `updateWeights()`. Repeated betrayal → strengthened betrayal-to-other-reliability and abandonment-to-self-worth connections. This is the Mischel & Shoda (1995) learned situation-response pattern.
+
+**Runtime (learn)** uses the same `updateWeights()` method during consolidation when the character processes new experiences. A character whose biography already strengthened betrayal-to-autonomy will learn from runtime betrayals differently — the prior pattern amplifies subsequent reinforcement. This is the computational analogue of sensitisation: prior experience makes you more responsive to similar future experience.
+
+### Findings
+
+**Finding (P94):** When LLM output feeds a computational model, constrain the output vocabulary to the model's coordinates at generation time. Don't generate free-form labels and map them later. The mapping is lossy, non-deterministic, and a maintenance burden. The 30 topology input node IDs provided in the enrichment prompt produce structured activations that feed `updateWeights()` directly — no parsing, no fuzzy matching, no mapping table.
+
+**Finding (P95):** Disposition gives temperament (trait-level personality: bold, cooperative). Biography gives learned patterns (experience-level personality: betrayal → autonomy). Both feed the same weight matrix through different mechanisms — `initializeAgent()` for disposition, `updateWeights()` for biography. The distinction maps to Read & Miller (2002) vs Mischel & Shoda (1995): stable social information processing vs learned situation-response signatures.
+
+**Finding (P96):** The `DispositionAxes` → `DispositionWeightMapper` pattern handles null axis values via `getOrDefault()` with empty modifier maps. When `resolveDisposition()` extracts axes from `BiographyProfile.dispositionProfiles()`, null values must be replaced with neutral defaults (e.g., "moderate", "calculated", "analytical") because `Map.of()` in the mapper throws NPE on null values.
+
+### References
+
+- Mischel, W., & Shoda, Y. (1995). A cognitive-affective system theory of personality: Reconceptualizing situations, dispositions, dynamics, and invariance in personality structure. *Psychological Review*, 102(2), 246-268. CAPS theory — personality as situation-response connection patterns.
+- Read, S. J., & Miller, L. C. (2002). Virtual personalities: A neural network model of personality. *Personality and Social Psychology Review*, 6(4), 357-369. Computational implementation — personality as connection weight matrix.
+- Bowlby, J. (1969). *Attachment and Loss*. Attachment theory — secure_attachment, inconsistent_care, rejection, abandonment, neglect nodes.
+- Gray, J. A. (1982). *The Neuropsychology of Anxiety*. Reinforcement Sensitivity Theory — BAS/BIS/FFFS mediating nodes.
+- McClelland, D. C. (1961). *The Achieving Society*. Achievement motivation — mastery, failure, competence_recognition nodes.
+- Bandura, A. (1977). *Social Learning Theory*. Self-efficacy, modeling_observed, vicarious learning nodes.
+- Deci, E. L., & Ryan, R. M. (2000). The "what" and "why" of goal pursuits. Self-determination theory — agency_granted, controlled, choice_available nodes.
 
 ---
 
