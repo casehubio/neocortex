@@ -9,3 +9,13 @@ entries:
       competence:
         baseline: 0.88
         justification: "High skill drive"
+    relationship_stages:
+      - other_agent: "Diego Rivera"
+        transitions:
+          - from: "admiration"
+            to: "passionate"
+            period: "1928-1929"
+            trigger: "Diego championed her art"
+          - from: "passionate"
+            to: "turbulent"
+            period: "1934-1935"

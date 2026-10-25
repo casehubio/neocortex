@@ -40,7 +40,7 @@ class BiographyImportIntegrationTest {
             new RelationshipHandler(mindMapStore, memoryStore),
             new GoalHandler(mindMapStore),
             new LifeEventHandler(memoryStore),
-            new EntityEnrichmentHandler(mindMapStore, true),
+            new EntityEnrichmentHandler(mindMapStore, memoryStore, true),
             new DispositionProfileHandler(mindMapStore, true)
         );
         var runner = new BiographyImportRunner(handlers);

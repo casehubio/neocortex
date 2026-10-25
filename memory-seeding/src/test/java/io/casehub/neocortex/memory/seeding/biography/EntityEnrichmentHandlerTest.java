@@ -1,12 +1,16 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
+import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
+import io.casehub.neocortex.memory.relationship.RelationshipQuery;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
+import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,17 +18,32 @@ class EntityEnrichmentHandlerTest {
 
     private static final String TENANT = "t1";
 
+    private final CurrentPrincipal principal = new CurrentPrincipal() {
+        @Override
+        public String actorId()             {return "agent-1";}
+
+        @Override
+        public Set<String> groups()         {return Set.of();}
+
+        @Override
+        public String tenancyId()           {return TENANT;}
+
+        @Override
+        public boolean isCrossTenantAdmin() {return true;}
+    };
+
     @Test
     void storesDriveBaselinesOnEntityNode() {
-        var store = new InMemoryMindMapStore();
-        var handler = new EntityEnrichmentHandler(store, true);
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
 
         var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
         store.addNode(NodeInput.of("Frida Kahlo", subgraph).withProvenance("test"), TENANT);
 
         var baselines = Map.of(
-            "curiosity", new EntityEnrichmentEntry.DriveBaseline(0.85, "Strong exploration"),
-            "competence", new EntityEnrichmentEntry.DriveBaseline(0.88, "High skill drive"));
+                "curiosity", new EntityEnrichmentEntry.DriveBaseline(0.85, "Strong exploration"),
+                "competence", new EntityEnrichmentEntry.DriveBaseline(0.88, "High skill drive"));
         var entry = new EntityEnrichmentEntry("enrich-1", "Frida Kahlo", baselines, null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
@@ -37,14 +56,15 @@ class EntityEnrichmentHandlerTest {
 
     @Test
     void storesCapsPatterns() {
-        var store = new InMemoryMindMapStore();
-        var handler = new EntityEnrichmentHandler(store, true);
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
 
         var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
         store.addNode(NodeInput.of("Test Entity", subgraph).withProvenance("test"), TENANT);
 
         var patterns = List.of(
-            new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8));
+                new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8));
         var entry = new EntityEnrichmentEntry("enrich-2", "Test Entity", null, patterns, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
@@ -57,21 +77,80 @@ class EntityEnrichmentHandlerTest {
 
     @Test
     void skipsUnresolvedEntity() {
-        var store = new InMemoryMindMapStore();
-        var handler = new EntityEnrichmentHandler(store, true);
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
 
         var entry = new EntityEnrichmentEntry("enrich-3", "Unknown Entity",
-            Map.of("curiosity", new EntityEnrichmentEntry.DriveBaseline(0.5, null)),
-            null, null, null);
+                                              Map.of("curiosity", new EntityEnrichmentEntry.DriveBaseline(0.5, null)),
+                                              null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
-        // No exception, no crash — silently skips
+    }
+
+    @Test
+    void storesRelationshipStagesAsMemories() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Frida Kahlo", subgraph).withProvenance("test"), TENANT);
+
+        var transitions = List.of(
+                new EntityEnrichmentEntry.Transition("admiration", "passionate", "1928-1929",
+                                                     "Diego championed her art"),
+                new EntityEnrichmentEntry.Transition("passionate", "turbulent", "1934-1935", null));
+        var stages = List.of(new EntityEnrichmentEntry.RelationshipStage("Diego Rivera", transitions));
+        var entry  = new EntityEnrichmentEntry("enrich-4", "Frida Kahlo", null, null, null, stages);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var memories = memoryStore.query(RelationshipQuery.forAgent("agent-1", TENANT));
+        assertThat(memories).hasSize(2);
+
+        var first = memories.stream()
+                            .filter(m -> m.text().contains("admiration"))
+                            .findFirst().orElseThrow();
+        assertThat(first.text()).contains("Diego Rivera");
+        assertThat(first.text()).contains("admiration");
+        assertThat(first.text()).contains("passionate");
+        assertThat(first.attributes().get("other-agent")).isEqualTo("Diego Rivera");
+        assertThat(first.attributes().get("source-event-type")).isEqualTo("stage-transition");
+        assertThat(first.attributes().get("stage-from")).isEqualTo("admiration");
+        assertThat(first.attributes().get("stage-to")).isEqualTo("passionate");
+        assertThat(first.attributes().get("period")).isEqualTo("1928-1929");
+        assertThat(first.attributes().get("trigger")).isEqualTo("Diego championed her art");
+        assertThat(first.attributes().get("provenance")).isEqualTo("biographical-import");
+
+        var second = memories.stream()
+                             .filter(m -> m.text().contains("turbulent"))
+                             .findFirst().orElseThrow();
+        assertThat(second.attributes().get("stage-from")).isEqualTo("passionate");
+        assertThat(second.attributes().get("stage-to")).isEqualTo("turbulent");
+        assertThat(second.attributes()).doesNotContainKey("trigger");
+    }
+
+    @Test
+    void skipsNullRelationshipStages() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Test Entity", subgraph).withProvenance("test"), TENANT);
+
+        var entry = new EntityEnrichmentEntry("enrich-5", "Test Entity", null, null, null, null);
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var memories = memoryStore.query(RelationshipQuery.forAgent("agent-1", TENANT));
+        assertThat(memories).isEmpty();
     }
 
     private BiographyProfile profileWith(List<EntityEnrichmentEntry> enrichments) {
         return new BiographyProfile("a1", "t1",
-            List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), List.of(), List.of(), List.of(),
-            enrichments, List.of(), List.of());
+                                    List.of(), List.of(), List.of(), List.of(), List.of(),
+                                    List.of(), List.of(), List.of(), List.of(), List.of(),
+                                    enrichments, List.of(), List.of());
     }
 }

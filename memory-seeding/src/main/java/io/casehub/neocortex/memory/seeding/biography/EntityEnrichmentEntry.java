@@ -31,5 +31,5 @@ public record EntityEnrichmentEntry(
     ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Transition(String from, String to, String period) {}
+    public record Transition(String from, String to, String period, String trigger) {}
 }
