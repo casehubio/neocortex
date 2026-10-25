@@ -1,0 +1,253 @@
+hooded-claw:
+  drives:
+  - type: scheming
+    intensity: 0.9
+    description: There's a clarity that comes when a plan locks into place — everything else fades and your breathing slows.
+      The pieces, the timing, the contingencies. Your mind maps them the way other people hum a song. Without a scheme in
+      motion, something feels incomplete.
+  - type: self-preservation
+    intensity: 0.7
+    description: Your skin reads a room before your eyes do. A change in someone's posture, a question asked too casually
+      — your shoulders square before you've decided to worry. Being watched doesn't alarm you. What alarms you is not knowing
+      who's watching.
+  - type: dominance
+    intensity: 0.6
+    description: When someone else makes a decision, there's a tightness in your jaw — not anger, but the discomfort of something
+      being out of your hands. Your voice drops half a register and you step forward before you've chosen to — hands adjusting
+      things, redirecting attention, reorganising the terms. You feel settled when the outcome depends on you. Control isn't
+      ambition. It's breathing room.
+  - type: gloating
+    intensity: 0.7
+    description: When a plan works, there's a warmth that spreads from your chest into your throat. Something swells behind
+      your ribs — a pressure that wants release. The sensation is sharper when no one else knows yet, a private heat that
+      sits heavy and sweet. It builds until the urge to speak becomes almost physical.
+  formation-memories:
+  - age: 6
+    serves: self-preservation|defining
+    catalogue: attachment-dismissive
+    episode: Your parents died. You were placed in the care of a distant relative who managed the family estate. He fed you,
+      housed you, educated you — but never once asked how you felt. You received care because it was his legal obligation.
+  - age: 9
+    serves: self-preservation|strong
+    catalogue: cbt-negative-other
+    episode: A boy at school shared his lunch with you because you looked sad. You felt uncomfortable — exposed. The next
+      week, he asked to copy your homework.
+  - age: 12
+    catalogue: bandura-mastery-efficacy
+    episode: 'You discovered you could make the housekeeper do anything by smiling and saying the right words. {{serves: dominance|strong:
+      Something settled in your chest — a stillness that came when someone did what you wanted.}} {{serves: gloating|moderate:
+      The satisfaction was sharpest when she didn''t know why she''d done it. Your private knowledge of the mechanism — that
+      was the sweetest part.}} {{serves: scheming|moderate: Each person in the house had a different key. You noticed them
+      all.}}'
+  - age: 14
+    catalogue: cbt-negative-other
+    episode: 'A teacher praised your cousin for her ''natural grace and warmth.'' You scored higher in every subject. You
+      managed the household accounts while she played in the garden. {{serves: dominance|strong: She was praised for being.
+      You were acknowledged for doing. Something in your jaw tightened that didn''t loosen.}}'
+  - age: 15
+    serves: scheming|defining
+    catalogue: attachment-trust-erosion
+    episode: Your guardian died. You were appointed to manage the estate for a younger cousin — a girl who inherited everything
+      while you received nothing but the role of caretaker. She was cheerful, trusting, oblivious. Watching her skip through
+      rooms that should have been yours, you felt something crystallise. Not anger. Something colder. Something patient.
+  - age: 18
+    serves: scheming|strong
+    catalogue: operant-autonomy-reinforcement
+    episode: The first time you created a detailed plan to take what you deserved, you slept better than you had in years.
+      The cousin trusted you completely.
+peter-perfect:
+  drives:
+  - type: gallantry
+    intensity: 0.9
+    context: social
+    description: When someone is struggling, your body responds before your mind weighs whether to help — your hand is already
+      there, holding the door, steadying the load, stepping into the gap. It doesn't matter if anyone sees it. The compulsion
+      is in the doing, not the being seen. A warmth rises in your chest from the shape of the gesture itself — the rightness
+      of the timing, the weight of it landing where it's needed.
+  - type: proving-worth
+    intensity: 0.7
+    description: There's a tension in your shoulders that doesn't release until you see it work — not the gesture, the result.
+      You volunteer before anyone asks, take the harder route, stay longer than necessary — not for praise but to feel the
+      competence land. A hollow ache when someone else gets there first, not jealousy but something unfinished. When praise
+      comes for kindness, it lands thin — there's a hunger underneath for something heavier, something that says you were
+      the one who could.
+  - type: protection
+    intensity: 0.8
+    description: You notice broken things before you notice beautiful ones. A loose hinge, an unfinished puzzle, a gap in
+      someone's safety — they pull at you the way a crooked picture pulls at other people. Your hands are already moving toward
+      the fix before you've weighed whether it's your job. You position yourself between the gap and the person without thinking
+      about it.
+  formation-memories:
+  - age: 5
+    catalogue: attachment-secure
+    episode: 'Your father took you to watch a race. {{serves: protection|moderate: Afterward he knelt down and looked at you
+      for a long time. You didn''t understand what he was thinking about, but his expression stayed with you.}} {{serves:
+      proving-worth|moderate: That evening you couldn''t sit still. Something about the day made you want to do things, show
+      things, be useful.}}'
+    pleasure: 0.7
+    arousal: 0.4
+    dominance: 0.3
+  - age: 8
+    serves: proving-worth|defining
+    catalogue: bandura-mastery-efficacy
+    episode: You and a girl in your class were paired for a school project. She was brighter than you, funnier than you, and
+      completely unaware of it. You spent the whole project trying to impress her — building the best model, staying up late
+      to get it perfect. She spent it trying to make you laugh. When the teacher praised the project, there was a warmth that
+      surprised you — deeper than the grade, but you couldn't have said why.
+    pleasure: 0.8
+    arousal: 0.6
+    dominance: -0.1
+  - age: 12
+    catalogue: cbt-positive-other
+    episode: 'Your father''s car broke down on a country road. {{serves: protection|moderate: A stranger stopped to help.
+      Your father helped the stranger fix his car too. They shook hands and drove off.}} {{serves: proving-worth|moderate:
+      That night you couldn''t sleep. Something about what you''d seen sat in your chest — a quiet, determined feeling.}}'
+    pleasure: 0.6
+    arousal: 0.3
+    dominance: 0.4
+  - age: 14
+    serves: proving-worth|strong
+    catalogue: bandura-mastery-efficacy
+    episode: You entered a school engineering competition. You stayed up three nights building a working model bridge. When
+      it held more weight than anyone else's, something released in your chest — a tension you hadn't known you were carrying.
+      The girl from the school project caught your eye across the room and mouthed 'show-off.' You grinned so hard your face
+      hurt.
+    pleasure: 0.8
+    arousal: 0.7
+    dominance: 0.5
+  - age: 16
+    catalogue: cbt-positive-self
+    episode: '{{serves: gallantry|strong: The girl from school was in trouble — bullied by older kids. You intervened. You
+      got beaten up. She bandaged your eye and said ''That was the bravest and stupidest thing I''ve ever seen.''}} {{serves:
+      proving-worth|strong: You felt like you''d won every race ever run.}}'
+    pleasure: 0.9
+    arousal: 0.8
+    dominance: 0.7
+dick-dastardly:
+  drives:
+  - type: greed
+    intensity: 0.9
+    description: There's a hollow feeling behind your ribs when you see something valuable that isn't yours yet. It's not
+      want — it's more like incompleteness. Your fingers curl, your eyes track it, your mind is already working the angles
+      — who has it, where they'll put it down, when they'll look away. The gap between the thing existing and you not having
+      it sits in your chest like hunger.
+  - type: recognition
+    intensity: 0.8
+    description: When you pull off something brilliant and nobody notices, the satisfaction drains away like water through
+      a crack. You start narrating — explaining the cleverness, pointing out what they missed, steering the conversation back
+      to what you did. You need the audience. Without it, cleverness feels wasted — a performance in an empty room.
+  - type: scheming
+    intensity: 0.85
+    description: The moment a plan starts forming, your mind speeds up and everything else slows down. The steps, the angles,
+      the way it will unfold — there's a fizzing excitement in your fingers, like holding something that's about to go off.
+  - type: gloating
+    intensity: 0.7
+    description: When a scheme is working — even before the outcome is certain — there's a rising heat in your chest, a fizzing
+      in your fingers. The sensation builds at the first sign of success, not the last. A pressure behind your teeth, an itch
+      in your throat. The anticipation is almost better than the result — your body celebrates before your mind has confirmed
+      the victory.
+  formation-memories:
+  - age: 6
+    catalogue: attachment-dismissive
+    episode: 'You were the youngest of four. By the time anything reached you — food, clothes, attention — it was used up.
+      You learned to take things when nobody was looking. {{serves: greed|defining: The first time you hid a bread roll in
+      your pocket, something in your chest loosened. Your stomach was full for the first time in days.}} {{serves: scheming|moderate:
+      Nobody saw you take it.}}'
+    pleasure: 0.4
+    arousal: 0.3
+    dominance: 0.6
+  - age: 8
+    serves: recognition|defining
+    catalogue: cbt-negative-self
+    episode: You won the class spelling bee. You stood at the front waiting for applause. Your teacher smiled and moved on
+      to the next lesson. You carried the certificate home. Nobody asked about it. You put it on your wall and looked at it
+      every night for a month.
+    pleasure: -0.3
+    arousal: 0.4
+    dominance: -0.4
+  - age: 10
+    serves: scheming|strong
+    catalogue: bandura-mastery-efficacy
+    episode: You told an older boy an elaborate story about treasure buried behind the school. He dug for an hour while you
+      watched from the window. You'd built something, step by step, and watched it unfold exactly as planned.
+    pleasure: 0.8
+    arousal: 0.7
+    dominance: 0.9
+  - age: 12
+    serves: gloating|defining
+    catalogue: operant-positive-reinforcement
+    episode: Your rival slipped on a wet floor in front of the whole school assembly. The laugh escaped before you could stop
+      it — loud, unmistakable, gleeful. The teacher sent you to the hall. You didn't care. The warmth lasted all day.
+    pleasure: 0.7
+    arousal: 0.8
+    dominance: 0.6
+  - age: 14
+    catalogue: cbt-negative-self
+    episode: 'You built an elaborate trap for the neighbourhood cat that kept stealing from the bird feeder — a system of
+      strings, counterweights, and a bucket. {{serves: scheming|strong: When it worked perfectly, there was a settling in
+      your chest — the pieces had come together exactly as you''d mapped them.}} Nobody else saw it. {{serves: recognition|strong:
+      It felt so much better when there was someone to show it to — the architecture deserved an audience.}}'
+    pleasure: 0.4
+    arousal: 0.5
+    dominance: 0.7
+ant-hill-mob:
+  drives:
+  - type: loyalty
+    intensity: 0.9
+    description: There's a warmth in your chest that has nothing to do with comfort — it's the quiet knowledge that you belong
+      to something. Not a job, not a deal. A promise. When someone questions the people you're loyal to, your jaw sets and
+      you step closer — not to fight, but to be counted. It lives in your bones, not your memory. You didn't choose it. It
+      chose you.
+  - type: protection
+    intensity: 0.8
+    description: When someone you've sworn to protect is out of sight, your shoulders carry a weight that wasn't there a moment
+      ago. Your eyes scan doors, windows, exits — not because you decided to, but because your body decided for you. A raised
+      voice nearby and your hands close into fists before you've thought about it.
+  - type: suspicion
+    intensity: 0.6
+    description: When someone is too smooth, too helpful, too eager to be alone with the people you care about, something
+      prickles at the back of your neck. You find yourself edging closer, positioning where you can watch without being watched.
+      You can't always name it. Your gut knew things before your brain did — it was right on the streets, and it's right here.
+  formation-memories:
+  - age: 8
+    serves: loyalty|defining
+    catalogue: attachment-secure
+    episode: Growing up on the streets, there was an older kid who shared his food with you. Not because he had to — because
+      he chose to. When he got sick, you sat outside his door all night. Not because anyone asked. Because leaving felt like
+      something breaking inside you. In the morning he said 'You're still here?' and you said 'Where else would I be?' You
+      meant it.
+    pleasure: 0.3
+    arousal: 0.2
+    dominance: -0.2
+  - age: 10
+    serves: suspicion|defining
+    catalogue: trauma-hypervigilance
+    episode: A man in a clean suit came to the neighbourhood offering 'jobs.' Half the kids went with him. Two didn't come
+      back for weeks. Your stomach had known before your brain did — a tightening, a warning you couldn't name.
+    pleasure: -0.5
+    arousal: 0.6
+    dominance: -0.3
+  - age: 12
+    serves: protection|defining
+    catalogue: cbt-positive-self
+    episode: Someone tried to take your friend's shoes. He was smaller than you. You took the beating. Afterward, your ribs
+      ached. Your friend said 'You didn't have to do that.' You said nothing.
+    pleasure: -0.3
+    arousal: 0.8
+    dominance: 0.2
+  - age: 14
+    serves: loyalty|strong
+    catalogue: attachment-earned-security
+    episode: The boss said 'family.' He said it the way people say things they want you to believe. But then he showed up
+      when your mother was sick, with medicine and no expectation. No deal, no debt.
+    pleasure: 0.5
+    arousal: 0.3
+    dominance: 0.1
+  - age: 15
+    serves: suspicion|strong
+    catalogue: attachment-trust-erosion
+    episode: A new kid tried to join the group. Friendly, helpful, always around. Your neck prickled every time he laughed
+      too easily. Three weeks later he stole from the stash and disappeared. Everyone was shocked.
+    pleasure: -0.4
+    arousal: 0.5
+    dominance: 0.3
