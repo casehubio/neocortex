@@ -6,6 +6,7 @@ import io.quarkmind.inference.bayes.BayesVariable;
 import io.quarkmind.inference.bayes.BayesVariableState;
 import io.quarkmind.inference.bayes.JunctionTree;
 import io.quarkmind.inference.bayes.JunctionTreeBuilder;
+import io.quarkmind.inference.bayes.MapAssignment;
 import io.quarkmind.inference.bayes.graph.GraphNode;
 
 public class EvidenceFusionEngine {
@@ -54,6 +55,11 @@ public class EvidenceFusionEngine {
         BayesVariableState state = instance.marginalize(targetVariable);
         return state.getDistribution().clone();
     }
+
+    public MapAssignment mapInference() {
+        return instance.mapInference();
+    }
+
 
     public java.util.Map<String, Double> getVariableSensitivities() {
         java.util.Map<String, Double>                       sensitivities = new java.util.LinkedHashMap<>();
