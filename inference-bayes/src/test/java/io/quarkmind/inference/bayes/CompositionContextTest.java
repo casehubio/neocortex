@@ -4,7 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CompositionContextTest {
 
@@ -174,4 +178,82 @@ class CompositionContextTest {
         assertTrue(buildTvZ[1] > buildTvZ[0],
             "Greedy should dominate when expand observed");
     }
+
+    @Test
+    void multipleSequentialActivations() {
+        var comp = CompositionBuilder.create("test")
+                                     .slot("scouting", scoutingTvP())
+                                     .variant("TvP", scoutingTvP())
+                                     .variant("TvZ", scoutingTvZ())
+                                     .slot("buildOrder", buildOrderTree())
+                                     .link("scouting", "enemy_strategy").to("buildOrder", "enemy_strategy")
+                                     .build();
+
+        var instance = new CompositionInstance(comp);
+
+        instance.activate("scouting", "TvZ");
+        instance.setHardEvidence("scouting", "observed_units", "spawning_pool");
+        instance.update();
+        double[] afterTvZ = instance.marginalize("buildOrder", "build_choice");
+
+        instance.activate("scouting", "TvP");
+        instance.setHardEvidence("scouting", "observed_units", "gateway");
+        instance.update();
+        double[] afterTvP = instance.marginalize("buildOrder", "build_choice");
+
+        assertFalse(Arrays.equals(afterTvZ, afterTvP),
+                    "Different variants should produce different results");
+    }
+
+    @Test
+    void activateDefault_revertsToDefaultTree() {
+        var comp = CompositionBuilder.create("test")
+                                     .slot("scouting", scoutingTvP())
+                                     .variant("TvP", scoutingTvP())
+                                     .variant("TvZ", scoutingTvZ())
+                                     .slot("buildOrder", buildOrderTree())
+                                     .link("scouting", "enemy_strategy").to("buildOrder", "enemy_strategy")
+                                     .build();
+
+        var instance = new CompositionInstance(comp);
+        instance.setHardEvidence("scouting", "observed_units", "gateway");
+        instance.update();
+        double[] withDefault = instance.marginalize("buildOrder", "build_choice");
+
+        instance.activate("scouting", "TvZ");
+        instance.setHardEvidence("scouting", "observed_units", "spawning_pool");
+        instance.update();
+
+        instance.activateDefault("scouting");
+        instance.setHardEvidence("scouting", "observed_units", "gateway");
+        instance.update();
+        double[] afterRevert = instance.marginalize("buildOrder", "build_choice");
+
+        assertArrayEquals(withDefault, afterRevert, 1e-10,
+                          "Reverting to default should produce same results as initial default");
+    }
+
+    @Test
+    void activateThenReset_variantPersistsEvidenceClears() {
+        var comp = CompositionBuilder.create("test")
+                                     .slot("scouting", scoutingTvP())
+                                     .variant("TvZ", scoutingTvZ())
+                                     .slot("buildOrder", buildOrderTree())
+                                     .link("scouting", "enemy_strategy").to("buildOrder", "enemy_strategy")
+                                     .build();
+
+        var instance = new CompositionInstance(comp);
+        instance.activate("scouting", "TvZ");
+        instance.setHardEvidence("scouting", "observed_units", "spawning_pool");
+        instance.update();
+
+        instance.reset();
+        instance.update();
+
+        double[] strategy = instance.marginalize("scouting", "enemy_strategy");
+        for (double v : strategy) {
+            assertEquals(1.0 / 3, v, 0.05, "Evidence should be cleared but variant persists");
+        }
+    }
+
 }

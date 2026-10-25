@@ -19,11 +19,40 @@ public record NetworkComposition(
         links = List.copyOf(links);
         validateSlotNames(slots);
         validateLinkReferences(slots, links);
+        validateNoDuplicateLinks(links);
+        validateNoConflictingTargets(links);
         validateAcyclic(slots, links);
     }
 
     public List<String> topologicalOrder() {
         return computeTopologicalOrder(slots, links);
+    }
+
+    private static void validateNoDuplicateLinks(List<NetworkLink> links) {
+        Set<String> seen = new HashSet<>();
+        for (var link : links) {
+            for (var entry : link.variableMapping().entrySet()) {
+                String key = link.sourceSlot() + "." + entry.getKey() + "->" + link.targetSlot() + "." + entry.getValue();
+                if (!seen.add(key)) {
+                    throw new IllegalArgumentException("Duplicate link: " + link.sourceSlot()
+                        + "." + entry.getKey() + " -> " + link.targetSlot() + "." + entry.getValue());
+                }
+            }
+        }
+    }
+
+    private static void validateNoConflictingTargets(List<NetworkLink> links) {
+        Set<String> targetVars = new HashSet<>();
+        for (var link : links) {
+            for (var entry : link.variableMapping().entrySet()) {
+                String target = link.targetSlot() + "." + entry.getValue();
+                if (!targetVars.add(target)) {
+                    throw new IllegalArgumentException(
+                        "Multiple links target the same variable: " + link.targetSlot()
+                        + "." + entry.getValue() + " — each target variable must have exactly one upstream source");
+                }
+            }
+        }
     }
 
     public NetworkSlot slotByName(String name) {

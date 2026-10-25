@@ -1,6 +1,5 @@
 package io.quarkmind.inference.bayes;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,9 +56,9 @@ public class CompositionInstance {
 
     public void reset() {
         for (var slot : composition.slots()) {
-            BayesInstance<?> inst = instances.get(slot.name());
+            BayesInstance<?>      inst     = instances.get(slot.name());
             Map<String, double[]> evidence = inst.getEvidenceVariables();
-            for (String varName : new ArrayList<>(evidence.keySet())) {
+            for (String varName : evidence.keySet()) {
                 if (!linkTargetVars.contains(slot.name() + "." + varName)) {
                     inst.unsetLikelyhood(varName);
                 }
@@ -106,7 +105,7 @@ public class CompositionInstance {
                             String stateName = sourceVariable.getOutcomes()[argmax].toString();
                             inst.setHardEvidence(targetVar, stateName);
                         } else {
-                            inst.setLikelyhood(targetVar, posterior);
+                            inst.setLikelyhood(targetVar, posterior.clone());
                         }
 
                         upstreamChanged = true;
@@ -145,6 +144,14 @@ public class CompositionInstance {
         posteriorSnapshots.get(slotName).clear();
         markDownstreamDirty(slotName);
     }
+
+    public void activateDefault(String slotName) {
+        NetworkSlot slot = composition.slotByName(slotName);
+        instances.put(slotName, new BayesInstance<>(slot.defaultTree()));
+        posteriorSnapshots.get(slotName).clear();
+        markDownstreamDirty(slotName);
+    }
+
 
     public BayesStats getStats(String slotName) {
         return getInstance(slotName).getStats();

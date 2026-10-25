@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NetworkCompositionTest {
 
@@ -35,18 +37,18 @@ class NetworkCompositionTest {
         JunctionTree tree = twoVarTree();
 
         var composition = new NetworkComposition("diamond",
-            List.of(
-                new NetworkSlot("A", tree),
-                new NetworkSlot("B", tree),
-                new NetworkSlot("C", tree),
-                new NetworkSlot("D", tree)
-            ),
-            List.of(
-                new NetworkLink("A", "B", Map.of("Y", "X"), TransferMode.POSTERIOR),
-                new NetworkLink("A", "C", Map.of("Y", "X"), TransferMode.POSTERIOR),
-                new NetworkLink("B", "D", Map.of("Y", "X"), TransferMode.POSTERIOR),
-                new NetworkLink("C", "D", Map.of("Y", "X"), TransferMode.POSTERIOR)
-            ));
+                                                 List.of(
+                                                         new NetworkSlot("A", tree),
+                                                         new NetworkSlot("B", tree),
+                                                         new NetworkSlot("C", tree),
+                                                         new NetworkSlot("D", tree)
+                                                        ),
+                                                 List.of(
+                                                         new NetworkLink("A", "B", Map.of("Y", "X"), TransferMode.POSTERIOR),
+                                                         new NetworkLink("A", "C", Map.of("Y", "X"), TransferMode.POSTERIOR),
+                                                         new NetworkLink("B", "D", Map.of("Y", "X"), TransferMode.POSTERIOR),
+                                                         new NetworkLink("C", "D", Map.of("Y", "Y"), TransferMode.POSTERIOR)
+                                                        ));
 
         List<String> order = composition.topologicalOrder();
         assertTrue(order.indexOf("A") < order.indexOf("B"));
@@ -122,4 +124,31 @@ class NetworkCompositionTest {
         assertThrows(IllegalArgumentException.class, () ->
             composition.slotByName("Z"));
     }
+
+    @Test
+    void conflictingTargetVariable_throws() {
+        JunctionTree tree = twoVarTree();
+
+        assertThrows(IllegalArgumentException.class, () ->
+                                                             new NetworkComposition("conflict",
+                                                                                    List.of(new NetworkSlot("A", tree), new NetworkSlot("B", tree), new NetworkSlot("C", tree)),
+                                                                                    List.of(
+                                                                                            new NetworkLink("A", "C", Map.of("Y", "X"), TransferMode.POSTERIOR),
+                                                                                            new NetworkLink("B", "C", Map.of("Y", "X"), TransferMode.POSTERIOR)
+                                                                                           )));
+    }
+
+    @Test
+    void duplicateLink_throws() {
+        JunctionTree tree = twoVarTree();
+
+        assertThrows(IllegalArgumentException.class, () ->
+                                                             new NetworkComposition("dup-link",
+                                                                                    List.of(new NetworkSlot("A", tree), new NetworkSlot("B", tree)),
+                                                                                    List.of(
+                                                                                            new NetworkLink("A", "B", Map.of("Y", "X"), TransferMode.POSTERIOR),
+                                                                                            new NetworkLink("A", "B", Map.of("Y", "X"), TransferMode.POSTERIOR)
+                                                                                           )));
+    }
+
 }
