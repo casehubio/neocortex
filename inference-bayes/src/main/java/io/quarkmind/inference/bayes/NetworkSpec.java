@@ -123,6 +123,28 @@ public record NetworkSpec(
         return toBuilder().build();
     }
 
+    public static NetworkSpec fromBayesNetwork(BayesNetwork network, String name, String description) {
+        List<VariableSpec> variables = new ArrayList<>();
+        List<EdgeSpec> edges = new ArrayList<>();
+
+        for (var node : network) {
+            BayesVariable<?> var = node.getContent();
+            String varName = var.getName();
+            List<String> outcomes = new ArrayList<>();
+            for (Object o : var.getOutcomes()) {
+                outcomes.add(o.toString());
+            }
+            CptSpec cpt = new CptSpec.DirectCpt(var.getProbabilityTable());
+            variables.add(new VariableSpec(varName, outcomes, "", SpecStatus.ACCEPTED, cpt));
+
+            for (String parent : var.getGiven()) {
+                edges.add(new EdgeSpec(parent, varName, "", SpecStatus.ACCEPTED));
+            }
+        }
+
+        return new NetworkSpec(name, variables, edges, description);
+    }
+
     private static double[][] resolveCpt(VariableSpec var, List<String> parents,
                                          Map<String, VariableSpec> allVars) {
         CptSpec spec        = var.cptSpec();
