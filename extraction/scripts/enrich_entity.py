@@ -33,7 +33,23 @@ For each axis, provide a BASELINE level (not a delta) and justification:
 
 ### 2. CAPS Patterns
 Identify recurring activation patterns: what situations consistently trigger what responses?
-Format: [{"pattern": "betrayal → trust_betrayed + social_threat → ANTAGONISM + AVOIDANCE", "frequency": 3, "confidence": 0.8}]
+
+Each pattern MUST include:
+- pattern: narrative description "trigger → mediating → RESPONSE"
+- frequency: how often this pattern fires (1-5)
+- confidence: how certain the pattern is (0.0-1.0)
+- input_activations: a map of CAPS input node IDs to activation levels (0.0-1.0)
+
+Valid input node IDs (use ONLY these):
+  relationship: secure_attachment, inconsistent_care, rejection, betrayal, abandonment, neglect
+  threat: physical_threat, social_threat, psychological_threat, unpredictable_danger
+  achievement: mastery, failure, performance_judged, competence_recognition
+  social: acceptance, exclusion, dominance, submission, modeling_observed
+  resource: scarcity, abundance, competition, sharing
+  autonomy: agency_granted, controlled, choice_available, powerlessness
+  consequence: reward, punishment, reward_removal, aversive_removal
+
+Format: [{"pattern": "betrayal → trust_violation → AUTONOMY_ASSERTION", "frequency": 3, "confidence": 0.87, "input_activations": {"betrayal": 0.9, "abandonment": 0.6}}]
 
 Respond with JSON only: {"drive_baselines": {...}, "caps_patterns": [...]}"""
 
