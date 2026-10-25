@@ -64,7 +64,7 @@ class EntityEnrichmentHandlerTest {
         store.addNode(NodeInput.of("Test Entity", subgraph).withProvenance("test"), TENANT);
 
         var patterns = List.of(
-                new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8));
+                new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8, null, null));
         var entry = new EntityEnrichmentEntry("enrich-2", "Test Entity", null, patterns, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);

@@ -466,6 +466,24 @@ class TestEntityEnrichment:
         assert entry["caps_patterns"][0]["pattern"] == "threat-response"
         assert entry["caps_patterns"][0]["frequency"] == "high"
 
+    def test_caps_patterns_with_input_activations(self):
+        enrichments = {
+            "Frida Kahlo": {
+                "caps_patterns": [
+                    {
+                        "pattern": "betrayal → trust_violation → AUTONOMY_ASSERTION",
+                        "frequency": 3,
+                        "confidence": 0.87,
+                        "input_activations": {"betrayal": 0.9, "abandonment": 0.6},
+                    },
+                ],
+            },
+        }
+        _, files = _convert(_corpus(entity_enrichments=enrichments))
+        entry = files["entity-enrichments.yaml"]["entries"][0]
+        assert entry["caps_patterns"][0]["confidence"] == 0.87
+        assert entry["caps_patterns"][0]["input_activations"] == {"betrayal": 0.9, "abandonment": 0.6}
+
     def test_behavioural_attractors(self):
         enrichments = {
             "Frida Kahlo": {

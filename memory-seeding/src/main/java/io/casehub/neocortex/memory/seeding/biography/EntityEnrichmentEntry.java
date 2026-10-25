@@ -19,7 +19,12 @@ public record EntityEnrichmentEntry(
     public record DriveBaseline(Double baseline, String justification) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record CapsPattern(String pattern, Double frequency) {}
+    public record CapsPattern(
+        String pattern,
+        Double frequency,
+        Double confidence,
+        @JsonProperty("input_activations") Map<String, Double> inputActivations
+    ) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record BehaviouralAttractor(String name, String description) {}

@@ -349,7 +349,12 @@ def _map_entity_enrichment(entity_name, data, seen_ids):
         entry["drive_baselines"] = baselines
     if data.get("caps_patterns"):
         entry["caps_patterns"] = [
-            {"pattern": p.get("pattern", ""), "frequency": p.get("frequency")}
+            {
+                "pattern": p.get("pattern", ""),
+                "frequency": p.get("frequency"),
+                "confidence": p.get("confidence"),
+                "input_activations": p.get("input_activations"),
+            }
             for p in data["caps_patterns"]
         ]
     if data.get("behavioural_attractors"):
