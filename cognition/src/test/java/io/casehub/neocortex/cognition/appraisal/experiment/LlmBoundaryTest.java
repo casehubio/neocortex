@@ -6,7 +6,7 @@ import io.casehub.neocortex.cognition.appraisal.HabituationState;
 import io.casehub.neocortex.cognition.appraisal.LlmCopingCheck;
 import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
 import io.casehub.neocortex.cognition.appraisal.SecDimensions;
-import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.platform.agent.AgentEvent;

@@ -9,7 +9,7 @@ import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
 import io.casehub.neocortex.cognition.appraisal.RelevanceCheck;
 import io.casehub.neocortex.cognition.appraisal.SchererAppraisalConfig;
 import io.casehub.neocortex.cognition.appraisal.SchererAppraisalStrategy;
-import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.platform.agent.AgentEvent;

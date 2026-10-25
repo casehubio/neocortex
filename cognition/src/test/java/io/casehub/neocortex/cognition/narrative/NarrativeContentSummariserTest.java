@@ -1,6 +1,6 @@
 package io.casehub.neocortex.cognition.narrative;
 
-import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.memory.ReflectionEntry;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;

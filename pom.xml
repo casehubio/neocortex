@@ -83,6 +83,7 @@
     <module>summarisation</module>
     <module>cognition-api</module>
     <module>cognition</module>
+    <module>session-testing</module>
     <module>schema-generator</module>
     <module>knowledge-pipeline-api</module>
     <module>knowledge-pipeline</module>
@@ -538,6 +539,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-cognition</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-session-testing</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -2,7 +2,7 @@ package io.casehub.neocortex.cognition.innerlife;
 
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentDisposition;
-import io.casehub.neocortex.cognition.belief.StubPipelines;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
