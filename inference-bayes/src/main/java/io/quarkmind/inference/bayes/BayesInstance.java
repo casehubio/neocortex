@@ -900,6 +900,9 @@ public class BayesInstance<T> {
 
     @SuppressWarnings("unchecked")
     public BayesVariable addLeafVariable(String name, Object[] outcomes, double[][] cpt, String parentName) {
+        if (tree.isFrozen()) {
+            throw new IllegalStateException("Cannot modify a frozen JunctionTree — shared by multiple agents");
+        }
         ensureStatesInitialized();
         BayesVariable parent = variables.get(parentName);
         if (parent == null) {
@@ -983,6 +986,9 @@ public class BayesInstance<T> {
     }
 
     public void removeLeafVariable(String name) {
+        if (tree.isFrozen()) {
+            throw new IllegalStateException("Cannot modify a frozen JunctionTree — shared by multiple agents");
+        }
         ensureStatesInitialized();
         BayesVariable var = variables.get(name);
         if (var == null) {

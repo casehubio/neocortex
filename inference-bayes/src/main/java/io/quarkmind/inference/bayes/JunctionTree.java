@@ -28,6 +28,8 @@ public class JunctionTree {
     private JunctionTreeClique      root;
     private JunctionTreeClique[]    jtNodes;
     private JunctionTreeSeparator[] jtSeps;
+    private boolean                 frozen;
+
 
     public JunctionTree(Graph<BayesVariable> graph, JunctionTreeClique root, JunctionTreeClique[] jtNodes, JunctionTreeSeparator[] jtSeps) {
         this( graph, root, jtNodes, jtSeps, true );
@@ -114,11 +116,32 @@ public class JunctionTree {
     }
 
     public void setJunctionTreeNodes(JunctionTreeClique[] jtNodes) {
+        if (frozen) {
+            throw new IllegalStateException("Cannot modify a frozen JunctionTree");
+        }
         this.jtNodes = jtNodes;
     }
 
     public void setJunctionTreeSeparators(JunctionTreeSeparator[] jtSeps) {
+        if (frozen) {
+            throw new IllegalStateException("Cannot modify a frozen JunctionTree");
+        }
         this.jtSeps = jtSeps;
+    }
+
+    public JunctionTree freeze() {
+        this.frozen = true;
+        return this;
+    }
+
+    public boolean isFrozen() {
+        return frozen;
+    }
+
+    public JunctionTree defensiveCopy() {
+        JunctionTreeClique[]    nodesCopy = java.util.Arrays.copyOf(jtNodes, jtNodes.length);
+        JunctionTreeSeparator[] sepsCopy  = java.util.Arrays.copyOf(jtSeps, jtSeps.length);
+        return new JunctionTree(graph, root, nodesCopy, sepsCopy, false);
     }
 
 
