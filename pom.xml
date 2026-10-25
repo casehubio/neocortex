@@ -212,6 +212,16 @@
       </dependency>
       <dependency>
         <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-agent-claude</artifactId>
+        <version>${casehub-platform-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-platform-agent-gate</artifactId>
+        <version>${casehub-platform-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
         <artifactId>casehub-platform-schema-generator</artifactId>
         <version>${casehub-platform-api.version}</version>
       </dependency>
