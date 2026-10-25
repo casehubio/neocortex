@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
+import io.casehub.neocortex.caps.testing.InMemoryCapsEngine;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
@@ -34,13 +35,14 @@ class BiographyImportIntegrationTest {
         var mindMapStore = new InMemoryMindMapStore();
         var memoryStore = new InMemoryMemoryStore(principal);
 
+        var capsEngine = new InMemoryCapsEngine();
         var handlers = List.<BiographyHandler>of(
             new PlaceHandler(mindMapStore),
             new OrganisationHandler(mindMapStore, true),
             new RelationshipHandler(mindMapStore, memoryStore),
             new GoalHandler(mindMapStore),
             new LifeEventHandler(memoryStore),
-            new EntityEnrichmentHandler(mindMapStore, memoryStore, true),
+            new EntityEnrichmentHandler(mindMapStore, memoryStore, capsEngine, true),
             new DispositionProfileHandler(mindMapStore, true)
         );
         var runner = new BiographyImportRunner(handlers);
@@ -101,5 +103,10 @@ class BiographyImportIntegrationTest {
         // Disposition profile stored as node properties
         assertThat(frida.get().properties()).containsEntry("disposition-socialOrient", "cooperative");
         assertThat(frida.get().properties()).containsEntry("disposition-riskAppetite", "bold");
+
+        // CAPS weights seeded from biographical caps_patterns
+        var capsState = capsEngine.loadState(TENANT, AGENT);
+        assertThat(capsState).isNotNull();
+        assertThat(capsState.weights()).isNotEmpty();
     }
 }

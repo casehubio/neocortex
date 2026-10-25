@@ -29,6 +29,10 @@
       <artifactId>casehub-platform-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-caps-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
     </dependency>
@@ -58,6 +62,11 @@
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-mindmap-intelligence</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-caps-testing</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

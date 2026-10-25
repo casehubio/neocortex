@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
+import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
@@ -12,23 +14,36 @@ import jakarta.inject.Inject;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 public class EntityEnrichmentHandler implements BiographyHandler {
 
     private final MindMapStore    store;
     private final CaseMemoryStore memoryStore;
+    private final CapsEngine      capsEngine;
 
     @Inject
-    public EntityEnrichmentHandler(MindMapStore store, CaseMemoryStore memoryStore) {
+    public EntityEnrichmentHandler(MindMapStore store, CaseMemoryStore memoryStore,
+                                   CapsEngine capsEngine) {
         this.store       = store;
         this.memoryStore = memoryStore;
+        this.capsEngine  = capsEngine;
     }
 
     EntityEnrichmentHandler(MindMapStore store, CaseMemoryStore memoryStore,
                             @SuppressWarnings("unused") boolean testMarker) {
         this.store       = store;
         this.memoryStore = memoryStore;
+        this.capsEngine  = null;
+    }
+
+    EntityEnrichmentHandler(MindMapStore store, CaseMemoryStore memoryStore,
+                            CapsEngine capsEngine,
+                            @SuppressWarnings("unused") boolean testMarker) {
+        this.store       = store;
+        this.memoryStore = memoryStore;
+        this.capsEngine  = capsEngine;
     }
 
     @Override
@@ -79,6 +94,8 @@ public class EntityEnrichmentHandler implements BiographyHandler {
 
             storeRelationshipStages(entry, agentId, tenantId);
         }
+
+        seedCapsWeights(profile, agentId, tenantId);
     }
 
     private void storeRelationshipStages(EntityEnrichmentEntry entry, String agentId, String tenantId) {
@@ -106,4 +123,44 @@ public class EntityEnrichmentHandler implements BiographyHandler {
             }
         }
     }
+
+    private void seedCapsWeights(BiographyProfile profile, String agentId, String tenantId) {
+        if (capsEngine == null) {return;}
+
+        boolean hasActivations = profile.entityEnrichments().stream()
+                                        .flatMap(e -> e.capsPatterns() != null ? e.capsPatterns().stream() : Stream.empty())
+                                        .anyMatch(p -> p.inputActivations() != null && !p.inputActivations().isEmpty());
+        if (!hasActivations) {return;}
+
+        DispositionAxes disposition = resolveDisposition(profile);
+        var             state       = capsEngine.initializeAgent(tenantId, agentId, disposition);
+
+        for (var entry : profile.entityEnrichments()) {
+            if (entry.capsPatterns() == null) {continue;}
+            for (var pattern : entry.capsPatterns()) {
+                if (pattern.inputActivations() == null || pattern.inputActivations().isEmpty()) {continue;}
+                double intensity = pattern.frequency() != null ? pattern.frequency() / 5.0 : 0.5;
+                double salience  = pattern.confidence() != null ? pattern.confidence() : 1.0;
+                state = capsEngine.updateWeights(state, pattern.inputActivations(),
+                                                 intensity, 1.0, salience, "variable_ratio");
+            }
+        }
+
+        capsEngine.saveState(state);
+    }
+
+    private DispositionAxes resolveDisposition(BiographyProfile profile) {
+        if (profile.dispositionProfiles().isEmpty()) {
+            return new DispositionAxes("moderate", "moderate", "calculated", "moderate", "analytical");
+        }
+        var dp = profile.dispositionProfiles().getFirst();
+        return new DispositionAxes(
+                dp.socialOrient() != null ? dp.socialOrient() : "moderate",
+                dp.ruleFollowing() != null ? dp.ruleFollowing() : "moderate",
+                dp.riskAppetite() != null ? dp.riskAppetite() : "calculated",
+                dp.autonomy() != null ? dp.autonomy() : "moderate",
+                dp.conflictMode() != null ? dp.conflictMode() : "analytical");
+    }
+
+
 }

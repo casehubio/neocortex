@@ -1,5 +1,7 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
+import io.casehub.neocortex.caps.testing.InMemoryCapsEngine;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
 import io.casehub.neocortex.memory.relationship.RelationshipQuery;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -146,6 +148,58 @@ class EntityEnrichmentHandlerTest {
         var memories = memoryStore.query(RelationshipQuery.forAgent("agent-1", TENANT));
         assertThat(memories).isEmpty();
     }
+
+    @Test
+    void seedsCapsWeightsFromInputActivations() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var capsEngine  = new InMemoryCapsEngine();
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, capsEngine, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Frida Kahlo", subgraph).withProvenance("test"), TENANT);
+
+        var patterns = List.of(
+                new EntityEnrichmentEntry.CapsPattern(
+                        "betrayal → trust_violation → AUTONOMY_ASSERTION", 3.0, 0.87,
+                        Map.of("betrayal", 0.9, "abandonment", 0.6)));
+        var entry = new EntityEnrichmentEntry("enrich-caps", "Frida Kahlo", null, patterns, null, null);
+
+        var disposition = new DispositionProfileEntry(
+                "disp-1", "Frida Kahlo", "cooperative", null, "bold", "high", "confrontational", null);
+
+        var profile = new BiographyProfile("agent-1", TENANT,
+                                           List.of(), List.of(), List.of(), List.of(), List.of(),
+                                           List.of(), List.of(), List.of(), List.of(), List.of(),
+                                           List.of(entry), List.of(disposition), List.of());
+
+        handler.handle(profile, "agent-1", TENANT);
+
+        var state = capsEngine.loadState(TENANT, "agent-1");
+        assertThat(state).isNotNull();
+        assertThat(state.generation()).isEqualTo(0);
+        assertThat(state.weights()).isNotEmpty();
+    }
+
+    @Test
+    void skipsCapsSeedingWhenNoInputActivations() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var capsEngine  = new InMemoryCapsEngine();
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, capsEngine, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Test Entity", subgraph).withProvenance("test"), TENANT);
+
+        var patterns = List.of(
+                new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8, null, null));
+        var entry = new EntityEnrichmentEntry("enrich-no-caps", "Test Entity", null, patterns, null, null);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        assertThat(capsEngine.loadState(TENANT, "agent-1")).isNull();
+    }
+
 
     private BiographyProfile profileWith(List<EntityEnrichmentEntry> enrichments) {
         return new BiographyProfile("a1", "t1",

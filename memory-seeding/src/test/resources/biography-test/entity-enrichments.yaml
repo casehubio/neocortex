@@ -9,6 +9,13 @@ entries:
       competence:
         baseline: 0.88
         justification: "High skill drive"
+    caps_patterns:
+      - pattern: "betrayal → trust_violation → AUTONOMY_ASSERTION"
+        frequency: 3
+        confidence: 0.87
+        input_activations:
+          betrayal: 0.9
+          abandonment: 0.6
     relationship_stages:
       - other_agent: "Diego Rivera"
         transitions:
