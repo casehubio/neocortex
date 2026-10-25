@@ -16,7 +16,7 @@ class CommunitySummaryPhaseTest {
     @BeforeEach
     void setUp() {
         store = new InMemoryMindMapStore();
-        phase = new CommunitySummaryPhase(store, null, 2, 3, 5);
+        phase = new CommunitySummaryPhase(store, 2, 3, 5);
         subgraphId = store.createSubgraph(
             new SubgraphInput("People", SubgraphTypes.PERSON, null), "t1");
     }

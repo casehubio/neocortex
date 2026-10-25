@@ -7,10 +7,9 @@ import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.runtime.MindMapAnalyzer;
-import io.casehub.platform.agent.AgentProvider;
+import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.nio.charset.StandardCharsets;
@@ -33,32 +32,33 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
         CommunitySummaryPhase.class.getName());
 
     private final MindMapStore store;
-    private final AgentProvider agentProvider;
+    private volatile SessionPipeline sessionPipeline;
     private final int k;
     private final int minClusterSize;
     private final int maxPerPass;
 
     @Inject
-    public CommunitySummaryPhase(MindMapStore store,
-                                  Instance<AgentProvider> agentProvider) {
-        this(store,
-            agentProvider.isResolvable() ? agentProvider.get() : null,
-            3, 4, 5);
+    public CommunitySummaryPhase(MindMapStore store) {
+        this(store, 3, 4, 5);
     }
 
-    CommunitySummaryPhase(MindMapStore store, AgentProvider agentProvider,
-                           int k, int minClusterSize, int maxPerPass) {
-        this.store = store;
-        this.agentProvider = agentProvider;
-        this.k = k;
+    CommunitySummaryPhase(MindMapStore store, int k, int minClusterSize, int maxPerPass) {
+        this.store          = store;
+        this.k              = k;
         this.minClusterSize = minClusterSize;
-        this.maxPerPass = maxPerPass;
+        this.maxPerPass     = maxPerPass;
     }
 
     @Override
     public String name() {
         return "community-summary";
     }
+
+    @Override
+    public void setSessionPipeline(SessionPipeline pipeline) {
+        this.sessionPipeline = pipeline;
+    }
+
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
