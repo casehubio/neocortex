@@ -1,5 +1,6 @@
 package io.quarkmind.inference.bayes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class NoisyOrExpander {
@@ -7,9 +8,12 @@ public final class NoisyOrExpander {
     private NoisyOrExpander() {}
 
     public static double[][] expand(CptSpec.NoisyOr noisyOr, int numOutcomes) {
+        if (numOutcomes > 2) {
+            return NoisyMaxExpander.expand(convertToNoisyMax(noisyOr, numOutcomes), numOutcomes);
+        }
         if (numOutcomes != 2) {
             throw new IllegalArgumentException(
-                    "NoisyOr is only valid for binary child variables (2 outcomes), got " + numOutcomes);
+                    "NoisyOr requires at least 2 outcomes, got " + numOutcomes);
         }
         List<ParentInfluence> parents            = noisyOr.parentInfluences();
         double                leak               = noisyOr.leak();
@@ -29,5 +33,19 @@ public final class NoisyOrExpander {
             cpt[row][1] = pAbsent;
         }
         return cpt;
+    }
+
+    private static CptSpec.NoisyMax convertToNoisyMax(CptSpec.NoisyOr noisyOr, int numOutcomes) {
+        List<NoisyMaxParent> maxParents = new ArrayList<>();
+        for (ParentInfluence pi : noisyOr.parentInfluences()) {
+            double[] dist = new double[numOutcomes];
+            dist[0]               = pi.strength();
+            dist[numOutcomes - 1] = 1.0 - pi.strength();
+            maxParents.add(new NoisyMaxParent(pi.parentName(), dist));
+        }
+        double[] leak = new double[numOutcomes];
+        leak[0]               = noisyOr.leak();
+        leak[numOutcomes - 1] = 1.0 - noisyOr.leak();
+        return new CptSpec.NoisyMax(maxParents, leak);
     }
 }

@@ -172,6 +172,17 @@ public record NetworkSpec(
             var filtered = new CptSpec.NoisyOr(ordered, noisyOr.leak());
             return NoisyOrExpander.expand(filtered, numOutcomes);
         }
+        if (spec instanceof CptSpec.NoisyMax noisyMax) {
+            Map<String, NoisyMaxParent> byParent = new HashMap<>();
+            for (var mp : noisyMax.parents()) byParent.put(mp.parentName(), mp);
+            var ordered = new ArrayList<NoisyMaxParent>();
+            for (String p : parents) {
+                var mp = byParent.get(p);
+                if (mp != null) ordered.add(mp);
+            }
+            var filtered = new CptSpec.NoisyMax(ordered, noisyMax.leak());
+            return NoisyMaxExpander.expand(filtered, numOutcomes);
+        }
         throw new IllegalStateException("Unknown CptSpec type: " + spec.getClass());
     }
 

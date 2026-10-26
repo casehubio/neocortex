@@ -9,7 +9,8 @@ import java.util.List;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = CptSpec.DirectCpt.class, name = "direct"),
     @JsonSubTypes.Type(value = CptSpec.NoisyOr.class, name = "noisy_or"),
-    @JsonSubTypes.Type(value = CptSpec.Uniform.class, name = "uniform")
+    @JsonSubTypes.Type(value = CptSpec.Uniform.class, name = "uniform"),
+    @JsonSubTypes.Type(value = CptSpec.NoisyMax.class, name = "noisy_max")
 })
 public sealed interface CptSpec {
     record DirectCpt(double[][] values) implements CptSpec {
@@ -25,4 +26,12 @@ public sealed interface CptSpec {
     }
 
     record Uniform() implements CptSpec {}
+
+    record NoisyMax(List<NoisyMaxParent> parents, double[] leak) implements CptSpec {
+        public NoisyMax {
+            parents = List.copyOf(parents);
+            leak    = leak.clone();
+        }
+    }
+
 }

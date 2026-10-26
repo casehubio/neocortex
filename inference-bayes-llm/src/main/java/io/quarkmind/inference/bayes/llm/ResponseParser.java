@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkmind.inference.bayes.CptSpec;
 import io.quarkmind.inference.bayes.EdgeSpec;
 import io.quarkmind.inference.bayes.NetworkSpec;
+import io.quarkmind.inference.bayes.NoisyMaxParent;
 import io.quarkmind.inference.bayes.ParentInfluence;
 import io.quarkmind.inference.bayes.SpecStatus;
 import io.quarkmind.inference.bayes.VariableSpec;
@@ -135,6 +136,7 @@ final class ResponseParser {
             case "direct" -> parseDirectCpt(cptNode);
             case "noisy_or" -> parseNoisyOr(cptNode);
             case "uniform" -> new CptSpec.Uniform();
+            case "noisy_max" -> parseNoisyMax(cptNode);
             default -> throw new IllegalArgumentException("Unknown CPT type: " + type);
         };
     }
@@ -167,6 +169,33 @@ final class ResponseParser {
         }
         return new CptSpec.NoisyOr(influences, leak);
     }
+
+    private static CptSpec.NoisyMax parseNoisyMax(JsonNode node) {
+        var leakNode = node.path("leak");
+        if (!leakNode.isArray()) {
+            throw new IllegalArgumentException("NoisyMax requires 'leak' array");
+        }
+        double[] leak = new double[leakNode.size()];
+        for (int i = 0; i < leakNode.size(); i++) {
+            leak[i] = leakNode.get(i).asDouble();
+        }
+
+        var                  parentsNode = node.path("parents");
+        List<NoisyMaxParent> parents     = new ArrayList<>();
+        if (parentsNode.isArray()) {
+            for (var pNode : parentsNode) {
+                String   parentName = pNode.path("parentName").asText();
+                var      distNode   = pNode.path("distribution");
+                double[] dist       = new double[distNode.size()];
+                for (int i = 0; i < distNode.size(); i++) {
+                    dist[i] = distNode.get(i).asDouble();
+                }
+                parents.add(new NoisyMaxParent(parentName, dist));
+            }
+        }
+        return new CptSpec.NoisyMax(parents, leak);
+    }
+
 
     private static List<String> parseStringArray(JsonNode node) {
         List<String> result = new ArrayList<>();
