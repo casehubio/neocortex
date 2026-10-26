@@ -1679,6 +1679,58 @@ This is an inference-layer change, not a cognitive pipeline change. It doesn't a
 
 ---
 
+### Entry 15 — Co-location gap closure: verification-driven edge repair (#706, #707, 2026-10-26)
+
+#### The problem
+
+The extraction pipeline's per-passage edge extraction satisfices on coverage. The LLM generates relationships that feel right from the text and stops — it doesn't verify that every entity in a passage is connected. This produces two classes of disconnected entities:
+
+1. **Global orphans** — nodes with zero edges anywhere in the graph (2/152 nodes = 1.3% orphan rate post-vocabulary-fix #704)
+2. **Passage-level gaps** — nodes with some edges globally but zero edges to any co-locator in a specific passage (26 nodes across 11 passages)
+
+Example: "Cuauhtemotzin and Cinco de Mayo" (the intersection where Frida's bus accident happened) carried extreme affect (pleasure -0.9, dominance -0.8) and lifecycle properties linking it to the 1925 accident, yet had zero edges because edge extraction linked "the bus accident" to "Mexico City" instead.
+
+#### Root cause
+
+Per-passage extraction produces global graph properties (connectivity) from local operations. Connectivity is a global invariant that can't be guaranteed locally. The extraction prompt already says "every entity should have at least one edge" — but the LLM satisfices on this during generation. The `standalone` array in the edge response was collected but never consumed downstream.
+
+#### Solution: extract locally, verify globally, repair targeted
+
+Added Step 7.5 between assembly (Step 7) and verification (Step 8) in `run_pipeline.sh`.
+
+**Phase 1 (#706) — Orphan closure:** Per-node detection of zero-edge orphans. One Haiku call per orphan with source passage context, co-located entities, and existing edges. Validated against registered edge vocabulary.
+
+**Phase 2 (#707) — Co-location gap detection:** Generalised from zero-edge to per-passage gaps. For each passage, identifies entities with no edge to any co-locator. One Haiku call per passage (not per node) — the LLM reviews the complete set of entities and edges for that passage and identifies missing relationships.
+
+Key design choices:
+- **Passage as the natural unit** — bounds LLM calls to the number of passages (~12), not the number of gap entities (26). Each call has full passage context.
+- **Different cognitive mode** — extraction generates relationships from text; gap closure *reviews* the assembled graph and identifies omissions. Verification is easier than generation.
+- **No artificial thresholds** — a node either has edges to co-locators in a passage or it doesn't. Zero/non-zero, not a ratio cutoff.
+- **LLM decides** — the prompt asks the LLM to judge which gaps are real relationships vs. coincidental co-occurrence. Standalone entities are accepted with justification.
+
+#### Empirical results (Frida corpus)
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Global orphans | 2 | 0 |
+| Passage-level gaps | 26 (across 11 passages) | 0 |
+| Total edges | 634 | 669 (+35) |
+| Edge types used | — | contributes-to (16), enables (5), concurrent-with (5), pursues (2), located-in (2), exemplifies (2), requires (1), at (1), motivated-by (1) |
+
+All 35 new edges use registered vocabulary types. Highlights:
+- `the bus accident --[at]--> Cuauhtemotzin and Cinco de Mayo` — the exact edge the issue predicted was missing
+- `Study medicine --[requires]--> Understand the human body through anatomical precision` — goal→goal dependency the extraction missed
+- `Paint honest, unflinching self-representation --[contributes-to]--> Develop artistic mastery` — hierarchical goal relationship
+- `Frida Kahlo --[pursues]--> art world` — connected the remaining global orphan
+
+Cost: 11 Haiku calls (one per passage with gaps). Negligible.
+
+#### Finding (P102)
+
+**Separate generation from verification.** Asking the LLM to generate relationships AND verify coverage in one call fails — it satisfices on coverage during generation. Two calls with different cognitive modes (generate freely, then review and fix) reliably achieves what one call cannot. This is the same insight as CRAG (Corrective RAG): generation followed by verification catches errors that generation alone misses.
+
+---
+
 ## Supporting Research Files
 
 Standalone literature reviews and research that informed era3 implementation decisions. All in `docs/research/`:
