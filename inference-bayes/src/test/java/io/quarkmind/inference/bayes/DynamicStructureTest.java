@@ -332,5 +332,171 @@ public class DynamicStructureTest {
                 .hasMessageContaining("not found");
     }
 
+    @Test
+    void batch_multipleEdgeRemoval_singleReset() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(4);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        instance.beginStructuralChange();
+        instance.removeEdge("var_0", "var_1", new double[][]{{0.5, 0.5}});
+        instance.removeEdge("var_2", "var_3", new double[][]{{0.5, 0.5}});
+        StructuralChangeResult result = instance.commitStructuralChange();
+
+        assertThat(result.changeType())
+                .isEqualTo(StructuralChangeResult.ChangeType.INCREMENTAL_EDGE_REMOVAL);
+
+        instance.globalUpdate();
+
+        // All variables should have their independent priors
+        for (int i = 0; i < 4; i++) {
+            if (i == 0 || i == 1 || i == 3) {
+                double[] dist = instance.marginalize(BayesNetworkFixtures.varName(i)).getDistribution();
+                assertThat(dist[0]).as("var_%d prior", i).isCloseTo(0.5, within(1e-10));
+            }
+        }
+    }
+
+    @Test
+    void batch_addEdge_singleRebuild() {
+        // Start: A → B, A → C, C → D (all connected)
+        JunctionTree jt = BayesNetworkBuilder.create()
+                                             .variable("A", "false", "true").prior(0.6, 0.4)
+                                             .variable("B", "false", "true").given("A").cpt(0.7, 0.3, 0.4, 0.6)
+                                             .variable("C", "false", "true").given("A").cpt(0.7, 0.3, 0.4, 0.6)
+                                             .variable("D", "false", "true").given("C").cpt(0.8, 0.2, 0.3, 0.7)
+                                             .buildJunctionTree();
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        instance.beginStructuralChange();
+        instance.addEdge("B", "C",
+                         new double[][]{{0.9, 0.1}, {0.6, 0.4}, {0.7, 0.3}, {0.2, 0.8}});
+        StructuralChangeResult result = instance.commitStructuralChange();
+
+        assertThat(result.changeType()).isEqualTo(StructuralChangeResult.ChangeType.REBUILD);
+
+        instance.setLikelyhood("A", new double[]{0.3, 0.7});
+        instance.globalUpdate();
+
+        // Reference
+        JunctionTree jtRef = BayesNetworkBuilder.create()
+                                                .variable("A", "false", "true").prior(0.6, 0.4)
+                                                .variable("B", "false", "true").given("A").cpt(0.7, 0.3, 0.4, 0.6)
+                                                .variable("C", "false", "true").given("A", "B")
+                                                .cpt(0.9, 0.1, 0.6, 0.4, 0.7, 0.3, 0.2, 0.8)
+                                                .variable("D", "false", "true").given("C").cpt(0.8, 0.2, 0.3, 0.7)
+                                                .buildJunctionTree();
+        BayesInstance<?> ref = new BayesInstance<>(jtRef);
+        ref.setLikelyhood("A", new double[]{0.3, 0.7});
+        ref.globalUpdate();
+
+        for (String name : new String[]{"A", "B", "C", "D"}) {
+            double[] incDist = instance.marginalize(name).getDistribution();
+            double[] refDist = ref.marginalize(name).getDistribution();
+            for (int j = 0; j < incDist.length; j++) {
+                assertThat(incDist[j]).as("%s[%d]", name, j)
+                                      .isCloseTo(refDist[j], within(1e-10));
+            }
+        }
+    }
+
+    @Test
+    void batch_globalUpdateDuringPending_throws() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(3);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        instance.beginStructuralChange();
+
+        assertThatThrownBy(instance::globalUpdate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("pending");
+    }
+
+    @Test
+    void batch_commitWithNoChanges_noOp() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(3);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        instance.beginStructuralChange();
+        StructuralChangeResult result = instance.commitStructuralChange();
+
+        assertThat(result.changeType())
+                .isEqualTo(StructuralChangeResult.ChangeType.INCREMENTAL_EDGE_REMOVAL);
+        assertThat(result.affectedVariables()).isEmpty();
+    }
+
+    @Test
+    void addEdge_frozenTree_rebuildsWithNewTree() {
+        // A → B, A → C (frozen — no incremental mutation allowed)
+        JunctionTree jt = BayesNetworkBuilder.create()
+                                             .variable("A", "false", "true").prior(0.5, 0.5)
+                                             .variable("B", "false", "true").given("A").cpt(0.7, 0.3, 0.4, 0.6)
+                                             .variable("C", "false", "true").given("A").cpt(0.6, 0.4, 0.3, 0.7)
+                                             .buildJunctionTree();
+        jt.freeze();
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        // Tier 3 rebuild creates a new tree — frozen tree is not mutated
+        StructuralChangeResult result = instance.addEdge("B", "C",
+                                                         new double[][]{{0.9, 0.1}, {0.6, 0.4}, {0.7, 0.3}, {0.2, 0.8}});
+
+        assertThat(result.changeType()).isEqualTo(StructuralChangeResult.ChangeType.REBUILD);
+        instance.globalUpdate();
+        assertThat(instance.marginalize("C").getDistribution()).isNotNull();
+    }
+
+    @Test
+    void removeEdge_thenAddEvidence_propagatesCorrectly() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(3);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        // Remove var_0 → var_1
+        instance.removeEdge("var_0", "var_1", new double[][]{{0.5, 0.5}});
+        instance.globalUpdate();
+
+        // Now set evidence on var_0 — should NOT affect var_1 (edge removed)
+        instance.setLikelyhood("var_0", new double[]{0.1, 0.9});
+        instance.globalUpdate();
+
+        double[] dist1 = instance.marginalize("var_1").getDistribution();
+        assertThat(dist1[0]).as("var_1 unaffected by var_0 evidence")
+                            .isCloseTo(0.5, within(1e-10));
+    }
+
+    @Test
+    void addEdge_duplicateEdge_throws() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(3);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        assertThatThrownBy(() -> instance.addEdge("var_0", "var_1",
+                                                  new double[][]{{0.5, 0.5}, {0.5, 0.5}}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already exists");
+    }
+
+    @Test
+    void addVariable_nonExistentParent_throws() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(2);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        assertThatThrownBy(() -> instance.addVariable("X",
+                                                      new String[]{"a", "b"}, new double[][]{{0.5, 0.5}},
+                                                      java.util.List.of("nonExistent")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+    }
+
+    @Test
+    void removeEdge_cptDimensionMismatch_throws() {
+        JunctionTree     jt       = BayesNetworkFixtures.buildChain(3);
+        BayesInstance<?> instance = new BayesInstance<>(jt);
+
+        // var_1 has parent var_0 (binary). After removing var_0→var_1,
+        // var_1 becomes root, needing 1 row. Providing 2 rows should throw.
+        assertThatThrownBy(() -> instance.removeEdge("var_0", "var_1",
+                                                     new double[][]{{0.5, 0.5}, {0.5, 0.5}}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("CPT row count mismatch");
+    }
+
 
 }

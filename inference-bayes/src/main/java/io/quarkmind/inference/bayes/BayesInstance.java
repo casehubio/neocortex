@@ -22,11 +22,14 @@ import io.quarkmind.inference.bayes.bitmask.BitMask;
 import io.quarkmind.inference.bayes.graph.Graph;
 import io.quarkmind.inference.bayes.graph.GraphNode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class BayesInstance<T> {
     private Graph<BayesVariable>       graph;
@@ -65,6 +68,9 @@ public class BayesInstance<T> {
     private int                  statDirtyCount;
     private long                 statLastPropNanos;
     private int                  statRetractionCount;
+    private boolean              structuralChangePending;
+    private boolean              tier3Pending;
+    private final List<BayesVariable> tier2AffectedVars = new ArrayList<>();
 
 
     public BayesInstance(JunctionTree tree, boolean enableFastRetract) {
@@ -459,6 +465,9 @@ public class BayesInstance<T> {
 
 
     public void globalUpdate() {
+        if (structuralChangePending) {
+            throw new IllegalStateException("Cannot propagate while structural change is pending — call commitStructuralChange() first");
+        }
         ensureStatesInitialized();
         if (!isDecided()) {
             throw new IllegalStateException("Cannot perform global update while one or more variables are undecided");
@@ -1082,6 +1091,11 @@ public class BayesInstance<T> {
         }
         childVar.setGiven(newGiven);
 
+        if (structuralChangePending) {
+            tier2AffectedVars.add(childVar);
+            return null;
+        }
+
         reinitializeCliquePotentials(childVar);
         reset();
 
@@ -1089,7 +1103,7 @@ public class BayesInstance<T> {
         long elapsed = System.nanoTime() - startNanos;
         return new StructuralChangeResult(
                 StructuralChangeResult.ChangeType.INCREMENTAL_EDGE_REMOVAL,
-                java.util.Set.of(to), 0, 0, elapsed);
+                Set.of(to), 0, 0, elapsed);
     }
 
     private void reinitializeCliquePotentials(BayesVariable childVar) {
@@ -1133,14 +1147,24 @@ public class BayesInstance<T> {
         System.arraycopy(oldGiven, 0, newGiven, 0, oldGiven.length);
         newGiven[oldGiven.length] = from;
 
-        return rebuildWithMutation(java.util.Set.of(to), mutation -> {
+        if (structuralChangePending) {
+            childVar.setProbabilityTable(newChildCpt);
+            childVar.setGiven(newGiven);
+            io.quarkmind.inference.bayes.graph.impl.EdgeImpl edge = new io.quarkmind.inference.bayes.graph.impl.EdgeImpl();
+            edge.setOutGraphNode(graph.getNode(parentVar.getId()));
+            edge.setInGraphNode(graph.getNode(childVar.getId()));
+            tier3Pending = true;
+            return null;
+        }
+
+        return rebuildWithMutation(Set.of(to), mutation -> {
             mutation.updateCpt(to, newChildCpt, newGiven);
         }, startNanos);
     }
 
     @SuppressWarnings("unchecked")
-    private StructuralChangeResult rebuildWithMutation(java.util.Set<String> affectedVarNames,
-                                                       java.util.function.Consumer<NetworkMutation> mutationFn, long startNanos) {
+    private StructuralChangeResult rebuildWithMutation(Set<String> affectedVarNames,
+                                                       Consumer<NetworkMutation> mutationFn, long startNanos) {
 
         Map<String, double[]> evidenceSnapshot = new HashMap<>();
         for (var entry : variables.entrySet()) {
@@ -1220,7 +1244,15 @@ public class BayesInstance<T> {
         }
 
         String[] parents = parentNames.toArray(new String[0]);
-        return rebuildWithMutation(java.util.Set.of(name), mutation -> {
+
+        if (structuralChangePending) {
+            BayesVariable newVar = new BayesVariable<>(name, -1, outcomes, cpt, parents);
+            variables.put(name, newVar);
+            tier3Pending = true;
+            return null;
+        }
+
+        return rebuildWithMutation(Set.of(name), mutation -> {
             BayesVariable newVar = new BayesVariable<>(name, -1, outcomes, cpt, parents);
             mutation.addVar(name, newVar, parents, cpt);
         }, startNanos);
@@ -1241,9 +1273,55 @@ public class BayesInstance<T> {
                                             + ". Remove or reparent child edges first.");
         }
 
-        return rebuildWithMutation(java.util.Set.of(name), mutation -> {
+        if (structuralChangePending) {
+            variables.remove(name);
+            tier3Pending = true;
+            return null;
+        }
+
+        return rebuildWithMutation(Set.of(name), mutation -> {
             mutation.removeVar(name);
         }, startNanos);
+    }
+
+    public void beginStructuralChange() {
+        structuralChangePending = true;
+        tier3Pending            = false;
+        tier2AffectedVars.clear();
+    }
+
+    public StructuralChangeResult commitStructuralChange() {
+        long startNanos = System.nanoTime();
+        structuralChangePending = false;
+
+        if (tier3Pending) {
+            tier3Pending = false;
+            tier2AffectedVars.clear();
+            return rebuildWithMutation(Set.copyOf(variables.keySet()), mutation -> {}, startNanos);
+        }
+
+        if (!tier2AffectedVars.isEmpty()) {
+            for (BayesVariable childVar : tier2AffectedVars) {
+                reinitializeCliquePotentials(childVar);
+            }
+            reset();
+            tier2AffectedVars.clear();
+
+            calibrated = false;
+            long elapsed = System.nanoTime() - startNanos;
+            return new StructuralChangeResult(
+                    StructuralChangeResult.ChangeType.INCREMENTAL_EDGE_REMOVAL,
+                    Set.of(), 0, 0, elapsed);
+        }
+
+        long elapsed = System.nanoTime() - startNanos;
+        return new StructuralChangeResult(
+                StructuralChangeResult.ChangeType.INCREMENTAL_EDGE_REMOVAL,
+                Set.of(), 0, 0, elapsed);
+    }
+
+    public boolean isStructuralChangePending() {
+        return structuralChangePending;
     }
 
 
