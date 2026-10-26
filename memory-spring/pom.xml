@@ -35,6 +35,14 @@
             <artifactId>spring-context</artifactId>
         </dependency>
 
+        <!-- Reactor ordering: spring-generator reads Jandex index from this module -->
+        <dependency>
+            <groupId>io.casehub</groupId>
+            <artifactId>casehub-neocortex-memory</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
