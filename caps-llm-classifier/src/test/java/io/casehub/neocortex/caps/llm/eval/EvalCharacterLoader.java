@@ -74,7 +74,58 @@ final class EvalCharacterLoader {
                                                                                     .toList()
                        : List.<EvalCharacterData.FormationMemory>of();
 
-        return new EvalCharacterData(drives, memories);
+        var tendencies = raw.containsKey("tendencies")
+                         ? ((List<String>) raw.get("tendencies"))
+                         : List.<String>of();
+
+        var norms = raw.containsKey("norms")
+                    ? ((List<Map<String, Object>>) raw.get("norms")).stream()
+                            .map(m -> new EvalCharacterData.NormEntry(
+                                    (String) m.get("rule"),
+                                    ((Number) m.get("priority")).intValue()))
+                            .toList()
+                    : List.<EvalCharacterData.NormEntry>of();
+
+        var beliefs = raw.containsKey("initial-beliefs")
+                      ? ((List<Map<String, Object>>) raw.get("initial-beliefs")).stream()
+                              .map(m -> new EvalCharacterData.InitialBelief(
+                                      (String) m.get("key"), (String) m.get("value")))
+                              .toList()
+                      : List.<EvalCharacterData.InitialBelief>of();
+
+        var facets = raw.containsKey("personality-facets")
+                     ? ((List<Map<String, Object>>) raw.get("personality-facets")).stream()
+                             .map(m -> new EvalCharacterData.PersonalityFacet(
+                                     (String) m.get("facet"),
+                                     ((Number) m.get("score")).intValue(),
+                                     (String) m.get("origin")))
+                             .toList()
+                     : List.<EvalCharacterData.PersonalityFacet>of();
+
+        var schemas = raw.containsKey("relational-schemas")
+                      ? ((List<Map<String, Object>>) raw.get("relational-schemas")).stream()
+                              .map(m -> new EvalCharacterData.RelationalSchema(
+                                      (String) m.get("target"), (String) m.get("role"),
+                                      ((Number) m.get("trust")).doubleValue(),
+                                      ((Number) m.get("intimacy")).doubleValue(),
+                                      ((Number) m.get("utility")).doubleValue(),
+                                      (String) m.get("description")))
+                              .toList()
+                      : List.<EvalCharacterData.RelationalSchema>of();
+
+        EvalCharacterData.AttachmentStyle attachment = null;
+        if (raw.containsKey("attachment")) {
+            var a = (Map<String, Object>) raw.get("attachment");
+            attachment = new EvalCharacterData.AttachmentStyle(
+                    (String) a.get("style"),
+                    ((Number) a.get("anxiety")).doubleValue(),
+                    ((Number) a.get("avoidance")).doubleValue());
+        }
+
+        var substrate = (String) raw.get("psychological-substrate");
+
+        return new EvalCharacterData(drives, memories, tendencies, norms, beliefs,
+                facets, schemas, attachment, substrate);
     }
 
     private static List<EvalCharacterData.DriveAnnotation> parseAnnotations(String serves, String episode) {
