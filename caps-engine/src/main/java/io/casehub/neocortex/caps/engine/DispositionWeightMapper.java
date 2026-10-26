@@ -130,40 +130,83 @@ public class DispositionWeightMapper {
             cw.decayResistance(), cw.precision()));
     }
 
+    // Resting activations as persistent personality baseline — Read et al. (2010):
+    // "baseline activation of specific motives" differentiates personality;
+    // Gray (1982) BIS/BAS sensitivity maps disposition to approach/avoidance systems
     private void setRestingActivations(DispositionAxes disposition,
                                        Map<String, NodeState> nodeStates) {
+        // MEDIATING nodes — tonic sensitivity (Gray 1982)
         if ("cooperative".equals(disposition.socialOrient())) {
-            setResting(nodeStates, "other_reliability", 0.2);
+            addResting(nodeStates, "other_reliability", 0.3);
+            addResting(nodeStates, "self_worth", 0.2);
         } else if ("competitive".equals(disposition.socialOrient())) {
-            setResting(nodeStates, "social_comparison", 0.15);
+            addResting(nodeStates, "social_comparison", 0.3);
+            addResting(nodeStates, "BAS_activation", 0.2);
         }
         if ("bold".equals(disposition.riskAppetite())) {
-            setResting(nodeStates, "BAS_activation", 0.1);
+            addResting(nodeStates, "BAS_activation", 0.3);
         } else if ("conservative".equals(disposition.riskAppetite())) {
-            setResting(nodeStates, "BIS_activation", 0.1);
+            addResting(nodeStates, "BIS_activation", 0.3);
         }
         if ("strict".equals(disposition.ruleFollowing())) {
-            setResting(nodeStates, "reinforcement_expectation", 0.15);
+            addResting(nodeStates, "reinforcement_expectation", 0.2);
         } else if ("flexible".equals(disposition.ruleFollowing())) {
-            setResting(nodeStates, "self_efficacy", 0.1);
+            addResting(nodeStates, "self_efficacy", 0.15);
         }
         if ("independent".equals(disposition.autonomy())) {
-            setResting(nodeStates, "self_efficacy", 0.15);
+            addResting(nodeStates, "self_efficacy", 0.2);
         } else if ("dependent".equals(disposition.autonomy())) {
-            setResting(nodeStates, "other_reliability", 0.1);
+            addResting(nodeStates, "other_reliability", 0.15);
         }
         if ("confrontational".equals(disposition.conflictMode())) {
-            setResting(nodeStates, "threat_sensitivity", 0.1);
+            addResting(nodeStates, "threat_sensitivity", 0.15);
         } else if ("avoidant".equals(disposition.conflictMode())) {
-            setResting(nodeStates, "escape_assessment", 0.15);
+            addResting(nodeStates, "escape_assessment", 0.2);
+        }
+
+        // OUTPUT nodes — attractor baselines from disposition (Read et al. 2010)
+        if ("competitive".equals(disposition.socialOrient())) {
+            addResting(nodeStates, "approach", 0.2);
+            addResting(nodeStates, "fight", 0.15);
+            addResting(nodeStates, "assert", 0.15);
+            addResting(nodeStates, "distrust", 0.1);
+        } else if ("cooperative".equals(disposition.socialOrient())) {
+            addResting(nodeStates, "cautious_approach", 0.2);
+            addResting(nodeStates, "trust", 0.15);
+            addResting(nodeStates, "proximity_seek", 0.15);
+            addResting(nodeStates, "fawn", 0.1);
+        }
+        if ("bold".equals(disposition.riskAppetite())) {
+            addResting(nodeStates, "approach", 0.15);
+            addResting(nodeStates, "risk_take", 0.15);
+            addResting(nodeStates, "explore", 0.1);
+        } else if ("conservative".equals(disposition.riskAppetite())) {
+            addResting(nodeStates, "withdraw", 0.15);
+            addResting(nodeStates, "cautious_approach", 0.15);
+            addResting(nodeStates, "consolidate", 0.1);
+        }
+        if ("confrontational".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "fight", 0.15);
+            addResting(nodeStates, "assert", 0.1);
+        } else if ("avoidant".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "flight", 0.15);
+            addResting(nodeStates, "withdraw", 0.1);
+        }
+        if ("independent".equals(disposition.autonomy())) {
+            addResting(nodeStates, "self_direct", 0.15);
+            addResting(nodeStates, "rebel", 0.1);
+        } else if ("dependent".equals(disposition.autonomy())) {
+            addResting(nodeStates, "depend", 0.15);
+            addResting(nodeStates, "comply", 0.1);
         }
     }
 
-    private void setResting(Map<String, NodeState> nodeStates,
-                             String nodeId, double resting) {
+    private void addResting(Map<String, NodeState> nodeStates,
+                             String nodeId, double delta) {
         NodeState current = nodeStates.getOrDefault(nodeId, NodeState.DEFAULT);
         nodeStates.put(nodeId, new NodeState(
-            current.activationThreshold(), resting));
+            current.activationThreshold(),
+            current.restingActivation() + delta));
     }
 
     private static Map<String, Set<String>> buildTagIndex(CapsTopology topology) {

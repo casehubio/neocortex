@@ -193,20 +193,26 @@ public class CapsSettler {
 
         List<BehavioralAttractor> attractors = new ArrayList<>();
         extractAttractors(primaryState, attractors, highSat,
-                          agentState.generation(), 1.0);
+                          agentState.generation(), 1.0, agentState);
 
         return new SettlingResult(primaryState, iterations,
                                   convergence, saturationRatio, List.copyOf(attractors));
     }
 
+    // Attractor strength = settled activation + disposition baseline — Read et al. (2010)
     private void extractAttractors(Map<String, Double> activations,
                                    List<BehavioralAttractor> attractors,
                                    boolean highSat, long generation,
-                                   double strengthMultiplier) {
+                                   double strengthMultiplier,
+                                   AgentCapsState agentState) {
         for (var entry : topology.nodes().entrySet()) {
             CapsNode node = entry.getValue();
             if (node.type() != NodeType.OUTPUT) {continue;}
-            double strength = activations.getOrDefault(node.id(), 0.0) * strengthMultiplier;
+            double settled = activations.getOrDefault(node.id(), 0.0);
+            NodeState ns = agentState.nodeStates()
+                                     .getOrDefault(node.id(), NodeState.DEFAULT);
+            double strength = Math.min(1.0, settled + ns.restingActivation())
+                              * strengthMultiplier;
             if (strength > config.attractorStrengthMinFilter()) {
                 attractors.add(new BehavioralAttractor(
                         node.category(), node.id(), strength, highSat, generation));
