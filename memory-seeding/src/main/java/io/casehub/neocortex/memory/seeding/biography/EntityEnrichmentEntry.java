@@ -13,7 +13,8 @@ public record EntityEnrichmentEntry(
     @JsonProperty("drive_baselines") Map<String, DriveBaseline> driveBaselines,
     @JsonProperty("caps_patterns") List<CapsPattern> capsPatterns,
     @JsonProperty("behavioural_attractors") List<BehaviouralAttractor> behaviouralAttractors,
-    @JsonProperty("relationship_stages") List<RelationshipStage> relationshipStages
+    @JsonProperty("relationship_stages") List<RelationshipStage> relationshipStages,
+    @JsonProperty("goal_coherence") GoalCoherence goalCoherence
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record DriveBaseline(Double baseline, String justification) {}
@@ -38,4 +39,14 @@ public record EntityEnrichmentEntry(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Transition(String from, String to, String period, String trigger) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record GoalCoherence(
+        String summary,
+        List<GoalRelation> conflicts,
+        List<GoalRelation> synergies
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record GoalRelation(List<String> goals, String nature) {}
 }

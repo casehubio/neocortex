@@ -8,6 +8,7 @@ public final class GoalVocabulary {
             .edgeType("requires", "depends-on", "needs")
             .edgeType("contributes-to", "supports", "helps")
             .edgeType("decomposes-into", "breaks-down-to", "involves")
+            .edgeType("aspires-to", "pursues", "strives-for")
             .build();
     public static final java.util.Set<String> CONTENT_DOMAINS = java.util.Set.of(
             "morality-and-virtue", "religion-and-spirituality", "self-actualisation",

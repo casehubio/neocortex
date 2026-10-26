@@ -408,7 +408,7 @@ categories:
         ref: "§A.4"
         stages: [phase2b, corpus, importer]
         tiers: [central]
-        status: gap
+        status: done
       - id: B4
         name: reflections
         ref: "§4.14"

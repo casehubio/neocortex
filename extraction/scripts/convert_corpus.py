@@ -364,6 +364,13 @@ def _map_entity_enrichment(entity_name, data, seen_ids):
         ]
     if data.get("relationship_stages"):
         entry["relationship_stages"] = data["relationship_stages"]
+    if data.get("goal_coherence"):
+        gc = data["goal_coherence"]
+        entry["goal_coherence"] = {
+            "summary": gc.get("summary"),
+            "conflicts": gc.get("conflicts", []),
+            "synergies": gc.get("synergies", []),
+        }
     return entry
 
 
