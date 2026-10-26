@@ -29,7 +29,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     private final Map<String, Map<String, List<DriveReinforcementEntry>>> reinforcementMap;
     private final DriveAdaptationConfig config;
     private final Map<String, Set<NeedTier>> tierMapping;
-    private final NeedSatisfactionConfig needConfig;
+    private final NeedSatisfactionConfigProvider needConfigProvider;
 
     public DriveAdaptationPhase(
             MindMapStore mindMapStore,
@@ -43,12 +43,12 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             Map<String, Map<String, List<DriveReinforcementEntry>>> reinforcementMap,
             DriveAdaptationConfig config,
             NeedTierMappingProvider tierMappingProvider,
-            NeedSatisfactionConfig needConfig) {
-        this.mindMapStore = mindMapStore;
-        this.reinforcementMap = reinforcementMap;
-        this.config = config;
-        this.tierMapping = (tierMappingProvider != null ? tierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();
-        this.needConfig = needConfig;
+            NeedSatisfactionConfigProvider needConfigProvider) {
+        this.mindMapStore       = mindMapStore;
+        this.reinforcementMap   = reinforcementMap;
+        this.config             = config;
+        this.tierMapping        = (tierMappingProvider != null ? tierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();
+        this.needConfigProvider = needConfigProvider;
     }
 
     @Override
@@ -68,36 +68,36 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     private void processSubgraph(MindMapSubgraph subgraph, String tenantId) {
         var nodes = mindMapStore.nodesIn(subgraph.id(), tenantId);
 
-        var driveNodes = new HashMap<String, MindMapNode>();
-        var experienceNodes = new ArrayList<MindMapNode>();
-        var needSatisfactionNodes = new HashMap<NeedTier, MindMapNode>();
-        String cursorNodeId = null;
-        String lastProcessedId = null;
-        String agentId = null;
+        var    driveNodes            = new HashMap<String, MindMapNode>();
+        var    experienceNodes       = new ArrayList<MindMapNode>();
+        var    needSatisfactionNodes = new HashMap<NeedTier, MindMapNode>();
+        String cursorNodeId          = null;
+        String lastProcessedId       = null;
+        String agentId               = null;
 
         for (var node : nodes) {
             var kind = node.properties().get("cognitiveKind");
             if (DRIVE_KIND.equals(kind)) {
                 var driveType = node.properties().get("drive-type");
-                if (driveType != null) driveNodes.put(driveType, node);
-                if (agentId == null) agentId = node.properties().get("agent-id");
+                if (driveType != null) {driveNodes.put(driveType, node);}
+                if (agentId == null) {agentId = node.properties().get("agent-id");}
             } else if (EXPERIENCE_PROVENANCE.equals(node.provenance())) {
                 experienceNodes.add(node);
             }
             if (CURSOR_NODE_NAME.equals(node.name())) {
-                cursorNodeId = node.id();
+                cursorNodeId    = node.id();
                 lastProcessedId = node.properties().get("last-processed-node-id");
             }
         }
 
         if (driveNodes.isEmpty()) {
             var agentIds = nodes.stream()
-                .map(n -> n.properties().get("agent-id"))
-                .filter(Objects::nonNull)
-                .distinct().toList();
+                                .map(n -> n.properties().get("agent-id"))
+                                .filter(Objects::nonNull)
+                                .distinct().toList();
             if (!agentIds.isEmpty()) {
                 LOG.warning("No drive nodes found for agent(s) " + agentIds
-                    + " in tenant " + tenantId);
+                            + " in tenant " + tenantId);
             }
             return;
         }
@@ -105,6 +105,8 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
         if (agentId == null) {
             agentId = driveNodes.values().iterator().next().properties().get("agent-id");
         }
+
+        var needConfig = needConfigProvider != null ? needConfigProvider.configFor(agentId) : null;
 
         for (var node : nodes) {
             var kind = node.properties().get("cognitiveKind");
@@ -120,32 +122,33 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
 
         var agentReinforcement = reinforcementMap.get(agentId);
         if (agentReinforcement == null) {
-            applyDecayAndSave(needSatisfactionNodes, tenantId);
+            applyDecayAndSave(needSatisfactionNodes, needConfig, tenantId);
             return;
         }
 
         var newExperiences = filterNewExperiences(experienceNodes, lastProcessedId);
         if (newExperiences.isEmpty()) {
-            applyDecayAndSave(needSatisfactionNodes, tenantId);
+            applyDecayAndSave(needSatisfactionNodes, needConfig, tenantId);
             return;
         }
 
         var rewardAccumulator = accumulateRewards(newExperiences, agentReinforcement);
 
         var currentSatisfaction = loadCurrentSatisfaction(needSatisfactionNodes);
-        accumulateTierSatisfaction(currentSatisfaction, newExperiences, agentReinforcement);
+        accumulateTierSatisfaction(currentSatisfaction, newExperiences, agentReinforcement, needConfig);
         applyUpdates(driveNodes, rewardAccumulator, currentSatisfaction, tenantId);
-        applyDecay(currentSatisfaction);
+        applyDecay(currentSatisfaction, needConfig);
         saveSatisfaction(needSatisfactionNodes, currentSatisfaction, tenantId);
 
         var lastId = newExperiences.get(newExperiences.size() - 1).id();
         saveCursor(subgraph.id(), cursorNodeId, lastId, tenantId);
     }
 
-    private void applyDecayAndSave(Map<NeedTier, MindMapNode> needSatisfactionNodes, String tenantId) {
-        if (needConfig == null || needSatisfactionNodes.isEmpty()) return;
+    private void applyDecayAndSave(Map<NeedTier, MindMapNode> needSatisfactionNodes,
+                                   NeedSatisfactionConfig needConfig, String tenantId) {
+        if (needConfig == null || needSatisfactionNodes.isEmpty()) {return;}
         var currentSatisfaction = loadCurrentSatisfaction(needSatisfactionNodes);
-        applyDecay(currentSatisfaction);
+        applyDecay(currentSatisfaction, needConfig);
         saveSatisfaction(needSatisfactionNodes, currentSatisfaction, tenantId);
     }
 
@@ -247,21 +250,22 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     private void accumulateTierSatisfaction(
             Map<NeedTier, Double> currentSatisfaction,
             List<MindMapNode> experiences,
-            Map<String, List<DriveReinforcementEntry>> agentReinforcement) {
-        if (needConfig == null || tierMapping.isEmpty()) return;
+            Map<String, List<DriveReinforcementEntry>> agentReinforcement,
+            NeedSatisfactionConfig needConfig) {
+        if (needConfig == null || tierMapping.isEmpty()) {return;}
 
-        var tierRaw = new HashMap<NeedTier, Double>();
+        var tierRaw   = new HashMap<NeedTier, Double>();
         var tierCount = new HashMap<NeedTier, Integer>();
 
         for (var exp : experiences) {
             var eventType = exp.properties().get("event-type");
-            if (eventType == null) continue;
+            if (eventType == null) {continue;}
             var entries = agentReinforcement.get(eventType);
-            if (entries == null) continue;
+            if (entries == null) {continue;}
 
             for (var entry : entries) {
                 var tiers = tierMapping.get(entry.driveType());
-                if (tiers == null) continue;
+                if (tiers == null) {continue;}
 
                 double padValue = extractPadValue(exp, entry.rewardAxis());
                 if (padValue > 0) {
@@ -279,21 +283,21 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
         }
 
         for (var entry : tierRaw.entrySet()) {
-            var tier = entry.getKey();
-            int count = tierCount.getOrDefault(tier, 1);
+            var    tier           = entry.getKey();
+            int    count          = tierCount.getOrDefault(tier, 1);
             double effectiveDelta = entry.getValue() / (1 + Math.log(count));
-            double current = currentSatisfaction.getOrDefault(tier, 0.5);
+            double current        = currentSatisfaction.getOrDefault(tier, 0.5);
             currentSatisfaction.put(tier, Math.clamp(current + effectiveDelta, 0.0, 1.0));
         }
     }
 
-    private void applyDecay(Map<NeedTier, Double> currentSatisfaction) {
-        if (needConfig == null) return;
+    private void applyDecay(Map<NeedTier, Double> currentSatisfaction, NeedSatisfactionConfig needConfig) {
+        if (needConfig == null) {return;}
         for (NeedTier tier : NeedTier.values()) {
             double satisfaction = currentSatisfaction.getOrDefault(tier, 0.5);
             double restingLevel = needConfig.restingLevel(tier);
-            double decayRate = needConfig.decayRate(tier);
-            double decayed = restingLevel + (satisfaction - restingLevel) * (1 - decayRate);
+            double decayRate    = needConfig.decayRate(tier);
+            double decayed      = restingLevel + (satisfaction - restingLevel) * (1 - decayRate);
             currentSatisfaction.put(tier, Math.clamp(decayed, 0.0, 1.0));
         }
     }

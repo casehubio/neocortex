@@ -1518,6 +1518,47 @@ All three pass with the same situational input (secure_attachment=0.5, acceptanc
 
 ---
 
+### Entry 10 — Per-character NeedSatisfactionConfig via disposition overrides (2026-10-26)
+
+#### The problem
+
+`NeedSatisfactionConfig` was a single `@ConfigMapping` bean — one instance shared across all agents. `DriveAdaptationPhase.run()` iterated all agents and applied the same `decayRate(tier)` and `restingLevel(tier)` to each. Competitive characters (Hooded Claw, Dick Dastardly) had identical social need dynamics to cooperative ones (Penelope, Peter Perfect). In a 300-event scenario, this makes villains behave too socially — affiliation saturates to 1.0 regardless of disposition.
+
+#### The fix
+
+New SPI in neocortex following the `NeedTierMappingProvider` pattern:
+
+```java
+public interface NeedSatisfactionConfigProvider {
+    NeedSatisfactionConfig configFor(String agentId);
+}
+```
+
+`DriveAdaptationPhase` now stores `NeedSatisfactionConfigProvider` instead of `NeedSatisfactionConfig`. In `processSubgraph`, after resolving `agentId`, it calls `provider.configFor(agentId)` and threads the per-agent config through `applyDecay`, `accumulateTierSatisfaction`, and `applyDecayAndSave`. The 3-arg constructor (null provider) is unchanged — existing callers unaffected.
+
+Manor implementation: `ManorNeedSatisfactionConfigProvider` reads `SocialConfig.Disposition.socialOrient()` per agent. Competitive characters get a `DispositionOverrideConfig` wrapper that multiplies social decay by 1.5x and social resting level by 0.6x. Non-social tiers pass through unchanged. Cooperative and unknown agents get the global config directly.
+
+Dispositions are populated at scenario start — `PlaybookOrchestrator.runScenario()` extracts dispositions from social configs and calls `provider.setDispositions()` before the first consolidation pass.
+
+#### Concrete effect
+
+| Parameter | Cooperative | Competitive |
+|---|---|---|
+| Social decay rate | 0.08 (global default) | 0.12 (1.5×) |
+| Social resting level | 0.40 (global default) | 0.24 (0.6×) |
+
+The villain's social need now decays faster between consolidation passes and settles at a lower equilibrium. The drive adaptation phase sees less social satisfaction influence on competitive characters' drive learning rates.
+
+#### Architectural note
+
+The multiplier values (1.5x, 0.6x) are starting points. The SPI architecture supports replacing them with values derived from the cognitive index — computing social decay rates from personality facets the same way `CognitiveDerivationEngine` already computes trust formation rates. The interface is stable; the derivation can evolve.
+
+#### Companion changes
+
+Same session also addressed four code review findings from the pre-run readiness epic: `CognitiveSnapshotRecorder` now implements `AutoCloseable` with `finally`-guarded close, `ManorResource.getEvents()` uses Jackson instead of incomplete manual JSON escaping, `PlaybookOrchestrator` wraps `sessionPipeline` in `try-finally` for both modes, and `ManorConsolidationBeans` uses `@ConfigProperty` for the relationship stage interval. Also externalized `clearAtTokens` to `manor.session.clear-at-tokens` with `k`/`%` format parsing.
+
+---
+
 ## Supporting Research Files
 
 Standalone literature reviews and research that informed era3 implementation decisions. All in `docs/research/`:
