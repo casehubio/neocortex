@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariDataSource;
-import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.cognitive.PrincipalVisibility;
@@ -27,6 +26,7 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SupersessionStatus;
 import io.casehub.neocortex.mindmap.ValidationTier;
 import io.casehub.neocortex.mindmap.VocabularyConflictException;
+import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -119,6 +119,12 @@ public class SqliteMindMapStore implements MindMapStore {
             }
         }
     }
+
+    @Override
+    public List<EdgeTypeDefinition> registeredEdgeTypes() {
+        return List.copyOf(edgeTypeDefinitions.values());
+    }
+
 
     // --- Subgraph ---
 

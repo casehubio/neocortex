@@ -3,6 +3,7 @@ package io.casehub.neocortex.mindmap.testing;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
 import io.casehub.neocortex.mindmap.MergeResult;
 import io.casehub.neocortex.mindmap.MindMapCapability;
 import io.casehub.neocortex.mindmap.MindMapEdge;
@@ -492,6 +493,35 @@ public abstract class MindMapStoreContractTest {
             .build()))
             .isInstanceOf(VocabularyConflictException.class);
     }
+
+    @Test
+    void registeredEdgeTypes_returnsRegisteredTypes() {
+        List<EdgeTypeDefinition> types = store.registeredEdgeTypes();
+        assertThat(types).isNotEmpty();
+        assertThat(types.stream().map(EdgeTypeDefinition::canonical).toList())
+                .contains("works-at", "parent-of", "uses", "related-to");
+    }
+
+    @Test
+    void registeredEdgeTypes_includesAliases() {
+        List<EdgeTypeDefinition> types = store.registeredEdgeTypes();
+        EdgeTypeDefinition worksAt = types.stream()
+                                          .filter(d -> "works-at".equals(d.canonical()))
+                                          .findFirst().orElseThrow();
+        assertThat(worksAt.aliases()).contains("employed-by", "job-at");
+    }
+
+    @Test
+    void registeredEdgeTypes_returnsImmutableCopy() {
+        List<EdgeTypeDefinition> types      = store.registeredEdgeTypes();
+        int                      sizeBefore = types.size();
+        store.registerVocabulary(MindMapVocabulary.builder()
+                                                  .edgeType("new-type")
+                                                  .build());
+        List<EdgeTypeDefinition> typesAfter = store.registeredEdgeTypes();
+        assertThat(typesAfter).hasSize(sizeBefore + 1);
+    }
+
 
     @Test
     void neighbors_returnsAllEdges() {

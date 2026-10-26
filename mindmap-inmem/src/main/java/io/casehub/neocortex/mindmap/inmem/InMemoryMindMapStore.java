@@ -91,6 +91,12 @@ public class InMemoryMindMapStore implements MindMapStore {
     }
 
     @Override
+    public List<EdgeTypeDefinition> registeredEdgeTypes() {
+        return List.copyOf(edgeTypeDefinitions.values());
+    }
+
+
+    @Override
     public String addNode(NodeInput input, String tenantId) {
         String  id  = UUID.randomUUID().toString();
         Instant now = Instant.now();

@@ -19,6 +19,10 @@ public abstract class AbstractForwardingMindMapStore implements MindMapStore {
     }
 
     @Override public void registerVocabulary(MindMapVocabulary vocabulary) { delegate.registerVocabulary(vocabulary); }
+
+    @Override
+    public List<EdgeTypeDefinition> registeredEdgeTypes()                  {return delegate.registeredEdgeTypes();}
+
     @Override public String addNode(NodeInput input, String tenantId) { return delegate.addNode(input, tenantId); }
     @Override public MindMapNode getNode(String nodeId, String tenantId) { return delegate.getNode(nodeId, tenantId); }
     @Override public void updateNode(String nodeId, NodeUpdate update, String tenantId) { delegate.updateNode(nodeId, update, tenantId); }

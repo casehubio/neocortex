@@ -185,6 +185,18 @@ class CognitiveLoaderTest {
     }
 
     @Test
+    void activityVocabularyRegistered() {
+        var store  = new InMemoryMindMapStore();
+        var loader = new CognitiveLoader(store, null, List.of());
+        loader.init();
+
+        var types = store.registeredEdgeTypes();
+        var names = types.stream().map(EdgeTypeDefinition::canonical).collect(java.util.stream.Collectors.toSet());
+        assertThat(names).contains("participated", "at", "occasion");
+    }
+
+
+    @Test
     void goalSchemaDerivesFromGoallikeInterface() {
         var store    = new InMemoryMindMapStore();
         var registry = new TypeRegistry(store);

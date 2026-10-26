@@ -1,6 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence;
 
 import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.EdgeTypeDefinition;
 import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -28,6 +29,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -40,33 +42,38 @@ public class MindMapExtractor {
     private static final int MAX_CONTEXT_NODES = 20;
 
     private static final String SYSTEM_PROMPT = """
-        You are a knowledge graph extraction agent. Given a conversation turn \
-        and existing graph context, extract entities and relationships.
-
-        Respond with a JSON object:
-        {
-          "entities": [
-            {"name": "...", "type": "PERSON|PROJECT|RESEARCH_AREA|ORGANISATION|CONCEPT|GENERAL|BELIEF|INTENTION|PREDICTION|JUDGMENT|FEAR|DESIRE", \
-        "properties": {"key": "value"}, "confidence": "STATED|INFERRED|SPECULATED"}
-          ],
-          "relationships": [
-            {"source": "entity name", "target": "entity name", "type": "relationship-type", \
-        "confidence": "STATED|INFERRED|SPECULATED"}
-          ],
-          "contradictions": [
-            {"entity": "name", "property": "edge-or-property", "existing": "old value", \
-        "extracted": "new value", "explanation": "why they conflict"}
-          ]
-        }
-
-        Rules:
-        - Extract only entities and relationships explicitly or strongly implied in the conversation
-        - Use the existing graph context to avoid creating duplicates
-        - Use recently mentioned entities to resolve pronouns
-        - Flag contradictions when extracted facts conflict with existing graph
-        - For cognitive content (beliefs, intentions, predictions, judgments, fears, desires), \
-        classify by the PRIMARY cognitive aspect
-        - Respond with valid JSON only""";
+                                                You are a knowledge graph extraction agent. Given a conversation turn \
+                                                and existing graph context, extract entities and relationships.
+                                                
+                                                Respond with a JSON object:
+                                                {
+                                                  "entities": [
+                                                    {"name": "...", "type": "PERSON|PROJECT|RESEARCH_AREA|ORGANISATION|CONCEPT|GENERAL|BELIEF|INTENTION|PREDICTION|JUDGMENT|FEAR|DESIRE", \
+                                                "properties": {"key": "value"}, "confidence": "STATED|INFERRED|SPECULATED"}
+                                                  ],
+                                                  "relationships": [
+                                                    {"source": "entity name", "target": "entity name", "type": "relationship-type", \
+                                                "confidence": "STATED|INFERRED|SPECULATED"}
+                                                  ],
+                                                  "contradictions": [
+                                                    {"entity": "name", "property": "edge-or-property", "existing": "old value", \
+                                                "extracted": "new value", "explanation": "why they conflict"}
+                                                  ]
+                                                }
+                                                
+                                                Rules:
+                                                - Extract entities and relationships explicitly or strongly implied in the conversation
+                                                - RELATIONSHIP EXTRACTION IS CRITICAL: every entity should have at least one \
+                                                relationship edge. Isolated entities reduce graph utility.
+                                                - Create cross-type relationships: person→concept (influenced-by), \
+                                                person→project (created, contributed-to), activity→place (at), \
+                                                person→goal (pursues, enables, blocks)
+                                                - Use the existing graph context to avoid creating duplicates
+                                                - Use recently mentioned entities to resolve pronouns
+                                                - Flag contradictions when extracted facts conflict with existing graph
+                                                - For cognitive content (beliefs, intentions, predictions, judgments, fears, desires), \
+                                                classify by the PRIMARY cognitive aspect
+                                                - Respond with valid JSON only""";
 
     private static final Set<String> COMMON_WORDS = Set.of(
         "The", "A", "An", "I", "We", "He", "She", "It", "They",
@@ -87,24 +94,32 @@ public class MindMapExtractor {
     private final Instance<AgentProvider> agentProviderInstance;
     private final TypeRegistry typeRegistry;
     private final Map<String, Map<String, String>> subgraphCache = new ConcurrentHashMap<>();
+    private final FuzzyNodeResolver                fuzzyResolver;
+
 
     @Inject
     public MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance,
-                             Instance<TypeRegistry> typeRegistryInstance) {
-        this.store = store;
+                            Instance<TypeRegistry> typeRegistryInstance,
+                            Instance<FuzzyNodeResolver> fuzzyResolverInstance) {
+        this.store                 = store;
         this.agentProviderInstance = agentProviderInstance;
-        this.typeRegistry = typeRegistryInstance.isResolvable() ? typeRegistryInstance.get() : null;
+        this.typeRegistry          = typeRegistryInstance.isResolvable() ? typeRegistryInstance.get() : null;
+        this.fuzzyResolver         = fuzzyResolverInstance.isResolvable() ? fuzzyResolverInstance.get() : null;
     }
 
     MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance) {
-        this(store, agentProviderInstance, (TypeRegistry) null);
+        this.store                 = store;
+        this.agentProviderInstance = agentProviderInstance;
+        this.typeRegistry          = null;
+        this.fuzzyResolver         = null;
     }
 
     MindMapExtractor(MindMapStore store, Instance<AgentProvider> agentProviderInstance,
-                      TypeRegistry typeRegistry) {
-        this.store = store;
+                     TypeRegistry typeRegistry) {
+        this.store                 = store;
         this.agentProviderInstance = agentProviderInstance;
-        this.typeRegistry = typeRegistry;
+        this.typeRegistry          = typeRegistry;
+        this.fuzzyResolver         = null;
     }
 
 
@@ -249,6 +264,18 @@ public class MindMapExtractor {
             }
         }
 
+        List<EdgeTypeDefinition> edgeTypes = store.registeredEdgeTypes();
+        if (!edgeTypes.isEmpty()) {
+            sb.append("\nRegistered relationship types (prefer these):\n");
+            for (EdgeTypeDefinition def : edgeTypes) {
+                sb.append("- ").append(def.canonical());
+                if (!def.aliases().isEmpty()) {
+                    sb.append(" (aliases: ").append(String.join(", ", def.aliases())).append(")");
+                }
+                sb.append("\n");
+            }
+        }
+
         return sb.toString();
     }
 
@@ -376,9 +403,21 @@ public class MindMapExtractor {
 
     private String resolveNodeId(String name, Map<String, String> nameToNodeId, String tenantId) {
         String id = nameToNodeId.get(name);
-        if (id != null) return id;
+        if (id != null) {return id;}
+
         MindMapNode node = store.resolveNode(name, null, tenantId);
-        return node != null ? node.id() : null;
+        if (node != null) {return node.id();}
+
+        if (fuzzyResolver != null) {
+            Optional<MindMapNode> fuzzy = fuzzyResolver.resolve(store, name, 0.85, null, tenantId);
+            if (fuzzy.isPresent()) {
+                LOG.fine("Fuzzy-resolved '" + name + "' to '" + fuzzy.get().name() + "'");
+                return fuzzy.get().id();
+            }
+        }
+
+        LOG.warning("Unresolvable edge endpoint: name='" + name + "' tenantId='" + tenantId + "'");
+        return null;
     }
 
     private String findOrCreateSubgraph(String type, String tenantId) {

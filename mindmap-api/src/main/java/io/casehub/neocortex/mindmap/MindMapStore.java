@@ -9,6 +9,11 @@ public interface MindMapStore {
 
     void registerVocabulary(MindMapVocabulary vocabulary);
 
+    default List<EdgeTypeDefinition> registeredEdgeTypes() {
+        return List.of();
+    }
+
+
     String addNode(NodeInput input, String tenantId);
 
     MindMapNode getNode(String nodeId, String tenantId);

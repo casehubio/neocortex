@@ -14,6 +14,8 @@ evaluation/code_domain_embeddings/corpus-snapshot/
 .worktrees/
 .claude
 .claude/
+.playwright-mcp/
+node_modules/
 extraction/output/*
 !extraction/output/enriched.json
 !extraction/output/nlp-baseline.json
