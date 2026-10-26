@@ -295,6 +295,12 @@ echo "--- Step 7: Assemble Corpus ---"
 $VENV "$SCRIPT_DIR/assemble_corpus.py" "$OUTDIR/enriched.json" "$OUTDIR/nlp-baseline.json" -o "$OUTDIR/corpus.json" -r "$OUTDIR/coverage-report.json" --llm-dedup
 echo ""
 
+echo "--- Step 7.5: Orphan Closure ---"
+$VENV "$SCRIPT_DIR/orphan_closure.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
+    --schema "$SCHEMA_PATH" \
+    --report "orphan-closure-report.json"
+echo ""
+
 echo "--- Step 8: Verify Import Readiness ---"
 $VENV "$SCRIPT_DIR/verify_corpus.py" "$OUTDIR/corpus.json" \
     --schema "$SCHEMA_PATH" \
@@ -328,4 +334,5 @@ echo "  $OUTDIR/enriched.json        — cognitively enriched data"
 echo "  $OUTDIR/corpus.json          — importable corpus"
 echo "  $OUTDIR/manifest.json        — convergence state"
 echo "  $OUTDIR/coverage-report.json — coverage audit"
+echo "  $OUTDIR/orphan-closure-report.json — orphan closure audit"
 echo "  $OUTDIR/verification-report.json — import readiness"
