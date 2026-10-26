@@ -251,3 +251,23 @@ ant-hill-mob:
     pleasure: -0.4
     arousal: 0.5
     dominance: 0.3
+penelope-pitstop:
+  drives:
+  - type: curiosity
+    intensity: 0.7
+    description: Closed doors make your fingers itch. An unsolved puzzle feels like a word on the tip of your tongue — you
+      can't leave it alone. When something doesn't quite make sense, a tug behind your ribs won't let you walk away until you
+      understand.
+  - type: social-harmony
+    intensity: 0.8
+    description: When voices rise in argument, your stomach clenches — a physical wince before you've processed the words.
+      Someone excluded from a conversation, a chair pushed back too hard, a silence that goes on too long — each one lands
+      in your body like a small bruise. Your hands start moving — touching someone's arm, shifting the topic, finding the thing
+      that makes both sides laugh. The discomfort doesn't fade on its own. It sits in your chest, a low ache that won't dissolve
+      until something shifts — so you make it shift.
+  - type: adventure
+    intensity: 0.6
+    description: Routine settles over you like a weight. When nothing new has happened for too long, there's a restless itch
+      behind your ribs that won't settle — a fidgeting that starts in your fingers and spreads. A hidden passage, an odd sound,
+      a door that shouldn't be there — your feet move before your judgment does. You're already crossing the room, already reaching
+      for the handle, already leaning into the darkness to see what's there. The unknown is where you feel most awake.
