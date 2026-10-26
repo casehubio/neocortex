@@ -1021,6 +1021,92 @@ public class BayesInstance<T> {
         calibrated = false;
     }
 
+    @SuppressWarnings("unchecked")
+    public StructuralChangeResult removeEdge(String from, String to, double[][] newChildCpt) {
+        long startNanos = System.nanoTime();
+        if (tree.isFrozen()) {
+            throw new IllegalStateException("Cannot modify a frozen JunctionTree — shared by multiple agents");
+        }
+        ensureStatesInitialized();
+
+        BayesVariable parentVar = variables.get(from);
+        if (parentVar == null) {
+            throw new IllegalArgumentException("Parent variable not found: " + from);
+        }
+        BayesVariable childVar = variables.get(to);
+        if (childVar == null) {
+            throw new IllegalArgumentException("Child variable not found: " + to);
+        }
+
+        var                                     childNode  = graph.getNode(childVar.getId());
+        var                                     parentNode = graph.getNode(parentVar.getId());
+        io.quarkmind.inference.bayes.graph.Edge targetEdge = null;
+        for (var edge : childNode.getInEdges()) {
+            if (edge.getOutGraphNode().getId() == parentNode.getId()) {
+                targetEdge = edge;
+                break;
+            }
+        }
+        if (targetEdge == null) {
+            throw new IllegalArgumentException("No edge from '" + from + "' to '" + to + "'");
+        }
+
+        int newParentCount = childNode.getInEdges().size() - 1;
+        int expectedRows   = 1;
+        for (var edge : childNode.getInEdges()) {
+            if (edge != targetEdge) {
+                expectedRows *= ((BayesVariable) edge.getOutGraphNode().getContent()).getOutcomes().length;
+            }
+        }
+        if (newParentCount == 0) {
+            expectedRows = 1;
+        }
+        if (newChildCpt.length != expectedRows) {
+            throw new IllegalArgumentException("CPT row count mismatch: expected " + expectedRows + ", got " + newChildCpt.length);
+        }
+        if (newChildCpt[0].length != childVar.getOutcomes().length) {
+            throw new IllegalArgumentException("CPT column count mismatch: expected " + childVar.getOutcomes().length + ", got " + newChildCpt[0].length);
+        }
+
+        ((io.quarkmind.inference.bayes.graph.impl.GraphNodeImpl<?>) childNode).removeInEdge(targetEdge);
+        ((io.quarkmind.inference.bayes.graph.impl.GraphNodeImpl<?>) parentNode).removeOutEdge(targetEdge);
+
+        childVar.setProbabilityTable(newChildCpt);
+        String[] oldGiven = childVar.getGiven();
+        String[] newGiven = new String[oldGiven.length - 1];
+        int      gi       = 0;
+        for (String g : oldGiven) {
+            if (!g.equals(from)) {
+                newGiven[gi++] = g;
+            }
+        }
+        childVar.setGiven(newGiven);
+
+        reinitializeCliquePotentials(childVar);
+        reset();
+
+        calibrated = false;
+        long elapsed = System.nanoTime() - startNanos;
+        return new StructuralChangeResult(
+                StructuralChangeResult.ChangeType.INCREMENTAL_EDGE_REMOVAL,
+                java.util.Set.of(to), 0, 0, elapsed);
+    }
+
+    private void reinitializeCliquePotentials(BayesVariable childVar) {
+        int                familyCliqueId = childVar.getFamily();
+        JunctionTreeClique clique         = tree.getJunctionTreeNodes()[familyCliqueId];
+
+        double[] pots = clique.getPotentials();
+        Arrays.fill(pots, 0.0);
+
+        BayesVariable[] vars           = clique.getVarsArray();
+        int             numberOfStates = PotentialMultiplier.createNumberOfStates(vars);
+        int[]           multipliers    = PotentialMultiplier.createIndexMultipliers(vars, numberOfStates);
+        for (BayesVariable fam : clique.getFamily()) {
+            tree.multipleVarNodePotential(graph.getNode(fam.getId()), pots, vars, multipliers);
+        }
+    }
+
 
     static double klDivergence(double[] p, double[] q) {
         double kl = 0.0;
