@@ -6,9 +6,10 @@ import sys
 import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
-from orphan_closure import (find_orphans, build_orphan_context,
+from orphan_closure import (find_orphans, find_passage_gaps,
+                            build_passage_context, build_orphan_context,
                             validate_closure_edges, parse_closure_response,
-                            run_orphan_closure)
+                            run_closure)
 
 
 def _node(name, subgraph_type='person', source_passages=None):
@@ -51,6 +52,116 @@ class TestFindOrphans:
         nodes = [_node('A'), _node('B')]
         edges = [_edge('A', 'B')]
         assert find_orphans(nodes, edges) == []
+
+
+class TestFindPassageGaps:
+    def test_no_gaps_when_all_connected(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001'])]
+        edges = [_edge('A', 'B')]
+        gaps = find_passage_gaps(nodes, edges)
+        assert len(gaps) == 0
+
+    def test_finds_gap_entity(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001'])]
+        edges = [_edge('A', 'B')]
+        gaps = find_passage_gaps(nodes, edges)
+        assert len(gaps) == 1
+        assert gaps[0]['passage_id'] == 'p-001'
+        gap_names = {g['name'] for g in gaps[0]['gap_entities']}
+        assert 'C' in gap_names
+
+    def test_ignores_cross_passage_connections(self):
+        """A node connected in passage 2 but not in passage 1 is a gap in passage 1."""
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001', 'p-002']),
+                 _node('D', source_passages=['p-002'])]
+        edges = [_edge('A', 'B'), _edge('C', 'D')]
+        gaps = find_passage_gaps(nodes, edges)
+        assert len(gaps) == 1
+        assert gaps[0]['passage_id'] == 'p-001'
+        gap_names = {g['name'] for g in gaps[0]['gap_entities']}
+        assert 'C' in gap_names
+
+    def test_multiple_gap_entities_in_passage(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001']),
+                 _node('D', source_passages=['p-001'])]
+        edges = [_edge('A', 'B')]
+        gaps = find_passage_gaps(nodes, edges)
+        assert len(gaps) == 1
+        gap_names = {g['name'] for g in gaps[0]['gap_entities']}
+        assert 'C' in gap_names
+        assert 'D' in gap_names
+
+    def test_single_node_passage_no_gap(self):
+        nodes = [_node('A', source_passages=['p-001'])]
+        edges = []
+        gaps = find_passage_gaps(nodes, edges)
+        assert len(gaps) == 0
+
+    def test_global_orphan_detected_as_gap(self):
+        """A zero-edge orphan appears as a gap entity in its passage."""
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001'])]
+        edges = [_edge('A', 'B')]
+        gaps = find_passage_gaps(nodes, edges)
+        gap_names = {g['name'] for g in gaps[0]['gap_entities']}
+        assert 'C' in gap_names
+
+
+class TestBuildPassageContext:
+    def test_gathers_passage_text(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001'])]
+        edges = [_edge('A', 'B')]
+        passages = [{'id': 'p-001', 'text': 'The passage text.'}]
+        gap_entities = [{'name': 'C', 'subgraph_type': 'person'}]
+        ctx = build_passage_context('p-001', gap_entities, passages, nodes, edges)
+        assert ctx['passage_text'] == 'The passage text.'
+        assert ctx['passage_id'] == 'p-001'
+
+    def test_lists_all_entities_in_passage(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001'])]
+        edges = [_edge('A', 'B')]
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        gap_entities = [{'name': 'C', 'subgraph_type': 'person'}]
+        ctx = build_passage_context('p-001', gap_entities, passages, nodes, edges)
+        assert set(ctx['all_entities']) == {'A', 'B', 'C'}
+
+    def test_lists_existing_edges(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('B', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001'])]
+        edges = [_edge('A', 'B', 'married-to')]
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        gap_entities = [{'name': 'C', 'subgraph_type': 'person'}]
+        ctx = build_passage_context('p-001', gap_entities, passages, nodes, edges)
+        assert len(ctx['existing_edges']) == 1
+        assert ctx['existing_edges'][0]['type'] == 'married-to'
+
+    def test_lists_gap_entity_names(self):
+        nodes = [_node('A', source_passages=['p-001']),
+                 _node('C', source_passages=['p-001']),
+                 _node('D', source_passages=['p-001'])]
+        edges = []
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        gap_entities = [{'name': 'C', 'subgraph_type': 'person'},
+                        {'name': 'D', 'subgraph_type': 'place'}]
+        ctx = build_passage_context('p-001', gap_entities, passages, nodes, edges)
+        assert set(ctx['gap_entity_names']) == {'C', 'D'}
+
+    def test_missing_passage_handled(self):
+        ctx = build_passage_context('p-999', [], [{'id': 'p-001', 'text': 'T'}], [], [])
+        assert ctx['passage_text'] == ''
 
 
 class TestBuildOrphanContext:
@@ -152,30 +263,62 @@ class TestParseClosureResponse:
         assert reason is None
 
 
-class TestRunOrphanClosure:
-    def test_no_orphans_returns_empty_report(self):
+class TestRunClosure:
+    def test_no_gaps_returns_empty_report(self):
         corpus = {
-            'nodes': [_node('A'), _node('B')],
+            'nodes': [_node('A', source_passages=['p-001']),
+                      _node('B', source_passages=['p-001'])],
             'edges': [_edge('A', 'B')],
             'stats': {},
         }
         passages = [{'id': 'p-001', 'text': 'Text'}]
         valid_types = {'at', 'lives-at'}
-        report = run_orphan_closure(corpus, passages, valid_types, client=None)
-        assert report['total_orphans'] == 0
-        assert report['closed'] == 0
-        assert report['standalone'] == 0
+        report = run_closure(corpus, passages, valid_types, client=None)
+        assert report['passages_checked'] == 0
+        assert report['edges_added'] == 0
 
-    def test_orphan_without_client_stays_orphan(self):
+    def test_gap_without_client_stays_gap(self):
         corpus = {
-            'nodes': [_node('A'), _node('B', source_passages=['p-001']),
+            'nodes': [_node('A', source_passages=['p-001']),
+                      _node('B', source_passages=['p-001']),
                       _node('C', source_passages=['p-001'])],
             'edges': [_edge('A', 'B')],
             'stats': {},
         }
         passages = [{'id': 'p-001', 'text': 'Text about C'}]
         valid_types = {'at'}
-        report = run_orphan_closure(corpus, passages, valid_types, client=None)
-        assert report['total_orphans'] == 1
-        assert report['closed'] == 0
-        assert report['failed'] == 1
+        report = run_closure(corpus, passages, valid_types, client=None)
+        assert report['passages_checked'] == 1
+        assert report['edges_added'] == 0
+        assert report['gap_entities_found'] == 1
+
+    def test_global_orphan_detected(self):
+        """Zero-edge orphan appears in gap detection."""
+        corpus = {
+            'nodes': [_node('A', source_passages=['p-001']),
+                      _node('B', source_passages=['p-001']),
+                      _node('C', source_passages=['p-001'])],
+            'edges': [_edge('A', 'B')],
+            'stats': {},
+        }
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        valid_types = {'at'}
+        report = run_closure(corpus, passages, valid_types, client=None)
+        assert report['gap_entities_found'] >= 1
+        gap_names = set()
+        for d in report['details']:
+            for g in d.get('gap_entities', []):
+                gap_names.add(g)
+        assert 'C' in gap_names
+
+    def test_backward_compat_report_fields(self):
+        """Report includes total_orphans for backward compatibility."""
+        corpus = {
+            'nodes': [_node('A', source_passages=['p-001']),
+                      _node('B', source_passages=['p-001'])],
+            'edges': [_edge('A', 'B')],
+            'stats': {},
+        }
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        report = run_closure(corpus, passages, {'at'}, client=None)
+        assert 'total_orphans' in report

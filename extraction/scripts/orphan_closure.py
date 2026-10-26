@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Step 7.5: Orphan closure — verification-driven edge repair for unconnected nodes.
+"""Step 7.5: Co-location gap closure — edge repair for under-connected nodes.
 
 Runs after assembly (Step 7), before verification (Step 8).
-Identifies nodes with zero edges and generates targeted LLM edge repair.
+Identifies nodes that share a passage with entities they have no edge to,
+and generates targeted LLM edge repair per passage.
+
+Subsumes zero-edge orphan detection: a global orphan is a node with
+gaps in ALL its passages.
 
 Input:  corpus.json + passages.json
 Output: corpus.json (modified in place) + orphan-closure-report.json
@@ -15,6 +19,7 @@ import argparse
 import json
 import os
 import sys
+from collections import defaultdict
 
 from pipeline_state import atomic_write
 
@@ -26,6 +31,78 @@ def find_orphans(nodes: list[dict], edges: list[dict]) -> list[dict]:
         edge_nodes.add(e['source'])
         edge_nodes.add(e['target'])
     return [n for n in nodes if n['name'] not in edge_nodes]
+
+
+def find_passage_gaps(nodes: list[dict], edges: list[dict]) -> list[dict]:
+    """Find passages with entities that have no edge to any co-locator.
+
+    For each passage, identifies entities that share the passage with
+    other entities but have zero direct edges to any of them. Returns
+    one entry per passage that has gap entities.
+    """
+    # Build adjacency: which nodes does each node connect to?
+    neighbors = defaultdict(set)
+    for e in edges:
+        neighbors[e['source']].add(e['target'])
+        neighbors[e['target']].add(e['source'])
+
+    # Build passage index
+    passage_nodes = defaultdict(list)
+    node_map = {}
+    for n in nodes:
+        node_map[n['name']] = n
+        for pid in n.get('source_passages', []):
+            passage_nodes[pid].append(n['name'])
+
+    gaps = []
+    for pid, names in sorted(passage_nodes.items()):
+        if len(names) < 2:
+            continue
+        name_set = set(names)
+        gap_entities = []
+        for name in names:
+            connected_in_passage = neighbors.get(name, set()) & name_set
+            if not connected_in_passage:
+                gap_entities.append({
+                    'name': name,
+                    'subgraph_type': node_map[name].get('subgraph_type', 'concept'),
+                })
+        if gap_entities:
+            gaps.append({
+                'passage_id': pid,
+                'total_entities': len(names),
+                'gap_entities': gap_entities,
+            })
+
+    return gaps
+
+
+def build_passage_context(passage_id: str, gap_entities: list[dict],
+                          passages: list[dict], all_nodes: list[dict],
+                          all_edges: list[dict]) -> dict:
+    """Build context for a passage-level gap closure prompt."""
+    passage_map = {p['id']: p['text'] for p in passages}
+    passage_text = passage_map.get(passage_id, '')
+
+    passage_names = set()
+    for n in all_nodes:
+        if passage_id in n.get('source_passages', []):
+            passage_names.add(n['name'])
+
+    existing_edges = [
+        {'source': e['source'], 'target': e['target'], 'type': e['type']}
+        for e in all_edges
+        if e['source'] in passage_names and e['target'] in passage_names
+    ]
+
+    return {
+        'passage_id': passage_id,
+        'passage_text': passage_text,
+        'all_entities': sorted(passage_names),
+        'gap_entity_names': [g['name'] for g in gap_entities],
+        'gap_entity_details': gap_entities,
+        'existing_edges': existing_edges,
+    }
 
 
 def build_orphan_context(orphan: dict, passages: list[dict],
@@ -119,13 +196,9 @@ def validate_closure_edges(edges: list[dict], valid_types: set[str],
     return validated
 
 
-CLOSURE_SYSTEM = """You are a knowledge graph repair tool. An entity has been extracted but has ZERO edges — it is disconnected from the graph. Your job is to connect it using the relationship vocabulary, or explain why it is genuinely standalone.
+GAP_CLOSURE_SYSTEM = """You are a knowledge graph reviewer. You are reviewing a passage from a biography and the entities and edges extracted from it. Some entities in this passage have NO edges to any other entity in the same passage — they are disconnected from their local context.
 
-You will receive:
-- The orphan entity (name, type, properties)
-- The source passage text where this entity was mentioned
-- All other entities from the same passage
-- All existing edges between those entities
+Your job: identify missing relationships between entities in this passage. Only add edges where a real relationship exists in the text.
 
 Use ONLY the following edge types:
 {vocabulary}
@@ -133,141 +206,170 @@ Use ONLY the following edge types:
 RULES:
 - Use ONLY entity names from the provided entity list as source/target
 - Use ONLY edge types from the vocabulary above
-- The orphan MUST appear as source or target in at least one edge
-- If the entity is genuinely standalone (generic concept, no specific relationship), set standalone_reason instead
+- Focus on the flagged gap entities, but you may also add edges between other entities if clearly missing
+- If a gap entity is genuinely standalone in this passage (no relationship to any other entity here), list it in standalone_entities with a reason
 
 Respond with JSON only:
-{{"edges": [{{"source": "...", "target": "...", "type": "...", "confidence_origin": "INFERRED"}}], "standalone_reason": null}}
-OR if standalone:
-{{"edges": [], "standalone_reason": "explanation why this entity has no relationships"}}"""
+{{"edges": [{{"source": "...", "target": "...", "type": "...", "confidence_origin": "INFERRED"}}], "standalone_entities": [{{"name": "...", "reason": "..."}}]}}"""
 
 
-def closure_prompt(context: dict, valid_types: list[str]) -> tuple[str, str]:
-    """Build system and user prompts for orphan closure."""
+def gap_closure_prompt(context: dict, valid_types: list[str]) -> tuple[str, str]:
+    """Build system and user prompts for passage-level gap closure."""
     vocabulary = '\n'.join(f'  - {t}' for t in sorted(valid_types))
-    system = CLOSURE_SYSTEM.format(vocabulary=vocabulary)
+    system = GAP_CLOSURE_SYSTEM.format(vocabulary=vocabulary)
 
-    entities_str = ', '.join(context['colocated_entities'])
+    all_entities_str = ', '.join(context['all_entities'])
+    gap_str = ', '.join(context['gap_entity_names'])
     edges_str = '\n'.join(
         f"  {e['source']} --[{e['type']}]--> {e['target']}"
-        for e in context['colocated_edges']
-    ) or '  (no existing edges)'
+        for e in context['existing_edges']
+    ) or '  (no existing edges in this passage)'
 
-    passages_str = '\n---\n'.join(context['passage_texts']) or '(no passage text available)'
+    user = f"""Passage ({context['passage_id']}):
+{context['passage_text']}
 
-    user = f"""Orphan entity:
-  Name: {context['orphan_name']}
-  Type: {context['orphan_type']}
-  Properties: {json.dumps(context.get('orphan_properties', {}))}
-
-Source passage:
-{passages_str}
-
-Other entities in this passage:
-  {entities_str}
+All entities in this passage:
+  {all_entities_str}
 
 Existing edges between these entities:
 {edges_str}
 
-Connect "{context['orphan_name']}" to the graph or explain why it is standalone."""
+Entities with NO edges to any other entity in this passage (gaps):
+  {gap_str}
+
+Add missing edges for the gap entities, or explain why each is standalone in this passage."""
 
     return system, user
 
 
-def close_orphan(context: dict, valid_types: list[str],
-                 client=None) -> tuple[list[dict], str | None]:
-    """Call LLM to generate closure edges for one orphan."""
+def close_passage_gaps(context: dict, valid_types: list[str],
+                       client=None) -> tuple[list[dict], list[dict]]:
+    """Call LLM to generate closure edges for a passage's gap entities.
+
+    Returns (edges, standalone_entities).
+    """
     if client is None:
-        return [], None
+        return [], []
 
     from llm_client import model_id
 
-    system, user = closure_prompt(context, valid_types)
+    system, user = gap_closure_prompt(context, valid_types)
 
     try:
         response = client.messages.create(
             model=model_id(),
-            max_tokens=1024,
+            max_tokens=2048,
             system=system,
             messages=[{'role': 'user', 'content': user}],
         )
-        return parse_closure_response(response.content[0].text)
+        text = response.content[0].text
+        edges, _ = parse_closure_response(text)
+
+        # Parse standalone entities from response
+        standalone = []
+        content = text.strip()
+        start = content.find('{')
+        end = content.rfind('}') + 1
+        if start >= 0 and end > start:
+            try:
+                result = json.loads(content[start:end])
+                standalone = result.get('standalone_entities', [])
+            except json.JSONDecodeError:
+                pass
+
+        return edges, standalone
     except Exception as e:
-        print(f"  LLM call failed for {context['orphan_name']}: {e}",
+        print(f"  LLM call failed for passage {context['passage_id']}: {e}",
               file=sys.stderr)
-        return [], None
+        return [], []
 
 
-def run_orphan_closure(corpus: dict, passages: list[dict],
-                       valid_types: set[str],
-                       client=None) -> dict:
-    """Run orphan closure on an assembled corpus.
+def run_closure(corpus: dict, passages: list[dict],
+                valid_types: set[str],
+                client=None) -> dict:
+    """Run co-location gap closure on an assembled corpus.
 
-    Identifies orphan nodes, calls LLM for each, validates and merges edges.
-    Modifies corpus in place. Returns a report dict.
+    Identifies passages with gap entities (nodes that have no edge to any
+    co-locator in that passage), sends one LLM call per passage, validates
+    and merges edges. Modifies corpus in place. Returns a report dict.
     """
     nodes = corpus['nodes']
     edges = corpus['edges']
     node_names = {n['name'] for n in nodes}
 
     orphans = find_orphans(nodes, edges)
+    passage_gaps = find_passage_gaps(nodes, edges)
+
+    total_gap_entities = sum(len(g['gap_entities']) for g in passage_gaps)
 
     report = {
         'total_orphans': len(orphans),
-        'closed': 0,
-        'standalone': 0,
-        'failed': 0,
+        'passages_checked': len(passage_gaps),
+        'gap_entities_found': total_gap_entities,
         'edges_added': 0,
+        'standalone': 0,
+        'failed_passages': 0,
         'details': [],
     }
 
-    if not orphans:
+    if not passage_gaps:
         return report
 
     valid_types_set = set(valid_types)
     valid_types_list = sorted(valid_types)
 
-    for orphan in orphans:
-        context = build_orphan_context(orphan, passages, nodes, edges)
-        raw_edges, standalone_reason = close_orphan(
+    for gap in passage_gaps:
+        context = build_passage_context(
+            gap['passage_id'], gap['gap_entities'],
+            passages, nodes, edges)
+
+        raw_edges, standalone_entities = close_passage_gaps(
             context, valid_types_list, client=client)
 
         detail = {
-            'name': orphan['name'],
-            'type': orphan.get('subgraph_type', 'concept'),
-            'source_passages': orphan.get('source_passages', []),
+            'passage_id': gap['passage_id'],
+            'total_entities': gap['total_entities'],
+            'gap_entities': [g['name'] for g in gap['gap_entities']],
         }
 
-        if standalone_reason:
-            detail['outcome'] = 'standalone'
-            detail['reason'] = standalone_reason
-            report['standalone'] += 1
-        elif raw_edges:
+        standalone_names = {s.get('name') for s in standalone_entities} if standalone_entities else set()
+        report['standalone'] += len(standalone_names)
+
+        if raw_edges:
             validated = validate_closure_edges(
                 raw_edges, valid_types_set, node_names)
             if validated:
                 for e in validated:
-                    e['extraction_method'] = 'orphan-closure'
+                    e['extraction_method'] = 'gap-closure'
                     e.setdefault('confidence_origin', 'INFERRED')
                     e.setdefault('validation_tier', 'REGISTERED')
                 edges.extend(validated)
-                detail['outcome'] = 'closed'
                 detail['edges_added'] = len(validated)
-                report['closed'] += 1
                 report['edges_added'] += len(validated)
             else:
-                detail['outcome'] = 'failed'
-                detail['reason'] = 'all generated edges rejected by validation'
-                report['failed'] += 1
+                detail['edges_added'] = 0
+        elif client is not None:
+            detail['edges_added'] = 0
         else:
-            detail['outcome'] = 'failed'
-            detail['reason'] = 'no LLM client or LLM returned no edges'
-            report['failed'] += 1
+            report['failed_passages'] += 1
+            detail['edges_added'] = 0
+            detail['reason'] = 'no LLM client'
+
+        if standalone_entities:
+            detail['standalone'] = [
+                {'name': s.get('name'), 'reason': s.get('reason', '')}
+                for s in standalone_entities
+            ]
 
         report['details'].append(detail)
 
-    corpus['stats']['orphan_closure'] = report
+    corpus['stats']['gap_closure'] = report
     return report
+
+
+# Backward compatibility
+def run_orphan_closure(corpus, passages, valid_types, client=None):
+    return run_closure(corpus, passages, valid_types, client=client)
 
 
 def load_valid_types(schema_path: str) -> set[str]:
@@ -279,7 +381,7 @@ def load_valid_types(schema_path: str) -> set[str]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Step 7.5: Orphan closure')
+    parser = argparse.ArgumentParser(description='Step 7.5: Co-location gap closure')
     parser.add_argument('corpus', help='Path to corpus.json')
     parser.add_argument('passages', help='Path to passages.json')
     parser.add_argument('--schema', '-s', default=None,
@@ -289,7 +391,7 @@ def main():
     parser.add_argument('--report', '-r', default='orphan-closure-report.json',
                         help='Closure report output')
     parser.add_argument('--dry-run', action='store_true',
-                        help='Detect orphans without LLM calls')
+                        help='Detect gaps without LLM calls')
     args = parser.parse_args()
 
     with open(args.corpus) as f:
@@ -308,21 +410,20 @@ def main():
     if not args.dry_run:
         client = create_client()
 
-    print("--- Step 7.5: Orphan Closure ---")
-    report = run_orphan_closure(corpus, passages, valid_types, client=client)
+    print("--- Step 7.5: Co-location Gap Closure ---")
+    report = run_closure(corpus, passages, valid_types, client=client)
 
-    print(f"  Orphans found: {report['total_orphans']}")
-    print(f"  Closed: {report['closed']} ({report['edges_added']} edges added)")
+    print(f"  Global orphans: {report['total_orphans']}")
+    print(f"  Passages with gaps: {report['passages_checked']}")
+    print(f"  Gap entities found: {report['gap_entities_found']}")
+    print(f"  Edges added: {report['edges_added']}")
     print(f"  Standalone (justified): {report['standalone']}")
-    print(f"  Failed: {report['failed']}")
     for d in report['details']:
-        status = d['outcome'].upper()
-        extra = ''
-        if d.get('edges_added'):
-            extra = f" (+{d['edges_added']} edges)"
-        elif d.get('reason'):
-            extra = f" ({d['reason'][:60]})"
-        print(f"    [{d['type']}] {d['name']}: {status}{extra}")
+        gap_names = ', '.join(d['gap_entities'][:5])
+        if len(d['gap_entities']) > 5:
+            gap_names += f' (+{len(d["gap_entities"]) - 5} more)'
+        added = d.get('edges_added', 0)
+        print(f"    {d['passage_id']}: {len(d['gap_entities'])} gaps, +{added} edges — {gap_names}")
 
     output_path = args.output or args.corpus
     atomic_write(output_path, corpus)

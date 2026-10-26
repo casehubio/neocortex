@@ -295,7 +295,7 @@ echo "--- Step 7: Assemble Corpus ---"
 $VENV "$SCRIPT_DIR/assemble_corpus.py" "$OUTDIR/enriched.json" "$OUTDIR/nlp-baseline.json" -o "$OUTDIR/corpus.json" -r "$OUTDIR/coverage-report.json" --llm-dedup
 echo ""
 
-echo "--- Step 7.5: Orphan Closure ---"
+echo "--- Step 7.5: Co-location Gap Closure ---"
 $VENV "$SCRIPT_DIR/orphan_closure.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
     --schema "$SCHEMA_PATH" \
     --report "orphan-closure-report.json"
