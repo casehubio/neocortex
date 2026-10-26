@@ -1559,6 +1559,56 @@ Same session also addressed four code review findings from the pre-run readiness
 
 ---
 
+### Entry 11 — Full cognitive run and tick performance analysis (2026-10-26)
+
+#### Full run (#135)
+
+303 events across 23 ticks, 5 agents/tick, GENERIC profile, autonomous mode. All cognitive paths exercised: appraisal filtering, drive differentiation, observation assembly with self-standards, CAPS situation classification (inline), mood tracking, BDI extraction, consolidation cache restoration. Completion reason: DAWN. Characters balanced: 56-65 events each.
+
+Known issue: narrator session evicted by idle timeout between summarisation batches (filed as examples#151).
+
+#### Performance investigation
+
+Tick rate measured at **50s/tick** — projected 300 ticks in 4.2 hours. Historical comparison:
+
+| Date | Run | s/tick | What was active |
+|---|---|---|---|
+| Oct 7 (steady state) | session-reuse | 20-35s | Basic cognitive |
+| Oct 22 | tuned-run | 69s | Full cognitive pipeline |
+| Oct 26 | full run | 50s | Full cognitive pipeline |
+
+The regression from 20-35s → 50-69s coincides with enabling the full cognitive pipeline (appraisal, BDI extraction, mood, classification).
+
+#### Root cause: sequential post-response LLM calls
+
+Per-tick anatomy from instrumented logs:
+
+- Observation assembly (mechanical): <1s
+- 5 parallel agent queries: ~10-15s wall time
+- **5 sequential mood appraisals: ~15s** ← bottleneck
+- **5 sequential BDI extractions: ~15s** ← bottleneck
+- State updates: <1s
+
+The floor is ~15s (parallel agent queries). 30s of sequential LLM calls dominates the tick.
+
+#### Failed attempt: inline combination
+
+Folded moodImpact and mentalState into the main agent response JSON schema. Result: **27% worse** (64s/tick). The LLM either didn't return the fields (triggering fallback calls = paying twice) or spent extra time generating them. Reverted.
+
+#### Strategy (examples#150)
+
+Three approaches in priority order, respecting the elastic AIMD session pooling:
+
+1. **Mechanical mood appraisal** — replace 5 LLM calls with deterministic Scherer appraisal using existing SituationAssessment dimensions. Already have acceptance, abandonment, competition, agency_granted from inline classification. Maps directly to PAD deltas. Aligns with P93 (mechanical over LLM). Expected: -15s.
+
+2. **Defer BDI extraction** — mental model isn't read until next tick's observation assembly. No data dependency. Move to background thread. Expected: -15s.
+
+3. **Parallelize remaining calls** — requires careful validation against AIMD admission behavior and sticky session affinity. Do last, only if 1+2 aren't sufficient.
+
+Combined target: 50s → ~20s/tick → 300 ticks in ~100 min.
+
+---
+
 ## Supporting Research Files
 
 Standalone literature reviews and research that informed era3 implementation decisions. All in `docs/research/`:
