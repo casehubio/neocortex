@@ -296,15 +296,10 @@ public class CognitionCore {
                              : deriveQualitySignal(agentId, tenantId, userMessage);
                 safeRun(() -> userModel.record(signal, agentId, subjectId, tenantId));
             }
-            if (config.mentalModelEnabled() && mentalModel != null) {
-                if (impact != null && impact.mentalStateSignals() != null && !impact.mentalStateSignals().isEmpty()) {
-                    for (var signal : impact.mentalStateSignals()) {
-                        safeRun(() -> mentalModel.record(signal, agentId, subjectId, tenantId));
-                    }
-                } else if (impact == null || !impact.suppressBdiExtraction()) {
-                    safeRun(() -> extractAndRecordMentalState(
-                            agentId, subjectId, tenantId, userMessage));
-                }
+            if (config.mentalModelEnabled() && mentalModel != null
+                && (impact == null || !impact.suppressBdiExtraction())) {
+                safeRun(() -> extractAndRecordMentalState(
+                        agentId, subjectId, tenantId, userMessage));
             }
             if (config.strategyEnabled() && strategy != null) {
                 if (impact != null && impact.strategySignal() != null) {
