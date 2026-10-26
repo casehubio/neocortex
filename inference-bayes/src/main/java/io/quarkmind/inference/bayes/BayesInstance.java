@@ -1107,6 +1107,145 @@ public class BayesInstance<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public StructuralChangeResult addEdge(String from, String to, double[][] newChildCpt) {
+        long startNanos = System.nanoTime();
+        ensureStatesInitialized();
+
+        BayesVariable parentVar = variables.get(from);
+        if (parentVar == null) {
+            throw new IllegalArgumentException("Parent variable not found: " + from);
+        }
+        BayesVariable childVar = variables.get(to);
+        if (childVar == null) {
+            throw new IllegalArgumentException("Child variable not found: " + to);
+        }
+
+        var childNode = graph.getNode(childVar.getId());
+        for (var edge : childNode.getInEdges()) {
+            if (edge.getOutGraphNode().getId() == parentVar.getId()) {
+                throw new IllegalArgumentException("Edge already exists from '" + from + "' to '" + to + "'");
+            }
+        }
+
+        String[] oldGiven = childVar.getGiven();
+        String[] newGiven = new String[oldGiven.length + 1];
+        System.arraycopy(oldGiven, 0, newGiven, 0, oldGiven.length);
+        newGiven[oldGiven.length] = from;
+
+        return rebuildWithMutation(java.util.Set.of(to), mutation -> {
+            mutation.updateCpt(to, newChildCpt, newGiven);
+        }, startNanos);
+    }
+
+    @SuppressWarnings("unchecked")
+    private StructuralChangeResult rebuildWithMutation(java.util.Set<String> affectedVarNames,
+                                                       java.util.function.Consumer<NetworkMutation> mutationFn, long startNanos) {
+
+        Map<String, double[]> evidenceSnapshot = new HashMap<>();
+        for (var entry : variables.entrySet()) {
+            BayesVariable var = entry.getValue();
+            if (var.getId() >= 0 && var.getId() < likelyhoods.length) {
+                BayesLikelyhood lh = likelyhoods[var.getId()];
+                if (lh != null) {
+                    evidenceSnapshot.put(entry.getKey(), lh.getDistribution().clone());
+                }
+            }
+        }
+
+        NetworkMutation mutation = new NetworkMutation(graph, variables);
+        mutationFn.accept(mutation);
+        mutation.validateAcyclic();
+
+        var builder = BayesNetworkBuilder.create();
+        for (String varName : mutation.topologicalOrder()) {
+            BayesVariable var = mutation.getVariable(varName);
+            if (var == null) {continue;}
+            String[]   parents        = mutation.getParents(varName);
+            double[][] cpt            = mutation.getCpt(varName);
+            Object[]   outcomes       = var.getOutcomes();
+            String[]   outcomeStrings = new String[outcomes.length];
+            for (int i = 0; i < outcomes.length; i++) {
+                outcomeStrings[i] = outcomes[i].toString();
+            }
+            if (parents.length == 0) {
+                builder.variable(varName, outcomeStrings).prior(cpt[0]);
+            } else {
+                builder.variable(varName, outcomeStrings).given(parents).cpt(cpt);
+            }
+        }
+
+        JunctionTree newTree = builder.buildJunctionTree();
+
+        this.tree       = newTree;
+        this.graph      = newTree.getGraph();
+        this.variables  = new HashMap<>();
+        this.fieldNames = new HashMap<>();
+        for (GraphNode<BayesVariable> node : this.graph) {
+            this.variables.put(node.getContent().getName(), node.getContent());
+            this.fieldNames.put(node.getContent().getName(), node.getContent());
+        }
+        initStates();
+
+        int evidenceRestored = 0;
+        int evidenceLost     = 0;
+        for (var entry : evidenceSnapshot.entrySet()) {
+            if (this.variables.containsKey(entry.getKey())) {
+                setLikelyhood(entry.getKey(), entry.getValue());
+                evidenceRestored++;
+            } else {
+                evidenceLost++;
+            }
+        }
+
+        calibrated = false;
+        long elapsed = System.nanoTime() - startNanos;
+        return new StructuralChangeResult(
+                StructuralChangeResult.ChangeType.REBUILD,
+                affectedVarNames, evidenceRestored, evidenceLost, elapsed);
+    }
+
+    @SuppressWarnings("unchecked")
+    public StructuralChangeResult addVariable(String name, Object[] outcomes, double[][] cpt, List<String> parentNames) {
+        long startNanos = System.nanoTime();
+        ensureStatesInitialized();
+
+        if (variables.containsKey(name)) {
+            throw new IllegalArgumentException("Variable already exists: " + name);
+        }
+        for (String parentName : parentNames) {
+            if (!variables.containsKey(parentName)) {
+                throw new IllegalArgumentException("Parent variable not found: " + parentName);
+            }
+        }
+
+        String[] parents = parentNames.toArray(new String[0]);
+        return rebuildWithMutation(java.util.Set.of(name), mutation -> {
+            BayesVariable newVar = new BayesVariable<>(name, -1, outcomes, cpt, parents);
+            mutation.addVar(name, newVar, parents, cpt);
+        }, startNanos);
+    }
+
+    public StructuralChangeResult removeVariable(String name) {
+        long startNanos = System.nanoTime();
+        ensureStatesInitialized();
+
+        BayesVariable var = variables.get(name);
+        if (var == null) {
+            throw new IllegalArgumentException("Variable not found: " + name);
+        }
+
+        var node = graph.getNode(var.getId());
+        if (node != null && !node.getOutEdges().isEmpty()) {
+            throw new IllegalStateException("Cannot remove variable with children: " + name
+                                            + ". Remove or reparent child edges first.");
+        }
+
+        return rebuildWithMutation(java.util.Set.of(name), mutation -> {
+            mutation.removeVar(name);
+        }, startNanos);
+    }
+
 
     static double klDivergence(double[] p, double[] q) {
         double kl = 0.0;
