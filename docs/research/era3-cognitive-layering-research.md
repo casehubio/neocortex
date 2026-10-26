@@ -1559,6 +1559,77 @@ Same session also addressed four code review findings from the pre-run readiness
 
 ---
 
+### Entry 11 — Entity connectivity improvements: vocabulary accessor, fuzzy resolution, extraction quality (#695, 2026-10-26)
+
+#### The problem
+
+MindMapExtractor produced high orphan rates — entities extracted without edges linking them to the rest of the graph. Two root causes: (1) the extraction prompt didn't know which edge types were registered in the vocabulary, so it invented types the store didn't recognise; (2) entity resolution was exact-match only, so "Frida" and "Frida Kahlo" created separate unlinked nodes.
+
+#### Changes
+
+**1. `MindMapStore.registeredEdgeTypes()` SPI** — new method returns all `EdgeTypeDefinition` objects registered via vocabulary. Default returns empty; InMemoryMindMapStore and SqliteMindMapStore provide overrides. Forwarded through `AbstractForwardingMindMapStore`.
+
+**2. Vocabulary-aware extraction prompts** — `MindMapExtractor.buildUserPrompt()` now appends the registered edge vocabulary (canonical names + aliases) to the user prompt. The LLM sees exactly which relationship types are available, reducing invented edge types.
+
+**3. `FuzzyNodeResolver`** — Jaro-Winkler fuzzy matching (`@ApplicationScoped`, threshold-configurable, default 0.85). `MindMapExtractor.resolveNodeId()` falls back to fuzzy resolution before giving up on an edge endpoint. This connects "Rivera" to "Diego Rivera" without requiring exact matches.
+
+**4. Extraction prompt rewrite** — SYSTEM_PROMPT rewritten with aggressive relationship extraction guidance, cross-type examples, orphan penalty instruction. The prompt now explicitly penalises isolated entities.
+
+**5. `CognitiveLoader` extended** — registers `ActivityVocabulary` (participated, at, occasion) alongside `GoalVocabulary` at startup, making activity edge types available to extraction.
+
+#### Impact on extraction pipeline
+
+The mosaic cognitive-workbench extraction was updated in the same session (#695 commit in mosaic: sequential extraction, edge prompt receives extracted entity names, `associated-with` removed, 9 new edge types added). The neocortex extraction scripts have not yet been synced — `extract_structure.py` still uses `associated-with` as a fallback.
+
+---
+
+### Entry 12 — Goal coherence import: goal→goal edges (#684, 2026-10-26)
+
+#### The problem
+
+The field registry listed `goal_coherence` as status `gap`. The enrichment pipeline produced goal coherence data (conflicts, synergies between goals), but `convert_corpus.py` dropped it during YAML conversion and `EntityEnrichmentHandler` had no import logic. Goals were imported as isolated nodes with no inter-goal relationships.
+
+#### Changes
+
+**Python** — `convert_corpus.py` now passes `goal_coherence` through to the entity enrichment YAML.
+
+**Java records** — `EntityEnrichmentEntry` gained `GoalCoherence` (summary, conflicts, synergies lists) and `GoalRelation` (goals list + nature description) records.
+
+**Import handler** — `EntityEnrichmentHandler.storeGoalCoherence()` creates:
+- `blocks` edges for conflict relationships between goals
+- `enables` edges for synergy relationships between goals
+- `aspires-to` edges from the person node to each referenced goal
+
+**Vocabulary** — `GoalVocabulary` gained the `aspires-to` edge type for person→goal links.
+
+**Field registry** — `goal_coherence` status updated from `gap` to `done`.
+
+#### Finding (P101)
+
+Goal coherence must be imported as typed edges using the existing vocabulary (blocks/enables), not as properties on goal nodes. Properties are invisible to graph traversal — `GoalResolutionPhase` discovers blockers by traversing `blocks` edges, not by reading node properties. The `aspires-to` edge from person→goal anchors the goal in the character's identity graph, preventing the orphan-at-import problem seen with Phase 9 attractors (P97).
+
+---
+
+### Entry 13 — Noisy-MAX generalisation for multi-valued Bayes children (#678, 2026-10-26)
+
+#### The problem
+
+`NoisyOrExpander` estimated CPTs only for binary variables (K=2 outcomes). Variables with 3+ outcomes (e.g., a ternary distress variable: low/medium/high) fell back to uniform CPTs, losing the elicited expert knowledge. The inference-bayes-llm module elicits per-parent influence as a single strength value, which maps naturally to binary Noisy-OR but has no K>2 equivalent.
+
+#### The fix
+
+**Noisy-MAX (Díez & Druzdzel 2007)** — generalisation of Noisy-OR to multi-valued variables. Instead of a single strength per parent, `NoisyMaxParent` carries a full distribution (double array of length K). `NoisyMaxExpander` implements the cumulative MAX combination rule: for each child outcome j, combine the probability that each parent independently produces outcome ≤j, then difference adjacent cumulative values.
+
+**Auto-routing** — `NoisyOrExpander` detects K>2 variables and delegates to `NoisyMaxExpander`. Binary variables continue through the existing Noisy-OR path. The generalisation reduces exactly to Noisy-OR for K=2 (validated bit-for-bit to 1e-10).
+
+**`NetworkSpec` and `ResponseParser`** — handle the new `NoisyMaxParent` type. LLM-elicited distributions are parsed from JSON arrays.
+
+#### Architectural note
+
+This is an inference-layer change, not a cognitive pipeline change. It doesn't affect extraction templates or generated content. It enables richer Bayesian ToM models where character mental states have more than two possible values — the ToM engine can now reason about degree rather than just presence/absence.
+
+---
+
 ## Supporting Research Files
 
 Standalone literature reviews and research that informed era3 implementation decisions. All in `docs/research/`:
