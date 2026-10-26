@@ -34,6 +34,12 @@ final class CognitiveTestObservation {
     static String render(String agentId, EvalCharacterData data,
                          Collection<String> nearbyAgentIds, Map<String, String> agentNames,
                          CognitionObservationBuilder builder) {
+        return render(agentId, data, nearbyAgentIds, agentNames, builder, null);
+    }
+
+    static String render(String agentId, EvalCharacterData data,
+                         Collection<String> nearbyAgentIds, Map<String, String> agentNames,
+                         CognitionObservationBuilder builder, String situationText) {
         var sections = new ArrayList<ObservationSection>();
 
         if (!data.tendencies().isEmpty()) {
@@ -69,10 +75,12 @@ final class CognitiveTestObservation {
                 sections.add(s);
             }
 
+            var situationContext = (situationText != null && !situationText.isBlank())
+                    ? builder.classifySituation(situationText, Map.of())
+                    : io.casehub.neocortex.caps.SituationContext.EMPTY;
             var activatedCategories = List.<String>of();
             var internalState = builder.renderInternalState(
-                    activatedCategories, null, nearbyAgentIds,
-                    io.casehub.neocortex.caps.SituationContext.EMPTY);
+                    activatedCategories, situationText, nearbyAgentIds, situationContext);
             if (internalState != null) {
                 sections.add(internalState);
             }
