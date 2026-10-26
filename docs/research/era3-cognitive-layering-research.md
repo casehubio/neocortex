@@ -151,17 +151,20 @@ Every cognitive layer must trace to formation memories and personality. "Makes t
 ### Build commands
 
 ```bash
-# Install neocortex (issue-115-weighted-situation-vocabulary branch)
+# Install neocortex
 JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f neocortex/mindmap-intelligence/pom.xml install -Dmaven.test.skip=true
 
-# Fast unit tests
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f wacky-manor/pom.xml test -Dtest="CharacterCognitionTest,PipelineToRenderingTest,DriveRenderingUnitTest" -s .mvn/slot-settings.xml
+# Fast unit tests (eval tests now in neocortex caps-llm-classifier)
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f neocortex/caps-llm-classifier/pom.xml test -Dtest="DriveRenderingUnitTest,PropagationBoundaryTest" -s neocortex/.mvn/slot-settings.xml
 
-# Focused eval (~25 min)
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f wacky-manor/pom.xml test -Pllm-eval -Dtest="FocusedDriveEvalTest" -s .mvn/slot-settings.xml
+# Focused eval (~25 min, now in neocortex)
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f neocortex/caps-llm-classifier/pom.xml test -Pllm-eval -Dtest="FocusedDriveEvalTest" -s neocortex/.mvn/slot-settings.xml
 
 # Single scenario (~2 min)
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f wacky-manor/pom.xml test -Pllm-eval -Dtest="FocusedDriveEvalTest#s4_ppProtection_mediumPsychological" -s .mvn/slot-settings.xml
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f neocortex/caps-llm-classifier/pom.xml test -Pllm-eval -Dtest="FocusedDriveEvalTest#s1_ppProtection_strongPhysical_alone" -s neocortex/.mvn/slot-settings.xml
+
+# Manor-side tests (CharacterCognition unit tests remain in wacky-manor)
+JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn -f wacky-manor/pom.xml test -Dtest="CharacterCognitionTest,PipelineToRenderingTest" -s .mvn/slot-settings.xml
 ```
 
 ### Starting state for #592
