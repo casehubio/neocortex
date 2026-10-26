@@ -1014,6 +1014,8 @@ Future work: replace the NONE default with a mechanical threat classifier from r
 | 7 | #653 Inline vs external classification | Dual-mode with bias audit | VALIDATED — 41 audit entries, source provenance, bias endpoint |
 | 8 | #650 Elastic session scheduling | SessionPipeline with AIMD admission | PARTIALLY VALIDATED — consolidation deadlock found and fixed |
 | 9 | #685 Biographical CAPS weight seeding | Structured inputActivations + CapsEngine.updateWeights() | IMPLEMENTED — enrichment prompt constrained to 30 topology node IDs, handler seeds weights from disposition + biography |
+| 10 | #686 Biographical attractor import | BEHAVIORAL subgraph nodes from corpus | IMPLEMENTED — biographical attractors as CapsGenerated nodes, eval delta=0.8 (N=5) |
+| 11 | #111 Disposition attractor baselines | Resting activation added to settled strength | IMPLEMENTED — competitive/cooperative produce different dominant attractors (>0.7 tier) |
 | 10 | #686 Biographical attractor import | BehaviouralAttractor → BEHAVIORAL subgraph nodes with CapsGenerated trait | VALIDATED — structural parity + LLM eval delta=0.8 (confrontation=4.6, harmony=3.8, N=5) |
 
 ---
@@ -1424,6 +1426,95 @@ The confrontation attractor ("deeply ingrained confrontation-of-conflict — roo
 
 - Mischel, W., & Shoda, Y. (1995). A cognitive-affective system theory of personality: Reconceptualizing situations, dispositions, dynamics, and invariance in personality structure. *Psychological Review*, 102(2), 246-268. CAPS theory — personality as situation-response connection patterns.
 - Read, S. J., & Miller, L. C. (2002). Virtual personalities: A neural network model of personality. *Personality and Social Psychology Review*, 6(4), 357-369. Computational implementation — personality as connection weight matrix.
+
+---
+
+## Phase 10: Disposition-Seeded Attractor Baselines (casehubio/examples #111)
+
+### Problem
+
+CAPS settling produces all output nodes at ~0.55 activation regardless of character disposition. Hooded Claw (competitive/bold/confrontational) and Peter Perfect (cooperative/conservative/avoidant) produce identical attractor profiles — five attractors in the "noticeable" tier (0.4–0.7), undifferentiated. The issue (#111) identified multi-hop dampening through the logistic activation function as the root cause.
+
+The partial fix (already on main, commit 755e583c) addressed two mechanics:
+1. Default NodeState threshold 0.5 → 0.0 (removed a dead zone)
+2. Oscillation handling: average two oscillating states instead of halving
+
+These moved attractors from "emerging" to "noticeable" but produced no differentiation between characters.
+
+### Why weight differences wash out
+
+`DispositionWeightMapper` already seeds differentiated connection weights from disposition axes (Phase 8). The problem: two-hop logistic compression eliminates the weight differences at the output.
+
+A weight difference of 0.20 at the INPUT→MEDIATING connection (e.g., competitive 0.50 vs cooperative 0.30) produces:
+- Competitive: logistic(0.45 × 0.50) = logistic(0.225) = 0.556
+- Cooperative: logistic(0.45 × 0.30) = logistic(0.135) = 0.534
+- Delta at MEDIATING: 0.022
+
+This 0.022 delta, multiplied by the MEDIATING→OUTPUT weight (0.60), adds 0.013 to the output netInput. The logistic compresses this to a final output delta of ~0.01 — invisible against the 0.3-wide tier bands.
+
+### Theory applied
+
+**Read, Monroe, Brownstein, Yang, Chopra & Miller (2010).** "A neural network model of the structure and dynamics of human personality." *Psychological Review* 117(1), 61–92. Key finding: "Traits are modeled in terms of differences in the sensitivities of the motivational systems, the **baseline activation of specific motives**, and inhibitory strength." Individual differences are modeled by manipulating baseline activations — not just connection weights.
+
+**Mischel & Shoda (1995) — CAPS.** Unit "accessibility" — how readily available a cognitive-affective unit is for activation — as a primary source of individual differences. Higher accessibility = lower effective threshold = higher resting activation.
+
+**Gray (1982) — Reinforcement Sensitivity Theory.** BIS and BAS are sensitivity levels, not just wiring patterns. A competitive person's BAS rests tonically higher. This is not a situational activation — it's a persistent baseline.
+
+**Carver & White (1994).** BIS/BAS scales: "Individual differences in BIS/BAS sensitivity are the basis of personality variation." High BAS → approach behavior; High BIS → avoidance behavior.
+
+### Architecture
+
+Two changes:
+
+**1. `CapsSettler.extractAttractors()`** — attractor strength = settled activation + resting activation. The settled value reflects situational modulation (phasic). The resting value reflects personality baseline (tonic). The sum gives the total attractor strength, capped at 1.0.
+
+```java
+double settled = activations.getOrDefault(node.id(), 0.0);
+NodeState ns = agentState.nodeStates()
+                         .getOrDefault(node.id(), NodeState.DEFAULT);
+double strength = Math.min(1.0, settled + ns.restingActivation()) * strengthMultiplier;
+```
+
+The settling dynamics remain pure — they compute the situation-response mapping. The personality baseline is added after settling, cleanly separating the two timescales.
+
+**2. `DispositionWeightMapper.setRestingActivations()`** — extended with OUTPUT node baselines and additive semantics. Previously set only MEDIATING nodes with small values (0.1–0.2) that were overwritten in the first settling iteration. Now:
+
+- MEDIATING nodes: increased to 0.2–0.3 (BAS_activation, BIS_activation, self_worth, social_comparison, etc.)
+- OUTPUT nodes: 0.1–0.2 per node per axis (approach, fight, assert for competitive; cautious_approach, trust, proximity_seek for cooperative; etc.)
+- Additive: `addResting()` replaces `setResting()` so multiple disposition axes compound (competitive + bold both contribute to approach)
+
+### Interaction with Phases 8 and 9
+
+| Phase | What it seeds | Mechanism | Timescale |
+|---|---|---|---|
+| 8 — Weight seeding | Connection strengths | `updateWeights()` | Structural (permanent) |
+| 9 — Attractor import | Named behavioral patterns | BEHAVIORAL subgraph nodes | Biographical (permanent) |
+| 10 — Resting activations | Dimensional output baselines | `NodeState.restingActivation()` | Tonic (persistent) |
+
+Phase 8 gives the network its learned structure (which connections are strong). Phase 9 gives the character its specific patterns (defiance, autonomy-seeking). Phase 10 gives the dimensional outputs (approach, withdraw) their personality-dependent baseline strength. All three are complementary — weights, named patterns, and dimensional baselines.
+
+### Findings
+
+**Finding (P99):** Connection weight differences in a logistic-activation constraint-satisfaction network are compressed at each hop. A 67% weight difference across two hops produces a 1% output difference. Resting activations bypass this compression — they add directly to the attractor strength after settling, providing the personality differentiation that weights alone cannot carry through the network.
+
+**Finding (P100):** Tonic (persistent) and phasic (situational) components of attractor strength are architecturally distinct. Settling computes the phasic component — what the network does in response to this situation. Resting activation is the tonic component — what the personality baseline IS. Conflating them by trying to make settling produce both fails because the logistic function is the wrong tool for personality-scale differences (it compresses them) but the right tool for situation-scale dynamics (it bounds them).
+
+### Test results
+
+Three tests verify the differentiation:
+
+1. **competitiveProducesStrongerApproachThanCooperative** — competitive approach > cooperative approach, competitive approach > 0.7 ("deeply ingrained")
+2. **cooperativeProducesStrongerCautiousApproachThanCompetitive** — cooperative cautious_approach > competitive cautious_approach, cooperative cautious_approach > 0.7
+3. **sameInputProducesDifferentiatedProfiles** — competitive dominant attractor ≠ cooperative dominant attractor
+
+All three pass with the same situational input (secure_attachment=0.5, acceptance=0.4, mastery=0.3). The personality baseline — not the situation — determines which attractor dominates.
+
+### References
+
+- Read, S. J., Monroe, B. M., Brownstein, A. L., Yang, Y., Chopra, G., & Miller, L. C. (2010). A neural network model of the structure and dynamics of human personality. *Psychological Review*, 117(1), 61–92. Baseline activations as personality differentiation mechanism.
+- Mischel, W., & Shoda, Y. (1995). A cognitive-affective system theory of personality: Reconceptualizing situations, dispositions, dynamics, and invariance in personality structure. *Psychological Review*, 102(2), 246-268. Unit accessibility.
+- Gray, J. A. (1982). *The Neuropsychology of Anxiety: An Enquiry into the Functions of the Septo-Hippocampal System*. Oxford University Press. BIS/BAS sensitivity levels.
+- Carver, C. S., & White, T. L. (1994). Behavioral inhibition, behavioral activation, and affective responses to impending reward and punishment: The BIS/BAS scales. *Journal of Personality and Social Psychology*, 67(2), 319–333. Individual differences in BIS/BAS sensitivity.
 
 ---
 
