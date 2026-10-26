@@ -67,6 +67,11 @@ public class BayesVariable<T> {
         return given;
     }
 
+    public void setGiven(String[] given) {
+        this.given = given;
+    }
+
+
     public int getFamily() {
         return familyIndex;
     }
