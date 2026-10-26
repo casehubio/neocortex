@@ -444,6 +444,13 @@ public class CognitionCore {
         return new InteractionSignal.CustomSignal(userMessage, quality);
     }
 
+    public void deferredBdiExtraction(String agentId, String subjectId,
+                                       String tenantId, String utterance) {
+        if (config.mentalModelEnabled() && mentalModel != null) {
+            extractAndRecordMentalState(agentId, subjectId, tenantId, utterance);
+        }
+    }
+
     private void extractAndRecordMentalState(String agentId, String subjectId,
                                              String tenantId, String utterance) {
         if (sessionPipeline != null) {
