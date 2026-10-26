@@ -9,16 +9,16 @@
       "gate": "WARN"
     },
     "memory_fields": {
-      "populated": 13,
+      "populated": 17,
       "total": 17,
-      "pct": 76.5,
+      "pct": 100.0,
       "threshold": 50,
       "gate": "PASS"
     },
     "enrichment_fields": {
-      "populated": 19,
+      "populated": 20,
       "total": 24,
-      "pct": 79.2,
+      "pct": 83.3,
       "threshold": 70,
       "gate": "PASS"
     }
@@ -28,138 +28,107 @@
       {
         "id": "N3",
         "name": "properties",
-        "missing": 118,
-        "total": 189
+        "missing": 113,
+        "total": 152
       },
       {
         "id": "N4",
         "name": "traits",
-        "missing": 123,
-        "total": 189
+        "missing": 124,
+        "total": 152
       },
       {
         "id": "N5",
         "name": "trait_properties",
-        "missing": 130,
-        "total": 189
+        "missing": 124,
+        "total": 152
       },
       {
         "id": "N6",
         "name": "pad",
-        "missing": 114,
-        "total": 189
+        "missing": 104,
+        "total": 152
       },
       {
         "id": "N9",
         "name": "node_ref_provenance",
-        "missing": 189,
-        "total": 189
+        "missing": 152,
+        "total": 152
       },
       {
         "id": "N10",
         "name": "valid_from",
-        "missing": 118,
-        "total": 189
+        "missing": 113,
+        "total": 152
       },
       {
         "id": "N11",
         "name": "valid_until",
-        "missing": 178,
-        "total": 189
+        "missing": 150,
+        "total": 152
       },
       {
         "id": "N12",
         "name": "lifecycle_events",
-        "missing": 118,
-        "total": 189
+        "missing": 113,
+        "total": 152
       },
       {
         "id": "N19",
         "name": "goal_target_date",
-        "missing": 118,
-        "total": 118
+        "missing": 113,
+        "total": 113
       },
       {
         "id": "N21",
         "name": "goal_pad_affect",
-        "missing": 118,
-        "total": 118
+        "missing": 113,
+        "total": 113
       },
       {
         "id": "N22",
         "name": "edge_confidence",
-        "missing": 189,
-        "total": 189
+        "missing": 152,
+        "total": 152
       },
       {
         "id": "N23",
         "name": "edge_validation_tier",
-        "missing": 189,
-        "total": 189
+        "missing": 152,
+        "total": 152
       }
     ],
-    "memory_fields": [
-      {
-        "id": "M6",
-        "name": "related_entities",
-        "missing": 185,
-        "total": 327
-      },
-      {
-        "id": "M7",
-        "name": "source_provenance",
-        "missing": 185,
-        "total": 327
-      },
-      {
-        "id": "M10",
-        "name": "passage_id",
-        "missing": 185,
-        "total": 327
-      },
-      {
-        "id": "M17",
-        "name": "mentioned_entities",
-        "missing": 185,
-        "total": 327
-      }
-    ],
+    "memory_fields": [],
     "enrichment_fields": [
       {
         "id": "E2",
         "name": "pad_justification",
-        "missing": 187,
-        "total": 327
-      },
-      {
-        "id": "E10",
-        "name": "drive_justification",
-        "missing": 185,
-        "total": 327
+        "missing": 141,
+        "total": 278
       },
       {
         "id": "E14",
         "name": "confidence_justification",
-        "missing": 187,
-        "total": 327
+        "missing": 141,
+        "total": 278
       },
       {
         "id": "E18",
         "name": "caps_expected_outputs",
-        "missing": 327,
-        "total": 327
+        "missing": 278,
+        "total": 278
       },
       {
         "id": "E24",
         "name": "trait_assignment",
-        "missing": 327,
-        "total": 327
+        "missing": 278,
+        "total": 278
       }
     ]
   },
   "overall": {
-    "populated": 47,
+    "populated": 52,
     "total": 68,
-    "pct": 69.1
+    "pct": 76.5
   }
 }
