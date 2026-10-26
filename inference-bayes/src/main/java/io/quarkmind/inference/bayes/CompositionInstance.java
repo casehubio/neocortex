@@ -161,6 +161,10 @@ public class CompositionInstance {
         return getInstance(slotName).getEvidenceVariables();
     }
 
+    public Map<String, BayesVariable> getVariables(String slotName) {
+        return getInstance(slotName).getVariables();
+    }
+
 
     private BayesInstance<?> getInstance(String slotName) {
         BayesInstance<?> inst = instances.get(slotName);
