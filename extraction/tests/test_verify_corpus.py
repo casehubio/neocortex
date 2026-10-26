@@ -40,7 +40,7 @@ def _place_node(name='La Casa Azul'):
     return {'name': name, 'subgraph_type': 'PLACE', 'properties': {}}
 
 
-def _edge(source, target, edge_type='associated-with'):
+def _edge(source, target, edge_type='influenced-by'):
     return {'source': source, 'target': target, 'type': edge_type}
 
 

@@ -45,7 +45,7 @@ def _concept_node(name="Pain as artistic fuel", **overrides):
     return _node(name, "concept", **overrides)
 
 
-def _edge(source, target, edge_type="associated-with", **overrides):
+def _edge(source, target, edge_type="influenced-by", **overrides):
     e = {"source": source, "target": target, "type": edge_type}
     e.update(overrides)
     return e
@@ -488,13 +488,23 @@ class TestEntityEnrichment:
         enrichments = {
             "Frida Kahlo": {
                 "behavioural_attractors": [
-                    {"name": "creative-defiance", "description": "Rebels through art"},
+                    {
+                        "name": "creative-defiance",
+                        "description": "Rebels through art",
+                        "trigger": "authority imposing limits",
+                        "response": "doubles down on provocative expression",
+                        "strength": 0.9,
+                    },
                 ],
             },
         }
         _, files = _convert(_corpus(entity_enrichments=enrichments))
         entry = files["entity-enrichments.yaml"]["entries"][0]
-        assert entry["behavioural_attractors"][0]["name"] == "creative-defiance"
+        attractor = entry["behavioural_attractors"][0]
+        assert attractor["name"] == "creative-defiance"
+        assert attractor["trigger"] == "authority imposing limits"
+        assert attractor["response"] == "doubles down on provocative expression"
+        assert attractor["strength"] == 0.9
 
     def test_relationship_stages(self):
         enrichments = {
@@ -579,7 +589,7 @@ class TestReportAndOutput:
             nodes=[_goal_node(), _person_node()],
             edges=[
                 _edge("Master painting", "Diego Rivera", "contributes-to"),
-                _edge("Diego Rivera", "Master painting", "associated-with"),
+                _edge("Diego Rivera", "Master painting", "influenced-by"),
             ],
             memories=[_memory(), _memory(domain="mood", event_type="mood-snapshot")],
         )

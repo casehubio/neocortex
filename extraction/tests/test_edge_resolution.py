@@ -180,11 +180,12 @@ class TestEdgeCorrections:
         assert len(result) == 1
         assert report['removals'] == 2
 
-    def test_unvalidated_type_fixed(self):
+    def test_unvalidated_type_kept(self):
         nodes = _nodes('A', 'B')
-        edges = [{'source': 'A', 'target': 'B', 'type': 'UNVALIDATED'}]
+        edges = [{'source': 'A', 'target': 'B', 'type': 'UNVALIDATED',
+                  'validation_tier': 'UNVALIDATED'}]
         result, report = correct_edge_errors(edges, nodes)
-        assert result[0]['type'] == 'associated-with'
+        assert result[0]['type'] == 'UNVALIDATED'
         assert result[0]['validation_tier'] == 'UNVALIDATED'
 
     def test_factual_retype_from_file(self):

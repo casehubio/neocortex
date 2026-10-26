@@ -167,7 +167,7 @@ converter:
 edges:
   valid_types:
     - pursues
-    - associated-with
+    - aspires-to
     - at
     - contributes-to
     - created-by
@@ -185,6 +185,28 @@ edges:
     - influences
     - teaches
     - mentors
+    - embodies
+    - exemplifies
+    - contradicts
+    - influenced-by
+    - preceded-by
+    - concurrent-with
+    - succeeded-by
+    - caused-by
+    - resulted-in
+    - motivated-by
+    - child-of
+    - sibling-of
+    - parent-of
+    - married-to
+    - affair-with
+    - divorced-from
+    - treated-by
+    - taught-by
+    - championed
+    - depicted-in
+    - inspired-by
+    - occasion
   dangling:
     critical_pct: 10
     warn_pct: 2

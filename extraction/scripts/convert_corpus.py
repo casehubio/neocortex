@@ -359,7 +359,13 @@ def _map_entity_enrichment(entity_name, data, seen_ids):
         ]
     if data.get("behavioural_attractors"):
         entry["behavioural_attractors"] = [
-            {"name": a.get("name", ""), "description": a.get("description")}
+            {
+                "name": a.get("name", ""),
+                "description": a.get("description"),
+                "trigger": a.get("trigger"),
+                "response": a.get("response"),
+                "strength": a.get("strength"),
+            }
             for a in data["behavioural_attractors"]
         ]
     if data.get("relationship_stages"):

@@ -23,7 +23,7 @@ def _memory(text="A memory", domain="experience", **kw):
     return m
 
 
-def _edge(source, target, edge_type="associated-with"):
+def _edge(source, target, edge_type="influenced-by"):
     return {"source": source, "target": target, "type": edge_type}
 
 

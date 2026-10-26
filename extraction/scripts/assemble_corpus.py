@@ -884,10 +884,8 @@ def correct_edge_errors(edges: list[dict], nodes: list[dict],
                     corrections.append({'index': i, 'fix': f'duplicate {typ}', 'original': f'{src} → {tgt}'})
                     break
 
-        if typ == 'UNVALIDATED':
-            e['type'] = 'associated-with'
-            e['validation_tier'] = 'UNVALIDATED'
-            corrections.append({'index': i, 'fix': 'UNVALIDATED type → associated-with', 'original': f'{src} → {tgt}'})
+        if e.get('validation_tier') == 'UNVALIDATED':
+            corrections.append({'index': i, 'fix': 'unvalidated edge kept as-is', 'original': f'{src} → {tgt} ({typ})'})
 
     result = [e for i, e in enumerate(edges) if i not in removals]
     report = {
