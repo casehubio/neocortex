@@ -1,6 +1,6 @@
 package io.casehub.neocortex.knowledge.resolution;
 
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 
 public final class Haversine {
 

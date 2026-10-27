@@ -1,7 +1,7 @@
 package io.casehub.neocortex.knowledge.cache;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.neocortex.knowledge.CachedEntity;
 import io.casehub.neocortex.knowledge.ResearchState;
 import io.casehub.neocortex.knowledge.dedup.DedupIndexStore;
@@ -163,7 +163,7 @@ class CacheEvictionSchedulerTest {
     @Test
     void evictsEntitiesPastMaxAgeEvenWithActiveSession() {
         var ancient = new io.casehub.neocortex.knowledge.CachedEntity(
-                "e1", "Old Place", new io.casehub.connectors.location.model.Coordinates(51.5, -0.1),
+                "e1", "Old Place", new io.casehub.connectors.Coordinates(51.5, -0.1),
                 "restaurant", "google", "ext-1", Map.of(),
                 Instant.now().minus(Duration.ofDays(100)),
                 null, Instant.now().plusSeconds(86400),

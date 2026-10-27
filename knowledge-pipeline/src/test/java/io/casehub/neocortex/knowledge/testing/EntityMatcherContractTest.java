@@ -1,6 +1,6 @@
 package io.casehub.neocortex.knowledge.testing;
 
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.neocortex.knowledge.CachedEntity;
 import io.casehub.neocortex.knowledge.EntityMatcher;
 import io.casehub.neocortex.knowledge.MatchTier;

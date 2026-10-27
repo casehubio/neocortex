@@ -7,12 +7,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GoalVocabularyTest {
 
     @Test
-    void vocabularyHasFiveEdgeTypes() {
+    void vocabularyHasSixEdgeTypes() {
         var vocab = GoalVocabulary.GOAL_VOCABULARY;
-        assertThat(vocab.edgeTypes()).hasSize(5);
+        assertThat(vocab.edgeTypes()).hasSize(6);
         assertThat(vocab.edgeTypes().stream().map(EdgeTypeDefinition::canonical))
                 .containsExactlyInAnyOrder("enables", "blocks", "requires",
-                        "contributes-to", "decomposes-into");
+                        "contributes-to", "decomposes-into", "aspires-to");
     }
 
     @Test

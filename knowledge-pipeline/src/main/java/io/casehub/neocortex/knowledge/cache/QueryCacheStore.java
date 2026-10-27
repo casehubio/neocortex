@@ -1,6 +1,6 @@
 package io.casehub.neocortex.knowledge.cache;
 
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.neocortex.knowledge.KnowledgeQuery;
 import io.casehub.neocortex.knowledge.NormalizedQuery;
 import com.zaxxer.hikari.HikariDataSource;

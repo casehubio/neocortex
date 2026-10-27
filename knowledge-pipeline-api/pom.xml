@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-connectors-location-spi</artifactId>
+      <artifactId>casehub-connectors-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

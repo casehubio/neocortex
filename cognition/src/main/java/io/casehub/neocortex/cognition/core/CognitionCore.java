@@ -368,6 +368,7 @@ public class CognitionCore {
             applyMoodFallback(agentId, tenantId);
             return;
         }
+        long t0 = System.nanoTime();
         try {
             var truncatedMsg = userMessage.length() > 200
                                ? userMessage.substring(0, 200) + "..." : userMessage;
@@ -398,6 +399,10 @@ public class CognitionCore {
                                                                 cause.isEmpty() ? "interaction" : cause),
                             agentId, tenantId);
                 moodSuccess.incrementAndGet();
+                double fp = p; double fa = a; double fd = d;
+                LOG.log(System.Logger.Level.INFO,
+                        () -> "%s: mood-appraisal %dms P=%.3f A=%.3f D=%.3f cause=%s".formatted(
+                                agentId, (System.nanoTime() - t0) / 1_000_000, fp, fa, fd, cause));
             }
         } catch (Exception e) {
             applyMoodFallback(agentId, tenantId);
@@ -444,9 +449,17 @@ public class CognitionCore {
         return new InteractionSignal.CustomSignal(userMessage, quality);
     }
 
+    public void deferredBdiExtraction(String agentId, String subjectId,
+                                       String tenantId, String utterance) {
+        if (config.mentalModelEnabled() && mentalModel != null) {
+            extractAndRecordMentalState(agentId, subjectId, tenantId, utterance);
+        }
+    }
+
     private void extractAndRecordMentalState(String agentId, String subjectId,
                                              String tenantId, String utterance) {
         if (sessionPipeline != null) {
+            long t0 = System.nanoTime();
             try {
                 var truncated = utterance.length() > 500
                                 ? utterance.substring(0, 500) + "..." : utterance;
@@ -460,6 +473,9 @@ public class CognitionCore {
                 var json = responseText.toString();
                 recordExtractedSignals(agentId, subjectId, tenantId, json);
                 bdiSuccess.incrementAndGet();
+                LOG.log(System.Logger.Level.INFO,
+                        () -> "%s: bdi-extraction %dms".formatted(
+                                agentId, (System.nanoTime() - t0) / 1_000_000));
                 return;
             } catch (Exception e) {
                 bdiFallback.incrementAndGet();

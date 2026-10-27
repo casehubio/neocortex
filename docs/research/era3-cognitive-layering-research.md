@@ -1595,17 +1595,34 @@ The floor is ~15s (parallel agent queries). 30s of sequential LLM calls dominate
 
 Folded moodImpact and mentalState into the main agent response JSON schema. Result: **27% worse** (64s/tick). The LLM either didn't return the fields (triggering fallback calls = paying twice) or spent extra time generating them. Reverted.
 
-#### Strategy (examples#150)
+#### Results (examples#150, 2026-10-27)
 
-Three approaches in priority order, respecting the elastic AIMD session pooling:
+The original strategy was wrong in several ways. Instrumented data revealed:
+- Query phase was 71% of tick (31s), not the assumed 10-15s
+- BDI extraction was 100% failure rate (session starvation, not slow)
+- Mechanical mood (CAPS→PAD) empirically unviable (pleasure sign errors, frozen between classifications)
 
-1. **Mechanical mood appraisal** — replace 5 LLM calls with deterministic Scherer appraisal using existing SituationAssessment dimensions. Already have acceptance, abandonment, competition, agency_granted from inline classification. Maps directly to PAD deltas. Aligns with P93 (mechanical over LLM). Expected: -15s.
+**What worked:**
 
-2. **Defer BDI extraction** — mental model isn't read until next tick's observation assembly. No data dependency. Move to background thread. Expected: -15s.
+1. **Lazy classify sessions** — opened on-demand instead of eagerly at startup. Freed 5 of 12 session slots. BDI extraction and UserModel went from 0% to 100% success rate. Session limit raised to 18.
 
-3. **Parallelize remaining calls** — requires careful validation against AIMD admission behavior and sticky session affinity. Do last, only if 1+2 aren't sufficient.
+2. **Inline mood appraisal** — added `moodImpact` field to the character response JSON. The character self-reports PAD deltas as part of its main response. 15/15 reliability in testing, zero fallbacks. Quality is *better* than the separate call because inline has full cognitive context; the separate call used 200-char truncated snippets. Eliminated the mood phase entirely (13s → 0ms) and reduced session count from 14 to 6.
 
-Combined target: 50s → ~20s/tick → 300 ticks in ~100 min.
+3. **Deferred BDI extraction** — runs on a background virtual thread after tick phases complete. Completes during the next tick's query phase.
+
+**Mechanical mood was attempted and rejected.** Shadow comparison of CAPS→PAD showed: frozen between classifications (identical output for 3+ ticks), pleasure sign errors for characters who enjoy competitive/threatening situations, doesn't track emotional shifts within ticks. The inline LLM approach was both faster and better.
+
+| Phase | Before | After |
+|---|---|---|
+| Mood appraisal | 13s (5 sequential LLM calls) | **0ms** (inline in character response) |
+| RecordInteraction | 13,000ms | **0ms** |
+| BDI success rate | 0% | **100%** |
+| Sessions needed | 12 (starved) | **6** |
+| **Tick total** | **44s** | **~31s** |
+
+Remaining 31s is pure Opus 4.6 query latency for 5 parallel character queries. Application overhead is zero. Further reduction is a model selection question — separate issue, blocked on quality baseline from #135.
+
+**Key insight:** An independent assessor needs at least as much context as the entity being assessed. The separate mood call was "independent" but uninformed — truncated input produced worse appraisals than the character's own full-context self-report. Filed #152 to investigate potential self-report bias with a full-context comparison.
 
 ---
 
