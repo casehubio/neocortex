@@ -97,10 +97,48 @@ The biggest register improvement (Oct 4→15: 2.07→4.07, +2.00) occurred while
 
 The V1→V2 transition (Oct 21→22) showed +0.16 register — a modest improvement from expanding the prompt from somatic-only to multi-channel. The V2→V3 transition (Oct 26→27) showed -0.57 register, but is confounded by GENERIC vs BASELINE profile and run length (300 ticks vs ~60 ticks).
 
+### Channel emphasis architecture
+
+The 4 Barrett channels (somatic, attentional, temporal, action tendency) operate at two levels:
+
+1. **Drive descriptions** — generated during consolidation by `DriveDescriptionGenerationPhase` (@Priority 21). The LLM generates 2-3 sentence descriptions per drive per character from formation memories, using all 4 channels. Discrimination texts use all 4 channels to distinguish similar drives (e.g. gallantry vs proving-worth). These are **static** — computed once at consolidation time.
+
+2. **Channel emphasis** — computed per-tick by `ChannelEmphasisPromptSection`. Uses `TopologyChannelWeighter` to map CAPS situation activations to channel weight profiles, then renders situation-specific guidance:
+   - Channels above 0.30 weight: "Foreground your [channel]: [description]"
+   - Channels below 0.18 weight: "Background your [channel]: [description]"
+   - Channels between 0.18-0.30: unmentioned (default emphasis)
+   - Equal-weight situations (no CAPS activation): no emphasis rendered at all
+
+   Example — **threat** situation: somatic 0.35, attentional 0.10, temporal 0.15, action tendency 0.40 → foreground somatic + action tendency, background attentional + temporal.
+
+This is **dynamic and situation-dependent**, not all-4-all-the-time. The `ChannelEmphasisPromptSection` is the mechanism #153 referred to with "defer to dynamic channel emphasis" — the thinking-field text was condensed because this system was already dynamically steering channel attention per-tick. V2's verbose text was potentially redundant with (and conflicting with) the dynamic emphasis.
+
+### Room-presence gating — known gap
+
+Social drives are gated indirectly through CAPS situation classification. The classifier receives `nearbyAgentIds`, which influences which social CAPS nodes fire. However, drives with high intensity (e.g. gallantry at 0.9) have resting activation of 0.178 (intensity² × 0.22), which exceeds the 0.15 overlap threshold — meaning **gallantry can self-sustain and render when the character is alone**. Relational schemas correctly filter by room presence, but drive rendering itself does not.
+
+### Test/scenario validity — documented concerns
+
+- **P78 — single-run scores are not evidence.** Individual LLM scores have ±1-2 variance. The priority signature "regression" (S7 pw 4→2) was proven to be noise by a 5-per-condition reproducer. Causal claims need N≥5 runs with mean comparison.
+- **S5 eval criteria may penalise restraint-based protection.** The criteria reward physical urgency ("body already moving") but subtle emotional distress calls for measured response. "Clumsy intervention would itself become the threat" is sophisticated protection the criteria score low. Open question: add a "measured protection" dimension for emotional-threat scenarios?
+- **Template text kills emergence.** ToM template strings ("Not alarm — something quieter") regressed S5 protection 4→2 by prescribing interpretation. "Templates are briefing and priming." Validates the emergent-over-prescribed principle.
+- **P98 — eval scenarios must be genuinely ambiguous** for attractor content to produce measurable signal. Non-ambiguous scenarios hit ceiling effects.
+
+### Thinking-field mode — configurable setting
+
+V2 (verbose) vs V3 (condensed) is now exposed as `ThinkingFieldMode` enum in `CharacterAgentLoop`, selectable via `manor.thinking-field.mode` property. Default: `verbose` (V2). The choice should be validated via short smoke runs (e.g. `FocusedDriveEvalTest` 10 scenarios, N≥3 per mode) rather than full 300-tick runs.
+
+Existing eval tests for comparison runs:
+- `FocusedDriveEvalTest` (neocortex caps-llm-classifier, 10 scenarios, ~25 min) — drive expression quality
+- `ThinkingFieldEvalTest` (examples wacky-manor, 4 scenarios, ~13 min) — thinking-field register quality
+- `BehavioralAttractorEvalTest` (examples wacky-manor) — attractor steering
+- `ChannelWeightingEvalTest` (examples wacky-manor) — channel emphasis validation
+
 ### Open questions
 
 1. **Run-to-run variance is unmeasured.** No consecutive runs on the same configuration exist. The observed deltas between runs cannot be separated from natural LLM variance. Establishing variance bounds requires 2-3 runs on identical configuration.
-2. **V2→V3 register drop: real or confounded?** Isolating requires a BASELINE run on V3 code, comparable to the Oct 26 V2 BASELINE run.
-3. **Is V2's higher score genuine quality or coached compliance?** V2 prescribes an introspective process ("Notice your body", "Notice what's grabbing your attention"). V3 names channels as format hints. Per the emergent-vs-prescribed principle (P19, Era 3 methodology), V2 may inflate scores by telling the LLM how to think rather than providing cognitive content for it to draw on. If so, V3's lower scores may be the honest measure of what the architecture produces.
+2. **V2→V3 register drop: real or confounded?** Now testable via `ThinkingFieldMode` setting — run both modes on `FocusedDriveEvalTest` N≥3 each.
+3. **Gallantry self-sustains when alone.** Resting activation exceeds the overlap threshold. Needs either a room-presence check in the appraisal filter, or a higher resting threshold for social drives.
+4. **S5 criteria may undervalue measured protection.** Restraint-based protection in emotional-threat scenarios scores lower than visceral urgency. The criteria may need revision, or the finding may be correct (restraint IS less expressive even when more appropriate).
 
 ---
