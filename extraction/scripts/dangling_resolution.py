@@ -271,6 +271,16 @@ def run_dangling_resolution(corpus: dict, passages: list[dict],
     }
 
     if not dangles:
+        # Still clean up orphan backfills from prior runs
+        edge_names = set()
+        for e in edges:
+            edge_names.add(e['source'])
+            edge_names.add(e['target'])
+        before_cleanup = len(nodes)
+        nodes[:] = [n for n in nodes
+                    if n.get('extraction_method') != 'entity-backfill'
+                    or n['name'] in edge_names]
+        report['orphan_backfills_removed'] = before_cleanup - len(nodes)
         return report
 
     # Group dangles by passage
@@ -305,6 +315,17 @@ def run_dangling_resolution(corpus: dict, passages: list[dict],
 
         report['details'].append(passage_detail)
 
+    # Remove back-filled nodes that ended up with zero edges
+    edge_names = set()
+    for e in edges:
+        edge_names.add(e['source'])
+        edge_names.add(e['target'])
+    before_cleanup = len(nodes)
+    nodes[:] = [n for n in nodes
+                if n.get('extraction_method') != 'entity-backfill'
+                or n['name'] in edge_names]
+    report['orphan_backfills_removed'] = before_cleanup - len(nodes)
+
     corpus['stats']['dangling_resolution'] = report
     return report
 
@@ -332,7 +353,7 @@ def main():
     if not args.dry_run:
         client = create_client()
 
-    print("--- Step 7.6: Dangling Edge Resolution ---")
+    print("--- Step 7.5: Dangling Edge Resolution ---")
     report = run_dangling_resolution(corpus, passages, client=client)
 
     print(f"  Dangling names: {report['total_dangling']}")

@@ -687,112 +687,18 @@
     },
     "gap_closure": {
       "total_orphans": 2,
-      "passages_checked": 11,
-      "gap_entities_found": 26,
-      "edges_added": 34,
+      "passages_checked": 1,
+      "gap_entities_found": 2,
+      "edges_added": 3,
       "standalone": 0,
       "failed_passages": 0,
       "details": [
         {
-          "passage_id": "p-003",
-          "total_entities": 9,
-          "gap_entities": [
-            "Study medicine",
-            "Understand the human body through anatomical precision",
-            "Develop intellectual and emotional intimacy with an equal",
-            "Engage in critical debate about Mexican nationalism and art's revolutionary role",
-            "Maintain personal autonomy and independence within relationships"
-          ],
-          "edges_added": 5
-        },
-        {
-          "passage_id": "p-004",
-          "total_entities": 18,
-          "gap_entities": [
-            "Cuauhtemotzin and Cinco de Mayo"
-          ],
-          "edges_added": 1
-        },
-        {
-          "passage_id": "p-005",
-          "total_entities": 7,
-          "gap_entities": [
-            "Develop artistic mastery and distinctive visual voice",
-            "Protect against emotional vulnerability and abandonment through self-reliance",
-            "Paint honest, unflinching self-representation"
-          ],
-          "edges_added": 4
-        },
-        {
-          "passage_id": "p-007",
-          "total_entities": 7,
-          "gap_entities": [
-            "Maintain cultural and national identity while abroad"
-          ],
-          "edges_added": 1
-        },
-        {
-          "passage_id": "p-008",
-          "total_entities": 9,
-          "gap_entities": [
-            "Protect self from further disappointment through emotional detachment",
-            "Reconcile with Cristina and maintain family bonds"
-          ],
-          "edges_added": 4
-        },
-        {
           "passage_id": "p-009",
           "total_entities": 11,
           "gap_entities": [
-            "Assert authentic Mexican and indigenous identity in artistic work",
-            "Process and transmute personal suffering into artistic expression",
             "Explore intellectual partnership and recognition from significant male figures",
-            "Experience tenderness and unconditional affection without competition",
-            "Document biological and cultural inheritance through family imagery",
-            "Process involuntary childlessness through surrogate imagery"
-          ],
-          "edges_added": 4
-        },
-        {
-          "passage_id": "p-011",
-          "total_entities": 25,
-          "gap_entities": [
-            "art world"
-          ],
-          "edges_added": 4
-        },
-        {
-          "passage_id": "p-012",
-          "total_entities": 7,
-          "gap_entities": [
-            "Establish artistic autonomy and independence from Diego's shadow",
-            "Maintain intellectual autonomy within marriage despite ideological disagreements"
-          ],
-          "edges_added": 4
-        },
-        {
-          "passage_id": "p-014",
-          "total_entities": 8,
-          "gap_entities": [
-            "Transform hospital space into creative sanctuary",
-            "Achieve transcendence or escape through defiant philosophical stance"
-          ],
-          "edges_added": 2
-        },
-        {
-          "passage_id": "p-015",
-          "total_entities": 7,
-          "gap_entities": [
-            "Learn to walk again with prosthetic leg after amputation"
-          ],
-          "edges_added": 2
-        },
-        {
-          "passage_id": "p-016",
-          "total_entities": 8,
-          "gap_entities": [
-            "Maintain love and intimate connection with Diego Rivera",
-            "Assert autonomy over death and final departure"
+            "Experience tenderness and unconditional affection without competition"
           ],
           "edges_added": 3
         }
@@ -5684,17 +5590,6 @@
       "extraction_method": "entity-backfill"
     },
     {
-      "name": "American Hospital",
-      "subgraph_type": "place",
-      "properties": {
-        "location": "Paris, France",
-        "type": "hospital",
-        "significance": "Where Frida was hospitalised with kidney infection during 1939 Paris visit"
-      },
-      "source_passages": [],
-      "extraction_method": "entity-backfill"
-    },
-    {
       "name": "Marxism Will Give Health to the Sick",
       "subgraph_type": "project",
       "properties": {
@@ -5797,16 +5692,6 @@
       "properties": {
         "location": "Mexico City",
         "significance": "venue of Frida's first solo exhibition in Mexico, April 1953"
-      },
-      "source_passages": [],
-      "extraction_method": "entity-backfill"
-    },
-    {
-      "name": "Guatemala",
-      "subgraph_type": "place",
-      "properties": {
-        "context": "Site of CIA-orchestrated coup in 1954 that prompted Frida's final political demonstration",
-        "significance": "Subject of Frida's political activism and anti-imperialist commitment"
       },
       "source_passages": [],
       "extraction_method": "entity-backfill"
@@ -11359,6 +11244,30 @@
       "source": "Assert autonomy over death and final departure",
       "target": "Create lasting artistic legacy and ensure work is witnessed",
       "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Explore intellectual partnership and recognition from significant male figures",
+      "target": "Paint authentic personal reality rather than European surrealist aesthetics",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Explore intellectual partnership and recognition from significant male figures",
+      "target": "Establish artistic autonomy and independence from Diego's shadow",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Experience tenderness and unconditional affection without competition",
+      "target": "Establish artistic autonomy and independence from Diego's shadow",
+      "type": "enables",
       "confidence_origin": "INFERRED",
       "extraction_method": "gap-closure",
       "validation_tier": "REGISTERED"

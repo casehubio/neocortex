@@ -410,7 +410,7 @@ def main():
     if not args.dry_run:
         client = create_client()
 
-    print("--- Step 7.5: Co-location Gap Closure ---")
+    print("--- Step 7.6: Co-location Gap Closure ---")
     report = run_closure(corpus, passages, valid_types, client=client)
 
     print(f"  Global orphans: {report['total_orphans']}")

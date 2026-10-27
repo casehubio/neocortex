@@ -1175,12 +1175,18 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
         }
         for key in ('traits', 'trait_properties', 'confidence', 'valid_from', 'valid_until',
                      'node_ref', 'pad',
-                     'goal_tier', 'goal_horizon', 'goal_status', 'goal_urgency',
-                     'goal_need_tier', 'goal_priority', 'goal_feasibility', 'goal_target_date',
                      'content_domain', 'content_subdomain', 'motivation_origin',
                      'clarity', 'evidence_basis'):
             if key in ent:
                 node[key] = ent[key]
+        # Goal fields: strip goal_ prefix to match Java @JsonProperty names
+        for src, dst in (('goal_tier', 'tier'), ('goal_horizon', 'horizon'),
+                         ('goal_status', 'status'), ('goal_urgency', 'urgency'),
+                         ('goal_need_tier', 'need_tier'), ('goal_priority', 'priority'),
+                         ('goal_feasibility', 'feasibility'),
+                         ('goal_target_date', 'target_date')):
+            if src in ent:
+                node[dst] = ent[src]
         for event in ent.get('lifecycle', []):
             lc_key = f"lifecycle.{event['event']}"
             lc_value = event['date']
@@ -1303,6 +1309,20 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
             'extraction_method': 'llm-synthesis',
             'extraction_pass': 'phase-2b-entity',
         })
+
+    # Align memory subjects to canonical node names (first-name → full-name)
+    node_names = {n['name'] for n in nodes}
+    first_name_map = {}
+    for n in nodes:
+        parts = n['name'].split()
+        if len(parts) >= 2 and parts[0] not in first_name_map:
+            first_name_map[parts[0]] = n['name']
+    subject_remap_count = 0
+    for mem in memories:
+        subj = mem.get('subject', '')
+        if subj and subj not in node_names and subj in first_name_map:
+            mem['subject'] = first_name_map[subj]
+            subject_remap_count += 1
 
     derive_entity_pad(nodes, memories)
     nodes = normalise_goal_vocabulary(nodes)

@@ -2,15 +2,24 @@
 # Cognitive extraction pipeline — convergence loop.
 #
 # Usage:
-#   ./run_pipeline.sh <source.md> [output-dir] [--mode fixed-point|selective] [--max-passes N]
+#   ./run_pipeline.sh <source.md> [engram-dir] [--mode fixed-point|selective] [--max-passes N]
+#
+# Engram directory layout (extraction/engrams/<subject>/):
+#   source.md              — source biography
+#   aliases.yaml           — per-engram entity name aliases
+#   edge-corrections.yaml  — per-engram edge fixes
+#   verify_schema.yaml     — per-engram verification schema
+#   corpus.json            — final processed corpus (output)
+#   passages.json          — chunked passages
+#   enriched.json          — cognitively enriched data
 #
 # The pipeline converges: after entity synthesis (Phase 2b) produces new
 # memories, those go through structural extraction and enrichment. The loop
 # terminates when no new memories are generated or max passes is reached.
 #
-# Key intermediates (enriched.json, nlp-baseline.json) are preserved in
-# the output directory and tracked in git. Re-assembly (Step 7) and
-# re-verification (Step 8) can re-run without LLM calls using these files.
+# Post-convergence repair:
+#   Step 7.5: Dangling edge resolution (name matching + entity back-fill)
+#   Step 7.6: Co-location gap closure (passage-level connectivity repair)
 
 set -euo pipefail
 
@@ -295,15 +304,15 @@ echo "--- Step 7: Assemble Corpus ---"
 $VENV "$SCRIPT_DIR/assemble_corpus.py" "$OUTDIR/enriched.json" "$OUTDIR/nlp-baseline.json" -o "$OUTDIR/corpus.json" -r "$OUTDIR/coverage-report.json" --llm-dedup
 echo ""
 
-echo "--- Step 7.5: Co-location Gap Closure ---"
+echo "--- Step 7.5: Dangling Edge Resolution ---"
+$VENV "$SCRIPT_DIR/dangling_resolution.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
+    --report "dangling-resolution-report.json"
+echo ""
+
+echo "--- Step 7.6: Co-location Gap Closure ---"
 $VENV "$SCRIPT_DIR/orphan_closure.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
     --schema "$SCHEMA_PATH" \
     --report "orphan-closure-report.json"
-echo ""
-
-echo "--- Step 7.6: Dangling Edge Resolution ---"
-$VENV "$SCRIPT_DIR/dangling_resolution.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
-    --report "dangling-resolution-report.json"
 echo ""
 
 echo "--- Step 8: Verify Import Readiness ---"
@@ -339,6 +348,6 @@ echo "  $OUTDIR/enriched.json        — cognitively enriched data"
 echo "  $OUTDIR/corpus.json          — importable corpus"
 echo "  $OUTDIR/manifest.json        — convergence state"
 echo "  $OUTDIR/coverage-report.json — coverage audit"
-echo "  $OUTDIR/orphan-closure-report.json — orphan closure audit"
 echo "  $OUTDIR/dangling-resolution-report.json — dangling edge resolution"
+echo "  $OUTDIR/orphan-closure-report.json — co-location gap closure"
 echo "  $OUTDIR/verification-report.json — import readiness"

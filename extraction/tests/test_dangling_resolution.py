@@ -204,6 +204,34 @@ class TestRunDanglingResolution:
         report = run_dangling_resolution(corpus, passages, client=None)
         assert report['total_dangling'] == 0
 
+    def test_orphan_backfills_removed(self):
+        """Back-filled nodes with zero edges are cleaned up."""
+        corpus = {
+            'nodes': [_node('A', source_passages=['p-001']),
+                      {'name': 'Orphan', 'subgraph_type': 'place',
+                       'source_passages': [], 'extraction_method': 'entity-backfill'}],
+            'edges': [_edge('A', 'A')],
+            'stats': {},
+        }
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        report = run_dangling_resolution(corpus, passages, client=None)
+        assert not any(n['name'] == 'Orphan' for n in corpus['nodes'])
+        assert report['orphan_backfills_removed'] == 1
+
+    def test_connected_backfills_kept(self):
+        """Back-filled nodes WITH edges are not removed."""
+        corpus = {
+            'nodes': [_node('A', source_passages=['p-001']),
+                      {'name': 'Connected', 'subgraph_type': 'place',
+                       'source_passages': [], 'extraction_method': 'entity-backfill'}],
+            'edges': [_edge('A', 'Connected')],
+            'stats': {},
+        }
+        passages = [{'id': 'p-001', 'text': 'Text'}]
+        report = run_dangling_resolution(corpus, passages, client=None)
+        assert any(n['name'] == 'Connected' for n in corpus['nodes'])
+        assert report['orphan_backfills_removed'] == 0
+
     def test_dangles_without_client(self):
         corpus = {
             'nodes': [_node('A', source_passages=['p-001'])],
