@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class StrategyClassifierOnnxTest {
 
@@ -53,6 +54,8 @@ class StrategyClassifierOnnxTest {
 
     @Test
     void latencyUnderThreshold(@TempDir Path tmpDir) throws Exception {
+        assumeTrue(System.getenv("CI") == null,
+            "Latency benchmarks are unreliable on shared CI runners");
         Path modelPath = extractResource("/models/strategy/strategy_vs_terran.onnx", tmpDir);
 
         try (OnnxInferenceModel model = new OnnxInferenceModel(new ModelConfig(modelPath))) {
