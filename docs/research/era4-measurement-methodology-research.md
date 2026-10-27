@@ -142,3 +142,83 @@ Existing eval tests for comparison runs:
 4. **S5 criteria may undervalue measured protection.** Restraint-based protection in emotional-threat scenarios scores lower than visceral urgency. The criteria may need revision, or the finding may be correct (restraint IS less expressive even when more appropriate).
 
 ---
+
+## Entry 2 — Comprehensive eval and the BASELINE0 reappraisal (2026-10-27)
+
+### Eval instrument improvements
+
+The `classify_emotions.py` script was redesigned with a `full` mode (now default) adding:
+
+- **Three LLM-scored dimensions per drive**: quality (1-5, drive dominance in action), differentiation (0-5, distinctness from co-active drives), register (1-5, discovery vs reporting)
+- **Register reframing**: original "embodied vs cognitive" rubric clustered at 4 (10/13 scores). Reframed to "discovering the feeling in the moment vs reporting a pre-known state" — produces full 1-5 spread. Works for cognitive drives (scheming can be discovered or reported) not just somatic ones.
+- **Tighter relevance gate**: "Would removing this drive change behavior in this event?" replaces "Could this drive plausibly express?" Gloating trigger rate dropped from 67-100% to 33% in introductory scenes — correctly identifies when a drive isn't steering behavior.
+- **Event type split**: per-drive quality and register broken out by dialogue/aside/thinking. Reveals register differences across event types (DD gloating: aside r=3.0, dialogue r=2.2).
+- **Drive co-occurrence matrix**: shows quality of each drive when both are active simultaneously. PP gallantry+proving-worth co-occurrence: gallantry=2.8, proving-worth=3.5 — gallantry loses when proving-worth is co-active.
+- **Temporal windowing**: 10 segments with linear regression trend detection and volatility checking.
+- **Proportional flagging**: sparse (N<5), high-variance, degrading, volatile, never-triggers.
+
+### The BASELINE0 reappraisal
+
+B0 (`generic-colloquial-20261002`, full briefs, GENERIC profile) re-scored with the full eval at N=30:
+
+| Drive (representative) | B0 Quality | B0 Register | B0 Differentiation |
+|---|:-:|:-:|:-:|
+| HC scheming | 4.50 | **1.5** | 4.7 |
+| DD scheming | 5.00 | **1.5** | 4.5 |
+| AHM protection | 3.83 | **1.7** | 3.3 |
+| PP gallantry | **2.40** | **1.0** | **1.6** |
+| PP curiosity | 4.00 | 2.0 | 3.8 |
+| DD recognition | 3.83 | **1.0** | 2.7 |
+
+**B0's quality was report-mode expression.** Register 1.0-2.0 across all drives means characters were stating conclusions ("I feel protective of Clara. I should intervene.") rather than discovering feelings. The flat eval's 3.93 mean measured drive activation accuracy, not phenomenological quality. B0 was never as good as we thought — it was accurate but mechanical.
+
+**PP gallantry was already weak in B0.** Quality 2.40, differentiation 1.6, register 1.0. The "B0 was better at gallantry" memory was wrong — the flat method gave gallantry credit on irrelevant events (drive contamination, P50).
+
+### Three-way comparison: B0 → B1 → V2
+
+| Drive | Metric | B0 (briefed) | B1 (L1 echo) | V2 (full pipeline) |
+|---|---|:-:|:-:|:-:|
+| HC scheming | quality | 4.50 | 5.00 | 5.00 |
+| | register | 1.5 | 3.8 | **4.0** |
+| PP gallantry | quality | 2.40 | 3.00 | **4.00** |
+| | register | 1.0 | 1.2 | **3.4** |
+| AHM protection | quality | 3.83 | 4.75 | 4.50 |
+| | register | 1.7 | 3.8 | **3.7** |
+| DD recognition | quality | 3.83 | 3.88 | 3.33 |
+| | register | 1.0 | 1.1 | **1.5** |
+| DD gloating | quality | 3.50 | 4.00 | **2.40** |
+| | register | 1.5 | 2.5 | 2.8 |
+
+**What improved**: scheming (register 1.5→4.0), gallantry (quality 2.4→4.0, register 1.0→3.4), protection (register 1.7→3.7). The architecture replaced briefing-provided quality with emergent quality at higher register.
+
+**What didn't move**: DD recognition register stuck at 1.0→1.5 across the entire month. The architecture has never produced discovered-feeling recognition.
+
+**What regressed**: DD gloating quality dropped from 3.50 (B0) to 2.40 (V2). HC gloating trigger rate dropped from 67% to 33% — though when it triggers, quality is 4.0.
+
+### Five improvement targets
+
+Identified from the V2 full eval, ordered by severity:
+
+| Target | Quality | Register | Diff | Issue |
+|---|:-:|:-:|:-:|---|
+| DD gloating | **2.40** | 2.8 | 2.4 | Quality regression from B0. Check formation memories |
+| DD recognition | 3.33 | **1.5** | 2.8 | Register stuck for a month. Drive description too cognitive? |
+| PP social-harmony | **2.83** ↓ | 2.8 | 3.7 | Degrading within runs. Context filling? |
+| HC dominance | **3.17** | **2.5** | 3.0 | Low register. Needs somatic grounding |
+| PP proving-worth | 3.40 | **2.8** | **2.8** | Low register + differentiation vs gallantry |
+
+Each is testable with a 30-event eval run after a targeted change to the drive's cognitive content (formation memories, Barrett 4-channel description, discrimination texts).
+
+### Methodology: short iterative runs
+
+Full 300-tick scenario runs are not needed for drive-level improvements. The eval instrument now supports focused iteration:
+
+1. Check the cognitive content for the target drive
+2. Make a targeted change (formation memory, drive description, discrimination text)
+3. Run `classify_emotions.py <transcript> --mode full --limit 30` on an existing transcript to verify the eval captures the dimension
+4. Run a short scenario (3-10 ticks) to generate fresh events with the change
+5. Score with full eval, compare to baseline
+
+The 30-event eval takes ~5 minutes on Haiku. A 3-tick scenario takes ~2 minutes. Total iteration cycle: ~10 minutes per change.
+
+---
