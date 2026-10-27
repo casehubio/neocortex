@@ -684,6 +684,651 @@
         }
       },
       "warnings": []
+    },
+    "gap_closure": {
+      "total_orphans": 2,
+      "passages_checked": 11,
+      "gap_entities_found": 26,
+      "edges_added": 34,
+      "standalone": 0,
+      "failed_passages": 0,
+      "details": [
+        {
+          "passage_id": "p-003",
+          "total_entities": 9,
+          "gap_entities": [
+            "Study medicine",
+            "Understand the human body through anatomical precision",
+            "Develop intellectual and emotional intimacy with an equal",
+            "Engage in critical debate about Mexican nationalism and art's revolutionary role",
+            "Maintain personal autonomy and independence within relationships"
+          ],
+          "edges_added": 5
+        },
+        {
+          "passage_id": "p-004",
+          "total_entities": 18,
+          "gap_entities": [
+            "Cuauhtemotzin and Cinco de Mayo"
+          ],
+          "edges_added": 1
+        },
+        {
+          "passage_id": "p-005",
+          "total_entities": 7,
+          "gap_entities": [
+            "Develop artistic mastery and distinctive visual voice",
+            "Protect against emotional vulnerability and abandonment through self-reliance",
+            "Paint honest, unflinching self-representation"
+          ],
+          "edges_added": 4
+        },
+        {
+          "passage_id": "p-007",
+          "total_entities": 7,
+          "gap_entities": [
+            "Maintain cultural and national identity while abroad"
+          ],
+          "edges_added": 1
+        },
+        {
+          "passage_id": "p-008",
+          "total_entities": 9,
+          "gap_entities": [
+            "Protect self from further disappointment through emotional detachment",
+            "Reconcile with Cristina and maintain family bonds"
+          ],
+          "edges_added": 4
+        },
+        {
+          "passage_id": "p-009",
+          "total_entities": 11,
+          "gap_entities": [
+            "Assert authentic Mexican and indigenous identity in artistic work",
+            "Process and transmute personal suffering into artistic expression",
+            "Explore intellectual partnership and recognition from significant male figures",
+            "Experience tenderness and unconditional affection without competition",
+            "Document biological and cultural inheritance through family imagery",
+            "Process involuntary childlessness through surrogate imagery"
+          ],
+          "edges_added": 4
+        },
+        {
+          "passage_id": "p-011",
+          "total_entities": 25,
+          "gap_entities": [
+            "art world"
+          ],
+          "edges_added": 4
+        },
+        {
+          "passage_id": "p-012",
+          "total_entities": 7,
+          "gap_entities": [
+            "Establish artistic autonomy and independence from Diego's shadow",
+            "Maintain intellectual autonomy within marriage despite ideological disagreements"
+          ],
+          "edges_added": 4
+        },
+        {
+          "passage_id": "p-014",
+          "total_entities": 8,
+          "gap_entities": [
+            "Transform hospital space into creative sanctuary",
+            "Achieve transcendence or escape through defiant philosophical stance"
+          ],
+          "edges_added": 2
+        },
+        {
+          "passage_id": "p-015",
+          "total_entities": 7,
+          "gap_entities": [
+            "Learn to walk again with prosthetic leg after amputation"
+          ],
+          "edges_added": 2
+        },
+        {
+          "passage_id": "p-016",
+          "total_entities": 8,
+          "gap_entities": [
+            "Maintain love and intimate connection with Diego Rivera",
+            "Assert autonomy over death and final departure"
+          ],
+          "edges_added": 3
+        }
+      ]
+    },
+    "dangling_resolution": {
+      "total_dangling": 63,
+      "passages_checked": 9,
+      "matched": 18,
+      "created": 39,
+      "dropped": 11,
+      "dropped_edges": 14,
+      "match_failed": 0,
+      "details": [
+        {
+          "passage_id": "p-005",
+          "dangling_names": [
+            "Tina Modotti",
+            "Europe"
+          ],
+          "resolutions": [
+            {
+              "name": "Tina Modotti",
+              "action": "created",
+              "created_as": "Tina Modotti",
+              "type": "person"
+            },
+            {
+              "name": "Europe",
+              "action": "matched",
+              "match_to": "European artistic traditions"
+            }
+          ]
+        },
+        {
+          "passage_id": "p-007",
+          "dangling_names": [
+            "Leo Eloesser",
+            "Detroit",
+            "Portrait of Dr Leo Eloesser",
+            "the Henry Ford Hospital",
+            "the San Francisco Stock Exchange",
+            "the California School of Fine Arts",
+            "the Detroit Institute of Arts"
+          ],
+          "resolutions": [
+            {
+              "name": "Leo Eloesser",
+              "action": "matched",
+              "match_to": "Dr Eloesser"
+            },
+            {
+              "name": "Detroit",
+              "action": "created",
+              "created_as": "Detroit",
+              "type": "place"
+            },
+            {
+              "name": "Portrait of Dr Leo Eloesser",
+              "action": "created",
+              "created_as": "Portrait of Dr Leo Eloesser",
+              "type": "project"
+            },
+            {
+              "name": "the Henry Ford Hospital",
+              "action": "matched",
+              "match_to": "Red Cross Hospital"
+            },
+            {
+              "name": "the San Francisco Stock Exchange",
+              "action": "created",
+              "created_as": "San Francisco Stock Exchange",
+              "type": "place"
+            },
+            {
+              "name": "the California School of Fine Arts",
+              "action": "created",
+              "created_as": "California School of Fine Arts",
+              "type": "organisation"
+            },
+            {
+              "name": "the Detroit Institute of Arts",
+              "action": "created",
+              "created_as": "Detroit Institute of Arts",
+              "type": "organisation"
+            }
+          ]
+        },
+        {
+          "passage_id": "p-008",
+          "dangling_names": [
+            "Cristina",
+            "A Few Small Nips",
+            "San \u00c1ngel",
+            "Juan O'Gorman",
+            "Twin Houses in San \u00c1ngel",
+            "Isamu Noguchi",
+            "Chavela Vargas",
+            "Georgia O'Keeffe",
+            "Infidelity",
+            "Hair cutting",
+            "Apartment in central Mexico City"
+          ],
+          "resolutions": [
+            {
+              "name": "Cristina",
+              "action": "created",
+              "created_as": "Cristina",
+              "type": "person"
+            },
+            {
+              "name": "A Few Small Nips",
+              "action": "created",
+              "created_as": "A Few Small Nips",
+              "type": "project"
+            },
+            {
+              "name": "San \u00c1ngel",
+              "action": "created",
+              "created_as": "San \u00c1ngel",
+              "type": "place"
+            },
+            {
+              "name": "Juan O'Gorman",
+              "action": "created",
+              "created_as": "Juan O'Gorman",
+              "type": "person"
+            },
+            {
+              "name": "Twin Houses in San \u00c1ngel",
+              "action": "created",
+              "created_as": "Twin Houses in San \u00c1ngel",
+              "type": "place"
+            },
+            {
+              "name": "Isamu Noguchi",
+              "action": "created",
+              "created_as": "Isamu Noguchi",
+              "type": "person"
+            },
+            {
+              "name": "Chavela Vargas",
+              "action": "created",
+              "created_as": "Chavela Vargas",
+              "type": "person"
+            },
+            {
+              "name": "Georgia O'Keeffe",
+              "action": "created",
+              "created_as": "Georgia O'Keeffe",
+              "type": "person"
+            },
+            {
+              "name": "Infidelity",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "Abstract transient state/behavior pattern, not a graph entity. The passage discusses specific infidelities (Diego with Cristina, Frida with Noguchi, Vargas, O'Keeffe) which are better represented as relationships between persons. The concept itself is too general and not concrete enough for the knowledge graph."
+            },
+            {
+              "name": "Hair cutting",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "Transient physical action/emotional response, not a persistent graph entity. While symbolically significant, the act of cutting hair is an immediate reaction rather than an ongoing condition, goal, or meaningful entity. The emotional motivations (rejection, defiance) are already captured in existing nodes like 'Protect self from further disappointment through emotional detachment' and clothing symbolism via 'Use Tehuana dress and pre-Columbian imagery as authentic cultural declaration.'"
+            },
+            {
+              "name": "Apartment in central Mexico City",
+              "action": "created",
+              "created_as": "Apartment in central Mexico City",
+              "type": "place"
+            }
+          ]
+        },
+        {
+          "passage_id": "p-009",
+          "dangling_names": [
+            "Breton",
+            "Trotsky",
+            "My Grandparents, My Parents, and I",
+            "Fulang-Chang and I",
+            "Nickolas Muray",
+            "the Julien Levy Gallery",
+            "New York",
+            "Natalia",
+            "Stalin",
+            "Soviet Union"
+          ],
+          "resolutions": [
+            {
+              "name": "Breton",
+              "action": "created",
+              "created_as": "Andr\u00e9 Breton",
+              "type": "person"
+            },
+            {
+              "name": "Trotsky",
+              "action": "matched",
+              "match_to": "Leon Trotsky"
+            },
+            {
+              "name": "My Grandparents, My Parents, and I",
+              "action": "created",
+              "created_as": "My Grandparents, My Parents, and I",
+              "type": "project"
+            },
+            {
+              "name": "Fulang-Chang and I",
+              "action": "created",
+              "created_as": "Fulang-Chang and I",
+              "type": "project"
+            },
+            {
+              "name": "Nickolas Muray",
+              "action": "created",
+              "created_as": "Nickolas Muray",
+              "type": "person"
+            },
+            {
+              "name": "the Julien Levy Gallery",
+              "action": "matched",
+              "match_to": "Julien Levy"
+            },
+            {
+              "name": "New York",
+              "action": "created",
+              "created_as": "New York",
+              "type": "place"
+            },
+            {
+              "name": "Natalia",
+              "action": "created",
+              "created_as": "Natalia Sedova",
+              "type": "person"
+            },
+            {
+              "name": "Stalin",
+              "action": "created",
+              "created_as": "Stalin",
+              "type": "person"
+            },
+            {
+              "name": "Soviet Union",
+              "action": "created",
+              "created_as": "Soviet Union",
+              "type": "place"
+            }
+          ]
+        },
+        {
+          "passage_id": "p-010",
+          "dangling_names": [
+            "Breton",
+            "Nickolas Muray",
+            "1939 Paris exhibition",
+            "The Frame",
+            "kidney infection",
+            "Marcel Duchamp",
+            "Paris",
+            "Louvre",
+            "the American Hospital",
+            "Mexican identity"
+          ],
+          "resolutions": [
+            {
+              "name": "Breton",
+              "action": "matched",
+              "match_to": "Andr\u00e9 Breton"
+            },
+            {
+              "name": "Nickolas Muray",
+              "action": "matched",
+              "match_to": "Nickolas Muray"
+            },
+            {
+              "name": "1939 Paris exhibition",
+              "action": "created",
+              "created_as": "1939 Paris exhibition at Galerie Pierre Colle",
+              "type": "project"
+            },
+            {
+              "name": "The Frame",
+              "action": "created",
+              "created_as": "The Frame",
+              "type": "project"
+            },
+            {
+              "name": "kidney infection",
+              "action": "dropped",
+              "edges_removed": 2,
+              "reason": "Medical condition/transient health event, not a persistent entity in the knowledge graph. The relevant node is the hospitalisation itself or 'the American Hospital' as a location."
+            },
+            {
+              "name": "Marcel Duchamp",
+              "action": "created",
+              "created_as": "Marcel Duchamp",
+              "type": "person"
+            },
+            {
+              "name": "Paris",
+              "action": "matched",
+              "match_to": "New York"
+            },
+            {
+              "name": "Louvre",
+              "action": "created",
+              "created_as": "Louvre",
+              "type": "place"
+            },
+            {
+              "name": "the American Hospital",
+              "action": "created",
+              "created_as": "American Hospital",
+              "type": "place"
+            },
+            {
+              "name": "Mexican identity",
+              "action": "matched",
+              "match_to": "Assert authentic Mexican and indigenous identity in artistic work"
+            }
+          ]
+        },
+        {
+          "passage_id": "p-012",
+          "dangling_names": [
+            "San \u00c1ngel",
+            "Stalin",
+            "Marxism Will Give Health",
+            "The Broken Column",
+            "School of Painting and Sculpture",
+            "the Mexican Communist Party",
+            "Marx"
+          ],
+          "resolutions": [
+            {
+              "name": "San \u00c1ngel",
+              "action": "matched",
+              "match_to": "San \u00c1ngel"
+            },
+            {
+              "name": "Stalin",
+              "action": "matched",
+              "match_to": "Stalin"
+            },
+            {
+              "name": "Marxism Will Give Health",
+              "action": "created",
+              "created_as": "Marxism Will Give Health to the Sick",
+              "type": "project"
+            },
+            {
+              "name": "The Broken Column",
+              "action": "created",
+              "created_as": "The Broken Column",
+              "type": "project"
+            },
+            {
+              "name": "School of Painting and Sculpture",
+              "action": "created",
+              "created_as": "School of Painting and Sculpture (La Esmeralda)",
+              "type": "organisation"
+            },
+            {
+              "name": "the Mexican Communist Party",
+              "action": "matched",
+              "match_to": "Communism"
+            },
+            {
+              "name": "Marx",
+              "action": "created",
+              "created_as": "Karl Marx",
+              "type": "person"
+            }
+          ]
+        },
+        {
+          "passage_id": "p-014",
+          "dangling_names": [
+            "New York",
+            "Self-Portrait with the Portrait of Dr Farill",
+            "her diary",
+            "Philip Wilson",
+            "Juan Farill",
+            "bone infection",
+            "the Hospital for Special Surgery",
+            "the Hospital Ingl\u00e9s",
+            "Demerol",
+            "morphine"
+          ],
+          "resolutions": [
+            {
+              "name": "New York",
+              "action": "matched",
+              "match_to": "New York"
+            },
+            {
+              "name": "Self-Portrait with the Portrait of Dr Farill",
+              "action": "created",
+              "created_as": "Self-Portrait with the Portrait of Dr Farill",
+              "type": "project"
+            },
+            {
+              "name": "her diary",
+              "action": "dropped",
+              "edges_removed": 2,
+              "reason": "Refers to a transient record/documentation medium, not an entity itself. The diary entries are quoted but the diary as an object is not a meaningful graph node; the meaningful nodes would be the specific thoughts/statements documented within it."
+            },
+            {
+              "name": "Philip Wilson",
+              "action": "created",
+              "created_as": "Philip Wilson",
+              "type": "person"
+            },
+            {
+              "name": "Juan Farill",
+              "action": "matched",
+              "match_to": "Dr Juan Farill"
+            },
+            {
+              "name": "bone infection",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "Medical condition resulting from a failed surgical procedure; a transient pathological state rather than a persistent entity in the knowledge graph. The meaningful nodes relate to the surgical outcomes and her responses to them."
+            },
+            {
+              "name": "the Hospital for Special Surgery",
+              "action": "created",
+              "created_as": "Hospital for Special Surgery",
+              "type": "place"
+            },
+            {
+              "name": "the Hospital Ingl\u00e9s",
+              "action": "created",
+              "created_as": "Hospital Ingl\u00e9s",
+              "type": "place"
+            },
+            {
+              "name": "Demerol",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "A pharmaceutical drug/medication taken as palliative treatment; a consumable substance rather than an entity with independent agency or significance in the knowledge graph. The meaningful node is her pain management practices or the effects of medication on her artistic work."
+            },
+            {
+              "name": "morphine",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "A pharmaceutical drug/medication taken as palliative treatment; a consumable substance rather than an entity with independent agency or significance in the knowledge graph. The meaningful node is her pain management practices or the effects of medication on her artistic work."
+            }
+          ]
+        },
+        {
+          "passage_id": "p-015",
+          "dangling_names": [
+            "Lola \u00c1lvarez Bravo",
+            "the Galer\u00eda Arte Contempor\u00e1neo",
+            "Marxism Will Give Health to the Sick",
+            "bus accident",
+            "amputation below the knee",
+            "Dr Farill",
+            "VIVA LA VIDA"
+          ],
+          "resolutions": [
+            {
+              "name": "Lola \u00c1lvarez Bravo",
+              "action": "created",
+              "created_as": "Lola \u00c1lvarez Bravo",
+              "type": "person"
+            },
+            {
+              "name": "the Galer\u00eda Arte Contempor\u00e1neo",
+              "action": "created",
+              "created_as": "Galer\u00eda Arte Contempor\u00e1neo",
+              "type": "place"
+            },
+            {
+              "name": "Marxism Will Give Health to the Sick",
+              "action": "matched",
+              "match_to": "Marxism Will Give Health to the Sick"
+            },
+            {
+              "name": "bus accident",
+              "action": "matched",
+              "match_to": "the bus accident"
+            },
+            {
+              "name": "amputation below the knee",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "This is a specific medical procedure/event, not an entity. The amputation of Frida's right leg is a historical event already captured in the node 'Learn to walk again with prosthetic leg after amputation'. The specific anatomical detail (below the knee) is a property of the event, not a separate entity to be modelled in the graph."
+            },
+            {
+              "name": "Dr Farill",
+              "action": "matched",
+              "match_to": "Dr Juan Farill"
+            },
+            {
+              "name": "VIVA LA VIDA",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "This is a motto/inscription phrase, not a distinct entity. It represents Frida's affirmation and emotional expression during the late period of her life, already captured in the concept nodes 'Affirm life and resilience through artistic expression' and 'Triumph over bodily suffering through defiant performance and will'. The phrase is a textual element within paintings rather than a separate graph entity."
+            }
+          ]
+        },
+        {
+          "passage_id": "p-016",
+          "dangling_names": [
+            "CIA-orchestrated coup against Guatemala",
+            "Frida's paintings",
+            "Guatemala",
+            "medical surgeries"
+          ],
+          "resolutions": [
+            {
+              "name": "CIA-orchestrated coup against Guatemala",
+              "action": "dropped",
+              "edges_removed": 2,
+              "reason": "This is a historical event external to Frida's direct actions and experiences. While it motivated her political demonstration, the coup itself is not an entity within Frida's lived experience or artistic practice. The relevant node is her attendance at the political demonstration protesting this event, not the event itself."
+            },
+            {
+              "name": "Frida's paintings",
+              "action": "matched",
+              "match_to": "Frida's artistic practice"
+            },
+            {
+              "name": "Guatemala",
+              "action": "created",
+              "created_as": "Guatemala",
+              "type": "place"
+            },
+            {
+              "name": "medical surgeries",
+              "action": "dropped",
+              "edges_removed": 1,
+              "reason": "Medical surgeries are procedural interventions, not discrete entities. The passage mentions '32 surgeries' as a quantified state of Frida's medical history. This is better represented by existing nodes like 'Stabilize spine and restore physical function' and 'Understand her own body and medical condition' which capture the intentional goals and experiences surrounding surgical interventions. The raw count is a transient biographical detail, not a graph entity."
+            }
+          ]
+        }
+      ]
     }
   },
   "nodes": [
@@ -4757,6 +5402,414 @@
       "clarity": 0.8,
       "evidence_basis": "this is my country, this is my reality...Her coffin was draped with a Communist flag...Diego collected her ashes in a pre-Columbian urn, which he placed in La Casa Azul",
       "subgraph": "goal"
+    },
+    {
+      "name": "Tina Modotti",
+      "subgraph_type": "person",
+      "properties": {
+        "description": "Italian-born photographer whose salon brought together artists, intellectuals, and political activists in Mexico",
+        "role": "Cultural facilitator and political connector",
+        "significance": "Provided Frida access to Communist Party inner circle and facilitation of Diego Rivera re-encounter"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Detroit",
+      "subgraph_type": "place",
+      "properties": {
+        "country": "United States",
+        "significance": "Location where Frida miscarried in 1932 while Diego painted murals"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Portrait of Dr Leo Eloesser",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1931,
+        "artist": "Frida Kahlo",
+        "subject": "Dr Eloesser",
+        "significance": "Portrait painted as expression of gratitude for his honest medical care and directness"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "San Francisco Stock Exchange",
+      "subgraph_type": "place",
+      "properties": {
+        "city": "San Francisco",
+        "significance": "Location of mural commission for Diego Rivera in 1930"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "California School of Fine Arts",
+      "subgraph_type": "organisation",
+      "properties": {
+        "city": "San Francisco",
+        "significance": "Institution where Diego Rivera received mural commission in 1930"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Detroit Institute of Arts",
+      "subgraph_type": "organisation",
+      "properties": {
+        "city": "Detroit",
+        "significance": "Institution where Diego Rivera received mural commission in 1932"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Cristina",
+      "subgraph_type": "person",
+      "properties": {
+        "relationship": "Frida's younger sister",
+        "significance": "Had affair with Diego Rivera in 1934, causing familial betrayal and emotional trauma for Frida"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "A Few Small Nips",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1935,
+        "medium": "painting on wood",
+        "subject": "Man standing over murdered woman on bed with blood imagery",
+        "significance": "Artistic response to Diego's affair with Cristina; public accusation transformed into visual prosecution"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "San \u00c1ngel",
+      "subgraph_type": "place",
+      "properties": {
+        "location": "Mexico City area",
+        "significance": "Location of twin houses designed by Juan O'Gorman where Frida and Diego lived after 1934"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Juan O'Gorman",
+      "subgraph_type": "person",
+      "properties": {
+        "profession": "architect",
+        "significance": "Designed the twin houses in San \u00c1ngel for Frida and Diego"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Twin Houses in San \u00c1ngel",
+      "subgraph_type": "place",
+      "properties": {
+        "designer": "Juan O'Gorman",
+        "year": 1934,
+        "description": "Two separate structures connected by a bridge",
+        "significance": "Physical metaphor for Frida and Diego's marriage; site of the 1934 affair discovery"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Isamu Noguchi",
+      "subgraph_type": "person",
+      "properties": {
+        "profession": "sculptor",
+        "significance": "Had intimate relationship with Frida conducted in secrecy; provided tenderness absent in her marriage to Diego"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Chavela Vargas",
+      "subgraph_type": "person",
+      "properties": {
+        "profession": "singer",
+        "significance": "Had relationship with Frida; part of her exploration and expression of bisexuality"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Georgia O'Keeffe",
+      "subgraph_type": "person",
+      "properties": {
+        "profession": "artist",
+        "significance": "Possibly had relationship with Frida; evidence circumstantial"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Apartment in central Mexico City",
+      "subgraph_type": "place",
+      "properties": {
+        "year": 1934,
+        "significance": "Temporary residence where Frida moved after discovering Diego's affair with Cristina; space of separation and contemplation of divorce"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Andr\u00e9 Breton",
+      "subgraph_type": "person",
+      "properties": {
+        "role": "French surrealist artist and theorist",
+        "significance": "Wrote catalogue essay for Frida's first solo exhibition, misclassified her work as surrealist"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "My Grandparents, My Parents, and I",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1936,
+        "description": "Family tree painting rendered as biological diagram with roots, branches, and gametes, asserting mixed European and indigenous Mexican heritage"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Fulang-Chang and I",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1937,
+        "description": "Self-portrait with pet monkey serving as surrogate for desired child"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Nickolas Muray",
+      "subgraph_type": "person",
+      "properties": {
+        "role": "American photographer",
+        "significance": "Romantic partner during New York exhibition period; provided emotional stability and tenderness without coercive intensity"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "New York",
+      "subgraph_type": "place",
+      "properties": {
+        "significance": "Location of Frida's first solo exhibition at Julien Levy Gallery in November 1938"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Natalia Sedova",
+      "subgraph_type": "person",
+      "properties": {
+        "role": "Wife of Leon Trotsky",
+        "significance": "Political refugee who arrived in Mexico with Trotsky in 1937; did not speak English, language used for Frida-Trotsky affair communication"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Stalin",
+      "subgraph_type": "person",
+      "properties": {
+        "role": "Soviet leader",
+        "significance": "Trotsky was in exile from Stalin's Soviet Union; Stalinist agents surveilled the Rivera household"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Soviet Union",
+      "subgraph_type": "place",
+      "properties": {
+        "significance": "Nation from which Leon Trotsky was exiled; context for political tensions affecting the Rivera household"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "1939 Paris exhibition at Galerie Pierre Colle",
+      "subgraph_type": "project",
+      "properties": {
+        "date": "January 1939",
+        "location": "Paris, Galerie Pierre Colle (Renou et Colle)",
+        "organiser": "Andr\u00e9 Breton",
+        "description": "Frida's first solo exhibition in Europe, marked by logistical chaos but critical success"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "The Frame",
+      "subgraph_type": "project",
+      "properties": {
+        "date": "1938",
+        "medium": "self-portrait on glass",
+        "significance": "First twentieth-century Mexican artwork acquired by the Louvre",
+        "description": "Self-portrait by Frida Kahlo"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Marcel Duchamp",
+      "subgraph_type": "person",
+      "properties": {
+        "role": "Surrealist artist and intellectual",
+        "significance": "Only person in Paris Frida found worth talking to; visited her in the American Hospital"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Louvre",
+      "subgraph_type": "place",
+      "properties": {
+        "location": "Paris, France",
+        "type": "museum",
+        "significance": "Prestigious European museum that acquired 'The Frame' in 1939"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "American Hospital",
+      "subgraph_type": "place",
+      "properties": {
+        "location": "Paris, France",
+        "type": "hospital",
+        "significance": "Where Frida was hospitalised with kidney infection during 1939 Paris visit"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Marxism Will Give Health to the Sick",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1954,
+        "medium": "painting",
+        "description": "Late work depicting Marx's giant hands supporting Frida's body while she discards her crutches, expressing belief that collective political action could transform individual suffering"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "The Broken Column",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1944,
+        "medium": "painting",
+        "description": "Shows Frida's torso split open to reveal a crumbling Ionic column replacing her spine, held together by white surgical corset straps, pierced by nails at exact locations of chronic pain"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "School of Painting and Sculpture (La Esmeralda)",
+      "subgraph_type": "organisation",
+      "properties": {
+        "ministry": "Ministry of Education",
+        "location": "Mexico City",
+        "nickname": "La Esmeralda",
+        "frida_role": "teacher from 1943 onwards",
+        "description": "School where Frida taught students to paint from observation and find subjects in ordinary Mexican life"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Karl Marx",
+      "subgraph_type": "person",
+      "properties": {
+        "role": "political theorist and communist philosopher",
+        "significance_to_frida": "Featured in 1954 painting 'Marxism Will Give Health to the Sick' where his hands support her body",
+        "ideological_connection": "Central to Frida's belief in collective political action transforming individual suffering"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Self-Portrait with the Portrait of Dr Farill",
+      "subgraph_type": "project",
+      "properties": {
+        "year": 1951,
+        "medium": "painting",
+        "description": "Painting depicting Frida in a wheelchair holding a palette shaped like a heart, with a portrait of Dr Juan Farill on an easel beside her"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Philip Wilson",
+      "subgraph_type": "person",
+      "properties": {
+        "profession": "surgeon",
+        "role": "performed spinal fusion operation on Frida Kahlo in 1946"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Hospital for Special Surgery",
+      "subgraph_type": "place",
+      "properties": {
+        "location": "New York",
+        "significance": "where Frida underwent spinal fusion operation in 1946"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Hospital Ingl\u00e9s",
+      "subgraph_type": "place",
+      "properties": {
+        "location": "Mexico City",
+        "significance": "where Frida spent most of 1950 undergoing treatment and continuing to paint"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Lola \u00c1lvarez Bravo",
+      "subgraph_type": "person",
+      "properties": {
+        "profession": "photographer",
+        "role": "organiser of Frida's first solo exhibition in Mexico"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Galer\u00eda Arte Contempor\u00e1neo",
+      "subgraph_type": "place",
+      "properties": {
+        "location": "Mexico City",
+        "significance": "venue of Frida's first solo exhibition in Mexico, April 1953"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
+    },
+    {
+      "name": "Guatemala",
+      "subgraph_type": "place",
+      "properties": {
+        "context": "Site of CIA-orchestrated coup in 1954 that prompted Frida's final political demonstration",
+        "significance": "Subject of Frida's political activism and anti-imperialist commitment"
+      },
+      "source_passages": [],
+      "extraction_method": "entity-backfill"
     }
   ],
   "edges": [
@@ -5202,7 +6255,7 @@
     },
     {
       "source": "Alejandro",
-      "target": "Europe",
+      "target": "European artistic traditions",
       "type": "lives-at",
       "source_passage": "p-005",
       "confidence_origin": "STATED",
@@ -5514,7 +6567,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "Leo Eloesser",
+      "target": "Dr Eloesser",
       "type": "treated-by",
       "source_passage": "p-007",
       "confidence_origin": "STATED",
@@ -5530,7 +6583,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "the Henry Ford Hospital",
+      "target": "Red Cross Hospital",
       "type": "at",
       "source_passage": "p-007",
       "confidence_origin": "STATED",
@@ -5554,7 +6607,7 @@
     },
     {
       "source": "Diego Rivera",
-      "target": "the San Francisco Stock Exchange",
+      "target": "San Francisco Stock Exchange",
       "type": "at",
       "source_passage": "p-007",
       "confidence_origin": "STATED",
@@ -5562,7 +6615,7 @@
     },
     {
       "source": "Diego Rivera",
-      "target": "the California School of Fine Arts",
+      "target": "California School of Fine Arts",
       "type": "at",
       "source_passage": "p-007",
       "confidence_origin": "STATED",
@@ -5570,14 +6623,14 @@
     },
     {
       "source": "Diego Rivera",
-      "target": "the Detroit Institute of Arts",
+      "target": "Detroit Institute of Arts",
       "type": "at",
       "source_passage": "p-007",
       "confidence_origin": "STATED",
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Leo Eloesser",
+      "source": "Dr Eloesser",
       "target": "Frida Kahlo",
       "type": "treated-by",
       "source_passage": "p-007",
@@ -5586,7 +6639,7 @@
     },
     {
       "source": "Portrait of Dr Leo Eloesser",
-      "target": "Leo Eloesser",
+      "target": "Dr Eloesser",
       "type": "depicted-in",
       "source_passage": "p-007",
       "confidence_origin": "STATED",
@@ -5737,24 +6790,8 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Diego Rivera",
-      "target": "Infidelity",
-      "type": "embodies",
-      "source_passage": "p-008",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "REGISTERED"
-    },
-    {
       "source": "A Few Small Nips",
       "target": "Process and transmute personal suffering into artistic expression",
-      "type": "contributes-to",
-      "source_passage": "p-008",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "Hair cutting",
-      "target": "Assert control over self-presentation and identity",
       "type": "contributes-to",
       "source_passage": "p-008",
       "confidence_origin": "INFERRED",
@@ -5930,7 +6967,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "Trotsky",
+      "target": "Leon Trotsky",
       "type": "affair-with",
       "source_passage": "p-009",
       "confidence_origin": "STATED",
@@ -5977,7 +7014,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Trotsky",
+      "source": "Leon Trotsky",
       "target": "La Casa Azul",
       "type": "lives-at",
       "source_passage": "p-009",
@@ -5985,7 +7022,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Natalia",
+      "source": "Natalia Sedova",
       "target": "La Casa Azul",
       "type": "lives-at",
       "source_passage": "p-009",
@@ -5993,15 +7030,15 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Trotsky",
-      "target": "Natalia",
+      "source": "Leon Trotsky",
+      "target": "Natalia Sedova",
       "type": "married-to",
       "source_passage": "p-009",
       "confidence_origin": "STATED",
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Trotsky",
+      "source": "Leon Trotsky",
       "target": "Stalin",
       "type": "preceded-by",
       "source_passage": "p-009",
@@ -6009,7 +7046,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Trotsky",
+      "source": "Leon Trotsky",
       "target": "Soviet Union",
       "type": "at",
       "source_passage": "p-009",
@@ -6025,7 +7062,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Breton",
+      "source": "Andr\u00e9 Breton",
       "target": "Frida Kahlo",
       "type": "championed",
       "source_passage": "p-009",
@@ -6033,7 +7070,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Breton",
+      "source": "Andr\u00e9 Breton",
       "target": "My Grandparents, My Parents, and I",
       "type": "created-by",
       "source_passage": "p-009",
@@ -6041,7 +7078,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Breton",
+      "source": "Andr\u00e9 Breton",
       "target": "Fulang-Chang and I",
       "type": "created-by",
       "source_passage": "p-009",
@@ -6050,7 +7087,7 @@
     },
     {
       "source": "My Grandparents, My Parents, and I",
-      "target": "the Julien Levy Gallery",
+      "target": "Julien Levy",
       "type": "at",
       "source_passage": "p-009",
       "confidence_origin": "STATED",
@@ -6058,14 +7095,14 @@
     },
     {
       "source": "Fulang-Chang and I",
-      "target": "the Julien Levy Gallery",
+      "target": "Julien Levy",
       "type": "at",
       "source_passage": "p-009",
       "confidence_origin": "STATED",
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "the Julien Levy Gallery",
+      "source": "Julien Levy",
       "target": "New York",
       "type": "located-in",
       "source_passage": "p-009",
@@ -6082,7 +7119,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "Breton",
+      "target": "Andr\u00e9 Breton",
       "type": "influenced-by",
       "source_passage": "p-009",
       "confidence_origin": "INFERRED",
@@ -6210,7 +7247,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "Breton",
+      "target": "Andr\u00e9 Breton",
       "type": "collaborated-with",
       "source_passage": "p-010",
       "confidence_origin": "STATED",
@@ -6233,8 +7270,8 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Breton",
-      "target": "1939 Paris exhibition",
+      "source": "Andr\u00e9 Breton",
+      "target": "1939 Paris exhibition at Galerie Pierre Colle",
       "type": "created-by",
       "source_passage": "p-010",
       "confidence_origin": "STATED",
@@ -6242,15 +7279,15 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "1939 Paris exhibition",
+      "target": "1939 Paris exhibition at Galerie Pierre Colle",
       "type": "participated",
       "source_passage": "p-010",
       "confidence_origin": "STATED",
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "1939 Paris exhibition",
-      "target": "Paris",
+      "source": "1939 Paris exhibition at Galerie Pierre Colle",
+      "target": "New York",
       "type": "at",
       "source_passage": "p-010",
       "confidence_origin": "STATED",
@@ -6274,23 +7311,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "kidney infection",
-      "type": "caused-by",
-      "source_passage": "p-010",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "kidney infection",
-      "target": "the American Hospital",
-      "type": "at",
-      "source_passage": "p-010",
-      "confidence_origin": "STATED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "Frida Kahlo",
-      "target": "Mexican identity",
+      "target": "Assert authentic Mexican and indigenous identity in artistic work",
       "type": "embodies",
       "source_passage": "p-010",
       "confidence_origin": "STATED",
@@ -6554,7 +7575,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "School of Painting and Sculpture",
+      "target": "School of Painting and Sculpture (La Esmeralda)",
       "type": "taught-by",
       "source_passage": "p-012",
       "confidence_origin": "STATED",
@@ -6570,7 +7591,7 @@
     },
     {
       "source": "Frida Kahlo",
-      "target": "the Mexican Communist Party",
+      "target": "Communism",
       "type": "participated",
       "source_passage": "p-012",
       "confidence_origin": "STATED",
@@ -6601,7 +7622,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Marxism Will Give Health",
+      "source": "Marxism Will Give Health to the Sick",
       "target": "Frida Kahlo",
       "type": "created-by",
       "source_passage": "p-012",
@@ -6625,8 +7646,8 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Marxism Will Give Health",
-      "target": "Marx",
+      "source": "Marxism Will Give Health to the Sick",
+      "target": "Karl Marx",
       "type": "depicts",
       "source_passage": "p-012",
       "confidence_origin": "INFERRED",
@@ -6849,7 +7870,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Juan Farill",
+      "source": "Dr Juan Farill",
       "target": "Frida Kahlo",
       "type": "treated-by",
       "source_passage": "p-014",
@@ -6860,14 +7881,6 @@
       "source": "Stabilize spine and restore physical function",
       "target": "Maintain artistic practice and creative expression despite physical deterioration",
       "type": "enables",
-      "source_passage": "p-014",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "bone infection",
-      "target": "Stabilize spine and restore physical function",
-      "type": "blocks",
       "source_passage": "p-014",
       "confidence_origin": "INFERRED",
       "validation_tier": "REGISTERED"
@@ -6889,7 +7902,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "the Hospital for Special Surgery",
+      "source": "Hospital for Special Surgery",
       "target": "New York",
       "type": "located-in",
       "source_passage": "p-014",
@@ -6897,7 +7910,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "the Hospital Ingl\u00e9s",
+      "source": "Hospital Ingl\u00e9s",
       "target": "Mexico City",
       "type": "located-in",
       "source_passage": "p-014",
@@ -6927,38 +7940,6 @@
       "source_passage": "p-014",
       "confidence_origin": "INFERRED",
       "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "her diary",
-      "target": "Frida Kahlo",
-      "type": "created-by",
-      "source_passage": "p-014",
-      "confidence_origin": "STATED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "her diary",
-      "target": "Document and process fear and uncertainty about future capacity",
-      "type": "contributes-to",
-      "source_passage": "p-014",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "Frida Kahlo",
-      "target": "Demerol",
-      "type": "influenced-by",
-      "source_passage": "p-014",
-      "confidence_origin": "STATED",
-      "validation_tier": "UNVALIDATED"
-    },
-    {
-      "source": "Frida Kahlo",
-      "target": "morphine",
-      "type": "influenced-by",
-      "source_passage": "p-014",
-      "confidence_origin": "STATED",
-      "validation_tier": "UNVALIDATED"
     },
     {
       "source": "Maintain artistic practice and creative expression despite physical deterioration",
@@ -7065,7 +8046,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "the Galer\u00eda Arte Contempor\u00e1neo",
+      "source": "Galer\u00eda Arte Contempor\u00e1neo",
       "target": "Mexico City",
       "type": "located-in",
       "source_passage": "p-015",
@@ -7089,7 +8070,7 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "bus accident",
+      "source": "the bus accident",
       "target": "Continue artistic creation despite escalating physical pain and disability",
       "type": "caused-by",
       "source_passage": "p-015",
@@ -7097,28 +8078,12 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "amputation below the knee",
-      "target": "Learn to walk again with prosthetic leg after amputation",
-      "type": "requires",
-      "source_passage": "p-015",
-      "confidence_origin": "STATED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "Dr Farill",
+      "source": "Dr Juan Farill",
       "target": "Frida Kahlo",
       "type": "treated-by",
       "source_passage": "p-015",
       "confidence_origin": "STATED",
       "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "Frida Kahlo",
-      "target": "VIVA LA VIDA",
-      "type": "embodied-in",
-      "source_passage": "p-015",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "UNVALIDATED"
     },
     {
       "source": "Political activism and anti-imperialism",
@@ -7241,43 +8206,19 @@
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Guatemala",
-      "target": "CIA-orchestrated coup against Guatemala",
-      "type": "at",
-      "source_passage": "p-016",
-      "confidence_origin": "STATED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "Political activism and anti-imperialism",
-      "target": "CIA-orchestrated coup against Guatemala",
-      "type": "motivated-by",
-      "source_passage": "p-016",
-      "confidence_origin": "INFERRED",
-      "validation_tier": "REGISTERED"
-    },
-    {
       "source": "Frida Kahlo",
-      "target": "Frida's paintings",
+      "target": "Frida's artistic practice",
       "type": "created-by",
       "source_passage": "p-016",
       "confidence_origin": "STATED",
       "validation_tier": "REGISTERED"
     },
     {
-      "source": "Frida's paintings",
+      "source": "Frida's artistic practice",
       "target": "Artistic expression and documentation of lived experience",
       "type": "embodies",
       "source_passage": "p-016",
       "confidence_origin": "STATED",
-      "validation_tier": "REGISTERED"
-    },
-    {
-      "source": "medical surgeries",
-      "target": "Resilience and defiance in the face of bodily suffering",
-      "type": "caused-by",
-      "source_passage": "p-016",
-      "confidence_origin": "INFERRED",
       "validation_tier": "REGISTERED"
     },
     {
@@ -10149,6 +11090,278 @@
       "confidence_value": 0.6,
       "validation_tier": "REGISTERED",
       "source_passage": "cross-tier-inference"
+    },
+    {
+      "source": "Study medicine",
+      "target": "Understand the human body through anatomical precision",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Develop intellectual and emotional intimacy with an equal",
+      "target": "Achieve intellectual independence and participation",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Engage in critical debate about Mexican nationalism and art's revolutionary role",
+      "target": "Fuse personal experience with political commitment through art",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Maintain personal autonomy and independence within relationships",
+      "target": "Achieve intellectual independence and participation",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Achieve intellectual independence and participation",
+      "target": "Fuse personal experience with political commitment through art",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "the bus accident",
+      "target": "Cuauhtemotzin and Cinco de Mayo",
+      "type": "at",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Develop artistic mastery and distinctive visual voice",
+      "target": "Gain recognition and validation as an artist",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Paint honest, unflinching self-representation",
+      "target": "Develop artistic mastery and distinctive visual voice",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Protect against emotional vulnerability and abandonment through self-reliance",
+      "target": "Achieve financial independence and economic self-sufficiency",
+      "type": "motivated-by",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Protect against emotional vulnerability and abandonment through self-reliance",
+      "target": "Maintain personal autonomy and independence within relationships",
+      "type": "enables",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Maintain cultural and national identity while abroad",
+      "target": "Process traumatic experience through painting",
+      "type": "influenced-by",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Protect self from further disappointment through emotional detachment",
+      "target": "Evaluate continuation of marriage",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Protect self from further disappointment through emotional detachment",
+      "target": "Preserve emotional autonomy within marriage",
+      "type": "concurrent-with",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Reconcile with Cristina and maintain family bonds",
+      "target": "Assert control over self-presentation and identity",
+      "type": "concurrent-with",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Reconcile with Cristina and maintain family bonds",
+      "target": "Protect self from further disappointment through emotional detachment",
+      "type": "concurrent-with",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Document biological and cultural inheritance through family imagery",
+      "target": "Assert authentic Mexican and indigenous identity in artistic work",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Process involuntary childlessness through surrogate imagery",
+      "target": "Process and transmute personal suffering into artistic expression",
+      "type": "exemplifies",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Process and transmute personal suffering into artistic expression",
+      "type": "contributes-to",
+      "target": "Paint authentic personal reality rather than European surrealist aesthetics",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Assert authentic Mexican and indigenous identity in artistic work",
+      "target": "Paint authentic personal reality rather than European surrealist aesthetics",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Frida Kahlo",
+      "target": "art world",
+      "type": "pursues",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Maintain artistic presence and relevance in the art world without Diego",
+      "target": "art world",
+      "type": "located-in",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "The Two Fridas",
+      "target": "art world",
+      "type": "located-in",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Self-Portrait with Cropped Hair",
+      "target": "art world",
+      "type": "located-in",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Establish artistic autonomy and independence from Diego's shadow",
+      "target": "Develop and mentor young Mexican artists in authentic observation and national subjects",
+      "type": "enables",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Establish artistic autonomy and independence from Diego's shadow",
+      "target": "Transform personal suffering into artistic and political meaning",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Maintain intellectual autonomy within marriage despite ideological disagreements",
+      "target": "Achieve political revolution through commitment to communist ideology",
+      "type": "enables",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Maintain intellectual autonomy within marriage despite ideological disagreements",
+      "target": "Establish artistic autonomy and independence from Diego's shadow",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Transform hospital space into creative sanctuary",
+      "target": "Maintain artistic practice and creative expression despite physical deterioration",
+      "type": "enables",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Achieve transcendence or escape through defiant philosophical stance",
+      "target": "Weigh the cost-benefit of continued existence against pain and suffering",
+      "type": "exemplifies",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Learn to walk again with prosthetic leg after amputation",
+      "target": "Continue artistic creation despite escalating physical pain and disability",
+      "type": "enables",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Learn to walk again with prosthetic leg after amputation",
+      "target": "Triumph over bodily suffering through defiant performance and will",
+      "type": "exemplifies",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Maintain love and intimate connection with Diego Rivera",
+      "target": "Integrate personal experience with political conviction",
+      "type": "concurrent-with",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Assert autonomy over death and final departure",
+      "target": "Resilience and defiance in the face of bodily suffering",
+      "type": "concurrent-with",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
+    },
+    {
+      "source": "Assert autonomy over death and final departure",
+      "target": "Create lasting artistic legacy and ensure work is witnessed",
+      "type": "contributes-to",
+      "confidence_origin": "INFERRED",
+      "extraction_method": "gap-closure",
+      "validation_tier": "REGISTERED"
     }
   ],
   "memories": [
