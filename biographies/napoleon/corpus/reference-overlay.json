@@ -1,0 +1,1737 @@
+{
+  "source": "LLM general knowledge (claude-haiku-4-5@20251001)",
+  "generated": "2026-10-13",
+  "version": "v1.0",
+  "subject": "Napoleon Bonaparte",
+  "total_entries": 330,
+  "entries": {
+    "Establish personal dominance and power": {
+      "description": "A psychological goal centered on achieving supreme authority and control over others and circumstances.",
+      "context": "A core motivational driver in Napoleon's personality and ambitions throughout his life."
+    },
+    "Liberate Corsica from French occupation": {
+      "description": "A nationalist political objective to free an island from external control.",
+      "context": "An early ideological goal reflecting Napoleon's Corsican identity and patriotic aspirations during his youth."
+    },
+    "Build strength and competence as path to affection": {
+      "description": "A psychological strategy using achievement and capability development as a means to earn emotional connection and validation.",
+      "context": "A formative emotional goal shaped by Napoleon's family dynamics and need for maternal approval."
+    },
+    "Obtain French military education and credentials": {
+      "description": "An educational and professional objective to acquire formal training and legitimacy in military service.",
+      "context": "A critical stepping stone in Napoleon's early career that required integration into French institutions despite his Corsican background."
+    },
+    "Internalize maternal discipline as character foundation": {
+      "description": "A developmental process of adopting parental strictness and behavioral standards as core personality traits.",
+      "context": "A psychological foundation established through his mother's rigorous upbringing that shaped Napoleon's self-discipline and drive."
+    },
+    "Napoleon Bonaparte": {
+      "description": "French military commander and emperor who conquered much of Europe and fundamentally reshaped continental politics in the early 19th century.",
+      "context": "The central figure whose life, ambitions, psychological development, and military-political career are the subject of this biography.",
+      "links": {
+        "wikipedia": "Napoleon",
+        "wikidata": "Q517"
+      }
+    },
+    "Joseph Bonaparte": {
+      "description": "Elder brother of Napoleon who served as King of Naples and King of Spain during the Napoleonic era.",
+      "context": "Napoleon's older sibling with whom he had a complex relationship; mentioned in context of family dynamics during his childhood.",
+      "links": {
+        "wikipedia": "Joseph_Bonaparte",
+        "wikidata": "Q519"
+      }
+    },
+    "Louis Antoine Fauvelet de Bourrienne": {
+      "description": "French diplomat and writer who served as Napoleon's secretary and close associate during his military campaigns.",
+      "context": "A childhood friend and later secretary to Napoleon who documented aspects of his early life and personality.",
+      "links": {
+        "wikipedia": "Louis_Antoine_Fauvelet_de_Bourrienne",
+        "wikidata": "Q2626657"
+      }
+    },
+    "Napoleon's father": {
+      "description": "Carlo Buonaparte, a Corsican nobleman and lawyer who died when Napoleon was young.",
+      "context": "Parental figure whose early death significantly influenced Napoleon's psychological development and family responsibilities.",
+      "links": {
+        "wikipedia": "Carlo_Buonaparte",
+        "wikidata": "Q1035"
+      }
+    },
+    "Coll\u00e8ge d'Autun": {
+      "description": "A French secondary school in Burgundy where students received education during the 18th century.",
+      "context": "One of Napoleon's early educational institutions where he continued his studies after his initial schooling.",
+      "links": {
+        "wikipedia": "Coll\u00e8ge_d'Autun",
+        "wikidata": "Q2984041"
+      }
+    },
+    "Royal Military School at Brienne": {
+      "description": "A prestigious French military academy established in the 18th century to train officer cadets.",
+      "context": "The institution where Napoleon received his formal military education and developed his military expertise and credentials.",
+      "links": {
+        "wikipedia": "\u00c9cole_Militaire_de_Brienne",
+        "wikidata": "Q1361874"
+      }
+    },
+    "France": {
+      "description": "A Western European nation that became Napoleon's primary power base and the center of his military conquests.",
+      "context": "The country Napoleon sought to serve and ultimately dominated, transforming from a revolutionary republic to an empire under his rule.",
+      "links": {
+        "wikipedia": "France",
+        "wikidata": "Q142"
+      }
+    },
+    "Brienne": {
+      "description": "A town in the Aube department of northeastern France known for its military academy.",
+      "context": "The location of the military school where Napoleon received his crucial military education and training.",
+      "links": {
+        "wikipedia": "Brienne-le-Ch\u00e2teau",
+        "wikidata": "Q183503"
+      }
+    },
+    "Corsica": {
+      "description": "A Mediterranean island that became part of France shortly before Napoleon's birth and was his ancestral homeland.",
+      "context": "Napoleon's native birthplace and the source of his early nationalist aspirations to free it from French control.",
+      "links": {
+        "wikipedia": "Corsica",
+        "wikidata": "Q40441"
+      }
+    },
+    "Plutarch's Lives": {
+      "description": "An ancient biographical work by the Greek historian Plutarch containing parallel lives of famous Greek and Roman figures.",
+      "context": "A formative literary influence on young Napoleon that shaped his understanding of heroic leadership and ancient military strategy.",
+      "links": {
+        "wikipedia": "Plutarch's_Lives",
+        "wikidata": "Q51222"
+      }
+    },
+    "Caesar's commentaries": {
+      "description": "Historical military writings by Julius Caesar documenting his campaigns and military strategies in Gaul and beyond.",
+      "context": "A formative text that Napoleon studied intensively to learn how great leaders wielded power and conducted military operations.",
+      "links": {
+        "wikipedia": "Commentarii_de_Bello_Gallico",
+        "wikidata": "Q373522"
+      }
+    },
+    "Corsican identity": {
+      "description": "The cultural, linguistic, and historical heritage and sense of belonging associated with the island of Corsica.",
+      "context": "Napoleon's foundational identity that shaped his early sense of difference and exclusion in French society, which he both resisted assimilating and eventually transcended.",
+      "links": {
+        "wikipedia": "Corsica",
+        "wikidata": "Q40441"
+      }
+    },
+    "isolation": {
+      "description": "The state of being separated, excluded, or set apart from a social or community group.",
+      "context": "A formative experience in Napoleon's youth as a Corsican outsider in mainland France, which drove his determination to achieve excellence and overcome prejudice."
+    },
+    "excellence through adversity": {
+      "description": "A philosophical principle that hardship and obstacles can be catalysts for developing superior abilities and character.",
+      "context": "A core psychological mechanism through which Napoleon transformed his experiences of rejection and isolation into sources of strength and ambition."
+    },
+    "Surpass tormentors through excellence": {
+      "description": "A personal drive to prove superiority and vindicate oneself by achieving greater success than those who caused shame or rejection.",
+      "context": "A primary motivating goal in Napoleon's early life, channeling his humiliation as a Corsican outsider into relentless pursuit of achievement."
+    },
+    "Preserve and refuse to assimilate Corsican identity": {
+      "description": "A conscious choice to maintain cultural distinctiveness and resist absorption into dominant cultural norms.",
+      "context": "An early goal reflecting Napoleon's pride in his origins and refusal to deny his background despite social pressures in France."
+    },
+    "Acquire and understand how great men gain and hold power": {
+      "description": "The pursuit of knowledge about political, military, and social mechanisms through which leaders establish and maintain authority.",
+      "context": "A central intellectual goal that drove Napoleon's extensive reading of history and study of exemplars like Caesar and historical leaders."
+    },
+    "Master military science and strategy through rigorous study": {
+      "description": "The systematic and intensive learning of military theory, tactics, logistics, and command through disciplined education.",
+      "context": "A foundational goal that Napoleon pursued through his military academy training and self-directed study, becoming the basis of his military genius."
+    },
+    "Assume leadership of family as head of household": {
+      "description": "Taking on the primary authority and responsibility role for managing a family unit and its affairs.",
+      "context": "An early leadership ambition reflecting Napoleon's need to establish control and demonstrate capability within his immediate family structure."
+    },
+    "Maintain emotional distance and self-reliance": {
+      "description": "A psychological orientation emphasizing independence, autonomy, and restraint in emotional expression and dependency on others.",
+      "context": "A defensive strategy Napoleon developed in response to childhood isolation and rejection, enabling him to maintain focus on his ambitions."
+    },
+    "Convert shame and rejection into contempt and determination": {
+      "description": "A psychological process of transforming emotional pain and humiliation into scorn for one's detractors and steely resolve.",
+      "context": "Napoleon's core emotional mechanism for channeling the hurt of Corsican prejudice into the contemptuous determination that fueled his rise to power."
+    },
+    "Achieve greatness and historical significance": {
+      "description": "The aspiration to attain extraordinary accomplishment and enduring recognition in history.",
+      "context": "Napoleon's ultimate overarching goal that integrated all other ambitions, driving his military and political ambitions to reshape Europe."
+    },
+    "Rise through merit rather than aristocratic birth": {
+      "description": "The principle of advancement based on demonstrated ability and achievement rather than inherited status or social privilege.",
+      "context": "A crucial goal reflecting Napoleon's position as a non-aristocratic outsider and his determination to prove that talent could overcome birth disadvantage."
+    },
+    "Establish authoritarian order and control over society": {
+      "description": "The pursuit of centralized power and hierarchical governance with concentrated decision-making authority.",
+      "context": "Napoleon's ultimate political goal, manifested in his creation of the Napoleonic Code and his establishment of authoritarian rule across territories he conquered."
+    },
+    "Overcome Corsican identity prejudice and humiliation": {
+      "description": "The aspiration to transcend social discrimination and stigma based on ethnic or regional origin.",
+      "context": "A foundational motivating goal emerging from Napoleon's early experiences of rejection and mockery due to his Corsican background and accent."
+    },
+    "Develop intellectual and political understanding through reading": {
+      "description": "The pursuit of knowledge and political theory through study and literary engagement.",
+      "context": "A formative goal during Napoleon's early career that shaped his political ideology and military philosophy."
+    },
+    "Find expression through writing": {
+      "description": "The use of literary composition, including novellas and essays, as a means of intellectual expression.",
+      "context": "An artistic and intellectual outlet through which Napoleon explored and articulated his political and philosophical ideas."
+    },
+    "Resolve internal contradiction between revolutionary ideals and authoritarian instincts": {
+      "description": "The tension between democratic revolutionary principles and centralized autocratic governance.",
+      "context": "A fundamental psychological conflict that defined Napoleon's political trajectory from revolutionary officer to emperor."
+    },
+    "Toulon": {
+      "description": "A major port city in southeastern France on the Mediterranean coast.",
+      "context": "The site of Napoleon's breakthrough siege victory in 1793 that established his military reputation and led to rapid advancement.",
+      "links": {
+        "wikipedia": "Toulon",
+        "wikidata": "Q40441"
+      }
+    },
+    "L'\u00c9guillette": {
+      "description": "A fortified position and hill overlooking Toulon harbour.",
+      "context": "A key strategic strongpoint captured during the Siege of Toulon that proved crucial to Napoleon's victory.",
+      "links": {
+        "wikipedia": "Siege_of_Toulon",
+        "wikidata": "Q2640975"
+      }
+    },
+    "Siege of Toulon": {
+      "description": "A major 1793 military engagement between Revolutionary French forces and British-allied royalist defenders.",
+      "context": "The pivotal campaign that made Napoleon's military reputation, demonstrated his tactical genius, and secured his promotion to brigadier general.",
+      "links": {
+        "wikipedia": "Siege_of_Toulon",
+        "wikidata": "Q2640975"
+      }
+    },
+    "British fleet": {
+      "description": "The naval forces of Great Britain during the Revolutionary Wars period.",
+      "context": "The primary military adversary at Toulon whose evacuation and defeat validated Napoleon's strategic vision."
+    },
+    "Revolutionary government": {
+      "description": "The French state apparatus during the Revolutionary period following the 1789 revolution.",
+      "context": "The political authority that commissioned the Siege of Toulon and recognized Napoleon's military achievement with advancement.",
+      "links": {
+        "wikipedia": "French_Revolution",
+        "wikidata": "Q11826"
+      }
+    },
+    "Conviction of superiority": {
+      "description": "A belief in one's exceptional abilities and inherent distinction above others.",
+      "context": "A defining psychological characteristic that drove Napoleon's ambition and shaped his strategic confidence during military operations."
+    },
+    "Political connections and luck": {
+      "description": "The advantages derived from social relationships and fortuitous circumstance in achieving political advancement.",
+      "context": "Crucial factors that enabled Napoleon's rapid rise during the volatile Revolutionary period and his assignment to key military operations."
+    },
+    "Establish military dominance through superior tactical vision": {
+      "description": "The pursuit of battlefield superiority through innovative strategic and tactical planning.",
+      "context": "A central goal that Napoleon pursued at Toulon, where his novel approach to artillery placement and positioning proved decisive."
+    },
+    "Win decisive military victories through innovative strategy": {
+      "description": "The achievement of conclusive combat success through unconventional and creative operational approaches.",
+      "context": "Napoleon's overarching military objective, first demonstrated at Toulon through his revolutionary use of massed artillery."
+    },
+    "Capture Toulon harbour and eliminate British presence": {
+      "description": "A specific military objective involving the seizure of a strategic port and expulsion of enemy naval forces.",
+      "context": "The concrete tactical goal of the Siege of Toulon that, when achieved, secured Napoleon's breakthrough success."
+    },
+    "Prove personal superiority and gain validation through success": {
+      "description": "The psychological motivation to demonstrate exceptional ability and earn recognition through achievement.",
+      "context": "A fundamental drive underlying Napoleon's military ambition, fulfilled by his triumph at Toulon and subsequent rapid promotion."
+    },
+    "Achieve rapid military advancement and recognition": {
+      "description": "The pursuit of swift career progression and public acknowledgment within military hierarchies.",
+      "context": "A direct consequence of his success at Toulon, which transformed him from obscure artillery officer to recognized military leader."
+    },
+    "Napoleon": {
+      "description": "French military commander and Emperor of France who rose to prominence during the French Revolution and Napoleonic Wars.",
+      "context": "The central subject of this biography; a Corsican-born officer who became France's dominant political and military figure.",
+      "links": {
+        "wikipedia": "Napoleon",
+        "wikidata": "Q517"
+      }
+    },
+    "Jos\u00e9phine de Beauharnais": {
+      "description": "French socialite and first wife of Napoleon Bonaparte, known for her elegance and influence during the French Revolutionary and Napoleonic periods.",
+      "context": "Napoleon's romantic partner and source of emotional validation; he sought her approval and devoted considerable attention to securing her affection.",
+      "links": {
+        "wikipedia": "Jos\u00e9phine_de_Beauharnais",
+        "wikidata": "Q41053"
+      }
+    },
+    "Paris": {
+      "description": "Capital city of France and its political, cultural, and social center.",
+      "context": "Key location in Napoleon's career, including his involvement in defending the government and his social connections through Parisian salons.",
+      "links": {
+        "wikipedia": "Paris",
+        "wikidata": "Q90"
+      }
+    },
+    "Italy": {
+      "description": "European peninsula and geopolitical region comprising multiple states during the late 18th century.",
+      "context": "Theater of Napoleon's first major military campaign, which established his reputation as a successful general.",
+      "links": {
+        "wikipedia": "Italy",
+        "wikidata": "Q38"
+      }
+    },
+    "Royalist uprising": {
+      "description": "Armed rebellion by supporters of the deposed French monarchy against revolutionary authorities.",
+      "context": "A critical security threat in Paris that Napoleon helped suppress, demonstrating his military value to the French government."
+    },
+    "Whiff of grapeshot": {
+      "description": "The use of cannon fire against civilians during a royalist insurrection in Paris on 13 Vend\u00e9miaire (October 5, 1795).",
+      "context": "Napoleon's decisive military action that suppressed the royalist uprising and elevated his political standing with the Directory.",
+      "links": {
+        "wikipedia": "13_Vend\u00e9miaire",
+        "wikidata": "Q1229648"
+      }
+    },
+    "Italian campaign": {
+      "description": "Napoleon's first major military offensive against Austrian and Austro-Sardinian forces in northern Italy from 1796 to 1797.",
+      "context": "Napoleon's breakthrough military success that established his reputation as a brilliant commander and advanced French revolutionary interests.",
+      "links": {
+        "wikipedia": "Italian_campaigns_of_the_French_Revolutionary_Wars",
+        "wikidata": "Q544435"
+      }
+    },
+    "Army of the Interior": {
+      "description": "French military force responsible for domestic security and internal defense during the Revolutionary period.",
+      "context": "Military command that Napoleon held, giving him authority to suppress the royalist uprising in Paris."
+    },
+    "The Directory": {
+      "description": "The five-member executive body that governed France from 1795 to 1799 during the later Revolutionary period.",
+      "context": "The government that Napoleon served and whose security depended partly on his military actions against internal threats.",
+      "links": {
+        "wikipedia": "French_Directory",
+        "wikidata": "Q181638"
+      }
+    },
+    "Salon": {
+      "description": "Fashionable social gathering in an aristocratic or upper-class home, typically featuring intellectual and cultural conversation.",
+      "context": "Social venue where Napoleon cultivated relationships and attempted to gain approval from influential figures like Jos\u00e9phine.",
+      "links": {
+        "wikipedia": "Salon_(gathering)",
+        "wikidata": "Q1058914"
+      }
+    },
+    "Marriage certificate": {
+      "description": "Legal document formally recording and certifying the matrimonial union between two persons.",
+      "context": "Symbolic representation of Napoleon's desire for permanent romantic commitment and validation from Jos\u00e9phine."
+    },
+    "Self-sufficiency": {
+      "description": "The capacity or condition of being able to provide for one's own needs without external dependence.",
+      "context": "A personal characteristic or ideal that contrasts with Napoleon's psychological dependence on Jos\u00e9phine's approval and affection."
+    },
+    "Possessiveness and control": {
+      "description": "Behavioral tendency to exert dominance or restrict another person's autonomy based on jealousy or insecurity.",
+      "context": "Personality traits that Napoleon exhibited in his relationship with Jos\u00e9phine, reflecting his emotional dependence on her."
+    },
+    "Secure romantic devotion and emotional validation from Jos\u00e9phine": {
+      "description": "The psychological objective of obtaining consistent love, affection, and reassurance from a romantic partner.",
+      "context": "A primary emotional goal driving Napoleon's behavior and relationship dynamics with Jos\u00e9phine throughout this biographical period."
+    },
+    "Obtain approval and admiration from Jos\u00e9phine as validation of personal importance": {
+      "description": "The goal of winning recognition and esteem from a specific person in order to affirm one's own self-worth and significance.",
+      "context": "A key psychological motivation for Napoleon's actions and emotional investments, reflecting his use of Jos\u00e9phine's regard as a measure of his personal value."
+    },
+    "Maintain control and possession of Jos\u00e9phine as an extension of self": {
+      "description": "A psychological goal involving emotional dominance and ownership of another person as a reflection of one's own identity and power.",
+      "context": "A central motivating force in Napoleon's personal life, driving his intense attachment to Jos\u00e9phine and his need to possess her as evidence of his superiority and worth."
+    },
+    "Achieve military dominance and political power": {
+      "description": "The ambition to gain supreme authority through military strength and governmental control.",
+      "context": "Napoleon's overarching life objective that unified his military campaigns and political ascent, from his early career through his establishment as Emperor of France."
+    },
+    "Create permanent institutional bond with Jos\u00e9phine through marriage": {
+      "description": "The aspiration to formalize and legitimize a relationship through matrimonial commitment.",
+      "context": "A defining personal goal that Napoleon pursued with characteristic intensity, marrying Jos\u00e9phine in 1796 as both romantic commitment and political consolidation of their union."
+    },
+    "Military dominance and battlefield superiority": {
+      "description": "The tactical and strategic objective to achieve victory through superior force and command on the battlefield.",
+      "context": "A primary mechanism through which Napoleon built his reputation and power, demonstrated in his Italian and Egyptian campaigns and later continental conflicts."
+    },
+    "Recognition and vindication of personal superiority": {
+      "description": "The psychological need to be publicly acknowledged as exceptional and to prove one's merit beyond doubt.",
+      "context": "A driving force in Napoleon's career reflecting his Corsican outsider status and his determination to prove himself worthy through demonstrated genius and accomplishment."
+    },
+    "Achieve and consolidate personal power independent of authority": {
+      "description": "The objective to establish autonomous authority not dependent on existing institutional or hierarchical structures.",
+      "context": "Central to Napoleon's rise from military officer to independent power broker, culminating in his coup d'\u00e9tat and establishment of personal rule."
+    },
+    "Transform demoralized army into an effective fighting force": {
+      "description": "The military-organizational goal to restore morale and combat effectiveness to a weakened or discouraged military unit.",
+      "context": "Achieved during Napoleon's early command in Italy in 1796, where he revitalized a struggling French army and used its success as a foundation for his power."
+    },
+    "Acquire territorial and material wealth through military conquest": {
+      "description": "The economic and geopolitical objective to expand dominion and accumulate resources via armed expansion.",
+      "context": "A consistent goal throughout Napoleon's campaigns, from Italy through Egypt and across Europe, funding his military apparatus and rewarding his supporters."
+    },
+    "Suppress potential rival commanders and eliminate threats to supremacy": {
+      "description": "The strategic objective to neutralize or remove competitors who might challenge one's authority or power.",
+      "context": "A recurring theme in Napoleon's management of his military hierarchy, as he carefully controlled ambitious generals and eliminated potential rivals to his supremacy."
+    },
+    "Win decisive military victories in rapid succession": {
+      "description": "The tactical goal to achieve consecutive battlefield triumphs that build momentum and psychological dominance.",
+      "context": "Napoleon's preferred strategy for consolidating power and building an aura of invincibility, exemplified in his rapid victories during the Italian campaign of 1796-97."
+    },
+    "Follow in Alexander the Great's footsteps": {
+      "description": "The ambition to emulate the conquests and legendary status of the ancient Macedonian conqueror.",
+      "context": "A formative model for Napoleon's imperial aspirations, particularly visible in his Egyptian campaign and his broader vision of continental and eastern domination.",
+      "links": {
+        "wikipedia": "Alexander_the_Great",
+        "wikidata": "Q30113"
+      }
+    },
+    "Conquer and possess the East intellectually and militarily": {
+      "description": "The dual objective to dominate eastern regions through both armed conquest and cultural or scientific understanding.",
+      "context": "A romantic and strategic goal manifested in Napoleon's Egyptian expedition, which combined military conquest with scientific exploration and intellectual appropriation of oriental knowledge."
+    },
+    "Threaten British India and establish French influence in eastern Mediterranean": {
+      "description": "The geopolitical objective to challenge British imperial dominance and extend French power into strategic eastern regions.",
+      "context": "A primary motivation for Napoleon's Egyptian campaign, designed to strike at British interests in India and establish a French foothold in the Mediterranean and beyond."
+    },
+    "Understand Egypt through scholarly and scientific study": {
+      "description": "The intellectual ambition to comprehend a foreign civilization through systematic research, documentation, and academic inquiry.",
+      "context": "Demonstrated in Napoleon's Egyptian campaign through the commission of scholars, artists, and scientists who documented Egyptian antiquities and culture, creating the groundwork for Egyptology."
+    },
+    "Establish and maintain personal dominance in intimate relationships": {
+      "description": "The psychological objective to exercise control and superiority within personal and romantic connections.",
+      "context": "A pervasive pattern in Napoleon's intimate life, particularly visible in his relationships with Jos\u00e9phine and later partners, reflecting his need to dominate all spheres of existence."
+    },
+    "Protect emotional vulnerability through emotional distance": {
+      "description": "A psychological coping mechanism involving suppression of feelings and maintenance of detachment to shield oneself from emotional pain.",
+      "context": "A pattern in Napoleon's personality whereby he maintained rigid emotional control and distance to avoid revealing weakness or vulnerability."
+    },
+    "Manage military and personal setbacks through propaganda and narrative control": {
+      "description": "A strategy of using public communications and media to reshape perceptions of failures and maintain a favorable public image.",
+      "context": "Napoleon's consistent use of official bulletins, controlled press, and strategic narratives to minimize damage from military defeats and personal reversals."
+    },
+    "Lucien Bonaparte": {
+      "description": "French politician and younger brother of Napoleon Bonaparte, serving as a prominent government official during the French Revolution and Napoleonic era.",
+      "context": "Lucien played a crucial role in securing Napoleon's rise to power, particularly as a member of the Council of Five Hundred during the Coup of 18 Brumaire.",
+      "links": {
+        "wikipedia": "Lucien_Bonaparte",
+        "wikidata": "Q154580"
+      }
+    },
+    "Egypt": {
+      "description": "A country in northeastern Africa, which Napoleon invaded and occupied between 1798-1801.",
+      "context": "The site of Napoleon's major military campaign that, while initially successful, ultimately ended in strategic failure and contributed to his political vulnerabilities upon return to France.",
+      "links": {
+        "wikipedia": "Egypt",
+        "wikidata": "Q79"
+      }
+    },
+    "French Directory": {
+      "description": "The five-man executive committee that ruled France from 1795 to 1799, succeeding the Committee of Public Safety.",
+      "context": "The governmental body Napoleon maneuvered against and overthrew in the Coup of 18 Brumaire to establish his own authority.",
+      "links": {
+        "wikipedia": "French_Directory",
+        "wikidata": "Q1347725"
+      }
+    },
+    "Council of Five Hundred": {
+      "description": "The lower legislative chamber of the French Directory, composed of 500 representatives responsible for proposing laws.",
+      "context": "The council that Napoleon's brother Lucien helped manipulate to support the Coup of 18 Brumaire and enable Napoleon's seizure of power.",
+      "links": {
+        "wikipedia": "Council_of_Five_Hundred",
+        "wikidata": "Q1127783"
+      }
+    },
+    "Coup of 18 Brumaire": {
+      "description": "Napoleon's military and political overthrow of the French Directory on November 9, 1799, establishing the Consulate.",
+      "context": "The pivotal event in which Napoleon seized control of France through a combination of military force and political maneuvering, fulfilling his goal to secure power.",
+      "links": {
+        "wikipedia": "Coup_of_18_Brumaire",
+        "wikidata": "Q652615"
+      }
+    },
+    "Self-mythologising": {
+      "description": "The deliberate creation and promotion of an idealized, often exaggerated public persona distinct from one's actual self.",
+      "context": "A central strategy in Napoleon's political toolkit, whereby he cultivated an image of himself as a supreme military genius and savior of France."
+    },
+    "British": {
+      "description": "The people, government, and military forces of Great Britain, Napoleon's primary geopolitical rival.",
+      "context": "The British Empire and Navy represented Napoleon's greatest external threat and the primary obstacle to his continental dominance throughout his career.",
+      "links": {
+        "wikipedia": "British_people",
+        "wikidata": "Q23666"
+      }
+    },
+    "French grenadiers": {
+      "description": "Elite infantry units of the French Army, selected for their height, strength, and combat prowess, serving as shock troops.",
+      "context": "The crack military units that Napoleon relied upon for his most challenging operations and who formed the backbone of his personal loyalty.",
+      "links": {
+        "wikipedia": "Grenadier",
+        "wikidata": "Q622316"
+      }
+    },
+    "Secure power in France": {
+      "description": "A political objective focused on gaining and consolidating control over a nation's government and institutions.",
+      "context": "Napoleon's primary ambition throughout the late 1790s, achieved through the Coup of 18 Brumaire and pursued through subsequent consolidation of authority."
+    },
+    "Prevent rival seizure of opportunity": {
+      "description": "A strategic defensive posture aimed at preempting potential competitors from exploiting political or military circumstances.",
+      "context": "A motivating factor in Napoleon's decision to execute the coup, driven by fear that rivals in the Directory or other generals might consolidate power first."
+    },
+    "Maintain a commanding self-image": {
+      "description": "A psychological imperative to preserve an outward appearance of supreme competence, authority, and invulnerability.",
+      "context": "A core objective underlying Napoleon's behavior, requiring constant narrative control and projection of infallibility to sustain his political legitimacy."
+    },
+    "Suppress acknowledgment of dependency and failure": {
+      "description": "A defensive psychological mechanism involving denial or concealment of reliance on others or admission of setbacks.",
+      "context": "Napoleon's consistent refusal to acknowledge the limits of his power or the contributions of subordinates, reflecting deep insecurity about his position."
+    },
+    "Establish France's military and political superiority": {
+      "description": "A national strategic objective to position France as the dominant European power militarily and diplomatically.",
+      "context": "The grand strategic vision animating Napoleon's foreign policy and military campaigns, framed as regenerating France after revolutionary turmoil."
+    },
+    "Establish lasting legal legacy": {
+      "description": "A strategic objective to create enduring legal frameworks and codes that would survive beyond the immediate political context.",
+      "context": "Central to Napoleon's ambition to transform France; his Napoleonic Code became his most significant lasting achievement, fundamentally reshaping European law."
+    },
+    "Transform French governance through rational systematization": {
+      "description": "An administrative reform goal aimed at replacing feudal and arbitrary systems with uniform, logically-organized governmental structures.",
+      "context": "Core to Napoleon's vision for modernizing France; he implemented centralized bureaucracy, standardized laws, and rational institutional organization across the empire."
+    },
+    "Embed rationality, order, and clarity into French institutions": {
+      "description": "An Enlightenment-influenced objective to apply systematic logic and transparency to state institutions and legal processes.",
+      "context": "Reflected in Napoleon's establishment of the Napoleonic Code, civil administration reforms, and institutional restructuring designed to replace obscure feudal traditions."
+    },
+    "Establish patriarchal social order with male authority": {
+      "description": "A social reorganization objective to formalize and legally entrench male dominance in family and civic structures.",
+      "context": "Manifested in the Napoleonic Code's provisions restricting women's legal rights, property ownership, and autonomy, reflecting contemporary conservative social ideology."
+    },
+    "Secure social stability through religious legitimacy": {
+      "description": "A political strategy to use organized religion and religious authority to underpin and justify state power and social order.",
+      "context": "Demonstrated through Napoleon's Concordat with Pope Pius VII in 1801, which reconciled the French state with the Catholic Church to restore religious legitimacy after revolutionary upheaval."
+    },
+    "Alleviate poverty and suffering through centralized personal authority": {
+      "description": "A benevolent governance objective to reduce social hardship by concentrating state power under direct personal control.",
+      "context": "Part of Napoleon's public justification for consolidating authority; he framed centralized rule as necessary for efficient welfare administration and economic stability."
+    },
+    "Exercise supreme personal authority over French state": {
+      "description": "An ambition to concentrate executive, legislative, and symbolic power in a single individual's hands.",
+      "context": "Napoleon's fundamental political goal, achieved through the Consulate, Empire, and his claim to be the embodiment of French national will and destiny."
+    },
+    "Control and manage women through legal and personal authority": {
+      "description": "An objective to institutionalize male-dominated power structures governing women's legal status, movement, and agency.",
+      "context": "Evident in the Napoleonic Code's restrictions on women's property rights, marriage arrangements, and civic participation, placing them under paternal or spousal authority."
+    },
+    "Achieve international legal influence through Code adoption": {
+      "description": "A strategy to extend French political and cultural power by promoting the adoption of French legal frameworks across other territories and nations.",
+      "context": "Napoleon sought to spread the Napoleonic Code throughout Europe and beyond, thereby extending French legal and intellectual hegemony beyond military conquest."
+    },
+    "Jos\u00e9phine": {
+      "description": "A French noblewoman and the first wife of Napoleon Bonaparte, who became Empress of the French.",
+      "context": "Napoleon's beloved wife and closest confidante; their marriage was emotionally significant to him though he divorced her in 1810 due to her inability to bear him an heir, though he continued to care for her deeply.",
+      "links": {
+        "wikipedia": "Josephine_de_Beauharnais",
+        "wikidata": "Q101807"
+      }
+    },
+    "Pope Pius VII": {
+      "description": "Head of the Roman Catholic Church and sovereign of the Papal States (1800-1823).",
+      "context": "Key to Napoleon's religious legitimacy; he negotiated the Concordat with Pius VII in 1801 to restore Church-state relations, and later crowned Napoleon at Notre-Dame in 1804, though their relationship eventually became adversarial.",
+      "links": {
+        "wikipedia": "Pope_Pius_VII",
+        "wikidata": "Q45593"
+      }
+    },
+    "Cathedral of Notre-Dame": {
+      "description": "The principal Gothic cathedral of Paris and seat of the Archbishop of Paris, located on the \u00cele de la Cit\u00e9.",
+      "context": "The venue for Napoleon's imperial coronation in 1804, where Pope Pius VII presided; it symbolized Napoleon's connection to both religious legitimacy and French national grandeur.",
+      "links": {
+        "wikipedia": "Notre-Dame_de_Chartres",
+        "wikidata": "Q63755"
+      }
+    },
+    "Battle of Austerlitz": {
+      "description": "A major military engagement fought on December 2, 1805, in Moravia (present-day Czech Republic), between French forces and an Austro-Russian coalition.",
+      "context": "One of Napoleon's greatest tactical victories, decisively defeating the Third Coalition and cementing his military reputation; it demonstrated his genius for maneuver and forced Austria to accept French dominance.",
+      "links": {
+        "wikipedia": "Battle_of_Austerlitz",
+        "wikidata": "Q178475"
+      }
+    },
+    "Austria": {
+      "description": "A Central European state and major European power, with substantial territory, military resources, and dynastic influence.",
+      "context": "A principal opponent of Napoleon throughout his career; Austria was defeated multiple times (1797, 1805, 1809) and lost significant territory, becoming subordinate to French hegemony.",
+      "links": {
+        "wikipedia": "Austria",
+        "wikidata": "Q40"
+      }
+    },
+    "Russia": {
+      "description": "A vast Eurasian empire and major military power under the Romanov dynasty in the early 19th century.",
+      "context": "Initially an ally against revolutionary France, Russia became Napoleon's adversary; his invasion of Russia in 1812 proved catastrophic and initiated his decline, while Russian forces contributed significantly to his final defeat.",
+      "links": {
+        "wikipedia": "Russian_Empire",
+        "wikidata": "Q34266"
+      }
+    },
+    "French Empire": {
+      "description": "The imperial state established in 1804 under Napoleon's rule, encompassing France and its conquered territories across Europe.",
+      "context": "The political entity Napoleon created and ruled as Emperor, representing the culmination of his consolidation of power and territorial expansion.",
+      "links": {
+        "wikipedia": "First_French_Empire",
+        "wikidata": "Q70802"
+      }
+    },
+    "Emperor of the French": {
+      "description": "The supreme monarchical title and position of imperial authority in France, granting executive, legislative, and ceremonial powers.",
+      "context": "The title Napoleon claimed in 1804, embodying his transformation from military commander to absolute sovereign ruler of France.",
+      "links": {
+        "wikipedia": "Emperor_of_the_French",
+        "wikidata": "Q1482987"
+      }
+    },
+    "Coronation ceremony of Napoleon": {
+      "description": "The elaborate ceremonial event on December 2, 1804, in Notre-Dame de Reims where Napoleon was crowned Emperor of the French.",
+      "context": "A pivotal public spectacle through which Napoleon legitimized his imperial authority and demonstrated his elevation above the revolutionary republic.",
+      "links": {
+        "wikipedia": "Coronation_of_Napoleon",
+        "wikidata": "Q1127509"
+      }
+    },
+    "Marriage between Napoleon and Jos\u00e9phine": {
+      "description": "The union between Napoleon Bonaparte and Jos\u00e9phine de Beauharnais, married in 1796 and remaining his primary emotional attachment despite later divorce.",
+      "context": "A foundational personal relationship that shaped Napoleon's emotional life and political legitimacy, though he eventually divorced her to pursue dynastic heir production.",
+      "links": {
+        "wikipedia": "Josephine_de_Beauharnais",
+        "wikidata": "Q23582"
+      }
+    },
+    "Establish absolute personal sovereignty": {
+      "description": "A political objective to concentrate all power in the hands of a single ruler with no constitutional or institutional limitations.",
+      "context": "A core psychological and political ambition driving Napoleon's consolidation of power and resistance to any checks on his authority."
+    },
+    "Achieve supreme military dominance through tactical brilliance": {
+      "description": "A strategic objective to establish military superiority and victory through superior command, strategy, and battlefield maneuvering.",
+      "context": "Napoleon's defining ambition throughout his career, using military conquest as both a tool and validation of his exceptional capabilities."
+    },
+    "Validate self-conception through external proof of superiority": {
+      "description": "A psychological objective to confirm one's own belief in personal exceptionalism through external achievements and recognition.",
+      "context": "A deep motivational driver for Napoleon, requiring constant demonstration of superiority to confirm his self-image as uniquely gifted."
+    },
+    "Maintain intimate emotional connection with Jos\u00e9phine despite instrumental considerations": {
+      "description": "A personal objective to preserve genuine emotional attachment while simultaneously using a relationship for political or dynastic purposes.",
+      "context": "Reflects Napoleon's conflicted feelings toward Jos\u00e9phine, balancing authentic affection against his need to produce an heir for dynastic legitimacy."
+    },
+    "Secure dynastic legitimacy through heir production": {
+      "description": "A political objective to establish a hereditary succession by fathering an heir who can legitimately inherit power.",
+      "context": "Drove Napoleon's divorce from Jos\u00e9phine and subsequent marriage to Marie-Louise, essential for establishing his regime as a dynasty rather than personal rule."
+    },
+    "Exercise benevolent ownership and control over subordinates": {
+      "description": "A leadership philosophy combining paternalistic authority with the belief that the leader acts in subordinates' best interests through absolute control.",
+      "context": "Napoleon's method of managing military officers, administrators, and family members, justified as protective and beneficial despite its authoritarian nature."
+    },
+    "Establish Continental dominance and control": {
+      "description": "A geopolitical objective to achieve hegemonic power over the European continent and eliminate rival centers of authority.",
+      "context": "Napoleon's primary strategic ambition after securing France, pursued through military campaigns and the creation of satellite states across Europe."
+    },
+    "Enforce the Continental System to isolate Britain economically": {
+      "description": "An economic blockade policy designed to prevent trade between British and European territories, weakening Britain through commercial strangulation.",
+      "context": "A systematic attempt to use French continental dominance against Britain, Napoleon's primary remaining rival, though ultimately ineffective and counterproductive.",
+      "links": {
+        "wikipedia": "Continental_System",
+        "wikidata": "Q1127533"
+      }
+    },
+    "Ensure absolute loyalty and obedience from family members": {
+      "description": "An objective to eliminate familial independence and subordinate family relationships entirely to political and dynastic requirements.",
+      "context": "Reflected in Napoleon's treatment of his siblings and relatives, whom he placed in positions of power while demanding unquestioning obedience."
+    },
+    "Maintain infallibility and suppress contradictory information": {
+      "description": "A psychological and political objective to preserve an image of absolute correctness by controlling information and eliminating evidence of error.",
+      "context": "A defensive mechanism for Napoleon, requiring censorship and propaganda to maintain his self-conception and public image as an infallible genius."
+    },
+    "Exercise will-power as ultimate problem-solving mechanism": {
+      "description": "A philosophy treating forceful determination and personal will as the primary means of overcoming obstacles and achieving objectives.",
+      "context": "A fundamental belief driving Napoleon's approach to both military and political challenges, prioritizing determination over consultation or institutional processes."
+    },
+    "Marie Louise of Austria": {
+      "description": "Austrian archduchess who became Napoleon's second wife in 1810 after his divorce from Jos\u00e9phine.",
+      "context": "Napoleon married her to secure a dynastic alliance with Austria and produce a legitimate heir to continue his imperial line.",
+      "links": {
+        "wikipedia": "Marie_Louise,_Duchess_of_Parma",
+        "wikidata": "Q123677"
+      }
+    },
+    "Napoleon II": {
+      "description": "Son of Napoleon Bonaparte and Marie Louise of Austria, who briefly held the title of Emperor of the French.",
+      "context": "Napoleon's legitimate heir, born in 1811, representing the dynastic succession and immortality through family legacy that Napoleon sought.",
+      "links": {
+        "wikipedia": "Napoleon_II",
+        "wikidata": "Q150732"
+      }
+    },
+    "Ch\u00e2teau de Malmaison": {
+      "description": "Historic French ch\u00e2teau near Paris that served as the primary residence of Napoleon and Jos\u00e9phine.",
+      "context": "Where Napoleon and Jos\u00e9phine spent significant time together, and where Jos\u00e9phine lived after their divorce, symbolizing their personal bond.",
+      "links": {
+        "wikipedia": "Malmaison",
+        "wikidata": "Q1345254"
+      }
+    },
+    "Rome": {
+      "description": "Capital city of Italy and historic center of the Roman Empire, symbolically important in European politics and imperial ideology.",
+      "context": "Represents political territory and imperial grandeur in Napoleon's strategic ambitions and the broader context of European power dynamics.",
+      "links": {
+        "wikipedia": "Rome",
+        "wikidata": "Q220"
+      }
+    },
+    "emotional life versus political life": {
+      "description": "Conceptual tension between personal feelings and professional duties, particularly regarding romantic attachments versus state interests.",
+      "context": "Central to Napoleon's struggle between his deep love for Jos\u00e9phine and the political necessity of divorcing her to secure dynastic legitimacy."
+    },
+    "legacy through dynasty": {
+      "description": "The concept of ensuring historical continuity and immortality by establishing a ruling family line that persists across generations.",
+      "context": "Napoleon's primary means of achieving lasting power and influence beyond his lifetime through his children and their descendants."
+    },
+    "infidelity of Jos\u00e9phine": {
+      "description": "Jos\u00e9phine's extramarital relationships or romantic involvements outside her marriage to Napoleon.",
+      "context": "A point of tension in Napoleon's relationship with Jos\u00e9phine that complicated their emotional bond despite his continued affection for her."
+    },
+    "Produce a legitimate heir to secure dynastic succession": {
+      "description": "Strategic objective to father a legitimate child who could legally inherit and continue an imperial dynasty.",
+      "context": "Napoleon's primary motivation for divorcing Jos\u00e9phine, as her inability to bear more children threatened his plans for an enduring family empire."
+    },
+    "Achieve immortality through dynastic legacy": {
+      "description": "Aspiration to transcend mortal limitations by establishing a family lineage that would perpetuate one's name, power, and influence indefinitely.",
+      "context": "Napoleon's ultimate goal in prioritizing dynastic concerns, seeking to make his power and memory eternal through his descendants."
+    },
+    "Maintain emotional connection and friendship with Jos\u00e9phine after divorce": {
+      "description": "Goal of preserving personal affection and companionship despite the legal dissolution of a marriage.",
+      "context": "Despite divorcing Jos\u00e9phine for political reasons, Napoleon sought to sustain their emotional bond and remain closely connected to her."
+    },
+    "Provide financial security and dignity to Jos\u00e9phine post-divorce": {
+      "description": "Objective to ensure Jos\u00e9phine's material wellbeing and social status remained secure and respected after their separation.",
+      "context": "Napoleon's attempt to honor Jos\u00e9phine and demonstrate his continued care for her despite the divorce, maintaining her comfort and standing."
+    },
+    "Reconcile political ambition with emotional authenticity": {
+      "description": "Attempt to align personal integrity and genuine feelings with the demands and compromises required by political power.",
+      "context": "Napoleon's central personal struggle between his authentic emotional attachments (especially to Jos\u00e9phine) and the cold calculations necessary for imperial rule."
+    },
+    "Tsar Alexander I": {
+      "description": "Russian emperor and contemporary of Napoleon who was both ally and rival in European geopolitics during the Napoleonic Wars.",
+      "context": "Key political adversary and eventual ally whose conflicts with Napoleon shaped European history, particularly regarding the invasion of Russia.",
+      "links": {
+        "wikipedia": "Alexander_I_of_Russia",
+        "wikidata": "Q34269"
+      }
+    },
+    "Grande Arm\u00e9e": {
+      "description": "Napoleon's primary military force, a massive and highly organized army that was instrumental in his European conquests.",
+      "context": "The military instrument through which Napoleon projected his power across Europe and executed his imperial ambitions, exemplified in campaigns against Russia.",
+      "links": {
+        "wikipedia": "Grande_Arm\u00e9e",
+        "wikidata": "Q641858"
+      }
+    },
+    "Moscow": {
+      "description": "Capital city of Russia and symbolic center of Russian power, situated deep within Russian territory.",
+      "context": "Objective of Napoleon's 1812 invasion of Russia, whose capture was intended to force Tsar Alexander I into submission, but its burning led to Napoleon's military disaster.",
+      "links": {
+        "wikipedia": "Moscow",
+        "wikidata": "Q649"
+      }
+    },
+    "Battle of Borodino": {
+      "description": "A major 1812 battle fought near Moscow between French and Russian forces during the Napoleonic Wars.",
+      "context": "A pivotal engagement in Napoleon's Russian campaign where despite tactical success, he failed to achieve the decisive victory needed to break Russian resistance.",
+      "links": {
+        "wikipedia": "Battle_of_Borodino",
+        "wikidata": "Q131412"
+      }
+    },
+    "Continental System": {
+      "description": "Napoleon's economic blockade policy designed to isolate Britain from European trade.",
+      "context": "A key strategic tool that Tsar Alexander I withdrew from, prompting Napoleon's 1812 invasion of Russia to force compliance.",
+      "links": {
+        "wikipedia": "Continental_System",
+        "wikidata": "Q644371"
+      }
+    },
+    "Napoleonic Wars": {
+      "description": "The series of military conflicts fought by Napoleonic France against various European coalitions from 1803 to 1815.",
+      "context": "The broader military context encompassing Napoleon's campaigns, including the Russian invasion and subsequent downfall.",
+      "links": {
+        "wikipedia": "Napoleonic_Wars",
+        "wikidata": "Q190582"
+      }
+    },
+    "Russian campaign": {
+      "description": "Napoleon's 1812 military invasion of Russia, also known as the Patriotic War of 1812 in Russia.",
+      "context": "Napoleon's most ambitious and ultimately disastrous campaign, launched to force Tsar Alexander I back into the Continental System and prove his supremacy.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q171392"
+      }
+    },
+    "Force Tsar Alexander I to re-enter the Continental System": {
+      "description": "A strategic objective to compel Russian submission to Napoleon's economic blockade against Britain.",
+      "context": "A primary political goal motivating Napoleon's 1812 Russian invasion."
+    },
+    "Prove that no one can defy him": {
+      "description": "An assertion of absolute military and political dominance through force.",
+      "context": "A core psychological objective underlying Napoleon's decision to invade Russia and his conviction that decisive military action would compel submission."
+    },
+    "Complete a quick military campaign with one or two decisive battles": {
+      "description": "A strategic concept of achieving rapid victory through concentrated force and decisive engagements.",
+      "context": "Napoleon's operational plan for the Russian campaign, reflecting his historical success with lightning campaigns, though ultimately unrealized against Russian resistance."
+    },
+    "Achieve decisive military victory through battle": {
+      "description": "A fundamental military objective centered on winning conclusive combat engagements.",
+      "context": "A core goal of the Russian campaign intended to break Russian will to resist and force capitulation."
+    },
+    "Compel Russian surrender through presence in Moscow": {
+      "description": "A strategic concept of achieving capitulation by capturing and occupying the enemy's principal city.",
+      "context": "Napoleon's belief that occupying Moscow would force Tsar Alexander I to surrender and accept French terms, a miscalculation that proved fatal to the campaign."
+    },
+    "Return to Paris before winter": {
+      "description": "A logistical imperative to complete military operations within a favorable seasonal window.",
+      "context": "A time constraint in Napoleon's campaign planning that became impossible once the Russians refused surrender and winter set in, leading to the disastrous retreat."
+    },
+    "The Retreat from Moscow": {
+      "description": "The catastrophic 1812-1813 withdrawal of the Grande Arm\u00e9e from Moscow during winter.",
+      "context": "The pivotal military disaster of Napoleon's career, destroying his army through combat, disease, starvation, and exposure, marking the beginning of his downfall.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia#Retreat",
+        "wikidata": "Q171392"
+      }
+    },
+    "Berezina River": {
+      "description": "A major river in Belarus that became the site of a critical military engagement during the French retreat from Russia.",
+      "context": "The location where Napoleon's retreating army conducted a desperate crossing in November 1812, suffering massive losses to Russian forces pursuing them.",
+      "links": {
+        "wikipedia": "Battle_of_the_Berezina",
+        "wikidata": "Q808247"
+      }
+    },
+    "St Helena": {
+      "description": "A remote British island in the South Atlantic Ocean used as a place of exile and imprisonment.",
+      "context": "The location where Napoleon was imprisoned and spent his final years after his defeat and abdication, far removed from European affairs.",
+      "links": {
+        "wikipedia": "Saint_Helena",
+        "wikidata": "Q34497"
+      }
+    },
+    "Cossacks": {
+      "description": "Semi-nomadic military horsemen of the Russian steppes known for skilled cavalry warfare and guerrilla tactics.",
+      "context": "Russian cavalry forces that harassed and pursued Napoleon's retreating army throughout the withdrawal from Russia, inflicting severe losses.",
+      "links": {
+        "wikipedia": "Cossacks",
+        "wikidata": "Q124409"
+      }
+    },
+    "Coalition powers": {
+      "description": "The various European alliances formed against Napoleonic France throughout the Napoleonic Wars.",
+      "context": "The collective forces\u2014including Russia, Britain, Austria, and Prussia\u2014that ultimately opposed and defeated Napoleon after the Russian campaign's failure.",
+      "links": {
+        "wikipedia": "Napoleonic_Wars#Coalitions",
+        "wikidata": "Q190582"
+      }
+    },
+    "Disease": {
+      "description": "Illness caused by infection, disorder, or malfunction affecting organisms, often deadly in military campaigns.",
+      "context": "A major threat to Napoleon's Grande Arm\u00e9e during the catastrophic 1812 Russian campaign, claiming thousands of soldiers alongside combat losses."
+    },
+    "Desertion": {
+      "description": "Unauthorized abandonment of military service or duty by soldiers.",
+      "context": "A critical problem during Napoleon's retreat from Russia as morale collapsed and soldiers fled, threatening the cohesion of his army."
+    },
+    "Extreme cold": {
+      "description": "Severely frigid temperatures that pose life-threatening conditions to humans.",
+      "context": "The devastating winter conditions during the 1812 Russian retreat decimated Napoleon's Grande Arm\u00e9e, killing tens of thousands of soldiers."
+    },
+    "Maintain military cohesion during catastrophic retreat": {
+      "description": "Strategic objective to preserve organizational unity and command structure during a forced withdrawal.",
+      "context": "A critical challenge Napoleon faced during the 1812 Russian retreat as his army disintegrated amid disease, cold, and starvation."
+    },
+    "Save soldiers' lives during river crossings and retreat": {
+      "description": "Humanitarian goal to minimize casualties during dangerous military operations.",
+      "context": "A stated objective during Napoleon's retreat from Russia, though the massive losses suggest limited success in achieving this aim."
+    },
+    "Secure France's future through personal return to Paris": {
+      "description": "Political objective to ensure national stability and continuity by restoring central authority.",
+      "context": "Napoleon's urgent priority after the Russian disaster\u2014returning to France to prevent political collapse and reassert control during the 1812-1813 crisis."
+    },
+    "Rapidly rebuild military force to counter coalition powers": {
+      "description": "Strategic imperative to reconstitute armed strength to oppose allied enemies.",
+      "context": "Napoleon's focus after the Russian campaign as Prussia, Austria, and other powers mobilized against him in 1813."
+    },
+    "Control narrative and minimize perceived responsibility for disaster": {
+      "description": "Effort to shape public and historical interpretation of events through selective messaging.",
+      "context": "Napoleon's approach to managing the catastrophic losses in Russia through propaganda and strategic narratives about the retreat."
+    },
+    "Achieve redemption or moral reconciliation through retrospective empathy": {
+      "description": "Psychological goal to reframe past actions through compassionate reinterpretation.",
+      "context": "A possible motivation in Napoleon's later retrospective accounts of the Russian campaign, seeking to justify or soften judgment of his decisions."
+    },
+    "Preserve and expand imperial dominion": {
+      "description": "Objective to maintain and enlarge territorial control and imperial authority.",
+      "context": "A fundamental long-term goal driving Napoleon's military ambitions throughout his career, challenged fatally by the 1812 Russian campaign."
+    },
+    "Maintain personal invincibility and supremacy": {
+      "description": "Psychological objective to sustain an image of military genius and superior capability.",
+      "context": "A core component of Napoleon's self-image and leadership mystique, severely damaged by the Russian disaster and subsequent defeats."
+    },
+    "Reject negotiated peace and continue military struggle": {
+      "description": "Strategic decision to refuse diplomatic settlement and persist in armed conflict.",
+      "context": "Napoleon's consistent refusal to accept peace terms from 1813-1815, choosing continued warfare over negotiated compromise."
+    },
+    "Reorganize forces and mount counterattacks": {
+      "description": "Military strategy to reconstitute armies and resume offensive operations.",
+      "context": "Napoleon's response to mounting coalition pressure in 1813, attempting to rebuild and counterattack despite depleted resources."
+    },
+    "Shape and control fate through will and action": {
+      "description": "Philosophical belief in the power of individual determination and decisiveness to overcome circumstances.",
+      "context": "A core conviction in Napoleon's worldview that drove his refusal to accept limitations or contingency, even as external forces overwhelmed him."
+    },
+    "Avoid acknowledgement of human limitation and fallibility": {
+      "description": "Psychological defense mechanism rejecting admission of vulnerability or error.",
+      "context": "A dominant pattern in Napoleon's response to the Russian disaster, as he resisted admitting the extent of his miscalculation or human limits."
+    },
+    "Maintain emotional connection with loyal followers": {
+      "description": "A psychological and social goal focused on preserving relationships with devoted supporters and maintaining personal bonds.",
+      "context": "During his exile and attempts at restoration, Napoleon prioritized keeping his followers emotionally invested in his person and cause, recognizing their loyalty as essential to any political comeback."
+    },
+    "Escape the annihilation of lost power and identity": {
+      "description": "An existential objective to avoid complete erasure of one's political status and sense of self following catastrophic defeat.",
+      "context": "After his first abdication in 1814, Napoleon feared permanent obliteration of his identity and power, driving his desperate need to restore himself and prove his continued relevance."
+    },
+    "Restore lost imperial power and dominion": {
+      "description": "A political objective to reclaim control over territory and subjects previously ruled under imperial authority.",
+      "context": "Following his exile to Elba, Napoleon's fundamental ambition remained recovering the vast empire he had previously commanded across Europe."
+    },
+    "Remain productively engaged and mentally active": {
+      "description": "A psychological need to maintain intellectual stimulation and purposeful activity rather than face idleness or irrelevance.",
+      "context": "During his confinement, Napoleon sought mental occupation through governance, writing, and strategic planning, refusing the psychological death of enforced inactivity."
+    },
+    "Improve governance of territory under his control": {
+      "description": "An administrative objective to enhance the systems, laws, and institutions of ruled territories.",
+      "context": "Even in exile on Elba, Napoleon demonstrated his continued capacity for effective governance, implementing reforms that showcased his legitimacy as a ruler."
+    },
+    "Survive existential despair and find meaning to continue living": {
+      "description": "A fundamental psychological goal to overcome despair and establish reasons for continued existence following profound loss.",
+      "context": "Napoleon faced suicidal ideation during his most severe exiles; finding meaning in restoration and historical significance became essential to his psychological survival."
+    },
+    "Return to power and reclaim the throne": {
+      "description": "A direct political objective to regain the position of supreme authority and rule previously held.",
+      "context": "The Hundred Days represented Napoleon's most concrete attempt to reclaim the French throne after his Elban exile, briefly succeeding before Waterloo."
+    },
+    "Secure loyalty and support through narrative and spectacle": {
+      "description": "A strategic approach to maintain political power by crafting compelling narratives and staging dramatic public displays.",
+      "context": "Napoleon understood that his return to power depended not merely on military force but on controlling the story of his destiny and inspiring popular enthusiasm through careful presentation."
+    },
+    "Govern as a constitutional monarch with liberal reforms": {
+      "description": "A political vision combining limited monarchy with progressive institutional reforms.",
+      "context": "During the Hundred Days, Napoleon presented himself as a reformed ruler committed to constitutional governance and liberal principles, attempting to rebrand himself as enlightened rather than autocratic."
+    },
+    "Achieve international acceptance and peace with European powers": {
+      "description": "A diplomatic objective to gain recognition and non-interference from rival European nations.",
+      "context": "Napoleon recognized that sustainable power required European powers to accept or tolerate his rule; he attempted to present the Hundred Days as a peaceful restoration rather than imperial aggression."
+    },
+    "Experience the drama and risk of historic adventure": {
+      "description": "A psychological motivation involving the pursuit of intense, historically significant experiences and the thrill of high-stakes action.",
+      "context": "Napoleon's escape from Elba and return reflected not merely rational political calculation but also his appetite for dramatic, dangerous ventures that would cement his legendary status."
+    },
+    "Confirm himself as the protagonist and central agent of history": {
+      "description": "A narcissistic objective to establish oneself as the primary driving force and meaningful actor in historical events.",
+      "context": "Throughout his life and especially during his restoration attempts, Napoleon sought to prove that history revolved around his actions and will, positioning himself as destiny's instrument."
+    },
+    "Defeat Wellington and the Anglo-allied army": {
+      "description": "A specific military objective to achieve victory against the British commander and the coalition forces opposing Napoleon's rule.",
+      "context": "At Waterloo in 1815, defeating Wellington's Anglo-Prussian forces was essential to Napoleon's strategic plan to secure his restored power and break the coalition allied against him.",
+      "links": {
+        "wikipedia": "Arthur_Wellesley,_1st_Duke_of_Wellington",
+        "wikidata": "Q131412"
+      }
+    },
+    "Prevent Prussian reinforcements from arriving at Waterloo": {
+      "description": "A tactical military objective to avoid the arrival of additional enemy forces at a critical battle.",
+      "context": "Napoleon's strategy at Waterloo depended on defeating Wellington before Prussian forces under Bl\u00fccher could reinforce the Anglo-allied position; failing to prevent their arrival sealed his defeat.",
+      "links": {
+        "wikipedia": "Battle_of_Waterloo",
+        "wikidata": "Q4018"
+      }
+    },
+    "Preserve personal control and authority through blame-shifting": {
+      "description": "A defensive strategy of maintaining one's power and reputation by attributing failures to external factors or other agents.",
+      "context": "After Waterloo, Napoleon attempted to preserve his political standing by shifting blame for his defeat to subordinates like Marshal Ney, rather than accepting full responsibility for strategic miscalculations."
+    },
+    "Maintain belief in personal superiority and centrality": {
+      "description": "A psychological defense mechanism wherein an individual sustains conviction in their own exceptional importance and elevated status despite external contradictions.",
+      "context": "A core coping strategy Napoleon employed during his exile on Saint Helena, reinforcing his self-image as extraordinary even as his power crumbled."
+    },
+    "Secure asylum and favorable historical narrative after defeat": {
+      "description": "The dual objective of obtaining safe refuge and ensuring that historical accounts portray one's actions in a sympathetic or justifying light.",
+      "context": "Napoleon's strategy after his final defeat, seeking both physical safety and the chance to shape how posterity would judge his career and legacy."
+    },
+    "Justify surrender through historical analogy and self-comparison": {
+      "description": "A rhetorical approach that frames one's capitulation by drawing parallels to historical figures or events to render the surrender philosophically or morally acceptable.",
+      "context": "Napoleon's method of reconciling his abdication and surrender with his image of greatness by positioning himself alongside other historical actors."
+    },
+    "Maintain sense of self amid imprisonment and defeat": {
+      "description": "The psychological effort to preserve one's identity and sense of agency when confined and stripped of power.",
+      "context": "A crucial emotional task for Napoleon during his Saint Helena captivity, where he fought against the erasure of his identity and autonomy."
+    },
+    "Construct a historical legacy that preserves personal honor": {
+      "description": "The deliberate shaping of how one will be remembered in history to protect one's reputation and dignity.",
+      "context": "Napoleon's sustained project during exile to dictate his memoirs and public statements so that future generations would view him with dignity rather than shame."
+    },
+    "Rewrite military defeats as external misfortunes rather than personal errors": {
+      "description": "A defensive reinterpretation of failures by attributing them to circumstances beyond one's control rather than to one's own decisions or competence.",
+      "context": "Napoleon's consistent pattern of blaming subordinates, weather, logistics, and providence for military setbacks rather than acknowledging strategic miscalculations."
+    },
+    "Assert authority and dignity through resistance to Lowe's administration": {
+      "description": "The act of challenging or defying an oppressive authority as a means of demonstrating that one retains power and self-respect.",
+      "context": "Napoleon's confrontational stance toward Governor Hudson Lowe on Saint Helena, where refusal to comply became a form of psychological resistance and honor.",
+      "links": {
+        "wikipedia": "Hudson_Lowe",
+        "wikidata": "Q953097"
+      }
+    },
+    "Escape psychological destruction through belief in alternative reality": {
+      "description": "A dissociative coping mechanism wherein one maintains conviction in a version of events or circumstances that contradicts external reality.",
+      "context": "Napoleon's use of idealized memory and selective interpretation of his past to avoid the psychological devastation of acknowledging his complete defeat."
+    },
+    "Reframe imperial campaigns as righteous missions rather than acts of aggression": {
+      "description": "The reinterpretation of military conquests and imperial expansion as morally justified endeavors rather than naked imperialism.",
+      "context": "Napoleon's rationalization of his Napoleonic Wars as spreading civilization and rational law across Europe rather than serving his personal ambition."
+    },
+    "Reconnect with and raise his son": {
+      "description": "The desire to establish or maintain a parental relationship with one's child and exert formative influence over their development.",
+      "context": "Napoleon's concern for his son, Napoleon II, whom he was separated from and unable to raise directly, yet whom he hoped to influence and prepare as his heir.",
+      "links": {
+        "wikipedia": "Napoleon_II",
+        "wikidata": "Q150732"
+      }
+    },
+    "Establish and preserve order over chaos": {
+      "description": "The drive to create and maintain systematic organization, hierarchy, and predictable structure in one's environment and sphere of influence.",
+      "context": "A fundamental motivation throughout Napoleon's life, from his military campaigns to his legal codes, and continuing in his desire to impose structure on his exile experience."
+    },
+    "Control his historical narrative and legacy": {
+      "description": "The effort to directly influence how events are recorded and interpreted by future historians and the public.",
+      "context": "Napoleon's primary obsession during Saint Helena, where he dictated his memoirs and accounts to ensure his version of history would dominate posthumous judgment."
+    },
+    "Achieve spiritual reconciliation before death": {
+      "description": "The pursuit of inner peace and resolution with religious or existential concerns as one approaches mortality.",
+      "context": "In his final years on Saint Helena, Napoleon sought confession and religious comfort, attempting to reconcile his earthly ambitions with spiritual salvation."
+    },
+    "Find peace and acceptance in exile through simple pleasures": {
+      "description": "The cultivation of contentment and equanimity by appreciating modest joys and withdrawing from grandiose aspirations.",
+      "context": "Napoleon's claimed retreat into gardening, reading, and domestic life on Saint Helena as a philosophical acceptance of his diminished circumstances."
+    },
+    "Pathological detachment from human consequence": {
+      "description": "A psychological condition characterized by inability or unwillingness to emotionally register the suffering or harm caused by one's actions.",
+      "context": "A personality trait evident in Napoleon's willingness to sacrifice hundreds of thousands of lives in pursuit of imperial ambition with apparent emotional indifference."
+    },
+    "Shame-to-triumph narrative": {
+      "description": "A psychological pattern where humiliation or failure motivates extraordinary achievement and vindication.",
+      "context": "Central to Napoleon's personality; his Corsican origins and early military setbacks fueled relentless ambition to prove himself and dominate Europe."
+    },
+    "Addictive validation cycle": {
+      "description": "A behavioral pattern where repeated success reinforces compulsive need for further achievement and external confirmation.",
+      "context": "Drove Napoleon's endless military campaigns and expansion; each victory created psychological demand for the next conquest, making peace untenable."
+    },
+    "Institutional denial mechanism": {
+      "description": "Organizational or personal tendency to reject contradictory information and maintain false beliefs despite contrary evidence.",
+      "context": "Napoleon's refusal to acknowledge military limitations and strategic defeats, enabling increasingly reckless decisions despite warning signs of decline."
+    },
+    "Possession and control framework in intimacy": {
+      "description": "A relational dynamic where emotional connection is intertwined with dominance, ownership, and restriction of autonomy.",
+      "context": "Characterized Napoleon's marriages and affairs, particularly his need to control Josephine and later Marie Louise, treating spouses as possessions tied to his power."
+    },
+    "Spanish occupation": {
+      "description": "Military campaign of conquest and administration of a foreign territory.",
+      "context": "Napoleon's 1808 invasion and occupation of Spain became a draining quagmire of guerrilla resistance that weakened French resources and foreshadowed his later decline.",
+      "links": {
+        "wikipedia": "Peninsular_War",
+        "wikidata": "Q182202"
+      }
+    },
+    "Moscow campaign": {
+      "description": "A major military offensive launched to invade enemy territory and capture a strategic capital city.",
+      "context": "Napoleon's disastrous 1812 invasion of Russia; the failure to capture Moscow and catastrophic retreat marked the definitive turning point in his downfall.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q165347"
+      }
+    },
+    "Narcissistic identity defense through denial": {
+      "description": "Psychological mechanism where denial of criticism or failure protects an inflated self-image from collapse.",
+      "context": "Napoleon's habitual denial of limitations and refusal to acknowledge mistakes allowed him to rationalize defeats as temporary setbacks rather than fundamental flaws."
+    },
+    "Inability to accept constraint": {
+      "description": "Psychological resistance to accepting boundaries, limitations, or external restrictions on autonomy and power.",
+      "context": "Napoleon's fundamental personality trait; his refusal to accept the constraints of treaties, alliances, or enemies' territorial boundaries drove his compulsive expansion."
+    },
+    "Empirical failure signals": {
+      "description": "Observable, measurable evidence of performance degradation or strategic collapse.",
+      "context": "Napoleon systematically ignored mounting military losses, logistical failures, and casualty figures that clearly indicated his strategic decline before final defeat."
+    },
+    "Oscillation between manic energy and dark fatalism": {
+      "description": "Cyclical mood pattern alternating between hyperactive ambition and nihilistic despair.",
+      "context": "Characterized Napoleon's psychological state, especially in later years, swinging from grandiose military planning to resigned acceptance of inevitable doom."
+    },
+    "Emotional attachment despite political necessity": {
+      "description": "Personal affection persisting in conflict with rational strategic or political interests.",
+      "context": "Napoleon's deep feeling for Josephine even when her age made their union politically disadvantageous, leading to his anguished decision to divorce her for dynastic reasons."
+    },
+    "Trust erosion through infidelity": {
+      "description": "Degradation of relational confidence and security caused by romantic or sexual betrayal.",
+      "context": "Napoleon's multiple affairs and liaisons undermined trust with Josephine and later Marie Louise, exemplifying his inability to sustain intimate commitment."
+    },
+    "Dynastic succession imperative": {
+      "description": "Political necessity to establish hereditary continuity and secure power transfer to biological heirs.",
+      "context": "Drove Napoleon's obsession with producing a legitimate male heir, culminating in his divorce of Josephine and marriage to Marie Louise of Austria."
+    },
+    "Malmaison": {
+      "description": "A historic ch\u00e2teau and estate near Paris, France, originally a royal residence.",
+      "context": "Napoleon and Josephine's beloved private retreat and symbol of their intimate relationship; she retired there after their divorce and died there in 1814.",
+      "links": {
+        "wikipedia": "Malmaison",
+        "wikidata": "Q1344256"
+      }
+    },
+    "Russia's strategic depth and vastness": {
+      "description": "Geographic and logistical characteristic of Russia as a territory with enormous expanse that multiplies supply and communication challenges.",
+      "context": "Napoleon's fatal underestimation of Russia's ability to retreat into its vast interior and wage attrition warfare led to his 1812 campaign's catastrophic failure."
+    },
+    "epistemic framework collapse": {
+      "description": "A psychological or analytical condition where an individual's foundational beliefs, worldview, or decision-making system breaks down under stress or contradictory evidence.",
+      "context": "In Napoleon's biography, this describes his inability to adjust his strategic assumptions as circumstances changed, particularly evident in his failed Russian campaign and subsequent defeats."
+    },
+    "Austerlitz": {
+      "description": "A decisive military battle fought on December 2, 1805, in Moravia where Napoleon defeated a larger Austrian and Russian army.",
+      "context": "Napoleon's greatest tactical victory, demonstrating his military genius at its peak and solidifying his dominance over continental Europe during the height of his power.",
+      "links": {
+        "wikipedia": "Battle_of_Austerlitz",
+        "wikidata": "Q159797"
+      }
+    },
+    "Invasion of Russia": {
+      "description": "Napoleon's military campaign in 1812 to conquer the Russian Empire, involving the Grande Arm\u00e9e of over 600,000 soldiers.",
+      "context": "The turning point of Napoleon's fortunes; the catastrophic failure of this invasion due to overextension, supply lines, and Russian resistance marked the beginning of his downfall.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q170422"
+      }
+    },
+    "Prague Negotiations": {
+      "description": "Diplomatic talks held in Prague in 1813 between Napoleon's representatives and the allied powers Austria, Russia, and Prussia.",
+      "context": "Failed peace negotiations that represented Napoleon's last significant opportunity to negotiate a settlement before his enemies closed in for the final campaigns that would end his rule.",
+      "links": {
+        "wikipedia": "Negotiations_of_Prague_(1813)",
+        "wikidata": "Q2050798"
+      }
+    },
+    "mismatch between tactical brilliance and strategic reality": {
+      "description": "A gap between excellence in executing immediate military operations and failures in long-term planning, resource management, or geopolitical judgment.",
+      "context": "A core analytical concept for understanding Napoleon's career trajectory: his exceptional battlefield tactics could not overcome his increasingly flawed strategic decisions regarding overexpansion and enemy coalitions."
+    },
+    "Psychological safe harbour": {
+      "description": "A mental or emotional refuge where an individual retreats to maintain self-image and psychological stability despite external contradictions.",
+      "context": "In Napoleon's psychology, this may refer to his reliance on past military successes and self-image as an invincible commander to rationalize continued aggressive expansion despite deteriorating circumstances."
+    },
+    "Power dynamic reversal compulsion": {
+      "description": "A psychological drive to reassert dominance and control after experiencing loss, humiliation, or diminishment of status.",
+      "context": "Napoleon's repeated attempts to regain power after defeats, including the Hundred Days campaign following his first abdication, reflect a compulsion to reverse situations where his authority was challenged."
+    },
+    "Autonomy-seeking addiction": {
+      "description": "A psychological dependency on maintaining complete independence and freedom from external constraints or oversight.",
+      "context": "Napoleon's refusal to accept limitations on his power or to work within collective decision-making structures contributed to his isolation and ultimate downfall."
+    },
+    "Denial and avoidance under distance": {
+      "description": "A defense mechanism where individuals ignore or minimize threats and problems they do not directly observe or confront in the immediate moment.",
+      "context": "Napoleon's tendency to underestimate distant threats and overcommit resources based on incomplete information, exemplified by his underestimation of Russian resilience during the 1812 campaign."
+    },
+    "Italian campaigns": {
+      "description": "A series of military campaigns conducted by Napoleon between 1796 and 1797 against Austrian and Sardinian forces in the Italian peninsula.",
+      "context": "Napoleon's breakthrough victories in Italy established his military reputation, secured his political position with the French government, and demonstrated the tactical innovations that would define his early success.",
+      "links": {
+        "wikipedia": "Italian_campaigns_of_the_French_Revolutionary_Wars",
+        "wikidata": "Q1670234"
+      }
+    },
+    "Russian catastrophe": {
+      "description": "The disastrous outcome of the 1812 French invasion of Russia, resulting in the destruction of Napoleon's Grande Arm\u00e9e and loss of hundreds of thousands of soldiers.",
+      "context": "A catastrophic military and political defeat that shattered Napoleon's aura of invincibility, alienated his allies, and catalyzed the coalition of European powers that ultimately defeated him.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q170422"
+      }
+    },
+    "Hundred Days": {
+      "description": "The period from March 20 to June 22, 1815, when Napoleon escaped exile and returned to power in France before his final defeat.",
+      "context": "Napoleon's last attempt at power after his first abdication, culminating in his defeat at Waterloo and his ultimate removal from European politics, demonstrating his continued ability to inspire loyalty despite previous failures.",
+      "links": {
+        "wikipedia": "Hundred_Days",
+        "wikidata": "Q180687"
+      }
+    },
+    "Directory": {
+      "description": "The five-member executive government of France from 1795 to 1799 during the French Revolution's later stages.",
+      "context": "The political authority that initially supported and employed Napoleon as a military commander during the Italian campaigns and Egyptian expedition before he eventually seized power from it in 1799.",
+      "links": {
+        "wikipedia": "French_Directory",
+        "wikidata": "Q188746"
+      }
+    },
+    "Louis XVIII": {
+      "description": "The Bourbon king of France who ruled from 1815 to 1824 after the Napoleonic Wars.",
+      "context": "The legitimate monarch restored to the French throne following Napoleon's defeat and exile, representing the restoration of the old European order that Napoleon had sought to overturn.",
+      "links": {
+        "wikipedia": "Louis_XVIII_of_France",
+        "wikidata": "Q7741"
+      }
+    },
+    "Cognitive compartmentalization": {
+      "description": "A psychological process where an individual separates conflicting beliefs, emotions, or information into distinct mental categories to avoid cognitive dissonance.",
+      "context": "In Napoleon's psychology, this may describe his ability to maintain grandiose self-assessment and strategic confidence while simultaneously managing defeats and setbacks through selective attention and rationalization."
+    },
+    "Operational problem-solving vs adaptive strategy": {
+      "description": "A conceptual distinction between tactical troubleshooting within existing plans versus fundamental strategic adaptation when circumstances change.",
+      "context": "Central to understanding Napoleon's military decline; he excelled at operational problem-solving but struggled to adapt his grand strategic assumptions when conditions shifted, as evidenced in the Russian campaign."
+    },
+    "Logistics-as-calculable-system worldview": {
+      "description": "A belief that military supply chains and resource management can be reduced to mathematical certainty and predictable systems.",
+      "context": "Shaped Napoleon's planning methodology and contributed to catastrophic misjudgments, particularly the assumption that the Russian campaign's logistical challenges could be solved through calculation rather than adaptive supply."
+    },
+    "1812 Russian campaign failure": {
+      "description": "Napoleon's invasion of Russia resulting in massive casualties and the destruction of the Grande Arm\u00e9e, marking the beginning of his military decline.",
+      "context": "The decisive turning point in Napoleon's fortunes; the campaign's failure demonstrated the limits of his operational genius and triggered the collapse of his Continental system and subsequent coalition against him.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q166620"
+      }
+    },
+    "Tactical mastery as identity anchor": {
+      "description": "The psychological investment of one's self-conception and worth primarily in demonstrated excellence at battlefield tactics and military maneuvering.",
+      "context": "A core component of Napoleon's personality; his identity became inseparable from military victory, making strategic defeats psychologically destabilizing and potentially impairing his judgment in later campaigns."
+    },
+    "Narcissistic validation through military victory": {
+      "description": "Psychological dependence on conquest and triumph to maintain self-esteem and sense of greatness.",
+      "context": "Fundamental to Napoleon's motivational structure; the need for continuous military success drove increasingly ambitious campaigns and made retreat or compromise psychologically intolerable, escalating risk-taking."
+    },
+    "Compartmentalization of human suffering": {
+      "description": "The psychological mechanism of separating awareness of human cost from strategic decision-making to enable action without moral constraint.",
+      "context": "Enabled Napoleon to pursue ambitious military objectives without being psychologically paralyzed by casualty counts; allowed him to treat soldiers' lives as calculable resources in strategic equations."
+    },
+    "Overconfidence loop": {
+      "description": "A self-reinforcing cycle in which past successes generate excessive certainty in future outcomes, reducing risk assessment and increasing vulnerability to failure.",
+      "context": "Characterized Napoleon's later career; decades of military victories created psychological immunity to warnings about the Russian campaign and later led to miscalculation regarding coalition strength and his own remaining resources."
+    },
+    "Moscow occupation impotence": {
+      "description": "The strategic paralysis that occurred when Napoleon's army occupied Moscow in 1812 but found it abandoned, burned, and unable to serve as a decisive achievement.",
+      "context": "A pivotal moment revealing the limits of military occupation as strategic tool; despite capturing the enemy capital, Napoleon could neither extract surrender nor sustain his army, forcing retreat.",
+      "links": {
+        "wikipedia": "Burning_of_Moscow",
+        "wikidata": "Q1266625"
+      }
+    },
+    "Continental dominance": {
+      "description": "The goal of establishing French hegemony and control over Europe's major land powers and territories.",
+      "context": "Napoleon's primary strategic objective; it motivated the Continental System, repeated coalition wars, and ultimately the Russian invasion, representing his vision of a European order under French leadership."
+    },
+    "Dynastic marriage as political tool": {
+      "description": "The use of matrimonial alliances to legitimize power, secure borders, and bind defeated rivals to the French state through family connections.",
+      "context": "Central to Napoleon's strategy for consolidating power post-conquest; his marriages to Josephine and later Marie Louise of Austria exemplified his effort to transform military victory into dynastic legitimacy."
+    },
+    "Conversion of defeated enemies into stable allies": {
+      "description": "The strategic practice of incorporating vanquished opponents into one's political and military structure through managed reconciliation and mutual interest.",
+      "context": "A distinctive strength of Napoleon's rule; he often successfully converted defeated states into allies through careful administration and incentive alignment, though this strategy ultimately failed with Russia and Britain."
+    },
+    "Limits on ambition": {
+      "description": "The practical and theoretical constraints\u2014geographic, military, political, or psychological\u2014beyond which increased ambition produces diminishing returns or catastrophic failure.",
+      "context": "Napoleon's tragic flaw; he never adequately recognized or internalized limitations on his power, continuously overextending commitments until the Russian campaign revealed that his resources and strategic flexibility had finite bounds."
+    },
+    "Coalition peace offers (1813)": {
+      "description": "Diplomatic proposals from the allied powers (Austria, Prussia, Russia, Britain, Sweden) offering Napoleon negotiated settlements during the War of the Sixth Coalition.",
+      "context": "Presented Napoleon with opportunities to retain substantial territory and power through compromise rather than continued war; his rejection of these offers, driven by overconfidence and identity-based need for victory, accelerated his downfall.",
+      "links": {
+        "wikipedia": "War_of_the_Sixth_Coalition",
+        "wikidata": "Q734314"
+      }
+    },
+    "Austerlitz campaign": {
+      "description": "Napoleon's 1805 military campaign culminating in the Battle of Austerlitz, often considered his tactical masterpiece against combined Austro-Russian forces.",
+      "context": "A defining victory that crystallized Napoleon's self-perception as a military genius and reinforced the overconfidence patterns that would later contribute to strategic miscalculation in the Russian campaign.",
+      "links": {
+        "wikipedia": "Battle_of_Austerlitz",
+        "wikidata": "Q131390"
+      }
+    },
+    "Legitimacy anxiety": {
+      "description": "Underlying uncertainty about the rightfulness and permanence of one's power, particularly when that power derives from military conquest rather than hereditary or constitutional right.",
+      "context": "A persistent psychological tension in Napoleon's rule; despite his achievements, he remained anxious about legitimacy, motivating the creation of an imperial dynasty, marriage alliances, and continual demonstrations of power through victory."
+    },
+    "Earned authority through decisive action": {
+      "description": "A leadership principle wherein power and legitimacy are gained through bold, concrete decisions and their successful execution rather than inherited status or formal credentials.",
+      "context": "Central to Napoleon's rise from artillery officer to military commander and ultimately head of state; his rapid victories and decisive campaigns established his authority independent of aristocratic lineage."
+    },
+    "Channeling romantic intensity into military obsession": {
+      "description": "A psychological pattern of redirecting passionate emotional energy away from personal relationships and toward a consuming professional or ideological pursuit.",
+      "context": "Describes Napoleon's tendency to sublimate personal desires into military conquest and imperial ambition, particularly evident in his relentless campaigns and organizational obsessions."
+    },
+    "Emotional entanglement following conquest": {
+      "description": "Psychological condition wherein emotional attachment or instability emerges as a consequence of achieving military or political victory, often involving post-achievement disorientation.",
+      "context": "Relevant to Napoleon's behavior after major conquests, where moments of triumph were often followed by emotional volatility, impulsive decisions, and shifting relationships."
+    },
+    "Italian Campaign (1796-1797)": {
+      "description": "A series of military operations in which Napoleon defeated the Austro-Sardinian alliance and established French control over northern Italy, establishing his reputation as a military genius.",
+      "context": "Napoleon's breakthrough campaign that launched his prominence, demonstrating his tactical innovation and rapid decision-making, and crystallizing his authority through decisive action.",
+      "links": {
+        "wikipedia": "Italian_campaign_(1796\u20131797)",
+        "wikidata": "Q639126"
+      }
+    },
+    "Emotional dependency on external validation": {
+      "description": "A psychological pattern wherein self-worth and emotional stability are contingent upon recognition, admiration, and approval from others.",
+      "context": "Core to understanding Napoleon's compulsive need for victory, public acclaim, and territorial expansion; his emotional equilibrium appeared dependent on continuous military and political success."
+    },
+    "Blurring of public esteem and private connection": {
+      "description": "A psychological dynamic in which an individual conflates masses' political admiration or fear with personal emotional intimacy and genuine human connection.",
+      "context": "Evident in Napoleon's confusion between the adulation of France and his people's genuine regard, leading to miscalculations about personal loyalty and emotional support."
+    },
+    "Reality rewriting as control mechanism": {
+      "description": "A defensive psychological strategy wherein an individual systematically reconstructs or reinterprets factual events to maintain a preferred narrative and sense of control.",
+      "context": "Characteristic of Napoleon's self-justifications, propagandistic accounts of his campaigns, and later memoirs from exile, wherein he reframed defeats and controversial decisions."
+    },
+    "Avoidance of emotional introspection": {
+      "description": "A defensive pattern of resisting self-examination, internal reflection, or acknowledgment of one's psychological motivations and emotional vulnerabilities.",
+      "context": "Napoleon's consistent deflection from personal psychological inquiry, manifested in his tendency to externalize blame and focus obsessively on external action rather than internal examination."
+    },
+    "Borodino": {
+      "description": "A village near Moscow that was the site of the largest and bloodiest battle of the Napoleonic Wars in September 1812, between French and Russian armies.",
+      "context": "Represents the turning point where Napoleon's military invincibility was challenged; despite tactical success, the battle demonstrated the limitations of his methods against Russian resolve and contributed to the failure of his Russian campaign.",
+      "links": {
+        "wikipedia": "Battle_of_Borodino",
+        "wikidata": "Q192093"
+      }
+    },
+    "Scorched earth strategy": {
+      "description": "A military tactic wherein occupying or retreating forces destroy all resources, infrastructure, and provisions in a territory to deny them to advancing enemy forces.",
+      "context": "Russian forces under Kutuzov employed this strategy during Napoleon's 1812 invasion, systematically destroying supplies and infrastructure, which devastated French logistics and contributed to the Grande Arm\u00e9e's catastrophic collapse.",
+      "links": {
+        "wikipedia": "Scorched_earth",
+        "wikidata": "Q210434"
+      }
+    },
+    "Fontainebleau": {
+      "description": "A royal palace and town southeast of Paris that served as an imperial residence and administrative center during the Napoleonic era.",
+      "context": "Site of Napoleon's abdication in April 1814 following the Sixth Coalition's invasion and capture of Paris, marking the symbolic end of his first reign and his exile to Elba.",
+      "links": {
+        "wikipedia": "Palace_of_Fontainebleau",
+        "wikidata": "Q201571"
+      }
+    },
+    "Fundamental mismatch between tactical method and Russian theater": {
+      "description": "A strategic incompatibility between a military approach optimized for European continental warfare and the vast distances, harsh climate, and logistical challenges of the Russian landscape.",
+      "context": "Napoleon's tactics, perfected in densely populated European theaters, proved catastrophically inadequate against Russia's geography and defensive depth; his rapid-maneuver strategy collapsed under supply line failures across vast distances."
+    },
+    "dual consciousness": {
+      "description": "A psychological condition wherein an individual maintains two simultaneously contradictory self-concepts or awareness states that remain psychologically segregated.",
+      "context": "Applicable to Napoleon's internal division between his grandiose self-image as a visionary leader and his underlying emotional fragility, never consciously integrated."
+    },
+    "territorial allegiance as conditional on power": {
+      "description": "A political relationship wherein populations or regions pledge loyalty primarily based on military dominance and effective governance rather than cultural or national identification.",
+      "context": "Characteristic of Napoleon's empire, where subject territories remained loyal only so long as French military supremacy was unquestioned; allegiances evaporated rapidly following military defeats."
+    },
+    "provincial constraint": {
+      "description": "A limitation or restriction imposed on territories outside a central metropolitan power, often involving subordination to distant authority and extraction of resources.",
+      "context": "Describes the relationship between France and territories under Napoleon's control; these regions were treated as resource bases and strategic assets rather than equal partners."
+    },
+    "psychological reorientation": {
+      "description": "A cognitive process involving fundamental shifts in mental perspective, attitudes, or emotional frameworks in response to changed circumstances.",
+      "context": "A key adaptive mechanism Napoleon employed throughout his career, particularly during reversals such as exile and military setbacks."
+    },
+    "Egyptian campaign": {
+      "description": "Napoleon's 1798-1801 military expedition to Egypt and Syria, intended to expand French power in the Mediterranean and strike at British interests.",
+      "context": "An early ambitious campaign that demonstrated both Napoleon's strategic vision and the limits of his resources, contributing to his complex relationship with military invincibility.",
+      "links": {
+        "wikipedia": "French_campaign_in_Egypt_and_Syria",
+        "wikidata": "Q935547"
+      }
+    },
+    "Nelson's fleet": {
+      "description": "The British Royal Navy squadron commanded by Admiral Horatio Nelson, which dominated naval operations during the Napoleonic Wars.",
+      "context": "A formidable opponent that consistently thwarted Napoleon's naval ambitions and symbolized the limits of French military power at sea.",
+      "links": {
+        "wikipedia": "Horatio_Nelson",
+        "wikidata": "Q172228"
+      }
+    },
+    "Mamluk resistance": {
+      "description": "Military opposition from the Mamluk military caste ruling Egypt, who resisted French occupation and control.",
+      "context": "A significant adversary during Napoleon's Egyptian campaign that illustrated the complexities of colonial warfare and contributed to the campaign's ultimate failure.",
+      "links": {
+        "wikipedia": "Mamluks",
+        "wikidata": "Q102301"
+      }
+    },
+    "narrative reconstruction as coping mechanism": {
+      "description": "A psychological strategy wherein individuals reframe or reinterpret past events through selective storytelling to manage emotional distress or maintain self-image.",
+      "context": "Central to Napoleon's behavior during St. Helena exile, where he constructed idealized narratives of his reign to preserve his legacy and psychological stability."
+    },
+    "gap between mythology and material reality": {
+      "description": "The discrepancy between idealized or exaggerated accounts of events and their actual historical facts and outcomes.",
+      "context": "A defining tension in Napoleon's life, where his constructed legend increasingly diverged from military and political realities, particularly in his later campaigns."
+    },
+    "The Moscow Campaign": {
+      "description": "Napoleon's 1812 invasion of Russia, which resulted in catastrophic losses and marked the beginning of his military decline.",
+      "context": "The pivotal turning point in Napoleon's career that exposed the vulnerabilities beneath his mystique of invincibility and initiated his psychological and political unraveling.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q189593"
+      }
+    },
+    "Psychological compartmentalisation under extreme stress": {
+      "description": "A defense mechanism wherein individuals mentally separate conflicting thoughts, emotions, or realities to function under severe pressure.",
+      "context": "A critical survival strategy Napoleon employed during military crises and exile to maintain operational effectiveness despite mounting evidence of defeat."
+    },
+    "The threshold between invincibility and fallibility": {
+      "description": "The critical point or boundary where perceived infallibility transitions into demonstrated human limitation and vulnerability.",
+      "context": "A central psychological crossroads in Napoleon's narrative, where his self-image as an invincible military genius collided with tangible defeats after Russia and Leipzig."
+    },
+    "Rearguard organisation under catastrophic conditions": {
+      "description": "Military tactics and command structures designed to maintain order and effect strategic withdrawal when facing overwhelming defeat or enemy pressure.",
+      "context": "Exemplified during Napoleon's retreat from Russia and the 1815 Waterloo campaign, revealing both his tactical skill and the impossible odds he faced."
+    },
+    "St Helena exile period": {
+      "description": "Napoleon's imprisonment and residence on the remote island of St Helena from 1815 until his death in 1821.",
+      "context": "The final chapter of Napoleon's life where isolation and powerlessness forced him into narrative reconstruction and psychological adaptation as his only form of agency.",
+      "links": {
+        "wikipedia": "Saint_Helena",
+        "wikidata": "Q25230"
+      }
+    },
+    "Denial of human limitation": {
+      "description": "A psychological pattern of refusing to acknowledge personal constraints, mortality, vulnerability, or the finite scope of one's power.",
+      "context": "A persistent feature of Napoleon's psychology that prevented realistic assessment of his declining resources and ultimately contributed to his successive defeats."
+    },
+    "Peace proposals as threats to supremacy": {
+      "description": "The perception that negotiations or peace settlements compromise total authority and strategic dominance.",
+      "context": "A recurring pattern in Napoleon's decision-making, where he rejected negotiated settlements when facing equal adversaries, preferring escalation to preserve his supremacy."
+    },
+    "Defiant escalation under adversity": {
+      "description": "A behavioral pattern of intensifying commitment and aggression when facing opposition or potential failure, rather than retreating or accommodating.",
+      "context": "A defining characteristic of Napoleon's response to mounting opposition during the Wars of Coalition, driving his reinvasion attempts and ultimately hastening his downfall."
+    },
+    "Self-sealing cognitive loop": {
+      "description": "A circular pattern of thinking wherein beliefs reinforce themselves by filtering out contradictory evidence, preventing realistic self-assessment.",
+      "context": "Fundamental to Napoleon's psychological trajectory, where his legend of invincibility became self-perpetuating despite accumulating evidence of limitation and defeat."
+    },
+    "External obstacles as validation": {
+      "description": "A psychological mechanism where external resistance or opposition is interpreted as confirmation of one's importance or correctness.",
+      "context": "In Napoleon's psychology, opposition from rivals and enemies served to validate his conviction that he was a significant historical figure worthy of struggle."
+    },
+    "Dangerous conviction of intellectual deservingness": {
+      "description": "An unshakeable belief in one's superior intellect and entitlement to power and privilege based on mental superiority.",
+      "context": "A core psychological trait in Napoleon that drove his ambitions and justified his authoritarian approach to rule and military command."
+    },
+    "Subordination of bodily limitation to will": {
+      "description": "The psychological practice of overriding physical constraints or health limitations through force of determination.",
+      "context": "Napoleon's characteristic willingness to ignore exhaustion, illness, and physical vulnerability in pursuit of military and political objectives."
+    },
+    "Cognitive blind spot regarding unilateral authority": {
+      "description": "A fundamental inability to recognize the limitations or problems inherent in concentrated, unchecked power wielded by a single person.",
+      "context": "A critical psychological weakness in Napoleon that prevented him from understanding the instability of his autocratic system and its vulnerability to collapse."
+    },
+    "Bayonet wound at Toulon": {
+      "description": "A combat injury sustained during the Siege of Toulon in 1793 when Napoleon was struck by a bayonet while commanding artillery.",
+      "context": "A formative military experience that demonstrated Napoleon's willingness to expose himself to danger and contributed to his reputation for bold leadership.",
+      "links": {
+        "wikipedia": "Siege_of_Toulon",
+        "wikidata": "Q1058536"
+      }
+    },
+    "Narrative reconstruction": {
+      "description": "The psychological process of reinterpreting past events to create a coherent and self-serving version of history.",
+      "context": "A mechanism through which Napoleon rationalized his decisions and defeats, maintaining a consistent self-image despite contradictions."
+    },
+    "Psychological compensation through activity": {
+      "description": "A coping mechanism in which emotional distress or inadequacy is offset through intense engagement in work or action.",
+      "context": "Napoleon's tendency to pursue relentless military campaigns and administrative reforms as a way to manage internal psychological tensions and insecurities."
+    },
+    "Loss of dominance in social hierarchy collapse": {
+      "description": "The psychological trauma and identity crisis resulting from a sudden drop in social status and power after previously holding supreme authority.",
+      "context": "A defining experience of Napoleon's later life, particularly following his abdication and exile, which shattered his sense of inevitable superiority."
+    },
+    "Confusion of territorial occupation with political surrender": {
+      "description": "A cognitive error in which military control of territory is mistaken for the achievement of lasting political objectives or legitimate rule.",
+      "context": "A critical miscalculation in Napoleon's strategy, exemplified in his campaigns in Russia and Spain, where occupation did not translate to political submission."
+    },
+    "Gap between military dominance and psychological leverage": {
+      "description": "The discrepancy between military power and the ability to influence behavior, beliefs, or loyalty through psychological means.",
+      "context": "A fundamental limitation in Napoleon's authority: his armies could conquer territory but could not manufacture genuine popular support or legitimacy."
+    },
+    "Conviction-based resistance": {
+      "description": "Sustained opposition or defiance rooted in deeply held beliefs rather than material advantage or strategic calculation.",
+      "context": "The form of resistance Napoleon encountered from peoples and nations who rejected his rule on ideological grounds, resisting despite his military superiority."
+    },
+    "Alexander I of Russia": {
+      "description": "Russian Tsar who reigned from 1801 to 1825, initially allied with then opposed to Napoleon, and played a key role in his downfall.",
+      "context": "A crucial adversary whose strategic resistance, refusal to surrender, and diplomatic skill in forming coalitions were instrumental in Napoleon's ultimate defeat.",
+      "links": {
+        "wikipedia": "Alexander_I_of_Russia",
+        "wikidata": "Q24321"
+      }
+    },
+    "Rigid cognitive framework resistant to updating": {
+      "description": "An inflexible mental model or worldview that resists modification in light of new information or contradictory evidence.",
+      "context": "A psychological trait limiting Napoleon's adaptability, preventing him from revising his assumptions about his own invincibility or the feasibility of his strategies."
+    },
+    "Gap between occupation and legitimacy": {
+      "description": "The distinction between possessing de facto control through force and possessing de jure authority recognized as rightful by a population.",
+      "context": "A persistent vulnerability in Napoleon's rule: despite military occupation of vast territories, his authority remained contested and perceived as illegitimate by many subjects."
+    },
+    "Aristocratic humiliation at Brienne": {
+      "description": "The social ostracism and class-based discrimination experienced by young Napoleon at the military school of Brienne-le-Comte due to his Corsican, non-French origins.",
+      "context": "An early formative trauma that bred resentment toward aristocratic privilege and may have motivated Napoleon's drive to transcend social limitations through military achievement.",
+      "links": {
+        "wikipedia": "Brienne-le-Comte",
+        "wikidata": "Q208656"
+      }
+    },
+    "Meritocratic revolution as personal vindication": {
+      "description": "The principle of advancement based on ability rather than birth, which Napoleon used to justify his own rise from minor Corsican gentry to supreme power.",
+      "context": "Central to Napoleon's self-legitimation; he positioned himself as the embodiment of revolutionary meritocracy against the ancien r\u00e9gime's hereditary aristocracy."
+    },
+    "Destruction of aristocratic privilege": {
+      "description": "The systematic dismantling of hereditary class-based legal and economic advantages that characterized feudal and early modern European societies.",
+      "context": "A cornerstone of Napoleon's revolutionary agenda and the Napoleonic Code; presented both as ideological commitment and pragmatic consolidation of revolutionary gains."
+    },
+    "Humiliation transformed into revolutionary zeal": {
+      "description": "The psychological mechanism by which personal slight or social rejection is channeled into ideological commitment and transformative action.",
+      "context": "Arguably applies to Napoleon's early marginalization as a Corsican outsider in French military and aristocratic circles, fueling his identification with revolutionary principles."
+    },
+    "Strategic patience under duress": {
+      "description": "The military and political strategy of restraint and timing, avoiding precipitous action while enduring adversity to seize optimal moments.",
+      "context": "Characterizes Napoleon's approach during the Italian campaign (1796-97) and his consolidation of power through the Brumaire coup (1799) rather than direct seizure."
+    },
+    "Geography as strategic weapon": {
+      "description": "The use of terrain, climate, logistics, and spatial positioning as fundamental instruments of military strategy and political control.",
+      "context": "Core to Napoleon's operational genius; exemplified in Italian maneuvers (1796), Egyptian campaign, and ultimately his downfall in the Russian vastness."
+    },
+    "Conditional collaboration with hegemonic power": {
+      "description": "A diplomatic strategy of partial cooperation with dominant powers while maintaining autonomy and strategic options.",
+      "context": "Relevant to Napoleon's fluctuating relationships with Britain, Austria, and Russia; describes his attempts to negotiate settlements while preserving French dominance."
+    },
+    "Moscow burning": {
+      "description": "The September 1812 destruction of Moscow by Russian forces during Napoleon's retreat, denying him supplies and symbolic victory.",
+      "context": "Turning point in the 1812 Russian campaign; demonstrated the limits of Napoleon's strategic reach and contributed directly to the Grande Arm\u00e9e's catastrophic losses.",
+      "links": {
+        "wikipedia": "Moscow_in_the_Napoleonic_Wars",
+        "wikidata": "Q1233256"
+      }
+    },
+    "Napoleonic invasion of Russia": {
+      "description": "The 1812 military campaign in which the Grande Arm\u00e9e of approximately 600,000 men invaded the Russian Empire, resulting in massive casualties and strategic failure.",
+      "context": "Napoleon's most ambitious and ultimately devastating campaign; the failure to decisively defeat Russia initiated his political decline and led to the Wars of the Sixth Coalition.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q170576"
+      }
+    },
+    "Battle of Waterloo": {
+      "description": "The June 18, 1815 battle in Belgium between Napoleon's reconstituted army and the allied forces of Britain, Prussia, and the Netherlands, resulting in Napoleon's final military defeat.",
+      "context": "Decisive end to Napoleon's Hundred Days attempt to reclaim power; sealed his downfall and marked the definitive restoration of the Bourbon monarchy.",
+      "links": {
+        "wikipedia": "Battle_of_Waterloo",
+        "wikidata": "Q180193"
+      }
+    },
+    "Prussian prevention requirement": {
+      "description": "The strategic necessity of preventing Prussian forces from joining allied armies to avoid overwhelming numerical disadvantage.",
+      "context": "Tactical imperative during the 1815 Waterloo campaign; Napoleon attempted to defeat British and Dutch forces before Prussian reinforcements could arrive, but failed to achieve this objective."
+    },
+    "Coordination complexity constraint": {
+      "description": "The inherent difficulties in synchronizing military movements, communications, and logistics across large distances and multiple subordinate commanders.",
+      "context": "Affected Napoleon's Waterloo strategy; allied forces' coordination ultimately prevailed despite initial Prussian delays, contributing to his defeat."
+    },
+    "June 1815 pre-Waterloo phase": {
+      "description": "The period immediately preceding the Battle of Waterloo during which Napoleon maneuvered to split and defeat allied forces before they could consolidate.",
+      "context": "The Hundred Days campaign's critical operational phase; Napoleon attempted to exploit allied positions before Prussian reinforcement, but strategic timing and coordination failures proved fatal."
+    },
+    "June 18, 1815 Waterloo engagement phase": {
+      "description": "The actual daylong battle of June 18, 1815, characterized by repeated cavalry and infantry charges against increasingly reinforced allied positions.",
+      "context": "The culminating engagement of Waterloo; despite initial tactical opportunities, Napoleon could not break allied lines before Prussian arrival, forcing his retreat and ultimate abdication."
+    },
+    "Terrain analysis and reconnaissance": {
+      "description": "The systematic examination of landscape features and defensive positions to inform military strategy and tactical disposition of forces.",
+      "context": "A hallmark of Napoleon's military method; at Waterloo, the muddy terrain hindered his artillery and cavalry, contributing to tactical disadvantages that reconnaissance alone could not overcome."
+    },
+    "Technical mastery as path to authority": {
+      "description": "The principle that expertise in specialized domains, particularly military science and engineering, confers legitimacy for wielding political power.",
+      "context": "Fundamental to Napoleon's self-conception; his genuine military innovation and technical competence provided justification beyond mere ambition, resonating with Enlightenment values of rational authority."
+    },
+    "Artillery positioning and deployment": {
+      "description": "The tactical art of strategically placing and maneuvering cannon and firepower on the battlefield to maximize destructive effect and control terrain.",
+      "context": "Napoleon's revolutionary mastery of concentrated artillery created a signature tactical advantage that dominated European battlefields and became central to his military methodology."
+    },
+    "Pyrrhic victory pattern": {
+      "description": "A military condition where a victory is achieved at such catastrophic cost that it negates strategic gains, named after the ancient king Pyrrhus.",
+      "context": "Napoleon's later campaigns increasingly exhibited this pattern, where tactical battlefield wins failed to achieve strategic objectives or were offset by unsustainable losses.",
+      "links": {
+        "wikipedia": "Pyrrhic_victory",
+        "wikidata": "Q179661"
+      }
+    },
+    "Limits of conventional military dominance": {
+      "description": "The inherent boundaries beyond which traditional warfare and military superiority cannot achieve political, economic, or ideological goals.",
+      "context": "Napoleon's career arc illustrated how exceptional military prowess could be constrained by factors like geography, industrial capacity, coalition politics, and national resolve."
+    },
+    "Cognitive dissonance between tactical and strategic outcomes": {
+      "description": "The psychological conflict arising when successful tactical execution in battles fails to produce desired strategic or political results.",
+      "context": "Napoleon experienced this acutely in his later campaigns, where battlefield victories increasingly did not translate into territorial control or enemy capitulation."
+    },
+    "Russian Campaign 1812": {
+      "description": "Napoleon's massive invasion of Russia involving over 600,000 troops, resulting in catastrophic losses and marking the beginning of his military decline.",
+      "context": "The failed Russian campaign was the pivotal turning point in Napoleon's fortunes, destroying the Grande Arm\u00e9e's reputation for invincibility and triggering the cascade toward his downfall.",
+      "links": {
+        "wikipedia": "French_invasion_of_Russia",
+        "wikidata": "Q165155"
+      }
+    },
+    "British institutional resilience": {
+      "description": "The capacity of British political, naval, and economic institutions to sustain prolonged conflict and resist foreign domination despite military pressure.",
+      "context": "Britain's ability to endure Napoleon's attempts at continental dominance and maintain naval superiority proved to be one of the few powers capable of indefinite resistance against him."
+    },
+    "Maritime-industrial power": {
+      "description": "The combined capacity of naval dominance and industrial manufacturing capability that enables a nation to project power, sustain warfare, and control trade routes.",
+      "context": "Britain's superior maritime-industrial complex ultimately proved more consequential than Napoleon's continental military dominance, allowing it to outlast him through economic blockade and global reach."
+    },
+    "Egypt campaign": {
+      "description": "Napoleon's 1798-1799 military expedition to Egypt and Syria, intended to disrupt British trade and establish French colonial power in the Eastern Mediterranean.",
+      "context": "The Egyptian campaign marked Napoleon's first significant military failure, where logistical challenges and British naval superiority prevented territorial consolidation despite initial tactical successes.",
+      "links": {
+        "wikipedia": "French_campaign_in_Egypt_and_Syria",
+        "wikidata": "Q183382"
+      }
+    },
+    "Waterloo to surrender": {
+      "description": "The final military campaign of 1815, culminating in Napoleon's defeat at the Battle of Waterloo and his subsequent abdication and surrender to the British.",
+      "context": "Waterloo represented Napoleon's absolute military defeat, ending his Hundred Days return from Elba and forcing his unconditional surrender, marking the irreversible end of his political power.",
+      "links": {
+        "wikipedia": "Battle_of_Waterloo",
+        "wikidata": "Q44624"
+      }
+    },
+    "Post-surrender captivity period": {
+      "description": "The phase of Napoleon's life following his surrender in 1815, spent imprisoned on the remote island of Saint Helena until his death in 1821.",
+      "context": "This captivity transformed Napoleon from active military commander into a powerless prisoner, forcing a radical confrontation with his loss of agency and dominance.",
+      "links": {
+        "wikipedia": "Saint_Helena",
+        "wikidata": "Q42050"
+      }
+    },
+    "Jailer role": {
+      "description": "The position of custodian or imprisoner who exercises control and restricts freedom, holding power over a captive.",
+      "context": "Napoleon's experience of being jailed inverted his former role as controller of destinies, forcing him to experience subjugation to the will of others, particularly British authorities."
+    },
+    "Existential void": {
+      "description": "A profound psychological state of meaninglessness or purposelessness, characterized by the absence of direction, significance, or coherent identity.",
+      "context": "Napoleon faced an existential void during captivity, having been stripped of the military purpose, dominion, and grandiose mission that had structured his entire life."
+    },
+    "Acceptance and meaning-construction divorced from dominion": {
+      "description": "The psychological process of finding or creating significance and purpose independent of power, control, or external domination.",
+      "context": "In his final period, Napoleon attempted to reconstruct meaning and legacy through narrative and reflection rather than through military conquest or political authority."
+    },
+    "Narrative restoration": {
+      "description": "A coping mechanism whereby an individual reconstructs their identity and significance through storytelling, memoir, or revisionist accounts of their life and achievements.",
+      "context": "During his Saint Helena captivity, Napoleon engaged in extensive dictation of his memoirs and conversations, attempting to reshape his historical legacy and personal meaning through narrative."
+    },
+    "Bifurcation in coping": {
+      "description": "A psychological splitting whereby an individual develops divergent or contradictory approaches to managing the same underlying crisis or loss.",
+      "context": "Napoleon's captivity revealed bifurcated coping: simultaneously clinging to past grandeur through nostalgic narrative while attempting existential acceptance of his reduced state."
+    },
+    "Active resistance through restoration attempts": {
+      "description": "A coping strategy involving deliberate efforts to reclaim or restore lost power, status, or position through direct action rather than acceptance.",
+      "context": "Napoleon's repeated attempts to return to power after his first exile (Hundred Days) and his refusal to accept diminishment of his authority, reflecting psychological resistance to permanent loss of identity."
+    },
+    "Passive surrender and self-annihilation ideation": {
+      "description": "A coping mechanism characterized by withdrawal, acceptance of defeat, and contemplation of non-existence or cessation of struggle.",
+      "context": "Reflected in Napoleon's periods of despair during exile, particularly on Saint Helena, where he confronted powerlessness and the prospect of being forgotten by history."
+    },
+    "Psychological fragmentation": {
+      "description": "The splitting or disintegration of coherent sense of self, often resulting from trauma, identity loss, or irreconcilable internal contradictions.",
+      "context": "Evident in Napoleon's crisis of identity following military defeat, when his self-concept as invincible military commander collapsed, leaving existential confusion."
+    },
+    "Military collapse and loss of identity": {
+      "description": "The catastrophic failure of armed forces coupled with the dissolution of the subject's core self-definition tied to military prowess.",
+      "context": "The collapse of Napoleon's Grande Arm\u00e9e in Russia (1812) and final defeat at Waterloo (1815) triggered an existential crisis, as his entire identity rested on military genius and invincibility.",
+      "links": {
+        "wikipedia": "Napoleonic_Wars",
+        "wikidata": "Q108352"
+      }
+    },
+    "Existential despair confrontation without resolution": {
+      "description": "Direct engagement with meaninglessness, powerlessness, or existential dread without achieving reconciliation, acceptance, or psychological closure.",
+      "context": "Napoleon's exile years, especially on Saint Helena, forced confrontation with mortality, irrelevance, and the ephemeral nature of power, without finding philosophical or spiritual resolution."
+    },
+    "18 Brumaire coup": {
+      "description": "The coup d'\u00e9tat of November 9, 1799, in which Napoleon overthrew the French Directory and established the Consulate.",
+      "context": "Napoleon's first seizure of supreme power through military intervention, replacing civilian government and marking the beginning of his authoritarian rule.",
+      "links": {
+        "wikipedia": "Coup_of_18_Brumaire",
+        "wikidata": "Q207547"
+      }
+    },
+    "Council presidency": {
+      "description": "The executive role of presiding over a deliberative body, wielding authority to direct decisions and set agendas.",
+      "context": "Likely referring to Napoleon's position as First Consul (1799-1804), the chief executive authority he claimed after the 18 Brumaire coup."
+    },
+    "tolerance for historical erasure": {
+      "description": "The capacity or acceptance to allow one's deeds, legacy, and personal significance to be forgotten or misrepresented by history.",
+      "context": "A concept relating to Napoleon's later life and exile, where he confronted the possibility that his grand achievements might be obscured, reinterpreted, or forgotten by subsequent generations."
+    },
+    "institutional leverage vs. personal charisma": {
+      "description": "The contrast between wielding power through formal organizational structures and rules versus commanding authority through individual magnetism and personal appeal.",
+      "context": "Central to Napoleon's political method: his ability to combine institutional control (military hierarchy, legal codes) with extraordinary personal magnetism that commanded loyalty beyond formal authority."
+    },
+    "legitimist movement": {
+      "description": "A political faction supporting the restoration of the Bourbon monarchy and the principle of hereditary divine right against revolutionary and Napoleonic regimes.",
+      "context": "Representing the opposition to Napoleon's rule and his legacy; legitimists sought to erase Napoleonic reforms and restore the ancien r\u00e9gime after his defeat.",
+      "links": {
+        "wikipedia": "Legitimism",
+        "wikidata": "Q207539"
+      }
+    },
+    "Austrian ward status": {
+      "description": "A condition of political subordination and constraint wherein an individual or territory is placed under Austrian control or guardianship.",
+      "context": "After his abdication, Napoleon was exiled to Elba under European supervision; his son, the King of Rome, was raised as an Austrian ward, preventing dynastic restoration."
+    },
+    "dynastic threat concept": {
+      "description": "The strategic concern that an individual's offspring or family line could perpetuate power, ideology, or claims challenging existing political authority.",
+      "context": "European powers feared that Napoleon's son or other Bonapartes could inherit his legendary status and threaten stability; this drove decisions to isolate Napoleon and prevent dynastic succession."
+    },
+    "Control of coercive apparatus": {
+      "description": "Command over the military, police, and instruments of force that enforce obedience and suppress opposition through violence or threat thereof.",
+      "context": "Foundation of Napoleon's political power; his absolute command of the French military allowed him to consolidate authority, execute grand strategy, and suppress domestic opposition."
+    },
+    "Control of symbolic apparatus": {
+      "description": "Dominion over the means of representation, propaganda, ideology, and cultural production that shape public perception and legitimize authority.",
+      "context": "Napoleon's mastery of symbols (Bonapartist imagery, military pageantry, legal codes, educational reform) created a myth of himself as the embodiment of progress and order, sustaining loyalty beyond rational interest."
+    },
+    "18 Brumaire Year VIII": {
+      "description": "The Revolutionary calendar date (November 9, 1799) corresponding to the coup d'\u00e9tat that brought Napoleon to power.",
+      "context": "The specific historical moment marking Napoleon's transition from military commander to political ruler, initiating the Consulate and his path toward absolute power.",
+      "links": {
+        "wikipedia": "Coup_of_18_Brumaire",
+        "wikidata": "Q207547"
+      }
+    }
+  }
+}

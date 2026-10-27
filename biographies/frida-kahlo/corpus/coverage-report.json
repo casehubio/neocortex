@@ -1,0 +1,1290 @@
+{
+  "overall_coverage_pct": 26.4,
+  "covered": 15,
+  "fuzzy_matched": 14,
+  "noise_dismissed": 42,
+  "real_gaps": 81,
+  "total_nlp_entities": 152,
+  "classification": {
+    "covered": [
+      {
+        "entity": "La Casa Azul",
+        "nlp_type": "organisation",
+        "mentions": 11,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Mexico City",
+        "nlp_type": "place",
+        "mentions": 7,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Coyoac\u00e1n",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Los Cachuchas",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Diego Rivera",
+        "nlp_type": "organisation",
+        "mentions": 3,
+        "tier": "central",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Frida Kahlo",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "San Francisco",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "The Two Fridas",
+        "nlp_type": "work-of-art",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Lupe Mar\u00edn",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Edward Weston",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Jean Charlot",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Julien Levy",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Leon Trotsky",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Stalinism",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      },
+      {
+        "entity": "Dr Eloesser",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "covered",
+        "noise_confidence": 0.0
+      }
+    ],
+    "fuzzy_matched": [
+      {
+        "entity": "Frida",
+        "nlp_type": "organisation",
+        "mentions": 64,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "frida's mother"
+      },
+      {
+        "entity": "Diego",
+        "nlp_type": "person",
+        "mentions": 35,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "diego rivera"
+      },
+      {
+        "entity": "Mexico",
+        "nlp_type": "place",
+        "mentions": 15,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "mexico city"
+      },
+      {
+        "entity": "Trotsky",
+        "nlp_type": "person",
+        "mentions": 3,
+        "tier": "central",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "leon trotsky"
+      },
+      {
+        "entity": "Stalin",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "stalinism"
+      },
+      {
+        "entity": "Self-Portrait",
+        "nlp_type": "work-of-art",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "self-portrait with cropped hair"
+      },
+      {
+        "entity": "Juan Farill",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "dr juan farill"
+      },
+      {
+        "entity": "Frida Kahlo Calder\u00f3n",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "frida kahlo"
+      },
+      {
+        "entity": "Cuauhtemotzin",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "cuauhtemotzin and cinco de mayo"
+      },
+      {
+        "entity": "the Red Cross Hospital",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "red cross hospital"
+      },
+      {
+        "entity": "The Frame",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "the two fridas"
+      },
+      {
+        "entity": "Fridas",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "frida's mother"
+      },
+      {
+        "entity": "Diego's Trotskyism",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "trotskyism"
+      },
+      {
+        "entity": "Frida Kahlo's",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "fuzzy-matched",
+        "noise_confidence": 0.8,
+        "matched_to": "frida kahlo"
+      }
+    ],
+    "noise_dismissed": [
+      {
+        "entity": "Mexican",
+        "nlp_type": "group",
+        "mentions": 19,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "first",
+        "nlp_type": "unknown",
+        "mentions": 13,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "European",
+        "nlp_type": "group",
+        "mentions": 13,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "one",
+        "nlp_type": "unknown",
+        "mentions": 11,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "Two",
+        "nlp_type": "unknown",
+        "mentions": 5,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "three",
+        "nlp_type": "unknown",
+        "mentions": 4,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "second",
+        "nlp_type": "unknown",
+        "mentions": 4,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "half",
+        "nlp_type": "unknown",
+        "mentions": 3,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "American",
+        "nlp_type": "group",
+        "mentions": 3,
+        "tier": "central",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "four",
+        "nlp_type": "unknown",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "Communist",
+        "nlp_type": "group",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Parisian",
+        "nlp_type": "group",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "German",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Catholic",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Spanish",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "third",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "common word"
+      },
+      {
+        "entity": "only thirty-five",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "two thousand",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "eleven",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "more than thirty",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Italian",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "twenty-two",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "forty-two",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "pre-Columbian",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Americans",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "six",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "Stalinist",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "English",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "French",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Freudian",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "Trotskyist",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "only two",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Xoloitzcuintli",
+        "nlp_type": "group",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.85,
+        "dismiss_reason": "nationality/group (NORP)"
+      },
+      {
+        "entity": "dozens",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "approximately 200",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "55",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.95,
+        "dismiss_reason": "short unknown token"
+      },
+      {
+        "entity": "nine",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "at least six",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "Three hundred",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "thirty-two",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "two hundred",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      },
+      {
+        "entity": "twenty-fifth",
+        "nlp_type": "unknown",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "dismissed-noise",
+        "noise_confidence": 0.7,
+        "dismiss_reason": "unclassified NLP entity"
+      }
+    ],
+    "real_gaps": [
+      {
+        "entity": "Cristina",
+        "nlp_type": "person",
+        "mentions": 6,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Tehuana",
+        "nlp_type": "person",
+        "mentions": 5,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Breton",
+        "nlp_type": "person",
+        "mentions": 4,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Matilde",
+        "nlp_type": "person",
+        "mentions": 3,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "San \u00c1ngel",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "New York",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "central",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Paris",
+        "nlp_type": "place",
+        "mentions": 3,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Louvre",
+        "nlp_type": "person",
+        "mentions": 3,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.1
+      },
+      {
+        "entity": "Marx",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Preparatoria",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Henry Ford Hospital",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Natalia",
+        "nlp_type": "place",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Nickolas Muray",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Muray",
+        "nlp_type": "person",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "The Broken Column",
+        "nlp_type": "work-of-art",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Marxism Will Give Health",
+        "nlp_type": "work-of-art",
+        "mentions": 2,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Magdalena Carmen",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Guillermo Kahlo",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Matilde Calder\u00f3n",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Gonz\u00e1lez",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Adriana",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Guillermo",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "The Mexican Revolution",
+        "nlp_type": "activity",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Emiliano Zapata's",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Escuela Nacional Preparatoria",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "G\u00f3mez Arias",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Hegel",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Spengler",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Creation",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Young Communist League",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Cinco de Mayo",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Europe",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Tina Modotti",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Modotti",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Communist Party's",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Ministry of Education",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "supporting",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the San Francisco Stock Exchange",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the California School of Fine Arts",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the United States",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Leo Eloesser",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Portrait of Dr Leo Eloesser",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Detroit",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Detroit Institute of Arts",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Henry Ford Hospital",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Juan O'Gorman",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "A Few Small Nips",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Isamu Noguchi",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Chavela Vargas",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Georgia O'Keeffe",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Fulang-Chang",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Soviet Union",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Riveras",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Andr\u00e9 Breton",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Julien Levy Gallery",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Marcel Duchamp",
+        "nlp_type": "project",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Galerie Pierre Colle",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Renou et Colle",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the American Hospital",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "The European Frida",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Judas",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Ionic",
+        "nlp_type": "project",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Ministry of Education's",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "School of Painting and Sculpture",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "La Esmeralda",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Los Fridos",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Mexican Communist Party",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Masonite",
+        "nlp_type": "project",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "What the Water Gave Me",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "The Wounded Deer",
+        "nlp_type": "work-of-art",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Philip Wilson",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Hospital for Special Surgery",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Hospital Ingl\u00e9s",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Demerol",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Lola \u00c1lvarez Bravo",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Galer\u00eda Arte Contempor\u00e1neo",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Gangrene",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "CIA",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "Guatemala",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "gaunt",
+        "nlp_type": "person",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Palace of Fine Arts",
+        "nlp_type": "place",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      },
+      {
+        "entity": "the Pante\u00f3n Civil de Dolores",
+        "nlp_type": "organisation",
+        "mentions": 1,
+        "tier": "peripheral",
+        "status": "real-gap",
+        "noise_confidence": 0.3
+      }
+    ]
+  }
+}

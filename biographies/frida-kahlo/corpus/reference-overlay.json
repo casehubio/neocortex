@@ -1,0 +1,1109 @@
+{
+  "source": "LLM general knowledge (claude-haiku-4-5@20251001)",
+  "generated": "2026-10-26",
+  "version": "v1.0",
+  "subject": "Frida Kahlo",
+  "total_entries": 247,
+  "entries": {
+    "Physical resilience and bodily defiance": {
+      "description": "The capacity to overcome physical limitations and assert bodily autonomy through determination and deliberate action.",
+      "context": "A core goal for Kahlo following her polio infection and bus accident, manifesting in her refusal to be defined by disability and her assertion of physical presence through art and lived experience."
+    },
+    "Artistic and intellectual independence": {
+      "description": "The autonomy to create and think without external control, following one's own vision and values in creative and intellectual pursuits.",
+      "context": "Central to Kahlo's development as an artist, driving her distinctive self-portraiture and rejection of conventional aesthetic standards to establish her own artistic authority."
+    },
+    "Protective caregiving and emotional bonding with father": {
+      "description": "The provision of nurturing support and the cultivation of deep emotional connection with a paternal figure.",
+      "context": "Reflected in Kahlo's early relationship with her father Guillermo, whom she admired and supported, shaping her understanding of love and responsibility."
+    },
+    "Develop composure and resilience in crisis": {
+      "description": "The cultivation of emotional stability and psychological strength in the face of trauma, pain, and adversity.",
+      "context": "Essential to Kahlo's survival and artistic development following her 1925 bus accident, enabling her to transform suffering into creative expression."
+    },
+    "Challenge gender norms through physical activity": {
+      "description": "The transgression of cultural expectations about feminine comportment by engaging in sports, physical labor, or bodily display.",
+      "context": "Part of Kahlo's early rebellion against gender conventions, including her participation in athletics and her later bold self-representation that defied ladylike propriety."
+    },
+    "Overcome polio-induced shame and social stigma": {
+      "description": "The process of resolving internalized embarrassment and external discrimination resulting from a serious infectious disease's physical effects.",
+      "context": "Kahlo contracted polio as a child, experiencing both physical disability and social rejection; her art and defiant self-presentation became means of reclaiming dignity and visibility."
+    },
+    "Identify with revolutionary Mexico and political commitment": {
+      "description": "The alignment of personal identity and artistic practice with a nation's anti-imperialist, socialist, and indigenous-centered political movements.",
+      "context": "Kahlo adopted left-wing politics and celebrated Mexican indigenous culture and pre-Columbian heritage as central to her artistic identity and political activism."
+    },
+    "Master nature study and scientific observation": {
+      "description": "The development of systematic knowledge about the natural world through careful examination, classification, and empirical investigation.",
+      "context": "Reflected in Kahlo's early intellectual interests and her later incorporation of detailed botanical and zoological imagery into her paintings."
+    },
+    "Learn and master photography": {
+      "description": "The acquisition of technical and artistic proficiency in the medium of photographic image-making.",
+      "context": "Kahlo worked in her father's photography studio and later became an accomplished photographer herself, developing visual literacy that informed her painterly approach."
+    },
+    "Study medicine": {
+      "description": "The pursuit of formal education in medical science, diagnosis, and treatment of human disease.",
+      "context": "Kahlo enrolled in medical school following her accident but did not complete her degree, though her medical knowledge informed her anatomically informed self-portraits."
+    },
+    "Understand the human body through anatomical precision": {
+      "description": "The systematic knowledge of bodily structure, function, and pathology through detailed study of human anatomy.",
+      "context": "Central to Kahlo's artistic practice, as she depicted her own body with unflinching anatomical accuracy while incorporating symbolic and emotional dimensions."
+    },
+    "Develop intellectual and emotional intimacy with an equal": {
+      "description": "The cultivation of a relationship characterized by mutual respect, shared intellectual engagement, and emotional depth between partners of comparable capabilities.",
+      "context": "A goal reflected in Kahlo's relationships, particularly her complex marriage to Diego Rivera, in which she sought recognition as an intellectual and creative peer."
+    },
+    "Create and exhibit ambitious artistic work": {
+      "description": "The production of substantial, challenging artworks intended for public presentation and critical engagement.",
+      "context": "Kahlo's central life purpose, manifesting in her distinctive self-portraits and symbolic compositions that achieved international recognition and museum exhibition."
+    },
+    "Fuse personal experience with political commitment through art": {
+      "description": "The integration of autobiography, bodily experience, and historical consciousness into artistic practice as a form of political expression.",
+      "context": "Kahlo's signature artistic strategy, using her own suffering and Mexican identity to create works that simultaneously assert personal authenticity and revolutionary consciousness."
+    },
+    "Achieve intellectual independence and participation": {
+      "description": "The attainment of autonomous intellectual agency and active contribution to cultural, artistic, or political discourse.",
+      "context": "A persistent goal for Kahlo in her relationships and artistic career, seeking recognition as a thinking subject rather than merely a muse or supporter of others' work."
+    },
+    "Maintain independence within romantic relationships": {
+      "description": "A personal goal emphasizing autonomy and self-determination while engaged in intimate partnerships.",
+      "context": "A core aspiration in Kahlo's life, reflecting her desire to preserve her identity and agency despite her tumultuous romantic relationships."
+    },
+    "Paint monumental Mexican history for ordinary people": {
+      "description": "An artistic objective to create large-scale visual narratives of Mexico's historical events accessible to common citizens.",
+      "context": "A central artistic mission for Kahlo, driving her commitment to making Mexican cultural heritage visible and relevant to working-class audiences."
+    },
+    "Engage in critical debate about Mexican nationalism and art's revolutionary role": {
+      "description": "An intellectual goal to participate in discourse on how art serves nationalist and revolutionary political movements.",
+      "context": "Reflects Kahlo's engagement with the political and artistic currents of post-revolutionary Mexico and her position within debates about art's social purpose."
+    },
+    "Frida Kahlo": {
+      "description": "Mexican artist renowned for surrealist-influenced self-portraits and paintings exploring identity, pain, and Mexican culture.",
+      "context": "The subject of this biography; the central figure whose life, relationships, artistic practice, and goals are being documented.",
+      "links": {
+        "wikipedia": "Frida_Kahlo",
+        "wikidata": "Q5588"
+      }
+    },
+    "Alejandro": {
+      "description": "An early romantic interest and member of Los Cachuchas intellectual group in Kahlo's youth.",
+      "context": "One of Kahlo's first significant romantic relationships during her teenage years in Mexico City."
+    },
+    "Frida's mother": {
+      "description": "Matilde Calder\u00f3n de la Barca, Kahlo's mother who influenced her early life and family dynamics.",
+      "context": "A key family figure in Kahlo's childhood and formative years, shaping her domestic environment and personal relationships."
+    },
+    "Frida's father": {
+      "description": "Guillermo Kahlo, a German-Mexican photographer and artist who influenced Kahlo's creative sensibilities.",
+      "context": "A formative parental influence on Kahlo's artistic development and early exposure to visual creativity and European cultural perspectives.",
+      "links": {
+        "wikipedia": "Guillermo_Kahlo",
+        "wikidata": "Q5611098"
+      }
+    },
+    "Mexico City": {
+      "description": "The capital and largest city of Mexico, a major cultural and political center.",
+      "context": "Kahlo's birthplace and primary residence throughout her life, central to her identity and artistic engagement with Mexican culture.",
+      "links": {
+        "wikipedia": "Mexico_City",
+        "wikidata": "Q1489"
+      }
+    },
+    "La Casa Azul": {
+      "description": "A distinctive blue house in Coyoac\u00e1n, Mexico City, which served as Kahlo's family home and later her primary residence.",
+      "context": "Kahlo's intimate domestic space and creative sanctuary, deeply connected to her artistic identity and the setting for much of her personal and artistic life.",
+      "links": {
+        "wikipedia": "La_Casa_Azul",
+        "wikidata": "Q648446"
+      }
+    },
+    "Red Cross Hospital": {
+      "description": "A medical facility in Mexico City providing emergency and ongoing healthcare services.",
+      "context": "The hospital where Kahlo was treated following the severe bus accident that caused her lifelong chronic pain and physical disabilities."
+    },
+    "Los Cachuchas": {
+      "description": "An intellectual and cultural group of students in Mexico City during the 1920s engaged in artistic and political discussion.",
+      "context": "A formative social circle in Kahlo's adolescence that shaped her intellectual development, artistic ambitions, and exposure to progressive political ideas."
+    },
+    "the bus accident": {
+      "description": "A severe 1925 collision between a bus and streetcar in Mexico City that caused life-altering injuries to its victims.",
+      "context": "A traumatic pivotal event in Kahlo's life at age 18 that caused permanent spinal and bodily damage, leading to chronic pain that defined her physical existence and artistic output."
+    },
+    "Frida's artistic practice": {
+      "description": "Kahlo's distinctive approach to painting characterized by self-portraiture, surrealist influence, and exploration of pain, identity, and Mexican iconography.",
+      "context": "The core creative expression through which Kahlo processed her suffering, documented her identity, and engaged with Mexican cultural and political themes."
+    },
+    "approach despite suffering": {
+      "description": "A philosophical stance emphasizing resilience, creativity, and engagement with life despite chronic pain and physical limitation.",
+      "context": "A defining characteristic of Kahlo's life and artistic method\u2014her ability to create, love, and remain politically engaged despite the constant physical anguish from her injuries."
+    },
+    "Cuauhtemotzin and Cinco de Mayo": {
+      "description": "A street in Mexico City named after the last Aztec emperor and the date commemorating Mexico's 1862 victory against French invasion.",
+      "context": "The residential location in Coyoac\u00e1n where Kahlo lived, symbolically connecting her home to Mexican indigenous heritage and nationalist commemoration."
+    },
+    "Survive catastrophic injury and recovery": {
+      "description": "The fundamental objective of enduring and recuperating from severe physical trauma and its long-term consequences.",
+      "context": "Central to Kahlo's life narrative after her 1938 bus accident left her with lifelong injuries that shaped her artistic and personal journey."
+    },
+    "Transform suffering into artistic expression": {
+      "description": "The creative process of converting personal pain and hardship into meaningful artistic or cultural works.",
+      "context": "Kahlo's defining artistic strategy, channeling her physical and emotional suffering into powerful paintings that became her signature approach."
+    },
+    "Develop artistic identity and mastery": {
+      "description": "The process of cultivating technical skill, personal style, and recognition as a legitimate artist.",
+      "context": "A core ambition driving Kahlo's artistic practice and her effort to establish herself as an independent creative force."
+    },
+    "Process and understand bodily suffering through observation": {
+      "description": "The practice of examining and contemplating physical pain and bodily experience as a means of comprehension.",
+      "context": "Kahlo's methodological approach to her art, using her own body as both subject matter and instrument of inquiry into human suffering."
+    },
+    "Approach suffering directly rather than avoid it": {
+      "description": "The conscious choice to confront pain and hardship head-on instead of denying or escaping it.",
+      "context": "Fundamental to Kahlo's artistic philosophy and psychological resilience, refusing to shy away from depicting her condition unflinchingly."
+    },
+    "Combat isolation and maintain psychological engagement": {
+      "description": "The effort to resist loneliness and despair through active mental and emotional involvement.",
+      "context": "A crucial survival mechanism for Kahlo during periods of immobilization and chronic pain, addressed partly through her commitment to art and relationships."
+    },
+    "Develop artistic mastery and distinctive visual voice": {
+      "description": "The achievement of technical excellence and the creation of a recognizable, original artistic style.",
+      "context": "Kahlo's ambitious goal to establish herself as a significant painter with a unique visual language distinct from her contemporaries."
+    },
+    "Achieve financial independence and economic self-sufficiency": {
+      "description": "The objective of generating income and sustaining oneself without economic dependence on others.",
+      "context": "Essential to Kahlo's desire for autonomy, particularly important given her complex economic relationship with Diego Rivera and her need for financial security."
+    },
+    "Maintain personal autonomy and independence within relationships": {
+      "description": "The preservation of individual agency, decision-making authority, and self-determination while involved in intimate partnerships.",
+      "context": "A persistent tension in Kahlo's marriage to Rivera, as she sought to maintain her identity and creative independence within their tumultuous relationship."
+    },
+    "Protect against emotional vulnerability and abandonment through self-reliance": {
+      "description": "The psychological strategy of building internal resilience and independence to guard against the pain of loss or rejection.",
+      "context": "A defensive pattern in Kahlo's relationships, partly rooted in her family history and exacerbated by Rivera's infidelities and their multiple separations."
+    },
+    "Gain recognition and validation as an artist": {
+      "description": "The pursuit of public acknowledgment, critical acclaim, and legitimacy for one's creative work.",
+      "context": "A significant motivation for Kahlo, who struggled during her lifetime to achieve the recognition she felt she deserved, often overshadowed by Rivera's fame."
+    },
+    "Integrate into artistic and political intellectual circles": {
+      "description": "The goal of participation in communities of artists, intellectuals, and political activists engaged in cultural discourse.",
+      "context": "Kahlo sought membership in avant-garde and leftist circles, partly through her relationship with Rivera and partly through her own artistic and political commitments."
+    },
+    "Paint honest, unflinching self-representation": {
+      "description": "The artistic practice of creating truthful, unapologetic depictions of oneself without idealization or evasion.",
+      "context": "Kahlo's signature approach to self-portraiture, presenting her body, pain, and emotions with raw honesty that challenged artistic conventions of her era."
+    },
+    "Diego Rivera": {
+      "description": "Mexican muralist and painter (1886\u20131957) renowned for large-scale public murals depicting Mexican history and social themes.",
+      "context": "Kahlo's husband and artistic mentor; their passionate, turbulent marriage profoundly shaped both her personal life and artistic development, marked by mutual influence, infidelities, and creative collaboration.",
+      "links": {
+        "wikipedia": "Diego_Rivera",
+        "wikidata": "Q128594"
+      }
+    },
+    "Coyoac\u00e1n": {
+      "description": "Historic neighborhood in Mexico City, known as a cultural and intellectual center with colonial architecture and artistic heritage.",
+      "context": "Kahlo's birthplace and lifelong home, where she established her studio and lived much of her life; the Blue House (Casa Azul) in Coyoac\u00e1n became synonymous with her identity and artistic practice.",
+      "links": {
+        "wikipedia": "Coyoac\u00e1n",
+        "wikidata": "Q172515"
+      }
+    },
+    "Lupe Mar\u00edn": {
+      "description": "Mexican painter and wife of Diego Rivera before Frida Kahlo.",
+      "context": "Frida's predecessor in Diego Rivera's life; her existence shaped the dynamics and challenges of Frida's own marriage to Rivera.",
+      "links": {
+        "wikipedia": "Lupe_Mar\u00edn",
+        "wikidata": "Q448828"
+      }
+    },
+    "Edward Weston": {
+      "description": "American modernist photographer known for his innovative photographic techniques and artistic vision.",
+      "context": "Influential contemporary artist whose work Frida encountered and who represented the avant-garde artistic circles she moved through during her career.",
+      "links": {
+        "wikipedia": "Edward_Weston",
+        "wikidata": "Q316341"
+      }
+    },
+    "Jean Charlot": {
+      "description": "French-Mexican muralist and painter who worked in Mexico during the early 20th century.",
+      "context": "Contemporary artist within Mexico's avant-garde scene who influenced Frida's artistic environment and the broader muralist movement.",
+      "links": {
+        "wikipedia": "Jean_Charlot",
+        "wikidata": "Q1380036"
+      }
+    },
+    "Julien Levy": {
+      "description": "American art dealer and gallery owner who championed Surrealism and modern art in New York.",
+      "context": "Key figure in promoting Frida's work internationally; his gallery provided crucial support for her artistic recognition and sales.",
+      "links": {
+        "wikipedia": "Julien_Levy",
+        "wikidata": "Q6304058"
+      }
+    },
+    "retablo tradition": {
+      "description": "Mexican folk art practice of creating small devotional painted panels, often depicting religious scenes or miraculous events.",
+      "context": "Artistic tradition that deeply influenced Frida's visual style, informing her use of color, composition, and narrative in her paintings.",
+      "links": {
+        "wikipedia": "Retablo",
+        "wikidata": "Q1370553"
+      }
+    },
+    "European artistic traditions": {
+      "description": "Established artistic practices, styles, and conventions developed across European art history from Renaissance through modernism.",
+      "context": "Frida deliberately positioned herself against and distinguished her work from these traditions, asserting a distinctly Mexican and personal artistic identity."
+    },
+    "Surrealism": {
+      "description": "Early 20th-century avant-garde art movement emphasizing the unconscious mind, dream imagery, and liberation from rational constraints.",
+      "context": "Movement with which Frida's work was associated and exhibited, though she resisted the label, claiming her paintings depicted her own reality rather than surreal fantasy.",
+      "links": {
+        "wikipedia": "Surrealism",
+        "wikidata": "Q39821"
+      }
+    },
+    "Communism": {
+      "description": "Political ideology based on collective ownership and the absence of social classes, advocating for revolutionary social transformation.",
+      "context": "Core political commitment that shaped Frida's worldview, activism, and artistic content; she joined the Communist Party and remained devoted to its ideals.",
+      "links": {
+        "wikipedia": "Communism",
+        "wikidata": "Q6186"
+      }
+    },
+    "Frida and Diego's household salon": {
+      "description": "The artistic and intellectual gathering space in Frida and Diego Rivera's shared home in Mexico City.",
+      "context": "Central hub of Frida's social and professional life where she hosted visitors, artists, and intellectuals, establishing her presence within Mexico's cultural elite."
+    },
+    "sexual autonomy as political equality": {
+      "description": "Concept linking personal sexual freedom and bodily autonomy to broader political rights and equality within social structures.",
+      "context": "Ideological framework guiding Frida's approach to her marriage and personal relationships; she viewed sexual independence as inseparable from political and personal liberation."
+    },
+    "the marriage of Frida and Diego": {
+      "description": "The union between Frida Kahlo and Mexican muralist Diego Rivera, a complex relationship marked by mutual admiration and profound conflict.",
+      "context": "Central to Frida's biography; the marriage was a source of creative inspiration, emotional turmoil, and ongoing negotiation of independence and identity."
+    },
+    "Achieve artistic independence and originality": {
+      "description": "Goal of creating distinctive, authentic artwork that reflects personal vision rather than adherence to established artistic movements or conventions.",
+      "context": "Fundamental aspiration driving Frida's artistic development; she sought to establish her own visual language distinct from Diego's shadow and European traditions."
+    },
+    "Establish sexual autonomy and political equality within marriage": {
+      "description": "Objective of securing personal sexual freedom and equal partnership in a relationship structured around shared values and mutual respect.",
+      "context": "Primary personal goal reflecting Frida's feminist consciousness; she actively pursued romantic relationships outside her marriage and demanded equal treatment from Diego."
+    },
+    "Secure Diego's emotional validation and approval": {
+      "description": "Desire to gain recognition, approval, and emotional affirmation from a significant other.",
+      "context": "Conflicting goal within Frida's psychology; despite seeking independence, she remained emotionally invested in obtaining Diego's validation and artistic recognition."
+    },
+    "Reduce emotional dependency and increase self-respect": {
+      "description": "Objective of achieving psychological autonomy and self-worth independent of external validation and relationship dynamics.",
+      "context": "Ongoing personal struggle for Frida; she worked toward greater self-sufficiency and inner confidence while navigating the competing demands of love and independence."
+    },
+    "Establish legitimacy as an artist in her own right": {
+      "description": "A personal objective to be recognized and valued as an independent creative practitioner rather than solely as an extension of another artist's career.",
+      "context": "A core ambition for Kahlo, who struggled throughout her life to have her work recognized on its own merits, separate from her identity as Diego Rivera's wife."
+    },
+    "Participate as an intellectual equal in political and artistic circles": {
+      "description": "A goal to engage in discourse and decision-making within cultural and political communities as a peer rather than a subordinate or outsider.",
+      "context": "Kahlo sought acceptance and voice within Mexico's intellectual and revolutionary circles, particularly among the artists and political figures of her era."
+    },
+    "Paint subjects from personal pain and emotional experience": {
+      "description": "An artistic approach centered on transforming private suffering and internal psychological states into visual imagery.",
+      "context": "This became Kahlo's defining artistic methodology, turning her physical ailments, emotional turmoil, and personal trauma into powerful self-portraits and symbolic paintings."
+    },
+    "Achieve motherhood": {
+      "description": "A personal aspiration to experience pregnancy, childbirth, and the role of being a mother.",
+      "context": "Motherhood was a significant life goal for Kahlo, though she faced multiple miscarriages and medical complications that prevented her from successfully carrying pregnancies to term."
+    },
+    "Carry pregnancy to term despite medical risks": {
+      "description": "An objective to successfully maintain and deliver a pregnancy despite physical or health-related obstacles.",
+      "context": "Given Kahlo's spinal injuries and health complications from her accident, carrying pregnancy was medically perilous, yet she repeatedly attempted to achieve this goal."
+    },
+    "Understand her own body and medical condition": {
+      "description": "A pursuit of knowledge about one's own physical health, physiology, and medical diagnoses.",
+      "context": "Kahlo sought to comprehend her complex medical situation\u2014including her spinal injuries, gynecological problems, and chronic pain\u2014to have agency over her own healthcare."
+    },
+    "Process traumatic experience through painting": {
+      "description": "An effort to work through psychological or emotional trauma by channeling it into artistic creation.",
+      "context": "Kahlo's severe bus accident and subsequent injuries became the wellspring of her artistic expression, as she used painting to process pain and trauma."
+    },
+    "Establish trusted medical partnership": {
+      "description": "An aim to develop a collaborative and respectful relationship with medical professionals based on mutual trust and shared decision-making.",
+      "context": "Kahlo sought doctors who would listen to her body's signals and involve her in treatment decisions rather than imposing paternalistic authority."
+    },
+    "Maintain cultural and national identity while abroad": {
+      "description": "An objective to preserve one's cultural heritage, national affiliation, and authentic self while living or working outside one's country of origin.",
+      "context": "When Kahlo traveled internationally\u2014particularly to the United States with Diego Rivera\u2014she deliberately maintained her Mexican cultural identity and clothing."
+    },
+    "Challenge medical paternalism through direct engagement": {
+      "description": "An effort to resist and question the authority and assumptions of medical professionals by actively participating in one's own healthcare decisions.",
+      "context": "Kahlo resisted doctors' control over her body and medical decisions, insisting on her own understanding of her condition and her right to make choices about treatment."
+    },
+    "Maintain artistic integrity and independence": {
+      "description": "A commitment to preserving one's creative vision and autonomy without compromising artistic principles for external pressure or commercial demands.",
+      "context": "Throughout her marriage to Diego Rivera and despite financial pressures, Kahlo fought to keep her art authentic to her vision rather than adapting it for wider appeal."
+    },
+    "Preserve emotional autonomy within marriage": {
+      "description": "An aspiration to retain psychological independence and emotional self-governance even within an intimate partnership.",
+      "context": "Kahlo struggled to maintain her emotional independence and sense of self within her tumultuous marriage to Diego Rivera, who was often controlling and unfaithful."
+    },
+    "Seek genuine emotional intimacy and tenderness": {
+      "description": "A desire for authentic emotional connection, vulnerability, and affectionate care from a partner.",
+      "context": "Kahlo longed for emotional closeness and tender affection in her personal relationships, which her marriage to the often-distant Diego Rivera frequently failed to provide."
+    },
+    "Explore and express bisexuality authentically": {
+      "description": "An objective to acknowledge, express, and live openly with attraction to multiple genders without denial or social constraint.",
+      "context": "Kahlo had relationships with women throughout her life and sought to express this dimension of her sexuality authentically within a society and marriage that limited such expression."
+    },
+    "Process trauma and betrayal through artistic expression": {
+      "description": "A practice of transforming emotional wounds\u2014including disappointment, infidelity, and loss\u2014into creative work.",
+      "context": "Kahlo repeatedly channeled the pain of Diego's infidelities, her miscarriages, and emotional betrayals into her paintings, making her personal suffering visible and meaningful through art."
+    },
+    "Assert control over self-presentation and identity": {
+      "description": "A psychological goal involving agency over how one is perceived and the construction of personal identity.",
+      "context": "Central to Kahlo's lifelong effort to define herself on her own terms rather than through others' interpretations, particularly against being reduced to Diego Rivera's wife or a surrealist curiosity."
+    },
+    "Evaluate continuation of marriage": {
+      "description": "A relational decision-making process examining whether to sustain or end a committed partnership.",
+      "context": "Reflects Kahlo's recurring deliberation about her tumultuous marriage to Diego Rivera, marked by infidelities and emotional turbulence that she continually reassessed throughout their relationship."
+    },
+    "Protect self from further disappointment through emotional detachment": {
+      "description": "A defensive psychological mechanism to minimize pain by creating emotional distance from relationships.",
+      "context": "A coping strategy Kahlo employed in response to repeated betrayals and heartbreak, particularly within her marriage and romantic relationships."
+    },
+    "Reconcile with Cristina and maintain family bonds": {
+      "description": "An interpersonal objective to restore harmony and preserve familial connections after conflict or estrangement.",
+      "context": "Pertains to Kahlo's relationship with her sister Cristina, with whom she had a serious rupture when Cristina had an affair with Diego Rivera, which Kahlo sought to heal over time."
+    },
+    "Establish artistic autonomy and independence from Diego's shadow": {
+      "description": "A professional and creative objective to achieve independent recognition separate from a dominant collaborator or partner.",
+      "context": "A fundamental ambition for Kahlo to be recognized as an artist in her own right rather than as an adjunct to or derivative of Diego Rivera's renowned artistic legacy."
+    },
+    "Achieve financial self-sufficiency as foundation for autonomy": {
+      "description": "An economic goal to generate independent income as a prerequisite for personal and creative freedom.",
+      "context": "Essential to Kahlo's ability to escape financial dependence on Diego and establish genuine autonomy in her artistic and personal life."
+    },
+    "Secure a solo exhibition and commercial validation for her work": {
+      "description": "A professional objective to achieve individual artistic recognition through public exhibition and market success.",
+      "context": "Kahlo actively pursued solo exhibitions to establish her reputation as an independent artist; her 1938 New York exhibition represented a significant achievement of this goal."
+    },
+    "Assert authentic Mexican and indigenous identity in artistic work": {
+      "description": "A cultural and artistic intention to affirm and express genuine Mexican and indigenous heritage through creative production.",
+      "context": "Central to Kahlo's artistic project of asserting her Mexican identity and rejecting European aesthetic frameworks, celebrated through indigenous symbolism and cultural imagery in her paintings."
+    },
+    "Paint authentic personal reality rather than European surrealist aesthetics": {
+      "description": "An artistic commitment to represent subjective truth and lived experience over conformity to external artistic movements.",
+      "context": "Kahlo insisted her work derived from her own reality rather than surrealism, despite European artists' efforts to categorize her as surrealist; she rejected this interpretation throughout her career."
+    },
+    "Resist European appropriation and misinterpretation of her Mexican experience": {
+      "description": "A cultural-political stance against the colonizing interpretation and commodification of non-European identity and experience.",
+      "context": "Kahlo resisted efforts by European surrealists and intellectuals to appropriate her work and Mexican identity for their own artistic movements and philosophies."
+    },
+    "Process and transmute personal suffering into artistic expression": {
+      "description": "A psychological and creative objective to transform pain and trauma into meaningful artistic work.",
+      "context": "Core to Kahlo's artistic practice; she channeled her chronic physical pain, emotional trauma, and psychological suffering directly into her paintings as raw material for art."
+    },
+    "Explore intellectual partnership and recognition from significant male figures": {
+      "description": "A relational and professional aspiration to be engaged as an intellectual equal by influential men.",
+      "context": "Reflects Kahlo's pattern of seeking validation and partnership from prominent male artists and intellectuals, including Diego Rivera and Andr\u00e9 Breton, as intellectual companions and collaborators."
+    },
+    "Experience tenderness and unconditional affection without competition": {
+      "description": "A relational desire for emotional warmth and acceptance that does not require rivalry or comparison.",
+      "context": "Expresses Kahlo's longing for simple emotional intimacy and non-competitive love, contrasting with the turbulent, jealousy-filled dynamics of her marriage to Diego."
+    },
+    "Document biological and cultural inheritance through family imagery": {
+      "description": "An artistic intention to visually record and explore genealogical and cultural legacy through representations of family.",
+      "context": "Kahlo used family imagery, including representations of her parents and family history, to explore her biological inheritance and cultural identity in paintings like her family portraits."
+    },
+    "Process involuntary childlessness through surrogate imagery": {
+      "description": "A psychological and creative effort to address the trauma of infertility or lost pregnancies through symbolic or metaphorical artistic representation.",
+      "context": "Kahlo's inability to carry pregnancies to term became a central subject in her work; she explored this loss through imagery of miscarriage, fertility, and alternative forms of creation and maternity."
+    },
+    "Establish authentic Mexican artistic identity": {
+      "description": "A strategic goal to create and promote art that authentically represents Mexican culture and identity rather than adopting external artistic traditions.",
+      "context": "Central to Kahlo's artistic mission, driving her deliberate use of Mexican imagery, symbolism, and cultural references to establish herself as a distinctly Mexican artist."
+    },
+    "Gain international artistic recognition": {
+      "description": "An objective to achieve worldwide acclaim and visibility for one's artistic work across multiple countries and cultural markets.",
+      "context": "A major career goal for Kahlo, particularly during her engagements with European galleries and the international art world in the 1930s-1940s."
+    },
+    "Secure recognition on Mexican rather than European terms": {
+      "description": "A strategic objective to be valued and understood primarily through Mexican cultural, aesthetic, and intellectual frameworks rather than European standards.",
+      "context": "Reflects Kahlo's resistance to European artistic authority and her insistence on defining her work within Mexican contexts and values."
+    },
+    "Reject European surrealist intellectualism in favor of material action": {
+      "description": "A conceptual stance against abstract European art theory in preference for direct, embodied, and tangible artistic practice.",
+      "context": "Kahlo's critical position toward the European Surrealist movement and her preference for lived experience and direct representation over intellectual theorizing."
+    },
+    "Return to Mexico and reconnect with Mexican cultural identity": {
+      "description": "A personal and artistic objective to physically and spiritually reroot oneself in Mexican territory and cultural traditions.",
+      "context": "Kahlo's recurring desire to leave Europe and relocate to Mexico, seeking authentic connection to her homeland and cultural heritage after international experiences."
+    },
+    "Use Tehuana dress and pre-Columbian imagery as authentic cultural declaration": {
+      "description": "A practice of employing indigenous Mexican clothing and pre-Hispanic artistic symbols as deliberate statements of cultural authenticity and identity.",
+      "context": "Kahlo's distinctive use of Tehuana textiles and incorporation of pre-Columbian visual elements as visual markers of her committed Mexican identity."
+    },
+    "Expose extractive nature of European art world engagement": {
+      "description": "An intention to reveal and critique how European art institutions and markets exploit artists and appropriate non-European cultural production.",
+      "context": "Kahlo's critical awareness of how European galleries and collectors extracted value from Mexican art while marginalizing Mexican artists' agency and intellectual authority."
+    },
+    "Leon Trotsky": {
+      "description": "Russian revolutionary, theorist, and founder of the Fourth International who opposed Stalinism and advocated permanent revolution.",
+      "context": "Political refuge who lived in Mexico (1936-1940) and had a brief romantic relationship with Kahlo; represented an alternative Marxist ideology to Stalinism.",
+      "links": {
+        "wikipedia": "Leon_Trotsky",
+        "wikidata": "Q9034"
+      }
+    },
+    "Dr Juan Farill": {
+      "description": "A Mexican physician specializing in orthopedic surgery and medical treatment.",
+      "context": "One of Kahlo's doctors who treated her chronic physical ailments and spinal injuries throughout her life."
+    },
+    "Dr Eloesser": {
+      "description": "A physician who provided medical care to patients in Mexico and was associated with progressive medical practice.",
+      "context": "Kahlo's doctor in Mexico who treated her health conditions and played an important role in her medical care."
+    },
+    "The Two Fridas": {
+      "description": "A monumental 1945 double self-portrait oil painting depicting two versions of Kahlo holding hands, one wearing a wedding dress.",
+      "context": "This painting represents Kahlo's most explicit visual articulation of psychological splitting, self-fragmentation, and the conflicted emotional states resulting from her complex relationship with Diego Rivera and her own fractured identity.",
+      "links": {
+        "wikipedia": "The_Two_Fridas",
+        "wikidata": "Q3521200"
+      }
+    },
+    "Self-Portrait with Cropped Hair": {
+      "description": "A 1940 oil painting depicting Kahlo seated with shorn hair scattered around her, wearing an oversized man's suit.",
+      "context": "This painting serves as Kahlo's most direct act of aesthetic vandalism\u2014violently destroying her own image and feminine beauty in response to Rivera's infidelity, reclaiming agency through self-destruction.",
+      "links": {
+        "wikipedia": "Self-Portrait_with_Cropped_Hair",
+        "wikidata": "Q3476223"
+      }
+    },
+    "San Francisco": {
+      "description": "Major city on the Pacific coast of California, United States, known as a cultural and artistic center.",
+      "context": "Location where Kahlo spent significant time, particularly during medical treatments for her injuries and where she gained early artistic recognition.",
+      "links": {
+        "wikipedia": "San_Francisco",
+        "wikidata": "Q62"
+      }
+    },
+    "Stalinism": {
+      "description": "A Marxist-Leninist ideology emphasizing rapid industrialization, socialism in one country, and centralized state control under Stalin's leadership.",
+      "context": "The dominant Soviet communist ideology that contrasted with Trotsky's alternative Marxist vision, representing a key ideological division in leftist politics during Kahlo's era.",
+      "links": {
+        "wikipedia": "Stalinism",
+        "wikidata": "Q178577"
+      }
+    },
+    "Trotskyism": {
+      "description": "A Marxist ideology based on Trotsky's theory of permanent revolution and opposition to Stalin's bureaucratization of the Soviet Union.",
+      "context": "The revolutionary ideology represented by Leon Trotsky during his refuge in Mexico, influencing leftist intellectual circles Kahlo engaged with.",
+      "links": {
+        "wikipedia": "Trotskyism",
+        "wikidata": "Q178576"
+      }
+    },
+    "psychic splitting": {
+      "description": "A psychological defense mechanism where the mind compartmentalizes contradictory thoughts, emotions, or self-perceptions to manage internal conflict.",
+      "context": "A coping pattern Kahlo employed to manage the contradictions between her self-image and her relationship dynamics with Diego Rivera."
+    },
+    "all-or-nothing thinking": {
+      "description": "A cognitive distortion in which situations and emotions are evaluated in absolute, binary terms with no middle ground or nuance.",
+      "context": "A psychological pattern that influenced Kahlo's approach to her relationship with Diego and her artistic choices."
+    },
+    "shame": {
+      "description": "A painful emotion arising from the belief that one is fundamentally flawed, inadequate, or unworthy of acceptance and love.",
+      "context": "A core emotional experience Kahlo struggled with regarding her dependency on Diego's validation and her desire for artistic autonomy."
+    },
+    "Trotsky's assassination plot": {
+      "description": "The 1940 political conspiracy that resulted in the assassination of Soviet revolutionary Leon Trotsky in Mexico City.",
+      "context": "A historical event in Mexico during Kahlo's life that created social upheaval in her artistic circles and intersected with her personal relationships.",
+      "links": {
+        "wikipedia": "Assassination_of_Leon_Trotsky",
+        "wikidata": "Q1199482"
+      }
+    },
+    "Mexican song": {
+      "description": "Traditional Mexican musical forms and compositions that embody national cultural identity and folk traditions.",
+      "context": "A cultural project through which Kahlo sought to express her Mexican heritage and establish artistic independence from Diego's European-influenced aesthetic."
+    },
+    "art world": {
+      "description": "The interconnected community of artists, galleries, museums, critics, and collectors that shapes contemporary artistic production and reception.",
+      "context": "The professional sphere in which Kahlo sought to maintain her artistic presence and establish her own reputation separate from Diego Rivera."
+    },
+    "Achieve artistic independence from Diego's aesthetic validation": {
+      "description": "The objective of creating and defining one's artistic vision without relying on a partner's approval, judgment, or influence.",
+      "context": "A core aspiration driving Kahlo's artistic development, reflecting her struggle to establish her own aesthetic identity within the shadow of Diego's prominence."
+    },
+    "Maintain artistic presence and relevance in the art world without Diego": {
+      "description": "The goal of sustaining one's own recognition, exhibition opportunities, and critical engagement in artistic circles independent of a partner's reputation.",
+      "context": "A significant objective for Kahlo as she navigated her career while married to the more internationally celebrated muralist Diego Rivera."
+    },
+    "Process emotional pain and betrayal through artistic expression": {
+      "description": "The practice of transforming personal trauma and hurt into creative works that give meaning and visibility to one's suffering.",
+      "context": "The primary emotional and artistic strategy Kahlo employed throughout her relationship with Diego, particularly in response to his infidelities and emotional distance."
+    },
+    "Establish romantic relationship on terms of intellectual and domestic partnership rather than erotic love": {
+      "description": "The desire to redefine intimate relationships around shared intellectual interests and household cooperation rather than sexual attraction and passion.",
+      "context": "A goal reflecting Kahlo's attempt to reframe her relationship with Diego in ways that might be more sustainable given their emotional incompatibilities."
+    },
+    "Secure financial and emotional independence within partnership": {
+      "description": "The aim of maintaining self-sufficiency, economic autonomy, and emotional resilience while remaining in a committed relationship.",
+      "context": "A persistent goal for Kahlo as she sought to reduce her dependency on Diego for both material security and psychological validation."
+    },
+    "End unbearable romantic and intimate relationship with Diego": {
+      "description": "The decision or desire to terminate the personal and sexual dimensions of a partnership that has become emotionally unsustainable.",
+      "context": "A recurrent impulse in Kahlo's relationship with Diego, which she ultimately pursued through separation and divorce, though the couple remained in contact."
+    },
+    "Prove conditional nature of Diego's love through aesthetic defiance": {
+      "description": "The strategy of challenging or rejecting a partner's artistic preferences to demonstrate that their affection is contingent rather than unconditional.",
+      "context": "An underlying dynamic in Kahlo's artistic choices, reflecting her hypothesis that Diego's love was tied to her conforming to his aesthetic expectations."
+    },
+    "Overcome internalised shame about self-reliance and validation dependency": {
+      "description": "The process of addressing internalized beliefs that seeking independence or questioning one's need for others' approval is fundamentally shameful or selfish.",
+      "context": "A psychological challenge Kahlo faced in her struggle to achieve artistic autonomy while managing deep insecurity about her worth independent of Diego's recognition."
+    },
+    "Maintain partnership with Diego despite romantic incompatibility": {
+      "description": "The effort to preserve a committed relationship while acknowledging fundamental misalignments in romantic, sexual, or emotional needs.",
+      "context": "A tension that defined Kahlo's marriage to Diego, as she sought to balance her desire for independence and emotional authenticity with her commitment to the relationship."
+    },
+    "Create a unified domestic and cultural space expressing Mexican identity": {
+      "description": "An artistic and domestic objective to establish a cohesive environment that embodies and celebrates Mexican cultural values and identity.",
+      "context": "A core ambition in Kahlo's life, reflecting her desire to create spaces\u2014both physical and artistic\u2014that authentically represented Mexican culture and served as a gathering place for artists and intellectuals."
+    },
+    "Establish artistic and intellectual independence from Diego": {
+      "description": "A personal goal to develop autonomous creative vision and thought separate from the influence of a primary relationship or collaborator.",
+      "context": "Central to Kahlo's development as an artist, as she worked to assert her own artistic voice distinct from her husband Diego Rivera's dominant presence and artistic legacy."
+    },
+    "Transform personal suffering into artistic and political meaning": {
+      "description": "An objective to convert individual pain and hardship into expressions that carry broader artistic, social, and political significance.",
+      "context": "Fundamental to Kahlo's artistic practice, where her chronic physical ailments and emotional anguish became the source material for powerful works that transcended personal narrative to engage political ideology."
+    },
+    "Develop and mentor young Mexican artists in authentic observation and national subjects": {
+      "description": "An educational mission to guide emerging artists toward truthful representation of Mexican life, culture, and identity rather than imported aesthetic traditions.",
+      "context": "Reflects Kahlo's commitment to fostering a new generation of Mexican artists and her belief in art rooted in genuine national experience and indigenous traditions."
+    },
+    "Achieve political revolution through commitment to communist ideology": {
+      "description": "A political objective to advance revolutionary social change through devotion to communist theory and practice.",
+      "context": "Part of Kahlo's ideological commitment throughout her life, particularly evident in her art, activism, and personal choices, reflecting her desire to create social transformation."
+    },
+    "Maintain intellectual autonomy within marriage despite ideological disagreements": {
+      "description": "A personal objective to preserve independent thought and judgment within a committed relationship despite philosophical or political differences.",
+      "context": "Significant in Kahlo's relationship with Diego Rivera, as she navigated disagreements in political approach and artistic philosophy while remaining committed to both the partnership and her own convictions."
+    },
+    "Continue artistic creation despite escalating physical pain and disability": {
+      "description": "A determination to persist in artistic production in the face of worsening bodily suffering and functional limitations.",
+      "context": "Emblematic of Kahlo's artistic resilience, as she maintained prolific creative output despite severe physical deterioration from her 1938 bus accident and related health crises."
+    },
+    "Create intimate, private visual self-examination": {
+      "description": "An artistic goal to develop introspective, personal visual investigation through art that reveals inner psychological and emotional states.",
+      "context": "Core to Kahlo's distinctive artistic approach, particularly through her extensive self-portraiture that used the mirror and private contemplation as primary artistic tools."
+    },
+    "Integrate bodily experience, emotion, and political conviction into unified artistic expression": {
+      "description": "An ambition to synthesize physical sensation, emotional depth, and ideological commitment into coherent artistic works.",
+      "context": "Central to Kahlo's artistic philosophy, where personal bodily knowledge, emotional authenticity, and political belief formed inseparable elements of her paintings."
+    },
+    "Express pre-linguistic, embodied suffering and pain": {
+      "description": "An artistic objective to communicate physical and psychological pain that exists before or beyond verbal language through visual means.",
+      "context": "Key to understanding Kahlo's visual language, where pain was depicted directly through color, form, and symbol rather than narrative, accessing experiences beyond words."
+    },
+    "Achieve artistic independence from European painting traditions": {
+      "description": "A goal to develop artistic practice rooted in non-European sources and free from the aesthetic conventions of European art history.",
+      "context": "Important to Kahlo's artistic identity and her deliberate turn toward Mexican, indigenous, and pre-Columbian visual traditions rather than European modernism."
+    },
+    "Master medical anatomical knowledge and integrate it into artistic practice": {
+      "description": "An objective to acquire deep understanding of bodily anatomy and incorporate this scientific knowledge into visual art.",
+      "context": "Evident in Kahlo's detailed depictions of internal organs, skeletal structure, and physiological processes in her paintings, reflecting her engagement with medical imagery and bodily knowledge."
+    },
+    "Create visual proximity and intimacy through painterly choices": {
+      "description": "An artistic technique to establish closeness and direct engagement between viewer and image through formal and stylistic decisions.",
+      "context": "Achieved through Kahlo's use of scale, perspective, and detailed rendering that draws viewers into immediate confrontation with the painted subject and its emotional content."
+    },
+    "Produce extensive body of self-portraiture work": {
+      "description": "A major artistic endeavor to create numerous paintings, drawings, and photographs focused on the artist's own image and identity.",
+      "context": "A defining characteristic of Kahlo's artistic output, with self-portraits comprising a substantial portion of her oeuvre and serving as her primary vehicle for artistic and political expression."
+    },
+    "Achieve technical mastery through slow, obsessive revision": {
+      "description": "An approach to artistic development emphasizing meticulous refinement and repeated reworking to attain high levels of technical skill.",
+      "context": "Characteristic of Kahlo's working method, where she labored intensively and repeatedly over her paintings, particularly her small-scale works on masonite board."
+    },
+    "Blur distinction between medical illustration and emotional expression": {
+      "description": "An artistic approach that merges clinical/anatomical depiction with subjective feeling and psychological content.",
+      "context": "A core artistic goal in Kahlo's work, particularly evident in her self-portraits where she portrayed her body as both a medical subject and an emotional landscape."
+    },
+    "Stabilize spine and restore physical function": {
+      "description": "A medical objective aimed at correcting spinal damage through surgical or therapeutic intervention.",
+      "context": "A primary medical goal following Kahlo's 1925 bus accident and subsequent spinal injuries that plagued her entire life."
+    },
+    "Maintain artistic practice and creative expression despite physical deterioration": {
+      "description": "The intentional continuation of creative work in the face of progressive disability or bodily decline.",
+      "context": "A central commitment in Kahlo's life strategy, as she persisted in painting despite increasing pain and multiple surgeries."
+    },
+    "Preserve painting ability before potential surgical paralysis": {
+      "description": "An urgent priority to document and exercise artistic skills before a medical intervention might eliminate the physical capacity to create.",
+      "context": "A pressing concern for Kahlo during periods of severe illness when spinal surgeries threatened her ability to hold a brush."
+    },
+    "Document and process fear and uncertainty about future capacity": {
+      "description": "The psychological project of recording and working through anxiety about loss of physical or mental capability.",
+      "context": "Evident in Kahlo's confessional diaries and paintings, where she confronted her fears about disability and artistic impotence."
+    },
+    "Transform hospital space into creative sanctuary": {
+      "description": "The practice of converting a clinical or medical environment into a personalized, creative refuge.",
+      "context": "Kahlo's repeated strategy during hospitalizations, where she painted and created art within hospital rooms to maintain her identity and agency."
+    },
+    "Achieve transcendence or escape through defiant philosophical stance": {
+      "description": "The pursuit of spiritual or existential elevation through conscious resistance or refusal to accept limiting circumstances.",
+      "context": "Kahlo's philosophical response to suffering, wherein she sought to transcend physical pain through will, art, and intellectual defiance."
+    },
+    "Find dignified exit or resolution to unbearable suffering": {
+      "description": "The search for a meaningful or controlled end to persistent, severe pain that exceeds the capacity to endure.",
+      "context": "A theme in Kahlo's later years as chronic pain intensified, reflected in her diary entries and the circumstances of her death in 1954."
+    },
+    "Weigh the cost-benefit of continued existence against pain and suffering": {
+      "description": "The existential calculation of whether the value of living justifies endurance of extreme physical or psychological distress.",
+      "context": "A profound internal struggle documented in Kahlo's private diaries, particularly in her final years as health declined."
+    },
+    "Achieve recognition as an artist in Mexico on her own terms": {
+      "description": "The aspiration to gain critical and public acknowledgment of artistic merit within one's national context, independent of external pressures.",
+      "context": "A significant goal for Kahlo, who sought to establish her reputation as a Mexican artist rather than merely as Diego Rivera's wife."
+    },
+    "Maintain artistic identity independent of Diego's shadow": {
+      "description": "The effort to preserve and assert one's distinct creative voice and professional standing separate from an influential or dominant partner.",
+      "context": "Central to Kahlo's relationship with muralist Diego Rivera; she worked to define herself as an autonomous artist despite their marriage and his fame."
+    },
+    "Attend her first solo exhibition despite physical illness": {
+      "description": "The determination to participate in a major professional milestone despite compromised health.",
+      "context": "Kahlo's first solo exhibition in Mexico opened on July 13, 1953; she attended despite being bedridden and in severe pain, a defining act of defiance."
+    },
+    "Continue creating art despite physical deterioration and disability": {
+      "description": "The sustained commitment to artistic production in the face of worsening bodily decline and functional limitations.",
+      "context": "The overarching theme of Kahlo's later artistic life, as she produced significant work even when mobility and pain severely compromised her ability to work."
+    },
+    "Affirm life and resilience through artistic expression": {
+      "description": "The use of creative work to assert vitality, survival, and strength in response to adversity.",
+      "context": "A fundamental purpose of Kahlo's art, wherein she transformed suffering into powerful statements of persistence and affirmation."
+    },
+    "Triumph over bodily suffering through defiant performance and will": {
+      "description": "The achievement of psychological or spiritual victory over physical pain through conscious, deliberate acts of resistance and determination.",
+      "context": "Kahlo's characteristic response to her condition, manifested in her public persona, artistic output, and refusal to be defined or diminished by her injuries."
+    },
+    "Learn to walk again with prosthetic leg after amputation": {
+      "description": "Physical rehabilitation goal involving mobility restoration through artificial limb use after surgical removal of a body part.",
+      "context": "In her final year, Kahlo pursued this goal following her leg amputation, representing her determination to maintain physical independence and continue her artistic practice despite severe bodily deterioration."
+    },
+    "Political activism and anti-imperialism": {
+      "description": "Engagement in leftist political movements and resistance to colonial or foreign domination of nations.",
+      "context": "Central to Kahlo's identity as a Communist who integrated her artistic practice with explicit political opposition to U.S. imperialism and support for revolutionary causes throughout her career."
+    },
+    "Artistic expression and documentation of lived experience": {
+      "description": "Creative practice that transforms personal events, emotions, and bodily sensations into visual or symbolic form for public communication.",
+      "context": "The fundamental purpose of Kahlo's artistic method, wherein she converted her chronic pain, surgeries, miscarriages, and political convictions into iconic paintings that made private suffering publicly visible."
+    },
+    "Resilience and defiance in the face of bodily suffering": {
+      "description": "Psychological and emotional resistance to despair, maintaining agency and dignity despite chronic pain or physical deterioration.",
+      "context": "A defining characteristic of Kahlo's life narrative and artistic persona, enabling her to continue creating and asserting her will despite multiple surgical interventions and worsening health conditions."
+    },
+    "Maintain love and intimate connection with Diego Rivera": {
+      "description": "Sustained emotional and relational commitment to another person despite interpersonal conflict or separation.",
+      "context": "A persistent goal throughout Kahlo's tumultuous marriage to muralist Diego Rivera, involving her navigation of infidelity, divorce, and remarriage while seeking emotional and artistic partnership.",
+      "links": {
+        "wikipedia": "Diego_Rivera",
+        "wikidata": "Q11431"
+      }
+    },
+    "Assert autonomy over death and final departure": {
+      "description": "Exercise of personal agency and control regarding one's own mortality and the circumstances of dying.",
+      "context": "Kahlo's final assertion of will, expressed through her deathbed diary entries and symbolic gestures, claiming sovereign authority over her life's ending amid contested questions about her death's circumstances."
+    },
+    "Integrate personal experience with political conviction": {
+      "description": "Synthesis of individual biography with collective ideological commitment, making the private a site of political meaning.",
+      "context": "Kahlo's artistic and philosophical project of refusing to separate her bodily suffering from class struggle and anti-imperialism, positioning her pain as inseparable from broader social struggle."
+    },
+    "Create lasting artistic legacy and ensure work is witnessed": {
+      "description": "Production of durable cultural artifacts intended for preservation and public reception beyond the creator's lifetime.",
+      "context": "Kahlo's commitment to making her paintings permanent records of her existence and vision, ensuring that her transformed pain would endure as testimony and inspiration for future audiences."
+    },
+    "Assert Mexican identity and cultural sovereignty": {
+      "description": "Deliberate affirmation and celebration of national, indigenous, and folk cultural heritage against colonial erasure or foreign cultural dominance.",
+      "context": "Kahlo's consistent visual and ideological assertion of Mexican indigenous identity through her clothing, symbolism, and self-representation, linked to her anti-imperialist politics and rejection of European aesthetic norms."
+    },
+    "Recursive validation-seeking and defiant autonomy pattern": {
+      "description": "Psychological pattern alternating between dependence on external approval and forceful assertion of independent will, often expressed through contradiction or self-sabotage.",
+      "context": "A recurring dynamic in Kahlo's relationships and self-presentation, wherein she simultaneously demanded recognition from others while fiercely rejecting their authority over her choices, visible in her marriage and artistic decisions."
+    },
+    "Embodied agency as prerequisite for artistic defiance": {
+      "description": "Philosophical concept that physical capability and bodily integrity are necessary foundations for asserting creative will and political resistance.",
+      "context": "Central to understanding Kahlo's escalating despair as her body deteriorated, since her artistic defiance and political assertion were grounded in her capacity to physically create, perform, and move through the world."
+    },
+    "Performance of autonomy as political and existential statement": {
+      "description": "Public demonstration of self-determination and refusal of external control as both individual assertion and collective political gesture.",
+      "context": "Kahlo's deliberate performance of independence through her self-fashioning, artistic output, and documented final acts constituted both personal assertion and political resistance to norms of feminine submission."
+    },
+    "Constraint-enabled introspection": {
+      "description": "Psychological process wherein external limitations or restrictions catalyze deeper self-examination and creative intensity.",
+      "context": "Kahlo's experience of enforced immobility through illness and multiple hospitalizations paradoxically produced her most introspective and psychologically complex work, as physical constraint redirected her energy inward."
+    },
+    "Amputation and technical capacity loss": {
+      "description": "Surgical removal of a body part and resulting permanent reduction in physical capability and sensorimotor function.",
+      "context": "Kahlo's 1953 leg amputation represented a final bodily catastrophe that threatened her artistic practice itself, culminating the decades-long trajectory of physical deterioration that had defined her existence."
+    },
+    "Ideological contradiction between communal principles and personal behaviour": {
+      "description": "Tension between espoused collective values or ethics and individual actions that contradict or violate those principles.",
+      "context": "Kahlo's lifelong navigation of the gap between her Communist commitment to collective welfare and her passionate investment in personal suffering, romantic possession, and individual artistic legacy."
+    },
+    "Household salon as political theatre": {
+      "description": "A domestic gathering space transformed into a venue for intellectual discourse and ideological exchange.",
+      "context": "Kahlo's La Casa Azul functioned as a salon where she hosted artists, intellectuals, and political figures, blending personal life with political activism and cultural influence."
+    },
+    "Artistic validation as mechanism of romantic control": {
+      "description": "The use of creative recognition and aesthetic appreciation as a means to establish power dynamics within intimate relationships.",
+      "context": "In Kahlo's relationships, particularly with Diego Rivera, mutual artistic validation and critique became intertwined with emotional manipulation and control."
+    },
+    "Serial infidelity within ideological framework": {
+      "description": "Repeated acts of romantic betrayal justified or contextualized through political or philosophical beliefs about freedom and non-conformity.",
+      "context": "Both Kahlo and Rivera engaged in affairs while framing their relationship through communist ideals of liberation from bourgeois monogamy."
+    },
+    "Remarriage on negotiated terms": {
+      "description": "A renewed marriage contract based on explicitly renegotiated conditions and agreements rather than traditional commitment.",
+      "context": "Kahlo and Rivera divorced in 1939 and remarried in 1940 under modified terms that acknowledged their respective autonomy and affairs."
+    },
+    "La Casa Azul as spatial autonomy": {
+      "description": "A physical space designed and controlled to enable personal independence and self-determination within domestic life.",
+      "context": "The blue house in Coyoac\u00e1n became Kahlo's refuge and creative sanctuary where she maintained control over her environment and artistic practice.",
+      "links": {
+        "wikipedia": "La_Casa_Azul",
+        "wikidata": "Q1194129"
+      }
+    },
+    "Mirror-painting as self-gazing practice": {
+      "description": "An artistic technique employing mirrors as both compositional tools and metaphorical devices for introspection and self-examination.",
+      "context": "Kahlo's frequent use of mirrors in her paintings, particularly self-portraits, transformed the act of looking at oneself into a central artistic methodology."
+    },
+    "Ashes enshrined in La Casa Azul": {
+      "description": "The ritual placement and preservation of cremated remains within a domestic architectural space as a memorial practice.",
+      "context": "Following Kahlo's death in 1954, her ashes were kept in an urn within La Casa Azul, making the house itself a reliquary of her presence."
+    },
+    "Hosting Trotsky at La Casa Azul": {
+      "description": "The act of providing residence and shelter to a prominent political exile and revolutionary theorist.",
+      "context": "Kahlo and Rivera housed Soviet revolutionary Leon Trotsky in their home from 1936 to 1937, aligning their household with communist resistance politics.",
+      "links": {
+        "wikipedia": "Leon_Trotsky",
+        "wikidata": "Q6450"
+      }
+    },
+    "Bed as exhibition platform": {
+      "description": "The transformation of a utilitarian domestic object into a site of artistic display and cultural presentation.",
+      "context": "Due to her chronic illness, Kahlo spent much of her life in bed, which she converted into a space for painting, receiving guests, and performing her artistic identity."
+    },
+    "Palace of Fine Arts": {
+      "description": "A monumental Mexican cultural institution and exhibition venue in Mexico City dedicated to the visual and performing arts.",
+      "context": "The Palace of Fine Arts hosted significant exhibitions of Kahlo's work and represented institutional recognition of her artistic importance in Mexican culture.",
+      "links": {
+        "wikipedia": "Palacio_de_Bellas_Artes",
+        "wikidata": "Q1131236"
+      }
+    },
+    "Four-poster bed as artistic medium": {
+      "description": "A piece of bedroom furniture elevated to the status of an art object and canvas for creative expression and experimentation.",
+      "context": "Kahlo's bed, particularly in photographs and her lived practice, became an artistic statement about vulnerability, domesticity, and the body as subject."
+    },
+    "Communist ideological commitment": {
+      "description": "An explicit political allegiance to communist theory and practice, advocating for revolutionary socialism and workers' liberation.",
+      "context": "Kahlo's communist party membership and artistic work were deeply intertwined with her vision of social justice, influencing both her imagery and her domestic politics."
+    },
+    "Emotional distance as protective mechanism": {
+      "description": "The deliberate cultivation of psychological separation in relationships as a defensive strategy against vulnerability and pain.",
+      "context": "Despite intense attachment to Rivera and others, Kahlo maintained emotional reservedness as protection against the hurt caused by infidelity and rejection."
+    },
+    "Geographic escape pattern": {
+      "description": "A recurring behavioral pattern of physical relocation or travel undertaken to evade emotional distress or relationship conflict.",
+      "context": "Kahlo traveled to the United States, Europe, and other locations partly to distance herself from Rivera's infidelities and reassess her artistic identity."
+    },
+    "Self-reliance defense paradox": {
+      "description": "The psychological contradiction between performing complete independence while simultaneously remaining emotionally dependent on another person.",
+      "context": "Kahlo cultivated an image of artistic self-sufficiency and strength while remaining deeply bound to Rivera's validation and presence throughout her life."
+    },
+    "Salon as distributed artistic laboratory": {
+      "description": "A conceptual framework viewing salons as decentralized spaces where artists collaborate, experiment, and exchange ideas across geographical and temporal boundaries.",
+      "context": "Kahlo's Casa Azul functioned as an intellectual and artistic salon where she hosted intellectuals, artists, and political figures, making her home a creative laboratory for artistic and ideological exchange."
+    },
+    "Dissolution of domestic-political boundaries": {
+      "description": "A theoretical concept describing the breakdown of separation between private domestic space and public political engagement.",
+      "context": "Kahlo's life and art dissolve distinctions between her intimate suffering and her explicit political activism, with both expressed simultaneously in her work and home."
+    },
+    "Home as instrument of ideological assertion": {
+      "description": "The concept that one's residence can be deliberately constructed and deployed as a tool for expressing and promoting political, cultural, or personal ideologies.",
+      "context": "Kahlo's Casa Azul, with its murals, collected pre-Columbian artifacts, and revolutionary symbolism, functioned as a physical manifestation of her communist ideology and Mexican identity."
+    },
+    "Salon intellectual ecology": {
+      "description": "The social and intellectual ecosystem created within salon spaces, characterized by the circulation of ideas, artistic collaboration, and the formation of cultural networks.",
+      "context": "Kahlo's Casa Azul cultivated a distinctive intellectual ecology that attracted Mexican and international artists, intellectuals, and political figures who shaped her artistic and political consciousness."
+    },
+    "Mirror as self-discovery tool": {
+      "description": "A metaphorical and literal instrument for introspection, self-examination, and the revelation of hidden or repressed aspects of identity.",
+      "context": "Kahlo's frequent use of mirrors in her paintings and her obsessive self-portraiture served as mechanisms for confronting her fractured identity, bodily pain, and complex psychological states."
+    },
+    "Art as dialogic act and testimony": {
+      "description": "The conception of artistic creation as a reciprocal exchange with viewers and as a formal testimony to lived experience, trauma, or truth.",
+      "context": "Kahlo's paintings function as both intimate dialogues with viewers and powerful testimonies to her physical suffering, emotional turmoil, and political convictions."
+    },
+    "Bodily confrontation": {
+      "description": "An artistic strategy that directly engages, exposes, or foregrounds the body\u2014especially its vulnerabilities, pain, and non-normative states\u2014as primary subject matter.",
+      "context": "Kahlo's art persistently confronts her damaged and suffering body resulting from her 1925 bus accident and chronic illnesses, making bodily trauma the central focus of her visual language."
+    },
+    "Cognitive splitting and self-fragmentation": {
+      "description": "A psychological phenomenon where consciousness or identity becomes divided into distinct, sometimes contradictory parts or facets.",
+      "context": "Kahlo's paintings repeatedly depict her fragmented psyche\u2014divided selves, multiplied bodies, and contradictory emotional states\u2014visually manifesting her internal psychological divisions."
+    },
+    "All-or-nothing relational oscillation": {
+      "description": "A relational pattern characterized by extreme swings between total commitment and complete withdrawal, absence of middle ground in interpersonal dynamics.",
+      "context": "Kahlo's relationships, particularly with Diego Rivera, oscillated dramatically between intense fusion and violent separation, a dynamic reflected in her art's treatment of love and attachment."
+    },
+    "Externalisation of internal fragmentation through monumental scale": {
+      "description": "A coping strategy where internal psychological fragmentation is managed or expressed through the creation of physically large, imposing artworks that externalize invisible internal states.",
+      "context": "Kahlo created monumentally scaled paintings like The Two Fridas to externalize and make visible her internal psychological pain, fragmentation, and emotional turmoil."
+    },
+    "Cathartic but unresolved psychological state post-creation": {
+      "description": "The condition where artistic creation provides temporary emotional release or catharsis without fundamentally resolving the underlying psychological trauma or conflict.",
+      "context": "Kahlo's paintings, while cathartic expressions of her pain and fragmentation, rarely resolve her psychological struggles, leaving her work and emotional state in permanent tension."
+    },
+    "aesthetic vandalism as agency reclamation": {
+      "description": "An artistic strategy where the artist deliberately damages, destroys, or defaces conventional beauty or aesthetic norms as an act of resistance and assertion of personal power.",
+      "context": "Kahlo's violent self-mutilation imagery, particularly in Self-Portrait with Cropped Hair, functions as aesthetic vandalism where she reclaims agency by destroying her own objectified beauty rather than allowing others to control it."
+    },
+    "love's conditionality and beauty-contingent attachment": {
+      "description": "The condition where love and romantic attachment are made dependent upon the beloved's physical beauty or aesthetic value rather than intrinsic worth.",
+      "context": "Kahlo's relationship with Rivera and her artistic obsessions reveal her painful awareness that attachment and desire were contingent upon her beauty, which her illness and aging constantly threatened."
+    },
+    "personal betrayal as cultural inheritance": {
+      "description": "A psychological pattern where experiences of betrayal are internalized as a transmitted family legacy rather than isolated incidents.",
+      "context": "Kahlo's navigation of infidelity and abandonment by Diego Rivera echoed her parents' troubled marriage, positioning betrayal as a cyclical family inheritance she both witnessed and enacted."
+    },
+    "art as compensatory domain of absolute control": {
+      "description": "The use of creative practice as a psychological refuge where one exercises mastery over form, subject matter, and meaning despite external life chaos.",
+      "context": "Kahlo's painting became her primary means of agency, allowing her to control representation of her body and suffering when her physical circumstances and relationships remained beyond her command."
+    },
+    "Conditional maternal support": {
+      "description": "Parental care offered with implicit or explicit conditions attached, making emotional or material support contingent on meeting specific expectations.",
+      "context": "Kahlo's mother Matilde offered care but also criticism and judgment, creating an emotional climate where Frida felt she had to earn approval through achievement or compliance."
+    },
+    "Maternal loss of control over life trajectory": {
+      "description": "A parent's inability to direct or determine their child's life path, often resulting in anxiety or attempts to maintain influence through other means.",
+      "context": "Matilde Kahlo feared her daughter's unconventional choices, political activism, and relationship with Rivera represented a life beyond her maternal guidance or authority."
+    },
+    "Paternal validation and creative permission": {
+      "description": "A parent's affirmation of a child's identity and encouragement of their self-expression, functioning as psychological authorization for nonconformity.",
+      "context": "Kahlo's father Guillermo supported her artistic ambitions and intellectual curiosity, providing the emotional permission she needed to pursue painting despite social expectations for women."
+    },
+    "Seeking creatively-engaged male figures": {
+      "description": "A pattern of romantic or professional attachment to men whose intellectual or artistic work mirrors one's own creative concerns.",
+      "context": "Kahlo's gravitational pull toward Diego Rivera and later relationships was partly motivated by attraction to men actively engaged in artistic or intellectual production, replicating the paternal validation model."
+    },
+    "Paternal absence (physical or emotional)": {
+      "description": "A father's unavailability or emotional distance during critical developmental periods, whether through death, abandonment, or psychological withdrawal.",
+      "context": "Though Guillermo Kahlo was present, his mental health struggles and emotional limitations created periods of unavailability that shaped Frida's later seeking of male validation and creative partnership."
+    },
+    "Physical pain as territory of control": {
+      "description": "The paradoxical use of bodily suffering as a domain where one exercises autonomy, finding power in the ability to name, represent, and endure one's own pain.",
+      "context": "Kahlo transformed her chronic pain from the 1925 bus accident into artistic material, making her damaged body the central subject of her work and thereby converting victimhood into authorship."
+    },
+    "Trauma-bonded intimacy template": {
+      "description": "A relational pattern where emotional bonding intensifies through shared suffering, crisis, or mutual vulnerability rather than stable security.",
+      "context": "Kahlo's relationship with Rivera was structured around mutual infidelities, health crises, political persecution, and creative struggle\u2014conditions that paradoxically deepened emotional entanglement despite causing pain."
+    },
+    "Endurance as rebellion": {
+      "description": "The transformation of suffering or survival into a form of political and personal defiance, where continuing to exist becomes an act of resistance.",
+      "context": "Kahlo's public self-presentation emphasized her ability to persist through pain, disability, and betrayal as a form of indigenous and female resistance against systems designed to diminish her."
+    },
+    "Geographic distance as relational renegotiation": {
+      "description": "The use of physical separation or displacement to reconfigure the terms of a relationship or to create psychological space for reassessment.",
+      "context": "Kahlo's time in the United States (1931-1933, 1938-1939) and her periods away from Rivera allowed her to establish independent artistic identity and renegotiate the power dynamics of their marriage."
+    },
+    "International art world entry": {
+      "description": "The moment when an artist gains access to transnational exhibition networks, critical recognition, and institutions beyond their national art scene.",
+      "context": "Kahlo's inclusion in exhibitions organized by Andr\u00e9 Breton and others in the late 1930s-1940s positioned her work within European and American modernism, establishing her international reputation.",
+      "links": {
+        "wikipedia": "Frida_Kahlo",
+        "wikidata": "Q5588"
+      }
+    },
+    "1940 San Francisco remarriage": {
+      "description": "A specific marital event in which two previously married individuals formally reunite in legal and ceremonial terms.",
+      "context": "Kahlo and Rivera's remarriage in San Francisco after their 1939 divorce represented a reconfiguration of their bond, occurring during her period of greatest artistic independence and international visibility.",
+      "links": {
+        "wikipedia": "Diego_Rivera",
+        "wikidata": "Q12475"
+      }
+    },
+    "Intellectual community as counterweight to physical confinement": {
+      "description": "The role of social engagement with ideas and creative peers in offsetting the psychological effects of bodily limitation or spatial restriction.",
+      "context": "Kahlo's active participation in political circles, artistic salons, and intellectual discourse provided mental and emotional stimulation that balanced her increasing physical immobility from chronic illness."
+    },
+    "Chosen family and ideological alignment": {
+      "description": "The construction of familial bonds with non-biological individuals based on shared values, political commitments, and mutual care rather than kinship.",
+      "context": "Kahlo built a chosen family of communist allies, artists, and intellectuals who shared her political commitment and provided emotional support that supplemented or replaced biological family relationships."
+    },
+    "Decolonial artistic resistance": {
+      "description": "An artistic and intellectual movement opposing colonial frameworks and centering indigenous, non-Western perspectives and epistemologies.",
+      "context": "Kahlo's work embodied decolonial resistance by rejecting European modernist conventions and asserting indigenous Mexican cultural forms as legitimate artistic language."
+    },
+    "Mexican artistic legitimacy on Mexican terms": {
+      "description": "The assertion that Mexican art should be valued according to its own cultural standards and values rather than European or American aesthetic criteria.",
+      "context": "A central goal of Kahlo's artistic practice, she deliberately chose Mexican subjects, symbols, and aesthetics to establish art that needed no external validation."
+    },
+    "Tehuana dress as cultural declaration": {
+      "description": "Traditional clothing from the Tehuantepec region of Mexico, characterized by ornate embroidery and vibrant textiles with indigenous roots.",
+      "context": "Kahlo famously adopted Tehuana dress as her signature style, using it in self-portraits as a visual assertion of indigenous Mexican identity and cultural pride.",
+      "links": {
+        "wikipedia": "Tehuantepec",
+        "wikidata": "Q506298"
+      }
+    },
+    "Pre-Columbian imagery integration": {
+      "description": "The deliberate incorporation of visual elements, symbols, and aesthetic principles from Aztec, Mayan, and other pre-Hispanic civilizations into contemporary artwork.",
+      "context": "Kahlo integrated Pre-Columbian motifs, symbolism, and visual language into her paintings to connect her work to Mexico's indigenous heritage and assert its artistic legitimacy."
+    },
+    "Self-portraiture as mirror-based introspection": {
+      "description": "The artistic practice of creating self-portraits through direct observation in mirrors as a method of psychological self-examination and intimate exploration.",
+      "context": "Kahlo developed her distinctive self-portrait practice using mirrors during periods of immobility, turning the mirror into a tool for deep introspective investigation of her own psyche."
+    },
+    "Technical mastery as enabler of psychological honesty": {
+      "description": "The principle that rigorous control of artistic technique and medium empowers an artist to render internal emotional and psychological states with greater authenticity and precision.",
+      "context": "Kahlo's meticulous technical skill in oil painting and compositional control allowed her to translate her intense psychological and physical suffering into visually precise, unflinching artistic expression."
+    },
+    "Visual proximity and refusal of idealization": {
+      "description": "An artistic strategy of presenting subjects at close range without beautification, emphasizing raw detail and authentic appearance over conventional flattery.",
+      "context": "Kahlo's self-portraits employed extreme visual proximity and unflinching realism, refusing to smooth, minimize, or idealize her features, her pain, or her indigenous appearance."
+    },
+    "Self-portrait as archive of existence and validation": {
+      "description": "The conception of self-portraiture as a historical record and testimony that documents and validates the artist's lived experience and right to exist.",
+      "context": "For Kahlo, her relentless self-portraiture functioned as both personal testimony and claim to visibility\u2014an archive proving her existence and the legitimacy of her suffering and identity."
+    },
+    "Canvas as relational substitute": {
+      "description": "The artistic concept of treating the painted canvas as a relational object or emotional partner, especially when human connection or physical intimacy is unavailable.",
+      "context": "During periods of physical isolation and pain, Kahlo used her canvas as a substitute for human relation, creating an intimate dialogue between herself and the work."
+    },
+    "Assertion of distinct artistic voice": {
+      "description": "The deliberate development and public establishment of a unique, recognizable artistic perspective that distinguishes an artist from peers and predecessors.",
+      "context": "A fundamental goal throughout Kahlo's career was establishing herself as an independent artistic voice distinct from her muralist husband Diego Rivera and European avant-garde movements."
+    },
+    "Innovative format adaptation through constraint": {
+      "description": "The artistic strategy of developing new or unconventional approaches to artistic formats as creative responses to physical, material, or contextual limitations.",
+      "context": "Kahlo's physical immobility and lack of access to large-scale public spaces led her to innovate within the intimate format of small-scale, portable paintings on masonite and metal."
+    },
+    "Female artistic alliances and peer collaboration": {
+      "description": "The formation of supportive relationships and creative partnerships among women artists, emphasizing mutual recognition and collective artistic legitimacy.",
+      "context": "Kahlo cultivated important alliances with female artists and intellectuals, including photographers and surrealists, creating networks of support and artistic exchange outside male-dominated institutions."
+    },
+    "1938-1940 pre-exhibition period": {
+      "description": "A three-year span immediately preceding Kahlo's first major solo exhibition, characterized by intensive artistic production and growing international recognition.",
+      "context": "During this period, Kahlo intensified her artistic output, received increased attention from surrealist circles and American collectors, and consolidated the visual vocabulary that would define her mature work."
+    },
+    "1940 first solo exhibition": {
+      "description": "Kahlo's inaugural solo exhibition, held at the Julien Levy Gallery in New York City in November 1938.",
+      "context": "This landmark exhibition marked Kahlo's public artistic debut and international recognition, establishing her as an independent artist rather than merely Diego Rivera's wife.",
+      "links": {
+        "wikipedia": "Julien_Levy_Gallery",
+        "wikidata": "Q6301349"
+      }
+    },
+    "1940s consolidation period": {
+      "description": "The decade of the 1940s, when artistic movements and individual artists solidified their approaches and established enduring legacies.",
+      "context": "The 1940s saw Kahlo consolidate her distinctive artistic method, refine her iconography, and establish the thematic and stylistic elements that would define her legacy."
+    },
+    "Embodied political conviction": {
+      "description": "The integration of personal beliefs and political ideology into physical expression and artistic practice.",
+      "context": "Central to Kahlo's artistic methodology, where her body and its experiences became inseparable from her political statements about colonialism, suffering, and Mexican identity."
+    },
+    "Witness to imperial violence": {
+      "description": "The role of observing and bearing testimony to the effects of colonial and imperial power structures on individuals and nations.",
+      "context": "Kahlo positioned herself as a witness to Mexico's colonial history and the ongoing violence of imperialism, incorporating these observations into her painted narratives."
+    },
+    "Guatemala coup response": {
+      "description": "Artistic or activist reaction to a specific political coup or intervention in Guatemala.",
+      "context": "Kahlo's response to imperial intervention in Guatemala exemplified her commitment to documenting and protesting U.S. and colonial political violence in Latin America."
+    },
+    "Art as radical testimony and witnessing": {
+      "description": "The practice of using artistic creation as a form of bearing witness to injustice and speaking truth from lived experience.",
+      "context": "Kahlo's paintings functioned as radical testimony to her own suffering and to broader political truths, positioning art as an urgent political act rather than aesthetic object."
+    },
+    "Autobiography as ideology": {
+      "description": "The use of personal narrative and self-representation to articulate and promote political and philosophical worldviews.",
+      "context": "Kahlo's self-portraits and autobiographical imagery were deliberately ideological, using her life story to communicate political positions about identity, colonialism, and resistance."
+    },
+    "Persona cultivation and artistic circulation": {
+      "description": "The deliberate construction and management of public image and identity alongside the strategic distribution of artwork through networks and institutions.",
+      "context": "Kahlo carefully cultivated her public persona\u2014through dress, appearance, and biographical narrative\u2014as an integral part of her artistic practice and political effectiveness."
+    },
+    "Defiance as creative fuel in late career": {
+      "description": "The channeling of resistance and refusal into intensified artistic production during periods of physical decline or political adversity.",
+      "context": "In her final years, despite severe illness and pain, Kahlo's paintings became increasingly bold and defiant, with suffering itself transformed into creative energy and political assertion."
+    },
+    "Neutrality as complicity": {
+      "description": "The philosophical position that claiming political neutrality or detachment constitutes passive support for existing power structures.",
+      "context": "Kahlo rejected any notion of art existing outside politics, believing that artists must take sides and that neutrality implicitly supports oppression."
+    },
+    "Body as political canvas": {
+      "description": "The treatment of the human body as a surface for inscribing and communicating political messages, suffering, and resistance.",
+      "context": "Kahlo's own damaged body, depicted with unflinching specificity in her paintings, became the primary vehicle for her political statements about pain, endurance, and Mexican identity."
+    },
+    "Victimhood as testimony": {
+      "description": "The transformation of suffering and victimization into a form of legitimate political and historical evidence or witness account.",
+      "context": "Rather than hiding or minimizing her victimhood from accidents and illness, Kahlo elevated it to testimony, making her pain a source of political and moral authority."
+    },
+    "Mexican specificity in formal innovation": {
+      "description": "The development of new artistic techniques and formal approaches rooted in and responsive to Mexican cultural, historical, and aesthetic traditions.",
+      "context": "Kahlo's innovative use of color, scale, and surrealist elements was grounded in Mexican folk art, pre-Columbian imagery, and specifically Mexican experiences of colonialism and identity."
+    },
+    "Art as urgent political vehicle": {
+      "description": "The conception of artistic creation as an immediate and necessary tool for communicating pressing political demands and critiques.",
+      "context": "For Kahlo, art was not separate from or secondary to politics; it was an essential means of urgently addressing injustice and mobilizing consciousness."
+    },
+    "Refusal to separate personal deterioration from political urgency": {
+      "description": "The deliberate rejection of the boundary between private suffering and public political responsibility, treating them as interconnected.",
+      "context": "Kahlo's artistic practice refused any split between her physical and psychological decline and her political commitments, insisting that both were equally urgent and interconnected."
+    },
+    "Bodily strength as silent testimony": {
+      "description": "The assertion of resilience, endurance, and physical presence as a form of non-verbal but powerful political statement.",
+      "context": "Despite chronic pain and deterioration, Kahlo's self-portraits present bodily strength and presence as a form of silent but defiant testimony to survival and resistance."
+    },
+    "Somatic and psychological resilience integration": {
+      "description": "The unified treatment of physical and mental fortitude as interdependent aspects of survival and continued agency.",
+      "context": "Kahlo's work integrates bodily pain with psychological complexity, presenting resilience not as overcoming trauma but as living fully within and through it as an integrated whole."
+    },
+    "Collapsing gender and disability stigma through physical action": {
+      "description": "A theoretical framework examining how deliberate embodied practices challenge social stigma attached to gender nonconformity and physical disability.",
+      "context": "Central to Kahlo's self-presentation through her distinctive appearance, physical labor in art-making, and refusal to hide her disabilities or conform to feminine conventions."
+    },
+    "Body as source of strength rather than shame": {
+      "description": "A philosophical stance reframing the physical body\u2014including its wounds, scars, and differences\u2014as evidence of resilience and power rather than deficit.",
+      "context": "Fundamental to Kahlo's artistic vision, where her pain from bus accidents and surgeries became subjects of unflinching self-portraits that asserted bodily dignity."
+    },
+    "Empirical authority through scientific method": {
+      "description": "The use of systematic observation and evidence-based documentation to establish credibility and truth claims independent of subjective interpretation.",
+      "context": "Reflected in Kahlo's approach to painting her internal experiences with medical precision, treating her self-portraits as documented evidence of her physical and psychological states."
+    },
+    "Triple integration of craft, observation, and ideology": {
+      "description": "A compositional approach uniting technical skill, perceptual documentation, and political or philosophical conviction into unified artistic expression.",
+      "context": "Exemplified throughout Kahlo's work, which combined meticulous painting technique, detailed observation of her own body and surroundings, and socialist political commitment."
+    },
+    "Technical mastery as pathway to autonomy": {
+      "description": "The concept that developing superior skill in one's chosen medium enables independence, self-determination, and liberation from external control.",
+      "context": "Kahlo's deliberate cultivation of painting technique allowed her to visually articulate her experience on her own terms and achieve artistic agency despite physical limitations."
+    },
+    "Pain as witness and validator of existence": {
+      "description": "A philosophical position treating physical and emotional suffering as proof of being alive and as legitimate testimony to one's authentic experience.",
+      "context": "Core to Kahlo's artistic practice, where chronic pain from her 1925 bus accident became the evidence of her existence that she repeatedly documented in paintings."
+    },
+    "Recursive loop of suffering and artistic authenticity": {
+      "description": "A cyclical relationship where experienced suffering generates authentic artistic expression, which in turn deepens and validates the significance of that suffering.",
+      "context": "Describes the dynamic in Kahlo's work where her trauma and pain became her most distinctive artistic subject matter, creating increasingly powerful self-representations."
+    },
+    "Reclamation of agency through art": {
+      "description": "The process of reasserting personal power and control over one's narrative by creating cultural work that centers one's own voice and perspective.",
+      "context": "Kahlo's entire artistic project functioned as an assertion of agency, transforming her victimization by physical injury and personal circumstances into controlled artistic representation."
+    },
+    "Suffering as inseparable from identity and vision": {
+      "description": "A conceptual framework in which an individual's hardship becomes constitutive of their selfhood and shapes their unique perspective on the world.",
+      "context": "Integral to Kahlo's self-understanding and artistic identity\u2014she did not separate her chronic pain and trauma from who she was, but rather made them central to her vision."
+    }
+  }
+}

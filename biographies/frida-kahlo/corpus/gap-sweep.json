@@ -1,0 +1,785 @@
+{
+  "stats": {
+    "passages_scanned": 16,
+    "new_entities_found": 111
+  },
+  "new_entities": [
+    {
+      "name": "Epilepsy",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "suffered from epilepsy and carried a quiet melancholy",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Photography",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "a German-Hungarian photographer who had emigrated to Mexico in 1891",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Polio",
+      "type": "concept",
+      "confidence": 0.95,
+      "passage_text": "In 1913, at the age of six, Frida contracted polio",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Physical disability",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "Frida absorbed the lesson that disability was something you attacked with action, not something you surrendered to",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Bodily defiance",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "The pattern \u2014 defiance as a response to bodily betrayal \u2014 would define her life",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Political commitment",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "She later claimed to have been born in 1910 rather than 1907, tying her birth to the Revolution and declaring herself a child of the new Mexico",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Coyoac\u00e1n parks",
+      "type": "place",
+      "confidence": 0.7,
+      "passage_text": "took her on walks to collect insects and plants in the parks of Coyoac\u00e1n",
+      "source_passage": "p-002"
+    },
+    {
+      "name": "Bol\u00edvar Amphitheatre",
+      "type": "place",
+      "confidence": 0.95,
+      "passage_text": "the Bol\u00edvar Amphitheatre",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Mexican nationalism",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "Mexican nationalism",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "socialism",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "socialism",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "medicine",
+      "type": "goal",
+      "confidence": 0.8,
+      "passage_text": "she wanted to study medicine",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "anatomy",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "the precision of anatomy",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Alejandro G\u00f3mez Arias",
+      "type": "person",
+      "confidence": 0.9,
+      "passage_text": "Alejandro G\u00f3mez Arias, who became her first serious boyfriend",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "the role of art in revolution",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "the role of art in revolution",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "muralism",
+      "type": "activity",
+      "confidence": 0.75,
+      "passage_text": "the muralist Diego Rivera was painting",
+      "source_passage": "p-003"
+    },
+    {
+      "name": "Alejandro",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "Her relationship with Alejandro deteriorated during the recovery. His letters became less frequent, then ceased. He went to Europe.",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "plaster corsets",
+      "type": "project",
+      "confidence": 0.75,
+      "passage_text": "She wore plaster corsets for extended periods, sometimes decorated them with drawings and painted imagery.",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "self-portraits",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "The self-portraits from this period are stiff and formal, influenced by European portrait conventions",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "physical vulnerability",
+      "type": "concept",
+      "confidence": 0.7,
+      "passage_text": "The loss taught her that physical vulnerability made her emotionally dependent, and that dependency was dangerous",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "financial self-sufficiency",
+      "type": "goal",
+      "confidence": 0.8,
+      "passage_text": "She resolved to be financially self-sufficient, recognising that her father's household could not support her indefinitely",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "Mexican muralism movement",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "she began circulating in the artistic community around the Mexican muralism movement",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "Tina Modotti's salon",
+      "type": "place",
+      "confidence": 0.8,
+      "passage_text": "She was drawn to the Italian-born photographer Tina Modotti, whose salon brought together artists, intellectuals, and political activists.",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "Diego Rivera's portrait",
+      "type": "project",
+      "confidence": 0.8,
+      "passage_text": "She painted his portrait \u2014 a careful, almost reverential study that suggested she was already looking at him as something more than a critic.",
+      "source_passage": "p-005"
+    },
+    {
+      "name": "Frida's mother",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "Her mother disapproved, calling the marriage \"a union between an elephant and a dove.\"",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "Frida's father",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "Her father, more pragmatic, noted that Diego was at least financially capable.",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "town hall of Coyoac\u00e1n",
+      "type": "place",
+      "confidence": 0.9,
+      "passage_text": "They married on 21 August 1929 in a civil ceremony at the town hall of Coyoac\u00e1n.",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "retablo tradition",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "toward the retablo tradition of Mexican folk art, with its vivid colours, flat perspective, and emotional directness",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "European traditions",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "He encouraged her to paint from her own experience rather than imitating the European traditions she had studied during her recovery.",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "surrealists",
+      "type": "organisation",
+      "confidence": 0.75,
+      "passage_text": "a rotating cast of Communist intellectuals, exiled revolutionaries, and visiting surrealists",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "political salon",
+      "type": "place",
+      "confidence": 0.7,
+      "passage_text": "They established a household that was as much a political salon as a home.",
+      "source_passage": "p-006"
+    },
+    {
+      "name": "Gringolandia",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "She called the United States \"Gringolandia\"",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "therapeutic abortion",
+      "type": "activity",
+      "confidence": 0.8,
+      "passage_text": "after a therapeutic abortion in 1930 that her doctors had recommended",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Henry Ford Hospital miscarriage",
+      "type": "event",
+      "confidence": 0.85,
+      "passage_text": "On 4 July 1932, she suffered a miscarriage at the Henry Ford Hospital",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Henry Ford Hospital",
+      "type": "place",
+      "confidence": 0.9,
+      "passage_text": "she suffered a miscarriage at the Henry Ford Hospital",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Portrait of Dr Leo Eloesser",
+      "type": "project",
+      "confidence": 0.9,
+      "passage_text": "She was grateful for his honesty and rewarded it with a portrait: \"Portrait of Dr Leo Eloesser\" (1931)",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Henry Ford Hospital",
+      "type": "project",
+      "confidence": 0.9,
+      "passage_text": "she began painting \"Henry Ford Hospital\" (1932)",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "motherhood",
+      "type": "goal",
+      "confidence": 0.85,
+      "passage_text": "She had wanted motherhood with a ferocity that startled even Diego",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "catastrophic thinking",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "This was catastrophic thinking in its clinical sense",
+      "source_passage": "p-007"
+    },
+    {
+      "name": "Twin Houses in San \u00c1ngel",
+      "type": "place",
+      "confidence": 0.85,
+      "passage_text": "the twin houses in San \u00c1ngel designed by Juan O'Gorman \u2014 two separate structures connected by a bridge",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Bridge connecting the twin houses",
+      "type": "place",
+      "confidence": 0.75,
+      "passage_text": "two separate structures connected by a bridge, a physical metaphor for their marriage",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Infidelity",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "Diego had slept with models, students, and political acquaintances before, and Frida had learned to absorb these episodes",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Marriage betrayal through affair with family",
+      "type": "concept",
+      "confidence": 0.78,
+      "passage_text": "The betrayal was qualitatively different from his other infidelities...Cristina was family. The affair violated not just the marriage but the sibling bond",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Tehuana dress",
+      "type": "project",
+      "confidence": 0.72,
+      "passage_text": "She stopped wearing the Tehuana dresses that Diego loved",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Hair cutting",
+      "type": "activity",
+      "confidence": 0.7,
+      "passage_text": "She cut her hair",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Apartment in central Mexico City",
+      "type": "place",
+      "confidence": 0.8,
+      "passage_text": "She moved out of the San \u00c1ngel house temporarily, taking an apartment in central Mexico City",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "Divorce consideration",
+      "type": "goal",
+      "confidence": 0.75,
+      "passage_text": "She considered divorce",
+      "source_passage": "p-008"
+    },
+    {
+      "name": "My Grandparents, My Parents, and I",
+      "type": "project",
+      "confidence": 0.99,
+      "passage_text": "She painted \"My Grandparents, My Parents, and I\" (1936), a family tree rendered as a biological diagram",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "Fulang-Chang and I",
+      "type": "project",
+      "confidence": 0.99,
+      "passage_text": "She painted \"Fulang-Chang and I\" (1937), a self-portrait with a pet monkey",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "Surrealism",
+      "type": "concept",
+      "confidence": 0.95,
+      "passage_text": "Breton's catalogue essay infuriated her. He described her work as surrealist \u2014 a classification she vehemently rejected",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "autonomy",
+      "type": "goal",
+      "confidence": 0.85,
+      "passage_text": "she had achieved the goal she had set during her recovery, when she recognised that autonomy required economic self-sufficiency",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "first solo exhibition",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "He wrote the catalogue essay for her first solo exhibition, held at the Julien Levy Gallery in New York in November 1938",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "economic self-sufficiency",
+      "type": "goal",
+      "confidence": 0.8,
+      "passage_text": "autonomy required economic self-sufficiency",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "Freudian dream interpretation",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "Surrealism, as she understood it, was a European movement rooted in Freudian dream interpretation",
+      "source_passage": "p-009"
+    },
+    {
+      "name": "Surrealism",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "The surrealists she met \u2014 including Marcel Duchamp",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "pre-Columbian imagery",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "the pre-Columbian imagery in her paintings was not decoration but declaration",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "Mexican identity",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "her identity was Mexican, not cosmopolitan",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "1939 Paris exhibition",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "an exhibition organised by Breton",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "kidney infection",
+      "type": "activity",
+      "confidence": 0.75,
+      "passage_text": "She fell ill in Paris \u2014 a kidney infection that confined her to the American Hospital",
+      "source_passage": "p-010"
+    },
+    {
+      "name": "Trotsky's assassination",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "after Trotsky's assassination was being planned",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "psychic splitting",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "The painting is a diagram of psychic splitting",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "all-or-nothing thinking",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "one of the clearest expressions of all-or-nothing thinking in visual art",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "Mexican song",
+      "type": "project",
+      "confidence": 0.7,
+      "passage_text": "lyrics from a Mexican song written across the top: 'Look, if I loved you it was because of your hair. Now that you're bald, I don't love you anymore.'",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "Self-Portrait with Cropped Hair",
+      "type": "project",
+      "confidence": 0.95,
+      "passage_text": "'Self-Portrait with Cropped Hair' (1940)",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "shame",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "This was shame: the recognition that her self-reliance was performative",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "art world",
+      "type": "organisation",
+      "confidence": 0.75,
+      "passage_text": "she would lose access to the art world's attention",
+      "source_passage": "p-011"
+    },
+    {
+      "name": "San \u00c1ngel twin houses",
+      "type": "place",
+      "confidence": 0.85,
+      "passage_text": "The twin houses in San \u00c1ngel became Diego's studio",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "orthopaedic corsets",
+      "type": "project",
+      "confidence": 0.8,
+      "passage_text": "she wore increasingly elaborate orthopaedic corsets \u2014 some made of plaster, some of leather, some of steel. She painted several of them, transforming medical appliances into art objects.",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "Mexican identity",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "a carefully constructed expression of Mexican identity",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "chronic pain",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "The nails are in the exact locations of her chronic pain",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "Trotskyism",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "Diego's Trotskyism",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "Mexican working class",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "the same system that impoverished the Mexican working class",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "collective political action",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "she genuinely believed that collective political action could transform individual suffering",
+      "source_passage": "p-012"
+    },
+    {
+      "name": "My Birth",
+      "type": "project",
+      "confidence": 0.95,
+      "passage_text": "In \"My Birth\" (1932), she painted herself being born from her own mother's body",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "mother",
+      "type": "person",
+      "confidence": 0.85,
+      "passage_text": "she painted herself being born from her own mother's body",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "dead children",
+      "type": "person",
+      "confidence": 0.8,
+      "passage_text": "the accident, Diego, her dead children, her parents, a volcano",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "parents",
+      "type": "person",
+      "confidence": 0.8,
+      "passage_text": "the accident, Diego, her dead children, her parents, a volcano",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "the accident",
+      "type": "activity",
+      "confidence": 0.75,
+      "passage_text": "floating images from her life \u2014 the accident, Diego, her dead children",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "self-portraits",
+      "type": "project",
+      "confidence": 0.9,
+      "passage_text": "of which 55 are self-portraits",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "Mexican folk art",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "Her colour palette was drawn from Mexican folk art",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "medical textbooks",
+      "type": "project",
+      "confidence": 0.75,
+      "passage_text": "these were painted from medical textbooks and from her own experience of surgery",
+      "source_passage": "p-013"
+    },
+    {
+      "name": "spinal fusion operation",
+      "type": "activity",
+      "confidence": 0.95,
+      "passage_text": "underwent a spinal fusion operation in New York",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "bone graft",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "stabilise her lower spine using a bone graft and a metal plate",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "bone infection",
+      "type": "concept",
+      "confidence": 0.95,
+      "passage_text": "She developed a bone infection",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "plaster corset",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "encased in another plaster corset",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "sugar skulls",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "decorated with sugar skulls, political posters, and a mirror",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "political posters",
+      "type": "concept",
+      "confidence": 0.75,
+      "passage_text": "decorated with sugar skulls, political posters, and a mirror",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "mirror mounted on the ceiling",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "a mirror mounted on the ceiling so she could paint in bed",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "morphine",
+      "type": "concept",
+      "confidence": 0.95,
+      "passage_text": "she took Demerol and morphine",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "Self-Portrait with the Portrait of Dr Farill",
+      "type": "project",
+      "confidence": 0.98,
+      "passage_text": "\"Self-Portrait with the Portrait of Dr Farill\" (1951)",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "wheelchair",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "she sits in a wheelchair holding a palette shaped like a heart",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "palette shaped like a heart",
+      "type": "concept",
+      "confidence": 0.8,
+      "passage_text": "holding a palette shaped like a heart",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "dependency",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "It is a painting about dependency, about gratitude",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "gratitude",
+      "type": "concept",
+      "confidence": 0.9,
+      "passage_text": "about gratitude, and about the fear",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "her diary",
+      "type": "project",
+      "confidence": 0.95,
+      "passage_text": "She wrote in her diary",
+      "source_passage": "p-014"
+    },
+    {
+      "name": "Dr Farill",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "Dr Farill had warned her months earlier",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "bus accident",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "since the bus accident",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "prosthetic leg",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "She was fitted with a prosthetic leg and red leather boots",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "still lifes of fruit",
+      "type": "project",
+      "confidence": 0.9,
+      "passage_text": "a series of still lifes of fruit",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "VIVA LA VIDA",
+      "type": "concept",
+      "confidence": 0.95,
+      "passage_text": "She inscribed several of them with the words \"VIVA LA VIDA\" \u2014 long live life",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "four-poster bed",
+      "type": "place",
+      "confidence": 0.8,
+      "passage_text": "She arranged for her four-poster bed to be transported from La Casa Azul to the gallery",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "amputation below the knee",
+      "type": "activity",
+      "confidence": 0.85,
+      "passage_text": "her right leg was amputated below the knee",
+      "source_passage": "p-015"
+    },
+    {
+      "name": "CIA-orchestrated coup against Guatemala",
+      "type": "activity",
+      "confidence": 0.9,
+      "passage_text": "a political demonstration protesting the CIA-orchestrated coup against the democratically elected government of Guatemala",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "pulmonary embolism",
+      "type": "concept",
+      "confidence": 0.95,
+      "passage_text": "The official cause of death was pulmonary embolism",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Diego Rivera",
+      "type": "person",
+      "confidence": 0.95,
+      "passage_text": "Diego, who was at her bedside",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "medical surgeries",
+      "type": "activity",
+      "confidence": 0.8,
+      "passage_text": "thirty-two surgeries",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Frida's paintings",
+      "type": "project",
+      "confidence": 0.85,
+      "passage_text": "two hundred paintings",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "feminism",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "She has been claimed by feminists",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "disability rights movement",
+      "type": "organisation",
+      "confidence": 0.85,
+      "passage_text": "by disability rights advocates",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "LGBTQ communities",
+      "type": "organisation",
+      "confidence": 0.9,
+      "passage_text": "by LGBTQ communities",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "Mexican nationalism",
+      "type": "concept",
+      "confidence": 0.85,
+      "passage_text": "by Mexican nationalists",
+      "source_passage": "p-016"
+    },
+    {
+      "name": "pre-Columbian urn",
+      "type": "object",
+      "confidence": 0.8,
+      "passage_text": "Diego collected her ashes in a pre-Columbian urn",
+      "source_passage": "p-016"
+    }
+  ]
+}

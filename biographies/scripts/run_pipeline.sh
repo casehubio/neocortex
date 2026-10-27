@@ -2,16 +2,18 @@
 # Cognitive extraction pipeline — convergence loop.
 #
 # Usage:
-#   ./run_pipeline.sh <source.md> [engram-dir] [--mode fixed-point|selective] [--max-passes N]
+#   ./run_pipeline.sh <biography.md> [engram-dir] [--mode fixed-point|selective] [--max-passes N]
 #
-# Engram directory layout (extraction/engrams/<subject>/):
-#   source.md              — source biography
-#   aliases.yaml           — per-engram entity name aliases
+# Engram directory layout (biographies/<subject>/):
+#   biography.md           — source text
+#   engram.json            — consolidated engram (output)
+#   aliases.yaml           — per-engram config
 #   edge-corrections.yaml  — per-engram edge fixes
 #   verify_schema.yaml     — per-engram verification schema
-#   corpus.json            — final processed corpus (output)
-#   passages.json          — chunked passages
-#   enriched.json          — cognitively enriched data
+#   corpus/                — extraction intermediates
+#     passages.json        — chunked passages
+#     enriched.json        — cognitively enriched data
+#     structure.json       — extracted graph structure
 #
 # The pipeline converges: after entity synthesis (Phase 2b) produces new
 # memories, those go through structural extraction and enrichment. The loop
