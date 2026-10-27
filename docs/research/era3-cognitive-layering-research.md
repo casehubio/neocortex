@@ -1748,6 +1748,51 @@ Cost: 11 Haiku calls (one per passage with gaps). Negligible.
 
 ---
 
+### Entry 16 — Response format audit: calibration vs behavioral guidance (#153, 2026-10-27)
+
+#### The problem
+
+`RESPONSE_FORMAT_INSTRUCTION` in `CharacterAgentLoop` accumulated behavioral directives embedded in JSON field descriptions. The `thinking` field carried a 100-word multi-channel introspection essay (Damasio 1994, Easterbrook 1959, Barrett 2017, Frijda 1986); the `moodImpact` field carried anti-bias guidance ("Be honest — negative is valid"). These are behavioral instructions mixed with JSON schema definitions.
+
+The block tag system (`BlockTag.java`, `DirectiveSection.java`) was designed for exactly this — separating behavioral directives from structural content. The obvious fix: move behavioral content to `[APPRAISAL]` and `[MOOD]` block tags.
+
+#### Why the obvious fix was wrong
+
+First-principles analysis identified a category error. The block tag system handles **character behavioral guidance** — how drives shape topic choice, how mood colours speech. The response format content is **output field calibration** — how to fill specific JSON fields. These are categorically different:
+
+- Character guidance: "Your emotional state shapes how you speak" → `[MOOD]`
+- Field calibration: "Rate your emotional response honestly, negative is valid" → near the `moodImpact` field
+
+Moving field calibration to block tags creates:
+1. **Semantic collision** — `[APPRAISAL]` state data ("your somatic channel is heightened") mixed with meta-instructions ("Notice your body")
+2. **Severed field connection** — tagged sections at prompt TOP, response format at BOTTOM, hundreds of tokens apart
+3. **Non-cognitive regression** — tagged sections only flow through the cognitive path, silently dropping calibration for non-cognitive characters
+
+#### Corrected approach
+
+Response format calibration stays near the fields it targets, condensed from verbose prose to concise calibration:
+
+Old `thinking` (100 words): "What's happening inside you right now? Notice your body — a tightness, a warmth, a numbness..."
+
+New `thinking` (45 words): "your private inner monologue — attend to what feels vivid: body (tension, warmth), attention (what pulls, what you avoid), time (urgent or suspended), action pull. Raw, unperformed, sometimes confused — the character's voice belongs in dialogue."
+
+Old `moodImpact`: "rate YOUR emotional response to this exchange as PAD deltas (change from neutral). Be honest — negative is valid."
+
+New `moodImpact`: "PAD deltas — your actual emotional change from neutral. Negative is valid."
+
+#### ChannelEmphasis interaction (adversarial finding)
+
+`ChannelEmphasisPromptSection` dynamically modulates channels — it can suppress somatic or foreground attentional. The old thinking field statically said "Notice your body," which contradicts "Background your somatic" when both are present. The new phrasing "attend to what feels vivid" defers to dynamic emphasis when present, with the four named channels as baseline when emphasis is absent.
+
+#### Open empirical question
+
+The shift from interrogative/embodied framing ("What's happening inside you? a tightness, a warmth, a numbness") to parenthetical calibration ("body (tension, warmth)") may produce more mechanical inner monologue. No existing eval instrument measures thinking field register. A thinking-field quality eval is needed as follow-up.
+
+#### Finding (P103)
+
+**Response format calibration ≠ character behavioral guidance.** Both look like behavioral directives in the text. They serve different systems. Block tags handle character state and identity — content the character processes as part of who they are. Response format calibration handles output field formatting — instructions the LLM follows when generating JSON. Mixing them creates semantic collision, architectural coupling, and regression on non-cognitive code paths. Field-specific calibration stays near the field.
+
+---
 ## Supporting Research Files
 
 Standalone literature reviews and research that informed era3 implementation decisions. All in `docs/research/`:
