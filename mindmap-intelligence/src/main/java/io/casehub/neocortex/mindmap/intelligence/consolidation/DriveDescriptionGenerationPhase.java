@@ -38,21 +38,27 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     static final String DESCRIPTION_TRAIT = "DriveDescriptionGenerated";
 
-    // Multi-channel expression: somatic (Barrett 2017, Damasio 1994), attentional (Easterbrook 1959),
-    // temporal (Barrett 2017 prediction), action tendency (Frijda 1986)
+    // Barrett (2017) constructionist 4-channel framework: somatic (Damasio 1994), attentional
+    // (Easterbrook 1959), temporal (Barrett prediction), action tendency (Frijda 1986)
     private static final String SYSTEM_PROMPT = """
-                                                You generate experiential descriptions of internal drives for fictional characters.
-                                                Each description captures what a character experiences when a particular \
-                                                motivational pull activates — across multiple channels:
-                                                - Somatic: bodily sensations (warmth, tension, weight, tingling)
-                                                - Attentional: what captures attention, where awareness is drawn
-                                                - Temporal: how the moment feels (suspended, urgent, stretching, compressed)
-                                                - Action tendency: what the person feels pulled toward doing
-                                                Write in second person. Do not name the drive or pull. Do not explain what it is.
-                                                Do not include behavioral instructions or prescribe actions.
-                                                Each channel should contribute something that distinguishes THIS pull from \
-                                                any other pull the character might feel.
-                                                Keep each description to 2-3 sentences.
+                                                You derive character-specific drive profiles from personality and formation memories.
+                                                For each drive, describe how it TYPICALLY manifests in THIS person's body — shaped \
+                                                by their unique history, personality scores, and attachment style.
+                                                
+                                                Personality scores are body calibration, not opinions: high Callousness means the \
+                                                sympathy region is quiet; high Suspiciousness means shoulders square before worry \
+                                                registers. Attachment is the somatic ground state: avoidant bodies find calm in \
+                                                control, secure bodies settle into closeness, anxious bodies amplify every signal.
+                                                
+                                                Cover four channels woven together (not as a list):
+                                                - Body: where does this drive live in THIS person? What chronic tensions, warmths, \
+                                                numbnesses has their history created?
+                                                - Attention: what does this drive make them scan for, fixate on, miss?
+                                                - Time: does this drive make moments feel urgent, patient, compressed, stretched?
+                                                - Action readiness: what does their body prepare to do when this activates?
+                                                
+                                                Ground each channel in specific formation memories where possible.
+                                                Write in second person. Do not name the drive. 2-3 sentences per drive.
                                                 Respond with JSON only: {"description": "..."}""";
 
     private final MindMapStore store;
@@ -136,7 +142,17 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 .filter(n -> agentId.equals(n.properties().get("agent-id")))
                 .toList();
 
-            if (agentMemories.isEmpty()) continue;
+            List<MindMapNode> personalityNodes = allCognitive.stream()
+                .filter(n -> "personality-facet".equals(n.properties().get("cognitiveKind")))
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .toList();
+
+            MindMapNode attachmentNode = allCognitive.stream()
+                .filter(n -> "attachment-style".equals(n.properties().get("cognitiveKind")))
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .findFirst().orElse(null);
+
+            if (agentMemories.isEmpty() && personalityNodes.isEmpty()) continue;
 
             LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
                 + agentId + " (" + driveNodes.size() + " drives, "
@@ -158,9 +174,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 descTasks.add(session -> {
                     long start = System.currentTimeMillis();
                     generateAndStore(session, tenantId, agentId, subgraphId,
-                        driveType, intensity, servingMemories);
+                        driveType, intensity, servingMemories, personalityNodes, attachmentNode);
                     LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
-                        + " memories, " + (System.currentTimeMillis() - start) + "ms)");
+                        + " memories, " + personalityNodes.size() + " facets, "
+                        + (System.currentTimeMillis() - start) + "ms)");
                 });
             }
 
@@ -183,9 +200,11 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     private void generateAndStore(AgentSession session, String tenantId, String agentId, String subgraphId,
                                   String driveType, String intensity,
-                                  List<MindMapNode> servingMemories) {
+                                  List<MindMapNode> servingMemories,
+                                  List<MindMapNode> personalityNodes, MindMapNode attachmentNode) {
         try {
-            String description = callLlm(session, driveType, intensity, servingMemories);
+            String description = callLlm(session, driveType, intensity, servingMemories,
+                                          personalityNodes, attachmentNode);
             if (description == null || description.isBlank()) {return;}
 
             store.addNode(
@@ -205,33 +224,40 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     }
 
     private String callLlm(AgentSession session, String driveType, String intensity,
-                           List<MindMapNode> servingMemories) {
-        String userPrompt;
-        if (servingMemories.isEmpty()) {
-            userPrompt = String.format("""
-                                       Drive type: %s
-                                       Intensity: %s (scale 0.0 to 1.0)
-                                       
-                                       Describe what a person experiences when this type of pull activates \
-                                       at this intensity — without naming the pull. Second person, \
-                                       no behavioral instructions.""",
-                                       driveType, intensity);
-        } else {
-            var memoriesText = new StringBuilder();
-            for (int i = 0; i < servingMemories.size(); i++) {
-                memoriesText.append(String.format("%d. %s\n", i + 1, servingMemories.get(i).name()));
+                           List<MindMapNode> servingMemories,
+                           List<MindMapNode> personalityNodes, MindMapNode attachmentNode) {
+        var promptBuilder = new StringBuilder();
+        promptBuilder.append("Drive type: ").append(driveType).append("\n");
+        promptBuilder.append("Intensity: ").append(intensity).append(" (scale 0.0 to 1.0)\n\n");
+
+        if (!personalityNodes.isEmpty()) {
+            promptBuilder.append("Personality profile:\n");
+            for (var node : personalityNodes) {
+                promptBuilder.append("  ").append(node.properties().get("facet"))
+                             .append(": ").append(node.properties().get("score")).append("/100\n");
             }
-            userPrompt = String.format("""
-                                       Drive type: %s
-                                       Intensity: %s (scale 0.0 to 1.0)
-                                       
-                                       Formation memories that shaped this pull:
-                                       %s
-                                       Given these formation memories, describe what this person experiences \
-                                       when this pull activates — without naming the pull. Second person, \
-                                       no behavioral instructions.""",
-                                       driveType, intensity, memoriesText);
+            promptBuilder.append("\n");
         }
+
+        if (attachmentNode != null) {
+            promptBuilder.append("Attachment: ").append(attachmentNode.properties().get("style"))
+                         .append(" (anxiety=").append(attachmentNode.properties().get("anxiety"))
+                         .append(", avoidance=").append(attachmentNode.properties().get("avoidance")).append(")\n\n");
+        }
+
+        if (!servingMemories.isEmpty()) {
+            promptBuilder.append("Formation memories that shaped this pull:\n");
+            for (int i = 0; i < servingMemories.size(); i++) {
+                promptBuilder.append(i + 1).append(". ").append(servingMemories.get(i).name()).append("\n");
+            }
+            promptBuilder.append("\n");
+        }
+
+        promptBuilder.append("Given this character's personality and formation memories, describe how this pull ")
+                     .append("TYPICALLY manifests in their body — without naming the pull. ")
+                     .append("Weave all four channels together. Second person, no behavioral instructions.");
+
+        String userPrompt = promptBuilder.toString();
 
         var responseText = new StringBuilder();
         session.query(userPrompt).subscribe().asStream()
