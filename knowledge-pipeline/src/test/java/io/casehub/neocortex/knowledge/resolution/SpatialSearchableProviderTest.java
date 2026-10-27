@@ -2,7 +2,7 @@ package io.casehub.neocortex.knowledge.resolution;
 
 import io.casehub.connectors.Page;
 import io.casehub.connectors.PageRequest;
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.connectors.location.model.Place;
 import io.casehub.connectors.location.model.PriceLevel;
 import io.casehub.connectors.location.spi.LocationPlatform;

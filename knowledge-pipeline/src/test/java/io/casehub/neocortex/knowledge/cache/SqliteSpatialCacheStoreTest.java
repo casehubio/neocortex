@@ -1,6 +1,6 @@
 package io.casehub.neocortex.knowledge.cache;
 
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.neocortex.knowledge.CacheFilter;
 import io.casehub.neocortex.knowledge.CachedEntity;
 import io.casehub.neocortex.knowledge.SpatialCacheStore;

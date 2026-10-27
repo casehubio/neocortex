@@ -1,7 +1,7 @@
 package io.casehub.neocortex.knowledge.research;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.neocortex.knowledge.CachedEntity;
 import io.casehub.neocortex.knowledge.ResearchState;
 import io.casehub.neocortex.knowledge.cache.CacheDecayPolicy;

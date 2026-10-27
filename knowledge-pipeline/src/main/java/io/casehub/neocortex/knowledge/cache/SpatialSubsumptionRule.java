@@ -69,8 +69,8 @@ public class SpatialSubsumptionRule implements SubsumptionRule {
     private boolean isContainedCircle(double narrowLat, double narrowLng, int narrowRadius,
                                        double broaderLat, double broaderLng, int broaderRadius) {
         double centerDist = Haversine.distanceMeters(
-            new io.casehub.connectors.location.model.Coordinates(narrowLat, narrowLng),
-            new io.casehub.connectors.location.model.Coordinates(broaderLat, broaderLng));
+            new io.casehub.connectors.Coordinates(narrowLat, narrowLng),
+            new io.casehub.connectors.Coordinates(broaderLat, broaderLng));
         return centerDist + narrowRadius <= broaderRadius;
     }
 

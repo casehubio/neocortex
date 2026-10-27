@@ -5,7 +5,7 @@ import io.casehub.connectors.PageRequest;
 import io.casehub.connectors.commerce.model.Money;
 import io.casehub.connectors.commerce.model.Product;
 import io.casehub.connectors.commerce.spi.CommercePlatform;
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 import io.casehub.neocortex.knowledge.CachedEntity;
 import io.casehub.neocortex.knowledge.CacheFilter;
 import io.casehub.neocortex.knowledge.KnowledgeQuery;

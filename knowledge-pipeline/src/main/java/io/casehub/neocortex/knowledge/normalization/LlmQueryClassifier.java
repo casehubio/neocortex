@@ -146,7 +146,7 @@ public class LlmQueryClassifier implements QueryClassifier {
         }
     }
 
-    private Optional<io.casehub.connectors.location.model.Coordinates> geocode(String location) {
+    private Optional<io.casehub.connectors.Coordinates> geocode(String location) {
         for (LocationPlatform provider : geocodingProviders) {
             try {
                 List<GeocodingResult> results = provider.geocoding("pipeline")
