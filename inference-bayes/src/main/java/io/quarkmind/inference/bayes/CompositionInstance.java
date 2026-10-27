@@ -165,6 +165,10 @@ public class CompositionInstance {
         return getInstance(slotName).getVariables();
     }
 
+    public double sensitivity(String slotName, String evidenceVariable, String targetVariable) {
+        return getInstance(slotName).sensitivity(evidenceVariable, targetVariable);
+    }
+
 
     private BayesInstance<?> getInstance(String slotName) {
         BayesInstance<?> inst = instances.get(slotName);

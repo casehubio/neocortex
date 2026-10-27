@@ -336,4 +336,81 @@ class HypothesisTrackerTest {
             "favorsA should dominate after Y=yes observation");
     }
 
+
+    @Test
+    void setPerTickEvidence_setsEvidenceWithoutChangingWeights() {
+        var comp = twoSlotComposition();
+        var tracker = HypothesisTracker.builder(comp)
+                                       .hypothesis("rush").priorWeight(0.5)
+                                       .priorOverride("scouting", "enemy_strategy", new double[]{0.8, 0.1, 0.1})
+                                       .hypothesis("expand").priorWeight(0.5)
+                                       .priorOverride("scouting", "enemy_strategy", new double[]{0.1, 0.8, 0.1})
+                                       .build();
+
+        Map<String, Double> before = tracker.weights();
+
+        tracker.setPerTickEvidence("scouting", "observed_units", new double[]{0.7, 0.2, 0.1});
+        tracker.setPerTickEvidence("scouting", "observed_units", new double[]{0.7, 0.2, 0.1});
+        tracker.setPerTickEvidence("scouting", "observed_units", new double[]{0.7, 0.2, 0.1});
+
+        Map<String, Double> after = tracker.weights();
+        assertEquals(before.get("rush"), after.get("rush"), 1e-9,
+                     "Weights must not change from setPerTickEvidence");
+        assertEquals(before.get("expand"), after.get("expand"), 1e-9,
+                     "Weights must not change from setPerTickEvidence");
+    }
+
+    @Test
+    void clearPerTickEvidence_removesEvidenceWithoutChangingWeights() {
+        var comp = twoSlotComposition();
+        var tracker = HypothesisTracker.builder(comp)
+                                       .hypothesis("rush").priorWeight(0.5)
+                                       .priorOverride("scouting", "enemy_strategy", new double[]{0.8, 0.1, 0.1})
+                                       .hypothesis("expand").priorWeight(0.5)
+                                       .priorOverride("scouting", "enemy_strategy", new double[]{0.1, 0.8, 0.1})
+                                       .build();
+
+        tracker.setPerTickEvidence("scouting", "observed_units", new double[]{0.7, 0.2, 0.1});
+        Map<String, Double> before = tracker.weights();
+
+        tracker.clearPerTickEvidence("scouting", "observed_units");
+
+        Map<String, Double> after = tracker.weights();
+        assertEquals(before.get("rush"), after.get("rush"), 1e-9);
+        assertEquals(before.get("expand"), after.get("expand"), 1e-9);
+    }
+
+    @Test
+    void marginalize_returnsPerHypothesisMarginals() {
+        var comp = twoSlotComposition();
+        var tracker = HypothesisTracker.builder(comp)
+                                       .hypothesis("rush").priorWeight(0.5)
+                                       .priorOverride("scouting", "enemy_strategy", new double[]{0.8, 0.1, 0.1})
+                                       .hypothesis("expand").priorWeight(0.5)
+                                       .priorOverride("scouting", "enemy_strategy", new double[]{0.1, 0.8, 0.1})
+                                       .build();
+
+        double[] rushMarginal   = tracker.marginalize("rush", "scouting", "enemy_strategy");
+        double[] expandMarginal = tracker.marginalize("expand", "scouting", "enemy_strategy");
+
+        assertNotNull(rushMarginal);
+        assertNotNull(expandMarginal);
+        assertEquals(3, rushMarginal.length);
+        assertEquals(3, expandMarginal.length);
+        assertTrue(rushMarginal[0] > expandMarginal[0],
+                   "Rush hypothesis should have higher P(rush) marginal");
+        assertTrue(expandMarginal[1] > rushMarginal[1],
+                   "Expand hypothesis should have higher P(expand) marginal");
+    }
+
+    @Test
+    void marginalize_rejectsUnknownHypothesis() {
+        var comp = twoSlotComposition();
+        var tracker = HypothesisTracker.builder(comp)
+                                       .hypothesis("rush").priorWeight(1.0)
+                                       .build();
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> tracker.marginalize("nonexistent", "scouting", "enemy_strategy"));
+    }
 }

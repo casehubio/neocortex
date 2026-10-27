@@ -370,4 +370,20 @@ class CompositionInstanceTest {
         assertTrue(result[0] > result[1], "Rush should dominate when gateway observed");
     }
 
+
+    @Test
+    void sensitivity_delegatesToSlotInstance() {
+        var comp = CompositionBuilder.create("sc2")
+                                     .slot("scouting", scoutingTree())
+                                     .slot("buildOrder", buildOrderTree())
+                                     .link("scouting", "enemy_strategy").to("buildOrder", "enemy_strategy")
+                                     .build();
+
+        var instance = new CompositionInstance(comp);
+        instance.setHardEvidence("scouting", "observed_units", "gateway");
+        instance.update();
+
+        double sens = instance.sensitivity("scouting", "observed_units", "enemy_strategy");
+        assertTrue(sens > 0, "Sensitivity should be positive when evidence is informative");
+    }
 }

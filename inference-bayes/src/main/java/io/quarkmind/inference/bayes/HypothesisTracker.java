@@ -179,6 +179,33 @@ public class HypothesisTracker {
         initializeFromDefinitions();
     }
 
+    public void setPerTickEvidence(String slotName, String variableName, double[] distribution) {
+        for (var entry : compositions.entrySet()) {
+            if (statuses.get(entry.getKey()) == HypothesisStatus.VIABLE) {
+                entry.getValue().setEvidence(slotName, variableName, distribution);
+                entry.getValue().update();
+            }
+        }
+    }
+
+    public void clearPerTickEvidence(String slotName, String variableName) {
+        for (var entry : compositions.entrySet()) {
+            if (statuses.get(entry.getKey()) == HypothesisStatus.VIABLE) {
+                entry.getValue().unsetEvidence(slotName, variableName);
+                entry.getValue().update();
+            }
+        }
+    }
+
+    public double[] marginalize(String hypothesisName, String slotName, String variableName) {
+        CompositionInstance comp = compositions.get(hypothesisName);
+        if (comp == null) {
+            throw new IllegalArgumentException("Unknown hypothesis: " + hypothesisName);
+        }
+        return comp.marginalize(slotName, variableName);
+    }
+
+
     private double computeEntropy() {
         double entropy = 0;
         for (var entry : currentWeights.entrySet()) {
