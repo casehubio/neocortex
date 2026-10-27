@@ -21,4 +21,18 @@ public record StructuralConstraints(
     public static StructuralConstraints maxParents(int max) {
         return new StructuralConstraints(Set.of(), Set.of(), max);
     }
+
+    public static StructuralConstraints fromSpec(NetworkSpec spec) {
+        Set<Edge> required  = new java.util.HashSet<>();
+        Set<Edge> forbidden = new java.util.HashSet<>();
+        for (EdgeSpec e : spec.edges()) {
+            if (e.status() == SpecStatus.LOCKED) {
+                required.add(new Edge(e.from(), e.to()));
+            } else if (e.status() == SpecStatus.REJECTED) {
+                forbidden.add(new Edge(e.from(), e.to()));
+            }
+        }
+        return new StructuralConstraints(required, forbidden, Integer.MAX_VALUE);
+    }
+
 }
