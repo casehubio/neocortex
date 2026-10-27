@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Step 7.6: Dangling edge resolution — LLM-assisted name matching and entity back-fill.
+"""Step 7.5: Dangling edge resolution — LLM-assisted name matching and entity back-fill.
 
-Runs after gap closure (Step 7.5), before verification (Step 8).
+Runs after assembly (Step 7), before gap closure (Step 7.6).
 Resolves edge endpoints that reference entities not in the node set:
   - Match: dangling name → existing node (name variant)
   - Create: dangling name → new node (missing entity)
   - Drop: edge is spurious, remove it
 
-Input:  corpus.json + passages.json
-Output: corpus.json (modified in place) + dangling-resolution-report.json
+Input:  engram.json + passages.json
+Output: engram.json (modified in place) + dangling-resolution-report.json
 
 Usage:
-    python3 dangling_resolution.py <corpus.json> <passages.json> [--output corpus.json]
+    python3 dangling_resolution.py <engram.json> <passages.json>
 """
 
 import argparse

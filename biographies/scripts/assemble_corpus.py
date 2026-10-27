@@ -1385,7 +1385,7 @@ def main():
     parser = argparse.ArgumentParser(description='Assemble importable corpus')
     parser.add_argument('enriched', help='Path to enriched.json')
     parser.add_argument('baseline', help='Path to nlp-baseline.json')
-    parser.add_argument('--output', '-o', default='corpus.json', help='Output corpus file')
+    parser.add_argument('--output', '-o', default='engram.json', help='Output engram file')
     parser.add_argument('--report', '-r', default='coverage-report.json', help='Coverage report')
     parser.add_argument('--model-report', '-m', default='model-coverage.json', help='Model coverage report')
     parser.add_argument('--gate-report', '-g', default='coverage-gate-report.json', help='Coverage gate report')

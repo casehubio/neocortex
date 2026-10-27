@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Step 7.5: Co-location gap closure — edge repair for under-connected nodes.
+"""Step 7.6: Co-location gap closure — edge repair for under-connected nodes.
 
-Runs after assembly (Step 7), before verification (Step 8).
+Runs after dangling resolution (Step 7.5), before verification (Step 8).
 Identifies nodes that share a passage with entities they have no edge to,
 and generates targeted LLM edge repair per passage.
 
 Subsumes zero-edge orphan detection: a global orphan is a node with
 gaps in ALL its passages.
 
-Input:  corpus.json + passages.json
-Output: corpus.json (modified in place) + orphan-closure-report.json
+Input:  engram.json + passages.json
+Output: engram.json (modified in place) + orphan-closure-report.json
 
 Usage:
-    python3 orphan_closure.py <corpus.json> <passages.json> [--schema verify_schema.yaml] [--output corpus.json]
+    python3 orphan_closure.py <engram.json> <passages.json> [--schema verify_schema.yaml]
 """
 
 import argparse

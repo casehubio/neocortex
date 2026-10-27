@@ -55,7 +55,9 @@ if [ ! -f "$VENV" ]; then
 fi
 
 mkdir -p "$OUTDIR"
-MANIFEST="$OUTDIR/manifest.json"
+CORPUS="$OUTDIR/corpus"
+mkdir -p "$CORPUS"
+MANIFEST="$CORPUS/manifest.json"
 
 # Schema discovery: explicit > output-dir > docs fallback
 if [ -z "${SCHEMA_PATH:-}" ]; then
@@ -154,49 +156,49 @@ if [ "$PASS" = "1" ]; then
 
     if ! step_done "chunk"; then
         echo "--- Step 1: Chunk ---"
-        $VENV "$SCRIPT_DIR/chunk.py" "$SOURCE" -o "$OUTDIR/passages.json"
+        $VENV "$SCRIPT_DIR/chunk.py" "$SOURCE" -o "$CORPUS/passages.json"
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('chunk')"
         echo ""
     fi
 
     if ! step_done "nlp_extract"; then
         echo "--- Step 2: NLP Baseline ---"
-        $VENV "$SCRIPT_DIR/nlp_extract.py" "$OUTDIR/passages.json" -o "$OUTDIR/nlp-baseline.json"
+        $VENV "$SCRIPT_DIR/nlp_extract.py" "$CORPUS/passages.json" -o "$CORPUS/nlp-baseline.json"
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('nlp_extract')"
         echo ""
     fi
 
     if ! step_done "gap_sweep"; then
         echo "--- Step 3: LLM Gap Sweep ---"
-        $VENV "$SCRIPT_DIR/llm_gap_sweep.py" "$OUTDIR/passages.json" "$OUTDIR/nlp-baseline.json" -o "$OUTDIR/gap-sweep.json"
+        $VENV "$SCRIPT_DIR/llm_gap_sweep.py" "$CORPUS/passages.json" "$CORPUS/nlp-baseline.json" -o "$CORPUS/gap-sweep.json"
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('gap_sweep')"
         echo ""
     fi
 
     if ! step_done "extract_structure"; then
         echo "--- Step 4: Structural Extraction ---"
-        $VENV "$SCRIPT_DIR/extract_structure.py" "$OUTDIR/passages.json" "$OUTDIR/nlp-baseline.json" --gaps "$OUTDIR/gap-sweep.json" -o "$OUTDIR/structure.json" $LIMIT_FLAG
+        $VENV "$SCRIPT_DIR/extract_structure.py" "$CORPUS/passages.json" "$CORPUS/nlp-baseline.json" --gaps "$CORPUS/gap-sweep.json" -o "$CORPUS/structure.json" $LIMIT_FLAG
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('extract_structure')"
         echo ""
     fi
 
     if ! step_done "enrich_cognitive"; then
         echo "--- Step 5a: Passage-Level Enrichment ---"
-        $VENV "$SCRIPT_DIR/enrich_cognitive.py" "$OUTDIR/passages.json" "$OUTDIR/structure.json" -o "$OUTDIR/enriched.json" --pass-num 1
+        $VENV "$SCRIPT_DIR/enrich_cognitive.py" "$CORPUS/passages.json" "$CORPUS/structure.json" -o "$CORPUS/enriched.json" --pass-num 1
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('enrich_cognitive')"
         echo ""
     fi
 
     if ! step_done "enrich_entity"; then
         echo "--- Step 5b: Entity-Level Synthesis ---"
-        $VENV "$SCRIPT_DIR/enrich_entity.py" "$OUTDIR/enriched.json" "$OUTDIR/structure.json" --pass-num 1 --mode "$MODE" 2>&1 | tee /tmp/enrich_entity_output.txt
+        $VENV "$SCRIPT_DIR/enrich_entity.py" "$CORPUS/enriched.json" "$CORPUS/structure.json" --pass-num 1 --mode "$MODE" 2>&1 | tee /tmp/enrich_entity_output.txt
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('enrich_entity')"
         echo ""
     fi
 
     if ! step_done "backfill"; then
         echo "--- Step 5c: Backfill Enrichment ---"
-        $VENV "$SCRIPT_DIR/enrich_cognitive.py" --backfill "$OUTDIR/enriched.json" --pass-num 1
+        $VENV "$SCRIPT_DIR/enrich_cognitive.py" --backfill "$CORPUS/enriched.json" --pass-num 1
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('backfill')"
         echo ""
     fi
@@ -241,28 +243,28 @@ while [ "$PASS" -le "$MAX_PASSES" ]; do
 
     if ! step_done "convergence_extract"; then
         echo "--- Convergence Extraction ---"
-        $VENV "$SCRIPT_DIR/extract_structure.py" --convergence "$OUTDIR/enriched.json" --structure-base "$OUTDIR/structure.json" -o "$OUTDIR/structure.json" --pass-num "$PASS"
+        $VENV "$SCRIPT_DIR/extract_structure.py" --convergence "$CORPUS/enriched.json" --structure-base "$CORPUS/structure.json" -o "$CORPUS/structure.json" --pass-num "$PASS"
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('convergence_extract')"
         echo ""
     fi
 
     if ! step_done "backfill_enrich"; then
         echo "--- Backfill Enrichment ---"
-        $VENV "$SCRIPT_DIR/enrich_cognitive.py" --backfill "$OUTDIR/enriched.json" --pass-num "$PASS"
+        $VENV "$SCRIPT_DIR/enrich_cognitive.py" --backfill "$CORPUS/enriched.json" --pass-num "$PASS"
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('backfill_enrich')"
         echo ""
     fi
 
     if ! step_done "incremental_entity"; then
         echo "--- Incremental Entity Synthesis ---"
-        $VENV "$SCRIPT_DIR/enrich_entity.py" "$OUTDIR/enriched.json" "$OUTDIR/structure.json" --incremental --pass-num "$PASS" --mode "$MODE" 2>&1 | tee /tmp/enrich_entity_output.txt
+        $VENV "$SCRIPT_DIR/enrich_entity.py" "$CORPUS/enriched.json" "$CORPUS/structure.json" --incremental --pass-num "$PASS" --mode "$MODE" 2>&1 | tee /tmp/enrich_entity_output.txt
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('incremental_entity')"
         echo ""
     fi
 
     if ! step_done "backfill_new"; then
         echo "--- Backfill New Memories ---"
-        $VENV "$SCRIPT_DIR/enrich_cognitive.py" --backfill "$OUTDIR/enriched.json" --pass-num "$PASS"
+        $VENV "$SCRIPT_DIR/enrich_cognitive.py" --backfill "$CORPUS/enriched.json" --pass-num "$PASS"
         $VENV -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from pipeline_state import PipelineManifest; m = PipelineManifest('$MANIFEST'); m.complete_step('backfill_new')"
         echo ""
     fi
@@ -297,26 +299,26 @@ fi
 # ===================== POST-CONVERGENCE =====================
 echo ""
 echo "--- Step 6: Reference Overlay ---"
-$VENV "$SCRIPT_DIR/generate_overlay.py" "$OUTDIR/structure.json" "$OUTDIR/passages.json" -o "$OUTDIR/reference-overlay.json" --subject "$SUBJECT"
+$VENV "$SCRIPT_DIR/generate_overlay.py" "$CORPUS/structure.json" "$CORPUS/passages.json" -o "$CORPUS/reference-overlay.json" --subject "$SUBJECT"
 echo ""
 
 echo "--- Step 7: Assemble Corpus ---"
-$VENV "$SCRIPT_DIR/assemble_corpus.py" "$OUTDIR/enriched.json" "$OUTDIR/nlp-baseline.json" -o "$OUTDIR/corpus.json" -r "$OUTDIR/coverage-report.json" --llm-dedup
+$VENV "$SCRIPT_DIR/assemble_corpus.py" "$CORPUS/enriched.json" "$CORPUS/nlp-baseline.json" -o "$OUTDIR/engram.json" -r "$CORPUS/coverage-report.json" --llm-dedup
 echo ""
 
 echo "--- Step 7.5: Dangling Edge Resolution ---"
-$VENV "$SCRIPT_DIR/dangling_resolution.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
+$VENV "$SCRIPT_DIR/dangling_resolution.py" "$OUTDIR/engram.json" "$CORPUS/passages.json" \
     --report "dangling-resolution-report.json"
 echo ""
 
 echo "--- Step 7.6: Co-location Gap Closure ---"
-$VENV "$SCRIPT_DIR/orphan_closure.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
+$VENV "$SCRIPT_DIR/orphan_closure.py" "$OUTDIR/engram.json" "$CORPUS/passages.json" \
     --schema "$SCHEMA_PATH" \
     --report "orphan-closure-report.json"
 echo ""
 
 echo "--- Step 8: Verify Import Readiness ---"
-$VENV "$SCRIPT_DIR/verify_corpus.py" "$OUTDIR/corpus.json" \
+$VENV "$SCRIPT_DIR/verify_corpus.py" "$OUTDIR/engram.json" \
     --schema "$SCHEMA_PATH" \
     --output "$OUTDIR"
 VERIFY_EXIT=$?
@@ -324,7 +326,7 @@ if [ $VERIFY_EXIT -eq 1 ]; then
     echo ""
     echo "CRITICAL: Import readiness gate failed."
     echo "Run with --fix to attempt auto-repair:"
-    echo "  python3 scripts/verify_corpus.py $OUTDIR/corpus.json --fix --output $OUTDIR"
+    echo "  python3 scripts/verify_corpus.py $OUTDIR/engram.json --fix --output $OUTDIR"
 fi
 echo ""
 
@@ -340,14 +342,14 @@ print(f\"  Converged: {m['converged']}\")
 "
 echo ""
 echo "Outputs:"
-echo "  $OUTDIR/passages.json        — chunked passages"
-echo "  $OUTDIR/nlp-baseline.json    — NLP entity concordance"
-echo "  $OUTDIR/gap-sweep.json       — LLM gap findings"
-echo "  $OUTDIR/structure.json       — extracted graph structure"
-echo "  $OUTDIR/enriched.json        — cognitively enriched data"
-echo "  $OUTDIR/corpus.json          — importable corpus"
-echo "  $OUTDIR/manifest.json        — convergence state"
-echo "  $OUTDIR/coverage-report.json — coverage audit"
+echo "  $CORPUS/passages.json        — chunked passages"
+echo "  $CORPUS/nlp-baseline.json    — NLP entity concordance"
+echo "  $CORPUS/gap-sweep.json       — LLM gap findings"
+echo "  $CORPUS/structure.json       — extracted graph structure"
+echo "  $CORPUS/enriched.json        — cognitively enriched data"
+echo "  $OUTDIR/engram.json          — consolidated engram"
+echo "  $CORPUS/manifest.json        — convergence state"
+echo "  $CORPUS/coverage-report.json — coverage audit"
 echo "  $OUTDIR/dangling-resolution-report.json — dangling edge resolution"
 echo "  $OUTDIR/orphan-closure-report.json — co-location gap closure"
 echo "  $OUTDIR/verification-report.json — import readiness"
