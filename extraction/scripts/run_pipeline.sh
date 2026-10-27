@@ -301,6 +301,11 @@ $VENV "$SCRIPT_DIR/orphan_closure.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.js
     --report "orphan-closure-report.json"
 echo ""
 
+echo "--- Step 7.6: Dangling Edge Resolution ---"
+$VENV "$SCRIPT_DIR/dangling_resolution.py" "$OUTDIR/corpus.json" "$OUTDIR/passages.json" \
+    --report "dangling-resolution-report.json"
+echo ""
+
 echo "--- Step 8: Verify Import Readiness ---"
 $VENV "$SCRIPT_DIR/verify_corpus.py" "$OUTDIR/corpus.json" \
     --schema "$SCHEMA_PATH" \
@@ -335,4 +340,5 @@ echo "  $OUTDIR/corpus.json          — importable corpus"
 echo "  $OUTDIR/manifest.json        — convergence state"
 echo "  $OUTDIR/coverage-report.json — coverage audit"
 echo "  $OUTDIR/orphan-closure-report.json — orphan closure audit"
+echo "  $OUTDIR/dangling-resolution-report.json — dangling edge resolution"
 echo "  $OUTDIR/verification-report.json — import readiness"
