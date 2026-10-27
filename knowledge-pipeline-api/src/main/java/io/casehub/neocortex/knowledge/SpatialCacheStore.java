@@ -1,6 +1,6 @@
 package io.casehub.neocortex.knowledge;
 
-import io.casehub.connectors.location.model.Coordinates;
+import io.casehub.connectors.Coordinates;
 
 import java.time.Instant;
 import java.util.List;
