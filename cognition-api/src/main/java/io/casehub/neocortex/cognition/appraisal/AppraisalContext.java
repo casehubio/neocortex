@@ -2,6 +2,8 @@ package io.casehub.neocortex.cognition.appraisal;
 
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.PersonalityFacet;
+import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.mindmap.AppraisalWeights;
 import java.util.List;
@@ -15,7 +17,21 @@ public record AppraisalContext(
         HabituationConfig habituationConfig,
         HabituationState habituation,
         MoodState currentMood,
-        @Nullable DispositionAxes dispositionAxes) {
+        @Nullable DispositionAxes dispositionAxes,
+        @Nullable RelationalSchema targetSchema,
+        @Nullable List<PersonalityFacet> personalityFacets) {
+
+    public AppraisalContext(
+            PerceivedSituation situation,
+            List<Drive> drives,
+            AppraisalWeights weights,
+            HabituationConfig habituationConfig,
+            HabituationState habituation,
+            MoodState currentMood,
+            @Nullable DispositionAxes dispositionAxes) {
+        this(situation, drives, weights, habituationConfig, habituation, currentMood,
+                dispositionAxes, null, null);
+    }
 
     public AppraisalContext(
             PerceivedSituation situation,
@@ -24,7 +40,8 @@ public record AppraisalContext(
             HabituationConfig habituationConfig,
             HabituationState habituation,
             MoodState currentMood) {
-        this(situation, drives, weights, habituationConfig, habituation, currentMood, null);
+        this(situation, drives, weights, habituationConfig, habituation, currentMood,
+                null, null, null);
     }
 
     public AppraisalContext {
