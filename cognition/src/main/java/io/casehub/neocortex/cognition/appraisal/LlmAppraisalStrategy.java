@@ -2,6 +2,8 @@ package io.casehub.neocortex.cognition.appraisal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.casehub.neocortex.cognitive.index.PersonalityFacet;
+import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
@@ -26,10 +28,22 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
             - The current situation (what just happened)
             - The character's current mood (if available)
             - The character's disposition (personality axes that shape how they appraise events)
+            - The character's relationship with the person they are interacting with (if known)
+            - The character's personality traits with grounding descriptions (if available)
 
             The disposition tells you WHO this character is — how they naturally react. \
             An assertive risk-taker appraises threats differently than a cautious rule-follower. \
             Let disposition colour intensity and direction, not override the drives.
+
+            When a relationship is provided, it describes how this character views the other person. \
+            Trust, intimacy, and utility shape the emotional response — low trust with high utility \
+            produces vigilant instrumentalism, not warmth. The role and description ground the \
+            character's stance toward this specific person.
+
+            When personality traits are provided, they describe stable patterns in how the character \
+            processes emotions. High Callousness dampens empathic concern. High Grandiosity amplifies \
+            self-referential appraisal. Let these shape the felt quality of the emotion, not just \
+            its intensity.
 
             For each drive, consider: does this situation touch it? How? What does it \
             make the character want to do? Consider ALL drives, not just the strongest one.
@@ -145,6 +159,34 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
             if (d.riskAppetite() != null) {sb.append("\n- Risk appetite: ").append(d.riskAppetite());}
             if (d.autonomy() != null) {sb.append("\n- Autonomy: ").append(d.autonomy());}
             if (d.conflictMode() != null) {sb.append("\n- Conflict mode: ").append(d.conflictMode());}
+        }
+
+        if (context.targetSchema() != null) {
+            var rel = context.targetSchema();
+            sb.append("\n\nRelationship with ").append(rel.targetId()).append(":");
+            sb.append("\n- Role: ").append(rel.role());
+            sb.append("\n- Trust: ").append(String.format("%.2f", rel.trust()));
+            sb.append("\n- Intimacy: ").append(String.format("%.2f", rel.intimacy()));
+            sb.append("\n- Utility: ").append(String.format("%.2f", rel.utility()));
+            if (rel.description() != null) {
+                sb.append("\n- ").append(rel.description());
+            }
+        }
+
+        if (context.personalityFacets() != null && !context.personalityFacets().isEmpty()) {
+            var significant = context.personalityFacets().stream()
+                    .filter(f -> f.score() >= 0.5)
+                    .toList();
+            if (!significant.isEmpty()) {
+                sb.append("\n\nPersonality traits:");
+                for (var f : significant) {
+                    sb.append("\n- ").append(f.facet())
+                      .append(" (").append(String.format("%.2f", f.score())).append(")");
+                    if (f.origin() != null) {
+                        sb.append(": ").append(f.origin());
+                    }
+                }
+            }
         }
 
         return sb.toString();

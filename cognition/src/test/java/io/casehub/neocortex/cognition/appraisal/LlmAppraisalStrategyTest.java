@@ -1,10 +1,12 @@
 package io.casehub.neocortex.cognition.appraisal;
 
-import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.PersonalityFacet;
+import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.memory.mood.MoodState;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
 import io.smallrye.mutiny.Multi;
@@ -182,6 +184,111 @@ class LlmAppraisalStrategyTest {
         strategy.appraise(ctx);
 
         assertThat(capturedMessage[0]).doesNotContain("Disposition:");
+    }
+
+    @Test
+    void includesRelationshipInPromptWhenAvailable() {
+        var capturedMessage = new String[1];
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
+                var json = """
+                           {
+                             "narrative": "Predatory satisfaction.",
+                             "dimensions": { "relevance": 0.9, "conduciveness": 0.8 }
+                           }""";
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+            }
+
+            @Override
+            public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+            @Override
+            public void close(java.time.Duration timeout)   {}
+        }));
+        var schema = new RelationalSchema("penelope", "prey", 0.1, 0.0, 0.9,
+                                          "She inherited everything you built.");
+        var ctx = new AppraisalContext(
+                PerceivedSituation.passThrough("Penelope escapes the trap"),
+                List.of(new Drive("dominance", DriveCategory.CHARACTER, 0.8, "")),
+                null, HabituationConfig.defaults(), HabituationState.empty(), null,
+                null, schema, null);
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).contains("Relationship with penelope:");
+        assertThat(capturedMessage[0]).contains("Role: prey");
+        assertThat(capturedMessage[0]).contains("Trust: 0.10");
+        assertThat(capturedMessage[0]).contains("She inherited everything you built.");
+    }
+
+    @Test
+    void includesPersonalityFacetsInPromptWhenAvailable() {
+        var capturedMessage = new String[1];
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
+                var json = """
+                           {
+                             "narrative": "Cold calculation.",
+                             "dimensions": { "relevance": 0.7, "conduciveness": 0.5 }
+                           }""";
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+            }
+
+            @Override
+            public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+            @Override
+            public void close(java.time.Duration timeout)   {}
+        }));
+        var facets = List.of(
+                new PersonalityFacet("Callousness", 0.9, "numbness where sympathy should be"),
+                new PersonalityFacet("Grandiosity", 0.85, null),
+                new PersonalityFacet("Anxiousness", 0.2, null));
+        var ctx = new AppraisalContext(
+                PerceivedSituation.passThrough("someone asks for help"),
+                List.of(new Drive("autonomy", DriveCategory.CHARACTER, 0.6, "")),
+                null, HabituationConfig.defaults(), HabituationState.empty(), null,
+                null, null, facets);
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).contains("Personality traits:");
+        assertThat(capturedMessage[0]).contains("Callousness (0.90): numbness where sympathy should be");
+        assertThat(capturedMessage[0]).contains("Grandiosity (0.85)");
+        assertThat(capturedMessage[0]).doesNotContain("Anxiousness");
+    }
+
+    @Test
+    void omitsRelationshipAndPersonalityWhenNull() {
+        var capturedMessage = new String[1];
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
+                var json = """
+                           {
+                             "narrative": "Neutral.",
+                             "dimensions": { "relevance": 0.3, "conduciveness": 0.0 }
+                           }""";
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+            }
+
+            @Override
+            public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+            @Override
+            public void close(java.time.Duration timeout)   {}
+        }));
+        var ctx = context("a quiet moment", List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.5, "")));
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).doesNotContain("Relationship with");
+        assertThat(capturedMessage[0]).doesNotContain("Personality traits:");
     }
 
 
