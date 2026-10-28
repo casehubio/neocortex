@@ -171,7 +171,7 @@ class EntityEnrichmentHandlerTest {
         var profile = new BiographyProfile("agent-1", TENANT,
                                            List.of(), List.of(), List.of(), List.of(), List.of(),
                                            List.of(), List.of(), List.of(), List.of(), List.of(),
-                                           List.of(entry), List.of(disposition), List.of());
+                                           List.of(entry), List.of(disposition), List.of(), List.of());
 
         handler.handle(profile, "agent-1", TENANT);
 
@@ -271,6 +271,6 @@ class EntityEnrichmentHandlerTest {
         return new BiographyProfile("a1", "t1",
                                     List.of(), List.of(), List.of(), List.of(), List.of(),
                                     List.of(), List.of(), List.of(), List.of(), List.of(),
-                                    enrichments, List.of(), List.of());
+                                    enrichments, List.of(), List.of(), List.of());
     }
 }

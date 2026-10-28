@@ -52,6 +52,6 @@ class RelationshipHandlerTest {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), List.of(), List.of(),
             List.of(), List.of(), rels, List.of(), List.of(),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 }

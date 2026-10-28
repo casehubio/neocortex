@@ -99,27 +99,27 @@ class HandlerAssociationTest {
         return new BiographyProfile(AGENT, TENANT,
             List.of(), List.of(), List.of(), List.of(), entries,
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 
     private BiographyProfile profileWithProjects(List<ProjectEntry> entries) {
         return new BiographyProfile(AGENT, TENANT,
             List.of(), List.of(), List.of(), List.of(), List.of(),
             entries, List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 
     private BiographyProfile profileWithCulturalContexts(List<CulturalContextEntry> entries) {
         return new BiographyProfile(AGENT, TENANT,
             entries, List.of(), List.of(), List.of(), List.of(),
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 
     private BiographyProfile profileWithBeliefs(List<BeliefEntry> entries) {
         return new BiographyProfile(AGENT, TENANT,
             List.of(), List.of(), List.of(), List.of(), List.of(),
             List.of(), List.of(), List.of(), List.of(), entries,
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 }

@@ -1375,7 +1375,9 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
 
     if enriched.get('entity_enrichments'):
         corpus['entity_enrichments'] = enriched['entity_enrichments']
-    if enriched.get('disposition_profile'):
+    if enriched.get('personality_profile'):
+        corpus['personality_profile'] = enriched['personality_profile']
+    elif enriched.get('disposition_profile'):
         corpus['disposition_profile'] = enriched['disposition_profile']
 
     return corpus
@@ -1456,7 +1458,14 @@ def main():
     print(f"  Memories: {corpus['stats']['memories']} ({corpus['stats']['enriched_memories']} enriched)")
     if corpus['stats'].get('domains'):
         print(f"  Domains: {corpus['stats']['domains']}")
-    if corpus.get('disposition_profile'):
+    if corpus.get('personality_profile'):
+        pp = corpus['personality_profile']
+        fw = pp.get('frameworks', {})
+        mbti = fw.get('mbti', {}).get('type', '?')
+        archetypes = pp.get('archetypes', [])
+        primary = archetypes[0].get('sub_archetype', '?') if archetypes else '?'
+        print(f"  Personality profile: MBTI={mbti}, primary archetype={primary}")
+    elif corpus.get('disposition_profile'):
         print(f"  Disposition profile: derived")
     dd = corpus['stats'].get('goal_dedup', {})
     if dd.get('merged', 0) > 0:

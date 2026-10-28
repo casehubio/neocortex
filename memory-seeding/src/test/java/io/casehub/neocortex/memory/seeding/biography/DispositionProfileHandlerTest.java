@@ -58,6 +58,6 @@ class DispositionProfileHandlerTest {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), List.of(), List.of(),
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), profiles, List.of());
+            List.of(), profiles, List.of(), List.of());
     }
 }

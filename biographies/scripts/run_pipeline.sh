@@ -300,6 +300,12 @@ fi
 
 # ===================== POST-CONVERGENCE =====================
 echo ""
+echo "--- Step 5d: Personality Profile Extraction ---"
+$VENV "$SCRIPT_DIR/extract_personality.py" "$CORPUS/enriched.json" "$CORPUS/structure.json" \
+    --schema "$SCRIPT_DIR/../schemas/personality-vocab.json" \
+    --subject "$SUBJECT"
+echo ""
+
 echo "--- Step 6: Reference Overlay ---"
 $VENV "$SCRIPT_DIR/generate_overlay.py" "$CORPUS/structure.json" "$CORPUS/passages.json" -o "$CORPUS/reference-overlay.json" --subject "$SUBJECT"
 echo ""

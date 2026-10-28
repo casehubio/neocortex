@@ -47,7 +47,7 @@ class BiographyImportRunnerTest {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), List.of(), List.of(), List.of(),
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 
     static class TestHandler implements BiographyHandler {

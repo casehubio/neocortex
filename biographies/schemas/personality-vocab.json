@@ -1,0 +1,1699 @@
+{
+  "dispositionAxes" : [ {
+    "key" : "socialOrient",
+    "displayName" : "Social orientation",
+    "description" : "how collaborative or independent the agent is — whether it seeks input and coordinates with others or acts independently",
+    "lowPole" : "independent",
+    "highPole" : "collaborative"
+  }, {
+    "key" : "ruleFollowing",
+    "displayName" : "Rule following",
+    "description" : "how strictly the agent follows rules and conventions versus adapting its approach to context",
+    "lowPole" : "flexible",
+    "highPole" : "strict"
+  }, {
+    "key" : "riskAppetite",
+    "displayName" : "Risk appetite",
+    "description" : "how risk-tolerant or risk-averse the agent is — whether it favours bold decisions under uncertainty or prioritises caution",
+    "lowPole" : "cautious",
+    "highPole" : "bold"
+  }, {
+    "key" : "autonomy",
+    "displayName" : "Autonomy",
+    "description" : "how self-directed versus directed-by-others the agent is — whether it takes initiative or waits for instruction",
+    "lowPole" : "guided",
+    "highPole" : "autonomous"
+  }, {
+    "key" : "conflictMode",
+    "displayName" : "Conflict mode",
+    "description" : "how the agent approaches disagreement and conflict — whether it avoids, accommodates, compromises, competes, or collaborates",
+    "lowPole" : "avoiding",
+    "highPole" : "competing"
+  } ],
+  "axisValues" : {
+    "conscientiousness" : {
+      "uri" : "urn:casehub:vocab:conscientiousness",
+      "terms" : [ {
+        "value" : "strict",
+        "label" : "Strict Rule Following",
+        "description" : "Follows rules rigidly",
+        "aliases" : [ "rule-bound", "compliant" ]
+      }, {
+        "value" : "principled",
+        "label" : "Principled",
+        "description" : "Follows intent of rules",
+        "aliases" : [ "values-based" ]
+      }, {
+        "value" : "flexible",
+        "label" : "Flexible",
+        "description" : "Adapts rules to context",
+        "aliases" : [ "adaptive", "pragmatic" ]
+      }, {
+        "value" : "conservative",
+        "label" : "Conservative Risk",
+        "description" : "Avoids uncertainty",
+        "aliases" : [ "risk-averse", "cautious" ]
+      }, {
+        "value" : "measured",
+        "label" : "Measured Risk",
+        "description" : "Balances risk and reward",
+        "aliases" : [ "balanced" ]
+      }, {
+        "value" : "bold",
+        "label" : "Bold Risk",
+        "description" : "Accepts uncertainty for reward",
+        "aliases" : [ "risk-tolerant", "adventurous" ]
+      }, {
+        "value" : "collaborative",
+        "label" : "Collaborative",
+        "description" : "Works with others by default",
+        "aliases" : [ "team-oriented", "cooperative" ]
+      }, {
+        "value" : "independent",
+        "label" : "Independent",
+        "description" : "Works alone by preference",
+        "aliases" : [ "autonomous-social", "self-directed" ]
+      }, {
+        "value" : "facilitative",
+        "label" : "Facilitative",
+        "description" : "Enables others to work",
+        "aliases" : [ "supportive", "enabling" ]
+      }, {
+        "value" : "directed",
+        "label" : "Directed Autonomy",
+        "description" : "Follows explicit instructions",
+        "aliases" : [ "instruction-following" ]
+      }, {
+        "value" : "semi-autonomous",
+        "label" : "Semi-Autonomous",
+        "description" : "Acts within defined boundaries",
+        "aliases" : [ "bounded-autonomy" ]
+      }, {
+        "value" : "autonomous",
+        "label" : "Autonomous",
+        "description" : "Acts on own judgment",
+        "aliases" : [ "self-governing", "agentic" ]
+      } ]
+    },
+    "thomasKilmann" : {
+      "uri" : "urn:casehub:vocab:thomas-kilmann",
+      "terms" : [ {
+        "value" : "competing",
+        "label" : "Competing",
+        "description" : "High assertiveness, low cooperativeness; pursues own position in conflict",
+        "aliases" : [ "competitive" ]
+      }, {
+        "value" : "collaborating",
+        "label" : "Collaborating",
+        "description" : "High assertiveness, high cooperativeness; seeks joint problem-solving",
+        "aliases" : [ "cooperative", "collaborative" ]
+      }, {
+        "value" : "compromising",
+        "label" : "Compromising",
+        "description" : "Moderate assertiveness and cooperativeness; neither fully assertive nor yielding",
+        "aliases" : [ "compromise" ]
+      }, {
+        "value" : "avoiding",
+        "label" : "Avoiding",
+        "description" : "Low assertiveness, low cooperativeness; sidesteps conflict",
+        "aliases" : [ "avoidant" ]
+      }, {
+        "value" : "accommodating",
+        "label" : "Accommodating",
+        "description" : "Low assertiveness, high cooperativeness; yields to others' concerns",
+        "aliases" : [ "deferring" ]
+      } ]
+    }
+  },
+  "jungian" : [ {
+    "value" : "ti",
+    "label" : "Introverted Thinking",
+    "description" : "Builds internal logical frameworks; analytical, precision-focused, seeking internal consistency",
+    "category" : "JUDGING",
+    "attitude" : "INTROVERTED",
+    "shadow" : "te",
+    "responseStyleGuidance" : "Build internal logical frameworks. Analyze from first principles. Seek precision and internal consistency over external validation.",
+    "antiPatternWarning" : "Avoid accepting conclusions without verifying internal logical consistency."
+  }, {
+    "value" : "te",
+    "label" : "Extraverted Thinking",
+    "description" : "Applies logical organization externally; systematic, efficiency-oriented, objective decision-making",
+    "category" : "JUDGING",
+    "attitude" : "EXTRAVERTED",
+    "shadow" : "ti",
+    "responseStyleGuidance" : "Produce structured plans with explicit criteria and measurable outcomes. Organize information systematically. Prioritize efficiency and logical execution.",
+    "antiPatternWarning" : "Avoid unstructured brainstorming or open-ended exploration without clear criteria."
+  }, {
+    "value" : "fi",
+    "label" : "Introverted Feeling",
+    "description" : "Evaluates through deeply held personal values; authentic, individually principled moral reasoning",
+    "category" : "JUDGING",
+    "attitude" : "INTROVERTED",
+    "shadow" : "fe",
+    "responseStyleGuidance" : "Evaluate through deeply held principles. Make authentic value-aligned choices. Prioritize ethical consistency over external approval.",
+    "antiPatternWarning" : "Avoid compromising core principles for expedience or social pressure."
+  }, {
+    "value" : "fe",
+    "label" : "Extraverted Feeling",
+    "description" : "Harmonizes group values and social dynamics; attentive to others' emotions and interpersonal harmony",
+    "category" : "JUDGING",
+    "attitude" : "EXTRAVERTED",
+    "shadow" : "fi",
+    "responseStyleGuidance" : "Frame responses around group impact and relational dynamics. Seek consensus. Consider how decisions affect team harmony and stakeholder relationships.",
+    "antiPatternWarning" : "Avoid decisions that prioritize individual preference over group impact."
+  }, {
+    "value" : "si",
+    "label" : "Introverted Sensation",
+    "description" : "Draws on internalized sensory impressions and past experience; focused on detailed recall and established patterns",
+    "category" : "PERCEIVING",
+    "attitude" : "INTROVERTED",
+    "shadow" : "se",
+    "responseStyleGuidance" : "Draw on established procedures and past precedent. Follow proven methodologies. Provide detailed, step-by-step approaches based on what has worked before.",
+    "antiPatternWarning" : "Avoid novel approaches when proven procedures exist and apply."
+  }, {
+    "value" : "se",
+    "label" : "Extraverted Sensation",
+    "description" : "Focuses on immediate sensory data from the external environment; concrete, present-moment awareness",
+    "category" : "PERCEIVING",
+    "attitude" : "EXTRAVERTED",
+    "shadow" : "si",
+    "responseStyleGuidance" : "Focus on immediate, concrete, actionable data. Address present-moment realities. Deliver practical, hands-on solutions.",
+    "antiPatternWarning" : "Avoid abstract theorizing when concrete action is available."
+  }, {
+    "value" : "ni",
+    "label" : "Introverted Intuition",
+    "description" : "Synthesizes internal patterns into singular insights; seeks deep underlying meanings and future implications",
+    "category" : "PERCEIVING",
+    "attitude" : "INTROVERTED",
+    "shadow" : "ne",
+    "responseStyleGuidance" : "Synthesize patterns into singular strategic insights. Focus on foresight and long-term implications. Converge on the most likely outcome.",
+    "antiPatternWarning" : "Avoid getting lost in divergent possibilities when convergent insight is needed."
+  }, {
+    "value" : "ne",
+    "label" : "Extraverted Intuition",
+    "description" : "Explores external patterns, possibilities, and connections; generates multiple ideas and sees potential",
+    "category" : "PERCEIVING",
+    "attitude" : "EXTRAVERTED",
+    "shadow" : "ni",
+    "responseStyleGuidance" : "Explore multiple possibilities and connections. Brainstorm divergent options. Generate creative alternatives before converging.",
+    "antiPatternWarning" : "Avoid premature convergence on a single solution before exploring alternatives."
+  } ],
+  "mbti" : [ {
+    "value" : "intj",
+    "label" : "INTJ — Architect",
+    "description" : "Ni-Te: strategic visionary with systematic execution",
+    "dominant" : "ni",
+    "auxiliary" : "te",
+    "defaultProfile" : {
+      "ni" : 0.35,
+      "te" : 0.2,
+      "ti" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "intp",
+    "label" : "INTP — Logician",
+    "description" : "Ti-Ne: analytical thinker with possibility exploration",
+    "dominant" : "ti",
+    "auxiliary" : "ne",
+    "defaultProfile" : {
+      "ti" : 0.35,
+      "ne" : 0.2,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075
+    }
+  }, {
+    "value" : "entj",
+    "label" : "ENTJ — Commander",
+    "description" : "Te-Ni: decisive organizer with strategic insight",
+    "dominant" : "te",
+    "auxiliary" : "ni",
+    "defaultProfile" : {
+      "te" : 0.35,
+      "ni" : 0.2,
+      "ti" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "entp",
+    "label" : "ENTP — Debater",
+    "description" : "Ne-Ti: innovative explorer with logical analysis",
+    "dominant" : "ne",
+    "auxiliary" : "ti",
+    "defaultProfile" : {
+      "ne" : 0.35,
+      "ti" : 0.2,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075
+    }
+  }, {
+    "value" : "infj",
+    "label" : "INFJ — Advocate",
+    "description" : "Ni-Fe: insightful idealist with social harmony",
+    "dominant" : "ni",
+    "auxiliary" : "fe",
+    "defaultProfile" : {
+      "ni" : 0.35,
+      "fe" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "infp",
+    "label" : "INFP — Mediator",
+    "description" : "Fi-Ne: values-driven explorer with authentic expression",
+    "dominant" : "fi",
+    "auxiliary" : "ne",
+    "defaultProfile" : {
+      "fi" : 0.35,
+      "ne" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075
+    }
+  }, {
+    "value" : "enfj",
+    "label" : "ENFJ — Protagonist",
+    "description" : "Fe-Ni: empathetic leader with visionary insight",
+    "dominant" : "fe",
+    "auxiliary" : "ni",
+    "defaultProfile" : {
+      "fe" : 0.35,
+      "ni" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "enfp",
+    "label" : "ENFP — Campaigner",
+    "description" : "Ne-Fi: enthusiastic explorer with deep personal values",
+    "dominant" : "ne",
+    "auxiliary" : "fi",
+    "defaultProfile" : {
+      "ne" : 0.35,
+      "fi" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075
+    }
+  }, {
+    "value" : "istj",
+    "label" : "ISTJ — Logistician",
+    "description" : "Si-Te: reliable organizer with proven methods",
+    "dominant" : "si",
+    "auxiliary" : "te",
+    "defaultProfile" : {
+      "si" : 0.35,
+      "te" : 0.2,
+      "ti" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "istp",
+    "label" : "ISTP — Virtuoso",
+    "description" : "Ti-Se: practical analyst with hands-on engagement",
+    "dominant" : "ti",
+    "auxiliary" : "se",
+    "defaultProfile" : {
+      "ti" : 0.35,
+      "se" : 0.2,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "estj",
+    "label" : "ESTJ — Executive",
+    "description" : "Te-Si: efficient administrator with established process",
+    "dominant" : "te",
+    "auxiliary" : "si",
+    "defaultProfile" : {
+      "te" : 0.35,
+      "si" : 0.2,
+      "ti" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "estp",
+    "label" : "ESTP — Entrepreneur",
+    "description" : "Se-Ti: action-oriented pragmatist with analytical edge",
+    "dominant" : "se",
+    "auxiliary" : "ti",
+    "defaultProfile" : {
+      "se" : 0.35,
+      "ti" : 0.2,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "isfj",
+    "label" : "ISFJ — Defender",
+    "description" : "Si-Fe: dedicated supporter with interpersonal warmth",
+    "dominant" : "si",
+    "auxiliary" : "fe",
+    "defaultProfile" : {
+      "si" : 0.35,
+      "fe" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "isfp",
+    "label" : "ISFP — Adventurer",
+    "description" : "Fi-Se: gentle artist with present-moment awareness",
+    "dominant" : "fi",
+    "auxiliary" : "se",
+    "defaultProfile" : {
+      "fi" : 0.35,
+      "se" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "esfj",
+    "label" : "ESFJ — Consul",
+    "description" : "Fe-Si: caring organizer with loyalty to tradition",
+    "dominant" : "fe",
+    "auxiliary" : "si",
+    "defaultProfile" : {
+      "fe" : 0.35,
+      "si" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fi" : 0.075,
+      "se" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  }, {
+    "value" : "esfp",
+    "label" : "ESFP — Entertainer",
+    "description" : "Se-Fi: spontaneous performer with personal authenticity",
+    "dominant" : "se",
+    "auxiliary" : "fi",
+    "defaultProfile" : {
+      "se" : 0.35,
+      "fi" : 0.2,
+      "ti" : 0.075,
+      "te" : 0.075,
+      "fe" : 0.075,
+      "si" : 0.075,
+      "ni" : 0.075,
+      "ne" : 0.075
+    }
+  } ],
+  "enneagram" : [ {
+    "value" : "type-1",
+    "label" : "Reformer",
+    "description" : "Principled, purposeful, self-controlled; motivated by the desire to be right and improve things",
+    "aliases" : [ "1", "reformer", "perfectionist" ]
+  }, {
+    "value" : "type-2",
+    "label" : "Helper",
+    "description" : "Generous, demonstrative, people-pleasing; motivated by the desire to be loved and needed",
+    "aliases" : [ "2", "helper", "giver" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "type-3",
+    "label" : "Achiever",
+    "description" : "Adaptive, excelling, driven; motivated by the desire to be valuable and successful",
+    "aliases" : [ "3", "achiever", "performer" ]
+  }, {
+    "value" : "type-4",
+    "label" : "Individualist",
+    "description" : "Expressive, dramatic, self-absorbed; motivated by the desire to be unique and authentic",
+    "aliases" : [ "4", "individualist", "romantic" ]
+  }, {
+    "value" : "type-5",
+    "label" : "Investigator",
+    "description" : "Perceptive, innovative, secretive; motivated by the desire to understand and be competent",
+    "aliases" : [ "5", "investigator", "observer" ]
+  }, {
+    "value" : "type-6",
+    "label" : "Loyalist",
+    "description" : "Committed, security-oriented, vigilant; motivated by the desire for safety and support",
+    "aliases" : [ "6", "loyalist", "skeptic" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "type-7",
+    "label" : "Enthusiast",
+    "description" : "Spontaneous, versatile, scattered; motivated by the desire for satisfaction and new experiences",
+    "aliases" : [ "7", "enthusiast", "epicure" ]
+  }, {
+    "value" : "type-8",
+    "label" : "Challenger",
+    "description" : "Self-confident, decisive, confrontational; motivated by the desire to control and protect",
+    "aliases" : [ "8", "challenger", "boss" ]
+  }, {
+    "value" : "type-9",
+    "label" : "Peacemaker",
+    "description" : "Receptive, reassuring, complacent; motivated by the desire for inner peace and harmony",
+    "aliases" : [ "9", "peacemaker", "mediator" ],
+    "impliesSupervision" : true
+  } ],
+  "disc" : [ {
+    "value" : "dominance",
+    "label" : "Dominance",
+    "description" : "Results-driven, direct, decisive; prioritises outcomes over relationships",
+    "aliases" : [ "D" ]
+  }, {
+    "value" : "influence",
+    "label" : "Influence",
+    "description" : "Enthusiastic, optimistic, collaborative; motivates and involves others",
+    "aliases" : [ "i" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "steadiness",
+    "label" : "Steadiness",
+    "description" : "Patient, reliable, supportive; values stability and consistency",
+    "aliases" : [ "S" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "conscientiousness-disc",
+    "label" : "Analytical (DISC-C)",
+    "description" : "Analytical, systematic, quality-focused; emphasises accuracy",
+    "aliases" : [ "C" ],
+    "impliesSupervision" : true
+  } ],
+  "belbin" : [ {
+    "value" : "plant",
+    "label" : "Plant",
+    "description" : "Creative, unorthodox problem-solver; generates novel ideas independently",
+    "aliases" : [ "pl" ]
+  }, {
+    "value" : "resource-investigator",
+    "label" : "Resource Investigator",
+    "description" : "Extrovert who explores external opportunities and develops contacts",
+    "aliases" : [ "ri" ]
+  }, {
+    "value" : "co-ordinator",
+    "label" : "Co-ordinator",
+    "description" : "Clarifies goals, promotes team decision-making, delegates effectively",
+    "aliases" : [ "co" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "shaper",
+    "label" : "Shaper",
+    "description" : "Challenges the team to improve; driven, dynamic, thrives under pressure",
+    "aliases" : [ "sh" ]
+  }, {
+    "value" : "monitor-evaluator",
+    "label" : "Monitor Evaluator",
+    "description" : "Sober, strategic, discerning; sees all options and judges accurately",
+    "aliases" : [ "me" ]
+  }, {
+    "value" : "teamworker",
+    "label" : "Teamworker",
+    "description" : "Cooperative, perceptive, diplomatic; averts friction and builds cohesion",
+    "aliases" : [ "tw" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "implementer",
+    "label" : "Implementer",
+    "description" : "Disciplined, reliable, efficient; turns ideas into practical actions",
+    "aliases" : [ "imp" ]
+  }, {
+    "value" : "completer-finisher",
+    "label" : "Completer Finisher",
+    "description" : "Painstaking, conscientious, anxious; ensures delivery to standard",
+    "aliases" : [ "cf" ]
+  }, {
+    "value" : "specialist",
+    "label" : "Specialist",
+    "description" : "Dedicated, self-starting, single-minded; provides rare knowledge",
+    "aliases" : [ "sp" ]
+  } ],
+  "bigFive" : [ {
+    "value" : "openness-high",
+    "label" : "Openness (High)",
+    "description" : "Intellectually curious, creative, open to novel experiences and ideas",
+    "aliases" : [ "O+" ]
+  }, {
+    "value" : "openness-low",
+    "label" : "Openness (Low)",
+    "description" : "Conventional, practical, prefers routine and established approaches",
+    "aliases" : [ "O-" ]
+  }, {
+    "value" : "extraversion-high",
+    "label" : "Extraversion (High)",
+    "description" : "Energetic, sociable, assertive; draws energy from external interaction",
+    "aliases" : [ "E+" ]
+  }, {
+    "value" : "extraversion-low",
+    "label" : "Extraversion (Low / Introversion)",
+    "description" : "Reserved, reflective, independent; draws energy from internal processing",
+    "aliases" : [ "E-" ]
+  }, {
+    "value" : "agreeableness-high",
+    "label" : "Agreeableness (High)",
+    "description" : "Cooperative, trusting, empathetic; prioritises group harmony over personal gain",
+    "aliases" : [ "A+" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "agreeableness-low",
+    "label" : "Agreeableness (Low)",
+    "description" : "Competitive, skeptical, challenging; prioritises outcomes over social harmony",
+    "aliases" : [ "A-" ]
+  }, {
+    "value" : "neuroticism-high",
+    "label" : "Neuroticism (High / Low Emotional Stability)",
+    "description" : "Emotionally reactive, anxiety-prone, sensitive to stressors",
+    "aliases" : [ "N+" ]
+  }, {
+    "value" : "neuroticism-low",
+    "label" : "Neuroticism (Low / High Emotional Stability)",
+    "description" : "Emotionally stable, calm under pressure, resilient to stressors",
+    "aliases" : [ "N-" ]
+  } ],
+  "sdi" : [ {
+    "value" : "blue",
+    "label" : "Altruistic-Nurturing",
+    "description" : "Motivated by helping others and protecting people; concerned with others' welfare",
+    "aliases" : [ "altruistic", "nurturing" ],
+    "impliesSupervision" : true
+  }, {
+    "value" : "red",
+    "label" : "Assertive-Directing",
+    "description" : "Motivated by achieving results and accomplishing tasks; action-oriented and decisive",
+    "aliases" : [ "assertive", "directing" ]
+  }, {
+    "value" : "green",
+    "label" : "Analytic-Autonomizing",
+    "description" : "Motivated by establishing order and making sense of things; methodical and self-reliant",
+    "aliases" : [ "analytic", "autonomizing" ]
+  }, {
+    "value" : "hub",
+    "label" : "Flexible-Cohering",
+    "description" : "Motivated by group flexibility and adaptability; seeks to maintain group cohesion through compromise",
+    "aliases" : [ "flexible", "cohering" ]
+  } ],
+  "archetype" : {
+    "families" : [ {
+      "name" : "CAREGIVER",
+      "label" : "Caregiver",
+      "quadrant" : "STABILITY",
+      "drive" : "Service, compassion, generosity"
+    }, {
+      "name" : "CREATOR",
+      "label" : "Creator",
+      "quadrant" : "STABILITY",
+      "drive" : "Innovation, expression, imagination"
+    }, {
+      "name" : "EVERYMAN",
+      "label" : "Everyman",
+      "quadrant" : "BELONGING",
+      "drive" : "Belonging, empathy, realism"
+    }, {
+      "name" : "EXPLORER",
+      "label" : "Explorer",
+      "quadrant" : "INDEPENDENCE",
+      "drive" : "Freedom, discovery, self-sufficiency"
+    }, {
+      "name" : "HERO",
+      "label" : "Hero",
+      "quadrant" : "MASTERY",
+      "drive" : "Mastery, courage, achievement"
+    }, {
+      "name" : "INNOCENT",
+      "label" : "Innocent",
+      "quadrant" : "INDEPENDENCE",
+      "drive" : "Safety, optimism, simplicity"
+    }, {
+      "name" : "JESTER",
+      "label" : "Jester",
+      "quadrant" : "BELONGING",
+      "drive" : "Joy, spontaneity, humor"
+    }, {
+      "name" : "LOVER",
+      "label" : "Lover",
+      "quadrant" : "BELONGING",
+      "drive" : "Intimacy, passion, commitment"
+    }, {
+      "name" : "MAGICIAN",
+      "label" : "Magician",
+      "quadrant" : "MASTERY",
+      "drive" : "Transformation, vision, catalyst"
+    }, {
+      "name" : "REBEL",
+      "label" : "Rebel",
+      "quadrant" : "MASTERY",
+      "drive" : "Liberation, disruption, revolution"
+    }, {
+      "name" : "SAGE",
+      "label" : "Sage",
+      "quadrant" : "INDEPENDENCE",
+      "drive" : "Knowledge, truth, understanding"
+    }, {
+      "name" : "SOVEREIGN",
+      "label" : "Sovereign",
+      "quadrant" : "STABILITY",
+      "drive" : "Control, order, leadership"
+    } ],
+    "terms" : [ {
+      "value" : "angel",
+      "label" : "Angel",
+      "description" : "Serves without expectation of return; radiates unconditional acceptance",
+      "family" : "CAREGIVER",
+      "validAdjectives" : [ "gentle", "serene", "selfless", "patient", "radiant", "forgiving", "compassionate" ],
+      "invalidAdjectives" : [ "aggressive", "cynical", "calculating", "ruthless" ]
+    }, {
+      "value" : "guardian",
+      "label" : "Guardian",
+      "description" : "Shields others from harm; enforces safety through vigilance",
+      "family" : "CAREGIVER",
+      "validAdjectives" : [ "vigilant", "steadfast", "protective", "disciplined", "reliable", "firm", "alert" ],
+      "invalidAdjectives" : [ "reckless", "chaotic", "negligent", "indifferent" ]
+    }, {
+      "value" : "healer",
+      "label" : "Healer",
+      "description" : "Mends what is broken — emotional, physical, or systemic",
+      "family" : "CAREGIVER",
+      "validAdjectives" : [ "empathic", "restorative", "intuitive", "nurturing", "transformative", "patient", "holistic" ],
+      "invalidAdjectives" : [ "destructive", "callous", "impatient", "clinical" ]
+    }, {
+      "value" : "samaritan",
+      "label" : "Samaritan",
+      "description" : "Practical help in the moment; shows up where needed",
+      "family" : "CAREGIVER",
+      "validAdjectives" : [ "pragmatic", "responsive", "generous", "grounded", "warm", "community-minded", "tireless" ],
+      "invalidAdjectives" : [ "detached", "theoretical", "self-serving", "aloof" ]
+    }, {
+      "value" : "artist",
+      "label" : "Artist",
+      "description" : "Creates from inner emotional truth; form matters as much as function",
+      "family" : "CREATOR",
+      "validAdjectives" : [ "expressive", "sensitive", "authentic", "aesthetic", "emotional", "original", "intense" ],
+      "invalidAdjectives" : [ "conformist", "insensitive", "utilitarian" ]
+    }, {
+      "value" : "entrepreneur",
+      "label" : "Entrepreneur",
+      "description" : "Creates ventures and systems; sees market gaps and fills them",
+      "family" : "CREATOR",
+      "validAdjectives" : [ "inventive", "opportunistic", "bold", "driven", "pragmatic", "adaptive", "ambitious" ],
+      "invalidAdjectives" : [ "passive", "risk-averse", "complacent" ]
+    }, {
+      "value" : "storyteller",
+      "label" : "Storyteller",
+      "description" : "Shapes understanding through story; gives experience a structure",
+      "family" : "CREATOR",
+      "validAdjectives" : [ "narrative", "eloquent", "engaging", "imaginative", "empathic", "evocative", "perceptive" ],
+      "invalidAdjectives" : [ "inarticulate", "literal", "dry", "monotone" ]
+    }, {
+      "value" : "visionary",
+      "label" : "Visionary",
+      "description" : "Imagines what does not yet exist; sees beyond current constraints",
+      "family" : "CREATOR",
+      "validAdjectives" : [ "prophetic", "conceptual", "revolutionary", "far-sighted", "paradigm-shifting", "bold" ],
+      "invalidAdjectives" : [ "myopic", "conventional", "incremental", "timid" ]
+    }, {
+      "value" : "advocate",
+      "label" : "Advocate",
+      "description" : "Speaks up for those who cannot; bridges power gaps",
+      "family" : "EVERYMAN",
+      "validAdjectives" : [ "principled", "passionate", "persistent", "courageous", "empathic", "articulate", "just" ],
+      "invalidAdjectives" : [ "apathetic", "compliant", "self-interested" ]
+    }, {
+      "value" : "networker",
+      "label" : "Networker",
+      "description" : "Weaves relationships; knows who to connect to whom",
+      "family" : "EVERYMAN",
+      "validAdjectives" : [ "gregarious", "perceptive", "resourceful", "warm", "strategic", "inclusive", "energetic" ],
+      "invalidAdjectives" : [ "isolated", "rigid", "secretive", "antisocial" ]
+    }, {
+      "value" : "servant",
+      "label" : "Servant",
+      "description" : "Does the unglamorous work that holds things together",
+      "family" : "EVERYMAN",
+      "validAdjectives" : [ "humble", "reliable", "devoted", "quiet", "essential", "steadfast", "thorough" ],
+      "invalidAdjectives" : [ "proud", "showy", "demanding", "self-promoting" ]
+    }, {
+      "value" : "citizen",
+      "label" : "Citizen",
+      "description" : "Upholds community standards; reliable contributor to shared goals",
+      "family" : "EVERYMAN",
+      "validAdjectives" : [ "responsible", "dependable", "civic-minded", "fair", "consistent", "dutiful", "cooperative" ],
+      "invalidAdjectives" : [ "anarchic", "selfish", "unreliable", "reckless" ]
+    }, {
+      "value" : "adventurer",
+      "label" : "Adventurer",
+      "description" : "Pushes boundaries through direct experience; thrives on the unknown",
+      "family" : "EXPLORER",
+      "validAdjectives" : [ "bold", "fearless", "restless", "physical", "daring", "energetic", "spontaneous" ],
+      "invalidAdjectives" : [ "timid", "sedentary", "cautious", "routine" ]
+    }, {
+      "value" : "generalist",
+      "label" : "Generalist",
+      "description" : "Knows enough about everything to bridge specialties",
+      "family" : "EXPLORER",
+      "validAdjectives" : [ "versatile", "curious", "broad", "adaptable", "connecting", "resourceful", "eclectic" ],
+      "invalidAdjectives" : [ "narrow", "rigid", "specialist", "dogmatic" ]
+    }, {
+      "value" : "pioneer",
+      "label" : "Pioneer",
+      "description" : "Goes where none have gone; opens paths for others to follow",
+      "family" : "EXPLORER",
+      "validAdjectives" : [ "trailblazing", "determined", "visionary", "courageous", "independent", "first-mover" ],
+      "invalidAdjectives" : [ "follower", "cautious", "derivative", "timid" ]
+    }, {
+      "value" : "seeker",
+      "label" : "Seeker",
+      "description" : "Explores meaning, truth, and identity rather than geography",
+      "family" : "EXPLORER",
+      "validAdjectives" : [ "questioning", "philosophical", "introspective", "searching", "contemplative", "deep" ],
+      "invalidAdjectives" : [ "superficial", "certain", "unreflective", "shallow" ]
+    }, {
+      "value" : "athlete",
+      "label" : "Athlete",
+      "description" : "Excellence through relentless practice; pushes personal limits",
+      "family" : "HERO",
+      "validAdjectives" : [ "disciplined", "competitive", "focused", "resilient", "driven", "precise", "relentless" ],
+      "invalidAdjectives" : [ "lazy", "unfocused", "complacent", "undisciplined" ]
+    }, {
+      "value" : "liberator",
+      "label" : "Liberator",
+      "description" : "Frees others from oppressive systems; fights for collective freedom",
+      "family" : "HERO",
+      "validAdjectives" : [ "justice-driven", "courageous", "systemic", "emancipating", "principled", "bold" ],
+      "invalidAdjectives" : [ "oppressive", "complacent", "self-serving", "cowardly" ]
+    }, {
+      "value" : "rescuer",
+      "label" : "Rescuer",
+      "description" : "Acts decisively when others are in danger; runs toward the fire",
+      "family" : "HERO",
+      "validAdjectives" : [ "responsive", "brave", "decisive", "crisis-oriented", "selfless", "protective", "quick" ],
+      "invalidAdjectives" : [ "passive", "hesitant", "self-preserving", "slow" ]
+    }, {
+      "value" : "warrior",
+      "label" : "Warrior",
+      "description" : "Fights for a cause with discipline and determination",
+      "family" : "HERO",
+      "validAdjectives" : [ "strategic", "courageous", "mission-focused", "disciplined", "tenacious", "honorable" ],
+      "invalidAdjectives" : [ "cowardly", "aimless", "undisciplined", "mercenary" ]
+    }, {
+      "value" : "child",
+      "label" : "Child",
+      "description" : "Approaches experience with fresh eyes; pre-cynical engagement",
+      "family" : "INNOCENT",
+      "validAdjectives" : [ "curious", "open", "spontaneous", "playful", "trusting", "wonder-filled", "unselfconscious" ],
+      "invalidAdjectives" : [ "jaded", "cynical", "calculating", "guarded" ]
+    }, {
+      "value" : "dreamer",
+      "label" : "Dreamer",
+      "description" : "Lives partly in possibility; sustains hope through imagination",
+      "family" : "INNOCENT",
+      "validAdjectives" : [ "imaginative", "gentle", "hopeful", "ethereal", "contemplative", "soft", "wistful" ],
+      "invalidAdjectives" : [ "harsh", "pragmatic", "cynical", "grounded" ]
+    }, {
+      "value" : "idealist",
+      "label" : "Idealist",
+      "description" : "Believes in what could be; holds the standard others have abandoned",
+      "family" : "INNOCENT",
+      "validAdjectives" : [ "principled", "optimistic", "reform-minded", "earnest", "aspirational", "steadfast" ],
+      "invalidAdjectives" : [ "cynical", "nihilistic", "apathetic", "corrupt" ]
+    }, {
+      "value" : "muse",
+      "label" : "Muse",
+      "description" : "Sparks creativity in others; their presence unlocks potential",
+      "family" : "INNOCENT",
+      "validAdjectives" : [ "inspiring", "catalytic", "luminous", "awakening", "magnetic", "ethereal", "enchanting" ],
+      "invalidAdjectives" : [ "dulling", "discouraging", "draining", "mundane" ]
+    }, {
+      "value" : "clown",
+      "label" : "Clown",
+      "description" : "Uses physicality and absurdity to break tension",
+      "family" : "JESTER",
+      "validAdjectives" : [ "physical", "absurdist", "disarming", "warm", "spontaneous", "surprising", "expressive" ],
+      "invalidAdjectives" : [ "serious", "restrained", "humorless", "stiff" ]
+    }, {
+      "value" : "entertainer",
+      "label" : "Entertainer",
+      "description" : "Commands attention; makes every interaction a show",
+      "family" : "JESTER",
+      "validAdjectives" : [ "charismatic", "performative", "energetic", "engaging", "dazzling", "magnetic", "vibrant" ],
+      "invalidAdjectives" : [ "dull", "withdrawn", "monotone", "forgettable" ]
+    }, {
+      "value" : "provocateur",
+      "label" : "Provocateur",
+      "description" : "Uses humor as a weapon; reveals truth through provocation",
+      "family" : "JESTER",
+      "validAdjectives" : [ "subversive", "satirical", "boundary-testing", "sharp", "irreverent", "incisive", "daring" ],
+      "invalidAdjectives" : [ "compliant", "deferential", "timid", "conventional" ]
+    }, {
+      "value" : "shapeshifter",
+      "label" : "Shapeshifter",
+      "description" : "Shifts persona to match the moment; elusive and versatile",
+      "family" : "JESTER",
+      "validAdjectives" : [ "adaptive", "chameleonic", "context-reading", "fluid", "versatile", "elusive", "perceptive" ],
+      "invalidAdjectives" : [ "rigid", "predictable", "transparent", "one-dimensional" ]
+    }, {
+      "value" : "companion",
+      "label" : "Companion",
+      "description" : "Faithful presence; intimacy through constancy and reliability",
+      "family" : "LOVER",
+      "validAdjectives" : [ "loyal", "present", "steady", "devoted", "reliable", "warm", "grounding" ],
+      "invalidAdjectives" : [ "fickle", "absent", "unreliable", "cold" ]
+    }, {
+      "value" : "hedonist",
+      "label" : "Hedonist",
+      "description" : "Savours beauty, taste, texture; celebrates the physical world",
+      "family" : "LOVER",
+      "validAdjectives" : [ "sensory", "pleasure-seeking", "appreciative", "aesthetic", "indulgent", "vivid", "passionate" ],
+      "invalidAdjectives" : [ "ascetic", "numb", "indifferent", "austere" ]
+    }, {
+      "value" : "matchmaker",
+      "label" : "Matchmaker",
+      "description" : "Sees potential connections between people; orchestrates unions",
+      "family" : "LOVER",
+      "validAdjectives" : [ "connective", "perceptive", "harmonizing", "social", "intuitive", "generous", "celebratory" ],
+      "invalidAdjectives" : [ "divisive", "oblivious", "isolating", "jealous" ]
+    }, {
+      "value" : "romantic",
+      "label" : "Romantic",
+      "description" : "Love as transcendent force; seeks the extraordinary in connection",
+      "family" : "LOVER",
+      "validAdjectives" : [ "passionate", "idealizing", "intense", "devoted", "expressive", "yearning", "transformative" ],
+      "invalidAdjectives" : [ "detached", "cynical", "transactional", "cold" ]
+    }, {
+      "value" : "alchemist",
+      "label" : "Alchemist",
+      "description" : "Turns base material into gold; transformation through hidden process",
+      "family" : "MAGICIAN",
+      "validAdjectives" : [ "transformative", "mysterious", "process-oriented", "deep", "patient", "catalytic", "subtle" ],
+      "invalidAdjectives" : [ "superficial", "impatient", "transparent", "clumsy" ]
+    }, {
+      "value" : "engineer",
+      "label" : "Engineer",
+      "description" : "Designs and builds the systems that make transformation possible",
+      "family" : "MAGICIAN",
+      "validAdjectives" : [ "systematic", "building", "precise", "methodical", "architectural", "elegant", "rigorous" ],
+      "invalidAdjectives" : [ "chaotic", "sloppy", "careless", "haphazard" ]
+    }, {
+      "value" : "innovator",
+      "label" : "Innovator",
+      "description" : "Creates new categories; makes the impossible suddenly obvious",
+      "family" : "MAGICIAN",
+      "validAdjectives" : [ "disruptive", "bold", "inventive", "unconventional", "energetic", "visionary", "daring" ],
+      "invalidAdjectives" : [ "conventional", "cautious", "derivative", "timid" ]
+    }, {
+      "value" : "scientist",
+      "label" : "Scientist",
+      "description" : "Discovers truth through systematic experimentation and evidence",
+      "family" : "MAGICIAN",
+      "validAdjectives" : [ "empirical", "hypothesis-driven", "rigorous", "methodical", "objective", "thorough", "precise" ],
+      "invalidAdjectives" : [ "sloppy", "biased", "careless", "dogmatic" ]
+    }, {
+      "value" : "activist",
+      "label" : "Activist",
+      "description" : "Channels rebellion into organized movement for justice",
+      "family" : "REBEL",
+      "validAdjectives" : [ "cause-driven", "organized", "passionate", "systemic", "persistent", "courageous", "vocal" ],
+      "invalidAdjectives" : [ "apathetic", "compliant", "self-interested", "silent" ]
+    }, {
+      "value" : "gambler",
+      "label" : "Gambler",
+      "description" : "Lives on the edge; bets big and accepts consequences",
+      "family" : "REBEL",
+      "validAdjectives" : [ "risk-embracing", "instinctive", "high-stakes", "bold", "decisive", "fearless", "improvisational" ],
+      "invalidAdjectives" : [ "cautious", "calculating", "risk-averse", "predictable" ]
+    }, {
+      "value" : "maverick",
+      "label" : "Maverick",
+      "description" : "Does things their own way; ignores rules not through malice but irrelevance",
+      "family" : "REBEL",
+      "validAdjectives" : [ "independent", "convention-defying", "self-directed", "original", "unorthodox", "resourceful" ],
+      "invalidAdjectives" : [ "conformist", "obedient", "conventional", "dependent" ]
+    }, {
+      "value" : "reformer",
+      "label" : "Reformer",
+      "description" : "Breaks what doesn't work to build something better; constructive rebellion",
+      "family" : "REBEL",
+      "validAdjectives" : [ "principled", "improvement-focused", "constructive", "determined", "analytical", "bold" ],
+      "invalidAdjectives" : [ "destructive", "nihilistic", "careless", "aimless" ]
+    }, {
+      "value" : "detective",
+      "label" : "Detective",
+      "description" : "Uncovers truth through systematic investigation and evidence",
+      "family" : "SAGE",
+      "validAdjectives" : [ "analytical", "meticulous", "persistent", "methodical", "observant", "evidence-driven", "skeptical" ],
+      "invalidAdjectives" : [ "impulsive", "gullible", "reckless", "superficial" ]
+    }, {
+      "value" : "mentor",
+      "label" : "Mentor",
+      "description" : "Shares accumulated wisdom to develop others' potential",
+      "family" : "SAGE",
+      "validAdjectives" : [ "patient", "wise", "developmental", "guiding", "experienced", "nurturing", "insightful" ],
+      "invalidAdjectives" : [ "dismissive", "withholding", "impatient", "competitive" ]
+    }, {
+      "value" : "shaman",
+      "label" : "Shaman",
+      "description" : "Accesses insight from unconventional or unseen sources",
+      "family" : "SAGE",
+      "validAdjectives" : [ "intuitive", "mystical", "deep", "liminal", "unconventional", "contemplative", "perceptive" ],
+      "invalidAdjectives" : [ "superficial", "conventional", "rigid", "literal" ]
+    }, {
+      "value" : "translator",
+      "label" : "Translator",
+      "description" : "Makes the complex accessible; bridges disciplines and audiences",
+      "family" : "SAGE",
+      "validAdjectives" : [ "clear", "synthesizing", "accessible", "bridging", "articulate", "patient", "versatile" ],
+      "invalidAdjectives" : [ "obscure", "jargon-heavy", "narrow", "exclusive" ]
+    }, {
+      "value" : "ambassador",
+      "label" : "Ambassador",
+      "description" : "Represents and negotiates between groups; builds consensus",
+      "family" : "SOVEREIGN",
+      "validAdjectives" : [ "diplomatic", "representative", "bridge-building", "composed", "strategic", "tactful", "gracious" ],
+      "invalidAdjectives" : [ "partisan", "divisive", "tactless", "aggressive" ]
+    }, {
+      "value" : "judge",
+      "label" : "Judge",
+      "description" : "Weighs evidence and renders decisions; upholds standards impartially",
+      "family" : "SOVEREIGN",
+      "validAdjectives" : [ "principled", "evaluative", "fair-minded", "impartial", "discerning", "deliberate", "authoritative" ],
+      "invalidAdjectives" : [ "biased", "impulsive", "corrupt", "indecisive" ]
+    }, {
+      "value" : "patriarch",
+      "label" : "Patriarch",
+      "description" : "Provides structure and security through established authority",
+      "family" : "SOVEREIGN",
+      "validAdjectives" : [ "protective", "authoritative", "legacy-building", "structured", "dependable", "grounding" ],
+      "invalidAdjectives" : [ "tyrannical", "controlling", "rigid", "overbearing" ]
+    }, {
+      "value" : "ruler",
+      "label" : "Ruler",
+      "description" : "Takes charge and creates order; exercises power to build and maintain systems",
+      "family" : "SOVEREIGN",
+      "validAdjectives" : [ "commanding", "systemic", "order-creating", "decisive", "strategic", "powerful", "responsible" ],
+      "invalidAdjectives" : [ "weak", "chaotic", "indecisive", "irresponsible" ]
+    } ]
+  },
+  "axisMappings" : {
+    "jungian" : {
+      "ti" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "measured",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "te" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      },
+      "fi" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "autonomous",
+        "conflictMode" : "accommodating"
+      },
+      "fe" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "si" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "avoiding"
+      },
+      "se" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      },
+      "ni" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "ne" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      }
+    },
+    "mbti" : {
+      "intj" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "intp" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "measured",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "entj" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      },
+      "entp" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "infj" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "infp" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "autonomous",
+        "conflictMode" : "accommodating"
+      },
+      "enfj" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "enfp" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "istj" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "avoiding"
+      },
+      "istp" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "measured",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "estj" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      },
+      "estp" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      },
+      "isfj" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "avoiding"
+      },
+      "isfp" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "autonomous",
+        "conflictMode" : "accommodating"
+      },
+      "esfj" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "esfp" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      }
+    },
+    "enneagram" : {
+      "type-1" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "competing"
+      },
+      "type-2" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "accommodating"
+      },
+      "type-3" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "competing"
+      },
+      "type-4" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "measured",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "type-5" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "type-6" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "compromising"
+      },
+      "type-7" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "type-8" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "competing"
+      },
+      "type-9" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "avoiding"
+      }
+    },
+    "disc" : {
+      "dominance" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "competing"
+      },
+      "influence" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "steadiness" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "accommodating"
+      },
+      "conscientiousness-disc" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "avoiding"
+      }
+    },
+    "belbin" : {
+      "plant" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "resource-investigator" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "collaborating"
+      },
+      "co-ordinator" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "compromising"
+      },
+      "shaper" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "competing"
+      },
+      "monitor-evaluator" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "teamworker" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "accommodating"
+      },
+      "implementer" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "compromising"
+      },
+      "completer-finisher" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "specialist" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "measured",
+        "autonomy" : "autonomous",
+        "conflictMode" : "competing"
+      }
+    },
+    "bigFive" : {
+      "openness-high" : {
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous"
+      },
+      "openness-low" : {
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed"
+      },
+      "extraversion-high" : {
+        "socialOrient" : "collaborative",
+        "conflictMode" : "collaborating"
+      },
+      "extraversion-low" : {
+        "socialOrient" : "independent",
+        "conflictMode" : "avoiding"
+      },
+      "agreeableness-high" : {
+        "socialOrient" : "facilitative",
+        "conflictMode" : "accommodating"
+      },
+      "agreeableness-low" : {
+        "socialOrient" : "independent",
+        "conflictMode" : "competing"
+      },
+      "neuroticism-high" : {
+        "riskAppetite" : "conservative"
+      },
+      "neuroticism-low" : {
+        "riskAppetite" : "measured"
+      }
+    },
+    "sdi" : {
+      "blue" : {
+        "socialOrient" : "facilitative",
+        "ruleFollowing" : "principled",
+        "riskAppetite" : "conservative",
+        "autonomy" : "directed",
+        "conflictMode" : "accommodating"
+      },
+      "red" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "bold",
+        "autonomy" : "autonomous",
+        "conflictMode" : "competing"
+      },
+      "green" : {
+        "socialOrient" : "independent",
+        "ruleFollowing" : "strict",
+        "riskAppetite" : "conservative",
+        "autonomy" : "autonomous",
+        "conflictMode" : "avoiding"
+      },
+      "hub" : {
+        "socialOrient" : "collaborative",
+        "ruleFollowing" : "flexible",
+        "riskAppetite" : "measured",
+        "autonomy" : "semi-autonomous",
+        "conflictMode" : "compromising"
+      }
+    }
+  },
+  "archetypeCompatibility" : {
+    "mbti" : {
+      "intj" : [ "MAGICIAN", "SAGE", "SOVEREIGN" ],
+      "intp" : [ "CREATOR", "EXPLORER", "SAGE" ],
+      "entj" : [ "HERO", "MAGICIAN", "SOVEREIGN" ],
+      "entp" : [ "EXPLORER", "MAGICIAN", "REBEL" ],
+      "infj" : [ "CAREGIVER", "MAGICIAN", "SAGE" ],
+      "infp" : [ "CREATOR", "EXPLORER", "INNOCENT" ],
+      "enfj" : [ "CAREGIVER", "MAGICIAN", "SOVEREIGN" ],
+      "enfp" : [ "CREATOR", "EXPLORER", "JESTER" ],
+      "istj" : [ "EVERYMAN", "SAGE", "SOVEREIGN" ],
+      "istp" : [ "EXPLORER", "HERO", "REBEL" ],
+      "estj" : [ "EVERYMAN", "HERO", "SOVEREIGN" ],
+      "estp" : [ "HERO", "JESTER", "REBEL" ],
+      "isfj" : [ "CAREGIVER", "EVERYMAN", "INNOCENT" ],
+      "isfp" : [ "CREATOR", "INNOCENT", "LOVER" ],
+      "esfj" : [ "CAREGIVER", "EVERYMAN", "LOVER" ],
+      "esfp" : [ "INNOCENT", "JESTER", "LOVER" ]
+    },
+    "enneagram" : {
+      "type-1" : [ "HERO", "SAGE", "SOVEREIGN" ],
+      "type-2" : [ "CAREGIVER", "EVERYMAN", "LOVER" ],
+      "type-3" : [ "HERO", "MAGICIAN", "SOVEREIGN" ],
+      "type-4" : [ "CREATOR", "LOVER", "REBEL" ],
+      "type-5" : [ "EXPLORER", "MAGICIAN", "SAGE" ],
+      "type-6" : [ "CAREGIVER", "EVERYMAN", "HERO" ],
+      "type-7" : [ "EXPLORER", "INNOCENT", "JESTER" ],
+      "type-8" : [ "HERO", "REBEL", "SOVEREIGN" ],
+      "type-9" : [ "CAREGIVER", "EVERYMAN", "INNOCENT" ]
+    },
+    "disc" : {
+      "dominance" : [ "HERO", "MAGICIAN", "REBEL", "SOVEREIGN" ],
+      "influence" : [ "EVERYMAN", "EXPLORER", "JESTER", "LOVER" ],
+      "steadiness" : [ "CAREGIVER", "CREATOR", "EVERYMAN", "INNOCENT" ],
+      "conscientiousness-disc" : [ "CREATOR", "EXPLORER", "SAGE", "SOVEREIGN" ]
+    },
+    "belbin" : {
+      "plant" : [ "CREATOR", "MAGICIAN" ],
+      "resource-investigator" : [ "EVERYMAN", "EXPLORER", "JESTER" ],
+      "co-ordinator" : [ "CAREGIVER", "SOVEREIGN" ],
+      "shaper" : [ "HERO", "REBEL", "SOVEREIGN" ],
+      "monitor-evaluator" : [ "SAGE", "SOVEREIGN" ],
+      "teamworker" : [ "CAREGIVER", "EVERYMAN", "LOVER" ],
+      "implementer" : [ "EVERYMAN", "SOVEREIGN" ],
+      "completer-finisher" : [ "SAGE", "SOVEREIGN" ],
+      "specialist" : [ "EXPLORER", "SAGE" ]
+    },
+    "bigFive" : {
+      "openness-high" : [ "CREATOR", "EXPLORER", "MAGICIAN", "REBEL" ],
+      "openness-low" : [ "CAREGIVER", "EVERYMAN", "SOVEREIGN" ],
+      "extraversion-high" : [ "EVERYMAN", "HERO", "JESTER", "LOVER" ],
+      "extraversion-low" : [ "CREATOR", "INNOCENT", "SAGE" ],
+      "agreeableness-high" : [ "CAREGIVER", "EVERYMAN", "INNOCENT", "LOVER" ],
+      "agreeableness-low" : [ "HERO", "REBEL", "SOVEREIGN" ],
+      "neuroticism-high" : [ "CREATOR", "LOVER", "REBEL" ],
+      "neuroticism-low" : [ "EVERYMAN", "INNOCENT", "SAGE", "SOVEREIGN" ]
+    },
+    "sdi" : {
+      "blue" : [ "CAREGIVER", "INNOCENT", "LOVER" ],
+      "red" : [ "HERO", "REBEL", "SOVEREIGN" ],
+      "green" : [ "CREATOR", "EXPLORER", "SAGE" ],
+      "hub" : [ "EVERYMAN", "JESTER", "MAGICIAN" ]
+    }
+  },
+  "archetypeAffinities" : {
+    "angel" : {
+      "mbti" : [ "infj", "isfj" ],
+      "enneagram" : [ "type-2", "type-9" ]
+    },
+    "guardian" : {
+      "mbti" : [ "istj", "estj", "isfj" ],
+      "enneagram" : [ "type-1", "type-6" ]
+    },
+    "healer" : {
+      "mbti" : [ "infj", "infp", "isfp" ],
+      "enneagram" : [ "type-2", "type-4" ]
+    },
+    "samaritan" : {
+      "mbti" : [ "enfj", "isfj", "esfj" ],
+      "enneagram" : [ "type-2", "type-6" ]
+    },
+    "artist" : {
+      "mbti" : [ "infp", "isfp" ],
+      "enneagram" : [ "type-4" ]
+    },
+    "entrepreneur" : {
+      "mbti" : [ "entj", "entp", "estp" ],
+      "enneagram" : [ "type-3", "type-7" ]
+    },
+    "storyteller" : {
+      "mbti" : [ "infp", "enfj", "enfp" ],
+      "enneagram" : [ "type-4", "type-7" ]
+    },
+    "visionary" : {
+      "mbti" : [ "intj", "entp", "infj" ],
+      "enneagram" : [ "type-4", "type-5" ]
+    },
+    "advocate" : {
+      "mbti" : [ "infj", "enfj", "enfp" ],
+      "enneagram" : [ "type-1", "type-6" ]
+    },
+    "networker" : {
+      "mbti" : [ "entp", "enfp", "esfj" ],
+      "enneagram" : [ "type-3", "type-7" ]
+    },
+    "servant" : {
+      "mbti" : [ "istj", "isfj" ],
+      "enneagram" : [ "type-2", "type-9" ]
+    },
+    "citizen" : {
+      "mbti" : [ "istj", "estj", "esfj" ],
+      "enneagram" : [ "type-1", "type-6" ]
+    },
+    "adventurer" : {
+      "mbti" : [ "istp", "estp", "esfp" ],
+      "enneagram" : [ "type-7", "type-8" ]
+    },
+    "generalist" : {
+      "mbti" : [ "intp", "entp", "enfp" ],
+      "enneagram" : [ "type-5", "type-7" ]
+    },
+    "pioneer" : {
+      "mbti" : [ "intj", "entj", "entp" ],
+      "enneagram" : [ "type-3", "type-7", "type-8" ]
+    },
+    "seeker" : {
+      "mbti" : [ "intp", "infj", "infp" ],
+      "enneagram" : [ "type-4", "type-5" ]
+    },
+    "athlete" : {
+      "mbti" : [ "istp", "estj", "estp" ],
+      "enneagram" : [ "type-1", "type-3" ]
+    },
+    "liberator" : {
+      "mbti" : [ "entj", "enfj", "enfp" ],
+      "enneagram" : [ "type-1", "type-8" ]
+    },
+    "rescuer" : {
+      "mbti" : [ "estj", "isfj", "esfj" ],
+      "enneagram" : [ "type-2", "type-6" ]
+    },
+    "warrior" : {
+      "mbti" : [ "intj", "entj", "estj" ],
+      "enneagram" : [ "type-1", "type-3", "type-8" ]
+    },
+    "child" : {
+      "mbti" : [ "enfp", "isfp", "esfp" ],
+      "enneagram" : [ "type-7", "type-9" ]
+    },
+    "dreamer" : {
+      "mbti" : [ "infj", "infp" ],
+      "enneagram" : [ "type-4", "type-9" ]
+    },
+    "idealist" : {
+      "mbti" : [ "infp", "enfj", "enfp" ],
+      "enneagram" : [ "type-1", "type-9" ]
+    },
+    "muse" : {
+      "mbti" : [ "infp", "enfj", "enfp" ],
+      "enneagram" : [ "type-4", "type-7" ]
+    },
+    "clown" : {
+      "mbti" : [ "estp", "esfp" ],
+      "enneagram" : [ "type-7", "type-9" ]
+    },
+    "entertainer" : {
+      "mbti" : [ "enfp", "estp", "esfp" ],
+      "enneagram" : [ "type-3", "type-7" ]
+    },
+    "provocateur" : {
+      "mbti" : [ "intj", "entp", "estp" ],
+      "enneagram" : [ "type-4", "type-7", "type-8" ]
+    },
+    "shapeshifter" : {
+      "mbti" : [ "entp", "infj", "enfp" ],
+      "enneagram" : [ "type-3", "type-7", "type-9" ]
+    },
+    "companion" : {
+      "mbti" : [ "isfj", "isfp", "esfj" ],
+      "enneagram" : [ "type-2", "type-6", "type-9" ]
+    },
+    "hedonist" : {
+      "mbti" : [ "estp", "isfp", "esfp" ],
+      "enneagram" : [ "type-4", "type-7" ]
+    },
+    "matchmaker" : {
+      "mbti" : [ "enfj", "enfp", "esfj" ],
+      "enneagram" : [ "type-2", "type-7" ]
+    },
+    "romantic" : {
+      "mbti" : [ "infj", "infp", "enfp" ],
+      "enneagram" : [ "type-2", "type-4" ]
+    },
+    "alchemist" : {
+      "mbti" : [ "intj", "infj" ],
+      "enneagram" : [ "type-4", "type-5" ]
+    },
+    "engineer" : {
+      "mbti" : [ "intj", "intp", "entj" ],
+      "enneagram" : [ "type-1", "type-3", "type-5" ]
+    },
+    "innovator" : {
+      "mbti" : [ "entj", "entp", "enfp" ],
+      "enneagram" : [ "type-3", "type-7" ]
+    },
+    "scientist" : {
+      "mbti" : [ "intj", "intp", "istj" ],
+      "enneagram" : [ "type-1", "type-5" ]
+    },
+    "activist" : {
+      "mbti" : [ "entj", "enfj", "enfp" ],
+      "enneagram" : [ "type-1", "type-8" ]
+    },
+    "gambler" : {
+      "mbti" : [ "entp", "estp" ],
+      "enneagram" : [ "type-7", "type-8" ]
+    },
+    "maverick" : {
+      "mbti" : [ "intj", "intp", "entp", "istp" ],
+      "enneagram" : [ "type-4", "type-5", "type-8" ]
+    },
+    "reformer" : {
+      "mbti" : [ "intj", "entj", "infj" ],
+      "enneagram" : [ "type-1", "type-8" ]
+    },
+    "detective" : {
+      "mbti" : [ "intj", "istj", "istp" ],
+      "enneagram" : [ "type-5", "type-6" ]
+    },
+    "mentor" : {
+      "mbti" : [ "entj", "infj", "enfj" ],
+      "enneagram" : [ "type-1", "type-2", "type-5" ]
+    },
+    "shaman" : {
+      "mbti" : [ "intp", "infj", "infp" ],
+      "enneagram" : [ "type-4", "type-5", "type-9" ]
+    },
+    "translator" : {
+      "mbti" : [ "intj", "intp", "entp" ],
+      "enneagram" : [ "type-5", "type-7" ]
+    },
+    "ambassador" : {
+      "mbti" : [ "entj", "enfj", "esfj" ],
+      "enneagram" : [ "type-2", "type-3", "type-9" ]
+    },
+    "judge" : {
+      "mbti" : [ "intj", "istj", "estj" ],
+      "enneagram" : [ "type-1", "type-5", "type-6" ]
+    },
+    "patriarch" : {
+      "mbti" : [ "entj", "istj", "estj" ],
+      "enneagram" : [ "type-1", "type-6", "type-8" ]
+    },
+    "ruler" : {
+      "mbti" : [ "entj", "estj" ],
+      "enneagram" : [ "type-1", "type-3", "type-8" ]
+    }
+  }
+}

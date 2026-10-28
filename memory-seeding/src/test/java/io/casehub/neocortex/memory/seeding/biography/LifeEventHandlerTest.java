@@ -131,6 +131,6 @@ class LifeEventHandlerTest {
         return new BiographyProfile("a1", "t1",
             List.of(), List.of(), events, List.of(), List.of(),
             List.of(), List.of(), List.of(), List.of(), List.of(),
-            List.of(), List.of(), List.of());
+            List.of(), List.of(), List.of(), List.of());
     }
 }
