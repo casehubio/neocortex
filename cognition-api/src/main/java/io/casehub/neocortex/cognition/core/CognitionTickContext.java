@@ -10,18 +10,27 @@ public record CognitionTickContext(
         @Nullable AgentDescriptor descriptor,
         SubjectResolver resolver,
         @Nullable String observation,
-        @Nullable AttentionBriefing briefing
+        @Nullable AttentionBriefing briefing,
+        @Nullable String targetAgentId
 ) {
     public CognitionTickContext(String agentId, String tenantId,
                                 @Nullable AgentDescriptor descriptor,
                                 SubjectResolver resolver) {
-        this(agentId, tenantId, descriptor, resolver, null, null);
+        this(agentId, tenantId, descriptor, resolver, null, null, null);
     }
 
     public CognitionTickContext(String agentId, String tenantId,
                                 @Nullable AgentDescriptor descriptor,
                                 SubjectResolver resolver,
                                 @Nullable String observation) {
-        this(agentId, tenantId, descriptor, resolver, observation, null);
+        this(agentId, tenantId, descriptor, resolver, observation, null, null);
+    }
+
+    public CognitionTickContext(String agentId, String tenantId,
+                                @Nullable AgentDescriptor descriptor,
+                                SubjectResolver resolver,
+                                @Nullable String observation,
+                                @Nullable AttentionBriefing briefing) {
+        this(agentId, tenantId, descriptor, resolver, observation, briefing, null);
     }
 }
