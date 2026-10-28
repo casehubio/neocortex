@@ -207,13 +207,21 @@ public class CognitionCore {
     public void tick(String agentId, String tenantId,
                      @Nullable AgentDescriptor descriptor,
                      SubjectResolver resolver) {
-        tick(agentId, tenantId, descriptor, resolver, null);
+        tick(agentId, tenantId, descriptor, resolver, null, null);
     }
 
     public void tick(String agentId, String tenantId,
                      @Nullable AgentDescriptor descriptor,
                      SubjectResolver resolver,
                      @Nullable String observation) {
+        tick(agentId, tenantId, descriptor, resolver, observation, null);
+    }
+
+    public void tick(String agentId, String tenantId,
+                     @Nullable AgentDescriptor descriptor,
+                     SubjectResolver resolver,
+                     @Nullable String observation,
+                     @Nullable String targetAgentId) {
         this.lastDescriptor = descriptor;
         this.lastAgentId    = agentId;
         this.lastTenantId   = tenantId;
@@ -235,7 +243,7 @@ public class CognitionCore {
             safeRun(() -> temporalFocus.tick(agentId, tenantId,
                                              resolver.relevantSubjects(agentId, tenantId)));
         }
-        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing);
+        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId);
 
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
