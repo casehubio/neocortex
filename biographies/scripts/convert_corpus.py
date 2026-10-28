@@ -136,11 +136,15 @@ def convert(corpus, schema, output_dir):
     if enrichments:
         entries_by_type["entity-enrichment"] = enrichments
 
-    # Disposition profile (from corpus.json top-level "disposition_profile" dict)
-    disp = corpus.get("disposition_profile", {})
-    if disp:
-        subject = schema.get("converter", {}).get("subject_name", corpus.get("subject", "unknown"))
-        entries_by_type["disposition-profile"] = [_map_disposition_profile(subject, disp, seen_ids)]
+    # Personality profile supersedes disposition profile when present
+    subject = schema.get("converter", {}).get("subject_name", corpus.get("subject", "unknown"))
+    pp = corpus.get("personality_profile")
+    if pp:
+        entries_by_type["personality-profile"] = [_map_personality_profile(subject, pp, seen_ids)]
+    else:
+        disp = corpus.get("disposition_profile", {})
+        if disp:
+            entries_by_type["disposition-profile"] = [_map_disposition_profile(subject, disp, seen_ids)]
 
     type_to_filename = {
         "goal": "goals.yaml", "place": "places.yaml",
@@ -150,6 +154,7 @@ def convert(corpus, schema, output_dir):
         "current-state": "current-state.yaml",
         "entity-enrichment": "entity-enrichments.yaml",
         "disposition-profile": "disposition-profile.yaml",
+        "personality-profile": "personality-profile.yaml",
     }
 
     for yaml_type, entries in entries_by_type.items():
@@ -396,6 +401,41 @@ def _map_disposition_profile(subject, disp, seen_ids):
         val = disp.get(corpus_axis)
         if isinstance(val, dict) and "score" in val:
             entry[yaml_field] = _score_to_category(corpus_axis, val["score"])
+    return entry
+
+
+def _map_personality_profile(subject, pp, seen_ids):
+    entry = {
+        "id": make_id("personality", subject, seen_ids),
+        "entity_ref": subject,
+    }
+
+    frameworks = pp.get("frameworks", {})
+    if frameworks:
+        entry["frameworks"] = {}
+        for fw_key in ["ocean", "mbti", "jungian_stack", "enneagram", "disc",
+                       "belbin", "thomas_kilmann", "sdi", "ampd", "attachment",
+                       "locus_of_control"]:
+            fw_data = frameworks.get(fw_key)
+            if fw_data:
+                entry["frameworks"][fw_key] = fw_data
+
+    archetypes = pp.get("archetypes")
+    if archetypes:
+        entry["archetypes"] = archetypes
+
+    disposition = pp.get("disposition")
+    if disposition:
+        entry["disposition"] = disposition
+
+    reconciliation = pp.get("reconciliation")
+    if reconciliation:
+        entry["reconciliation"] = reconciliation
+
+    inconsistencies = pp.get("inconsistencies")
+    if inconsistencies:
+        entry["inconsistencies"] = inconsistencies
+
     return entry
 
 
