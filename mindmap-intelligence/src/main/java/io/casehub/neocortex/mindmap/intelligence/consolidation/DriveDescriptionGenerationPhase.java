@@ -51,11 +51,11 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                                 control, secure bodies settle into closeness, anxious bodies amplify every signal.
                                                 
                                                 Cover four channels woven together (not as a list):
-                                                - Body: where does this drive live in THIS person? What chronic tensions, warmths, \
+                                                - Somatic: where does this drive live in THIS person? What chronic tensions, warmths, \
                                                 numbnesses has their history created?
-                                                - Attention: what does this drive make them scan for, fixate on, miss?
-                                                - Time: does this drive make moments feel urgent, patient, compressed, stretched?
-                                                - Action readiness: what does their body prepare to do when this activates?
+                                                - Attentional: what does this drive make them scan for, fixate on, miss?
+                                                - Temporal: does this drive make moments feel urgent, patient, compressed, stretched?
+                                                - Action tendency: what does their body prepare to do when this activates?
                                                 
                                                 Ground each channel in specific formation memories where possible.
                                                 Write in second person. Do not name the drive. 2-3 sentences per drive.
