@@ -222,3 +222,116 @@ Full 300-tick scenario runs are not needed for drive-level improvements. The eva
 The 30-event eval takes ~5 minutes on Haiku. A 3-tick scenario takes ~2 minutes. Total iteration cycle: ~10 minutes per change.
 
 ---
+
+## Entry 3: The Templating Discovery and Barrett 4-Channel Architecture
+
+**Date:** 2026-10-27 — 2026-10-28
+**Scope:** casehubio/examples#156, #158, neocortex#714
+
+### The Problem: 640 Lines of Prose Briefing
+
+Attempting to fix the five weak drives by iterating on drive descriptions revealed a deeper problem: `social-config-generic.yaml` had accumulated ~640 lines of hand-crafted second-person prose — drive descriptions, personality facet origins, formation memory episodes, psychological substrate paragraphs, relational schema descriptions. All injected verbatim into the LLM prompt by `CharacterCognition.renderCognitiveSections()`.
+
+This was templating. The cognitive architecture was designed to COMPUTE drive expression per-turn from structured data (via CAPS, CognitiveDerivationEngine, LlmAppraisalStrategy, DriveDescriptionGenerated MindMap nodes). The hand-crafted prose short-circuited all of it.
+
+**Git archaeology:** On Oct 6, descriptions were explicitly stripped to type+intensity only (commit `f02bb3d4`: "sub-LLM appraisal computes the felt-state per-turn"). Three days later (Oct 9, `3bfceb63`), all 17 descriptions came back as full somatic paragraphs. Each subsequent session polished the prose further, reinforced by eval scores that rewarded effective prompt engineering.
+
+### The Barrett 4-Channel Framework
+
+Instead of hand-crafted descriptions, the LLM receives a universal instruction grounded in published phenomenological research:
+
+- **Body** — somatic signal before cognitive label (Damasio 1994, Barrett 2017)
+- **Attention** — what captures focus, what narrows (Easterbrook 1959)
+- **Time** — temporal compression, stretching, urgency
+- **Action readiness** — what the body prepares to do (Frijda 1986)
+
+Plus architectural guidance:
+- **Personality as body calibration** — scores shape somatic response, not thoughts about response (Porges 2011 polyvagal)
+- **Attachment as ground state** — avoidant/secure/anxious as chronic body baseline
+- **Ambiguity** — body states may be mislabeled; stay with uncertainty (Schachter & Singer 1962)
+- **Context shapes feeling** — each person present shifts the body differently
+
+### Instruction Iteration Results
+
+| Version | Bespoke | Somatic | Situational | Discovery | Mean |
+|---|:-:|:-:|:-:|:-:|:-:|
+| V1 (basic) | 4.2 | 5.0 | 4.6 | 4.2 | 4.5 |
+| V2 (personality calibration) | 4.4 | 5.0 | 4.9 | 4.2 | 4.6 |
+| V3 (structural constraints) | 4.0 | 5.0 | 4.5 | 4.2 | 4.4 |
+| V2 + derived profiles | **4.5** | **5.0** | **4.8** | **4.5** | **4.7** |
+
+Key findings:
+- V2 is the sweet spot — personality-as-body-calibration and context-shapes-feeling sections drive the improvement
+- V3 structural constraints (ban drive names, ban causal reasoning) regressed — banning cognitive processing severs the body-to-situation connection
+- Discovery ceiling at 4.2 broken by consolidation-derived Barrett profiles (4.5)
+
+### Consolidation-Derived Barrett Profiles
+
+The discovery ceiling broke when the consolidation phase (`DriveDescriptionGenerationPhase`) generates character-specific Barrett channel profiles from personality + formation memories, stored as `DriveDescriptionGenerated` MindMap nodes. These are HINTS — how this person's body TENDS to respond when each drive activates — not templates for specific situations.
+
+Updated the consolidation system prompt to include personality facets and attachment style (neocortex#714). The prompt instructs the LLM to derive how each drive manifests across all 4 Barrett channels, grounded in specific formation memories.
+
+### Biography Engrams
+
+The personality data path was wrong — `ManorCognitiveSeeder` was creating ad-hoc MindMap nodes, duplicating what the biography pipeline handles properly. Migrated all 5 characters to biography engram YAML:
+
+```
+biographies/{character-id}/
+  personality-profile.yaml  — 13 AMPD facets, OCEAN, MBTI, Jungian, Enneagram, DISC, Belbin, TK, SDI, Locus, archetypes, disposition
+  life-events.yaml          — formation memories with PAD, OCC emotions, drive impacts, sub_thoughts
+  relationships.yaml        — directional relational data
+  goals.yaml                — structured goals
+  beliefs.yaml              — core world-models traced to source events
+```
+
+25 files, fully audited (Jungian stacks corrected, missing AMPD facets restored, cross-framework consistency verified). Loaded via `BiographyImportRunner` per-character on startup.
+
+### First Full Pipeline Run: Computed Mode with Enriched Engrams
+
+30-event eval, 5 characters, `briefing-mode=false`:
+
+**Improvements over prose baseline:**
+- AHM protection: q=4.50→5.00, r=3.67→4.30
+- AHM suspicion: q=4.00→4.50, r=3.50→4.20
+- DD scheming register: 3.83→4.50
+- DD gloating quality: 2.40→3.00
+- Peter proving-worth quality: 3.40→4.50
+
+**Regressions:**
+- HC gloating: q=4.00→2.50, r=4.50→1.80
+- Peter gallantry register: 3.40→1.20
+- Peter protection: q=4.60→2.83, r=4.00→2.30
+
+**Root causes identified:**
+1. BASELINE profile leaked cartoon names via agentIds (#164)
+2. Formation memories gated by briefingMode — biographical data should flow in both modes (#165)
+3. Discrimination text lacks personality context (#166)
+
+### Architecture Summary
+
+```
+biography YAML (engrams) → BiographyImportRunner → MindMap (person nodes)
+                                                         ↓
+social-config (drives, reinforcement, persona) → ManorCognitiveSeeder → MindMap (cognitive nodes)
+                                                                              ↓
+                                               ConsolidationScheduler → DriveDescriptionGenerated (Barrett profiles)
+                                                                              ↓
+                          CharacterAgentLoop → CharacterCognition.renderCognitiveSections()
+                                                    ↓
+                                    "How to Feel" (V2 Barrett instruction)
+                                    + "What Pulls at You" (consolidated profiles + CAPS attractors + primed memories)
+                                    + personality scores + attachment + situation
+                                                    ↓
+                                              LLM → thinking field
+```
+
+### Open Issues
+
+| # | Issue | Priority |
+|---|-------|----------|
+| #164 | GENERIC profile agentId leak | High — contaminates eval |
+| #165 | Ungate formation memories in computed mode | High — causes register drops |
+| #166 | Discrimination text personality context | Medium |
+| #158 | Strip remaining prose from social-config | After #165 validated |
+
+---
