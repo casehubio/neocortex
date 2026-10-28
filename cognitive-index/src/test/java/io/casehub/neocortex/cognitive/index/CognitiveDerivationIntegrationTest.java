@@ -81,8 +81,9 @@ class CognitiveDerivationIntegrationTest {
                   weight: 0.6
                 - term: te
                   weight: 0.4
-            personality:
-              reflection: 2.0
+            personalityProfile:
+              personality:
+                reflection: 2.0
             """;
 
         CognitiveDefaults defaults = mapper.readValue(yaml, CognitiveDefaults.class);

@@ -24,22 +24,23 @@ public record DescriptorView(
         List<WeightedTerm> dispositionProfile,
         List<String> goals,
         FormationPadSummary formationPadSummary,
-        AmpdFacets ampdFacets
+        List<PersonalityFacet> personalityFacets
 ) {
     public DescriptorView {
         Objects.requireNonNull(agentId, "agentId required");
         dispositionProfile = dispositionProfile != null ? List.copyOf(dispositionProfile) : List.of();
         goals              = goals != null ? List.copyOf(goals) : List.of();
+        personalityFacets  = personalityFacets != null ? List.copyOf(personalityFacets) : List.of();
     }
 
     public DescriptorView(String agentId, DispositionAxes disposition,
                           List<WeightedTerm> dispositionProfile, List<String> goals,
                           FormationPadSummary formationPadSummary) {
-        this(agentId, disposition, dispositionProfile, goals, formationPadSummary, null);
+        this(agentId, disposition, dispositionProfile, goals, formationPadSummary, List.of());
     }
 
     public static DescriptorView of(String agentId, DispositionAxes disposition,
                                     List<WeightedTerm> dispositionProfile, List<String> goals) {
-        return new DescriptorView(agentId, disposition, dispositionProfile, goals, null, null);
+        return new DescriptorView(agentId, disposition, dispositionProfile, goals, null, List.of());
     }
 }

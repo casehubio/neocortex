@@ -2,6 +2,7 @@ package io.casehub.neocortex.cognitive.index;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,10 +11,10 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void highAntagonismTriad_producesTheatricalTriumphAndSavoringGloat() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.GRANDIOSITY, 85,
-                AmpdFacets.CALLOUSNESS, 90,
-                AmpdFacets.MANIPULATIVENESS, 80));
+        var facets = List.of(
+                new PersonalityFacet("Grandiosity", 0.85, null),
+                new PersonalityFacet("Callousness", 0.90, null),
+                new PersonalityFacet("Manipulativeness", 0.80, null));
         var styles = CognitiveDerivationEngine.deriveExpressionStyles(facets);
 
         assertThat(styles).isNotNull();
@@ -23,10 +24,10 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void lowCallousness_producesGenuineGallantryAndSuppressedGloat() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.CALLOUSNESS, 15,
-                AmpdFacets.SUSPICIOUSNESS, 20,
-                AmpdFacets.GRANDIOSITY, 25));
+        var facets = List.of(
+                new PersonalityFacet("Callousness", 0.15, null),
+                new PersonalityFacet("Suspiciousness", 0.20, null),
+                new PersonalityFacet("Grandiosity", 0.25, null));
         var styles = CognitiveDerivationEngine.deriveExpressionStyles(facets);
 
         assertThat(styles).isNotNull();
@@ -36,9 +37,9 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void highSuspiciousnessHighHostility_producesAggressiveDistrust() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.SUSPICIOUSNESS, 80,
-                AmpdFacets.HOSTILITY, 85));
+        var facets = List.of(
+                new PersonalityFacet("Suspiciousness", 0.80, null),
+                new PersonalityFacet("Hostility", 0.85, null));
         var styles = CognitiveDerivationEngine.deriveExpressionStyles(facets);
 
         assertThat(styles).isNotNull();
@@ -47,9 +48,9 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void highSuspiciousnessLowHostility_producesWatchfulDistrust() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.SUSPICIOUSNESS, 80,
-                AmpdFacets.HOSTILITY, 20));
+        var facets = List.of(
+                new PersonalityFacet("Suspiciousness", 0.80, null),
+                new PersonalityFacet("Hostility", 0.20, null));
         var styles = CognitiveDerivationEngine.deriveExpressionStyles(facets);
 
         assertThat(styles).isNotNull();
@@ -58,12 +59,12 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void oppositeProfiles_produceDifferentTriumphExpressions() {
-        var narcissist = new AmpdFacets(Map.of(
-                AmpdFacets.GRANDIOSITY, 85,
-                AmpdFacets.CALLOUSNESS, 90));
-        var prosocial = new AmpdFacets(Map.of(
-                AmpdFacets.GRANDIOSITY, 20,
-                AmpdFacets.CALLOUSNESS, 15));
+        var narcissist = List.of(
+                new PersonalityFacet("Grandiosity", 0.85, null),
+                new PersonalityFacet("Callousness", 0.90, null));
+        var prosocial = List.of(
+                new PersonalityFacet("Grandiosity", 0.20, null),
+                new PersonalityFacet("Callousness", 0.15, null));
 
         var narcStyles = CognitiveDerivationEngine.deriveExpressionStyles(narcissist);
         var proStyles = CognitiveDerivationEngine.deriveExpressionStyles(prosocial);
@@ -79,14 +80,14 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void emptyFacets_returnsNull() {
-        assertThat(CognitiveDerivationEngine.deriveExpressionStyles(AmpdFacets.empty())).isNull();
+        assertThat(CognitiveDerivationEngine.deriveExpressionStyles(List.of())).isNull();
     }
 
     @Test
     void deriveAndMerge_preservesExplicitExpressionStyles() {
         var explicit = CognitiveDefaults.empty("agent-1")
                 .withExpressionStyles(new ExpressionStyleDefaults(Map.of("triumph", "custom override")))
-                .withDescriptor(DescriptorView.of("agent-1", null, java.util.List.of(), java.util.List.of()));
+                .withDescriptor(DescriptorView.of("agent-1", null, List.of(), List.of()));
 
         var merged = CognitiveDerivationEngine.deriveAndMerge(explicit);
         assertThat(merged.expressionStyles().expressionFor("triumph")).isEqualTo("custom override");
@@ -94,13 +95,13 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void derive_includesExpressionStylesInFullDerivation() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.GRANDIOSITY, 85,
-                AmpdFacets.CALLOUSNESS, 90,
-                AmpdFacets.MANIPULATIVENESS, 80));
+        var facets = List.of(
+                new PersonalityFacet("Grandiosity", 0.85, null),
+                new PersonalityFacet("Callousness", 0.90, null),
+                new PersonalityFacet("Manipulativeness", 0.80, null));
         var descriptor = new DescriptorView("agent-1",
                 new DispositionAxes("competitive", "strict", "bold", "high", "aggressive"),
-                java.util.List.of(), java.util.List.of(), null, facets);
+                List.of(), List.of(), null, facets);
 
         var defaults = CognitiveDerivationEngine.derive(descriptor);
 
@@ -111,9 +112,9 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void highManipulativenessHighSuspiciousness_producesElaborateScheming() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.MANIPULATIVENESS, 85,
-                AmpdFacets.SUSPICIOUSNESS, 80));
+        var facets = List.of(
+                new PersonalityFacet("Manipulativeness", 0.85, null),
+                new PersonalityFacet("Suspiciousness", 0.80, null));
         var styles = CognitiveDerivationEngine.deriveExpressionStyles(facets);
 
         assertThat(styles.expressionFor("scheming")).contains("elaborate");
@@ -121,9 +122,9 @@ class ExpressionStyleDerivationTest {
 
     @Test
     void highGrandiosity_lowCallousness_producesExpansiveTriumph() {
-        var facets = new AmpdFacets(Map.of(
-                AmpdFacets.GRANDIOSITY, 80,
-                AmpdFacets.CALLOUSNESS, 20));
+        var facets = List.of(
+                new PersonalityFacet("Grandiosity", 0.80, null),
+                new PersonalityFacet("Callousness", 0.20, null));
         var styles = CognitiveDerivationEngine.deriveExpressionStyles(facets);
 
         assertThat(styles.expressionFor("triumph")).contains("expansive");
