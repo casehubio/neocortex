@@ -9,9 +9,13 @@ import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.PersonalityFacet;
+import io.casehub.neocortex.cognitive.index.PersonalityProfile;
+import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import org.jspecify.annotations.Nullable;
 
@@ -153,8 +157,19 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             return;
         }
 
+        RelationalSchema targetSchema = null;
+        List<PersonalityFacet> personalityFacets = null;
+        if (context.targetAgentId() != null && mindMapStore != null) {
+            targetSchema = resolveRelationalSchema(
+                    context.agentId(), context.targetAgentId(), context.tenantId());
+        }
+        if (defaults != null && defaults.personalityProfile() != null) {
+            personalityFacets = defaults.personalityProfile().facets();
+        }
+
         var result = appraisalStrategy.appraise(
-                new AppraisalContext(situation, drives, weights, habConfig, habituation, mood, disposition));
+                new AppraisalContext(situation, drives, weights, habConfig, habituation, mood,
+                        disposition, targetSchema, personalityFacets));
 
         results.put(agentKey, result);
         habituationStates.put(agentKey, result.updatedHabituation());
@@ -185,6 +200,36 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
 
     private static final io.casehub.neocortex.memory.MemoryDomain CONCERN_DOMAIN =
             new io.casehub.neocortex.memory.MemoryDomain("concern");
+
+    private @Nullable RelationalSchema resolveRelationalSchema(
+            String observerAgentId, String targetAgentId, String tenantId) {
+        var peopleSg = mindMapStore.listSubgraphs(tenantId).stream()
+                .filter(sg -> SubgraphTypes.PERSON.equals(sg.type()) || SubgraphTypes.PERSON.equals(sg.name()))
+                .findFirst();
+        if (peopleSg.isEmpty()) return null;
+
+        var nodes = mindMapStore.nodesIn(peopleSg.get().id(), tenantId);
+
+        String targetNodeId = null;
+        for (var node : nodes) {
+            if (node.traits().contains("overlay")) continue;
+            if (targetAgentId.equals(node.property("agentId").orElse(null))) {
+                targetNodeId = node.id();
+                break;
+            }
+        }
+        if (targetNodeId == null) return null;
+
+        for (var overlay : nodes) {
+            if (!overlay.traits().contains("overlay")) continue;
+            if (!observerAgentId.equals(overlay.property(OverlayRef.AGENT_ID).orElse(null))) continue;
+            var sharedId = OverlayRef.sharedNodeId(overlay).orElse(null);
+            if (targetNodeId.equals(sharedId)) {
+                return RelationalSchema.fromProperties(overlay.properties());
+            }
+        }
+        return null;
+    }
 
     private List<MindMapNode> loadDriveIntensityNodes(String agentId, String tenantId) {
         return mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
