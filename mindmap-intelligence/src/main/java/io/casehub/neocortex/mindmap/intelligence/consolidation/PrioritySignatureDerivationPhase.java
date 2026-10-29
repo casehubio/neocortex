@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * material for that implicit process in ambiguous multi-drive scenarios.
  */
 @ApplicationScoped
-@Priority(26)
+@Priority(27)
 public class PrioritySignatureDerivationPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(

@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * See research doc §10.10.6-7, decision D12.
  */
 @ApplicationScoped
-@Priority(20)
+@Priority(21)
 public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(

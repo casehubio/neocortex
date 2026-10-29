@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * this phase produces WHAT is injected.
  */
 @ApplicationScoped
-@Priority(24)
+@Priority(25)
 public class OtherModelDerivationPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(

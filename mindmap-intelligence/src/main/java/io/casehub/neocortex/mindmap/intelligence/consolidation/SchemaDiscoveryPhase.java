@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-@Priority(25)
+@Priority(26)
 public class SchemaDiscoveryPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(SchemaDiscoveryPhase.class.getName());

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * Based on Tracy &amp; Robins (2004) self-conscious emotions model.
  */
 @ApplicationScoped
-@Priority(22)
+@Priority(23)
 public class SelfStandardDerivationPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(

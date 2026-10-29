@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * See research doc §10.10.8, decision D13.
  */
 @ApplicationScoped
-@Priority(21)
+@Priority(22)
 public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(

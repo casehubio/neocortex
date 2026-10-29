@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-@Priority(19)
+@Priority(20)
 public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(RelationalSchemaEvolutionPhase.class.getName());

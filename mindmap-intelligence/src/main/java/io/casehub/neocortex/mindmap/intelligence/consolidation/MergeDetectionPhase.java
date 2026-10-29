@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-@Priority(20)
+@Priority(24)
 public class MergeDetectionPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(
