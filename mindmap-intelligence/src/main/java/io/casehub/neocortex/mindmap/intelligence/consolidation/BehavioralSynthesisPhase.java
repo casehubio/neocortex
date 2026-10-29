@@ -6,6 +6,7 @@ import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.DriveCompetitionDetector;
 import io.casehub.neocortex.caps.SituationActivation;
+import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -121,7 +122,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 for (MindMapNode node : agentNodes) {
                     classifyFutures.add(classifyExecutor.submit(() -> {
                         List<SituationActivation> activations = classifier.classify(
-                            node.name(), nodeMetadata(node));
+                            node.name(), nodeMetadata(node),
+                            ClassificationContext.of(tenantId));
                         for (SituationActivation sa : activations) {
                             experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                         }
@@ -391,7 +393,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             } else if (classifier != null) {
                 String description = node.properties().get("description");
                 if (description == null || description.isBlank()) {continue;}
-                var activations = classifier.classify(description, Map.of());
+                var activations = classifier.classify(description, Map.of(),
+                    ClassificationContext.of(tenantId));
                 for (var sa : activations) {
                     double scaled = sa.confidence() * intensity;
                     combinedActivations.merge(sa.nodeId(), scaled, Math::max);

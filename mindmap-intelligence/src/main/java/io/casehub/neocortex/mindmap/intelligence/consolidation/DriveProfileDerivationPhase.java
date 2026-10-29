@@ -4,6 +4,7 @@ import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
+import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -128,7 +129,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             if (agentMemories.isEmpty()) {continue;}
 
-            Map<String, DriveProfile> profiles   = deriveProfiles(drivesToDerive, driveNodes, agentMemories);
+            Map<String, DriveProfile> profiles   = deriveProfiles(drivesToDerive, driveNodes, agentMemories, tenantId);
             String                    subgraphId = findCognitiveSubgraph(tenantId, agentId);
             if (subgraphId == null) {continue;}
 
@@ -148,7 +149,8 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
     private Map<String, DriveProfile> deriveProfiles(List<MindMapNode> drivesToDerive,
                                                      List<MindMapNode> allDriveNodes,
-                                                     List<MindMapNode> formativeNodes) {
+                                                     List<MindMapNode> formativeNodes,
+                                                     String tenantId) {
         Map<String, DriveProfile> profiles = new HashMap<>();
 
         Map<String, String> driveDescriptions = new HashMap<>();
@@ -183,7 +185,8 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                         futures.add(classifyExecutor.submit(() -> {
                             try {
                                 List<SituationActivation> activations = classifier.classify(
-                                        episodeText, discriminationMeta);
+                                        episodeText, discriminationMeta,
+                                        ClassificationContext.of(tenantId));
                                 for (SituationActivation sa : activations) {
                                     inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                                 }
@@ -200,7 +203,8 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                     futures.add(classifyExecutor.submit(() -> {
                         try {
                             List<SituationActivation> descActivations = classifier.classify(
-                                    description, discriminationMeta);
+                                    description, discriminationMeta,
+                                    ClassificationContext.of(tenantId));
                             for (SituationActivation sa : descActivations) {
                                 inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                             }

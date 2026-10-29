@@ -80,6 +80,7 @@
     <module>caps-engine</module>
     <module>caps-testing</module>
     <module>caps-llm-classifier</module>
+    <module>caps-situation-cbr</module>
     <module>summarisation</module>
     <module>cognition-api</module>
     <module>cognition</module>
