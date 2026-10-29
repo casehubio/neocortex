@@ -168,12 +168,72 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
         intimacyDelta *= (1.0 + 0.5 * anxiety);
         double newIntimacy = clamp(currentIntimacy + intimacyDelta, 0.0, 1.0);
 
+        var facets = (defaultsRegistry != null)
+            ? defaultsRegistry.forAgentOrDefaults(observerId).personalityProfile() != null
+                ? defaultsRegistry.forAgentOrDefaults(observerId).personalityProfile().facets()
+                : null
+            : null;
+        String newRole = resolveRole(currentRole, newTrust, facets, currentUtility);
+
         var newSchema = new RelationalSchema(
-            targetAgentId, currentRole, newTrust, newIntimacy, currentUtility, currentDescription);
+            targetAgentId, newRole, newTrust, newIntimacy, currentUtility, currentDescription);
 
         mindMapStore.updateNode(overlay.id(),
             NodeUpdate.empty().withPropertiesToSet(newSchema.toProperties()), tenantId);
     }
+static String resolveRole(String currentRole, double newTrust,
+                              List<PersonalityFacet> facets, double utility) {
+    boolean highTrust = newTrust >= 0.5;
+    boolean lowTrust = newTrust <= -0.3;
+    if (!highTrust && !lowTrust) return currentRole;
+
+    boolean manipulative = facets != null && facets.stream()
+        .filter(f -> PersonalityFacet.MANIPULATIVENESS.equals(f.facet()))
+        .findFirst().map(f -> f.score() > 0.7).orElse(false);
+    boolean moderatelyManipulative = facets != null && facets.stream()
+        .filter(f -> PersonalityFacet.MANIPULATIVENESS.equals(f.facet()))
+        .findFirst().map(f -> f.score() > 0.5).orElse(false);
+    boolean lowCallousness = facets == null || facets.stream()
+        .filter(f -> PersonalityFacet.CALLOUSNESS.equals(f.facet()))
+        .findFirst().map(f -> f.score() < 0.3).orElse(true);
+
+    return switch (currentRole) {
+        case "stranger" -> {
+            if (highTrust) yield manipulative ? "tool" : "ally";
+            yield "threat";
+        }
+        case "ally" -> {
+            if (highTrust) yield utility > 0.5 ? "mentor" : "ally";
+            yield "obstacle";
+        }
+        case "mentor" -> {
+            if (lowTrust) yield "obstacle";
+            yield "mentor";
+        }
+        case "tool" -> {
+            if (highTrust) yield lowCallousness ? "ally" : "tool";
+            yield "obstacle";
+        }
+        case "prey" -> {
+            if (highTrust) yield moderatelyManipulative ? "tool" : "prey";
+            yield "threat";
+        }
+        case "obstacle" -> {
+            if (highTrust) yield "stranger";
+            yield "obstacle";
+        }
+        case "threat" -> {
+            if (highTrust) yield "stranger";
+            yield "threat";
+        }
+        case "protectee" -> {
+            if (lowTrust) yield "stranger";
+            yield "protectee";
+        }
+        default -> currentRole;
+    };
+}
+
 
     private static double facetScore(List<PersonalityFacet> facets, String name) {
         if (facets == null) return 0.0;

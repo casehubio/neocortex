@@ -132,7 +132,6 @@ class RelationalSchemaEvolutionPhaseTest {
         var schema = readSchema("alice");
         assertThat(schema).isNotNull();
         assertThat(schema.targetId()).isEqualTo("bob");
-        assertThat(schema.role()).isEqualTo("stranger");
         assertThat(schema.trust()).isGreaterThan(0.0);
         assertThat(schema.intimacy()).isGreaterThan(0.0);
     }
@@ -239,6 +238,84 @@ void negativeValenceDoesNotIncreaseIntimacy() {
     var schema = readSchema("alice");
     assertThat(schema.intimacy()).isEqualTo(0.0);
 }
+@Test
+void strangerBecomesAllyAtHighTrust() {
+    setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "stranger");
+    storePositiveMemories("alice", "bob", 20);
+    phase.run(TENANT, List.of());
+
+    var schema = readSchema("alice");
+    assertThat(schema.trust()).isGreaterThanOrEqualTo(0.5);
+    assertThat(schema.role()).isEqualTo("ally");
+}
+@Test
+void manipulativeStrangerBecomesToolNotAlly() {
+    setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "stranger");
+    storePositiveMemories("alice", "bob", 20);
+
+    var manipulative = CognitiveDefaults.empty("alice")
+        .withSocialCognition(SocialCognitionDefaults.defaults())
+        .withPersonalityProfile(new PersonalityProfile(null, null, null, null,
+            List.of(new PersonalityFacet("Manipulativeness", 0.8, "high manipulativeness"))));
+    phase = createPhase(manipulative);
+    phase.run(TENANT, List.of());
+
+    var schema = readSchema("alice");
+    assertThat(schema.role()).isEqualTo("tool");
+}
+
+@Test
+void strangerBecomesThreatAtNegativeTrust() {
+    setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "stranger");
+    storeNegativeMemories("alice", "bob", 20);
+    phase.run(TENANT, List.of());
+
+    var schema = readSchema("alice");
+    assertThat(schema.trust()).isLessThanOrEqualTo(-0.3);
+    assertThat(schema.role()).isEqualTo("threat");
+}
+
+@Test
+void preyBecomesToolNotAllyForManipulativeAgent() {
+    setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "prey");
+    storePositiveMemories("alice", "bob", 20);
+
+    var manipulative = CognitiveDefaults.empty("alice")
+        .withSocialCognition(SocialCognitionDefaults.defaults())
+        .withPersonalityProfile(new PersonalityProfile(null, null, null, null,
+            List.of(new PersonalityFacet("Manipulativeness", 0.6, "moderate manipulativeness"))));
+    phase = createPhase(manipulative);
+    phase.run(TENANT, List.of());
+
+    var schema = readSchema("alice");
+    assertThat(schema.role()).isEqualTo("tool");
+}
+
+@Test
+void midRangeTrustNoRoleTransition() {
+    setupOverlayWithSchema("alice", "bob", 0.3, 0.0, "stranger");
+    // Store 1 positive and 1 negative — keeps trust in mid-range
+    storePositiveMemories("alice", "bob", 1);
+    storeNegativeMemories("alice", "bob", 1);
+    phase.run(TENANT, List.of());
+
+    var schema = readSchema("alice");
+    assertThat(schema.trust()).isGreaterThan(-0.3).isLessThan(0.5);
+    assertThat(schema.role()).isEqualTo("stranger");
+}
+
+@Test
+void obstacleRecoversToStrangerAtHighTrust() {
+    setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "obstacle");
+    storePositiveMemories("alice", "bob", 20);
+    phase.run(TENANT, List.of());
+
+    var schema = readSchema("alice");
+    assertThat(schema.trust()).isGreaterThanOrEqualTo(0.5);
+    assertThat(schema.role()).isEqualTo("stranger");
+}
+
+
 
 
 
