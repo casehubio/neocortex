@@ -1328,7 +1328,8 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
             }
         }
 
-        return new CbrPlanRecord(problem, solution, outcome, confidence, features, cbrPlanStep, trustScore, producerAgentId);
+        String executionChainId = extractString(payload, "_execution_chain_id");
+        return new CbrPlanRecord(problem, solution, outcome, confidence, features, cbrPlanStep, trustScore, producerAgentId, executionChainId);
     }
 
     private CbrRecord reconstructFeatureVector(Map<String, Value> payload,

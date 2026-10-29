@@ -108,6 +108,9 @@ final class CbrPointBuilder {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize plan trace", e);
             }
+            if (plan.executionChainId() != null) {
+                payload.put("_execution_chain_id", ValueFactory.value(plan.executionChainId()));
+            }
         }
 
         payload.put("_cbr_type", ValueFactory.value(cbrRecord.recordType()));

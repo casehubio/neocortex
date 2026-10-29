@@ -10,7 +10,8 @@ public record CbrPlanRecord(String problem, String solution,
                             String outcome, Confidence confidence,
                             Map<String, FeatureValue> features,
                             List<CbrPlanStep> cbrPlanStep,
-                            Double trustScore, String producerAgentId) implements CbrRecord {
+                            Double trustScore, String producerAgentId,
+                            String executionChainId) implements CbrRecord {
     public static final String CBR_TYPE = "plan";
 
     @Override
@@ -30,14 +31,26 @@ public record CbrPlanRecord(String problem, String solution,
         cbrPlanStep = List.copyOf(cbrPlanStep);
     }
 
+    public CbrPlanRecord(String problem, String solution,
+                         String outcome, Confidence confidence,
+                         Map<String, FeatureValue> features,
+                         List<CbrPlanStep> cbrPlanStep,
+                         Double trustScore, String producerAgentId) {
+        this(problem, solution, outcome, confidence, features, cbrPlanStep, trustScore, producerAgentId, null);
+    }
+
     @Override
     public CbrRecord withOutcome(String outcome, Confidence confidence) {
-        return new CbrPlanRecord(problem(), solution(), outcome, confidence, features(), cbrPlanStep(), trustScore(), producerAgentId());
+        return new CbrPlanRecord(problem(), solution(), outcome, confidence, features(), cbrPlanStep(), trustScore(), producerAgentId(), executionChainId());
     }
 
     @Override
     public CbrRecord withFeatures(Map<String, FeatureValue> features) {
-        return new CbrPlanRecord(problem(), solution(), outcome(), confidence(), features, cbrPlanStep(), trustScore(), producerAgentId());
+        return new CbrPlanRecord(problem(), solution(), outcome(), confidence(), features, cbrPlanStep(), trustScore(), producerAgentId(), executionChainId());
+    }
+
+    public CbrPlanRecord withExecutionChainId(String executionChainId) {
+        return new CbrPlanRecord(problem(), solution(), outcome(), confidence(), features(), cbrPlanStep(), trustScore(), producerAgentId(), executionChainId);
     }
 
 }

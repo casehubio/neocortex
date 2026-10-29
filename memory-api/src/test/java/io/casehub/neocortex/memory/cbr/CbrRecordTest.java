@@ -159,6 +159,34 @@ class CbrRecordTest {
     }
 
     @Test
+    void planCase_executionChainId_preservedByWithOutcome() {
+        var plan = new CbrPlanRecord("prob", "sol", null, null,
+                                     Map.of(), java.util.List.of(), null, null, "chain-1");
+        assertThat(plan.executionChainId()).isEqualTo("chain-1");
+        CbrRecord updated = plan.withOutcome("WIN", Confidence.unknown(0.9));
+        assertThat(((CbrPlanRecord) updated).executionChainId()).isEqualTo("chain-1");
+    }
+
+    @Test
+    void planCase_withExecutionChainId() {
+        var plan = new CbrPlanRecord("prob", "sol", null, null,
+                                     Map.of(), java.util.List.of(), null, null);
+        assertThat(plan.executionChainId()).isNull();
+        var chained = plan.withExecutionChainId("chain-2");
+        assertThat(chained.executionChainId()).isEqualTo("chain-2");
+        assertThat(chained.problem()).isEqualTo("prob");
+    }
+
+    @Test
+    void planCase_executionChainId_preservedByWithFeatures() {
+        var plan = new CbrPlanRecord("prob", "sol", null, null,
+                                     Map.of(), java.util.List.of(), null, null, "chain-3");
+        CbrRecord updated = plan.withFeatures(Map.of("k", FeatureValue.string("v")));
+        assertThat(((CbrPlanRecord) updated).executionChainId()).isEqualTo("chain-3");
+    }
+
+
+    @Test
     void textualCase_withOutcome() {
         var       original = new CbrGuidanceRecord("prob", "sol", null, null, null, null);
         CbrRecord updated  = original.withOutcome("PARTIAL", Confidence.unknown(0.74));
