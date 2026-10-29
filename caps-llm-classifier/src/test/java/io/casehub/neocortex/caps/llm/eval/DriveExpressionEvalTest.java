@@ -987,7 +987,7 @@ class DriveExpressionEvalTest {
                 .withProperties(Map.of("agent-id", agentId, "drive-a", "gallantry", "drive-b", "proving-worth",
                         "differentiation-text", "How they differ:\nOne pull is about what your hands say — the kneeling itself was the gift, not what it fixed. When this pull leads, the gesture IS the feeling.\nThe other pull is about what your hands can do — the bridge held, the engine ran. When this pull leads, the result is the point.\nBoth are real. Notice which one moved your hands.")), tenant);
 
-        SituationClassifier classifier = (desc, meta) -> {
+        SituationClassifier classifier = (desc, meta, ctx) -> {
             var results = new ArrayList<SituationActivation>();
             String lower = desc.toLowerCase();
             if (lower.contains("struggling") || lower.contains("help") || lower.contains("trouble")) {
@@ -1038,7 +1038,7 @@ class DriveExpressionEvalTest {
                 .withProperties(Map.of("agent-id", agentId, "drive-a", "proving-worth", "drive-b", "protection",
                         "differentiation-text", DIFF_PROVING_WORTH_PROTECTION)), tenant);
 
-        SituationClassifier classifier = (desc, meta) -> {
+        SituationClassifier classifier = (desc, meta, ctx) -> {
             var results = new ArrayList<SituationActivation>();
             String lower = desc.toLowerCase();
             if (lower.contains("struggling") || lower.contains("help") || lower.contains("trouble")) {

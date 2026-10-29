@@ -1,5 +1,6 @@
 package io.casehub.neocortex.caps.engine;
 
+import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 
@@ -37,8 +38,9 @@ public class SubThoughtSituationDecorator implements SituationClassifier {
     }
 
     @Override
-    public List<SituationActivation> classify(String description, Map<String, String> metadata) {
-        List<SituationActivation> base = delegate.classify(description, metadata);
+    public List<SituationActivation> classify(String description, Map<String, String> metadata,
+                                              ClassificationContext context) {
+        List<SituationActivation> base = delegate.classify(description, metadata, context);
         String cognitiveKind = metadata != null ? metadata.get("cognitiveKind") : null;
         if (cognitiveKind == null) return base;
 

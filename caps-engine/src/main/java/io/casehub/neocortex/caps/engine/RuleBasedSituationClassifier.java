@@ -4,6 +4,7 @@ import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
+import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationClassifier;
 
 import java.util.ArrayList;
@@ -22,7 +23,8 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
 
     @Override
     public List<SituationActivation> classify(String description,
-                                              Map<String, String> metadata) {
+                                              Map<String, String> metadata,
+                                              ClassificationContext context) {
         // Keyword matching misclassifies narrative text: "bullied" maps to dominance
         // (the problem described), not acceptance (the gallant response). Produces
         // wrong DriveProfileInferred inputs that actively break appraisal filtering.
@@ -32,7 +34,8 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
 
     @SuppressWarnings("unused") // preserved for future NLP pipeline (#587)
     public List<SituationActivation> classifyByKeyword(String description,
-                                                Map<String, String> metadata) {
+                                                Map<String, String> metadata,
+                                                ClassificationContext context) {
         if (description == null || description.isBlank()) {return List.of();}
 
         String   lower  = description.toLowerCase();

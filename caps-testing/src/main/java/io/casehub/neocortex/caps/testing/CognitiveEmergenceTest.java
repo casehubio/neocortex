@@ -71,7 +71,7 @@ public abstract class CognitiveEmergenceTest {
         public Scenario applyExperiences() {
             for (ExperienceInput exp : experiences) {
                 List<SituationActivation> activations = classifier.classifyByKeyword(
-                    exp.description(), Map.of());
+                    exp.description(), Map.of(), ClassificationContext.NONE);
                 if (activations.isEmpty()) continue;
 
                 Map<String, Double> inputMap = new HashMap<>();
@@ -92,7 +92,7 @@ public abstract class CognitiveEmergenceTest {
 
         public SettlingResult settleFromDescription(String description) {
             List<SituationActivation> activations = classifier.classifyByKeyword(
-                description, Map.of());
+                description, Map.of(), ClassificationContext.NONE);
             Map<String, Double> inputMap = new HashMap<>();
             for (SituationActivation sa : activations) {
                 inputMap.put(sa.nodeId(), sa.confidence());

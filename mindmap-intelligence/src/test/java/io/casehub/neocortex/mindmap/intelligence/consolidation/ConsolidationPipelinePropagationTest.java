@@ -225,7 +225,7 @@ class ConsolidationPipelinePropagationTest {
     }
 
     private SituationClassifier buildClassifier() {
-        return (desc, meta) -> {
+        return (desc, meta, ctx) -> {
             if (desc.contains("knelt") || desc.contains("stranger"))
                 return List.of(new SituationActivation("acceptance", 0.7));
             if (desc.contains("practised") || desc.contains("bridge"))

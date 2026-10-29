@@ -308,7 +308,7 @@ class AppraisalTickParticipantTest {
                         .withRefs(java.util.Set.of(overlayRef))
                         .withProperties(Map.copyOf(overlayProps)), "t1");
 
-        SituationClassifier classifier = (desc, meta) -> List.of(
+        SituationClassifier classifier = (desc, meta, ctx) -> List.of(
                 new SituationActivation("secure_attachment", 0.6),
                 new SituationActivation("rejection", 0.6),
                 new SituationActivation("mastery", 0.5));
@@ -335,7 +335,7 @@ class AppraisalTickParticipantTest {
 
     @Test
     void noRelationalBiasingWithoutTarget() {
-        SituationClassifier classifier = (desc, meta) -> List.of(
+        SituationClassifier classifier = (desc, meta, ctx) -> List.of(
                 new SituationActivation("secure_attachment", 0.6),
                 new SituationActivation("rejection", 0.6));
 
@@ -384,7 +384,7 @@ class AppraisalTickParticipantTest {
                         .withRefs(java.util.Set.of(OverlayRef.of(toolNodeId)))
                         .withProperties(Map.copyOf(toolOverlayProps)), "t1");
 
-        SituationClassifier classifier = (desc, meta) -> List.of(
+        SituationClassifier classifier = (desc, meta, ctx) -> List.of(
                 new SituationActivation("secure_attachment", 0.7),
                 new SituationActivation("rejection", 0.3),
                 new SituationActivation("betrayal", 0.2));

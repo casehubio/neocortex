@@ -110,7 +110,7 @@ class ChannelWeightingSmokeTest {
     }
 
     private String runScenario(String observation, List<SituationActivation> activations) {
-        SituationClassifier classifier = (desc, meta) -> activations;
+        SituationClassifier classifier = (desc, meta, ctx) -> activations;
         var participant = buildParticipant(classifier);
         tickParticipant(participant, observation);
 

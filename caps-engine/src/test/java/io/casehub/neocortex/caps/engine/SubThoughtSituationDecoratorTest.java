@@ -13,7 +13,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void addsConcernActivationsToBaseResult() {
-        SituationClassifier base = (desc, meta) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> List.of(
             new SituationActivation("social_threat", 0.3)
         );
         var decorator = new SubThoughtSituationDecorator(base);
@@ -27,7 +27,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void mergesTakesMaxConfidence() {
-        SituationClassifier base = (desc, meta) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> List.of(
             new SituationActivation("social_threat", 0.8)
         );
         var decorator = new SubThoughtSituationDecorator(base);
@@ -39,7 +39,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void passesThoughWithoutCognitiveKind() {
-        SituationClassifier base = (desc, meta) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> List.of(
             new SituationActivation("mastery", 0.5)
         );
         var decorator = new SubThoughtSituationDecorator(base);
@@ -50,7 +50,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void passesThoughWithNullMetadata() {
-        SituationClassifier base = (desc, meta) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> List.of(
             new SituationActivation("mastery", 0.5)
         );
         var decorator = new SubThoughtSituationDecorator(base);
@@ -60,7 +60,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void addsIntentionActivations() {
-        SituationClassifier base = (desc, meta) -> List.of();
+        SituationClassifier base = (desc, meta, ctx) -> List.of();
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("plan to do it", Map.of("cognitiveKind", "intention"));
         assertEquals(2, result.size());
@@ -70,7 +70,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void unknownCognitiveKindPassesThrough() {
-        SituationClassifier base = (desc, meta) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> List.of(
             new SituationActivation("mastery", 0.5)
         );
         var decorator = new SubThoughtSituationDecorator(base);

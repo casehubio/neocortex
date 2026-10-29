@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
@@ -49,7 +50,8 @@ public class LlmSituationClassifier implements SituationClassifier {
 
     @Override
     public List<SituationActivation> classify(String description,
-                                               Map<String, String> metadata) {
+                                               Map<String, String> metadata,
+                                               ClassificationContext context) {
         if (description == null || description.isBlank()) {
             return List.of();
         }

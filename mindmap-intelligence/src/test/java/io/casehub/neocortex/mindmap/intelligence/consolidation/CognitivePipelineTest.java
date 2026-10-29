@@ -55,7 +55,7 @@ class CognitivePipelineTest {
         memoryStore = new InMemoryMemoryStore(principal);
         mindMapStore = new InMemoryMindMapStore();
         capsEngine = new BehavioralSynthesisPhaseTest.StubCapsEngine();
-        classifier = (desc, meta) ->
+        classifier = (desc, meta, ctx) ->
             List.of(new SituationActivation("reward", 0.8));
     }
 

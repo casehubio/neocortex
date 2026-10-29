@@ -34,7 +34,7 @@ class DriveProfileDerivationPhaseTest {
     void setUp() {
         store = new InMemoryMindMapStore();
 
-        SituationClassifier classifier = (desc, meta) -> {
+        SituationClassifier classifier = (desc, meta, ctx) -> {
             if (desc.contains("knelt") || desc.contains("stranger")) {
                 return List.of(
                     new SituationActivation("acceptance", 0.7),

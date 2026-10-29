@@ -191,7 +191,7 @@ class DriveRenderingUnitTest {
     void penDriveRendering(Scenario scenario) { runScenario(scenario); }
 
     private void runScenario(Scenario scenario) {
-        SituationClassifier classifier = (desc, meta) -> scenario.activations;
+        SituationClassifier classifier = (desc, meta, ctx) -> scenario.activations;
 
         var character = characters.get(scenario.agentId);
         var driveSnapshots = character.drives().stream()

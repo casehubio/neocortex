@@ -41,7 +41,7 @@ class BehavioralSynthesisPhaseTest {
     void setUp() {
         store = new InMemoryMindMapStore();
         capsEngine = new StubCapsEngine();
-        SituationClassifier classifier = (desc, meta) ->
+        SituationClassifier classifier = (desc, meta, ctx) ->
             List.of(new SituationActivation("reward", 0.8));
 
         phase = new BehavioralSynthesisPhase(store, capsEngine, classifier, 20);
@@ -62,7 +62,7 @@ class BehavioralSynthesisPhaseTest {
     @Test
     void skipsWhenNoCapsEngine() {
         var noEngine = new BehavioralSynthesisPhase(
-            store, null, (d, m) -> List.of(), 20);
+            store, null, (d, m, c) -> List.of(), 20);
         noEngine.run(TENANT, List.of());
     }
 
@@ -153,7 +153,7 @@ class BehavioralSynthesisPhaseTest {
         var emotionEngine = new EmotionAwareStubCapsEngine();
         emotionEngine.initializeAgent(TENANT, AGENT,
                                       new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
-        SituationClassifier classifier = (desc, meta) ->
+        SituationClassifier classifier = (desc, meta, ctx) ->
                                                  List.of(new SituationActivation("reward", 0.8));
         var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
 
@@ -181,7 +181,7 @@ class BehavioralSynthesisPhaseTest {
         var emotionEngine = new EmotionAwareStubCapsEngine();
         emotionEngine.initializeAgent(TENANT, AGENT,
                                       new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
-        SituationClassifier classifier = (desc, meta) ->
+        SituationClassifier classifier = (desc, meta, ctx) ->
                                                  List.of(new SituationActivation("reward", 0.8));
         var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
 
@@ -287,7 +287,7 @@ class BehavioralSynthesisPhaseTest {
     @Test
     void uninitializedAgent_autoInitializedAndProcessed() {
         var freshEngine = new StubCapsEngine();
-        SituationClassifier classifier = (desc, meta) ->
+        SituationClassifier classifier = (desc, meta, ctx) ->
                                                  List.of(new SituationActivation("reward", 0.8));
         var freshPhase = new BehavioralSynthesisPhase(store, freshEngine, classifier, 20);
 
@@ -351,7 +351,7 @@ class BehavioralSynthesisPhaseTest {
                                         new DispositionAxes("cooperative", "moderate", "calculated",
                                                             "moderate", "analytical"));
 
-        SituationClassifier classifier = (desc, meta) ->
+        SituationClassifier classifier = (desc, meta, ctx) ->
                                                  List.of(new SituationActivation("reward", 0.8));
 
         var drivePhase = new BehavioralSynthesisPhase(store, capturingEngine, classifier, 20);
@@ -412,7 +412,7 @@ class BehavioralSynthesisPhaseTest {
 
     @Test
     void differentDominantInputsCreateSeparateAttractors() {
-        SituationClassifier inputAwareClassifier = (desc, meta) -> {
+        SituationClassifier inputAwareClassifier = (desc, meta, ctx) -> {
             if (desc.contains("relationship")) {
                 return List.of(new SituationActivation("secure_attachment", 0.9));
             } else if (desc.contains("achievement")) {
