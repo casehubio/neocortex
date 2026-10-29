@@ -32,6 +32,7 @@ import io.casehub.neocortex.cognition.prompt.EmergentGoalPromptSection;
 import io.casehub.neocortex.cognition.prompt.MentalModelPromptSection;
 import io.casehub.neocortex.cognition.prompt.MoodPromptSection;
 import io.casehub.neocortex.cognition.prompt.NarrativePromptSection;
+import io.casehub.neocortex.cognition.prompt.OtherModelPromptSection;
 import io.casehub.neocortex.cognition.prompt.NeedsPyramidPromptSection;
 import io.casehub.neocortex.cognition.prompt.ReflectionPromptSection;
 import io.casehub.neocortex.cognition.prompt.StrategyPromptSection;
@@ -128,6 +129,8 @@ public class CognitionCore {
     private volatile String lastTenantId;
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
     private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
+private volatile @Nullable String lastTargetAgentId;
+
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
     private final java.util.concurrent.atomic.AtomicLong moodSkipped = new java.util.concurrent.atomic.AtomicLong();
@@ -225,6 +228,7 @@ public class CognitionCore {
         this.lastDescriptor = descriptor;
         this.lastAgentId    = agentId;
         this.lastTenantId   = tenantId;
+        this.lastTargetAgentId = targetAgentId;
         this.lastBriefing   = null;
         if (attentionMediator != null) {
             var briefing = attentionMediator.drainAttention(agentId);
@@ -632,6 +636,9 @@ public class CognitionCore {
         if (config.behavioralEnabled() && mindMapStore != null) {
             sections.add(new BehavioralPromptSection(mindMapStore, gutFeelingParticipant));
         }
+        if (config.otherModelEnabled() && mindMapStore != null) {
+            sections.add(new OtherModelPromptSection(mindMapStore));
+        }
         if (config.attentionEnabled() && lastBriefing != null) {
             sections.add(new AttentionPromptSection(lastBriefing));
         }
@@ -678,6 +685,10 @@ public class CognitionCore {
     public void setAppraisalParticipant(AppraisalTickParticipant appraisalParticipant) {
         this.appraisalParticipant = appraisalParticipant;
     }
+public @Nullable String lastTargetAgentId() {
+    return lastTargetAgentId;
+}
+
 
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
