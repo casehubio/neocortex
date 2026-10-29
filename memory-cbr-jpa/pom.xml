@@ -28,6 +28,10 @@
             <artifactId>casehub-neocortex-memory-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.casehub</groupId>
+            <artifactId>casehub-neocortex-cbr-algorithms</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm</artifactId>
         </dependency>

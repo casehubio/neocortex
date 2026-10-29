@@ -48,6 +48,7 @@
     <module>corpus</module>
     <module>sqlite-support</module>
     <module>memory-api</module>
+    <module>cbr-algorithms</module>
     <module>memory-core</module>
     <module>memory</module>
     <module>memory-spring</module>
@@ -420,6 +421,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-memory-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cbr-algorithms</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
