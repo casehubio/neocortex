@@ -30,7 +30,6 @@ public class LlmSituationClassifier implements SituationClassifier {
     private final String model;
     private final ObjectMapper mapper = new ObjectMapper();
     private final String systemPrompt;
-    private final String sessionId;
     private final Set<String> validNodeIds;
 
     public LlmSituationClassifier(SessionPipeline pipeline, CapsTopology topology) {
@@ -40,7 +39,6 @@ public class LlmSituationClassifier implements SituationClassifier {
     public LlmSituationClassifier(SessionPipeline pipeline, CapsTopology topology, String model) {
         this.pipeline = pipeline;
         this.model = model;
-        this.sessionId = "classifier-" + System.identityHashCode(this);
         this.validNodeIds = topology.nodes().entrySet().stream()
             .filter(e -> e.getValue().type() == NodeType.INPUT)
             .map(Map.Entry::getKey)
@@ -56,6 +54,7 @@ public class LlmSituationClassifier implements SituationClassifier {
             return List.of();
         }
 
+        var sessionId = "classifier-" + java.util.UUID.randomUUID();
         var init = AgentSessionInit.of(systemPrompt).withModel(model);
         var session = pipeline.openSession(sessionId, init);
         try {

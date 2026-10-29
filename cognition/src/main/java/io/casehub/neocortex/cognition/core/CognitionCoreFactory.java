@@ -62,6 +62,7 @@ public class CognitionCoreFactory {
     @Inject Instance<io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant> subThoughtParticipant;
     @Inject Instance<io.casehub.neocortex.knowledge.TermNormalizer> termNormalizer;
     @Inject Instance<SessionPipeline> sessionPipeline;
+    @Inject Instance<io.casehub.neocortex.caps.SituationClassifier> situationClassifier;
     @Inject Instance<Consumer<EngagementEvent>> engagementPersister;
 
     public CognitionCore create(CognitionConfig config) {
@@ -97,6 +98,9 @@ public class CognitionCoreFactory {
         }
         if (mindMapStore.isResolvable() && termNormalizer.isResolvable()) {
             builder.driveGoalBridge(mindMapStore.get(), termNormalizer.get());
+        }
+        if (situationClassifier.isResolvable()) {
+            builder.situationClassifier(situationClassifier.get());
         }
 
         return builder.build();
