@@ -325,7 +325,7 @@ social-config (drives, reinforcement, persona) → ManorCognitiveSeeder → Mind
                                               LLM → thinking field
 ```
 
-### Open Issues
+### Open Issues (pre-session)
 
 | # | Issue | Priority |
 |---|-------|----------|
@@ -333,5 +333,159 @@ social-config (drives, reinforcement, persona) → ManorCognitiveSeeder → Mind
 | #165 | Ungate formation memories in computed mode | High — causes register drops |
 | #166 | Discrimination text personality context | Medium |
 | #158 | Strip remaining prose from social-config | After #165 validated |
+
+---
+
+## Entry 4 — Computed-mode quality ceiling and immersion architecture (2026-10-28/29)
+
+### Summary
+
+Systematic elimination of every vector through which system state, game vocabulary, and cartoon identity leak into the LLM prompt. Register surpassed V2 prose baseline. Quality matched. A ceiling was identified: reactive drives (gloating, gallantry) regress because the Barrett somatic descriptions lack relational trigger connections — the character knows HOW drives feel but not WHEN or toward WHOM they activate.
+
+### Phase 1: Quick fixes (#164, #165)
+
+**Formation memories ungated (#165).** The `briefingMode` guard on `CharacterCognition.renderCognitiveSections()` suppressed formation memories in computed mode. These are biographical episodes (age 5: father at the race, age 16: defending a girl) that ground drives in specific body memories. Ungating them restored Peter's gallantry register from 1.17 to 3.50.
+
+**GENERIC agentId leak (#164).** Six leak sites found and fixed:
+1. Entity IDs: `[id: penelope-pitstop]` in AffordanceRenderer → slugified display names
+2. NarrativeEventBuilder: "spoke quietly with penelope-pitstop" → display name resolution
+3. ExchangeRunner: PULL_ASIDE events used raw agentId → resolved via WorldState
+4. PlaybookOrchestrator experience recording: "INTERACT penelope-pitstop" → `verb() + displayName`
+5. Descriptor names applied to ALL characters at startup (not just active ones)
+6. Non-active characters (Muttley, etc.) marked inactive → don't appear in observations
+
+**Result:** Fix1 run — register 2.94→3.61 (surpasses V2 3.35). Quality held at 3.76.
+
+### Phase 2: Drive type labels — the root cause of quality gap
+
+**Finding:** Generated Barrett descriptions replaced the base drive description entirely, discarding the drive type label. The LLM saw somatic text ("warm effervescent pressure behind sternum") without knowing which drive it mapped to. The same sensation could be joy, pride, or excitement.
+
+**Fix:** Prepend `GLOATING (0.7):` to generated descriptions in `CognitionObservationBuilder.renderInternalState()`. The label provides the conceptual anchor; the somatic text provides the experiential texture.
+
+**Historical context confirmed:** Era 1 P13 ("Think AS your character, not ABOUT your character") and Era 4 Entry 3 (Oct 6-9 drive stripping) showed that raw cognitive data alone triggers simulation awareness. The HYBRID (label + degree + somatic prose) is new — never tested before. The somatic description acts as an immersion anchor that prevents the label from triggering metacognitive reasoning.
+
+**Three-way comparison validated empirically:**
+
+| Config | Quality | Immersion | Finding |
+|--------|---------|-----------|---------|
+| Label + degree only | Poor | Simulation awareness leaks | Era 4 Oct 6-9 — reverted |
+| Somatic prose only | 3.76 | Excellent | Drives lack conceptual anchor |
+| **Label + degree + prose** | **3.99** | **No leaks detected** | Somatic text grounds past the label |
+
+**Transcript verification:** zero instances of characters naming drives as system labels, zero "the system" references, zero simulation awareness. V2 (prose mode) had 27+ metacognitive hits in 303 events. The hybrid has zero.
+
+### Phase 3: Immersion architecture
+
+Systematic audit of every text surface the LLM sees. All system-like framing replaced with experiential language.
+
+**Section header renames:**
+- "Last Action Result" → "A Moment Ago"
+- "Characters Present" → "Who's Here"
+- "Visible Objects" → "What You See"
+- "Your Inventory" → "What You're Carrying"
+- "Your Current Thinking" → "What's On Your Mind"
+- "Personality Profile" → "Who You Are"
+
+**Action result text made experiential:**
+- INTERACT: "You interacted with X" → "You examined the X. [description]"
+- WAIT: "You wait and observe" → "You stood still, watching"
+- PULL_ASIDE: "You initiated a private exchange" → "You pulled them aside for a quiet word"
+- Error: "cannot be interacted with" → "doesn't respond to your touch"
+- INTERACT narrative: "X interacted with Y" → "X examined Y"
+
+**ActionType.verb():** Centralised natural-language mapping on the enum. Enum name (`INTERACT`) never appears in any LLM-visible text. Experience recordings use `verb()` ("examined"), inner life observations use `verb()`, narrative events use `verb()`.
+
+**EXAMINE affordance:** Both the ActionDescriptor (response format) AND the Affordance on entities renamed from `INTERACT` to `EXAMINE`. `JsonCreator` maps `EXAMINE` back to `ActionType.INTERACT` for internal processing.
+
+**Thinking instruction:** Added "you are inside this moment, not watching it" before the Barrett 4-channel framework.
+
+**ID rewrite at import:** When `profileMode == GENERIC`, cartoon agentIds are remapped to generic slugs at startup. `penelope-pitstop` → `clara-bellingham` across WorldState keys, SocialConfig keys, relational schema targets. Cartoon IDs cease to exist in the runtime. Reverse map maintained for Eidos registry lookups.
+
+**Narrator disabled:** The narrator system prompt contained hardcoded Wacky Races references. Disabled for GENERIC eval runs.
+
+### Phase 4: 300-tick Opus baseline
+
+**Clean run results (2026-10-29):**
+
+| Dimension | V2 (prose) | 300-tick clean | Delta |
+|-----------|-----------|---------------|-------|
+| Quality | 3.88 | **3.92** | +0.04 |
+| Register | 3.35 | **3.74** | +0.39 |
+| Differentiation | 3.67 | **3.74** | +0.07 |
+| Trigger rate | — | **87%** | — |
+
+All three scored dimensions exceed V2 baseline. Register 3.74 is the highest ever recorded.
+
+**Contamination at scale:**
+
+| Run | Cartoon hits | Meta hits | INTERACT hits |
+|-----|-------------|-----------|---------------|
+| 1st (ExchangeRunner leak) | 152 | 83 | — |
+| 2nd (EXAMINE descriptor only) | 0 | 158 | 158 (affordance) |
+| 3rd (verb() fix) | 0 | 0 | 0 |
+
+### Phase 5: The reactive drive ceiling
+
+**11 drives improved vs V2. 6 regressed.** All regressions are on reactive drives:
+
+| Drive | V2 Q→Now | V2 R→Now | Type |
+|-------|----------|----------|------|
+| HC gloating | 4.00→2.40 | 4.50→3.20 | Reactive |
+| Peter protection | 4.60→3.80 | 4.00→3.80 | Reactive |
+| DD greed | 4.33→3.80 | 3.83→3.60 | Reactive |
+| Peter gallantry | 4.00→3.67 | 3.40→3.00 | Reactive |
+
+**Constant drives** (scheming 5.00, curiosity 4.67, suspicion 4.00) are strong. Reactive drives that need situational triggers are weak.
+
+**Targeted probes confirmed the code works:**
+- HC gloating in a maximally triggering scenario: **4.33** (vs 2.40 in 300-tick)
+- Peter gallantry in a danger scenario: **5.00** (vs 3.67 in 300-tick)
+- Peter protection in a threat scenario: **5.00** (vs 3.80 in 300-tick)
+
+The code produces excellent quality when the trigger is clear and the context is short. Quality degrades under:
+1. Long session context (14k token prompts)
+2. Ambiguous triggers (not obvious who failed)
+3. Drive competition (scheming 0.9 overwhelms gloating 0.7)
+
+### Root cause: missing relational trigger connection
+
+The Barrett instruction + somatic descriptions tell the character HOW drives feel but not WHEN or toward WHOM they activate.
+
+**V2 prose had both:** "When someone is struggling, your body responds before your mind..." — connects situation → feeling.
+
+**Computed mode has only the feeling:** "A steel plate slots behind your ribs" — somatic, no trigger.
+
+**The label provides the concept:** "GALLANTRY (0.9):" — but the LLM must independently connect "Clara is in danger" → "gallantry should activate." Under long context with competing drives, this connection fails.
+
+**The relational schemas work (#477, Era 5) should close this gap.** It provides:
+- Per-person felt-experience text: "When you look at Clara, you sense..."
+- CAPS biasing: relationship type modulates drive activations
+- Appraisal wiring: sub-LLM receives relationship context
+
+This connects WHO the character sees → WHAT they feel → WHICH drives activate. The missing relational dimension.
+
+### Issues filed this session
+
+| # | Repo | Title |
+|---|------|-------|
+| #167 | examples | Eval: metacognitive awareness check |
+| #168 | examples | Eval: action-format awareness check |
+| #169 | examples | Rename INTERACT affordance label |
+| #170 | examples | Character name tokenization |
+| #172 | examples | Resilient scenario execution |
+| #173 | examples | Session auto-reconnect after eviction |
+| #721 | neocortex | Unified entity linking |
+| #722 | neocortex | Performance optimization |
+
+### Tests created
+
+- `ActionResolverTest`: experiential INTERACT results (unit, fast)
+- `MetacognitiveAwarenessEvalTest`: simulation awareness detection (llm-eval)
+- `DriveQualityEvalTest`: targeted drive quality probes (llm-eval)
+- `WorldStateTest`: ID remapping (unit, fast)
+
+### Era 4 status: CEILING REACHED
+
+The computed-mode pipeline exceeds V2 on all aggregate dimensions. The remaining gap is reactive drive quality under realistic conditions — a gap that requires relational context (WHO the character is interacting with) rather than prompt engineering. This is the #477 relational schemas work, which opens Era 5.
 
 ---
