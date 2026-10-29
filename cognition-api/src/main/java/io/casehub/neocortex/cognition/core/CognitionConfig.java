@@ -1,5 +1,42 @@
 package io.casehub.neocortex.cognition.core;
 
+/**
+ * Runtime feature toggles for the cognitive pipeline.
+ *
+ * <p>Each toggle corresponds to a section in the agency {@code CognitionDefinition} YAML schema.
+ * The {@link #with(String, boolean)} keys are the canonical section names used by both systems.
+ *
+ * <h3>Toggle-to-section mapping</h3>
+ * <table>
+ *   <tr><th>Toggle</th><th>Definition section</th><th>Controls</th></tr>
+ *   <tr><td>{@code moodEnabled}</td><td>{@code mood}</td><td>MoodOrchestrator, MoodPromptSection</td></tr>
+ *   <tr><td>{@code drivesEnabled}</td><td>{@code drives}</td><td>DriveOrchestrator, DrivePromptSection</td></tr>
+ *   <tr><td>{@code mentalModelEnabled}</td><td>{@code mentalModel}</td><td>MentalModelOrchestrator, MentalModelPromptSection</td></tr>
+ *   <tr><td>{@code userModelEnabled}</td><td>{@code userModel}</td><td>UserModelOrchestrator, UserModelPromptSection</td></tr>
+ *   <tr><td>{@code strategyEnabled}</td><td>{@code strategy}</td><td>StrategyLearningOrchestrator, StrategyPromptSection</td></tr>
+ *   <tr><td>{@code narrativeEnabled}</td><td>{@code narrative}</td><td>NarrativeOrchestrator, NarrativePromptSection</td></tr>
+ *   <tr><td>{@code goalsEnabled}</td><td>{@code goals}</td><td>GoalProposalOrchestrator, EmergentGoalPromptSection</td></tr>
+ *   <tr><td>{@code memoryHygieneEnabled}</td><td>{@code memoryHygiene}</td><td>MemoryHygieneOrchestrator</td></tr>
+ *   <tr><td>{@code innerLifeEnabled}</td><td>{@code innerLife}</td><td>InnerLifeOrchestrator</td></tr>
+ *   <tr><td>{@code directivePrompts}</td><td>{@code directivePrompts}</td><td>DirectiveSection wrapping on all sections</td></tr>
+ *   <tr><td>{@code characterDrivesEnabled}</td><td>{@code characterDrives}</td><td>CharacterDrivePromptSection (suppressed when appraisal active)</td></tr>
+ *   <tr><td>{@code needsPyramidEnabled}</td><td>{@code needsPyramid}</td><td>NeedsPyramidPromptSection</td></tr>
+ *   <tr><td>{@code attentionEnabled}</td><td>{@code attention}</td><td>AttentionPromptSection</td></tr>
+ *   <tr><td>{@code temporalFocusEnabled}</td><td>{@code temporalFocus}</td><td>TemporalFocusOrchestrator, TemporalFocusPromptSection</td></tr>
+ *   <tr><td>{@code reflectionEnabled}</td><td>{@code reflection}</td><td>ReflectionRetrievalOrchestrator, ReflectionPromptSection</td></tr>
+ *   <tr><td>{@code consolidationEnabled}</td><td>{@code consolidation}</td><td>ConsolidationMediator, ConsolidationPromptSection</td></tr>
+ *   <tr><td>{@code entityKnowledgeEnabled}</td><td>{@code entityKnowledge}</td><td>EntityKnowledgePromptSection</td></tr>
+ *   <tr><td>{@code perspectiveComparisonEnabled}</td><td>{@code perspectiveComparison}</td><td>SocialComparisonPromptSection</td></tr>
+ *   <tr><td>{@code domainActivationEnabled}</td><td>{@code domainActivation}</td><td>DomainActivationPromptSection</td></tr>
+ *   <tr><td>{@code appraisalEnabled}</td><td>{@code appraisal}</td><td>AppraisalTickParticipant, AppraisalPromptSection, ChannelEmphasisPromptSection</td></tr>
+ *   <tr><td>{@code salienceEnabled}</td><td>{@code salience}</td><td>ConcernBasedSalienceStrategy</td></tr>
+ *   <tr><td>{@code behavioralEnabled}</td><td>{@code behavioral}</td><td>BehavioralPromptSection (CAPS attractors + gut feeling)</td></tr>
+ *   <tr><td>{@code subThoughtsEnabled}</td><td>{@code subThoughts}</td><td>SubThoughtPromptSection</td></tr>
+ *   <tr><td>{@code otherModelEnabled}</td><td>{@code otherModel}</td><td>OtherModelPromptSection</td></tr>
+ * </table>
+ *
+ * @see CognitionCore#promptSections()
+ */
 public record CognitionConfig(
         boolean moodEnabled,
         boolean drivesEnabled,
