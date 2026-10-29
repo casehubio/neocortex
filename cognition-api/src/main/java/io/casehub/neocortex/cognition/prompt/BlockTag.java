@@ -16,6 +16,7 @@ public enum BlockTag {
     // Tier 3 — Knowledge (what you know)
     BELIEFS(300),
     MENTAL_MODEL(310),
+    OTHER_MODEL(315),
     NARRATIVE(320),
     SOCIAL(330),
     FORMATION(340),
