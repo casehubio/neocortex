@@ -85,7 +85,7 @@ class PersonalityProfileEntryTest {
                 "id": "pp-3",
                 "entity_ref": "Frida Kahlo",
                 "disposition": {
-                    "socialOrient": {"score": 0.7, "term": "collaborative", "justification": "socially engaged"},
+                    "socialOrient": {"score": 0.7, "term": "cooperative", "justification": "socially engaged"},
                     "ruleFollowing": {"score": 0.25, "term": "flexible", "justification": "defied rules"},
                     "riskAppetite": {"score": 0.75, "term": "bold", "justification": "risk-taking"},
                     "autonomy": {"score": 0.8, "term": "autonomous", "justification": "self-directed"},
@@ -94,7 +94,7 @@ class PersonalityProfileEntryTest {
             }
             """;
         var entry = MAPPER.readValue(json, PersonalityProfileEntry.class);
-        assertThat(entry.disposition().socialOrient().term()).isEqualTo("collaborative");
+        assertThat(entry.disposition().socialOrient().term()).isEqualTo("cooperative");
         assertThat(entry.disposition().socialOrient().score()).isEqualTo(0.7);
         assertThat(entry.disposition().ruleFollowing().term()).isEqualTo("flexible");
         assertThat(entry.disposition().autonomy().term()).isEqualTo("autonomous");

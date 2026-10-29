@@ -105,7 +105,7 @@ class PersonalityProfileHandlerTest {
         handler.handle(buildProfile(), AGENT, TENANT);
 
         var node = store.resolveNode("Frida Kahlo", sgId, TENANT);
-        assertThat(node.properties()).containsEntry("disposition-socialOrient", "collaborative");
+        assertThat(node.properties()).containsEntry("disposition-socialOrient", "cooperative");
         assertThat(node.properties()).containsEntry("disposition-ruleFollowing", "flexible");
         assertThat(node.properties()).containsEntry("disposition-riskAppetite", "bold");
         assertThat(node.properties()).containsEntry("disposition-autonomy", "autonomous");
@@ -144,7 +144,7 @@ class PersonalityProfileHandlerTest {
         );
 
         var disposition = new PersonalityProfileEntry.Disposition(
-            new PersonalityProfileEntry.DispositionAxis(0.7, "collaborative", "socially engaged"),
+            new PersonalityProfileEntry.DispositionAxis(0.7, "cooperative", "socially engaged"),
             new PersonalityProfileEntry.DispositionAxis(0.25, "flexible", "defied rules"),
             new PersonalityProfileEntry.DispositionAxis(0.75, "bold", "risk-taking"),
             new PersonalityProfileEntry.DispositionAxis(0.8, "autonomous", "self-directed"),
