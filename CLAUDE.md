@@ -138,6 +138,7 @@ caps-testing/       — InMemoryCapsEngine @Alternative, CapsEngineContractTest 
 caps-llm-classifier/ — LlmSituationClassifier (LLM-backed SituationClassifier via SessionPipeline; classifies experience descriptions into CAPS input node activations with JSON response parsing, invalid node filtering, confidence threshold 0.3; topology-aware system prompt with node IDs and keywords; per-invocation session IDs for virtual thread concurrency safety). LlmSituationClassifierProducer (@Produces @ApplicationScoped SituationClassifier from SessionPipeline + CapsEngine.topology()). Classpath activated.
 caps-situation-cbr/ — CbrCachingSituationDecorator (@Decorator @Priority(60) @IfBuildProperty on SituationClassifier — checks CBR for cached classification via embedding similarity before delegating to LLM; stores LLM result in CBR on miss; SHA-256 deterministic caseId; model-version categorical filter for cache invalidation; sets caseId on ClassificationResult for both cache-hit and LLM paths; @PostConstruct schema registration). ClassificationCbrConfig (@ConfigMapping — enabled, minSimilarity default 0.85, modelVersion). Classpath + config activated (`casehub.caps.classification.cbr.enabled=true`, enableIfMissing).
 schema-generator/   — JSON Schema generation for cognitive types via victools jsonschema-generator 4.38.0. Wires shared modules from casehub-platform-schema-generator (SealedHierarchyModule, EnumInliningModule, ShorthandModule) with neocortex-specific configuration: discriminator overrides for SimilaritySpec/WarpingConstraint sealed hierarchies, ShorthandDefinition registrations for Confidence/NodeRef/RecurrenceRule. CognitiveSchemaGenerator (wires all modules, Draft 2020-12, YAML output), TraitInterfaceGenerator (CLI: type schema → Java trait interface source file; naming convention TypeNamelike; all properties → Optional<String>; dev-time promotion tool for stabilized dynamic types). Conventions doc: docs/specs/2026-09-01-yaml-schema-conventions.md
+cognitive-observability-api/ — Tier 1 types: GraphMutation sealed hierarchy, GraphMutationRecorded, FieldChange record
 cognitive-observability/ — @McpDomain("cognition") GraphQL resolvers (inspect, entity, health, diff, trace), GraphMutation sealed hierarchy (13 types), FieldChange, MutationTrackingDecorator + CDI wiring (@Decorator @Priority(20)), CognitionDiffService (structured diff with source filtering), CognitionTraceService (entity audit trail), GraphDiffResult, EntityTrace, TraceEvent, GraphSerializer (JSON + Mermaid export), CognitionInspectService, CognitionHealthService, GraphHealthReport, SnapshotStore SPI, SnapshotCaptureService, GraphSnapshot/NodeSnapshot/EdgeSnapshot, ConsolidationAuditEntry
 cognitive-observability-testing/ — InMemorySnapshotStore @Alternative @Priority(2), SnapshotStoreContractTest abstract base (12 tests)
 cognitive-observability-sqlite/ — SqliteSnapshotStore @ApplicationScoped — SQLite + HikariCP WAL + Flyway, junction table mutation_nodes for entity-scoped queries
@@ -225,6 +226,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | CAPS LLM Classifier | `casehub-neocortex-caps-llm-classifier` |
 | CAPS Situation CBR | `casehub-neocortex-caps-situation-cbr` |
 | Schema Generator | `casehub-neocortex-schema-generator` |
+| Cognitive Observability API | `casehub-neocortex-cognitive-observability-api` |
 | Cognitive Observability | `casehub-neocortex-cognitive-observability` |
 | Cognitive Observability Testing | `casehub-neocortex-cognitive-observability-testing` |
 | Cognitive Observability SQLite | `casehub-neocortex-cognitive-observability-sqlite` |
@@ -279,6 +281,7 @@ Examples are excluded from the default build. Activate with `-Pexamples-smoke` (
 | Root Java package (caps-llm-classifier) | `io.casehub.neocortex.caps.llm` |
 | Root Java package (caps-situation-cbr) | `io.casehub.neocortex.caps.cbr` |
 | Root Java package (schema-generator) | `io.casehub.neocortex.schema` |
+| Root Java package (cognitive-observability-api) | `io.casehub.neocortex.cognitive.observability` |
 | Root Java package (cognitive-observability) | `io.casehub.neocortex.cognitive.observability` |
 | Root Java package (cognitive-observability-testing) | `io.casehub.neocortex.cognitive.observability.testing` |
 | Root Java package (cognitive-observability-sqlite) | `io.casehub.neocortex.cognitive.observability.sqlite` |
