@@ -45,7 +45,7 @@ public class MutationTrackingDecorator extends AbstractForwardingMindMapStore {
         NodeSnapshot before = live != null ? NodeSnapshot.from(live) : null;
         String subgraphId = live != null ? live.subgraphId() : null;
         delegate().updateNode(nodeId, update, tenantId);
-        Map<String, FieldChange> changes = FieldChange.diffSnapshot(before, update);
+        Map<String, FieldChange> changes = FieldChanges.diffSnapshot(before, update);
         if (!changes.isEmpty()) {
             persistMutation(new GraphMutation.NodeUpdated(
                 nodeId, subgraphId, changes, Instant.now(), MutationContext.get()), tenantId);

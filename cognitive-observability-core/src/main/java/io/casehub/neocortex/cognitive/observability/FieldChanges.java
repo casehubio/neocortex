@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public record FieldChange(String field, Object oldValue, Object newValue) {
+public final class FieldChanges {
+
+    private FieldChanges() {}
 
     public static Map<String, FieldChange> diff(MindMapNode before, NodeUpdate update) {
         Map<String, FieldChange> changes = new HashMap<>();

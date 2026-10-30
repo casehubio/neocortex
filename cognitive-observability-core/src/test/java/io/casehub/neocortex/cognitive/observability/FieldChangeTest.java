@@ -24,7 +24,7 @@ class FieldChangeTest {
         var before = store.getNode(nodeId, "t1");
 
         var update = NodeUpdate.empty().withName("Alicia");
-        Map<String, FieldChange> changes = FieldChange.diff(before, update);
+        Map<String, FieldChange> changes = FieldChanges.diff(before, update);
 
         assertTrue(changes.containsKey("name"));
         assertEquals("Alice", changes.get("name").oldValue());
@@ -41,7 +41,7 @@ class FieldChangeTest {
 
         var newConf = new Confidence(ConfidenceOrigin.INFERRED, 0.5, null);
         var update = NodeUpdate.empty().withConfidence(newConf);
-        Map<String, FieldChange> changes = FieldChange.diff(before, update);
+        Map<String, FieldChange> changes = FieldChanges.diff(before, update);
 
         assertTrue(changes.containsKey("confidence"));
     }
@@ -56,7 +56,7 @@ class FieldChangeTest {
         var before = store.getNode(nodeId, "t1");
 
         var update = NodeUpdate.empty().withTraitsToAdd(Set.of("Projectlike"));
-        Map<String, FieldChange> changes = FieldChange.diff(before, update);
+        Map<String, FieldChange> changes = FieldChanges.diff(before, update);
 
         assertTrue(changes.containsKey("traits"));
         @SuppressWarnings("unchecked")
@@ -74,7 +74,7 @@ class FieldChangeTest {
         var before = store.getNode(nodeId, "t1");
 
         var update = NodeUpdate.empty();
-        Map<String, FieldChange> changes = FieldChange.diff(before, update);
+        Map<String, FieldChange> changes = FieldChanges.diff(before, update);
 
         assertTrue(changes.isEmpty());
     }
@@ -91,7 +91,7 @@ class FieldChangeTest {
         var update = NodeUpdate.empty()
             .withPropertiesToSet(Map.of("role", "manager"))
             .withPropertiesToRemove(Set.of());
-        Map<String, FieldChange> changes = FieldChange.diff(before, update);
+        Map<String, FieldChange> changes = FieldChanges.diff(before, update);
 
         assertTrue(changes.containsKey("properties"));
     }
@@ -99,7 +99,7 @@ class FieldChangeTest {
     @Test
     void shouldReturnEmptyForNullBefore() {
         var update = NodeUpdate.empty().withName("Alice");
-        Map<String, FieldChange> changes = FieldChange.diff(null, update);
+        Map<String, FieldChange> changes = FieldChanges.diff(null, update);
         assertTrue(changes.isEmpty());
     }
 }

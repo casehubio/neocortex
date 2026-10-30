@@ -22,7 +22,7 @@
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
-      <artifactId>casehub-neocortex-cognitive-observability-core</artifactId>
+      <artifactId>casehub-neocortex-cognitive-observability-api</artifactId>
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
