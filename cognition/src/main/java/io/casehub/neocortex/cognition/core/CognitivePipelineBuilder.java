@@ -26,12 +26,12 @@ import io.casehub.neocortex.cognition.mentalmodel.MentalModelOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningOrchestrator;
+import io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant;
 import io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator;
 import io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator;
 import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.knowledge.TermNormalizer;
-import io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -70,6 +70,9 @@ public final class CognitivePipelineBuilder {
     private @Nullable SubThoughtTickParticipant subThoughtParticipant;
     private @Nullable MindMapStore driveGoalBridgeMindMapStore;
     private @Nullable TermNormalizer driveGoalBridgeTermNormalizer;
+    private           io.casehub.neocortex.cognitive.index.@Nullable CognitiveProfile cognitiveProfile;
+    private           io.casehub.neocortex.cognitive.index.@Nullable DomainActivation domainActivation;
+
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
         this.mood = mood;
@@ -192,6 +195,17 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder cognitiveProfile(io.casehub.neocortex.cognitive.index.@Nullable CognitiveProfile cognitiveProfile) {
+        this.cognitiveProfile = cognitiveProfile;
+        return this;
+    }
+
+    public CognitivePipelineBuilder domainActivation(io.casehub.neocortex.cognitive.index.@Nullable DomainActivation domainActivation) {
+        this.domainActivation = domainActivation;
+        return this;
+    }
+
+
     public CognitionCore build() {
         var core = new CognitionCore(
                 mood, drives, userModel, mentalModel, strategy, narrative,
@@ -205,7 +219,7 @@ public final class CognitivePipelineBuilder {
         }
         if (appraisalStrategy != null && salienceStrategy != null) {
             core.configureAppraisal(appraisalStrategy, salienceStrategy,
-                    defaultsRegistry, situationClassifier);
+                                    defaultsRegistry, situationClassifier);
         }
         if (gutFeelingMemoryStore != null) {
             core.configureGutFeeling(gutFeelingMemoryStore, mood);
@@ -215,6 +229,12 @@ public final class CognitivePipelineBuilder {
         }
         if (driveGoalBridgeMindMapStore != null && driveGoalBridgeTermNormalizer != null) {
             core.configureDriveGoalBridge(driveGoalBridgeMindMapStore, driveGoalBridgeTermNormalizer);
+        }
+        if (cognitiveProfile != null) {
+            core.configureCognitiveProfile(cognitiveProfile);
+        }
+        if (domainActivation != null) {
+            core.configureDomainActivation(domainActivation);
         }
 
         return core;

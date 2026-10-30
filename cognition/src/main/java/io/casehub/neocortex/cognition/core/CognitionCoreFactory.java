@@ -64,6 +64,11 @@ public class CognitionCoreFactory {
     @Inject Instance<SessionPipeline> sessionPipeline;
     @Inject Instance<io.casehub.neocortex.caps.SituationClassifier> situationClassifier;
     @Inject Instance<Consumer<EngagementEvent>> engagementPersister;
+    @Inject
+            Instance<io.casehub.neocortex.cognitive.index.CognitiveProfile> cognitiveProfile;
+    @Inject
+    Instance<io.casehub.neocortex.cognitive.index.DomainActivation> domainActivation;
+
 
     public CognitionCore create(CognitionConfig config) {
         var builder = CognitivePipelineBuilder.create(resolve(mood), resolve(drives))
@@ -101,6 +106,12 @@ public class CognitionCoreFactory {
         }
         if (situationClassifier.isResolvable()) {
             builder.situationClassifier(situationClassifier.get());
+        }
+        if (cognitiveProfile.isResolvable()) {
+            builder.cognitiveProfile(cognitiveProfile.get());
+        }
+        if (domainActivation.isResolvable()) {
+            builder.domainActivation(domainActivation.get());
         }
 
         return builder.build();

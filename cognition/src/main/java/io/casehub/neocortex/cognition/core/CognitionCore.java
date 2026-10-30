@@ -20,8 +20,8 @@ import io.casehub.neocortex.cognition.narrative.NarrativeOrchestrator;
 import io.casehub.neocortex.cognition.need.NeedTier;
 import io.casehub.neocortex.cognition.prompt.AppraisalPromptSection;
 import io.casehub.neocortex.cognition.prompt.AttentionPromptSection;
-import io.casehub.neocortex.cognition.prompt.ChannelEmphasisPromptSection;
 import io.casehub.neocortex.cognition.prompt.BehavioralPromptSection;
+import io.casehub.neocortex.cognition.prompt.ChannelEmphasisPromptSection;
 import io.casehub.neocortex.cognition.prompt.CharacterDrivePromptSection;
 import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
 import io.casehub.neocortex.cognition.prompt.ConsolidationPromptSection;
@@ -32,8 +32,8 @@ import io.casehub.neocortex.cognition.prompt.EmergentGoalPromptSection;
 import io.casehub.neocortex.cognition.prompt.MentalModelPromptSection;
 import io.casehub.neocortex.cognition.prompt.MoodPromptSection;
 import io.casehub.neocortex.cognition.prompt.NarrativePromptSection;
-import io.casehub.neocortex.cognition.prompt.OtherModelPromptSection;
 import io.casehub.neocortex.cognition.prompt.NeedsPyramidPromptSection;
+import io.casehub.neocortex.cognition.prompt.OtherModelPromptSection;
 import io.casehub.neocortex.cognition.prompt.ReflectionPromptSection;
 import io.casehub.neocortex.cognition.prompt.StrategyPromptSection;
 import io.casehub.neocortex.cognition.prompt.TemporalFocusPromptSection;
@@ -742,6 +742,38 @@ public @Nullable String lastTargetAgentId() {
             addParticipant(CognitionPhase.TERMINAL,
                            new DriveGoalBridgeParticipant(goals, mindMapStore, termNormalizer, config));
         }
+    }
+
+    public void configureCognitiveProfile(io.casehub.neocortex.cognitive.index.CognitiveProfile profile) {
+        var participant = new CognitiveProfileParticipant(profile, temporalFocus, config);
+        addParticipant(CognitionPhase.TERMINAL, participant);
+        chainSectionCustomizer(sections -> {
+            var result    = new ArrayList<>(sections);
+            var knowledge = participant.lastEntityKnowledge();
+            if (!knowledge.isEmpty()) {
+                result.add(new io.casehub.neocortex.cognition.prompt.EntityKnowledgePromptSection(knowledge));
+            }
+            var socialComparisons = participant.lastSocialComparisons();
+            if (!socialComparisons.isEmpty()) {
+                result.add(new io.casehub.neocortex.cognition.prompt.SocialComparisonPromptSection(socialComparisons));
+            }
+            return result;
+        });
+    }
+
+    public void configureDomainActivation(io.casehub.neocortex.cognitive.index.DomainActivation domainActivation) {
+        if (mindMapStore == null) {return;}
+        var participant = new DomainActivationParticipant(
+                domainActivation, mindMapStore, consolidationMediator, config);
+        addParticipant(CognitionPhase.TERMINAL, participant);
+        chainSectionCustomizer(sections -> {
+            var result   = new ArrayList<>(sections);
+            var snapshot = participant.lastSnapshot();
+            if (snapshot != null && snapshot.hasRenderableCorrelations()) {
+                result.add(new io.casehub.neocortex.cognition.prompt.DomainActivationPromptSection(snapshot));
+            }
+            return result;
+        });
     }
 
 

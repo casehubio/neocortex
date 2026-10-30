@@ -36,6 +36,24 @@ class CognitivePipelineBuilderTest {
             NOOP_DRIVE, NOOP_DRIVE, NOOP_DRIVE, NOOP_DRIVE,
             mood, new DriveComposer(), DriveConfig.defaults());
 
+    private static io.casehub.neocortex.memory.inmem.InMemoryMemoryStore createMemoryStore() {
+        return new io.casehub.neocortex.memory.inmem.InMemoryMemoryStore(
+                new io.casehub.platform.api.identity.CurrentPrincipal() {
+                    @Override
+                    public String actorId()               {return "test-actor";}
+
+                    @Override
+                    public java.util.Set<String> groups() {return java.util.Set.of();}
+
+                    @Override
+                    public String tenancyId()             {return "test-tenant";}
+
+                    @Override
+                    public boolean isCrossTenantAdmin()   {return true;}
+                });
+    }
+
+
     @Test
     void buildWithRequiredParamsOnlyProducesCognitionCore() {
         var core = CognitivePipelineBuilder.create(mood, drives)
@@ -87,5 +105,106 @@ class CognitivePipelineBuilderTest {
 
         assertThat(core.config()).isEqualTo(CognitionConfig.all());
     }
+
+    @Test
+    void buildWithCognitiveProfileWiresParticipant() {
+        var mindMapStore = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var memoryStore  = createMemoryStore();
+        var profile      = new io.casehub.neocortex.cognitive.index.CognitiveProfile(mindMapStore, memoryStore);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .cognitiveProfile(profile)
+                                           .build();
+
+        assertThat(core).isNotNull();
+        assertThat(core.promptSections()).isNotNull();
+    }
+
+    @Test
+    void buildWithDomainActivationAndMindMapStoreWiresParticipant() {
+        var mindMapStore     = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var memoryStore      = createMemoryStore();
+        var domainActivation = new io.casehub.neocortex.cognitive.index.DomainActivation(mindMapStore, memoryStore);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .mindMapStore(mindMapStore)
+                                           .domainActivation(domainActivation)
+                                           .build();
+
+        assertThat(core).isNotNull();
+        assertThat(core.promptSections()).isNotNull();
+    }
+
+    @Test
+    void buildWithDomainActivationButNoMindMapStoreIsNoOp() {
+        var mindMapStore     = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var memoryStore      = createMemoryStore();
+        var domainActivation = new io.casehub.neocortex.cognitive.index.DomainActivation(mindMapStore, memoryStore);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .domainActivation(domainActivation)
+                                           .build();
+
+        assertThat(core).isNotNull();
+        assertThat(core.promptSections()).isNotNull();
+    }
+
+    @Test
+    void cognitiveProfileProducesEntityKnowledgeSectionAfterTick() {
+        var mindMapStore = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var memoryStore  = createMemoryStore();
+        var tenantId     = "test-tenant";
+
+        var sgId = mindMapStore.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("people", io.casehub.neocortex.mindmap.SubgraphTypes.PERSON, null), tenantId);
+        mindMapStore.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Alice", sgId), tenantId);
+
+        var profile = new io.casehub.neocortex.cognitive.index.CognitiveProfile(mindMapStore, memoryStore);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .config(CognitionConfig.all())
+                                           .cognitiveProfile(profile)
+                                           .build();
+
+        SubjectResolver resolver = (agentId, tid) -> java.util.Set.of("Alice");
+        core.tick("agent-1", tenantId, null, resolver);
+
+        var sections = core.promptSections();
+        var hasEntityKnowledge = sections.stream()
+                                         .anyMatch(s -> s instanceof io.casehub.neocortex.cognition.prompt.EntityKnowledgePromptSection);
+        assertThat(hasEntityKnowledge)
+                .as("EntityKnowledgePromptSection should be present after tick with known entity")
+                .isTrue();
+    }
+
+    @Test
+    void cognitiveProfileSectionAbsentWhenEntityKnowledgeDisabled() {
+        var mindMapStore = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var memoryStore  = createMemoryStore();
+        var tenantId     = "test-tenant";
+
+        var sgId = mindMapStore.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("people", io.casehub.neocortex.mindmap.SubgraphTypes.PERSON, null), tenantId);
+        mindMapStore.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Bob", sgId), tenantId);
+
+        var profile = new io.casehub.neocortex.cognitive.index.CognitiveProfile(mindMapStore, memoryStore);
+        var config  = CognitionConfig.all().with("entityKnowledge", false);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .config(config)
+                                           .cognitiveProfile(profile)
+                                           .build();
+
+        SubjectResolver resolver = (agentId, tid) -> java.util.Set.of("Bob");
+        core.tick("agent-1", tenantId, null, resolver);
+
+        var sections = core.promptSections();
+        var hasEntityKnowledge = sections.stream()
+                                         .anyMatch(s -> s instanceof io.casehub.neocortex.cognition.prompt.EntityKnowledgePromptSection);
+        assertThat(hasEntityKnowledge)
+                .as("EntityKnowledgePromptSection should be absent when entityKnowledgeEnabled=false")
+                .isFalse();
+    }
+
 
 }
