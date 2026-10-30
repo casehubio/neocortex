@@ -76,8 +76,12 @@ public class ConversationBridge {
                 createdNodeIds.forEach(accessTracker::recordAccess);
             }
 
+            String batchId        = java.util.UUID.randomUUID().toString();
+            String ownerSubjectId = principalId != null ? principalId.id() : null;
+
             eventSink.accept(new ExtractionRequested(
-                    cleanedText, tenantId, recentEntityNames, createdNodeIds, principalId));
+                    cleanedText, tenantId, recentEntityNames, createdNodeIds, principalId,
+                    batchId, ownerSubjectId));
 
             return new SegmentationResult(createdNodeIds, segments.size());
         } finally {

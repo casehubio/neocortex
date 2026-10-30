@@ -9,10 +9,19 @@ public record ExtractionRequested(
         String tenantId,
         List<String> recentEntityNames,
         List<String> segmentNodeIds,
-        PrincipalId principalId
+        PrincipalId principalId,
+        String batchId,
+        String ownerSubjectId
 ) {
     public ExtractionRequested {
         recentEntityNames = recentEntityNames != null ? List.copyOf(recentEntityNames) : List.of();
         segmentNodeIds    = List.copyOf(segmentNodeIds);
+    }
+
+    public ExtractionRequested(String cleanedText, String tenantId,
+                               List<String> recentEntityNames,
+                               List<String> segmentNodeIds,
+                               PrincipalId principalId) {
+        this(cleanedText, tenantId, recentEntityNames, segmentNodeIds, principalId, null, null);
     }
 }

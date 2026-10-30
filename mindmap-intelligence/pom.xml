@@ -30,6 +30,11 @@
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-annotation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-cognitive-api</artifactId>
     </dependency>
     <dependency>
@@ -89,6 +94,11 @@
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-memory-cbr-inmem</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-annotation-inmem</artifactId>
       <scope>test</scope>
     </dependency>
 
