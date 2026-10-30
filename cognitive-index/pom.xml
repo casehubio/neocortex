@@ -25,6 +25,11 @@
             <artifactId>casehub-neocortex-memory-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.casehub</groupId>
+            <artifactId>casehub-neocortex-annotation-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
@@ -74,6 +79,11 @@
         <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-inmem</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.casehub</groupId>
+            <artifactId>casehub-neocortex-annotation-inmem</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
