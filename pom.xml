@@ -24,6 +24,7 @@
     <module>inference-bayes</module>
     <module>inference-bayes-llm</module>
     <module>fusion-api</module>
+    <module>annotation-api</module>
     <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
