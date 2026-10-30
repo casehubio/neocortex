@@ -4,6 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>io.casehub</groupId>
+    <artifactId>casehub-parent</artifactId>
+    <version>0.4-SNAPSHOT</version>
+    <relativePath/>
+  </parent>
+
   <groupId>io.casehub</groupId>
   <artifactId>casehub-neocortex-parent</artifactId>
   <version>0.4-SNAPSHOT</version>
@@ -121,61 +128,22 @@
     <tag>HEAD</tag>
   </scm>
 
-  <repositories>
-    <repository>
-      <id>central</id>
-      <url>https://repo.maven.apache.org/maven2</url>
-      <releases><enabled>true</enabled></releases>
-      <snapshots><enabled>false</enabled></snapshots>
-    </repository>
-    <repository>
-      <id>github</id>
-      <url>https://maven.pkg.github.com/casehubio/*</url>
-      <releases><enabled>false</enabled></releases>
-
-      <snapshots><enabled>true</enabled></snapshots>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>github</id>
-      <name>casehubio GitHub Packages</name>
-      <url>https://maven.pkg.github.com/casehubio/*</url>
-      <snapshots><enabled>true</enabled></snapshots>
-    </pluginRepository>
-  </pluginRepositories>
-
   <properties>
-    <quarkus.version>3.32.2</quarkus.version>
-    <langchain4j.version>1.19.0</langchain4j.version>
+    <casehub-platform-api.version>${casehub.version}</casehub-platform-api.version>
+    <casehub-connectors.version>${casehub.version}</casehub-connectors.version>
     <langchain4j-embeddings.version>1.0.0-beta5</langchain4j-embeddings.version>
     <onnxruntime.version>1.26.0</onnxruntime.version>
     <djl.tokenizers.version>0.36.0</djl.tokenizers.version>
     <qdrant.client.version>1.18.1</qdrant.client.version>
     <zip4j.version>2.11.6</zip4j.version>
-    <compiler-plugin.version>3.13.0</compiler-plugin.version>
-    <maven.compiler.release>21</maven.compiler.release>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <surefire-plugin.version>3.2.5</surefire-plugin.version>
     <download-maven-plugin.version>1.9.0</download-maven-plugin.version>
     <directory-watcher.version>0.19.1</directory-watcher.version>
-    <casehub-platform-api.version>0.4-SNAPSHOT</casehub-platform-api.version>
-    <casehub-connectors.version>0.4-SNAPSHOT</casehub-connectors.version>
-    <spring-boot.version>4.1.0</spring-boot.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
 
-      <!-- Quarkus BOM — manages quarkus-arc, quarkus-junit5, etc. -->
-      <dependency>
-        <groupId>io.quarkus.platform</groupId>
-        <artifactId>quarkus-bom</artifactId>
-        <version>${quarkus.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+      <!-- Spring Boot BOM — needed for spring submodules -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
@@ -191,99 +159,32 @@
         <version>2.0</version>
       </dependency>
 
-      <!-- casehub-platform -->
+      <!-- jsonschema — neocortex uses 4.38.0 (not parent's 5.0.0 which is for platform MCP SDK) -->
       <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-api</artifactId>
-        <version>${casehub-platform-api.version}</version>
+        <groupId>com.github.victools</groupId>
+        <artifactId>jsonschema-generator</artifactId>
+        <version>4.38.0</version>
       </dependency>
       <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-yaml-jackson</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-eidos-api</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-agent-api</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-agent-session-core</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-agent-claude</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-agent-gate</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-yaml-jackson</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-schema-generator</artifactId>
-        <version>${casehub-platform-api.version}</version>
+        <groupId>com.github.victools</groupId>
+        <artifactId>jsonschema-module-jackson</artifactId>
+        <version>4.38.0</version>
       </dependency>
 
-      <!-- casehub-connectors -->
+      <!-- DJL API — pin to match djl.tokenizers version (0.36.0 vs langchain4j-embeddings' 0.31.1) -->
       <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-api</artifactId>
-        <version>${casehub-connectors.version}</version>
+        <groupId>ai.djl</groupId>
+        <artifactId>api</artifactId>
+        <version>${djl.tokenizers.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-location-spi</artifactId>
-        <version>${casehub-connectors.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-location-ref</artifactId>
-        <version>${casehub-connectors.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-commerce-spi</artifactId>
-        <version>${casehub-connectors.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-contacts-spi</artifactId>
-        <version>${casehub-connectors.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-document-spi</artifactId>
-        <version>${casehub-connectors.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-connectors-project-spi</artifactId>
-        <version>${casehub-connectors.version}</version>
-      </dependency>
+
+      <!-- casehub-platform and casehub-connectors versions inherited from casehub-parent -->
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>1.17.1</version>
       </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-platform-simulation-api</artifactId>
-        <version>${casehub-platform-api.version}</version>
-      </dependency>
+      <!-- casehub-platform-simulation-api version inherited from casehub-parent -->
 
       <!-- Memory backend dependencies (from platform migration) -->
       <dependency>
@@ -638,17 +539,7 @@
         <version>${djl.tokenizers.version}</version>
       </dependency>
 
-      <!-- LangChain4j — RAG pipeline, dense embeddings, Qdrant EmbeddingStore -->
-      <dependency>
-        <groupId>dev.langchain4j</groupId>
-        <artifactId>langchain4j</artifactId>
-        <version>${langchain4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>dev.langchain4j</groupId>
-        <artifactId>langchain4j-core</artifactId>
-        <version>${langchain4j.version}</version>
-      </dependency>
+      <!-- langchain4j and langchain4j-core versions inherited from casehub-parent -->
       <dependency>
         <groupId>dev.langchain4j</groupId>
         <artifactId>langchain4j-embeddings</artifactId>
@@ -676,13 +567,7 @@
         <scope>import</scope>
       </dependency>
 
-      <!-- Testing -->
-      <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <version>3.26.3</version>
-        <scope>test</scope>
-      </dependency>
+      <!-- assertj-core version inherited from casehub-parent -->
       <dependency>
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
