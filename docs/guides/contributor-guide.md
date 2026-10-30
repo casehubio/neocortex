@@ -79,6 +79,16 @@
 | `knowledge-pipeline-api/` | `casehub-neocortex-knowledge-pipeline-api` | Pure Java | `KnowledgePipelineService` SPI (search + promote + refreshStale), `SpatialCacheStore` SPI (set/get/nearby/within/remove/expire/findExpired/discoverTenants), `EntityMatcher<T>` SPI, `SubsumptionRule` SPI, `TermNormalizer` SPI, `QueryClassifier` SPI, `ResearchSessionService` SPI, `KnowledgeQuery` sealed hierarchy (TextSearch/NearbySearch/CategorySearch), `CachedEntity`, `NormalizedQuery`, `MatchResult`, `MatchTier`, `PromotionRequest`/`PromotionResult`, `ResearchSession`, `ResearchState`, `CacheFilter`, `SpatialBucket` (geohash), `BoundingBox` |
 | `knowledge-pipeline/` | `casehub-neocortex-knowledge-pipeline` | JVM library | `KnowledgePipelineOrchestrator` (end-to-end search + promote), `SqliteSpatialCacheStore` (SQLite + R*Tree spatial index), `InMemorySpatialCacheStore` (test stub), `SpatialSubsumptionRule` (spatial circle containment + category narrowing), `CacheDecayPolicy` (field-type TTLs), `CacheEvictionScheduler` (session-aware eviction), `EntityResolutionEngine` (blocking + matching + three-tier decision), `PlaceMatcher` (place-specific matching signals), `EntityPromoter` (three-stage MindMap promotion), `ResearchOrchestrator` (lifecycle with MindMap RESEARCH_AREA subgraphs), `DedupIndexStore`/`EntityMetadataStore`/`QueryCacheStore`/`ResearchSessionStore` (all SQLite via sqlite-support), `CacheKeyGenerator`, `CacheEntityIdGenerator`, `Haversine`, `PhoneNormalizer`, `KnowledgePipelineMetrics` (Micrometer) |
 
+### Annotation Modules
+
+| Module | artifactId | Type | Purpose |
+|--------|-----------|------|---------|
+| `annotation-api/` | `casehub-neocortex-annotation-api` | Pure Java, zero deps | `EntityAnnotationIndex` SPI, `EntityAnnotation` record (annotationId, tenantId, sourceType, sourceId, entityNodeId, startOffset, endOffset, mentionText, confidence, method, ownerSubjectId, createdAt), `AnnotationSpanResolver` (deterministic offset resolution), `AnchorAnnotationParser` (bracket syntax → clean text + anchors), `MentionInput`, `ResolvedSpan`, `ParsedAnchor`, `AnchorParseResult`, `AnnotationMethod` constants, `EntityAnnotated` CDI event |
+| `annotation-testing/` | `casehub-neocortex-annotation-testing` | Test library | `EntityAnnotationIndexContractTest` abstract base (16 tests) — CRUD, entity queries, pair queries, merge repointing with deduplication, tenant isolation |
+| `annotation-inmem/` | `casehub-neocortex-annotation-inmem` | Backend | `InMemoryEntityAnnotationIndex` — ConcurrentHashMap, `clearAll()` for test isolation |
+| `annotation-sqlite/` | `casehub-neocortex-annotation-sqlite` | Backend | `SqliteEntityAnnotationIndex` — SQLite + HikariCP WAL + Flyway (V1). Indexes: entity, source, owner |
+| `annotation/` | `casehub-neocortex-annotation` | CDI module | `MemoryEntityErasedObserver` (removes annotations by ownerSubjectId on memory erasure), `MergeRepointObserver` (repoints annotations on `GraphMutationRecorded`/`NodesMerged`), `AnchorBiographyPreprocessor` (biography YAML bracket syntax preprocessing) |
+
 ### Examples and Evaluation
 
 | Module | Type | Purpose |
@@ -289,6 +299,22 @@ Supports `reconcile(caseType, tenantId)`, `reconcileAll(caseType)`, `discoverTen
 ### Erasure Notification
 
 `ErasureNotificationCbrRecordStore` (@Decorator @Priority(45)) fires `CbrRecordErased` CDI events after erasure. `CbrRecordErased` is a sealed interface with three variants: `ByRequest`, `ByEntity`, `ByScope`. Clock injection for testability.
+
+### Standoff Annotation Pipeline
+
+`MindMapExtractor` produces `ParsedMention(entityName, surfaceForm, mentionIndex)` alongside entities and relationships. `ExtractionRequestedObserver` runs after each extraction pass: maps entity names to node IDs from `ExtractionResult.entities()`, converts mentions to `MentionInput`, runs `AnnotationSpanResolver.resolve()` for deterministic offset computation, and writes `EntityAnnotation` records to `EntityAnnotationIndex`. Source type: `"conversation"`, source ID: `batchId` from `ExtractionRequested`.
+
+`AnnotationSpanResolver` — sorts mentions by `mentionIndex`, scans the text left-to-right matching each surface form. Forward-only scan pointer prevents double-matching. Mentions not found in text are silently skipped.
+
+`AnchorAnnotationParser` — regex-based parser for `word[alias]` bracket syntax. Strips brackets to produce clean text, records `ParsedAnchor(alias, surfaceForm, startOffset, endOffset)` with offsets into the clean text.
+
+### Annotation Lifecycle Observers
+
+`MemoryEntityErasedObserver` — `@Observes MemoryEntityErased`. Pattern-matches on the sealed interface: `ByEntity` and `ByRequest` call `removeByOwnerSubject("memory", subject.id(), tenantId)`. `CrossTenant` iterates all tenant IDs.
+
+`MergeRepointObserver` — `@Observes GraphMutationRecorded`. When the mutation is `NodesMerged`, calls `repointEntity(absorbedId, survivorId, tenantId)`. The store implementation deduplicates — if both entities already annotate the same span in the same document, the duplicate is dropped.
+
+`AnchorBiographyPreprocessor` — implements `BiographyProfilePreprocessor` SPI. During `preprocess()`, strips bracket syntax from `LifeEventEntry.description` and `BeliefEntry.description`, collecting `PendingAnchor` records. During `afterImport()` (called by `BiographyImportRunner` after all handlers finish), resolves aliases to MindMap node IDs via text search and writes annotations with source type `"biography"`.
 
 ### CDI Decorator Priority Chain Summary
 

@@ -96,6 +96,15 @@ Five related capabilities in one repo:
 | `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`, `Locatable`, `Reviewable`, `Temporal`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params), `CheckInService` (activity recording), `ActivityQueryService` (CRM queries) |
 | `mindmap-testing` | `casehub-neocortex-mindmap-testing` | `MindMapStoreContractTest` abstract base (72 tests) |
 
+### Entity Annotation
+
+| Module | artifactId | What you get |
+|--------|-----------|-------------|
+| `annotation-api` | `casehub-neocortex-annotation-api` | `EntityAnnotationIndex` SPI, `EntityAnnotation` record, `AnnotationSpanResolver`, `AnchorAnnotationParser`, `MentionInput`, `ResolvedSpan`, `AnnotationMethod` constants — pure Java, zero deps |
+| `annotation-sqlite` | `casehub-neocortex-annotation-sqlite` | SQLite + HikariCP WAL + Flyway — production backend |
+| `annotation-inmem` | `casehub-neocortex-annotation-inmem` | In-memory ConcurrentHashMap backend for tests |
+| `annotation` | `casehub-neocortex-annotation` | CDI lifecycle observers — memory erasure cleanup, node merge repointing |
+
 ### Knowledge Pipeline
 
 | Module | artifactId | What you get |
@@ -251,6 +260,23 @@ Built-in CBR schema for personality evolution memory. Records when an agent's co
 ### Corpus Ingestion Bridge (rag)
 
 Config-driven bridge that populates a RAG corpus from external sources. `CorpusIngestionService` orchestrates both event-driven ingestion (directory-watcher for filesystem corpora) and scheduled polling (for ZIP-based corpora). `MetadataExtractor` SPI extracts body + metadata from document content. `CursorStore` SPI provides pluggable cursor persistence for incremental polling.
+
+### EntityAnnotationIndex (annotation-api)
+
+Standoff annotation index bridging text and knowledge graph. Stores `(text span → entity node ID)` mappings without modifying source text. Entity node IDs are opaque strings — no dependency on mindmap-api.
+
+Key operations:
+- `findByEntity(entityNodeId, tenantId)` — all mentions of an entity across all sources
+- `findByEntityPair(id1, id2, tenantId)` — co-occurrence: annotations from documents mentioning both entities
+- `findBySource(sourceType, sourceId, tenantId)` — all annotations in a specific document
+- `distinctEntitiesInSource(sourceType, sourceId, tenantId)` — entity set for a document
+- `repointEntity(fromId, toId, tenantId)` — redirect annotations on node merge, with deduplication
+
+All methods are tenant-isolated. Source types are extensible strings (`"memory"`, `"conversation"`, `"biography"`).
+
+`AnnotationSpanResolver` — deterministic left-to-right text scanner that converts LLM-reported surface forms into exact character offsets. Mentions sorted by text-order index before scanning.
+
+`AnchorAnnotationParser` — parses bracket syntax (`James[alias]`) from biography YAML, producing clean text and `ParsedAnchor` records with offsets into the clean text.
 
 ### Thing — The Universal Entity Base (thing-api)
 
