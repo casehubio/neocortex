@@ -28,6 +28,7 @@
     <module>annotation-testing</module>
     <module>annotation-inmem</module>
     <module>annotation-sqlite</module>
+    <module>annotation</module>
     <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
@@ -360,6 +361,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-annotation-sqlite</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-annotation</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
