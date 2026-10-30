@@ -91,7 +91,15 @@ final class ExtractionJsonParser {
             }
         }
 
-        return new ParsedExtraction(entities, relationships, contradictions);
+        List<ParsedMention> mentions = new ArrayList<>();
+        String mentionsJson = extractArray(json, "mentions");
+        if (mentionsJson != null) {
+            for (String obj : splitArrayObjects(mentionsJson)) {
+                mentions.add(parseMention(obj));
+            }
+        }
+
+        return new ParsedExtraction(entities, relationships, contradictions, mentions);
     }
 
     private static ParsedEntity parseEntity(String obj) {
@@ -117,6 +125,17 @@ final class ExtractionJsonParser {
             extractString(obj, "existing"),
             extractString(obj, "extracted"),
             extractString(obj, "explanation"));
+    }
+
+    private static ParsedMention parseMention(String obj) {
+        String entity = extractString(obj, "entity");
+        String surface = extractString(obj, "surface");
+        String indexStr = extractString(obj, "index");
+        int index = 0;
+        if (indexStr != null) {
+            try { index = Integer.parseInt(indexStr); } catch (NumberFormatException ignored) {}
+        }
+        return new ParsedMention(entity, surface, index);
     }
 
     private static ConfidenceOrigin parseConfidence(String value) {

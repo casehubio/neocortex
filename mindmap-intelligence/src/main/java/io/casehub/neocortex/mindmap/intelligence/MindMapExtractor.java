@@ -58,6 +58,9 @@ public class MindMapExtractor {
                                                   "contradictions": [
                                                     {"entity": "name", "property": "edge-or-property", "existing": "old value", \
                                                 "extracted": "new value", "explanation": "why they conflict"}
+                                                  ],
+                                                  "mentions": [
+                                                    {"entity": "canonical entity name", "surface": "exact text as it appears", "index": 0}
                                                   ]
                                                 }
                                                 
@@ -73,6 +76,9 @@ public class MindMapExtractor {
                                                 - Flag contradictions when extracted facts conflict with existing graph
                                                 - For cognitive content (beliefs, intentions, predictions, judgments, fears, desires), \
                                                 classify by the PRIMARY cognitive aspect
+                                                - For each entity, list every mention in the text (including pronouns and \
+                                                definite descriptions). Report the exact surface form and the canonical entity \
+                                                name. Number mentions in text order starting from 0.
                                                 - Respond with valid JSON only""";
 
     private static final Set<String> COMMON_WORDS = Set.of(

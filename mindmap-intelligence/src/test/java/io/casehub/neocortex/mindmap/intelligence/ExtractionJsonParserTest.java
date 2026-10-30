@@ -128,6 +128,35 @@ class ExtractionJsonParserTest {
     }
 
     @Test
+    void parsesWithMentions() {
+        String json = """
+            {"entities": [{"name": "James", "type": "PERSON", "properties": {}, "confidence": "STATED"}],
+             "relationships": [], "contradictions": [],
+             "mentions": [{"entity": "James", "surface": "James", "index": 0},
+                          {"entity": "James", "surface": "He", "index": 1}]}
+            """;
+        ParsedExtraction result = ExtractionJsonParser.parse(json);
+        assertThat(result).isNotNull();
+        assertThat(result.mentions()).hasSize(2);
+        assertThat(result.mentions().get(0).entityName()).isEqualTo("James");
+        assertThat(result.mentions().get(0).surfaceForm()).isEqualTo("James");
+        assertThat(result.mentions().get(0).mentionIndex()).isEqualTo(0);
+        assertThat(result.mentions().get(1).surfaceForm()).isEqualTo("He");
+        assertThat(result.mentions().get(1).mentionIndex()).isEqualTo(1);
+    }
+
+    @Test
+    void parsesWithoutMentionsDefaultsToEmpty() {
+        String json = """
+            {"entities": [{"name": "James", "type": "PERSON", "properties": {}, "confidence": "STATED"}],
+             "relationships": [], "contradictions": []}
+            """;
+        ParsedExtraction result = ExtractionJsonParser.parse(json);
+        assertThat(result).isNotNull();
+        assertThat(result.mentions()).isEmpty();
+    }
+
+    @Test
     void parseStringWithEscapedQuotes() {
         String json = """
             {"entities": [{"name": "O\\"Brien", "type": "PERSON", "properties": {}, "confidence": "STATED"}], "relationships": [], "contradictions": []}
