@@ -25,6 +25,8 @@
     <module>inference-bayes-llm</module>
     <module>fusion-api</module>
     <module>annotation-api</module>
+    <module>annotation-testing</module>
+    <module>annotation-inmem</module>
     <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
@@ -337,6 +339,21 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-fusion-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-annotation-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-annotation-testing</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-annotation-inmem</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
