@@ -1,7 +1,7 @@
 # ARC42STORIES — casehub-neocortex
 
 **Version:** 0.3  
-**Status:** All chapters complete (C1–C11) — J1 + J2 + J3 + J4 ✅  
+**Status:** All chapters complete (C1–C13) — J1 + J2 + J3 + J4 + J5 + J6 ✅  
 **Spec:** [arc42stories-spec.md](https://raw.githubusercontent.com/casehubio/parent/main/docs/arc42stories-spec.md)  
 **Last updated:** 2026-06-18
 
@@ -272,6 +272,19 @@ C4Container
 | L13 Memory Runtime | `memory-core`, `memory`, `memory-cbr-inmem` | Pure Java + CDI library | casehub only |
 | L14 Memory Backends | `memory-qdrant`, `memory-jpa`, `memory-sqlite` | Backend-specific | casehub only |
 | L15 CBR Decorators | `memory-cbr-crossencoder`, `memory-cbr-tracking`, `memory-cbr-embedding` | CDI library, classpath + config activated | casehub only |
+| L16 Cognitive Foundation | `thing-api`, `cognitive-api`, `sqlite-support`, `cognitive-observability-api` | Pure Java, zero deps | casehub only |
+| L17 MindMap SPI | `mindmap-api` | Pure Java, depends on L16 (`thing-api`, `cognitive-api`) | casehub only |
+| L18 Annotation SPI | `annotation-api`, `annotation-testing` | Pure Java, zero deps | casehub only |
+| L19 MindMap Runtime | `mindmap-core`, `mindmap`, `mindmap-testing`, `mindmap-inmem`, `mindmap-sqlite` | CDI library + SQLite backend | casehub only |
+| L20 Annotation Runtime | `annotation-inmem`, `annotation-sqlite`, `annotation` | CDI library + SQLite backend | casehub only |
+| L21 Cognitive Index | `cognitive-index` | Pure Java, depends on L16, L17, L12 | casehub only |
+| L22 MindMap Intelligence | `mindmap-intelligence` | CDI library, LLM extraction, consolidation pipeline | casehub only |
+| L23 Cognitive Observability | `cognitive-observability-core`, `cognitive-observability`, `cognitive-observability-testing`, `cognitive-observability-sqlite` | CDI library + GraphQL + SQLite | casehub only |
+| L24 CAPS | `caps-api`, `caps-engine`, `caps-testing`, `caps-llm-classifier`, `caps-situation-cbr` | Pure Java (API) + CDI library (engine) + SQLite | casehub only |
+| L25 Cognition Pipeline | `cognition-api`, `cognition` | CDI library, single-agent cognitive processing stack | casehub only |
+| L26 Memory Seeding | `memory-seeding` | CDI library, biography import | casehub only |
+| L27 Knowledge Pipeline | `knowledge-pipeline-api`, `knowledge-pipeline` | CDI library, domain-generic search + entity resolution | casehub only |
+| L28 Schema Generator | `schema-generator` | CLI + library, JSON Schema for cognitive types | casehub only |
 
 ### §5.1 CBR Memory Subsystem
 
@@ -584,6 +597,8 @@ noClasses().that().resideInAPackage("io.casehub.neocortex.inference..")
 | J2 RAG Integration | Deliver casehub-specific LangChain4j RAG pipeline with hybrid search | C7 | ✅ Complete |
 | J3 Corpus Storage | ZIP-backed document storage and ingestion bridge to RAG pipeline | C8–C9 | ✅ Complete |
 | J4 Retrieval Quality | Self-healing and expanded retrieval — evaluate, filter, correct, and expand queries | C10, C11 | ✅ Complete |
+| J5 CBR Platform Capability | Case-Based Reasoning with outcome learning, traceability, and plan adaptation | C12 | ✅ Complete |
+| J6 Cognitive Architecture | Structural knowledge graph, cognitive pipeline, appraisal, attention, annotation, CAPS | C13 | ✅ Complete |
 
 ### §9.2 Chapter Index
 
@@ -606,6 +621,8 @@ flowchart LR
   C7 --> C12["C12: CBR Phase 4
 + L12, L13, L14, L15"]
   C10 --> C12
+  C12 --> C13["C13: Cognitive Architecture
++ L16–L28"]
 
   style C1 fill:#90EE90,color:#000
   style C2 fill:#90EE90,color:#000
@@ -619,6 +636,7 @@ flowchart LR
   style C10 fill:#90EE90,color:#000
   style C11 fill:#90EE90,color:#000
   style C12 fill:#90EE90,color:#000
+  style C13 fill:#90EE90,color:#000
 ```
 
 | # | Chapter | Journey | Layers touched | Delta summary | Status |
@@ -635,26 +653,40 @@ flowchart LR
 | 10 | Corrective RAG (CRAG) | J4 | L6, L7, L10 | L6: Low, L7: Low, L10: High | ✅ (#33, #38, #41) |
 | 11 | Query Expansion | J4 | L6, L7, L10, L11 | L6: Med, L7: Med, L10: Low, L11: High | ✅ (#32, #42, #43) |
 | 12 | CBR Outcome Learning + Traceability | J5 | L12, L13, L14, L15 | L12: High, L13: High, L14: High, L15: High | ✅ (#84, #82, #83, #85, #88, #93) |
+| 13 | Cognitive Architecture | J6 | L16–L28 | All High (new subsystem) | ✅ (#211, #303, #20, #56, #721) |
 
 **Layer × Chapter matrix**
 
-| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| L1 SPI Foundation | — | — | High | — | — | — | — | — | — | — | — | — |
-| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — | — | — | — |
-| L3 Task Adapters | — | — | — | High | — | — | — | — | — | — | — | — |
-| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — | — | — | — |
-| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — | — | — | — |
-| L6 RAG SPI | — | — | — | — | — | — | High | — | Low | Low | Med | — |
-| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med | Low | Med | — |
-| L8 Corpus SPI | — | — | — | — | — | — | — | High | — | — | — | — |
-| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — | — | — | — |
-| L10 CRAG | — | — | — | — | — | — | — | — | — | High | Low | — |
-| L11 Query Expansion | — | — | — | — | — | — | — | — | — | — | High | — |
-| L12 Memory SPI | — | — | — | — | — | — | — | — | — | — | — | High |
-| L13 Memory Runtime | — | — | — | — | — | — | — | — | — | — | — | High |
-| L14 Memory Backends | — | — | — | — | — | — | — | — | — | — | — | High |
-| L15 CBR Decorators | — | — | — | — | — | — | — | — | — | — | — | High |
+| Layer | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | C13 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| L1 SPI Foundation | — | — | High | — | — | — | — | — | — | — | — | — | — |
+| L2 Runtime Core | — | Low* | High | — | — | — | — | — | — | — | — | — | — |
+| L3 Task Adapters | — | — | — | High | — | — | — | — | — | — | — | — | — |
+| L4 Sparse Embeddings | — | — | — | — | — | High | Low | — | — | — | — | — | — |
+| L5 Quarkus Integration | — | — | — | — | High | — | — | — | — | — | — | — | — |
+| L6 RAG SPI | — | — | — | — | — | — | High | — | Low | Low | Med | — | — |
+| L7 RAG Runtime | — | — | — | — | — | — | High | — | Med | Low | Med | — | — |
+| L8 Corpus SPI | — | — | — | — | — | — | — | High | — | — | — | — | — |
+| L9 Corpus Runtime | — | — | — | — | — | — | — | High | — | — | — | — | — |
+| L10 CRAG | — | — | — | — | — | — | — | — | — | High | Low | — | — |
+| L11 Query Expansion | — | — | — | — | — | — | — | — | — | — | High | — | — |
+| L12 Memory SPI | — | — | — | — | — | — | — | — | — | — | — | High | — |
+| L13 Memory Runtime | — | — | — | — | — | — | — | — | — | — | — | High | — |
+| L14 Memory Backends | — | — | — | — | — | — | — | — | — | — | — | High | — |
+| L15 CBR Decorators | — | — | — | — | — | — | — | — | — | — | — | High | — |
+| L16 Cognitive Foundation | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L17 MindMap SPI | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L18 Annotation SPI | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L19 MindMap Runtime | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L20 Annotation Runtime | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L21 Cognitive Index | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L22 MindMap Intelligence | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L23 Cognitive Observability | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L24 CAPS | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L25 Cognition Pipeline | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L26 Memory Seeding | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L27 Knowledge Pipeline | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L28 Schema Generator | — | — | — | — | — | — | — | — | — | — | — | — | High |
 
 *C2 validates L2's JNI stack in native image; L2 itself is not built until C3.
 
@@ -923,6 +955,31 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 **Retrieval traceability:** `CbrRetrievalTracker` SPI records every `retrieveSimilar()` as a `CbrRetrievalTrace` (traceId, query, scored cases, timestamp). `TrackingCbrPlanAdapter` records plan adaptation events. `TrackingCbrPlanEnsembleAnalyzer` records ensemble analysis events. SQLite-backed implementation with WAL + Flyway. Retention scheduler purges records older than configurable threshold.
 
 **Why decorator chain:** Each concern is independently deployable (classpath + config activation), testable in isolation, and composable without the core store knowing about any of them. The three-tier CDI priority ladder (`@Alternative` for backends, `@Decorator` for cross-cutting, `@DefaultBean` for fallbacks) avoids bean resolution ambiguity.
+
+#### Chapter C13 — Cognitive Architecture
+
+**Journey:** J6 — Cognitive Architecture
+**Status:** ✅
+
+**What:** Structural knowledge graph (MindMap), cognitive processing pipeline (Cognition), appraisal and attention (CARMA), entity annotation (Annotation), personality-driven behaviour (CAPS), knowledge consolidation, and memory seeding. Spans 13 layers (L16–L28) covering ~30 modules from foundation SPIs through runtime implementations.
+
+**Layer stack:**
+
+| Layer | Modules | Role |
+|-------|---------|------|
+| L16 Cognitive Foundation | `thing-api`, `cognitive-api`, `sqlite-support`, `cognitive-observability-api` | Shared types: `Thing`, `Confidence`, `ConfidenceOrigin`, `TemporalMark`, `GraphMutation` |
+| L17 MindMap SPI | `mindmap-api` | `MindMapStore` SPI — nodes, edges, subgraphs, goals, traits, vocabulary, supersession, erasure |
+| L18 Annotation SPI | `annotation-api`, `annotation-testing` | `EntityAnnotationIndex` SPI — standoff text-to-entity linking |
+| L19 MindMap Runtime | `mindmap-core`, `mindmap`, `mindmap-testing`, `mindmap-inmem`, `mindmap-sqlite` | CDI wiring, decorators (confidence decay, derived edges, affect trajectory), backends |
+| L20 Annotation Runtime | `annotation-inmem`, `annotation-sqlite`, `annotation` | In-memory + SQLite backends, CDI observers (merge repoint, erasure, biography anchor preprocessing) |
+| L21 Cognitive Index | `cognitive-index` | Cross-store query tier: `TemporalIndex`, `CognitiveProfile`, `DomainActivation`, `CognitiveDefaults` |
+| L22 MindMap Intelligence | `mindmap-intelligence` | Trait interfaces, `MindMapExtractor`, `ConversationBridge`, consolidation pipeline (14 phases), `BulkReExtractionService` |
+| L23 Cognitive Observability | `cognitive-observability-core`, `cognitive-observability`, `cognitive-observability-testing`, `cognitive-observability-sqlite` | Graph mutation tracking, inspection, health, diff, trace — GraphQL MCP resolvers |
+| L24 CAPS | `caps-api`, `caps-engine`, `caps-testing`, `caps-llm-classifier`, `caps-situation-cbr` | CAPS graph engine: topology, settling, weight update, situation classification |
+| L25 Cognition Pipeline | `cognition-api`, `cognition` | Single-agent cognitive stack: `CognitionCore`, orchestrators, CARMA appraisal, gut feeling, prompt rendering |
+| L26 Memory Seeding | `memory-seeding` | Biography import: `BackstorySeeder`, `BiographyHandler` SPI, 10 YAML template types across 8-layer model |
+| L27 Knowledge Pipeline | `knowledge-pipeline-api`, `knowledge-pipeline` | Domain-generic search, entity resolution, spatial cache, research sessions |
+| L28 Schema Generator | `schema-generator` | JSON Schema for cognitive types, trait interface generation |
 
 ---
 
