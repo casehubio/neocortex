@@ -1,5 +1,6 @@
 package io.casehub.neocortex.caps.llm.eval;
 
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.SituationContext;
@@ -191,7 +192,7 @@ class DriveRenderingUnitTest {
     void penDriveRendering(Scenario scenario) { runScenario(scenario); }
 
     private void runScenario(Scenario scenario) {
-        SituationClassifier classifier = (desc, meta, ctx) -> scenario.activations;
+        SituationClassifier classifier = (desc, meta, ctx) -> new ClassificationResult(scenario.activations);
 
         var character = characters.get(scenario.agentId);
         var driveSnapshots = character.drives().stream()

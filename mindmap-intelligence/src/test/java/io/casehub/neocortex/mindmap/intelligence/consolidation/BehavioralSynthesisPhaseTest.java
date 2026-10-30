@@ -8,6 +8,7 @@ import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.ConnectionWeight;
 import io.casehub.neocortex.caps.ConvergenceType;
 import io.casehub.neocortex.caps.SettlingResult;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightProvenance;
@@ -17,10 +18,14 @@ import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
+import io.casehub.neocortex.memory.cbr.CbrOutcome;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +47,7 @@ class BehavioralSynthesisPhaseTest {
         store = new InMemoryMindMapStore();
         capsEngine = new StubCapsEngine();
         SituationClassifier classifier = (desc, meta, ctx) ->
-            List.of(new SituationActivation("reward", 0.8));
+            new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
 
         phase = new BehavioralSynthesisPhase(store, capsEngine, classifier, 20);
 
@@ -62,7 +67,7 @@ class BehavioralSynthesisPhaseTest {
     @Test
     void skipsWhenNoCapsEngine() {
         var noEngine = new BehavioralSynthesisPhase(
-            store, null, (d, m, c) -> List.of(), 20);
+            store, null, (d, m, c) -> new ClassificationResult(List.of()), 20);
         noEngine.run(TENANT, List.of());
     }
 
@@ -154,7 +159,7 @@ class BehavioralSynthesisPhaseTest {
         emotionEngine.initializeAgent(TENANT, AGENT,
                                       new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
         SituationClassifier classifier = (desc, meta, ctx) ->
-                                                 List.of(new SituationActivation("reward", 0.8));
+                                                 new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
 
         store.addNode(NodeInput.of("OCC emotion: FEAR", cognitiveSubgraphId)
@@ -182,7 +187,7 @@ class BehavioralSynthesisPhaseTest {
         emotionEngine.initializeAgent(TENANT, AGENT,
                                       new io.casehub.neocortex.cognitive.index.DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"));
         SituationClassifier classifier = (desc, meta, ctx) ->
-                                                 List.of(new SituationActivation("reward", 0.8));
+                                                 new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         var emotionPhase = new BehavioralSynthesisPhase(store, emotionEngine, classifier, 20);
 
         store.addNode(NodeInput.of("Generic experience", cognitiveSubgraphId)
@@ -288,7 +293,7 @@ class BehavioralSynthesisPhaseTest {
     void uninitializedAgent_autoInitializedAndProcessed() {
         var freshEngine = new StubCapsEngine();
         SituationClassifier classifier = (desc, meta, ctx) ->
-                                                 List.of(new SituationActivation("reward", 0.8));
+                                                 new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         var freshPhase = new BehavioralSynthesisPhase(store, freshEngine, classifier, 20);
 
         store.addNode(NodeInput.of("Formative childhood experience", cognitiveSubgraphId)
@@ -352,7 +357,7 @@ class BehavioralSynthesisPhaseTest {
                                                             "moderate", "analytical"));
 
         SituationClassifier classifier = (desc, meta, ctx) ->
-                                                 List.of(new SituationActivation("reward", 0.8));
+                                                 new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
 
         var drivePhase = new BehavioralSynthesisPhase(store, capturingEngine, classifier, 20);
 
@@ -414,11 +419,11 @@ class BehavioralSynthesisPhaseTest {
     void differentDominantInputsCreateSeparateAttractors() {
         SituationClassifier inputAwareClassifier = (desc, meta, ctx) -> {
             if (desc.contains("relationship")) {
-                return List.of(new SituationActivation("secure_attachment", 0.9));
+                return new ClassificationResult(List.of(new SituationActivation("secure_attachment", 0.9)));
             } else if (desc.contains("achievement")) {
-                return List.of(new SituationActivation("mastery", 0.9));
+                return new ClassificationResult(List.of(new SituationActivation("mastery", 0.9)));
             }
-            return List.of(new SituationActivation("reward", 0.8));
+            return new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
         };
 
         var diffPhase = new BehavioralSynthesisPhase(store, capsEngine, inputAwareClassifier, 20);
@@ -456,6 +461,66 @@ class BehavioralSynthesisPhaseTest {
                 .hasSizeGreaterThanOrEqualTo(2);
     }
 
+
+    @Test
+    void recordsOutcomeForCbrCachedClassifications() {
+        var recordingStore = new RecordingCbrStore();
+        SituationClassifier classifierWithCaseId = (desc, meta, ctx) ->
+            new ClassificationResult(
+                List.of(new SituationActivation("reward", 0.8)),
+                "case-abc123");
+
+        var outcomePhase = new BehavioralSynthesisPhase(
+            store, capsEngine, classifierWithCaseId, 20, recordingStore);
+
+        store.addNode(NodeInput.of("Rewarded for helping", cognitiveSubgraphId)
+            .withProperties(Map.of(
+                "source-memory-id", "mem1",
+                "agent-id", AGENT,
+                "event-type", "observation",
+                "graduation-score", "0.7")),
+            TENANT);
+
+        outcomePhase.run(TENANT, List.of());
+
+        assertThat(recordingStore.recordedOutcomes).hasSize(1);
+        assertThat(recordingStore.recordedOutcomes.getFirst().caseId).isEqualTo("case-abc123");
+        assertThat(recordingStore.recordedOutcomes.getFirst().tenantId).isEqualTo(TENANT);
+        assertThat(recordingStore.recordedOutcomes.getFirst().outcome.successRate()).isGreaterThan(0.0);
+    }
+
+    @Test
+    void noOutcomeRecordedWhenNoCaseIds() {
+        var recordingStore = new RecordingCbrStore();
+        SituationClassifier classifierNoCaseId = (desc, meta, ctx) ->
+            new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
+
+        var outcomePhase = new BehavioralSynthesisPhase(
+            store, capsEngine, classifierNoCaseId, 20, recordingStore);
+
+        store.addNode(NodeInput.of("Rewarded for helping", cognitiveSubgraphId)
+            .withProperties(Map.of(
+                "source-memory-id", "mem1",
+                "agent-id", AGENT,
+                "event-type", "observation",
+                "graduation-score", "0.7")),
+            TENANT);
+
+        outcomePhase.run(TENANT, List.of());
+
+        assertThat(recordingStore.recordedOutcomes).isEmpty();
+    }
+
+    record RecordedOutcome(String caseId, CbrOutcome outcome, String tenantId) {}
+
+    static class RecordingCbrStore extends InMemoryCbrRecordStore {
+        final List<RecordedOutcome> recordedOutcomes = new ArrayList<>();
+
+        @Override
+        public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
+            recordedOutcomes.add(new RecordedOutcome(caseId, outcome, tenantId));
+        }
+    }
 
     static class StubCapsEngine implements CapsEngine {
         private final Map<String, AgentCapsState> states = new ConcurrentHashMap<>();

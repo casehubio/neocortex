@@ -1,6 +1,7 @@
 package io.casehub.neocortex.caps.llm.eval;
 
 import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
@@ -43,14 +44,14 @@ class ChannelWeightingEvalTest {
         String systemPrompt = buildClassifierPrompt(topology, validNodeIds);
 
         return (description, metadata, classificationContext) -> {
-            if (description == null || description.isBlank()) return List.of();
+            if (description == null || description.isBlank()) return new ClassificationResult(List.of());
             String result = provider.invoke(AgentSessionConfig.of(systemPrompt,
                     "Classify this situation:\n" + description, Duration.ofSeconds(60)))
                     .filter(e -> e instanceof AgentEvent.TextDelta)
                     .map(e -> ((AgentEvent.TextDelta) e).text())
                     .collect().with(Collectors.joining())
                     .await().atMost(Duration.ofSeconds(120));
-            return parseActivations(result, validNodeIds);
+            return new ClassificationResult(parseActivations(result, validNodeIds));
         };
     }
 

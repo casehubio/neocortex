@@ -5,12 +5,12 @@ import java.util.Map;
 
 @FunctionalInterface
 public interface SituationClassifier {
-    List<SituationActivation> classify(String description,
-                                        Map<String, String> metadata,
-                                        ClassificationContext context);
+    ClassificationResult classify(String description,
+                                    Map<String, String> metadata,
+                                    ClassificationContext context);
 
     default List<SituationActivation> classify(String description,
                                                 Map<String, String> metadata) {
-        return classify(description, metadata, ClassificationContext.NONE);
+        return classify(description, metadata, ClassificationContext.NONE).activations();
     }
 }

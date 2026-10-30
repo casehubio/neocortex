@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.caps.ClassificationContext;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.memory.MemoryDomain;
@@ -89,9 +90,9 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
     }
 
     @Override
-    public List<SituationActivation> classify(String description,
-                                               Map<String, String> metadata,
-                                               ClassificationContext context) {
+    public ClassificationResult classify(String description,
+                                          Map<String, String> metadata,
+                                          ClassificationContext context) {
         if (cbrStore == null || !context.isResolvable()) {
             return delegate.classify(description, metadata, context);
         }
@@ -102,16 +103,19 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
             CbrFeatureRecord cached = hits.getFirst().cbrRecord();
             List<SituationActivation> parsed = parseActivations(cached.solution());
             if (!parsed.isEmpty()) {
+                String eventType = metadata != null ? metadata.getOrDefault("event-type", "") : "";
+                String cognitiveKind = metadata != null ? metadata.getOrDefault("cognitiveKind", "") : "";
+                String caseId = computeCaseId(description, eventType, cognitiveKind);
                 LOG.fine(() -> "CBR hit for: " + excerpt(description));
-                return parsed;
+                return new ClassificationResult(parsed, caseId);
             }
         }
 
-        List<SituationActivation> result = delegate.classify(
+        ClassificationResult result = delegate.classify(
             description, metadata, context);
 
-        storeCbr(description, metadata, result, context.tenantId());
-        return result;
+        String caseId = storeCbr(description, metadata, result.activations(), context.tenantId());
+        return new ClassificationResult(result.activations(), caseId);
     }
 
     private List<CbrMatch<CbrFeatureRecord>> lookupCbr(
@@ -131,10 +135,10 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
         }
     }
 
-    private void storeCbr(String description, Map<String, String> metadata,
-                           List<SituationActivation> activations,
-                           String tenantId) {
-        if (activations.isEmpty()) return;
+    private String storeCbr(String description, Map<String, String> metadata,
+                             List<SituationActivation> activations,
+                             String tenantId) {
+        if (activations.isEmpty()) return null;
         try {
             String solution = serializeActivations(activations);
             String eventType = metadata != null
@@ -154,8 +158,10 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
 
             cbrStore.store(record, CASE_TYPE, ENTITY_ID, DOMAIN, tenantId,
                 caseId, io.casehub.platform.api.path.Path.root());
+            return caseId;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "CBR store failed for: " + excerpt(description), e);
+            return null;
         }
     }
 

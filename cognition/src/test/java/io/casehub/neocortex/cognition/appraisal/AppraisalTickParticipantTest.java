@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.appraisal;
 
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
@@ -308,10 +309,10 @@ class AppraisalTickParticipantTest {
                         .withRefs(java.util.Set.of(overlayRef))
                         .withProperties(Map.copyOf(overlayProps)), "t1");
 
-        SituationClassifier classifier = (desc, meta, ctx) -> List.of(
+        SituationClassifier classifier = (desc, meta, ctx) -> new ClassificationResult(List.of(
                 new SituationActivation("secure_attachment", 0.6),
                 new SituationActivation("rejection", 0.6),
-                new SituationActivation("mastery", 0.5));
+                new SituationActivation("mastery", 0.5)));
 
         var config = CognitionConfig.none().with("appraisal", true);
         var participant = new AppraisalTickParticipant(
@@ -335,9 +336,9 @@ class AppraisalTickParticipantTest {
 
     @Test
     void noRelationalBiasingWithoutTarget() {
-        SituationClassifier classifier = (desc, meta, ctx) -> List.of(
+        SituationClassifier classifier = (desc, meta, ctx) -> new ClassificationResult(List.of(
                 new SituationActivation("secure_attachment", 0.6),
-                new SituationActivation("rejection", 0.6));
+                new SituationActivation("rejection", 0.6)));
 
         var config = CognitionConfig.none().with("appraisal", true);
         var participant = new AppraisalTickParticipant(
@@ -384,10 +385,10 @@ class AppraisalTickParticipantTest {
                         .withRefs(java.util.Set.of(OverlayRef.of(toolNodeId)))
                         .withProperties(Map.copyOf(toolOverlayProps)), "t1");
 
-        SituationClassifier classifier = (desc, meta, ctx) -> List.of(
+        SituationClassifier classifier = (desc, meta, ctx) -> new ClassificationResult(List.of(
                 new SituationActivation("secure_attachment", 0.7),
                 new SituationActivation("rejection", 0.3),
-                new SituationActivation("betrayal", 0.2));
+                new SituationActivation("betrayal", 0.2)));
 
         var villainProfile = new DriveProfile("villain", "t1",
                 Map.of(DriveAxis.CURIOSITY, new DriveIntensity(DriveAxis.CURIOSITY, 0.7, "gaps")),

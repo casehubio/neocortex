@@ -86,6 +86,11 @@
       <artifactId>casehub-neocortex-memory-inmem</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-memory-cbr-inmem</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>

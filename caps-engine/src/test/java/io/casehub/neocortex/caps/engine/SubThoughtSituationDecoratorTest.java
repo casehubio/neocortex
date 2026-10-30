@@ -1,5 +1,6 @@
 package io.casehub.neocortex.caps.engine;
 
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import org.junit.jupiter.api.Test;
@@ -13,9 +14,9 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void addsConcernActivationsToBaseResult() {
-        SituationClassifier base = (desc, meta, ctx) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> new ClassificationResult(List.of(
             new SituationActivation("social_threat", 0.3)
-        );
+        ));
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("worried about her", Map.of("cognitiveKind", "concern"));
         assertTrue(result.size() >= 2);
@@ -27,9 +28,9 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void mergesTakesMaxConfidence() {
-        SituationClassifier base = (desc, meta, ctx) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> new ClassificationResult(List.of(
             new SituationActivation("social_threat", 0.8)
-        );
+        ));
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("worried", Map.of("cognitiveKind", "concern"));
         var socialThreat = result.stream()
@@ -39,9 +40,9 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void passesThoughWithoutCognitiveKind() {
-        SituationClassifier base = (desc, meta, ctx) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> new ClassificationResult(List.of(
             new SituationActivation("mastery", 0.5)
-        );
+        ));
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("did well", Map.of());
         assertEquals(1, result.size());
@@ -50,9 +51,9 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void passesThoughWithNullMetadata() {
-        SituationClassifier base = (desc, meta, ctx) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> new ClassificationResult(List.of(
             new SituationActivation("mastery", 0.5)
-        );
+        ));
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("did well", null);
         assertEquals(1, result.size());
@@ -60,7 +61,7 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void addsIntentionActivations() {
-        SituationClassifier base = (desc, meta, ctx) -> List.of();
+        SituationClassifier base = (desc, meta, ctx) -> new ClassificationResult(List.of());
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("plan to do it", Map.of("cognitiveKind", "intention"));
         assertEquals(2, result.size());
@@ -70,9 +71,9 @@ class SubThoughtSituationDecoratorTest {
 
     @Test
     void unknownCognitiveKindPassesThrough() {
-        SituationClassifier base = (desc, meta, ctx) -> List.of(
+        SituationClassifier base = (desc, meta, ctx) -> new ClassificationResult(List.of(
             new SituationActivation("mastery", 0.5)
-        );
+        ));
         var decorator = new SubThoughtSituationDecorator(base);
         var result = decorator.classify("text", Map.of("cognitiveKind", "unknown-type"));
         assertEquals(1, result.size());

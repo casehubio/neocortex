@@ -1,6 +1,7 @@
 package io.casehub.neocortex.caps.cbr;
 
 import io.casehub.neocortex.caps.ClassificationContext;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.memory.MemoryDomain;
@@ -37,13 +38,14 @@ class CbrCachingSituationDecoratorTest {
 
     @Test
     void contextNone_passesThrough() {
-        var expected = List.of(new SituationActivation("acceptance", 0.8));
+        var expected = new ClassificationResult(List.of(new SituationActivation("acceptance", 0.8)));
         when(delegate.classify("test", Map.of(), ClassificationContext.NONE))
             .thenReturn(expected);
 
         var result = decorator.classify("test", Map.of(), ClassificationContext.NONE);
 
-        assertThat(result).isEqualTo(expected);
+        assertThat(result.activations()).isEqualTo(expected.activations());
+        assertThat(result.caseId()).isNull();
         verifyNoInteractions(cbrStore);
     }
 
@@ -64,16 +66,17 @@ class CbrCachingSituationDecoratorTest {
 
         var result = decorator.classify("test desc", Map.of(), ctx);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().nodeId()).isEqualTo("mastery");
-        assertThat(result.getFirst().confidence()).isEqualTo(0.9);
+        assertThat(result.activations()).hasSize(1);
+        assertThat(result.activations().getFirst().nodeId()).isEqualTo("mastery");
+        assertThat(result.activations().getFirst().confidence()).isEqualTo(0.9);
+        assertThat(result.caseId()).isNotNull();
         verifyNoInteractions(delegate);
     }
 
     @Test
     void cbrMiss_delegatesAndStores() {
         var ctx = ClassificationContext.of("tenant-1");
-        var llmResult = List.of(new SituationActivation("acceptance", 0.8));
+        var llmResult = new ClassificationResult(List.of(new SituationActivation("acceptance", 0.8)));
         when(cbrStore.retrieveSimilar(any(CbrQuery.class), eq(CbrFeatureRecord.class)))
             .thenReturn(List.of());
         when(delegate.classify("new situation", Map.of(), ctx))
@@ -81,7 +84,8 @@ class CbrCachingSituationDecoratorTest {
 
         var result = decorator.classify("new situation", Map.of(), ctx);
 
-        assertThat(result).isEqualTo(llmResult);
+        assertThat(result.activations()).isEqualTo(llmResult.activations());
+        assertThat(result.caseId()).isNotNull();
         verify(cbrStore).store(any(), eq("situation-classification"),
             eq("caps-classifier"), any(MemoryDomain.class),
             eq("tenant-1"), any(), any());
@@ -106,12 +110,13 @@ class CbrCachingSituationDecoratorTest {
         var noCbrDecorator = new CbrCachingSituationDecorator(
             delegate, null, 0.85, "haiku");
         var ctx = ClassificationContext.of("tenant-1");
-        var expected = List.of(new SituationActivation("mastery", 0.7));
+        var expected = new ClassificationResult(List.of(new SituationActivation("mastery", 0.7)));
         when(delegate.classify("test", Map.of(), ctx)).thenReturn(expected);
 
         var result = noCbrDecorator.classify("test", Map.of(), ctx);
 
-        assertThat(result).isEqualTo(expected);
+        assertThat(result.activations()).isEqualTo(expected.activations());
+        assertThat(result.caseId()).isNull();
     }
 
     @Test
@@ -145,11 +150,11 @@ class CbrCachingSituationDecoratorTest {
         when(cbrStore.retrieveSimilar(any(CbrQuery.class), eq(CbrFeatureRecord.class)))
             .thenReturn(List.of());
         when(delegate.classify("empty", Map.of(), ctx))
-            .thenReturn(List.of());
+            .thenReturn(new ClassificationResult(List.of()));
 
         var result = decorator.classify("empty", Map.of(), ctx);
 
-        assertThat(result).isEmpty();
+        assertThat(result.activations()).isEmpty();
         verify(cbrStore, never()).store(any(), any(), any(), any(), any(), any(), any());
     }
 }

@@ -6,6 +6,7 @@ import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.NodeRange;
 import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightProvenance;
@@ -227,12 +228,12 @@ class ConsolidationPipelinePropagationTest {
     private SituationClassifier buildClassifier() {
         return (desc, meta, ctx) -> {
             if (desc.contains("knelt") || desc.contains("stranger"))
-                return List.of(new SituationActivation("acceptance", 0.7));
+                return new ClassificationResult(List.of(new SituationActivation("acceptance", 0.7)));
             if (desc.contains("practised") || desc.contains("bridge"))
-                return List.of(new SituationActivation("mastery", 0.8));
+                return new ClassificationResult(List.of(new SituationActivation("mastery", 0.8)));
             if (desc.contains("keys") || desc.contains("Noticed"))
-                return List.of(new SituationActivation("dominance", 0.6));
-            return List.of();
+                return new ClassificationResult(List.of(new SituationActivation("dominance", 0.6)));
+            return new ClassificationResult(List.of());
         };
     }
 

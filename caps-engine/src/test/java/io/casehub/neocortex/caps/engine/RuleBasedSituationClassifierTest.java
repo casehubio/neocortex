@@ -27,15 +27,15 @@ class RuleBasedSituationClassifierTest {
 
     @Test
     void emptyDescriptionReturnsEmpty() {
-        assertThat(classifier.classifyByKeyword("", Map.of(), null)).isEmpty();
-        assertThat(classifier.classifyByKeyword(null, Map.of(), null)).isEmpty();
+        assertThat(classifier.classifyByKeyword("", Map.of(), null).activations()).isEmpty();
+        assertThat(classifier.classifyByKeyword(null, Map.of(), null).activations()).isEmpty();
     }
 
     @Test
     void rewardKeywordMatchesRewardNode() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "She was rewarded for her hard work and praised by the teacher",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         assertThat(result).anySatisfy(a -> {
             assertThat(a.nodeId()).isEqualTo("reward");
@@ -47,7 +47,7 @@ class RuleBasedSituationClassifierTest {
     void threatKeywordsMatchThreatNodes() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "He was attacked by a violent stranger who hurt him badly",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         assertThat(result).anySatisfy(a ->
             assertThat(a.nodeId()).isEqualTo("physical_threat"));
@@ -57,7 +57,7 @@ class RuleBasedSituationClassifierTest {
     void multiWordKeywordsMatch() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "She felt left out and ostracized by her peers",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         assertThat(result).anySatisfy(a ->
             assertThat(a.nodeId()).isEqualTo("exclusion"));
@@ -67,7 +67,7 @@ class RuleBasedSituationClassifierTest {
     void multipleNodesCanActivate() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "He was rejected and abandoned by his family, left alone and deserted",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         List<String> nodeIds = result.stream()
             .map(SituationActivation::nodeId).toList();
@@ -78,7 +78,7 @@ class RuleBasedSituationClassifierTest {
     void lowConfidenceFilteredOut() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "The weather was nice today and the sun was shining",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         assertThat(result).isEmpty();
     }
@@ -87,7 +87,7 @@ class RuleBasedSituationClassifierTest {
     void attachmentKeywordsMatch() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "A warm, nurturing and caring environment with consistent, reliable support",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         assertThat(result).anySatisfy(a ->
             assertThat(a.nodeId()).isEqualTo("secure_attachment"));
@@ -97,7 +97,7 @@ class RuleBasedSituationClassifierTest {
     void autonomyKeywordsMatch() {
         List<SituationActivation> result = classifier.classifyByKeyword(
             "She felt powerless, trapped, and helpless with no control over the situation",
-            Map.of(), null);
+            Map.of(), null).activations();
 
         assertThat(result).anySatisfy(a ->
             assertThat(a.nodeId()).isEqualTo("powerlessness"));
@@ -107,7 +107,7 @@ class RuleBasedSituationClassifierTest {
     void strongVocabularyTermProducesHighConfidence() {
         List<SituationActivation> result = classifier.classifyByKeyword(
                 "He was attacked violently and felt threatened",
-                Map.of(), null);
+                Map.of(), null).activations();
 
         var threat = result.stream()
                            .filter(a -> a.nodeId().equals("physical_threat"))
@@ -119,9 +119,9 @@ class RuleBasedSituationClassifierTest {
     @Test
     void multipleMatchesBoostConfidence() {
         List<SituationActivation> singleMatch = classifier.classifyByKeyword(
-                "She was rewarded", Map.of(), null);
+                "She was rewarded", Map.of(), null).activations();
         List<SituationActivation> multiMatch = classifier.classifyByKeyword(
-                "She was rewarded and praised, and earned a bonus", Map.of(), null);
+                "She was rewarded and praised, and earned a bonus", Map.of(), null).activations();
 
         double singleConf = singleMatch.stream()
                                        .filter(a -> a.nodeId().equals("reward"))
@@ -137,7 +137,7 @@ class RuleBasedSituationClassifierTest {
     void scenarioEvent_rivalFailure_activatesDominanceAndFailure() {
         List<SituationActivation> result = classifier.classifyByKeyword(
                 "The rival's scheme collapsed spectacularly — they stumbled and failed in front of everyone, humiliated and defeated",
-                Map.of(), null);
+                Map.of(), null).activations();
 
         List<String> nodeIds = result.stream().map(SituationActivation::nodeId).toList();
         assertThat(nodeIds).contains("failure", "dominance");
@@ -147,7 +147,7 @@ class RuleBasedSituationClassifierTest {
     void scenarioEvent_helpingOthers_activatesAcceptanceAndSharing() {
         List<SituationActivation> result = classifier.classifyByKeyword(
                 "She helped the newcomer feel welcomed and included, sharing what she had",
-                Map.of(), null);
+                Map.of(), null).activations();
 
         List<String> nodeIds = result.stream().map(SituationActivation::nodeId).toList();
         assertThat(nodeIds).contains("acceptance", "sharing");
@@ -157,7 +157,7 @@ class RuleBasedSituationClassifierTest {
     void scenarioEvent_competitionAndRecognition_activatesMultipleNodes() {
         List<SituationActivation> result = classifier.classifyByKeyword(
                 "His clever scheme outwitted the rival and everyone praised his brilliant plan",
-                Map.of(), null);
+                Map.of(), null).activations();
 
         List<String> nodeIds = result.stream().map(SituationActivation::nodeId).toList();
         assertThat(nodeIds).contains("competence_recognition", "competition");

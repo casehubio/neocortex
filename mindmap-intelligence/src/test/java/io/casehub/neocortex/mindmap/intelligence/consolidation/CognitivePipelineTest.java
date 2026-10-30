@@ -1,5 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 
@@ -56,7 +57,7 @@ class CognitivePipelineTest {
         mindMapStore = new InMemoryMindMapStore();
         capsEngine = new BehavioralSynthesisPhaseTest.StubCapsEngine();
         classifier = (desc, meta, ctx) ->
-            List.of(new SituationActivation("reward", 0.8));
+            new ClassificationResult(List.of(new SituationActivation("reward", 0.8)));
     }
 
     private String storeFormativeMemory(String agentId, String description,

@@ -3,6 +3,7 @@ package io.casehub.neocortex.caps.engine;
 import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationClassifier;
@@ -22,21 +23,17 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
     }
 
     @Override
-    public List<SituationActivation> classify(String description,
-                                              Map<String, String> metadata,
-                                              ClassificationContext context) {
-        // Keyword matching misclassifies narrative text: "bullied" maps to dominance
-        // (the problem described), not acceptance (the gallant response). Produces
-        // wrong DriveProfileInferred inputs that actively break appraisal filtering.
-        // No-op until NLP pipeline (#587) provides a viable path.
-        return List.of();
+    public ClassificationResult classify(String description,
+                                          Map<String, String> metadata,
+                                          ClassificationContext context) {
+        return new ClassificationResult(List.of());
     }
 
     @SuppressWarnings("unused") // preserved for future NLP pipeline (#587)
-    public List<SituationActivation> classifyByKeyword(String description,
-                                                Map<String, String> metadata,
-                                                ClassificationContext context) {
-        if (description == null || description.isBlank()) {return List.of();}
+    public ClassificationResult classifyByKeyword(String description,
+                                                   Map<String, String> metadata,
+                                                   ClassificationContext context) {
+        if (description == null || description.isBlank()) {return new ClassificationResult(List.of());}
 
         String   lower  = description.toLowerCase();
         String[] tokens = lower.split("\\W+");
@@ -75,7 +72,7 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
             }
         }
 
-        return List.copyOf(activations);
+        return new ClassificationResult(List.copyOf(activations));
     }
 
     private boolean containsKeyword(String[] tokens, String fullText, String keyword) {

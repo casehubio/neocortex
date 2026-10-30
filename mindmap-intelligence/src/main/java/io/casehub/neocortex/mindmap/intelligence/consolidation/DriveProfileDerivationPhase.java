@@ -184,10 +184,10 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                     if (classifier != null) {
                         futures.add(classifyExecutor.submit(() -> {
                             try {
-                                List<SituationActivation> activations = classifier.classify(
+                                var classResult = classifier.classify(
                                         episodeText, discriminationMeta,
                                         ClassificationContext.of(tenantId));
-                                for (SituationActivation sa : activations) {
+                                for (SituationActivation sa : classResult.activations()) {
                                     inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                                 }
                             } catch (Exception e) {
@@ -202,10 +202,10 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                 if (classifier != null && description != null && !description.isBlank()) {
                     futures.add(classifyExecutor.submit(() -> {
                         try {
-                            List<SituationActivation> descActivations = classifier.classify(
+                            var descResult = classifier.classify(
                                     description, discriminationMeta,
                                     ClassificationContext.of(tenantId));
-                            for (SituationActivation sa : descActivations) {
+                            for (SituationActivation sa : descResult.activations()) {
                                 inputActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
                             }
                         } catch (Exception e) {

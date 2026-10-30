@@ -5,6 +5,7 @@ import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.NodeRange;
 import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightProvenance;
@@ -36,21 +37,21 @@ class DriveProfileDerivationPhaseTest {
 
         SituationClassifier classifier = (desc, meta, ctx) -> {
             if (desc.contains("knelt") || desc.contains("stranger")) {
-                return List.of(
+                return new ClassificationResult(List.of(
                     new SituationActivation("acceptance", 0.7),
-                    new SituationActivation("sharing", 0.5));
+                    new SituationActivation("sharing", 0.5)));
             }
             if (desc.contains("practised") || desc.contains("grade")) {
-                return List.of(
+                return new ClassificationResult(List.of(
                     new SituationActivation("mastery", 0.8),
-                    new SituationActivation("competence_recognition", 0.6));
+                    new SituationActivation("competence_recognition", 0.6)));
             }
             if (desc.contains("struggled") || desc.contains("helped")) {
-                return List.of(
+                return new ClassificationResult(List.of(
                     new SituationActivation("acceptance", 0.6),
-                    new SituationActivation("sharing", 0.7));
+                    new SituationActivation("sharing", 0.7)));
             }
-            return List.of();
+            return new ClassificationResult(List.of());
         };
 
         var topology = buildMinimalTopology();

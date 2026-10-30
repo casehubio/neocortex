@@ -1,6 +1,7 @@
 package io.casehub.neocortex.caps.engine;
 
 import io.casehub.neocortex.caps.ClassificationContext;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 
@@ -38,21 +39,22 @@ public class SubThoughtSituationDecorator implements SituationClassifier {
     }
 
     @Override
-    public List<SituationActivation> classify(String description, Map<String, String> metadata,
-                                              ClassificationContext context) {
-        List<SituationActivation> base = delegate.classify(description, metadata, context);
+    public ClassificationResult classify(String description, Map<String, String> metadata,
+                                          ClassificationContext context) {
+        ClassificationResult baseResult = delegate.classify(description, metadata, context);
         String cognitiveKind = metadata != null ? metadata.get("cognitiveKind") : null;
-        if (cognitiveKind == null) return base;
+        if (cognitiveKind == null) return baseResult;
 
         List<SituationActivation> extra = TYPE_ACTIVATIONS.getOrDefault(cognitiveKind, List.of());
-        if (extra.isEmpty()) return base;
+        if (extra.isEmpty()) return baseResult;
 
         var merged = new LinkedHashMap<String, Double>();
-        for (var a : base) merged.merge(a.nodeId(), a.confidence(), Math::max);
+        for (var a : baseResult.activations()) merged.merge(a.nodeId(), a.confidence(), Math::max);
         for (var a : extra) merged.merge(a.nodeId(), a.confidence(), Math::max);
 
-        return merged.entrySet().stream()
+        List<SituationActivation> mergedList = merged.entrySet().stream()
                 .map(e -> new SituationActivation(e.getKey(), e.getValue()))
                 .toList();
+        return new ClassificationResult(mergedList, baseResult.caseId());
     }
 }

@@ -5,10 +5,13 @@ import io.casehub.neocortex.caps.BehavioralAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.DriveCompetitionDetector;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognitive.EmotionType;
+import io.casehub.neocortex.memory.cbr.CbrOutcome;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -48,6 +51,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final double reinforcementBoostCap;
     private final int reinforcementScale;
     private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+    private final CbrRecordStore cbrRecordStore;
 
 
     @Inject
@@ -55,7 +59,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                     Instance<CapsEngine> capsEngine,
                                     Instance<SituationClassifier> classifier,
                                     Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry,
-                                    Instance<BehavioralSynthesisConfig> config) {
+                                    Instance<BehavioralSynthesisConfig> config,
+                                    Instance<CbrRecordStore> cbrRecordStore) {
         this.store            = store;
         this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
         this.classifier       = classifier.isResolvable() ? classifier.get() : null;
@@ -65,12 +70,21 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         this.emaRetention          = c != null ? c.emaRetention() : 0.5;
         this.reinforcementBoostCap = c != null ? c.reinforcementBoostCap() : 0.5;
         this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
+        this.cbrRecordStore        = cbrRecordStore.isResolvable() ? cbrRecordStore.get() : null;
     }
 
     BehavioralSynthesisPhase(MindMapStore store,
                              CapsEngine capsEngine,
                              SituationClassifier classifier,
                              int maxPerPass) {
+        this(store, capsEngine, classifier, maxPerPass, null);
+    }
+
+    BehavioralSynthesisPhase(MindMapStore store,
+                             CapsEngine capsEngine,
+                             SituationClassifier classifier,
+                             int maxPerPass,
+                             CbrRecordStore cbrRecordStore) {
         this.store                 = store;
         this.capsEngine            = capsEngine;
         this.classifier            = classifier;
@@ -79,6 +93,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         this.emaRetention          = 0.5;
         this.reinforcementBoostCap = 0.5;
         this.reinforcementScale    = 20;
+        this.cbrRecordStore        = cbrRecordStore;
     }
 
     @Override
@@ -116,16 +131,20 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             }
 
             var experienceActivations = new java.util.concurrent.ConcurrentHashMap<String, Double>();
+            var classificationCaseIds = new java.util.concurrent.ConcurrentHashMap<String, Boolean>();
 
             try (var classifyExecutor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
                 var classifyFutures = new java.util.ArrayList<java.util.concurrent.Future<?>>();
                 for (MindMapNode node : agentNodes) {
                     classifyFutures.add(classifyExecutor.submit(() -> {
-                        List<SituationActivation> activations = classifier.classify(
+                        ClassificationResult classResult = classifier.classify(
                             node.name(), nodeMetadata(node),
                             ClassificationContext.of(tenantId));
-                        for (SituationActivation sa : activations) {
+                        for (SituationActivation sa : classResult.activations()) {
                             experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
+                        }
+                        if (classResult.caseId() != null) {
+                            classificationCaseIds.put(classResult.caseId(), Boolean.TRUE);
                         }
                         return null;
                     }));
@@ -221,6 +240,19 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 }
 
                 capsEngine.saveState(updated);
+
+                if (cbrRecordStore != null && !classificationCaseIds.isEmpty()) {
+                    CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(
+                        result, java.time.Instant.now());
+                    for (String caseId : classificationCaseIds.keySet()) {
+                        try {
+                            cbrRecordStore.recordOutcome(caseId, outcome, tenantId);
+                        } catch (Exception e) {
+                            LOG.log(Level.FINE,
+                                "Failed to record outcome for case " + caseId, e);
+                        }
+                    }
+                }
 
                 for (MindMapNode node : agentNodes) {
                     store.updateNode(node.id(),
@@ -393,9 +425,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             } else if (classifier != null) {
                 String description = node.properties().get("description");
                 if (description == null || description.isBlank()) {continue;}
-                var activations = classifier.classify(description, Map.of(),
+                var classResult = classifier.classify(description, Map.of(),
                     ClassificationContext.of(tenantId));
-                for (var sa : activations) {
+                for (var sa : classResult.activations()) {
                     double scaled = sa.confidence() * intensity;
                     combinedActivations.merge(sa.nodeId(), scaled, Math::max);
                 }

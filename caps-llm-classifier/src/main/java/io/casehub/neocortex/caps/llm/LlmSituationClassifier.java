@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.ClassificationContext;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
@@ -47,11 +48,11 @@ public class LlmSituationClassifier implements SituationClassifier {
     }
 
     @Override
-    public List<SituationActivation> classify(String description,
-                                               Map<String, String> metadata,
-                                               ClassificationContext context) {
+    public ClassificationResult classify(String description,
+                                          Map<String, String> metadata,
+                                          ClassificationContext context) {
         if (description == null || description.isBlank()) {
-            return List.of();
+            return new ClassificationResult(List.of());
         }
 
         var sessionId = "classifier-" + java.util.UUID.randomUUID();
@@ -69,7 +70,7 @@ public class LlmSituationClassifier implements SituationClassifier {
                 .map(AgentEvent.TextDelta::text)
                 .collect(Collectors.joining());
 
-            return parseResponse(text);
+            return new ClassificationResult(parseResponse(text));
         } catch (Exception e) {
             throw new ClassificationException(
                 "LLM situation classification failed for: " +

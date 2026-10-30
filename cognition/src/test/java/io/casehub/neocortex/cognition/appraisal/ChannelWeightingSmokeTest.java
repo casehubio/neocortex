@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.appraisal;
 
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
@@ -110,7 +111,7 @@ class ChannelWeightingSmokeTest {
     }
 
     private String runScenario(String observation, List<SituationActivation> activations) {
-        SituationClassifier classifier = (desc, meta, ctx) -> activations;
+        SituationClassifier classifier = (desc, meta, ctx) -> new ClassificationResult(activations);
         var participant = buildParticipant(classifier);
         tickParticipant(participant, observation);
 

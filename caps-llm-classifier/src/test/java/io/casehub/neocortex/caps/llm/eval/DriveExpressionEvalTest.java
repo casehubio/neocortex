@@ -2,6 +2,7 @@ package io.casehub.neocortex.caps.llm.eval;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.engine.CapsTopologyLoader;
@@ -1001,7 +1002,7 @@ class DriveExpressionEvalTest {
                 results.add(new SituationActivation("mastery", 0.7));
                 results.add(new SituationActivation("competence_recognition", 0.5));
             }
-            return results;
+            return new ClassificationResult(results);
         };
 
         var builder = new CognitionObservationBuilder(agentId, tenant, store, null, classifier,
@@ -1055,7 +1056,7 @@ class DriveExpressionEvalTest {
             if (protectionAwareClassifier && (lower.contains("crash") || lower.contains("danger") || lower.contains("screams") || lower.contains("collapse") || lower.contains("threat") || lower.contains("hurt") || lower.contains("falling"))) {
                 results.add(new SituationActivation("physical_threat", 0.7));
             }
-            return results;
+            return new ClassificationResult(results);
         };
 
         var builder = new CognitionObservationBuilder(agentId, tenant, store, null, classifier,
