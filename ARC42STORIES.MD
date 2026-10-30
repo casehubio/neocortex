@@ -220,36 +220,36 @@ C4Container
   Rel(rag_expansion, fusion_api, "ScoreFusion for multi-query merge")
 
   Container_Boundary(b_memory_spi, "Layer: Memory SPI") {
-    Container(memory_api, "memory-api", "Pure Java", "CaseMemoryStore, DelegatingCaseMemoryStore, CbrCaseMemoryStore, DelegatingCbrCaseMemoryStore, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter SPIs")
-    Container(memory_testing, "memory-testing", "Pure Java", "CbrCaseMemoryStoreContractTest, InMemoryCbrRetrievalTracker")
+    Container(memory_api, "memory-api", "Pure Java", "CaseMemoryStore, DelegatingCaseMemoryStore, CbrRecordStore, DelegatingCbrRecordStore, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter SPIs")
+    Container(memory_testing, "memory-testing", "Pure Java", "CbrRecordStoreContractTest, InMemoryCbrRetrievalTracker")
   }
 
   Container_Boundary(b_memory_rt, "Layer: Memory Runtime") {
     Container(memory_core, "memory-core", "Pure Java", "EventRecorderCore — abstract base for typed event recording; ExperienceRecorderCore, EngagementRecorderCore, RelationshipProcessor, ReflectionOrchestratorCore")
-    Container(memory, "memory", "CDI library", "CaseEnrichmentDecorator, ErasureNotificationCaseMemoryStore (extends DelegatingCaseMemoryStore), OutcomeWeightingCbrCaseMemoryStore, TrustWeightedCbrCaseMemoryStore, ScopeDecayCbrCaseMemoryStore, TrendEnrichmentCbrCaseMemoryStore — decorator chain via @Priority")
-    Container(memory_cbr_inmem, "memory-cbr-inmem", "Pure Java", "InMemoryCbrCaseMemoryStore @Alternative — test stubs")
+    Container(memory, "memory", "CDI library", "CaseEnrichmentDecorator, ErasureNotificationCaseMemoryStore (extends DelegatingCaseMemoryStore), OutcomeWeightingCbrRecordStore, TrustWeightedCbrRecordStore, ScopeDecayCbrRecordStore, TrendEnrichmentCbrRecordStore — decorator chain via @Priority")
+    Container(memory_cbr_inmem, "memory-cbr-inmem", "Pure Java", "InMemoryCbrRecordStore @Alternative — test stubs")
   }
 
   Container_Boundary(b_memory_backends, "Layer: Memory Backends") {
-    Container(memory_qdrant, "memory-qdrant", "Qdrant gRPC", "ReactiveQdrantCbrCaseMemoryStore — payload filters, dense vector, SPLADE, BM25, hybrid fusion")
+    Container(memory_qdrant, "memory-qdrant", "Qdrant gRPC", "ReactiveQdrantCbrRecordStore — payload filters, dense vector, SPLADE, BM25, hybrid fusion")
     Container(memory_jpa, "memory-jpa", "JPA + Flyway", "JpaMemoryStore — PostgreSQL + FTS")
     Container(memory_sqlite, "memory-sqlite", "SQLite + HikariCP", "SqliteMemoryStore — FTS5 + WAL")
   }
 
   Container_Boundary(b_memory_decorators, "Layer: CBR Decorators") {
-    Container(memory_cbr_crossencoder, "memory-cbr-crossencoder", "CDI library", "Cross-encoder reranking @Decorator on CbrCaseMemoryStore")
+    Container(memory_cbr_crossencoder, "memory-cbr-crossencoder", "CDI library", "Cross-encoder reranking @Decorator on CbrRecordStore")
     Container(memory_cbr_tracking, "memory-cbr-tracking", "CDI library", "CbrRetrievalTracker, TrackingPlanAdapter, TrackingPlanEnsembleAnalyzer — retrieval traceability")
     Container(memory_cbr_embedding, "memory-cbr-embedding", "CDI library", "EmbeddingTextSimilarity — semantic text field cosine similarity")
   }
 
   Rel(memory_core, memory_api, "uses CaseMemoryStore SPI")
   Rel(memory, memory_core, "CDI wires ExperienceRecorderCore, EngagementRecorderCore")
-  Rel(memory, memory_api, "implements + decorates CbrCaseMemoryStore")
-  Rel(memory_qdrant, memory_api, "implements CbrCaseMemoryStore")
+  Rel(memory, memory_api, "implements + decorates CbrRecordStore")
+  Rel(memory_qdrant, memory_api, "implements CbrRecordStore")
   Rel(memory_qdrant, fusion_api, "ScoreFusion for hybrid retrieval")
-  Rel(memory_cbr_crossencoder, memory_api, "decorates CbrCaseMemoryStore")
+  Rel(memory_cbr_crossencoder, memory_api, "decorates CbrRecordStore")
   Rel(memory_cbr_crossencoder, inference_tasks, "uses CrossEncoderReranker")
-  Rel(memory_cbr_tracking, memory_api, "decorates CbrCaseMemoryStore")
+  Rel(memory_cbr_tracking, memory_api, "decorates CbrRecordStore")
   Rel(memory_cbr_embedding, memory_api, "implements LocalSimilarityFunction")
 ```
 
@@ -277,11 +277,11 @@ C4Container
 
 The CBR (Case-Based Reasoning) subsystem provides structured feature-vector similarity search over past cases. It spans four layers (L12–L15) with a clean SPI / backend / decorator separation.
 
-#### CbrCaseMemoryStore SPI and Backend Hierarchy
+#### CbrRecordStore SPI and Backend Hierarchy
 
 ```mermaid
 classDiagram
-    class CbrCaseMemoryStore {
+    class CbrRecordStore {
         <<interface>>
         +registerSchema(CbrFeatureSchema)
         +store(CbrCase, caseType, entityId, domain, tenantId, caseId, scope) String
@@ -292,27 +292,27 @@ classDiagram
         +purge(CbrRetentionPolicy) Integer
     }
 
-    class NoOpCbrCaseMemoryStore {
+    class NoOpCbrRecordStore {
         <<DefaultBean>>
         fallback — all ops no-op
     }
-    class InMemoryCbrCaseMemoryStore {
+    class InMemoryCbrRecordStore {
         <<Alternative Priority 2>>
         ConcurrentHashMap — tests
     }
-    class JpaCbrCaseMemoryStore {
+    class JpaCbrRecordStore {
         <<Alternative Priority 3>>
         PostgreSQL + Flyway
     }
-    class QdrantCbrCaseMemoryStore {
+    class QdrantCbrRecordStore {
         <<ApplicationScoped>>
         payload filters + dense + sparse + BM25
     }
 
-    CbrCaseMemoryStore <|.. NoOpCbrCaseMemoryStore
-    CbrCaseMemoryStore <|.. InMemoryCbrCaseMemoryStore
-    CbrCaseMemoryStore <|.. JpaCbrCaseMemoryStore
-    CbrCaseMemoryStore <|.. QdrantCbrCaseMemoryStore
+    CbrRecordStore <|.. NoOpCbrRecordStore
+    CbrRecordStore <|.. InMemoryCbrRecordStore
+    CbrRecordStore <|.. JpaCbrRecordStore
+    CbrRecordStore <|.. QdrantCbrRecordStore
 ```
 
 **Backend selection:** CDI `@Alternative` + `@Priority` ladder. Only one backend is active per deployment — the highest-priority alternative on the classpath wins. `NoOpCbrRecordStore` is `@DefaultBean` (fallback when no backend module is on the classpath).
@@ -895,8 +895,8 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 | L7 RAG Runtime | Med (dense/sparse split — dense uses searchText(), sparse uses text(), HybridCaseRetriever updated) |
 | L10 CRAG | Low (activation model retrofit — classpath-only → classpath + config) |
 | L11 Query Expansion | High (new module: QueryExpandingCaseRetriever decorator, ReactiveQueryExpandingCaseRetriever, LlmQueryExpander with multi-query, TemplateQueryExpander, StepBackQueryExpander, ExpansionConfig) |
-| L12 Memory SPI | High (new modules: memory-api CbrCaseMemoryStore SPI, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter, AgentTrustProvider SPIs; memory-testing contract tests) |
-| L13 Memory Runtime | High (new modules: memory CDI, OutcomeWeightingCbrCaseMemoryStore, TrustWeightedCbrCaseMemoryStore, ScopeDecayCbrCaseMemoryStore, TrendEnrichmentCbrCaseMemoryStore @Decorator chain; memory-cbr-inmem stubs) |
+| L12 Memory SPI | High (new modules: memory-api CbrRecordStore SPI, CbrQuery, CbrFeatureSchema, CbrSimilarityScorer, CbrOutcome, PlanAdapter, AgentTrustProvider SPIs; memory-testing contract tests) |
+| L13 Memory Runtime | High (new modules: memory CDI, OutcomeWeightingCbrRecordStore, TrustWeightedCbrRecordStore, ScopeDecayCbrRecordStore, TrendEnrichmentCbrRecordStore @Decorator chain; memory-cbr-inmem stubs) |
 | L14 Memory Backends | High (new modules: memory-qdrant Qdrant gRPC, memory-jpa PostgreSQL + FTS, memory-sqlite SQLite + FTS5) |
 | L15 CBR Decorators | High (new modules: memory-cbr-crossencoder reranking, memory-cbr-tracking retrieval traceability, memory-cbr-embedding semantic text similarity) |
 
@@ -910,13 +910,13 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 
 | Priority | Decorator | Concern |
 |----------|-----------|---------|
-| 90 | TrendEnrichmentCbrCaseMemoryStore | Derives trend features from TimeSeries fields |
-| 85 | ScopeDecayCbrCaseMemoryStore | Scope-distance score decay |
+| 90 | TrendEnrichmentCbrRecordStore | Derives trend features from TimeSeries fields |
+| 85 | ScopeDecayCbrRecordStore | Scope-distance score decay |
 | 75 | Cross-encoder reranking | Sigmoid-normalized CE re-scoring |
-| 65 | OutcomeWeightingCbrCaseMemoryStore | Modulates scores by case confidence |
-| 60 | TrustWeightedCbrCaseMemoryStore | Modulates scores by source trust authority |
+| 65 | OutcomeWeightingCbrRecordStore | Modulates scores by case confidence |
+| 60 | TrustWeightedCbrRecordStore | Modulates scores by source trust authority |
 | 50 | CBR retrieval tracking | Records retrieval events, fires CDI events |
-| 45 | ErasureNotificationCbrCaseMemoryStore | Fires CbrCasesErased CDI events after erasure |
+| 45 | ErasureNotificationCbrRecordStore | Fires CbrCasesErased CDI events after erasure |
 
 **Outcome learning (CBR Revise):** `CbrOutcome` records success/failure against retrieved cases. `recordOutcome()` on `CbrRecordStore` updates per-case confidence via exponential moving average (EMA, configurable learning rate). `OutcomeWeightingCbrRecordStore` uses confidence at retrieval time: `score * (1 - α + α * confidence)`.
 
