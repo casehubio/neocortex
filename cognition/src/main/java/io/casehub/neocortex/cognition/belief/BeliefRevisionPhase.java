@@ -1,5 +1,7 @@
 package io.casehub.neocortex.cognition.belief;
 
+import io.casehub.neocortex.annotation.EntityAnnotation;
+import io.casehub.neocortex.annotation.EntityAnnotationIndex;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -43,18 +45,27 @@ public class BeliefRevisionPhase implements ConsolidationPhase {
 
     private final MindMapStore mindMapStore;
     private final BeliefRevisionConfig config;
+    private final EntityAnnotationIndex annotationIndex;
     private volatile SessionPipeline sessionPipeline;
 
     @Inject
     public BeliefRevisionPhase(MindMapStore mindMapStore,
-                               Instance<BeliefRevisionConfig> config) {
+                               Instance<BeliefRevisionConfig> config,
+                               Instance<EntityAnnotationIndex> annotationIndex) {
         this(mindMapStore,
-             config.isResolvable() ? config.get() : BeliefRevisionConfig.defaults());
+             config.isResolvable() ? config.get() : BeliefRevisionConfig.defaults(),
+             annotationIndex.isResolvable() ? annotationIndex.get() : null);
     }
 
     BeliefRevisionPhase(MindMapStore mindMapStore, BeliefRevisionConfig config) {
+        this(mindMapStore, config, null);
+    }
+
+    BeliefRevisionPhase(MindMapStore mindMapStore, BeliefRevisionConfig config,
+                         EntityAnnotationIndex annotationIndex) {
         this.mindMapStore = mindMapStore;
         this.config = config;
+        this.annotationIndex = annotationIndex;
     }
 
     @Override

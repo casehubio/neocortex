@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
+import io.casehub.neocortex.annotation.EntityAnnotationIndex;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
@@ -40,6 +41,7 @@ public class MentalModelOrchestrator {
     private final MentalModelConfig config;
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
+    private final @Nullable EntityAnnotationIndex annotationIndex;
 
     private final ConcurrentHashMap<String, SubjectMentalState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -48,11 +50,23 @@ public class MentalModelOrchestrator {
                             MentalModelConfig config,
                             Clock clock,
                             @Nullable SessionPipeline sessionPipeline) {
+        this(modelMemory, config, clock, sessionPipeline, null);
+    }
+
+    public MentalModelOrchestrator(MentalModelMemory modelMemory,
+                            MentalModelConfig config,
+                            Clock clock,
+                            @Nullable SessionPipeline sessionPipeline,
+                            @Nullable EntityAnnotationIndex annotationIndex) {
         this.modelMemory = modelMemory;
         this.config = config;
         this.clock = clock;
         this.sessionPipeline = sessionPipeline;
+        this.annotationIndex = annotationIndex;
     }
+
+    @Nullable EntityAnnotationIndex annotationIndex() {return annotationIndex;}
+
 
     public void record(MentalStateSignal signal,
                        String agentId, String subjectId, String tenantId) {

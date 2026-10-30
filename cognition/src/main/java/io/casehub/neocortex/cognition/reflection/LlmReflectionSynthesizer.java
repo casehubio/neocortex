@@ -3,6 +3,8 @@ package io.casehub.neocortex.cognition.reflection;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.casehub.neocortex.annotation.EntityAnnotation;
+import io.casehub.neocortex.annotation.EntityAnnotationIndex;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
@@ -26,6 +28,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,12 +73,23 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
 
     private final Instance<SessionPipeline> pipelineInstance;
     private final Instance<CaseMemoryStore> storeInstance;
+    private final EntityAnnotationIndex annotationIndex;
 
     @Inject
     public LlmReflectionSynthesizer(Instance<SessionPipeline> pipelineInstance,
-                                     Instance<CaseMemoryStore> storeInstance) {
+                                     Instance<CaseMemoryStore> storeInstance,
+                                     Instance<EntityAnnotationIndex> annotationIndex) {
         this.pipelineInstance = pipelineInstance;
         this.storeInstance = storeInstance;
+        this.annotationIndex = annotationIndex.isResolvable() ? annotationIndex.get() : null;
+    }
+
+    LlmReflectionSynthesizer(Instance<SessionPipeline> pipelineInstance,
+                               Instance<CaseMemoryStore> storeInstance,
+                               EntityAnnotationIndex annotationIndex) {
+        this.pipelineInstance = pipelineInstance;
+        this.storeInstance = storeInstance;
+        this.annotationIndex = annotationIndex;
     }
 
     @Override
@@ -90,7 +105,7 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
         var trajectoryOutcomeIndex = buildTrajectoryOutcomeIndex(trajectories);
         var existingReflections = loadExistingReflections(agentId, tenantId);
 
-        String userPrompt = buildUserPrompt(trajectories, existingReflections);
+        String userPrompt = buildUserPrompt(trajectories, existingReflections, sources, tenantId);
 
         try {
             String llmResponse = invokeLlm(userPrompt);
@@ -167,7 +182,9 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
     }
 
     private String buildUserPrompt(List<Trajectory> trajectories,
-                                    List<String> existingReflections) {
+                                   List<String> existingReflections,
+                                   List<Memory> sources,
+                                   String tenantId) {
         var sb = new StringBuilder();
         sb.append("## Experience Trajectories\n\n");
 
@@ -183,19 +200,41 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
                     String eventType = mem.attributes().get(ExperienceAttributeKeys.EVENT_TYPE);
                     sb.append("- [").append(eventType != null ? eventType : "unknown")
                       .append("]");
-                    if (step.turnId() != null) sb.append(" (turn: ").append(step.turnId()).append(")");
+                    if (step.turnId() != null) {sb.append(" (turn: ").append(step.turnId()).append(")");}
                     sb.append(" ").append(mem.text());
 
                     String status = mem.attributes().get(ExperienceAttributeKeys.OUTCOME_STATUS);
-                    if (status != null) sb.append(" [status: ").append(status).append("]");
+                    if (status != null) {sb.append(" [status: ").append(status).append("]");}
 
                     String result = mem.attributes().get(ExperienceAttributeKeys.RESULT);
-                    if (result != null) sb.append(" [result: ").append(result).append("]");
+                    if (result != null) {sb.append(" [result: ").append(result).append("]");}
 
                     sb.append("\n");
                 }
             }
             sb.append("\n");
+        }
+
+        if (annotationIndex != null && !sources.isEmpty() && tenantId != null) {
+            Map<String, Set<String>> entityMentions = new LinkedHashMap<>();
+            for (var mem : sources) {
+                Set<String> entities = annotationIndex.distinctEntitiesInSource("memory", mem.memoryId(), tenantId);
+                for (String entityId : entities) {
+                    for (EntityAnnotation ann : annotationIndex.findByEntity(entityId, tenantId)) {
+                        entityMentions.computeIfAbsent(ann.mentionText(), k -> new LinkedHashSet<>())
+                                      .add(mem.memoryId());
+                    }
+                }
+            }
+            if (!entityMentions.isEmpty()) {
+                sb.append("## Entity Context\n\n");
+                sb.append("The following entities appear across the experiences:\n");
+                for (var entry : entityMentions.entrySet()) {
+                    sb.append("- **").append(entry.getKey()).append("** (mentioned in ")
+                      .append(entry.getValue().size()).append(" memories)\n");
+                }
+                sb.append("\n");
+            }
         }
 
         if (!existingReflections.isEmpty()) {
