@@ -131,7 +131,10 @@ public class CognitionDefaultBeans {
     @Produces
     @DefaultBean
     @Singleton
-    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy() {
+    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy(Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore) {
+        if (mindMapStore.isResolvable()) {
+            return new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
+        }
         return new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
     }
 
