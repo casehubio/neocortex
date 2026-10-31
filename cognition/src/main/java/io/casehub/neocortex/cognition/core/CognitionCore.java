@@ -195,7 +195,7 @@ private volatile @Nullable String lastTargetAgentId;
         this.narrative = narrative;
         this.goals = goals;
         this.memoryHygiene = memoryHygiene;
-        this.innerLife = innerLife;
+        this.innerLife = config.innerLifeEnabled() ? innerLife : null;
         this.config = config;
         this.mindMapStore = mindMapStore;
         this.needTierMapping = (needTierMappingProvider != null ? needTierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();

@@ -177,5 +177,27 @@ public class CognitionDefaultBeans {
         );
     }
 
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.goal.CrossAxisGoalEnricher crossAxisGoalEnricher() {
+        return (heuristicProposal, narrative, sourceTheme) -> heuristicProposal;
+    }
+
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.innerlife.CivilityConstraint civilityConstraint() {
+        return context -> new io.casehub.neocortex.cognition.innerlife.CivilityCheck.Permitted();
+    }
+
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.goal.GoalEscalationPolicy goalEscalationPolicy() {
+        return (proposal, context) -> new io.casehub.neocortex.cognition.goal.EscalationResult(
+                proposal.suggestedPriority(), "", "no-escalation");
+    }
+
 
 }

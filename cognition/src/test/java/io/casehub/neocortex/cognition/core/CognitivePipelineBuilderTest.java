@@ -227,5 +227,41 @@ class CognitivePipelineBuilderTest {
         assertThat(core).isNotNull();
     }
 
+    @Test
+    void innerLifeDisabledNullsOutOrchestrator() {
+        var config = CognitionConfig.all().with("innerLife", false);
+        var innerLifeOrch = new io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator(
+                null, java.util.List.of(),
+                io.casehub.neocortex.cognition.innerlife.InnerLifeConfig.defaults(),
+                drives, null);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .config(config)
+                                           .innerLife(innerLifeOrch)
+                                           .build();
+
+        assertThat(core.innerLife())
+                .as("innerLife() should be null when innerLifeEnabled=false")
+                .isNull();
+    }
+
+    @Test
+    void innerLifeEnabledPreservesOrchestrator() {
+        var config = CognitionConfig.all();
+        var innerLifeOrch = new io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator(
+                null, java.util.List.of(),
+                io.casehub.neocortex.cognition.innerlife.InnerLifeConfig.defaults(),
+                drives, null);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .config(config)
+                                           .innerLife(innerLifeOrch)
+                                           .build();
+
+        assertThat(core.innerLife())
+                .as("innerLife() should be set when innerLifeEnabled=true")
+                .isSameAs(innerLifeOrch);
+    }
+
 
 }
