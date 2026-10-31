@@ -31,7 +31,6 @@
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-annotation-api</artifactId>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
