@@ -1,6 +1,6 @@
 # Era 5: Relational Cognition — WHO Shapes What You Feel
 
-**Status:** ACTIVE — Barrett v5 pipeline validated across 8 scenarios, 2 characters, 3 forms, 4 conditions. All drives Q≥4 on Opus CLI. Comprehensive 8+8 cognitive instrument built. Ready for 300-tick eval.
+**Status:** COMPLETE — Barrett v5 pipeline validated across 8 scenarios, 2 characters, 3 forms, 4 conditions. All drives Q≥4 on Opus CLI. 300-tick eval completed (336 events). Conclusion: architecture, not tuning. Successor: ERA6 (cognitive memory architecture).
 
 The cognitive pipeline differentiates WHAT agents feel (Barrett four channels: body, attention, time, action readiness) and HOW they express it (drive descriptions, thinking-field calibration). Era 4 brought this to ceiling: quality 3.92, register 3.74, differentiation 3.74 — all exceeding V2 prose baseline on aggregate metrics.
 
