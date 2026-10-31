@@ -131,11 +131,19 @@ public class CognitionDefaultBeans {
     @Produces
     @DefaultBean
     @Singleton
-    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy(Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore) {
+    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy(
+            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore,
+            Instance<io.casehub.neocortex.annotation.EntityAnnotationIndex> annotationIndex) {
+        io.casehub.neocortex.cognition.appraisal.SalienceStrategy base;
         if (mindMapStore.isResolvable()) {
-            return new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
+            base = new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
+        } else {
+            base = new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
         }
-        return new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
+        if (annotationIndex.isResolvable()) {
+            return new io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy(base, annotationIndex.get());
+        }
+        return base;
     }
 
     @Produces
