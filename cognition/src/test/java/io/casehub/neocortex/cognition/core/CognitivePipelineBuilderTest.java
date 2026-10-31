@@ -206,5 +206,26 @@ class CognitivePipelineBuilderTest {
                 .isFalse();
     }
 
+    @Test
+    void buildWithGoalEmotionMoodBridgeAndCognitiveGoalOrchestratorWiresThem() {
+        var                                        mindMapStore = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var                                        memoryStore  = createMemoryStore();
+        io.casehub.neocortex.mindmap.GoalAppraisal appraisal    = (goal, ctx) -> java.util.List.of();
+        var goalOrchestrator = new io.casehub.neocortex.cognition.goal.CognitiveGoalOrchestrator(
+                mindMapStore, appraisal, memoryStore,
+                io.casehub.neocortex.cognition.goal.CognitiveGoalConfig.defaults(),
+                (a, t) -> new io.casehub.neocortex.cognitive.PadProjection(0, 0, 0),
+                java.time.Clock.systemUTC());
+        var bridge = new io.casehub.neocortex.cognition.mood.GoalEmotionMoodBridge(
+                goalOrchestrator, mood);
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .cognitiveGoalOrchestrator(goalOrchestrator)
+                                           .goalEmotionMoodBridge(bridge)
+                                           .build();
+
+        assertThat(core).isNotNull();
+    }
+
 
 }

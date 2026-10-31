@@ -72,6 +72,8 @@ public final class CognitivePipelineBuilder {
     private @Nullable TermNormalizer driveGoalBridgeTermNormalizer;
     private           io.casehub.neocortex.cognitive.index.@Nullable CognitiveProfile cognitiveProfile;
     private           io.casehub.neocortex.cognitive.index.@Nullable DomainActivation domainActivation;
+    private           io.casehub.neocortex.cognition.goal.@org.jspecify.annotations.Nullable CognitiveGoalOrchestrator cognitiveGoalOrchestrator;
+    private           io.casehub.neocortex.cognition.mood.@org.jspecify.annotations.Nullable GoalEmotionMoodBridge     goalEmotionMoodBridge;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -205,6 +207,16 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder cognitiveGoalOrchestrator(io.casehub.neocortex.cognition.goal.@org.jspecify.annotations.Nullable CognitiveGoalOrchestrator cognitiveGoalOrchestrator) {
+        this.cognitiveGoalOrchestrator = cognitiveGoalOrchestrator;
+        return this;
+    }
+
+    public CognitivePipelineBuilder goalEmotionMoodBridge(io.casehub.neocortex.cognition.mood.@org.jspecify.annotations.Nullable GoalEmotionMoodBridge goalEmotionMoodBridge) {
+        this.goalEmotionMoodBridge = goalEmotionMoodBridge;
+        return this;
+    }
+
 
     public CognitionCore build() {
         var core = new CognitionCore(
@@ -235,6 +247,12 @@ public final class CognitivePipelineBuilder {
         }
         if (domainActivation != null) {
             core.configureDomainActivation(domainActivation);
+        }
+        if (cognitiveGoalOrchestrator != null) {
+            core.configureCognitiveGoalOrchestrator(cognitiveGoalOrchestrator);
+        }
+        if (goalEmotionMoodBridge != null) {
+            core.configureGoalEmotionMoodBridge(goalEmotionMoodBridge);
         }
 
         return core;

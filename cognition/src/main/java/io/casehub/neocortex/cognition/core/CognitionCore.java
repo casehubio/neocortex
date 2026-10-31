@@ -776,6 +776,14 @@ public @Nullable String lastTargetAgentId() {
         });
     }
 
+    public void configureCognitiveGoalOrchestrator(io.casehub.neocortex.cognition.goal.CognitiveGoalOrchestrator orchestrator) {
+        addParticipant(CognitionPhase.TERMINAL, orchestrator);
+    }
+
+    public void configureGoalEmotionMoodBridge(io.casehub.neocortex.cognition.mood.GoalEmotionMoodBridge bridge) {
+        addParticipant(CognitionPhase.TERMINAL, bridge);
+    }
+
 
     /**
      * Sets the cognitive defaults registry. When set, CognitionCore auto-configures:
