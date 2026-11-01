@@ -238,19 +238,46 @@ public class CognitionDefaultBeans {
     @Singleton
     io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever cognitiveMemoryRetriever(
             Instance<io.casehub.neocortex.memory.CaseMemoryStore> memoryStore,
-            io.casehub.neocortex.cognitive.index.RetrievalModulationConfig config) {
+            io.casehub.neocortex.cognitive.index.RetrievalModulationConfig config,
+            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore,
+            Instance<io.casehub.neocortex.annotation.EntityAnnotationIndex> annotationIndex) {
         if (!memoryStore.isResolvable()) {return null;}
-        var factors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
-        var now     = java.time.Instant.now();
+        var staticFactors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
+        var now = java.time.Instant.now();
         if (config.recencyEnabled()) {
-            factors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.recencyDecay(
+            staticFactors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.recencyDecay(
                     java.time.Duration.ofDays(config.recencyHalfLifeDays()), now));
         }
         if (config.confidenceEnabled()) {
-            factors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.confidenceWeight());
+            staticFactors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.confidenceWeight());
+        }
+        var contextualFactories = new java.util.ArrayList<io.casehub.neocortex.cognitive.index.ContextualModulationFactory<io.casehub.neocortex.memory.Memory>>();
+        if (config.moodCongruenceEnabled()) {
+            double weight = config.moodCongruenceWeight();
+            contextualFactories.add(ctx -> {
+                if (ctx.currentMood() == null) return null;
+                return io.casehub.neocortex.cognitive.index.ModulationFactors.moodCongruence(ctx.currentMood(), weight);
+            });
+        }
+        if (config.goalRelevanceEnabled() && mindMapStore.isResolvable()) {
+            var ms = mindMapStore.get();
+            contextualFactories.add(ctx -> new io.casehub.neocortex.cognitive.index.GoalRelevanceModulationFactor(ms, ctx.tenantId()));
+        }
+        if (config.domainEnabled()) {
+            contextualFactories.add(ctx -> {
+                if (ctx.personalityWeights() == null) return null;
+                return io.casehub.neocortex.cognitive.index.ModulationFactors.domainWeight(ctx.personalityWeights());
+            });
+        }
+        if (config.entityOverlapEnabled() && annotationIndex.isResolvable()) {
+            var ai = annotationIndex.get();
+            contextualFactories.add(ctx -> {
+                if (ctx.contextEntityNodeIds().isEmpty()) return null;
+                return new io.casehub.neocortex.cognitive.index.EntityOverlapModulationFactor(ai, ctx.tenantId(), ctx.contextEntityNodeIds());
+            });
         }
         return new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
-                memoryStore.get(), factors);
+                memoryStore.get(), staticFactors, contextualFactories);
     }
 
 
