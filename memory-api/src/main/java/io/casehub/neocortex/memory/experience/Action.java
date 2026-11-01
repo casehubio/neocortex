@@ -12,7 +12,9 @@ public record Action(
         Instant timestamp, String description,
         Double confidence,
         Map<String, String> metadata,
-        String capability
+        String capability,
+        String room,
+        String targetAgent
 ) implements ExperienceEvent {
     public Action {
         if (timestamp == null) timestamp = Instant.now();
@@ -24,5 +26,12 @@ public record Action(
         metadata = Map.copyOf(metadata);
         if (confidence != null && (confidence < 0.0 || confidence > 1.0))
             throw new IllegalArgumentException("confidence must be in [0, 1], got " + confidence);
+    }
+
+    public Action(String agentId, String tenantId, String caseId, String turnId,
+                  Instant timestamp, String description, Double confidence,
+                  Map<String, String> metadata, String capability) {
+        this(agentId, tenantId, caseId, turnId, timestamp, description, confidence,
+             metadata, capability, null, null);
     }
 }

@@ -9,6 +9,7 @@ public final class ExperienceAttributeKeys {
     public static final String CAPABILITY = "capability";
     public static final String RESULT = "result";
     public static final String TARGET_AGENT = "target-agent";
+    public static final String ROOM = "room";
     public static final String SOURCE_CHANNEL = "source-channel";
     public static final String OUTCOME_STATUS = "outcome-status";
 

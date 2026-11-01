@@ -41,6 +41,14 @@ public final class ExperienceEvents {
                     reserved.add(ExperienceAttributeKeys.CAPABILITY);
                     attrs.put(ExperienceAttributeKeys.CAPABILITY, a.capability());
                 }
+                if (a.room() != null) {
+                    reserved.add(ExperienceAttributeKeys.ROOM);
+                    attrs.put(ExperienceAttributeKeys.ROOM, a.room());
+                }
+                if (a.targetAgent() != null) {
+                    reserved.add(ExperienceAttributeKeys.TARGET_AGENT);
+                    attrs.put(ExperienceAttributeKeys.TARGET_AGENT, a.targetAgent());
+                }
             }
             case Outcome o -> {
                 reserved.add(ExperienceAttributeKeys.RESULT);
