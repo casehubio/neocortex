@@ -66,6 +66,7 @@ public class StrategyLearningOrchestrator {
     private final StrategyLearningConfig config;
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
+    private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
 
     private final ConcurrentHashMap<String, AgentLearningState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -74,12 +75,22 @@ public class StrategyLearningOrchestrator {
                                  ReflectionOrchestrator reflectionOrchestrator,
                                  StrategyLearningConfig config,
                                  Clock clock,
-                                 @Nullable SessionPipeline sessionPipeline) {
+                                 @Nullable SessionPipeline sessionPipeline,
+                                 io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever) {
         this.strategyMemory         = strategyMemory;
         this.reflectionOrchestrator = reflectionOrchestrator;
         this.config                 = config;
         this.clock                  = clock;
         this.sessionPipeline        = sessionPipeline;
+        this.memoryRetriever        = memoryRetriever;
+    }
+
+    public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
+                                 ReflectionOrchestrator reflectionOrchestrator,
+                                 StrategyLearningConfig config,
+                                 Clock clock,
+                                 @Nullable SessionPipeline sessionPipeline) {
+        this(strategyMemory, reflectionOrchestrator, config, clock, sessionPipeline, null);
     }
 
     public void record(EngagementSignal signal, String agentId,
@@ -254,7 +265,7 @@ public class StrategyLearningOrchestrator {
 
             TrendProfile trends            = analyzeTrends(cases);
             var          perSubjectSummary = summarizePerSubject(cases);
-            var          userPrompt        = buildReflectionPrompt(profile, trends, List.of(), perSubjectSummary);
+            var          userPrompt        = buildReflectionPrompt(profile, trends, List.of(), perSubjectSummary, agentId, tenantId);
 
             String llmResponse = invokeText(systemPrompt(), userPrompt);
             if (llmResponse == null) {
@@ -416,7 +427,7 @@ public class StrategyLearningOrchestrator {
         }
 
         var perSubjectSummary = summarizePerSubject(cases);
-        var userPrompt        = buildReflectionPrompt(profile, trends, reflections, perSubjectSummary);
+        var userPrompt        = buildReflectionPrompt(profile, trends, reflections, perSubjectSummary, agentId, tenantId);
 
         String llmResponse = invokeText(systemPrompt(), userPrompt);
         if (llmResponse == null) {
@@ -483,7 +494,8 @@ public class StrategyLearningOrchestrator {
     }
 
     private String buildReflectionPrompt(StrategyProfile profile, TrendProfile trends,
-                                          List<String> reflections, String perSubjectSummary) {
+                                          List<String> reflections, String perSubjectSummary,
+                                          String agentId, String tenantId) {
         var sb = new StringBuilder();
         sb.append("Current strategy dimensions:\n");
         for (var dim : profile.dimensions().entrySet()) {
@@ -519,6 +531,20 @@ public class StrategyLearningOrchestrator {
 
         sb.append("\nPer-subject engagement patterns:\n");
         sb.append(perSubjectSummary.isEmpty() ? "  None\n" : perSubjectSummary);
+
+        if (memoryRetriever != null) {
+            var memories = memoryRetriever.query(
+                    io.casehub.neocortex.memory.experience.ExperienceQuery.forAgent(agentId, tenantId).withLimit(5));
+            if (!memories.isEmpty()) {
+                sb.append("\nRelevant experience memories:\n");
+                for (var m : memories) {
+                    var text = m.text();
+                    if (text != null && !text.isBlank()) {
+                        sb.append("  - ").append(text.length() > 120 ? text.substring(0, 120) : text).append("\n");
+                    }
+                }
+            }
+        }
 
         sb.append(String.format("\nProvide up to %d ranked guidelines and dimensional deltas.",
                 config.maxGuidelines()));
