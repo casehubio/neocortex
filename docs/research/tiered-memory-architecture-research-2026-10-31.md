@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-31
 **Issue:** casehubio/neocortex#737
-**Status:** Research complete, empirical validation next
+**Status:** Research complete, Phase 3 implemented (2026-11-01), empirical validation next
 
 ## Context
 
@@ -120,17 +120,17 @@ Both are real. Sleep reset has time and a clean boundary. Context reset has neit
 
 ## Gap Summary
 
-| Gap | Severity | Notes |
-|-----|----------|-------|
-| Experience recording too thin | High | One-line descriptions, no entity extraction |
-| Per-prompt rendering not persisted | High | Already computing tiered summaries, throwing them away |
-| Narrator summaries not stored | Medium | Already doing async LLM summarisation, discarding output |
-| No transcript persistence | High | Full observation text consumed and discarded |
-| No content condensation phase | High | CommunitySummaryPhase is the skeleton, needs LLM |
-| No condensation chain (condensed-from edges) | High | No tiered versioning, no chain links |
-| No persistent entity index | Medium | Sub-thought graduation builds per-run accumulation only |
-| LevelEvent entity-blind | Medium | No speaker/room/entity fields on summarisation events |
-| No context reset injection | High | New capability, builds from stored memories |
+| Gap | Severity | Status (2026-11-01) |
+|-----|----------|-----|
+| Experience recording too thin | High | FIXED (#739) — room + targetAgent as first-class fields |
+| Per-prompt rendering not persisted | High | FIXED (#191) — ACTIVITY nodes in MindMap |
+| Narrator summaries not stored | Medium | FIXED (#192) — narrator-summaries subgraph |
+| No transcript persistence | High | FIXED — TranscriptStore → ZipCorpusStore (corpus ZIP chain) |
+| No content condensation phase | High | PARTIAL — ObservationCompactionPhase (mechanical concat, not LLM condensation) |
+| No condensation chain (condensed-from edges) | High | OPEN — Phase 3 uses erase-and-replace; linked tiers are Phase 4 |
+| No persistent entity index | Medium | OPEN — per-run accumulation only |
+| LevelEvent entity-blind | Medium | OPEN — no speaker/room/entity fields |
+| No context reset injection | High | FIXED — ObservationSegmentCache → "What You've Experienced" section |
 
 ## Literature Grounding
 
@@ -173,9 +173,16 @@ Both are real. Sleep reset has time and a clean boundary. Context reset has neit
 
 ## Next Steps
 
-1. **Empirical test** — run a scenario with existing infrastructure, trigger context reset, observe what the character gets. Find real gaps vs assumed ones.
-2. **Gap roadmap** — informed by test results, prioritize the gaps from the table above.
-3. **Design spec** — module-by-module design for the gaps that matter, grounded in test findings and literature.
+1. **Empirical validation** — run 100+ tick GENERIC scenario with context resets at 80k threshold. Measure body vocabulary stability, segment cache injection quality, transcript archive integrity.
+2. **Clear threshold experiment** — same scenario at 40k/60k/80k/120k thresholds. Find the "knee" where instruction effectiveness drops sharply. Measure cache hit rate at each threshold.
+3. **Register conflict assessment** — does factual segment cache text ("You were in the Library") contaminate Barrett instruction effectiveness? May need character-voice cache generation.
+4. **Phase 4 design** — condensation chain with linked tiers (condensed-from edges), persistent entity index, ACT-R decay, reconstructive recall via sub-agents.
+
+## Implementation Notes (2026-11-01)
+
+**Three-way tension:** Context window clear threshold is a three-way optimisation — instruction adherence (wants short context), narrative continuity (wants long context), prompt caching (wants stable prefix). The three-layer architecture resolves all three: stable system prompt + slowly-changing segment cache form a cacheable prefix; variable per-tick observation is small and sits at the end; instructions stay near generation point; continuity lives in memory architecture not conversation history.
+
+**Hypothesis:** The optimal clear point is at the "knee" where instruction effectiveness drops sharply — not at the maximum context size and not at an arbitrary fixed threshold. This is an empirical question that requires controlled experimentation.
 
 ## Design Principles
 
