@@ -96,6 +96,71 @@ class CognitiveMemoryRetrieverTest {
         assertThat(ctx.contextEntityNodeIds()).hasSize(2);
     }
 
+    @Test
+    void contextualMoodFactorChangesOrdering() {
+        var happy = memory("m1", NOW, Confidence.unknown(1.0), 0.8, 0.3, 0.5);
+        var sad   = memory("m2", NOW, Confidence.unknown(1.0), -0.7, -0.2, -0.3);
+
+        ContextualModulationFactory<Memory> moodFactory = ctx -> {
+            if (ctx.currentMood() == null) {return (item, profile) -> 1.0;}
+            return ModulationFactors.moodCongruence(ctx.currentMood(), 0.5);
+        };
+
+        var retriever = new CognitiveMemoryRetriever(
+                stubStore(List.of(happy, sad)),
+                List.of(),
+                List.of(moodFactory));
+
+        var happyCtx = new ModulationContext(null, "t1",
+                                             new io.casehub.neocortex.memory.mood.MoodState("a1", "t1", Instant.now(), 0.8, 0.3, 0.5, "test", null, Set.of(), Map.of()), null, null);
+        var results = retriever.query(query(), happyCtx);
+
+        assertThat(results).extracting(Memory::memoryId)
+                           .containsExactly("m1", "m2");
+    }
+
+    @Test
+    void nullMoodSkipsContextualFactor() {
+        var m1 = memory("m1", NOW, Confidence.unknown(1.0));
+        var m2 = memory("m2", NOW, Confidence.unknown(1.0));
+
+        ContextualModulationFactory<Memory> moodFactory = ctx -> {
+            if (ctx.currentMood() == null) {return null;}
+            return ModulationFactors.moodCongruence(ctx.currentMood(), 0.5);
+        };
+
+        var retriever = new CognitiveMemoryRetriever(
+                stubStore(List.of(m1, m2)),
+                List.of(),
+                List.of(moodFactory));
+
+        var noMoodCtx = new ModulationContext(null, "t1", null, null, null);
+        var results   = retriever.query(query(), noMoodCtx);
+
+        assertThat(results).extracting(Memory::memoryId)
+                           .containsExactly("m1", "m2");
+    }
+
+    @Test
+    void staticAndContextualFactorsCompose() {
+        var oldHighConf   = memory("m1", NOW.minus(30, ChronoUnit.DAYS), Confidence.unknown(0.9));
+        var recentLowConf = memory("m2", NOW.minus(1, ChronoUnit.HOURS), Confidence.unknown(0.2));
+
+        ContextualModulationFactory<Memory> neutralFactory = ctx ->
+                                                                     (item, profile) -> 1.0;
+
+        var retriever = new CognitiveMemoryRetriever(
+                stubStore(List.of(oldHighConf, recentLowConf)),
+                List.of(ModulationFactors.recencyDecay(Duration.ofDays(7), NOW)),
+                List.of(neutralFactory));
+
+        var ctx     = new ModulationContext(null, "t1", null, null, null);
+        var results = retriever.query(query(), ctx);
+
+        assertThat(results).extracting(Memory::memoryId)
+                           .containsExactly("m2", "m1");
+    }
+
 
     private static MemoryQuery query() {
         return MemoryQuery.forSubject(SUBJECT, EXPERIENCE, "t1");
@@ -106,6 +171,17 @@ class CognitiveMemoryRetrieverTest {
         return new Memory(id, "e1", EXPERIENCE, "t1", null, "text-" + id,
                 Map.of(), createdAt, confidence, null, null, null);
     }
+
+    @SuppressWarnings("deprecation")
+    private static Memory memory(String id, Instant createdAt, Confidence confidence,
+                                 double pleasure, double arousal, double dominance) {
+        return new Memory(id, "e1", EXPERIENCE, "t1", null, "text-" + id,
+                          Map.of("pleasure", String.valueOf(pleasure),
+                                 "arousal", String.valueOf(arousal),
+                                 "dominance", String.valueOf(dominance)),
+                          createdAt, confidence, null, null, null);
+    }
+
 
     private static CaseMemoryStore stubStore(List<Memory> fixedResults) {
         return new CaseMemoryStore() {
