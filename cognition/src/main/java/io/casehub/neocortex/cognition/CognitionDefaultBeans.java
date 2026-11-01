@@ -210,5 +210,32 @@ public class CognitionDefaultBeans {
                 proposal.suggestedPriority(), "", "no-escalation");
     }
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognitive.index.RetrievalModulationConfig retrievalModulationConfig() {
+        return io.casehub.neocortex.cognitive.index.RetrievalModulationConfig.defaults();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever cognitiveMemoryRetriever(
+            Instance<io.casehub.neocortex.memory.CaseMemoryStore> memoryStore,
+            io.casehub.neocortex.cognitive.index.RetrievalModulationConfig config) {
+        if (!memoryStore.isResolvable()) {return null;}
+        var factors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
+        var now     = java.time.Instant.now();
+        if (config.recencyEnabled()) {
+            factors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.recencyDecay(
+                    java.time.Duration.ofDays(config.recencyHalfLifeDays()), now));
+        }
+        if (config.confidenceEnabled()) {
+            factors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.confidenceWeight());
+        }
+        return new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
+                memoryStore.get(), factors);
+    }
+
 
 }

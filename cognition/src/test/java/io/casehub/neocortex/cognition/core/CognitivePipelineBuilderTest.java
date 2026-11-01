@@ -228,6 +228,20 @@ class CognitivePipelineBuilderTest {
     }
 
     @Test
+    void buildWithCognitiveMemoryRetrieverWiresIt() {
+        var store = createMemoryStore();
+        var retriever = new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
+                store, java.util.List.of());
+
+        var core = CognitivePipelineBuilder.create(mood, drives)
+                                           .cognitiveMemoryRetriever(retriever)
+                                           .build();
+
+        assertThat(core.cognitiveMemoryRetriever()).isSameAs(retriever);
+    }
+
+
+    @Test
     void innerLifeDisabledNullsOutOrchestrator() {
         var config = CognitionConfig.all().with("innerLife", false);
         var innerLifeOrch = new io.casehub.neocortex.cognition.innerlife.InnerLifeOrchestrator(

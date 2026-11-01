@@ -74,6 +74,7 @@ public final class CognitivePipelineBuilder {
     private           io.casehub.neocortex.cognitive.index.@Nullable DomainActivation domainActivation;
     private           io.casehub.neocortex.cognition.goal.@org.jspecify.annotations.Nullable CognitiveGoalOrchestrator cognitiveGoalOrchestrator;
     private           io.casehub.neocortex.cognition.mood.@org.jspecify.annotations.Nullable GoalEmotionMoodBridge     goalEmotionMoodBridge;
+    private           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -217,6 +218,11 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder cognitiveMemoryRetriever(io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever) {
+        this.cognitiveMemoryRetriever = cognitiveMemoryRetriever;
+        return this;
+    }
+
 
     public CognitionCore build() {
         var core = new CognitionCore(
@@ -253,6 +259,9 @@ public final class CognitivePipelineBuilder {
         }
         if (goalEmotionMoodBridge != null) {
             core.configureGoalEmotionMoodBridge(goalEmotionMoodBridge);
+        }
+        if (cognitiveMemoryRetriever != null) {
+            core.configureCognitiveMemoryRetriever(cognitiveMemoryRetriever);
         }
 
         return core;

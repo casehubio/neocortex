@@ -130,6 +130,7 @@ public class CognitionCore {
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
     private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 private volatile @Nullable String lastTargetAgentId;
+private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -782,6 +783,14 @@ public @Nullable String lastTargetAgentId() {
 
     public void configureGoalEmotionMoodBridge(io.casehub.neocortex.cognition.mood.GoalEmotionMoodBridge bridge) {
         addParticipant(CognitionPhase.TERMINAL, bridge);
+    }
+
+    public void configureCognitiveMemoryRetriever(io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever retriever) {
+        this.cognitiveMemoryRetriever = retriever;
+    }
+
+    public io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever() {
+        return cognitiveMemoryRetriever;
     }
 
 
