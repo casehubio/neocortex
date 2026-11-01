@@ -213,8 +213,13 @@ public class CognitionDefaultBeans {
     @Produces
     @DefaultBean
     @Singleton
-    io.casehub.neocortex.cognitive.index.RetrievalModulationConfig retrievalModulationConfig() {
-        return io.casehub.neocortex.cognitive.index.RetrievalModulationConfig.defaults();
+    io.casehub.neocortex.cognitive.index.RetrievalModulationConfig retrievalModulationConfig(
+            RetrievalModulationProperties props) {
+        return new io.casehub.neocortex.cognitive.index.RetrievalModulationConfig(
+                props.recencyEnabled(), props.recencyHalfLifeDays(),
+                props.confidenceEnabled(), props.moodCongruenceEnabled(),
+                props.moodCongruenceWeight(), props.goalRelevanceEnabled(),
+                props.domainEnabled(), props.entityOverlapEnabled());
     }
 
     @Produces
