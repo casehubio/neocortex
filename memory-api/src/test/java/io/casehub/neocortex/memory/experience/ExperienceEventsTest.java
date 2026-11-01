@@ -100,4 +100,37 @@ class ExperienceEventsTest {
         MemoryInput input = ExperienceEvents.toMemoryInput(action);
         assertEquals("ok-here", input.attributes().get(ExperienceAttributeKeys.SUBJECT));
     }
+
+    @Test
+    void actionWithRoomAndTargetAgentPromotesToReservedAttributes() {
+        var action = new Action("a1", "t1", null, null, null, "moved to kitchen", null,
+                                Map.of(), "manor-action", "kitchen", "b1");
+        MemoryInput input = ExperienceEvents.toMemoryInput(action);
+        assertEquals("kitchen", input.attributes().get(ExperienceAttributeKeys.ROOM));
+        assertEquals("b1", input.attributes().get(ExperienceAttributeKeys.TARGET_AGENT));
+    }
+
+    @Test
+    void actionWithNullRoomAndTargetAgentOmitsKeys() {
+        var action = new Action("a1", "t1", null, null, null, "desc", null, Map.of(), null);
+        MemoryInput input = ExperienceEvents.toMemoryInput(action);
+        assertFalse(input.attributes().containsKey(ExperienceAttributeKeys.ROOM));
+        assertFalse(input.attributes().containsKey(ExperienceAttributeKeys.TARGET_AGENT));
+    }
+
+    @Test
+    void metadataCollisionOnRoomThrowsWhenFieldAlsoSet() {
+        var action = new Action("a1", "t1", null, null, null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.ROOM, "override"), null, "kitchen", null);
+        assertThrows(IllegalArgumentException.class, () ->
+            ExperienceEvents.toMemoryInput(action));
+    }
+
+    @Test
+    void legacyMetadataTargetAgentPassesThroughWhenFieldNull() {
+        var action = new Action("a1", "t1", null, null, null, "desc", null,
+                                Map.of(ExperienceAttributeKeys.TARGET_AGENT, "b1"), null);
+        MemoryInput input = ExperienceEvents.toMemoryInput(action);
+        assertEquals("b1", input.attributes().get(ExperienceAttributeKeys.TARGET_AGENT));
+    }
 }
