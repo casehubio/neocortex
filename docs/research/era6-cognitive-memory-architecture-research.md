@@ -1,6 +1,6 @@
 # Era 6: Cognitive Memory Architecture — Identity Across Context Boundaries
 
-**Status:** RESEARCH COMPLETE — empirical validation next
+**Status:** Phase 1 COMPLETE — bugs fixed, Phase 2 next
 
 Era 5 proved characters express personality convincingly within a context window. Era 6 proves they maintain coherent identity across context boundaries — context resets, sleep cycles, and long-running simulations where the LLM context fills and must be cleared.
 
@@ -38,19 +38,21 @@ Full architecture documented in `tiered-memory-architecture-research-2026-10-31.
 
 ## What Already Exists (Codebase Audit)
 
-| Component | Status | Gap |
-|-----------|--------|-----|
-| Per-prompt tiered rendering | Working | Not persisted |
-| Narrator async summarisation | Working | Not stored |
-| Sub-thought extraction | Working, entity-aware | Already good |
-| 10 consolidation phases | Working | No content condensation |
-| CommunitySummaryPhase | Working | Titles only, needs LLM content |
-| MergeDetectionPhase | Working | Already good |
-| Experience recording | Working | Too thin — one-line descriptions |
-| Transcript persistence | Missing | Full observation text discarded |
-| Condensation chain edges | Missing | No `condensed-from` links |
-| Persistent entity index | Missing | Per-run accumulation only |
-| Context reset injection | Missing | New capability |
+| Component | Status | Gap | Empirical |
+|-----------|--------|-----|-----------|
+| Per-prompt tiered rendering | Working | Not persisted | CONFIRMED — #191 |
+| Narrator async summarisation | Working | Not stored | CONFIRMED — #192 |
+| Sub-thought extraction | Working, entity-aware | Already good | CONFIRMED |
+| 10 consolidation phases | Working | No content condensation | CONFIRMED |
+| CommunitySummaryPhase | Working | Titles only, needs LLM content | CONFIRMED |
+| MergeDetectionPhase | Working | Already good | CONFIRMED |
+| Experience recording | Working | Domain mismatch + thin descriptions | FIXED (#738) + #739 |
+| Experience recall in scripted mode | Broken | null experienceService | FIXED (#189) |
+| Transcript persistence | Missing | Full observation text discarded | CONFIRMED |
+| Condensation chain edges | Missing | No `condensed-from` links | CONFIRMED |
+| Persistent entity index | Missing | Per-run accumulation only | CONFIRMED |
+| Context reset injection | Missing | New capability | CONFIRMED |
+| Node duplication | Bug | Cache/seed double-run | OPEN (#190) |
 
 ## Literature Grounding
 
@@ -65,11 +67,28 @@ Full architecture documented in `tiered-memory-architecture-research-2026-10-31.
 
 ## ERA6 Phases
 
-### Phase 1: Empirical test
-Run a scenario, snapshot memory state, assess what a character would know after context clear. Find real gaps vs assumed ones.
+### Phase 1: Empirical test — COMPLETE (2026-10-31)
+
+Ran 30-tick autonomous scenario with GENERIC profile, snapshotted full memory system state.
+
+**Key findings:**
+- Memory store is `InMemoryMemoryStore` (not NoOp) — transitive dependency provides it
+- 93 MindMap nodes seeded per character (drives, facets, attachment, needs, schemas, formation memories, CAPS, social overlays)
+- 31 new nodes earned at runtime in 30 ticks (drive adaptation, dialogue extraction, personality inference)
+- Formation memories DO graduate via ExperienceConsolidationPhase
+- All research doc gaps confirmed empirically
+
+**Bugs found and fixed:**
+- **#738 FIXED:** Domain mismatch — `ExperienceRecorderCore` stored in domain `"experience"`, `AgentExperienceService.recall()` queried domain `"manor"`. Memories accumulated but were invisible to recall. Fix: `MANOR_DOMAIN = ExperienceEvents.DOMAIN`.
+- **#189 FIXED:** Scripted mode passed `null` for `experienceService` to `CharacterAgentLoop`. Fix: wire the real service through `runScripted()`.
+- **#190 OPEN:** Node duplication from cache/seed interaction — cosmetic, lower priority.
+
+**Detailed results:** `examples/wacky-manor/docs/eval/era6-memory-snapshot/FINDINGS.md`
 
 ### Phase 2: Persist what's already computed
-Store per-prompt tiered rendering and narrator summaries as memory nodes. Enrich experience recording with entity references.
+- examples#191 — Persist tiered rendering output as MindMap nodes
+- examples#192 — Store narrator summaries as memory nodes
+- neocortex#739 — Enrich experience recording with entity references
 
 ### Phase 3: Condensation chain
 `condensed-from` edge type. Extend CommunitySummaryPhase with LLM condensation. Build context reset injection from stored memories.
@@ -79,7 +98,13 @@ Persistent entity index. ACT-R-based decay. Reconstructive recall via sub-agents
 
 ## Key Issues
 
-| Issue | Repo | Title |
-|:---:|------|-------|
-| #737 | neocortex | Three-tier context memory architecture |
-| #183 | examples | Context reset with async summariser |
+| Issue | Repo | Title | Status |
+|:---:|------|-------|--------|
+| #737 | neocortex | Three-tier context memory architecture | Phase 1 complete |
+| #738 | neocortex | Domain mismatch in experience recall | FIXED |
+| #739 | neocortex | Enrich experience recording with entity refs | Phase 2 |
+| #183 | examples | Context reset with async summariser | Phase 3 |
+| #189 | examples | Scripted mode null experienceService | FIXED |
+| #190 | examples | Node duplication from cache/seed | Open |
+| #191 | examples | Persist tiered rendering output | Phase 2 |
+| #192 | examples | Store narrator summaries | Phase 2 |
