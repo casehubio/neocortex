@@ -68,6 +68,12 @@ public class CognitionCoreFactory {
             Instance<io.casehub.neocortex.cognitive.index.CognitiveProfile> cognitiveProfile;
     @Inject
     Instance<io.casehub.neocortex.cognitive.index.DomainActivation> domainActivation;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.goal.CognitiveGoalOrchestrator> cognitiveGoalOrchestrator;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.mood.GoalEmotionMoodBridge>     goalEmotionMoodBridge;
+    @Inject
+    Instance<io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever> cognitiveMemoryRetriever;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -112,6 +118,15 @@ public class CognitionCoreFactory {
         }
         if (domainActivation.isResolvable()) {
             builder.domainActivation(domainActivation.get());
+        }
+        if (cognitiveGoalOrchestrator.isResolvable()) {
+            builder.cognitiveGoalOrchestrator(cognitiveGoalOrchestrator.get());
+        }
+        if (goalEmotionMoodBridge.isResolvable()) {
+            builder.goalEmotionMoodBridge(goalEmotionMoodBridge.get());
+        }
+        if (cognitiveMemoryRetriever.isResolvable()) {
+            builder.cognitiveMemoryRetriever(cognitiveMemoryRetriever.get());
         }
 
         return builder.build();

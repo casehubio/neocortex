@@ -131,8 +131,19 @@ public class CognitionDefaultBeans {
     @Produces
     @DefaultBean
     @Singleton
-    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy() {
-        return new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
+    io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy(
+            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore,
+            Instance<io.casehub.neocortex.annotation.EntityAnnotationIndex> annotationIndex) {
+        io.casehub.neocortex.cognition.appraisal.SalienceStrategy base;
+        if (mindMapStore.isResolvable()) {
+            base = new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
+        } else {
+            base = new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
+        }
+        if (annotationIndex.isResolvable()) {
+            return new io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy(base, annotationIndex.get());
+        }
+        return base;
     }
 
     @Produces
@@ -175,6 +186,55 @@ public class CognitionDefaultBeans {
                 mentalModel.isResolvable() ? mentalModel.get() : null,
                 resolver.isResolvable() ? resolver.get() : null
         );
+    }
+
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.goal.CrossAxisGoalEnricher crossAxisGoalEnricher() {
+        return (heuristicProposal, narrative, sourceTheme) -> heuristicProposal;
+    }
+
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.innerlife.CivilityConstraint civilityConstraint() {
+        return context -> new io.casehub.neocortex.cognition.innerlife.CivilityCheck.Permitted();
+    }
+
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.goal.GoalEscalationPolicy goalEscalationPolicy() {
+        return (proposal, context) -> new io.casehub.neocortex.cognition.goal.EscalationResult(
+                proposal.suggestedPriority(), "", "no-escalation");
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognitive.index.RetrievalModulationConfig retrievalModulationConfig() {
+        return io.casehub.neocortex.cognitive.index.RetrievalModulationConfig.defaults();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever cognitiveMemoryRetriever(
+            Instance<io.casehub.neocortex.memory.CaseMemoryStore> memoryStore,
+            io.casehub.neocortex.cognitive.index.RetrievalModulationConfig config) {
+        if (!memoryStore.isResolvable()) {return null;}
+        var factors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
+        var now     = java.time.Instant.now();
+        if (config.recencyEnabled()) {
+            factors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.recencyDecay(
+                    java.time.Duration.ofDays(config.recencyHalfLifeDays()), now));
+        }
+        if (config.confidenceEnabled()) {
+            factors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.confidenceWeight());
+        }
+        return new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
+                memoryStore.get(), factors);
     }
 
 

@@ -130,6 +130,7 @@ public class CognitionCore {
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
     private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 private volatile @Nullable String lastTargetAgentId;
+private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -195,7 +196,7 @@ private volatile @Nullable String lastTargetAgentId;
         this.narrative = narrative;
         this.goals = goals;
         this.memoryHygiene = memoryHygiene;
-        this.innerLife = innerLife;
+        this.innerLife = config.innerLifeEnabled() ? innerLife : null;
         this.config = config;
         this.mindMapStore = mindMapStore;
         this.needTierMapping = (needTierMappingProvider != null ? needTierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();
@@ -774,6 +775,22 @@ public @Nullable String lastTargetAgentId() {
             }
             return result;
         });
+    }
+
+    public void configureCognitiveGoalOrchestrator(io.casehub.neocortex.cognition.goal.CognitiveGoalOrchestrator orchestrator) {
+        addParticipant(CognitionPhase.TERMINAL, orchestrator);
+    }
+
+    public void configureGoalEmotionMoodBridge(io.casehub.neocortex.cognition.mood.GoalEmotionMoodBridge bridge) {
+        addParticipant(CognitionPhase.TERMINAL, bridge);
+    }
+
+    public void configureCognitiveMemoryRetriever(io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever retriever) {
+        this.cognitiveMemoryRetriever = retriever;
+    }
+
+    public io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever() {
+        return cognitiveMemoryRetriever;
     }
 
 

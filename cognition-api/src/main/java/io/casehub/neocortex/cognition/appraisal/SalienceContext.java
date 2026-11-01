@@ -10,11 +10,17 @@ public record SalienceContext(
         List<Drive> drives,
         MoodState moodState,
         List<Memory> activeConcerns,
-        List<Memory> recentExperiences) {
+        List<Memory> recentExperiences,
+        @org.jspecify.annotations.Nullable String tenantId) {
     public SalienceContext {
         Objects.requireNonNull(observation, "observation");
-        drives = drives != null ? List.copyOf(drives) : List.of();
-        activeConcerns = activeConcerns != null ? List.copyOf(activeConcerns) : List.of();
+        drives            = drives != null ? List.copyOf(drives) : List.of();
+        activeConcerns    = activeConcerns != null ? List.copyOf(activeConcerns) : List.of();
         recentExperiences = recentExperiences != null ? List.copyOf(recentExperiences) : List.of();
+    }
+
+    public SalienceContext(String observation, List<Drive> drives, MoodState moodState,
+                           List<Memory> activeConcerns, List<Memory> recentExperiences) {
+        this(observation, drives, moodState, activeConcerns, recentExperiences, null);
     }
 }

@@ -150,7 +150,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         PerceivedSituation situation;
         if (config.salienceEnabled() && observation != null) {
             situation = salienceStrategy.perceive(
-                    new SalienceContext(observation, drives, mood, activeConcerns, List.of()));
+                    new SalienceContext(observation, drives, mood, activeConcerns, List.of(), context.tenantId()));
         } else if (observation != null) {
             situation = PerceivedSituation.passThrough(observation);
         } else {
