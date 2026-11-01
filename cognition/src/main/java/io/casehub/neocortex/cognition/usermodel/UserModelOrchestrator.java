@@ -37,16 +37,25 @@ public class UserModelOrchestrator {
     private final UserProfileMemory profileMemory;
     private final UserModelConfig config;
     private final @Nullable SessionPipeline sessionPipeline;
+    private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
 
     private final ConcurrentHashMap<String, SubjectState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
 
     public UserModelOrchestrator(UserProfileMemory profileMemory,
                                  UserModelConfig config,
-                                 @Nullable SessionPipeline sessionPipeline) {
+                                 @Nullable SessionPipeline sessionPipeline,
+                                 io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever) {
         this.profileMemory = profileMemory;
         this.config = config;
         this.sessionPipeline = sessionPipeline;
+        this.memoryRetriever = memoryRetriever;
+    }
+
+    public UserModelOrchestrator(UserProfileMemory profileMemory,
+                                 UserModelConfig config,
+                                 @Nullable SessionPipeline sessionPipeline) {
+        this(profileMemory, config, sessionPipeline, null);
     }
 
     public void record(InteractionSignal signal,
@@ -301,6 +310,21 @@ public class UserModelOrchestrator {
                     previousTopics != null ? previousTopics : "not yet assessed",
                     previousPrefs != null ? previousPrefs : "not yet assessed",
                     lines.length, recentText);
+
+            if (memoryRetriever != null) {
+                var memories = memoryRetriever.query(
+                        io.casehub.neocortex.memory.experience.ExperienceQuery.forAgent(state.agentId, state.tenantId).withLimit(5));
+                if (!memories.isEmpty()) {
+                    var memSb = new StringBuilder("\n\nRelevant experience memories:\n");
+                    for (var m : memories) {
+                        var mText = m.text();
+                        if (mText != null && !mText.isBlank()) {
+                            memSb.append("- ").append(mText.length() > 120 ? mText.substring(0, 120) : mText).append("\n");
+                        }
+                    }
+                    userPrompt = userPrompt + memSb;
+                }
+            }
 
             var responseText = invokeText(SYSTEM_PROMPT, userPrompt);
             if (responseText == null) return null;
