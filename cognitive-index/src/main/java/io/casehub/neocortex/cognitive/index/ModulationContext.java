@@ -2,28 +2,19 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
-
-import java.time.Instant;
 import java.util.Objects;
+import java.util.Set;
 
 public record ModulationContext(
-    MoodState currentMood,
-    PersonalityWeights personality,
-    Instant now
-) {
+        String agentId,
+        String tenantId,
+        MoodState currentMood,
+        PersonalityWeights personalityWeights,
+        Set<String> contextEntityNodeIds) {
+
     public ModulationContext {
-        Objects.requireNonNull(now, "now");
-    }
-
-    public static ModulationContext of(Instant now) {
-        return new ModulationContext(null, null, now);
-    }
-
-    public ModulationContext withMood(MoodState mood) {
-        return new ModulationContext(mood, personality, now);
-    }
-
-    public ModulationContext withPersonality(PersonalityWeights weights) {
-        return new ModulationContext(currentMood, weights, now);
+        Objects.requireNonNull(tenantId, "tenantId required");
+        contextEntityNodeIds = contextEntityNodeIds != null
+                ? Set.copyOf(contextEntityNodeIds) : Set.of();
     }
 }

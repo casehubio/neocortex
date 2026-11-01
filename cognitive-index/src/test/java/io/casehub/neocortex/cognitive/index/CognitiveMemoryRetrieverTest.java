@@ -1,7 +1,6 @@
 package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.neocortex.cognitive.ModulationFactor;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.Memory;
@@ -16,8 +15,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CognitiveMemoryRetrieverTest {
 
@@ -80,6 +81,21 @@ class CognitiveMemoryRetrieverTest {
 
         assertThat(results).isEmpty();
     }
+
+    @Test
+    void modulationContextRequiresTenantId() {
+        assertThatThrownBy(() -> new ModulationContext(null, null, null, null, null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void modulationContextDefensiveCopiesEntityIds() {
+        var ids = new java.util.HashSet<>(Set.of("n1", "n2"));
+        var ctx = new ModulationContext("agent1", "t1", null, null, ids);
+        ids.add("n3");
+        assertThat(ctx.contextEntityNodeIds()).hasSize(2);
+    }
+
 
     private static MemoryQuery query() {
         return MemoryQuery.forSubject(SUBJECT, EXPERIENCE, "t1");
