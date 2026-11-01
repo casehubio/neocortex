@@ -17,15 +17,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GutFeelingParticipant implements CognitionTickParticipant {
 
+    private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
     private final @Nullable CaseMemoryStore memoryStore;
     private final @Nullable MoodOrchestrator moodOrchestrator;
     private final @Nullable CognitionConfig config;
     private final ConcurrentHashMap<String, GutFeeling> results = new ConcurrentHashMap<>();
 
     public GutFeelingParticipant(
+            io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever,
             @Nullable CaseMemoryStore memoryStore,
             @Nullable MoodOrchestrator moodOrchestrator,
-            CognitionConfig config) {
+            @Nullable CognitionConfig config) {
+        this.memoryRetriever = memoryRetriever;
         this.memoryStore = memoryStore;
         this.moodOrchestrator = moodOrchestrator;
         this.config = config;
@@ -33,10 +36,15 @@ public class GutFeelingParticipant implements CognitionTickParticipant {
 
     public GutFeelingParticipant(
             @Nullable CaseMemoryStore memoryStore,
+            @Nullable MoodOrchestrator moodOrchestrator,
+            CognitionConfig config) {
+        this(null, memoryStore, moodOrchestrator, config);
+    }
+
+    public GutFeelingParticipant(
+            @Nullable CaseMemoryStore memoryStore,
             @Nullable MoodOrchestrator moodOrchestrator) {
-        this.memoryStore = memoryStore;
-        this.moodOrchestrator = moodOrchestrator;
-        this.config = null;
+        this(null, memoryStore, moodOrchestrator, null);
     }
 
     @Override
@@ -45,7 +53,7 @@ public class GutFeelingParticipant implements CognitionTickParticipant {
         var agentKey = context.agentId() + ":" + context.tenantId();
         results.remove(agentKey);
 
-        if (memoryStore == null) return;
+        if (memoryRetriever == null && memoryStore == null) return;
 
         String agentId = context.agentId();
         String tenantId = context.tenantId();
@@ -54,7 +62,14 @@ public class GutFeelingParticipant implements CognitionTickParticipant {
         if (observation != null && !observation.isBlank()) {
             var query = ExperienceQuery.search(agentId, tenantId, observation)
                 .withLimit(3);
-            List<Memory> matches = memoryStore.query(query);
+            List<Memory> matches;
+            if (memoryRetriever != null) {
+                matches = memoryRetriever.query(query);
+            } else if (memoryStore != null) {
+                matches = memoryStore.query(query);
+            } else {
+                return;
+            }
 
             List<Memory> withPad = matches.stream()
                 .filter(m -> m.pleasure() != null)

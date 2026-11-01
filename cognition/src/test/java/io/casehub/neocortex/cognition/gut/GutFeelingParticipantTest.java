@@ -13,11 +13,11 @@ import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class GutFeelingParticipantTest {
 
@@ -202,4 +202,37 @@ class GutFeelingParticipantTest {
         assertThat(participant.currentResult("a1", "t1")).isEmpty();
     }
 
+
+    @Test
+    void layer1UsesRetrieverWhenAvailable() {
+        var store = createStore();
+        store.store(MemoryInput.of(Subject.of("agent", "a1"), ExperienceEvents.DOMAIN, "t1",
+                                   "Authority figure criticized harshly").withPad(-0.7, 0.6, -0.3));
+
+        var retriever = new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
+                store, java.util.List.of(), java.util.List.of());
+
+        var participant = new GutFeelingParticipant(retriever, store, null, null);
+        var ctx         = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of(), "authority");
+        participant.tick(ctx);
+
+        var result = participant.currentResult("a1", "t1");
+        assertThat(result).isPresent();
+        assertThat(result.get().valence()).isEqualTo(GutValence.AVOID);
+    }
+
+    @Test
+    void layer1FallsBackToStoreWhenNoRetriever() {
+        var store = createStore();
+        store.store(MemoryInput.of(Subject.of("agent", "a1"), ExperienceEvents.DOMAIN, "t1",
+                                   "Collaborative brainstorming with peers").withPad(0.7, 0.5, 0.3));
+
+        var participant = new GutFeelingParticipant(null, store, null, null);
+        var ctx         = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of(), "brainstorming");
+        participant.tick(ctx);
+
+        var result = participant.currentResult("a1", "t1");
+        assertThat(result).isPresent();
+        assertThat(result.get().valence()).isEqualTo(GutValence.APPROACH);
+    }
 }

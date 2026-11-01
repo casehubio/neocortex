@@ -734,7 +734,7 @@ public @Nullable String lastTargetAgentId() {
             @Nullable CaseMemoryStore memoryStore,
             @Nullable MoodOrchestrator moodOrchestrator) {
         if (memoryStore == null) {return;}
-        this.gutFeelingParticipant = new GutFeelingParticipant(memoryStore, moodOrchestrator, config);
+        this.gutFeelingParticipant = new GutFeelingParticipant(cognitiveMemoryRetriever, memoryStore, moodOrchestrator, config);
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
 
