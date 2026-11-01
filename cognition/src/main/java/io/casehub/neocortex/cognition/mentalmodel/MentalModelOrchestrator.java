@@ -42,6 +42,7 @@ public class MentalModelOrchestrator {
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
     private final @Nullable EntityAnnotationIndex annotationIndex;
+    private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
 
     private final ConcurrentHashMap<String, SubjectMentalState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -50,7 +51,7 @@ public class MentalModelOrchestrator {
                             MentalModelConfig config,
                             Clock clock,
                             @Nullable SessionPipeline sessionPipeline) {
-        this(modelMemory, config, clock, sessionPipeline, null);
+        this(modelMemory, config, clock, sessionPipeline, null, null);
     }
 
     public MentalModelOrchestrator(MentalModelMemory modelMemory,
@@ -58,11 +59,21 @@ public class MentalModelOrchestrator {
                             Clock clock,
                             @Nullable SessionPipeline sessionPipeline,
                             @Nullable EntityAnnotationIndex annotationIndex) {
+        this(modelMemory, config, clock, sessionPipeline, annotationIndex, null);
+    }
+
+    public MentalModelOrchestrator(MentalModelMemory modelMemory,
+                            MentalModelConfig config,
+                            Clock clock,
+                            @Nullable SessionPipeline sessionPipeline,
+                            @Nullable EntityAnnotationIndex annotationIndex,
+                            io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever) {
         this.modelMemory = modelMemory;
         this.config = config;
         this.clock = clock;
         this.sessionPipeline = sessionPipeline;
         this.annotationIndex = annotationIndex;
+        this.memoryRetriever = memoryRetriever;
     }
 
     @Nullable EntityAnnotationIndex annotationIndex() {return annotationIndex;}
@@ -318,6 +329,21 @@ public class MentalModelOrchestrator {
                     %s""",
                     currentBeliefs, currentDesires, currentIntentions,
                     lines.length, recentText);
+
+            if (memoryRetriever != null) {
+                var memories = memoryRetriever.query(
+                        io.casehub.neocortex.memory.experience.ExperienceQuery.forAgent(state.agentId, state.tenantId).withLimit(5));
+                if (!memories.isEmpty()) {
+                    var memSb = new StringBuilder("\n\nPrior relevant experiences:\n");
+                    for (var m : memories) {
+                        var text = m.text();
+                        if (text != null && !text.isBlank()) {
+                            memSb.append("- ").append(text.length() > 120 ? text.substring(0, 120) : text).append("\n");
+                        }
+                    }
+                    userPrompt = userPrompt + memSb;
+                }
+            }
 
             var textResult = invokeText(SYSTEM_PROMPT, userPrompt);
             if (textResult == null) return;
