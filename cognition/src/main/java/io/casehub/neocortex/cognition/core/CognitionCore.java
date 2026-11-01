@@ -258,6 +258,16 @@ private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.an
         }
         runCustomParticipants(CognitionPhase.FOUNDATION, context);
 
+        if (cognitiveMemoryRetriever != null) {
+            var moodState = mood.currentMood(agentId, tenantId).orElse(null);
+            var personality = defaultsRegistry != null
+                    ? defaultsRegistry.forAgentOrDefaults(agentId).personality()
+                    : null;
+            cognitiveMemoryRetriever.setTickContext(
+                    new io.casehub.neocortex.cognitive.index.ModulationContext(
+                            agentId, tenantId, moodState, personality, Set.of()));
+        }
+
         if (config.narrativeEnabled() && narrative != null) {
             safeRun(() -> narrative.tick(agentId, tenantId));
         }
