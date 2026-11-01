@@ -210,6 +210,17 @@ public class CognitionDefaultBeans {
                 proposal.suggestedPriority(), "", "no-escalation");
     }
 
+    @jakarta.enterprise.inject.Produces
+    @io.quarkus.arc.DefaultBean
+    @jakarta.inject.Singleton
+    io.casehub.neocortex.cognition.emergence.SocialNormDetector socialNormDetector(
+            Instance<io.casehub.neocortex.memory.cbr.CbrRecordStore> cbrStore,
+            io.casehub.neocortex.cognition.emergence.NormDetectionConfig config) {
+        if (!cbrStore.isResolvable()) return null;
+        return new io.casehub.neocortex.cognition.emergence.SocialNormDetector(
+                cbrStore.get(), config);
+    }
+
     @Produces
     @DefaultBean
     @Singleton
