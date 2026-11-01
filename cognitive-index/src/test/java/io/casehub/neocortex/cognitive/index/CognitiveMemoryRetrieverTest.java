@@ -176,10 +176,7 @@ class CognitiveMemoryRetrieverTest {
     private static Memory memory(String id, Instant createdAt, Confidence confidence,
                                  double pleasure, double arousal, double dominance) {
         return new Memory(id, "e1", EXPERIENCE, "t1", null, "text-" + id,
-                          Map.of("pleasure", String.valueOf(pleasure),
-                                 "arousal", String.valueOf(arousal),
-                                 "dominance", String.valueOf(dominance)),
-                          createdAt, confidence, null, null, null);
+                          Map.of(), createdAt, confidence, pleasure, arousal, dominance);
     }
 
 
