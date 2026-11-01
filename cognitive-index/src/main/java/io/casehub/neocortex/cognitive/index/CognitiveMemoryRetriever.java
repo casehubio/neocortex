@@ -14,6 +14,8 @@ public class CognitiveMemoryRetriever {
     private final CaseMemoryStore store;
     private final List<ModulationFactor<Memory>> staticFactors;
     private final List<ContextualModulationFactory<Memory>> contextualFactories;
+    private volatile ModulationContext                      tickContext;
+
 
     public CognitiveMemoryRetriever(CaseMemoryStore store,
                                      List<ModulationFactor<Memory>> staticFactors,
@@ -28,6 +30,11 @@ public class CognitiveMemoryRetriever {
         this(store, factors, List.of());
     }
 
+
+    public void setTickContext(ModulationContext context) {
+        this.tickContext = context;
+    }
+
     public List<Memory> query(MemoryQuery query, ModulationContext context) {
         List<Memory> results = store.query(query);
         var factors = buildFactors(context);
@@ -36,7 +43,11 @@ public class CognitiveMemoryRetriever {
     }
 
     public List<Memory> query(MemoryQuery query) {
-        return query(query, new ModulationContext(null, query.tenantId(), null, null, null));
+        var ctx = tickContext;
+        if (ctx == null) {
+            ctx = new ModulationContext(null, query.tenantId(), null, null, null);
+        }
+        return query(query, ctx);
     }
 
     private List<ModulationFactor<Memory>> buildFactors(ModulationContext ctx) {

@@ -141,6 +141,38 @@ class CognitiveMemoryRetrieverTest {
                            .containsExactly("m1", "m2");
     }
 
+
+    @Test
+    void convenienceQueryUsesTickContext() {
+        var happy = memory("m1", NOW, Confidence.unknown(1.0), 0.8, 0.3, 0.5);
+        var sad   = memory("m2", NOW, Confidence.unknown(1.0), -0.7, -0.2, -0.3);
+
+        ContextualModulationFactory<Memory> moodFactory = ctx -> {
+            if (ctx.currentMood() == null) {return null;}
+            return ModulationFactors.moodCongruence(ctx.currentMood(), 1.0);
+        };
+
+        var retriever = new CognitiveMemoryRetriever(
+                stubStore(List.of(sad, happy)),
+                List.of(),
+                List.of(moodFactory));
+
+        // Without tick context — mood factor returns null (no mood), original order preserved
+        var withoutContext = retriever.query(query());
+        assertThat(withoutContext).extracting(Memory::memoryId)
+                                  .containsExactly("m2", "m1");
+
+        // Set tick context with positive mood
+        var positiveMood = new io.casehub.neocortex.memory.mood.MoodState(
+                "a1", "t1", Instant.now(), 0.8, 0.3, 0.5, "test", null, Set.of(), Map.of());
+        retriever.setTickContext(new ModulationContext("a1", "t1", positiveMood, null, null));
+
+        // With tick context — mood-congruent (happy) should rank higher
+        var withContext = retriever.query(query());
+        assertThat(withContext).extracting(Memory::memoryId)
+                               .containsExactly("m1", "m2");
+    }
+
     @Test
     void staticAndContextualFactorsCompose() {
         var oldHighConf   = memory("m1", NOW.minus(30, ChronoUnit.DAYS), Confidence.unknown(0.9));
