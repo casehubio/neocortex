@@ -213,6 +213,39 @@ class SubThoughtConsolidationPhaseTest {
             .isNotEmpty();
     }
 
+    @Test
+    void staleAccumulationPropertiesCleanedAfterGraduation() {
+        storeMemoryWithSubThought(SubThoughtTypes.CAUSAL_INFERENCE,
+            "Inference 0", "Sarah");
+        storeMemoryWithSubThought(SubThoughtTypes.CAUSAL_INFERENCE,
+            "Inference 1", "Sarah");
+
+        phase.run(TENANT, List.of());
+
+        var sentinel = mindMapStore.search(
+            MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.TYPE_SYSTEM))
+            .stream().filter(n -> n.name().contains("cursor")).findFirst();
+        assertThat(sentinel).isPresent();
+        assertThat(sentinel.get().properties().keySet().stream()
+            .filter(k -> k.startsWith("accum.")).toList())
+            .as("below-threshold accumulation persisted")
+            .isNotEmpty();
+
+        storeMemoryWithSubThought(SubThoughtTypes.CAUSAL_INFERENCE,
+            "Inference 2", "Sarah");
+
+        phase.run(TENANT, List.of());
+
+        var sentinelAfter = mindMapStore.search(
+            MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.TYPE_SYSTEM))
+            .stream().filter(n -> n.name().contains("cursor")).findFirst();
+        assertThat(sentinelAfter).isPresent();
+        assertThat(sentinelAfter.get().properties().keySet().stream()
+            .filter(k -> k.startsWith("accum.")).toList())
+            .as("graduated entity accumulation cleaned from sentinel")
+            .isEmpty();
+    }
+
     private void storeMemoryWithAttrs(String desc, Map<String, String> attrs) {
         memoryStore.store(new MemoryInput(
             SUBJECT, ExperienceEvents.DOMAIN, TENANT,

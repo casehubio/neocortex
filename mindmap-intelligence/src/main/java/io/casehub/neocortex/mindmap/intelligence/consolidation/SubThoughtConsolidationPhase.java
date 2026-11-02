@@ -55,7 +55,6 @@ public class SubThoughtConsolidationPhase implements ConsolidationPhase {
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     private final List<String> unresolvedIntentions = new ArrayList<>();
     private final Map<String, Boolean> lastAffectPolarity = new HashMap<>();
-    private final Set<String> previousAccumKeys = new HashSet<>();
 
     @Inject
     public SubThoughtConsolidationPhase(Instance<CaseMemoryStore> memoryStore,
@@ -323,10 +322,13 @@ public class SubThoughtConsolidationPhase implements ConsolidationPhase {
             currentKeys.add(key);
         }
 
-        var staleKeys = new HashSet<>(previousAccumKeys);
+        var existingAccumKeys = new HashSet<String>();
+        sentinel.get().properties().keySet().stream()
+            .filter(k -> k.startsWith(ACCUM_PREFIX))
+            .forEach(existingAccumKeys::add);
+
+        var staleKeys = new HashSet<>(existingAccumKeys);
         staleKeys.removeAll(currentKeys);
-        previousAccumKeys.clear();
-        previousAccumKeys.addAll(currentKeys);
 
         var update = NodeUpdate.empty();
         if (!props.isEmpty()) update = update.withPropertiesToSet(props);
