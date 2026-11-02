@@ -39,6 +39,7 @@
     <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
+    <module>cognitive-eidos</module>
     <module>cognitive-observability-api</module>
     <module>cognitive-observability-core</module>
     <module>cognitive-observability</module>
@@ -304,6 +305,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-cognitive-index</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-cognitive-eidos</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

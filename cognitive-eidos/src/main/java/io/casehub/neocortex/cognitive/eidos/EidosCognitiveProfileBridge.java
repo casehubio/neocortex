@@ -1,0 +1,100 @@
+/*
+ * Copyright 2026-Present The Case Hub Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.casehub.neocortex.cognitive.eidos;
+
+import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.eidos.api.AgentDisposition;
+import io.casehub.eidos.api.AgentGoal;
+import io.casehub.eidos.api.AgentMatch;
+import io.casehub.eidos.api.AgentQuery;
+import io.casehub.eidos.api.AgentRegistry;
+import io.casehub.eidos.api.DispositionAxis;
+import io.casehub.eidos.api.DispositionValue;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
+import io.casehub.neocortex.cognitive.index.DescriptorView;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.WeightedTerm;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+@ApplicationScoped
+public class EidosCognitiveProfileBridge {
+
+    private static final Logger LOG = Logger.getLogger(EidosCognitiveProfileBridge.class.getName());
+
+    private final CognitiveDefaultsRegistry registry;
+    private final Instance<AgentRegistry> agentRegistryInstance;
+
+    @Inject
+    public EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry,
+                                       Instance<AgentRegistry> agentRegistryInstance) {
+        this.registry = registry;
+        this.agentRegistryInstance = agentRegistryInstance;
+    }
+
+    EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry) {
+        this.registry = registry;
+        this.agentRegistryInstance = null;
+    }
+
+    public void bridgeAll(String tenancyId) {
+        if (agentRegistryInstance == null || agentRegistryInstance.isUnsatisfied()) {
+            LOG.info("No AgentRegistry available — skipping eidos profile bridge");
+            return;
+        }
+        var agentRegistry = agentRegistryInstance.get();
+        var matches = agentRegistry.find(AgentQuery.all(tenancyId));
+        int count = 0;
+        for (var match : matches) {
+            var view = toDescriptorView(match.descriptor());
+            registerFromDescriptor(view);
+            count++;
+        }
+        LOG.info("Registered " + count + " cognitive profiles from eidos descriptors");
+    }
+
+    public void registerFromDescriptor(DescriptorView view) {
+        if (registry.forAgent(view.agentId()).isPresent()) {
+            LOG.fine("Skipping eidos derivation for " + view.agentId() + " — YAML profile exists");
+            return;
+        }
+        var defaults = CognitiveDerivationEngine.derive(view);
+        registry.register(defaults);
+    }
+
+    static DescriptorView toDescriptorView(AgentDescriptor descriptor) {
+        var disposition = descriptor.disposition();
+        var axes = new DispositionAxes(
+                disposition.primaryTerm(DispositionAxis.SOCIAL_ORIENTATION),
+                disposition.primaryTerm(DispositionAxis.RULE_FOLLOWING),
+                disposition.primaryTerm(DispositionAxis.RISK_APPETITE),
+                disposition.primaryTerm(DispositionAxis.AUTONOMY),
+                disposition.primaryTerm(DispositionAxis.CONFLICT_MODE)
+        );
+        var profile = disposition.dispositionProfile().stream()
+                .map(dv -> new WeightedTerm(dv.term(), dv.weight()))
+                .toList();
+        var goals = descriptor.goals().stream()
+                .map(AgentGoal::name)
+                .toList();
+        return DescriptorView.of(descriptor.agentId(), axes, profile, goals);
+    }
+}
