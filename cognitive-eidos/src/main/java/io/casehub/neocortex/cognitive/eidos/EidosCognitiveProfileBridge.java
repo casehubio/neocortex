@@ -16,9 +16,7 @@
 package io.casehub.neocortex.cognitive.eidos;
 
 import io.casehub.eidos.api.AgentDescriptor;
-import io.casehub.eidos.api.AgentDisposition;
 import io.casehub.eidos.api.AgentGoal;
-import io.casehub.eidos.api.AgentMatch;
 import io.casehub.eidos.api.AgentQuery;
 import io.casehub.eidos.api.AgentRegistry;
 import io.casehub.eidos.api.DispositionAxis;
@@ -42,25 +40,37 @@ public class EidosCognitiveProfileBridge {
 
     private final CognitiveDefaultsRegistry registry;
     private final Instance<AgentRegistry> agentRegistryInstance;
+    private final AgentRegistry directAgentRegistry;
 
     @Inject
     public EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry,
                                        Instance<AgentRegistry> agentRegistryInstance) {
         this.registry = registry;
         this.agentRegistryInstance = agentRegistryInstance;
+        this.directAgentRegistry = null;
     }
 
     EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry) {
         this.registry = registry;
         this.agentRegistryInstance = null;
+        this.directAgentRegistry = null;
+    }
+
+    EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry, AgentRegistry agentRegistry) {
+        this.registry = registry;
+        this.agentRegistryInstance = null;
+        this.directAgentRegistry = agentRegistry;
     }
 
     public void bridgeAll(String tenancyId) {
-        if (agentRegistryInstance == null || agentRegistryInstance.isUnsatisfied()) {
+        AgentRegistry agentRegistry = directAgentRegistry;
+        if (agentRegistry == null && agentRegistryInstance != null && !agentRegistryInstance.isUnsatisfied()) {
+            agentRegistry = agentRegistryInstance.get();
+        }
+        if (agentRegistry == null) {
             LOG.info("No AgentRegistry available — skipping eidos profile bridge");
             return;
         }
-        var agentRegistry = agentRegistryInstance.get();
         var matches = agentRegistry.find(AgentQuery.all(tenancyId));
         int count = 0;
         for (var match : matches) {
@@ -72,12 +82,14 @@ public class EidosCognitiveProfileBridge {
     }
 
     public void registerFromDescriptor(DescriptorView view) {
-        if (registry.forAgent(view.agentId()).isPresent()) {
-            LOG.fine("Skipping eidos derivation for " + view.agentId() + " — YAML profile exists");
-            return;
+        var existing = registry.forAgent(view.agentId());
+        if (existing.isPresent()) {
+            var merged = CognitiveDerivationEngine.deriveAndMerge(existing.get().withDescriptor(view));
+            registry.register(merged);
+        } else {
+            var defaults = CognitiveDerivationEngine.derive(view);
+            registry.register(defaults);
         }
-        var defaults = CognitiveDerivationEngine.derive(view);
-        registry.register(defaults);
     }
 
     static DescriptorView toDescriptorView(AgentDescriptor descriptor) {
