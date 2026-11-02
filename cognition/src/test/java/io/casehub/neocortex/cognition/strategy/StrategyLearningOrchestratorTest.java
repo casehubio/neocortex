@@ -1,5 +1,11 @@
 package io.casehub.neocortex.cognition.strategy;
 
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
 import io.casehub.platform.agent.AgentEvent;
@@ -16,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -458,6 +465,53 @@ class StrategyLearningOrchestratorTest {
     }
 
     // --- helpers ---
+
+
+    @Test
+    void reflect_withMemoryRetriever_includesMemoriesInPrompt() {
+        var capturedPrompt = new AtomicReference<String>();
+        var pipeline = io.casehub.neocortex.session.testing.StubPipelines.create(
+                init -> new io.casehub.platform.agent.AgentSession() {
+                    @Override
+                    public Multi<AgentEvent> query(String prompt) {
+                        capturedPrompt.set(prompt);
+                        return Multi.createFrom().item(new AgentEvent.TextDelta(
+                                "{\"guidelines\":[\"test\"],\"dimensionDeltas\":{}}"));
+                    }
+
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+                    @Override
+                    public void close(java.time.Duration timeout)   {}
+                });
+
+        var mockStore = mock(CaseMemoryStore.class);
+        when(mockStore.query(any())).thenReturn(List.of(
+                new Memory("m1", Subject.of("unknown", "agent-1"), new MemoryDomain("experience"),
+                           "tenant-1", null, "Observed user frustration with slow response times",
+                           Map.of(), Instant.now(), Confidence.unknown(0.8), null, null, null, null, null),
+                new Memory("m2", Subject.of("unknown", "agent-1"), new MemoryDomain("experience"),
+                           "tenant-1", null, "User engaged positively with concise summaries",
+                           Map.of(), Instant.now(), Confidence.unknown(0.9), null, null, null, null, null)
+                                                       ));
+        var retriever = new CognitiveMemoryRetriever(mockStore, List.of());
+
+        var testOrchestrator = new StrategyLearningOrchestrator(
+                strategyMemory, reflectionOrchestrator,
+                StrategyLearningConfig.defaults(), clock, pipeline, retriever);
+
+        var cases = buildEngagementCases(5, "agent-1");
+        when(strategyMemory.recentEvidence(any(), any(), anyInt())).thenReturn(cases);
+        when(reflectionOrchestrator.reflect(any(), any(), any(), anyInt()))
+                .thenReturn(List.of());
+
+        testOrchestrator.reflect("agent-1", "tenant-1");
+
+        assertThat(capturedPrompt.get()).contains("Relevant experience memories:");
+        assertThat(capturedPrompt.get()).contains("Observed user frustration with slow response times");
+        assertThat(capturedPrompt.get()).contains("User engaged positively with concise summaries");
+    }
 
     private EngagementSignal.TurnOutcome turnOutcome(String caseId, boolean responded,
                                                       double sentiment, int responseLength) {

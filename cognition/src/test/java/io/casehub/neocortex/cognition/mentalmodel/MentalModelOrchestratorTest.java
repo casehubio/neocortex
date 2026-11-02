@@ -1,7 +1,14 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.relationship.QualitySignal;
 import io.casehub.neocortex.memory.relationship.RelationshipEvent;
+import io.casehub.platform.agent.AgentEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -15,8 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class MentalModelOrchestratorTest {
@@ -313,5 +323,54 @@ class MentalModelOrchestratorTest {
         assertThat(snapshot.beliefs()).isEmpty();
         assertThat(snapshot.desires()).isEmpty();
         assertThat(snapshot.intentions()).isEmpty();
+    }
+
+    @Test
+    void tick_withMemoryRetriever_includesMemoriesInLlmPrompt() {
+        var capturedPrompt = new AtomicReference<String>();
+        var pipeline = io.casehub.neocortex.session.testing.StubPipelines.create(
+                init -> new io.casehub.platform.agent.AgentSession() {
+                    @Override
+                    public io.smallrye.mutiny.Multi<AgentEvent> query(String prompt) {
+                        capturedPrompt.set(prompt);
+                        return io.smallrye.mutiny.Multi.createFrom().item(new AgentEvent.TextDelta(
+                                "{\"beliefs\":[],\"desires\":[],\"intentions\":[]}"));
+                    }
+
+                    @Override
+                    public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+                    @Override
+                    public void close(java.time.Duration timeout)   {}
+                });
+
+        var mockStore = mock(CaseMemoryStore.class);
+        when(mockStore.query(any())).thenReturn(List.of(
+                new Memory("m1", Subject.of("unknown", "agent1"), new MemoryDomain("experience"),
+                           "tenant1", null, "User expressed concern about project timeline",
+                           Map.of(), Instant.now(), Confidence.unknown(0.8), null, null, null, null, null),
+                new Memory("m2", Subject.of("unknown", "agent1"), new MemoryDomain("experience"),
+                           "tenant1", null, "User showed enthusiasm for new feature proposal",
+                           Map.of(), Instant.now(), Confidence.unknown(0.9), null, null, null, null, null)
+                                                       ));
+        var retriever = new CognitiveMemoryRetriever(mockStore, List.of());
+
+        var config = new MentalModelConfig(
+                Duration.ofDays(7), Duration.ofDays(1), Duration.ofHours(4),
+                0.1, 0.3, 3, Duration.ZERO,
+                20, 100, Duration.ofHours(24), Duration.ofMinutes(1),
+                "mental-model", "mental-model");
+        var orch = new MentalModelOrchestrator(memory, config, fixedClock, pipeline, null, retriever);
+
+        orch.record(new MentalStateSignal.VerbalCue("I think X", CueType.BELIEF_STATEMENT), "agent1", "user1", "tenant1");
+        orch.record(new MentalStateSignal.VerbalCue("I want Y", CueType.DESIRE_EXPRESSION), "agent1", "user1", "tenant1");
+        orch.record(new MentalStateSignal.VerbalCue("I plan Z", CueType.INTENTION_DECLARATION), "agent1", "user1", "tenant1");
+
+        orch.tick("agent1", "user1", "tenant1");
+
+        assertThat(capturedPrompt.get()).isNotNull();
+        assertThat(capturedPrompt.get()).contains("Prior relevant experiences:");
+        assertThat(capturedPrompt.get()).contains("User expressed concern about project timeline");
+        assertThat(capturedPrompt.get()).contains("User showed enthusiasm for new feature proposal");
     }
 }
