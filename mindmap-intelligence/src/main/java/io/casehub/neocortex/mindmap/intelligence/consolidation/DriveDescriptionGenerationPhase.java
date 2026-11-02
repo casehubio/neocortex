@@ -55,10 +55,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                                 considers, evaluates).
 
                                                 Weave the two primary channels as the backbone. The four channels:
-                                                - Body: where exactly, what sensation (tension, warmth, numbness, weight)
-                                                - Attention: what seized focus, what stopped being noticed
-                                                - Time: compressed, stretched, frozen, urgent
-                                                - Action readiness: what the body prepares to do before deciding
+                                                - Somatic: where exactly, what sensation (tension, warmth, numbness, weight)
+                                                - Attentional: what seized focus, what stopped being noticed
+                                                - Temporal: compressed, stretched, frozen, urgent
+                                                - Action tendency: what the body prepares to do before deciding
                                                 Add the other two channels as texture, not sections.
 
                                                 BODY TERRITORY: Each pull has an assigned body location. Describe it using \
