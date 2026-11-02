@@ -33,4 +33,21 @@ class CognitionConfigTest {
         var config = CognitionConfig.all().without("otherModel");
         assertThat(config.otherModelEnabled()).isFalse();
     }
+
+    @Test
+    void allDisablesEntityKnowledge() {
+        assertThat(CognitionConfig.all().entityKnowledgeEnabled()).isFalse();
+    }
+
+    @Test
+    void withAllSubsystemsEnablesEntityKnowledge() {
+        assertThat(CognitionConfig.withAllSubsystems().entityKnowledgeEnabled()).isTrue();
+    }
+
+    @Test
+    void entityKnowledgeCanBeReEnabled() {
+        var config = CognitionConfig.all().with("entityKnowledge", true);
+        assertThat(config.entityKnowledgeEnabled()).isTrue();
+    }
+
 }

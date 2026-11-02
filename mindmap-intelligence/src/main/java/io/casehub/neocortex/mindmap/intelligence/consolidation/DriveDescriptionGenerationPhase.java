@@ -194,12 +194,6 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 }
             }
 
-            if (describedKeys.containsAll(requiredKeys)) {
-                LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
-                         + agentId + " skipped — descriptions already exist");
-                continue;
-            }
-
             List<MindMapNode> agentMemories = formativeNodes.stream()
                                                             .filter(n -> agentId.equals(n.properties().get("agent-id")))
                                                             .toList();
@@ -216,13 +210,33 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
             if (agentMemories.isEmpty() && personalityNodes.isEmpty()) {continue;}
 
+            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
+            if (subgraphId == null) {continue;}
+
+            String entityContext = buildRelationalContext(tenantId, agentSchemas);
+            String domainContext = buildDomainActivationContext(tenantId, agentId);
+            String relationalContext = entityContext.isEmpty() && domainContext.isEmpty()
+                ? "" : entityContext + domainContext;
+
+            String currentHash = hashContext(relationalContext);
+            boolean hashChanged = allCognitive.stream()
+                .filter(n -> n.traits().contains(DESCRIPTION_TRAIT))
+                .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                .findFirst()
+                .map(n -> !currentHash.equals(n.properties().getOrDefault("relational-context-hash", "")))
+                .orElse(false);
+
+            if (describedKeys.containsAll(requiredKeys) && !hashChanged) {
+                LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
+                         + agentId + " skipped — descriptions already exist");
+                continue;
+            }
+
             LOG.info("Description generation [" + agentIndex + "/" + totalAgents + "]: "
                      + agentId + " (" + driveNodes.size() + " drives, "
                      + agentMemories.size() + " memories, "
-                     + agentSchemas.size() + " schemas)");
-
-            String subgraphId = findCognitiveSubgraph(tenantId, agentId);
-            if (subgraphId == null) {continue;}
+                     + agentSchemas.size() + " schemas"
+                     + (hashChanged ? ", context hash changed" : "") + ")");
 
             var allDriveLocations = new java.util.HashMap<String, String>();
             for (var dn : driveNodes) {
@@ -230,11 +244,6 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 String bl = dn.properties().get("body-location");
                 if (dt != null && bl != null) { allDriveLocations.put(dt, bl); }
             }
-
-            String entityContext = buildRelationalContext(tenantId, agentSchemas);
-            String domainContext = buildDomainActivationContext(tenantId, agentId);
-            String relationalContext = entityContext.isEmpty() && domainContext.isEmpty()
-                ? "" : entityContext + domainContext;
 
             for (MindMapNode driveNode : driveNodes) {
                 String driveType = driveNode.properties().get("drive-type");
@@ -298,15 +307,17 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             String description = parseDescription(rawResponse);
             if (description == null || description.isBlank()) {return;}
 
+            var baseProps = new java.util.HashMap<String, String>();
+            baseProps.put("agent-id", agentId);
+            baseProps.put("drive-type", driveType);
+            baseProps.put("drive-intensity", intensity);
+            baseProps.put("generated-description", description);
+            baseProps.put("source-memory-count", String.valueOf(servingMemories.size()));
+            baseProps.put("relational-context-hash", hashContext(relationalContext));
             store.addNode(
                     NodeInput.of("drive-description-" + driveType, subgraphId)
                              .withTraits(Set.of(DESCRIPTION_TRAIT))
-                             .withProperties(Map.of(
-                                     "agent-id", agentId,
-                                     "drive-type", driveType,
-                                     "drive-intensity", intensity,
-                                     "generated-description", description,
-                                     "source-memory-count", String.valueOf(servingMemories.size()))),
+                             .withProperties(Map.copyOf(baseProps)),
                     tenantId);
 
             Map<String, String> targeted = parseTargeted(rawResponse);
@@ -320,6 +331,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 props.put("role", role);
                 props.put("drive-intensity", intensity);
                 props.put("generated-description", targetedDesc);
+                props.put("relational-context-hash", hashContext(relationalContext));
                 store.addNode(
                         NodeInput.of("drive-description-" + driveType + "-" + role, subgraphId)
                                  .withTraits(Set.of(DESCRIPTION_TRAIT))
@@ -652,6 +664,11 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
     }
 
+
+    static String hashContext(String relationalContext) {
+        if (relationalContext == null || relationalContext.isEmpty()) {return "";}
+        return Integer.toHexString(relationalContext.hashCode());
+    }
 
     private boolean memoryServesDrive(MindMapNode memoryNode, String driveType) {
         String situationTypes = memoryNode.properties().get("situation-types");
