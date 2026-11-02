@@ -46,7 +46,7 @@ class DriveDescriptionGenerationPhaseTest {
         capturedUserPrompts = new CopyOnWriteArrayList<>();
         capturedInits       = new CopyOnWriteArrayList<>();
 
-        phase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance());
+        phase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance(), unsatisfiedInstance());
         phase.setSessionPipeline(StubPipelines.create(init -> {
             capturedInits.add(init);
             boolean isDiscrimination = init.systemPrompt().contains("discrimination");
@@ -92,7 +92,7 @@ class DriveDescriptionGenerationPhaseTest {
 
     @Test
     void skipsWhenNoSessionPipeline() {
-        var noLlmPhase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance());
+        var noLlmPhase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance(), unsatisfiedInstance());
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
 
@@ -579,7 +579,7 @@ class DriveDescriptionGenerationPhaseTest {
             }
         };
 
-        var enrichedPhase = new DriveDescriptionGenerationPhase(store, satisfiedInstance(stubProfile));
+        var enrichedPhase = new DriveDescriptionGenerationPhase(store, satisfiedInstance(stubProfile), unsatisfiedInstance());
         enrichedPhase.setSessionPipeline(StubPipelines.create(init -> {
             capturedInits.add(init);
             return new AgentSession() {

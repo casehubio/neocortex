@@ -2,6 +2,9 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
+import io.casehub.neocortex.cognitive.index.CorrelationStrength;
+import io.casehub.neocortex.cognitive.index.DomainActivation;
+import io.casehub.neocortex.cognitive.index.DomainActivationQuery;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -13,6 +16,7 @@ import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.session.ParallelLlmExecutor;
 import io.casehub.platform.agent.session.SessionPipeline;
+import io.casehub.platform.api.identity.PrincipalId;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -78,6 +82,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     private final MindMapStore store;
     private final CognitiveProfile cognitiveProfile;
+    private final DomainActivation domainActivation;
     private volatile SessionPipeline sessionPipeline;
 
     private static final int MAX_ENTITIES = 5;
@@ -85,15 +90,19 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
     @Inject
     public DriveDescriptionGenerationPhase(MindMapStore store,
-                                            Instance<CognitiveProfile> cognitiveProfileInstance) {
+                                            Instance<CognitiveProfile> cognitiveProfileInstance,
+                                            Instance<DomainActivation> domainActivationInstance) {
         this.store = store;
         this.cognitiveProfile = cognitiveProfileInstance.isUnsatisfied()
             ? null : cognitiveProfileInstance.get();
+        this.domainActivation = domainActivationInstance.isUnsatisfied()
+            ? null : domainActivationInstance.get();
     }
 
     DriveDescriptionGenerationPhase(MindMapStore store) {
         this.store            = store;
         this.cognitiveProfile = null;
+        this.domainActivation = null;
     }
 
 
@@ -222,7 +231,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 if (dt != null && bl != null) { allDriveLocations.put(dt, bl); }
             }
 
-            String relationalContext = buildRelationalContext(tenantId, agentSchemas);
+            String entityContext = buildRelationalContext(tenantId, agentSchemas);
+            String domainContext = buildDomainActivationContext(tenantId, agentId);
+            String relationalContext = entityContext.isEmpty() && domainContext.isEmpty()
+                ? "" : entityContext + domainContext;
 
             for (MindMapNode driveNode : driveNodes) {
                 String driveType = driveNode.properties().get("drive-type");
@@ -585,6 +597,61 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
 
         return anyContent ? sb.toString() : "";
     }
+
+    private String buildDomainActivationContext(String tenantId, String agentId) {
+        if (domainActivation == null) {return "";}
+
+        var subgraphs = store.listSubgraphs(tenantId).stream()
+                             .filter(sg -> SubgraphTypes.COGNITIVE.equals(sg.type()))
+                             .toList();
+        if (subgraphs.size() < 2) {return "";}
+
+        var subgraphIds = subgraphs.stream()
+                                   .map(sg -> sg.id())
+                                   .collect(java.util.stream.Collectors.toSet());
+
+        try {
+            var query = new DomainActivationQuery(
+                    PrincipalId.agent(agentId), subgraphIds, tenantId,
+                    java.time.Instant.now().minus(java.time.Duration.ofDays(7)),
+                    java.time.Instant.now(), null, Set.of(), null);
+
+            var result = domainActivation.correlate(query);
+            if (result.isEmpty()) {return "";}
+
+            var correlations = result.get().correlations();
+            if (correlations.isEmpty()) {return "";}
+
+            var sb = new StringBuilder();
+            sb.append("Cross-domain emotional patterns:\n");
+            boolean any = false;
+            for (var entry : correlations.entrySet()) {
+                var pair = entry.getKey();
+                var corr = entry.getValue();
+                if (corr.strength() == CorrelationStrength.NONE) {continue;}
+
+                String nameA = subgraphs.stream()
+                                        .filter(sg -> sg.id().equals(pair.subgraphIdA()))
+                                        .map(sg -> sg.name()).findFirst().orElse(pair.subgraphIdA());
+                String nameB = subgraphs.stream()
+                                        .filter(sg -> sg.id().equals(pair.subgraphIdB()))
+                                        .map(sg -> sg.name()).findFirst().orElse(pair.subgraphIdB());
+
+                sb.append("  Your emotional responses in \"")
+                  .append(nameA).append("\" and \"")
+                  .append(nameB).append("\" are ")
+                  .append(corr.strength().name().toLowerCase())
+                  .append(" correlated\n");
+                any = true;
+            }
+            sb.append("\n");
+            return any ? sb.toString() : "";
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Domain activation context skipped: " + e.getMessage());
+            return "";
+        }
+    }
+
 
     private boolean memoryServesDrive(MindMapNode memoryNode, String driveType) {
         String situationTypes = memoryNode.properties().get("situation-types");
