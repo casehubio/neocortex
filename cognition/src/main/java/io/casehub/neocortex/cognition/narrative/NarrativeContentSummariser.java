@@ -52,12 +52,20 @@ public class NarrativeContentSummariser
     private final NarrativeConfig config;
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
+    private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
 
     public NarrativeContentSummariser(NarrativeConfig config, Clock clock,
-                                @Nullable SessionPipeline sessionPipeline) {
+                                @Nullable SessionPipeline sessionPipeline,
+                                io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever) {
         this.config = config;
         this.clock = clock;
         this.sessionPipeline = sessionPipeline;
+        this.memoryRetriever = memoryRetriever;
+    }
+
+    public NarrativeContentSummariser(NarrativeConfig config, Clock clock,
+                                @Nullable SessionPipeline sessionPipeline) {
+        this(config, clock, sessionPipeline, null);
     }
 
     @Override
@@ -183,6 +191,22 @@ public class NarrativeContentSummariser
         sb.append("\n## New Reflections\n");
         for (int i = 0; i < reflections.size(); i++) {
             sb.append(i).append(". ").append(reflections.get(i).insight()).append("\n");
+        }
+
+        if (memoryRetriever != null && !reflections.isEmpty()) {
+            var agentId = reflections.getFirst().agentId();
+            var tenantId = reflections.getFirst().tenantId();
+            var memories = memoryRetriever.query(
+                    io.casehub.neocortex.memory.experience.ExperienceQuery.forAgent(agentId, tenantId).withLimit(5));
+            if (!memories.isEmpty()) {
+                sb.append("\n## Relevant Experience Memories\n");
+                for (var m : memories) {
+                    var text = m.text();
+                    if (text != null && !text.isBlank()) {
+                        sb.append("- ").append(text.length() > 120 ? text.substring(0, 120) : text).append("\n");
+                    }
+                }
+            }
         }
 
         sb.append("""

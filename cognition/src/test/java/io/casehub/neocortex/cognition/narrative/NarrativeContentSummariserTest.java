@@ -1,7 +1,13 @@
 package io.casehub.neocortex.cognition.narrative;
 
-import io.casehub.neocortex.session.testing.StubPipelines;
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever;
+import io.casehub.neocortex.memory.CaseMemoryStore;
+import io.casehub.neocortex.memory.Memory;
+import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.ReflectionEntry;
+import io.casehub.neocortex.memory.Subject;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
 import io.smallrye.mutiny.Multi;
@@ -12,8 +18,12 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class NarrativeContentSummariserTest {
 
@@ -234,5 +244,47 @@ class NarrativeContentSummariserTest {
                 .filter(t -> t.label().equals("crisis-helper"))
                 .findFirst().orElseThrow();
         assertThat(crisisTheme.supportingFragmentIds()).contains("gep1");
+    }
+
+    @Test
+    void summarise_withMemoryRetriever_includesMemoriesInPrompt() {
+        var mockStore = mock(CaseMemoryStore.class);
+        when(mockStore.query(any())).thenReturn(List.of(
+                new Memory("m1", Subject.of("unknown", "agent-1"), new MemoryDomain("experience"),
+                           "tenant-1", null, "Successfully navigated team conflict through mediation",
+                           Map.of(), Instant.now(), Confidence.unknown(0.8), null, null, null, null, null),
+                new Memory("m2", Subject.of("unknown", "agent-1"), new MemoryDomain("experience"),
+                           "tenant-1", null, "Learned to adapt communication style for different audiences",
+                           Map.of(), Instant.now(), Confidence.unknown(0.9), null, null, null, null, null)
+                                                       ));
+        var retriever = new CognitiveMemoryRetriever(mockStore, List.of());
+
+        var s = new NarrativeContentSummariser(NarrativeConfig.defaults(), CLOCK,
+                                               StubPipelines.create(init -> new AgentSession() {
+                                                   @Override
+                                                   public Multi<AgentEvent> query(String prompt) {
+                                                       lastUserPrompt = prompt;
+                                                       return Multi.createFrom().item(new AgentEvent.TextDelta(llmResponse));
+                                                   }
+
+                                                   @Override
+                                                   public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+                                                   @Override
+                                                   public void close(java.time.Duration timeout)   {}
+                                               }), retriever);
+
+        s.summarise(List.of(reflection("resolved outage")), null).toCompletableFuture().join();
+
+        assertThat(lastUserPrompt).contains("Relevant Experience Memories");
+        assertThat(lastUserPrompt).contains("Successfully navigated team conflict through mediation");
+        assertThat(lastUserPrompt).contains("Learned to adapt communication style for different audiences");
+    }
+
+    @Test
+    void summarise_withoutMemoryRetriever_promptOmitsMemorySection() {
+        summariser.summarise(List.of(reflection("resolved outage")), null).toCompletableFuture().join();
+
+        assertThat(lastUserPrompt).doesNotContain("Relevant Experience Memories");
     }
 }
