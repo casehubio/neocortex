@@ -2,6 +2,7 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.cognitive.ModulationFactor;
 import io.casehub.neocortex.cognitive.RetrievalModulator;
+import io.casehub.neocortex.cognitive.observability.MemoryRecallObserver;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryQuery;
@@ -14,20 +15,30 @@ public class CognitiveMemoryRetriever {
     private final CaseMemoryStore store;
     private final List<ModulationFactor<Memory>> staticFactors;
     private final List<ContextualModulationFactory<Memory>> contextualFactories;
+    private final List<MemoryRecallObserver>                observers;
+
     private volatile ModulationContext                      tickContext;
 
 
     public CognitiveMemoryRetriever(CaseMemoryStore store,
-                                     List<ModulationFactor<Memory>> staticFactors,
-                                     List<ContextualModulationFactory<Memory>> contextualFactories) {
-        this.store = store;
-        this.staticFactors = staticFactors.isEmpty() ? List.of() : List.copyOf(staticFactors);
+                                    List<ModulationFactor<Memory>> staticFactors,
+                                    List<ContextualModulationFactory<Memory>> contextualFactories,
+                                    List<MemoryRecallObserver> observers) {
+        this.store               = store;
+        this.staticFactors       = staticFactors.isEmpty() ? List.of() : List.copyOf(staticFactors);
         this.contextualFactories = contextualFactories.isEmpty() ? List.of() : List.copyOf(contextualFactories);
+        this.observers           = observers.isEmpty() ? List.of() : List.copyOf(observers);
     }
 
     public CognitiveMemoryRetriever(CaseMemoryStore store,
-                                     List<ModulationFactor<Memory>> factors) {
-        this(store, factors, List.of());
+                                    List<ModulationFactor<Memory>> staticFactors,
+                                    List<ContextualModulationFactory<Memory>> contextualFactories) {
+        this(store, staticFactors, contextualFactories, List.of());
+    }
+
+    public CognitiveMemoryRetriever(CaseMemoryStore store,
+                                    List<ModulationFactor<Memory>> factors) {
+        this(store, factors, List.of(), List.of());
     }
 
 
@@ -37,9 +48,14 @@ public class CognitiveMemoryRetriever {
 
     public List<Memory> query(MemoryQuery query, ModulationContext context) {
         List<Memory> results = store.query(query);
-        var factors = buildFactors(context);
-        if (factors.isEmpty()) return results;
-        return RetrievalModulator.modulate(results, ModulationProfiles.MEMORY, factors);
+        var          factors = buildFactors(context);
+        if (!factors.isEmpty()) {
+            results = RetrievalModulator.modulate(results, ModulationProfiles.MEMORY, factors);
+        }
+        for (var observer : observers) {
+            observer.onRecall(context.agentId(), query.tenantId(), results.size());
+        }
+        return results;
     }
 
     public List<Memory> query(MemoryQuery query) {
