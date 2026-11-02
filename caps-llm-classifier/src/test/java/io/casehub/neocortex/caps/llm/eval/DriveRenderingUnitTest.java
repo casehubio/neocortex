@@ -6,6 +6,7 @@ import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.SituationContext;
 import io.casehub.neocortex.cognition.prompt.observation.CognitionObservationBuilder;
 import io.casehub.neocortex.cognition.prompt.observation.DriveSnapshot;
+import io.casehub.neocortex.cognition.prompt.observation.ObservationSection;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -206,11 +207,11 @@ class DriveRenderingUnitTest {
         var section = builder.renderInternalState(
                 List.of(), scenario.situationText, scenario.nearbyIds, situationContext);
 
-        var sectionText = section != null ? section.toString() : "";
+        assertThat(section).isInstanceOf(ObservationSection.TextBlock.class);
+        var sectionText = ((ObservationSection.TextBlock) section).content();
 
         var renderedDrives = character.drives().stream()
-                .filter(d -> !d.description().isBlank())
-                .filter(d -> sectionText.contains(d.description()))
+                .filter(d -> sectionText.contains(d.type().toUpperCase().replace('-', ' ') + " ("))
                 .map(EvalCharacterData.Drive::type)
                 .collect(java.util.stream.Collectors.toSet());
 
