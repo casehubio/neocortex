@@ -8,6 +8,7 @@ import io.casehub.neocortex.cognition.drive.DriveConfig;
 import io.casehub.neocortex.cognition.emergence.NormDetectionConfig;
 import io.casehub.neocortex.cognition.emergence.NormFilter;
 import io.casehub.neocortex.cognition.goal.CognitiveGoalConfig;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
 import io.casehub.neocortex.cognition.goal.GoalEscalationConfig;
 import io.casehub.neocortex.cognition.goal.GoalProposalConfig;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeConfig;
@@ -278,6 +279,13 @@ public class CognitionDefaultBeans {
         }
         return new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
                 memoryStore.get(), staticFactors, contextualFactories);
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    public MentalModelLookup mentalModelLookup() {
+        return (agentId, subjectId, tenantId) -> java.util.Optional.empty();
     }
 
 

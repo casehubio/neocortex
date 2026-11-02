@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class MentalModelMemory {
+public class MentalModelMemory implements MentalModelLookup {
 
     private final CbrRecordStore cbrStore;
     private final MemoryDomain domain;
