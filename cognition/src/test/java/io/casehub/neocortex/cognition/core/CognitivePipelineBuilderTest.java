@@ -162,7 +162,7 @@ class CognitivePipelineBuilderTest {
         var profile = new io.casehub.neocortex.cognitive.index.CognitiveProfile(mindMapStore, memoryStore);
 
         var core = CognitivePipelineBuilder.create(mood, drives)
-                                           .config(CognitionConfig.all())
+                                           .config(CognitionConfig.all().with("entityKnowledge", true))
                                            .cognitiveProfile(profile)
                                            .build();
 
@@ -173,7 +173,7 @@ class CognitivePipelineBuilderTest {
         var hasEntityKnowledge = sections.stream()
                                          .anyMatch(s -> s instanceof io.casehub.neocortex.cognition.prompt.EntityKnowledgePromptSection);
         assertThat(hasEntityKnowledge)
-                .as("EntityKnowledgePromptSection should be present after tick with known entity")
+                .as("EntityKnowledgePromptSection should be present when entityKnowledge explicitly enabled")
                 .isTrue();
     }
 
