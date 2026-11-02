@@ -148,6 +148,14 @@ public class ConsolidationScheduler {
 
     public void consolidateNow(String tenantId) {
         knownTenants.add(tenantId);
+        if (executor != null) {
+            executor.submit(() -> runConsolidation(tenantId));
+        } else {
+            runConsolidation(tenantId);
+        }
+    }
+
+    private void runConsolidation(String tenantId) {
         if (!lock.tryLock()) {
             LOG.info("Consolidation already running — skipping on-demand request for " + tenantId);
             return;
