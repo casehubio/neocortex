@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
@@ -43,6 +42,8 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
     private final CorpusConfig config;
     private final ChainManifest manifest;
     private final MasterIndex index;
+
+    private final Object writeLock = new Object();
     private Path activeZipPath;
 
     public ZipCorpusStore(CorpusConfig config) {
@@ -78,26 +79,28 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
     @Override
     public void append(String path, byte[] content) {
         validatePath(path);
-        try {
-            int version = index.versions(path).size() + 1;
+        synchronized (writeLock) {
+            try {
+                int version = index.versions(path).size() + 1;
 
-            String entryName = version + "/" + path;
-            ZipFile zipFile = new ZipFile(activeZipPath.toFile());
-            ZipParameters params = new ZipParameters();
-            params.setFileNameInZip(entryName);
-            params.setCompressionMethod(CompressionMethod.DEFLATE);
-            zipFile.addStream(new ByteArrayInputStream(content), params);
+                String        entryName = version + "/" + path;
+                ZipFile       zipFile   = new ZipFile(activeZipPath.toFile());
+                ZipParameters params    = new ZipParameters();
+                params.setFileNameInZip(entryName);
+                params.setCompressionMethod(CompressionMethod.DEFLATE);
+                zipFile.addStream(new ByteArrayInputStream(content), params);
 
-            EntryLocation location = new EntryLocation(
-                    activeZipPath.getFileName().toString(),
-                    version,
-                    System.currentTimeMillis());
-            index.put(path, location);
+                EntryLocation location = new EntryLocation(
+                        activeZipPath.getFileName().toString(),
+                        version,
+                        System.currentTimeMillis());
+                index.put(path, location);
 
-            saveManifest();
-            checkRollover();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to append entry: " + path, e);
+                saveManifest();
+                checkRollover();
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to append entry: " + path, e);
+            }
         }
     }
 
@@ -121,19 +124,20 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
 
     @Override
     public void delete(String path) {
-        try {
-            // Write tombstone marker to active ZIP
-            String tombstoneEntry = TOMBSTONE_PREFIX + path + TOMBSTONE_SUFFIX;
-            ZipFile zipFile = new ZipFile(activeZipPath.toFile());
-            ZipParameters params = new ZipParameters();
-            params.setFileNameInZip(tombstoneEntry);
-            params.setCompressionMethod(CompressionMethod.DEFLATE);
-            zipFile.addStream(new ByteArrayInputStream(new byte[0]), params);
+        synchronized (writeLock) {
+            try {
+                String        tombstoneEntry = TOMBSTONE_PREFIX + path + TOMBSTONE_SUFFIX;
+                ZipFile       zipFile        = new ZipFile(activeZipPath.toFile());
+                ZipParameters params         = new ZipParameters();
+                params.setFileNameInZip(tombstoneEntry);
+                params.setCompressionMethod(CompressionMethod.DEFLATE);
+                zipFile.addStream(new ByteArrayInputStream(new byte[0]), params);
 
-            index.tombstone(path);
-            saveManifest();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to delete entry: " + path, e);
+                index.tombstone(path);
+                saveManifest();
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to delete entry: " + path, e);
+            }
         }
     }
 
