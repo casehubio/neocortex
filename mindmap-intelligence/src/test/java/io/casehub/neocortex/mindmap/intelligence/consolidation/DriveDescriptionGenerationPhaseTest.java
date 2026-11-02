@@ -1,10 +1,15 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.cognition.mentalmodel.AttributedState;
+import io.casehub.neocortex.cognition.mentalmodel.BdiDimension;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot;
 import io.casehub.neocortex.cognitive.index.AffectTrajectory;
 import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
 import io.casehub.neocortex.cognitive.index.EntityKnowledge;
 import io.casehub.neocortex.cognitive.index.TrendDirection;
+import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -46,7 +51,7 @@ class DriveDescriptionGenerationPhaseTest {
         capturedUserPrompts = new CopyOnWriteArrayList<>();
         capturedInits       = new CopyOnWriteArrayList<>();
 
-        phase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance(), unsatisfiedInstance());
+        phase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance(), unsatisfiedInstance(), unsatisfiedInstance());
         phase.setSessionPipeline(StubPipelines.create(init -> {
             capturedInits.add(init);
             boolean isDiscrimination = init.systemPrompt().contains("discrimination");
@@ -92,7 +97,7 @@ class DriveDescriptionGenerationPhaseTest {
 
     @Test
     void skipsWhenNoSessionPipeline() {
-        var noLlmPhase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance(), unsatisfiedInstance());
+        var noLlmPhase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance(), unsatisfiedInstance(), unsatisfiedInstance());
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
 
@@ -579,7 +584,7 @@ class DriveDescriptionGenerationPhaseTest {
             }
         };
 
-        var enrichedPhase = new DriveDescriptionGenerationPhase(store, satisfiedInstance(stubProfile), unsatisfiedInstance());
+        var enrichedPhase = new DriveDescriptionGenerationPhase(store, satisfiedInstance(stubProfile), unsatisfiedInstance(), unsatisfiedInstance());
         enrichedPhase.setSessionPipeline(StubPipelines.create(init -> {
             capturedInits.add(init);
             return new AgentSession() {
@@ -636,5 +641,147 @@ class DriveDescriptionGenerationPhaseTest {
         assertThat(descPrompts).isNotEmpty();
         assertThat(descPrompts.getFirst()).doesNotContain("Relational context");
     }
+
+    @Test
+    void promptIncludesRelationshipAndReflectionMemories() {
+        String targetNodeId = store.addNode(
+                NodeInput.of("penelope-pitstop", cognitiveSubgraphId)
+                         .withProperties(Map.of("type", "person")),
+                TENANT);
+        var targetNode = store.getNode(targetNodeId, TENANT);
+
+        var relMemory = new Memory("rel-mem-1", io.casehub.neocortex.memory.Subject.of("agent", AGENT),
+                                   new MemoryDomain("relationship"), TENANT, AGENT, "A tense exchange over dinner",
+                                   Map.of(), java.time.Instant.now(), null, null, null, null, null, null);
+        var refMemory = new Memory("ref-mem-1", io.casehub.neocortex.memory.Subject.of("agent", AGENT),
+                                   new MemoryDomain("reflection"), TENANT, AGENT, "They avoid conflict when challenged",
+                                   Map.of(), java.time.Instant.now(), null, null, null, null, null, null);
+
+        var entityKnowledge = new EntityKnowledge(
+                targetNode, List.of(),
+                Map.of(new MemoryDomain("experience"), List.of(),
+                       new MemoryDomain("relationship"), List.of(relMemory),
+                       new MemoryDomain("reflection"), List.of(refMemory)),
+                null, Set.of(), TENANT, null);
+
+        var stubProfile = new CognitiveProfile((io.casehub.neocortex.mindmap.MindMapStore) null, null) {
+            @Override
+            public Optional<EntityKnowledge> resolve(CognitiveProfileQuery query) {
+                return Optional.of(entityKnowledge);
+            }
+        };
+
+        var enrichedPhase = new DriveDescriptionGenerationPhase(
+                store, satisfiedInstance(stubProfile), unsatisfiedInstance(), unsatisfiedInstance());
+        enrichedPhase.setSessionPipeline(StubPipelines.create(init -> {
+            capturedInits.add(init);
+            return new AgentSession() {
+                @Override
+                public Multi<AgentEvent> query(String userPrompt) {
+                    capturedUserPrompts.add(userPrompt);
+                    boolean hasRelationships = userPrompt.contains("Relationships");
+                    if (hasRelationships) {
+                        return Multi.createFrom().items(
+                                new AgentEvent.TextDelta("{\"description\": \"A warmth rises.\", \"targeted\": {\"beloved\": \"Fierce warmth.\"}}"));
+                    }
+                    return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"A warmth rises.\"}"));
+                }
+
+                @Override
+                public io.smallrye.mutiny.Uni<Void> interrupt() {
+                    return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                }
+
+                @Override
+                public void close(java.time.Duration timeout) {}
+            };
+        }));
+
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedRelationalSchema(AGENT, "penelope-pitstop", "beloved", "She means everything");
+
+        enrichedPhase.run(TENANT, List.of());
+
+        var descPrompts = capturedUserPrompts.stream()
+                                             .filter(p -> p.contains("gallantry"))
+                                             .toList();
+        assertThat(descPrompts).isNotEmpty();
+        assertThat(descPrompts.getFirst()).contains("tense exchange over dinner");
+        assertThat(descPrompts.getFirst()).contains("avoid conflict");
+    }
+
+    @Test
+    void promptIncludesTomWhenMentalModelLookupAvailable() {
+        String targetNodeId = store.addNode(
+                NodeInput.of("penelope-pitstop", cognitiveSubgraphId)
+                         .withProperties(Map.of("type", "person")),
+                TENANT);
+        var targetNode = store.getNode(targetNodeId, TENANT);
+
+        var entityKnowledge = new EntityKnowledge(
+                targetNode, List.of(),
+                Map.of(new MemoryDomain("experience"), List.of()),
+                null, Set.of(), TENANT, null);
+
+        var stubProfile = new CognitiveProfile((io.casehub.neocortex.mindmap.MindMapStore) null, null) {
+            @Override
+            public Optional<EntityKnowledge> resolve(CognitiveProfileQuery query) {
+                return Optional.of(entityKnowledge);
+            }
+        };
+
+        var snapshot = new MentalModelSnapshot(
+                AGENT, "penelope-pitstop", TENANT,
+                List.of(new AttributedState("trustworthy", "they are trustworthy", 0.9, 1,
+                                            java.time.Instant.now(), BdiDimension.BELIEF)),
+                List.of(), List.of(),
+                java.time.Instant.now(), null, java.time.Instant.now());
+
+        MentalModelLookup stubLookup = (agentId, subjectId, tenantId) ->
+                                               "penelope-pitstop".equals(subjectId) ? Optional.of(snapshot) : Optional.empty();
+
+        var enrichedPhase = new DriveDescriptionGenerationPhase(
+                store, satisfiedInstance(stubProfile), unsatisfiedInstance(), satisfiedInstance(stubLookup));
+        enrichedPhase.setSessionPipeline(StubPipelines.create(init -> {
+            capturedInits.add(init);
+            return new AgentSession() {
+                @Override
+                public Multi<AgentEvent> query(String userPrompt) {
+                    capturedUserPrompts.add(userPrompt);
+                    boolean hasRelationships = userPrompt.contains("Relationships");
+                    if (hasRelationships) {
+                        return Multi.createFrom().items(
+                                new AgentEvent.TextDelta("{\"description\": \"A warmth rises.\", \"targeted\": {\"beloved\": \"Fierce warmth.\"}}"));
+                    }
+                    return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"A warmth rises.\"}"));
+                }
+
+                @Override
+                public io.smallrye.mutiny.Uni<Void> interrupt() {
+                    return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                }
+
+                @Override
+                public void close(java.time.Duration timeout) {}
+            };
+        }));
+
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedRelationalSchema(AGENT, "penelope-pitstop", "beloved", "She means everything");
+
+        enrichedPhase.run(TENANT, List.of());
+
+        var descPrompts = capturedUserPrompts.stream()
+                                             .filter(p -> p.contains("gallantry"))
+                                             .toList();
+        assertThat(descPrompts).isNotEmpty();
+        assertThat(descPrompts.getFirst()).contains("trustworthy");
+        assertThat(descPrompts.getFirst()).contains("Beliefs");
+    }
+
 
 }

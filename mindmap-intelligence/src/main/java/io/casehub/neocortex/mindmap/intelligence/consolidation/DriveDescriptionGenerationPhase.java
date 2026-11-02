@@ -5,7 +5,11 @@ import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
 import io.casehub.neocortex.cognitive.index.CorrelationStrength;
 import io.casehub.neocortex.cognitive.index.DomainActivation;
 import io.casehub.neocortex.cognitive.index.DomainActivationQuery;
+import io.casehub.neocortex.cognition.mentalmodel.AttributedState;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -83,26 +87,32 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     private final MindMapStore store;
     private final CognitiveProfile cognitiveProfile;
     private final DomainActivation domainActivation;
+    private final MentalModelLookup mentalModelLookup;
     private volatile SessionPipeline sessionPipeline;
 
     private static final int MAX_ENTITIES = 5;
     private static final int MEMORY_LIMIT = 5;
+    private static final int MAX_EDGES = 10;
 
     @Inject
     public DriveDescriptionGenerationPhase(MindMapStore store,
                                             Instance<CognitiveProfile> cognitiveProfileInstance,
-                                            Instance<DomainActivation> domainActivationInstance) {
+                                            Instance<DomainActivation> domainActivationInstance,
+                                            Instance<MentalModelLookup> mentalModelLookupInstance) {
         this.store = store;
         this.cognitiveProfile = cognitiveProfileInstance.isUnsatisfied()
             ? null : cognitiveProfileInstance.get();
         this.domainActivation = domainActivationInstance.isUnsatisfied()
             ? null : domainActivationInstance.get();
+        this.mentalModelLookup = mentalModelLookupInstance.isUnsatisfied()
+            ? null : mentalModelLookupInstance.get();
     }
 
     DriveDescriptionGenerationPhase(MindMapStore store) {
-        this.store            = store;
-        this.cognitiveProfile = null;
-        this.domainActivation = null;
+        this.store             = store;
+        this.cognitiveProfile  = null;
+        this.domainActivation  = null;
+        this.mentalModelLookup = null;
     }
 
 
@@ -213,7 +223,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
             String subgraphId = findCognitiveSubgraph(tenantId, agentId);
             if (subgraphId == null) {continue;}
 
-            String entityContext = buildRelationalContext(tenantId, agentSchemas);
+            String entityContext = buildRelationalContext(tenantId, agentId, agentSchemas);
             String domainContext = buildDomainActivationContext(tenantId, agentId);
             String relationalContext = entityContext.isEmpty() && domainContext.isEmpty()
                 ? "" : entityContext + domainContext;
@@ -559,7 +569,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     }
 
 
-    private String buildRelationalContext(String tenantId, List<MindMapNode> agentSchemas) {
+    private String buildRelationalContext(String tenantId, String agentId, List<MindMapNode> agentSchemas) {
         if (cognitiveProfile == null || agentSchemas.isEmpty()) {
             return "";
         }
@@ -567,33 +577,42 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         var sb = new StringBuilder();
         sb.append("Relational context for your pulls:\n\n");
 
-        int     entityCount = 0;
-        boolean anyContent  = false;
+        int entityCount = 0;
+        boolean anyContent = false;
         for (var schema : agentSchemas) {
-            if (entityCount >= MAX_ENTITIES) {break;}
+            if (entityCount >= MAX_ENTITIES) break;
             String targetId = schema.properties().get("target-id");
-            String role     = schema.properties().get("rel.role");
-            if (targetId == null || role == null) {continue;}
+            String role = schema.properties().get("rel.role");
+            if (targetId == null || role == null) continue;
 
             var query = CognitiveProfileQuery.byName(targetId, tenantId)
                                              .withMemoryLimit(MEMORY_LIMIT);
             var knowledge = cognitiveProfile.resolve(query);
-            if (knowledge.isEmpty()) {continue;}
+            if (knowledge.isEmpty()) continue;
 
             var ek = knowledge.get();
             sb.append("About ").append(ek.node().name());
             String type = ek.node().type();
-            if (type != null && !type.isEmpty()) {sb.append(" (").append(type).append(")");}
+            if (type != null && !type.isEmpty()) sb.append(" (").append(type).append(")");
             sb.append(":\n");
 
-            var experienceMemories = ek.memories().getOrDefault(
-                    new MemoryDomain("experience"), List.of());
-            if (!experienceMemories.isEmpty()) {
-                sb.append("  Recent memories:\n");
-                for (var mem : experienceMemories) {
-                    sb.append("    - ").append(mem.text()).append("\n");
+            appendMemoryDomain(sb, ek, "experience", "Experiences with them");
+            appendMemoryDomain(sb, ek, "relationship", "How interactions have gone");
+            appendMemoryDomain(sb, ek, "reflection", "Insights about them");
+
+            var edges = ek.edges();
+            if (!edges.isEmpty()) {
+                sb.append("  Connections:\n");
+                int edgeCount = 0;
+                for (var edge : edges) {
+                    if (edgeCount >= MAX_EDGES) break;
+                    sb.append("    - ").append(edge.edgeType())
+                      .append(" → ").append(edge.targetNodeId()).append("\n");
+                    edgeCount++;
                 }
             }
+
+            appendTheoryOfMind(sb, agentId, targetId, tenantId);
 
             var trajectory = ek.trajectory();
             if (trajectory != null && trajectory.sampleCount() > 0) {
@@ -608,6 +627,44 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
 
         return anyContent ? sb.toString() : "";
+    }
+
+    private void appendMemoryDomain(StringBuilder sb, io.casehub.neocortex.cognitive.index.EntityKnowledge ek,
+                                     String domainName, String label) {
+        var memories = ek.memories().getOrDefault(new MemoryDomain(domainName), List.of());
+        if (!memories.isEmpty()) {
+            sb.append("  ").append(label).append(":\n");
+            int limit = Math.min(memories.size(), MEMORY_LIMIT);
+            for (int i = 0; i < limit; i++) {
+                sb.append("    - ").append(memories.get(i).text()).append("\n");
+            }
+        }
+    }
+
+    private void appendTheoryOfMind(StringBuilder sb, String agentId, String targetId, String tenantId) {
+        if (mentalModelLookup == null) return;
+        try {
+            var snapshot = mentalModelLookup.lookup(agentId, targetId, tenantId);
+            if (snapshot.isEmpty()) return;
+            var tom = snapshot.get();
+            if (tom.beliefs().isEmpty() && tom.desires().isEmpty() && tom.intentions().isEmpty()) return;
+
+            sb.append("  What you think about them:\n");
+            appendBdiDimension(sb, "Beliefs", tom.beliefs());
+            appendBdiDimension(sb, "Desires", tom.desires());
+            appendBdiDimension(sb, "Intentions", tom.intentions());
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "ToM lookup skipped for " + targetId + ": " + e.getMessage());
+        }
+    }
+
+    private void appendBdiDimension(StringBuilder sb, String label, List<AttributedState> items) {
+        if (items.isEmpty()) return;
+        sb.append("    ").append(label).append(": ");
+        sb.append(items.stream()
+            .map(s -> s.description() + " (confidence: " + String.format("%.1f", s.confidence()) + ")")
+            .collect(java.util.stream.Collectors.joining(", ")));
+        sb.append("\n");
     }
 
     private String buildDomainActivationContext(String tenantId, String agentId) {
