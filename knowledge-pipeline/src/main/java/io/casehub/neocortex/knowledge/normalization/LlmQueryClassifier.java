@@ -152,7 +152,8 @@ public class LlmQueryClassifier implements QueryClassifier {
                 List<GeocodingResult> results = provider.geocoding("pipeline")
                     .geocode(location);
                 if (!results.isEmpty()) {
-                    return Optional.of(results.get(0).location());
+                    var loc = results.get(0).location();
+                    return Optional.of(new io.casehub.connectors.Coordinates(loc.lat(), loc.lng()));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Geocoding failed for: " + location, e);

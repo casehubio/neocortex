@@ -48,9 +48,9 @@ public class SpatialSearchableProvider implements SearchableProvider {
         Page<Place> result = switch (query) {
             case KnowledgeQuery.TextSearch t -> search.searchByText(t.query(), connectorPage);
             case KnowledgeQuery.NearbySearch n ->
-                search.searchNearby(n.center(), n.radiusMeters(), connectorPage);
+                search.searchNearby(toLocationCoords(n.center()), n.radiusMeters(), connectorPage);
             case KnowledgeQuery.CategorySearch c ->
-                search.searchByCategory(c.category(), c.center(), c.radiusMeters(), connectorPage);
+                search.searchByCategory(c.category(), toLocationCoords(c.center()), c.radiusMeters(), connectorPage);
             default -> throw new UnsupportedOperationException(
                 "Unsupported query type for location domain: " + query.getClass().getName());
         };
@@ -85,8 +85,17 @@ public class SpatialSearchableProvider implements SearchableProvider {
             ? place.types().get(0) : null;
 
         return new CachedEntity(
-            entityId, place.name(), place.location(), category,
+            entityId, place.name(), toConnectorCoords(place.location()), category,
             platform.id(), place.id(), props, now, null, expiresAt,
             Set.of(), false, DOMAIN);
     }
+
+    private static io.casehub.connectors.location.model.Coordinates toLocationCoords(io.casehub.connectors.Coordinates c) {
+        return new io.casehub.connectors.location.model.Coordinates(c.lat(), c.lng());
+    }
+
+    private static io.casehub.connectors.Coordinates toConnectorCoords(io.casehub.connectors.location.model.Coordinates c) {
+        return new io.casehub.connectors.Coordinates(c.lat(), c.lng());
+    }
+
 }
