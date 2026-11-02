@@ -1,5 +1,11 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.cognitive.index.AffectTrajectory;
+import io.casehub.neocortex.cognitive.index.CognitiveProfile;
+import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
+import io.casehub.neocortex.cognitive.index.EntityKnowledge;
+import io.casehub.neocortex.cognitive.index.TrendDirection;
+import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -11,11 +17,14 @@ import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSession;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.smallrye.mutiny.Multi;
+import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +46,7 @@ class DriveDescriptionGenerationPhaseTest {
         capturedUserPrompts = new CopyOnWriteArrayList<>();
         capturedInits       = new CopyOnWriteArrayList<>();
 
-        phase = new DriveDescriptionGenerationPhase(store);
+        phase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance());
         phase.setSessionPipeline(StubPipelines.create(init -> {
             capturedInits.add(init);
             boolean isDiscrimination = init.systemPrompt().contains("discrimination");
@@ -83,7 +92,7 @@ class DriveDescriptionGenerationPhaseTest {
 
     @Test
     void skipsWhenNoSessionPipeline() {
-        var noLlmPhase = new DriveDescriptionGenerationPhase(store);
+        var noLlmPhase = new DriveDescriptionGenerationPhase(store, unsatisfiedInstance());
         seedDriveNode("gallantry", 0.9);
         seedFormationMemory("Your father knelt to help the stranger", "gallantry");
 
@@ -512,4 +521,120 @@ class DriveDescriptionGenerationPhaseTest {
             .filter(n -> n.traits().contains(DriveDescriptionGenerationPhase.DESCRIPTION_TRAIT))
             .toList();
     }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Instance<T> unsatisfiedInstance() {
+        return new Instance<>() {
+            @Override public T get() { throw new IllegalStateException("unsatisfied"); }
+            @Override public boolean isUnsatisfied() { return true; }
+            @Override public boolean isResolvable() { return false; }
+            @Override public boolean isAmbiguous() { return false; }
+            @Override public void destroy(T instance) {}
+            @Override public Handle<T> getHandle() { return null; }
+            @Override public Iterable<Handle<T>> handles() { return List.of(); }
+            @Override public Instance<T> select(java.lang.annotation.Annotation... q) { return this; }
+            @Override public <U extends T> Instance<U> select(Class<U> s, java.lang.annotation.Annotation... q) { return (Instance<U>) this; }
+            @Override public <U extends T> Instance<U> select(jakarta.enterprise.util.TypeLiteral<U> s, java.lang.annotation.Annotation... q) { return (Instance<U>) this; }
+            @Override public java.util.Iterator<T> iterator() { return List.<T>of().iterator(); }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Instance<T> satisfiedInstance(T value) {
+        return new Instance<>() {
+            @Override public T get() { return value; }
+            @Override public boolean isUnsatisfied() { return false; }
+            @Override public boolean isResolvable() { return true; }
+            @Override public boolean isAmbiguous() { return false; }
+            @Override public void destroy(T instance) {}
+            @Override public Handle<T> getHandle() { return null; }
+            @Override public Iterable<Handle<T>> handles() { return List.of(); }
+            @Override public Instance<T> select(java.lang.annotation.Annotation... q) { return this; }
+            @Override public <U extends T> Instance<U> select(Class<U> s, java.lang.annotation.Annotation... q) { return (Instance<U>) this; }
+            @Override public <U extends T> Instance<U> select(jakarta.enterprise.util.TypeLiteral<U> s, java.lang.annotation.Annotation... q) { return (Instance<U>) this; }
+            @Override public java.util.Iterator<T> iterator() { return List.of(value).iterator(); }
+        };
+    }
+
+    @Test
+    void promptIncludesRelationalContextWhenCognitiveProfileAvailable() {
+        String targetNodeId = store.addNode(
+                NodeInput.of("penelope-pitstop", cognitiveSubgraphId)
+                         .withProperties(Map.of("type", "person")),
+                TENANT);
+        var targetNode = store.getNode(targetNodeId, TENANT);
+
+        var trajectory = new AffectTrajectory(0.15, 0.2, 0.1, 0.05,
+                                              TrendDirection.IMPROVING, 0.15, 5);
+
+        var entityKnowledge = new EntityKnowledge(
+                targetNode, List.of(),
+                Map.of(new MemoryDomain("experience"), List.of()),
+                trajectory, Set.of(), TENANT, null);
+
+        var stubProfile = new CognitiveProfile((io.casehub.neocortex.mindmap.MindMapStore) null, null) {
+            @Override
+            public Optional<EntityKnowledge> resolve(CognitiveProfileQuery query) {
+                return Optional.of(entityKnowledge);
+            }
+        };
+
+        var enrichedPhase = new DriveDescriptionGenerationPhase(store, satisfiedInstance(stubProfile));
+        enrichedPhase.setSessionPipeline(StubPipelines.create(init -> {
+            capturedInits.add(init);
+            return new AgentSession() {
+                @Override
+                public Multi<AgentEvent> query(String userPrompt) {
+                    capturedUserPrompts.add(userPrompt);
+                    boolean hasRelationships = userPrompt.contains("Relationships");
+                    if (hasRelationships) {
+                        return Multi.createFrom().items(
+                                new AgentEvent.TextDelta("{\"description\": \"A warmth rises.\", \"targeted\": {\"beloved\": \"Fierce warmth.\"}}"));
+                    }
+                    return Multi.createFrom().items(
+                            new AgentEvent.TextDelta("{\"description\": \"A warmth rises.\"}"));
+                }
+
+                @Override
+                public io.smallrye.mutiny.Uni<Void> interrupt() {
+                    return io.smallrye.mutiny.Uni.createFrom().voidItem();
+                }
+
+                @Override
+                public void close(java.time.Duration timeout) {}
+            };
+        }));
+
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedRelationalSchema(AGENT, "penelope-pitstop", "beloved",
+                             "She means everything");
+
+        enrichedPhase.run(TENANT, List.of());
+
+        var descPrompts = capturedUserPrompts.stream()
+                                             .filter(p -> p.contains("gallantry"))
+                                             .toList();
+        assertThat(descPrompts).isNotEmpty();
+        assertThat(descPrompts.getFirst()).contains("Relational context");
+        assertThat(descPrompts.getFirst()).contains("penelope-pitstop");
+        assertThat(descPrompts.getFirst()).contains("IMPROVING");
+    }
+
+    @Test
+    void promptExcludesRelationalContextWhenCognitiveProfileUnavailable() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+        seedRelationalSchema(AGENT, "penelope-pitstop", "beloved",
+                             "She means everything");
+
+        phase.run(TENANT, List.of());
+
+        var descPrompts = capturedUserPrompts.stream()
+                                             .filter(p -> p.contains("gallantry"))
+                                             .toList();
+        assertThat(descPrompts).isNotEmpty();
+        assertThat(descPrompts.getFirst()).doesNotContain("Relational context");
+    }
+
 }

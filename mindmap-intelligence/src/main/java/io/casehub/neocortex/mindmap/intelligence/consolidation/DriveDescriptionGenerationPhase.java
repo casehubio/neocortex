@@ -1,5 +1,8 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.cognitive.index.CognitiveProfile;
+import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
+import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -12,6 +15,7 @@ import io.casehub.platform.agent.session.ParallelLlmExecutor;
 import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.util.Arrays;
@@ -73,12 +77,25 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                                 Respond with JSON only: {"description": "..."}""";
 
     private final MindMapStore store;
+    private final CognitiveProfile cognitiveProfile;
     private volatile SessionPipeline sessionPipeline;
 
+    private static final int MAX_ENTITIES = 5;
+    private static final int MEMORY_LIMIT = 5;
+
     @Inject
-    public DriveDescriptionGenerationPhase(MindMapStore store) {
+    public DriveDescriptionGenerationPhase(MindMapStore store,
+                                            Instance<CognitiveProfile> cognitiveProfileInstance) {
         this.store = store;
+        this.cognitiveProfile = cognitiveProfileInstance.isUnsatisfied()
+            ? null : cognitiveProfileInstance.get();
     }
+
+    DriveDescriptionGenerationPhase(MindMapStore store) {
+        this.store            = store;
+        this.cognitiveProfile = null;
+    }
+
 
     @Override
     public String name() {
@@ -205,6 +222,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 if (dt != null && bl != null) { allDriveLocations.put(dt, bl); }
             }
 
+            String relationalContext = buildRelationalContext(tenantId, agentSchemas);
+
             for (MindMapNode driveNode : driveNodes) {
                 String driveType = driveNode.properties().get("drive-type");
                 if (driveType == null || describedKeys.contains(driveType)) {continue;}
@@ -224,7 +243,7 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                     long start = System.currentTimeMillis();
                     generateAndStore(session, tenantId, agentId, subgraphId,
                                      driveType, intensity, servingMemories, personalityNodes, attachmentNode, agentSchemas,
-                                     bodyLocation, channelEmphasis, otherLocations);
+                                     bodyLocation, channelEmphasis, otherLocations, relationalContext);
                     LOG.info("  " + agentId + "/" + driveType + " (" + servingMemories.size()
                              + " memories, " + personalityNodes.size() + " facets, "
                              + agentSchemas.size() + " schemas, "
@@ -255,11 +274,13 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                                   List<MindMapNode> personalityNodes, MindMapNode attachmentNode,
                                   List<MindMapNode> agentSchemas,
                                   String bodyLocation, String channelEmphasis,
-                                  Map<String, String> otherDriveLocations) {
+                                  Map<String, String> otherDriveLocations,
+                                  String relationalContext) {
         try {
             String rawResponse = callLlm(session, driveType, intensity, servingMemories,
                                          personalityNodes, attachmentNode, agentSchemas,
-                                         bodyLocation, channelEmphasis, otherDriveLocations);
+                                         bodyLocation, channelEmphasis, otherDriveLocations,
+                                         relationalContext);
             if (rawResponse == null || rawResponse.isBlank()) {return;}
 
             String description = parseDescription(rawResponse);
@@ -304,7 +325,8 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                            List<MindMapNode> personalityNodes, MindMapNode attachmentNode,
                            List<MindMapNode> agentSchemas,
                            String bodyLocation, String channelEmphasis,
-                           Map<String, String> otherDriveLocations) {
+                           Map<String, String> otherDriveLocations,
+                           String relationalContext) {
         var promptBuilder = new StringBuilder();
         promptBuilder.append("Drive type: ").append(driveType).append("\n");
         promptBuilder.append("Intensity: ").append(intensity).append(" (scale 0.0 to 1.0)\n");
@@ -357,6 +379,11 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
                 promptBuilder.append("\n");
             }
             promptBuilder.append("\n");
+
+            if (relationalContext != null && !relationalContext.isEmpty()) {
+                promptBuilder.append(relationalContext).append("\n");
+            }
+
             promptBuilder.append("Given this character's personality, memories, and relationships, describe how ")
                          .append("this pull TYPICALLY manifests in their body — without naming the pull. ")
                          .append("Weave all four channels together. Second person, no behavioral instructions.\n\n")
@@ -507,6 +534,57 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         return result;
     }
 
+
+    private String buildRelationalContext(String tenantId, List<MindMapNode> agentSchemas) {
+        if (cognitiveProfile == null || agentSchemas.isEmpty()) {
+            return "";
+        }
+
+        var sb = new StringBuilder();
+        sb.append("Relational context for your pulls:\n\n");
+
+        int     entityCount = 0;
+        boolean anyContent  = false;
+        for (var schema : agentSchemas) {
+            if (entityCount >= MAX_ENTITIES) {break;}
+            String targetId = schema.properties().get("target-id");
+            String role     = schema.properties().get("rel.role");
+            if (targetId == null || role == null) {continue;}
+
+            var query = CognitiveProfileQuery.byName(targetId, tenantId)
+                                             .withMemoryLimit(MEMORY_LIMIT);
+            var knowledge = cognitiveProfile.resolve(query);
+            if (knowledge.isEmpty()) {continue;}
+
+            var ek = knowledge.get();
+            sb.append("About ").append(ek.node().name());
+            String type = ek.node().type();
+            if (type != null && !type.isEmpty()) {sb.append(" (").append(type).append(")");}
+            sb.append(":\n");
+
+            var experienceMemories = ek.memories().getOrDefault(
+                    new MemoryDomain("experience"), List.of());
+            if (!experienceMemories.isEmpty()) {
+                sb.append("  Recent memories:\n");
+                for (var mem : experienceMemories) {
+                    sb.append("    - ").append(mem.text()).append("\n");
+                }
+            }
+
+            var trajectory = ek.trajectory();
+            if (trajectory != null && trajectory.sampleCount() > 0) {
+                sb.append("  Emotional trajectory: ").append(trajectory.trend())
+                  .append(" (pleasure slope: ").append(
+                          String.format("%.2f", trajectory.pleasureSlope()))
+                  .append(")\n");
+            }
+            sb.append("\n");
+            entityCount++;
+            anyContent = true;
+        }
+
+        return anyContent ? sb.toString() : "";
+    }
 
     private boolean memoryServesDrive(MindMapNode memoryNode, String driveType) {
         String situationTypes = memoryNode.properties().get("situation-types");
