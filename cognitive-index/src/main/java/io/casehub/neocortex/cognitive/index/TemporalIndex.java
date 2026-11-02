@@ -4,6 +4,7 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryOrder;
+import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -35,7 +36,7 @@ import java.util.List;
 @ApplicationScoped
 public class TemporalIndex {
 
-    private static final MemoryDomain EXPERIENCE_DOMAIN = new MemoryDomain("experience");
+    private static final MemoryDomain EXPERIENCE_DOMAIN = ExperienceEvents.DOMAIN;
 
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;

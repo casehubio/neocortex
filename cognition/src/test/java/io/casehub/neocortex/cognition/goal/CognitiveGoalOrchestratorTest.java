@@ -88,7 +88,7 @@ class CognitiveGoalOrchestratorTest {
         orchestrator.tick(tickContext());
 
         var memories = memoryStore.query(MemoryQuery.forSubject(
-                Subject.of("agent", AGENT), new MemoryDomain("agent-experience"), TENANT)
+                Subject.of("agent", AGENT), new MemoryDomain("experience"), TENANT)
                 .withLimit(10));
         assertThat(memories).isNotEmpty();
         assertThat(memories.get(0).attributes()).containsKey("emotion-type");

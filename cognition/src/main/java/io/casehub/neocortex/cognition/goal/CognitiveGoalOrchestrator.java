@@ -5,9 +5,9 @@ import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.memory.CaseMemoryStore;
-import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
+import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.mindmap.AppraisalContext;
 import io.casehub.neocortex.mindmap.GoalAppraisal;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -31,8 +31,6 @@ import java.util.function.Supplier;
 public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
 
     private static final System.Logger LOG = System.getLogger(CognitiveGoalOrchestrator.class.getName());
-    private static final MemoryDomain EXPERIENCE = new MemoryDomain("experience");
-    private static final MemoryDomain AGENT_EXPERIENCE = new MemoryDomain("agent-experience");
     private static final Set<String> SURFACEABLE_STATUSES = Set.of("active", "blocked");
 
     private final MindMapStore mindMapStore;
@@ -154,7 +152,7 @@ public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
         if (memoryStore == null) return;
         try {
             memoryStore.store(MemoryInput.of(
-                    Subject.of("agent", agentId), EXPERIENCE, tenantId,
+                    Subject.of("agent", agentId), ExperienceEvents.DOMAIN, tenantId,
                     "Goal surfaced: " + goal.name())
                     .withAttributes(Map.of(
                             "cognitive-event", "goal-surfaced",
@@ -175,7 +173,7 @@ public class CognitiveGoalOrchestrator implements CognitionTickParticipant {
             if (dominant == null) return;
 
             memoryStore.store(MemoryInput.of(
-                    Subject.of("agent", agentId), AGENT_EXPERIENCE, tenantId,
+                    Subject.of("agent", agentId), ExperienceEvents.DOMAIN, tenantId,
                     "Felt " + dominant.type().name() + " about " + goal.name()
                             + " (intensity " + String.format("%.2f", dominant.intensity()) + ")")
                     .withAttributes(Map.of(
