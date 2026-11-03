@@ -5,14 +5,22 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class ConsolidationPromptSection implements CognitionPromptRenderer {
 
     private static final int MAX_ITEMS_PER_TYPE = 5;
     private final List<ConsolidationArtifact> artifacts;
+    private final @Nullable Function<String, String> nodeNameResolver;
 
     public ConsolidationPromptSection(List<ConsolidationArtifact> artifacts) {
+        this(artifacts, null);
+    }
+
+    public ConsolidationPromptSection(List<ConsolidationArtifact> artifacts,
+                                        @Nullable Function<String, String> nodeNameResolver) {
         this.artifacts = artifacts;
+        this.nodeNameResolver = nodeNameResolver;
     }
 
     @Override
@@ -45,7 +53,7 @@ public class ConsolidationPromptSection implements CognitionPromptRenderer {
             .sorted(Comparator.comparingDouble(ConsolidationArtifact.MergePerformed::score).reversed())
             .limit(MAX_ITEMS_PER_TYPE)
             .forEach(m -> sb.append("\nUnified concepts: ")
-                .append(m.keepNodeId()).append(" absorbed ").append(m.removedNodeId())
+                .append(resolveNodeName(m.keepNodeId())).append(" absorbed ").append(resolveNodeName(m.removedNodeId()))
                 .append(" — ").append(m.reason()));
         artifacts.stream()
             .filter(ConsolidationArtifact.MergeFlagged.class::isInstance)
@@ -53,7 +61,7 @@ public class ConsolidationPromptSection implements CognitionPromptRenderer {
             .sorted(Comparator.comparingDouble(ConsolidationArtifact.MergeFlagged::score).reversed())
             .limit(MAX_ITEMS_PER_TYPE)
             .forEach(m -> sb.append("\nPossible connection: ")
-                .append(m.nodeId1()).append(" and ").append(m.nodeId2())
+                .append(resolveNodeName(m.nodeId1())).append(" and ").append(resolveNodeName(m.nodeId2()))
                 .append(" seem related (").append(String.format("%.2f", m.score()))
                 .append(") — ").append(m.reason()));
     }
@@ -77,4 +85,12 @@ public class ConsolidationPromptSection implements CognitionPromptRenderer {
             .forEach(c -> sb.append("\nCommunity theme: ")
                 .append(c.title()).append(" (").append(c.memberCount()).append(" concepts)"));
     }
+
+    private String resolveNodeName(String nodeId) {
+        if (nodeNameResolver == null) {return nodeId;}
+        String resolved = nodeNameResolver.apply(nodeId);
+        return resolved != null ? resolved : nodeId;
+    }
+
+
 }

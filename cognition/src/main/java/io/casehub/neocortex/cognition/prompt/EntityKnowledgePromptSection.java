@@ -5,6 +5,7 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class EntityKnowledgePromptSection implements CognitionPromptRenderer {
 
@@ -12,9 +13,16 @@ public class EntityKnowledgePromptSection implements CognitionPromptRenderer {
     private static final int MAX_EDGES               = 5;
 
     private final List<EntityKnowledge> entities;
+    private final @Nullable Function<String, String> nodeNameResolver;
 
     public EntityKnowledgePromptSection(List<EntityKnowledge> entities) {
+        this(entities, null);
+    }
+
+    public EntityKnowledgePromptSection(List<EntityKnowledge> entities,
+                                         @Nullable Function<String, String> nodeNameResolver) {
         this.entities = entities;
+        this.nodeNameResolver = nodeNameResolver;
     }
 
     @Override
@@ -38,7 +46,7 @@ public class EntityKnowledgePromptSection implements CognitionPromptRenderer {
             ek.edges().stream().limit(MAX_EDGES)
               .forEach(e -> sb.append("\n    ")
                               .append(e.edgeType().toLowerCase())
-                              .append(" → ").append(e.targetNodeId()));
+                              .append(" → ").append(resolveNodeName(e.targetNodeId())));
         }
 
         for (var entry : ek.memories().entrySet()) {
@@ -77,4 +85,12 @@ public class EntityKnowledgePromptSection implements CognitionPromptRenderer {
             default -> name.substring(0, 1).toUpperCase() + name.substring(1);
         };
     }
+
+    private String resolveNodeName(String nodeId) {
+        if (nodeNameResolver == null) {return nodeId;}
+        String resolved = nodeNameResolver.apply(nodeId);
+        return resolved != null ? resolved : nodeId;
+    }
+
+
 }
