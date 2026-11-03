@@ -110,6 +110,26 @@ public abstract class EntityAnnotationIndexContractTest {
     }
 
     @Test
+    void findBySourceBatch() {
+        index.addAnnotation(annotation("node-1", "memory", "mem-1", 0, 5, "James"));
+        index.addAnnotation(annotation("node-2", "conversation", "conv-1", 0, 5, "Clara"));
+        index.addAnnotation(annotation("node-1", "memory", "mem-2", 0, 5, "James"));
+        index.addAnnotation(annotation("node-3", "memory", "mem-3", 0, 3, "Key"));
+        List<EntityAnnotation> found = index.findBySource("memory", Set.of("mem-1", "mem-2"), TENANT);
+        assertThat(found).hasSize(2);
+        assertThat(found).extracting(EntityAnnotation::sourceId)
+                         .containsExactlyInAnyOrder("mem-1", "mem-2");
+    }
+
+    @Test
+    void findBySourceBatchEmptyCollection() {
+        index.addAnnotation(annotation("node-1", "memory", "mem-1", 0, 5, "James"));
+        List<EntityAnnotation> found = index.findBySource("memory", Set.of(), TENANT);
+        assertThat(found).isEmpty();
+    }
+
+
+    @Test
     void distinctEntitiesInSource() {
         index.addAnnotation(annotation("node-1", "memory", "mem-1", 0, 5, "James"));
         index.addAnnotation(annotation("node-1", "memory", "mem-1", 20, 22, "He"));
