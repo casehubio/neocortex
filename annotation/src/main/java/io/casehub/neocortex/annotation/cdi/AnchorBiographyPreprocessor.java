@@ -6,10 +6,15 @@ import io.casehub.neocortex.annotation.AnnotationMethod;
 import io.casehub.neocortex.annotation.EntityAnnotation;
 import io.casehub.neocortex.annotation.EntityAnnotationIndex;
 import io.casehub.neocortex.annotation.ParsedAnchor;
+import io.casehub.neocortex.memory.seeding.biography.ActivityEntry;
 import io.casehub.neocortex.memory.seeding.biography.BeliefEntry;
 import io.casehub.neocortex.memory.seeding.biography.BiographyProfile;
 import io.casehub.neocortex.memory.seeding.biography.BiographyProfilePreprocessor;
+import io.casehub.neocortex.memory.seeding.biography.CulturalContextEntry;
+import io.casehub.neocortex.memory.seeding.biography.GoalEntry;
 import io.casehub.neocortex.memory.seeding.biography.LifeEventEntry;
+import io.casehub.neocortex.memory.seeding.biography.ProjectEntry;
+import io.casehub.neocortex.memory.seeding.biography.RelationshipEntry;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -52,22 +57,42 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     public BiographyProfile preprocess(BiographyProfile profile, String agentId, String tenantId) {
         pendingAnchors.clear();
 
+        List<CulturalContextEntry> cleanedContexts = profile.culturalContexts().stream()
+                                                            .map(entry -> processCulturalContext(entry, tenantId))
+                                                            .toList();
+
         List<LifeEventEntry> cleanedLifeEvents = profile.lifeEvents().stream()
-            .map(entry -> processLifeEvent(entry, tenantId))
-            .toList();
+                                                        .map(entry -> processLifeEvent(entry, tenantId))
+                                                        .toList();
 
         List<BeliefEntry> cleanedBeliefs = profile.beliefs().stream()
-            .map(entry -> processBelief(entry, tenantId))
-            .toList();
+                                                  .map(entry -> processBelief(entry, tenantId))
+                                                  .toList();
+
+        List<ActivityEntry> cleanedActivities = profile.activities().stream()
+                                                       .map(entry -> processActivity(entry, tenantId))
+                                                       .toList();
+
+        List<ProjectEntry> cleanedProjects = profile.projects().stream()
+                                                    .map(entry -> processProject(entry, tenantId))
+                                                    .toList();
+
+        List<RelationshipEntry> cleanedRelationships = profile.relationships().stream()
+                                                              .map(entry -> processRelationship(entry, tenantId))
+                                                              .toList();
+
+        List<GoalEntry> cleanedGoals = profile.goals().stream()
+                                              .map(entry -> processGoal(entry, tenantId))
+                                              .toList();
 
         return new BiographyProfile(
-            profile.agentId(), profile.tenantId(),
-            profile.culturalContexts(), profile.formativeExperiences(),
-            cleanedLifeEvents, profile.places(), profile.activities(),
-            profile.projects(), profile.organisations(), profile.relationships(),
-            profile.goals(), cleanedBeliefs, profile.entityEnrichments(),
-            profile.dispositionProfiles(), profile.personalityProfiles(),
-            profile.currentStates());
+                profile.agentId(), profile.tenantId(),
+                cleanedContexts, profile.formativeExperiences(),
+                cleanedLifeEvents, profile.places(), cleanedActivities,
+                cleanedProjects, profile.organisations(), cleanedRelationships,
+                cleanedGoals, cleanedBeliefs, profile.entityEnrichments(),
+                profile.dispositionProfiles(), profile.personalityProfiles(),
+                profile.currentStates());
     }
 
     @Override
@@ -136,6 +161,91 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
                 result.cleanText(), entry.cognitiveKind(), entry.entityRefs(),
                 entry.properties(), entry.associations());
     }
+
+    private CulturalContextEntry processCulturalContext(CulturalContextEntry entry, String tenantId) {
+        if (entry.description() == null || !entry.description().contains("[")) {return entry;}
+        AnchorParseResult result   = parser.parse(entry.description());
+        String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        collectAnchors(result, sourceId, tenantId);
+        return new CulturalContextEntry(
+                entry.id(), entry.sourceRef(), result.cleanText(),
+                entry.norms(), entry.contextProperties(), entry.associations());
+    }
+
+    private ActivityEntry processActivity(ActivityEntry entry, String tenantId) {
+        if (entry.notes() == null || !entry.notes().contains("[")) {return entry;}
+        AnchorParseResult result   = parser.parse(entry.notes());
+        String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        collectAnchors(result, sourceId, tenantId);
+        return new ActivityEntry(
+                entry.id(), entry.sourceRef(), entry.name(), entry.activityType(),
+                entry.date(), entry.placeRef(), entry.participants(),
+                result.cleanText(), entry.associations());
+    }
+
+    private ProjectEntry processProject(ProjectEntry entry, String tenantId) {
+        if (entry.description() == null || !entry.description().contains("[")) {return entry;}
+        AnchorParseResult result   = parser.parse(entry.description());
+        String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        collectAnchors(result, sourceId, tenantId);
+        return new ProjectEntry(
+                entry.id(), entry.sourceRef(), entry.name(), result.cleanText(),
+                entry.activityRefs(), entry.properties(), entry.associations());
+    }
+
+    private RelationshipEntry processRelationship(RelationshipEntry entry, String tenantId) {
+        if (entry.bdi() == null) {return entry;}
+        RelationshipEntry.BdiValues bdi = entry.bdi();
+        boolean hasBrackets = (bdi.beliefs() != null && bdi.beliefs().contains("["))
+                              || (bdi.desires() != null && bdi.desires().contains("["))
+                              || (bdi.intentions() != null && bdi.intentions().contains("["));
+        if (!hasBrackets) {return entry;}
+
+        String sourceId        = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        String cleanBeliefs    = processTextField(bdi.beliefs(), sourceId + "-beliefs", tenantId);
+        String cleanDesires    = processTextField(bdi.desires(), sourceId + "-desires", tenantId);
+        String cleanIntentions = processTextField(bdi.intentions(), sourceId + "-intentions", tenantId);
+
+        RelationshipEntry.BdiValues cleanedBdi = new RelationshipEntry.BdiValues(cleanBeliefs, cleanDesires, cleanIntentions);
+        return new RelationshipEntry(
+                entry.id(), entry.sourceRef(), entry.confidenceOrigin(), entry.name(),
+                entry.traits(), cleanedBdi, entry.affect(), entry.dynamics(),
+                entry.properties(), entry.associations());
+    }
+
+    private GoalEntry processGoal(GoalEntry entry, String tenantId) {
+        if (entry.subGoals() == null || entry.subGoals().isEmpty()) {return entry;}
+        boolean hasBrackets = entry.subGoals().stream()
+                                   .anyMatch(sg -> sg.description() != null && sg.description().contains("["));
+        if (!hasBrackets) {return entry;}
+
+        List<GoalEntry.SubGoal> cleanedSubGoals = entry.subGoals().stream()
+                                             .map(sg -> processSubGoal(sg, tenantId))
+                                             .toList();
+        return new GoalEntry(
+                entry.id(), entry.sourceRef(), entry.confidenceOrigin(), entry.name(),
+                entry.tier(), entry.horizon(), entry.status(), entry.urgency(),
+                entry.priority(), entry.feasibility(), entry.needTier(),
+                entry.contentDomain(), entry.contentSubdomain(), entry.motivationOrigin(),
+                entry.clarity(), entry.evidenceBasis(), entry.dependencies(), entry.pad(),
+                cleanedSubGoals, entry.associations());
+    }
+
+    private GoalEntry.SubGoal processSubGoal(GoalEntry.SubGoal subGoal, String tenantId) {
+        if (subGoal.description() == null || !subGoal.description().contains("[")) {return subGoal;}
+        AnchorParseResult result   = parser.parse(subGoal.description());
+        String            sourceId = subGoal.id() != null ? subGoal.id() : UUID.randomUUID().toString();
+        collectAnchors(result, sourceId, tenantId);
+        return new GoalEntry.SubGoal(subGoal.id(), subGoal.tier(), result.cleanText());
+    }
+
+    private String processTextField(String text, String sourceId, String tenantId) {
+        if (text == null || !text.contains("[")) {return text;}
+        AnchorParseResult result = parser.parse(text);
+        collectAnchors(result, sourceId, tenantId);
+        return result.cleanText();
+    }
+
 
     private void collectAnchors(AnchorParseResult result, String sourceId, String tenantId) {
         for (ParsedAnchor anchor : result.anchors()) {
