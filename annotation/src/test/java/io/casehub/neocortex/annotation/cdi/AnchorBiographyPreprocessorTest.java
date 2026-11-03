@@ -285,6 +285,38 @@ class AnchorBiographyPreprocessorTest {
         assertThat(annotations).isEmpty();
     }
 
+    @Test
+    void scansGoalNameForEntityNames() {
+        var entry = new GoalEntry(
+            "goal-1", null, null, "Protect Guillermo from harm", null, null, null, null,
+            null, null, null, null, null, null, null, null, null, null,
+            null, null);
+
+        var profile = profileWithGoals(List.of(entry));
+        preprocessor.preprocess(profile, "agent-1", "t1");
+        preprocessor.afterImport("agent-1", "t1");
+
+        var annotations = annotationIndex.findBySource("biography", "goal-1", "t1");
+        assertThat(annotations).hasSize(1);
+        assertThat(annotations.getFirst().mentionText()).isEqualTo("Guillermo");
+    }
+
+    @Test
+    void scansRelationshipNameForEntityNames() {
+        var entry = new RelationshipEntry(
+            "rel-1", null, null, "Guillermo", List.of(), null, null, null, null, null);
+
+        var profile = profileWithRelationships(List.of(entry));
+        preprocessor.preprocess(profile, "agent-1", "t1");
+        preprocessor.afterImport("agent-1", "t1");
+
+        var annotations = annotationIndex.findBySource("biography", "rel-1", "t1");
+        assertThat(annotations).hasSize(1);
+        assertThat(annotations.getFirst().mentionText()).isEqualTo("Guillermo");
+    }
+
+
+
 
     @Test
     void annotationOffsetsCorrectInCleanText() {

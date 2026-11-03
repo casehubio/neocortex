@@ -143,8 +143,10 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private LifeEventEntry processLifeEvent(LifeEventEntry entry, String tenantId) {
+        String leSourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        trackUnbracketed(leSourceId + "-subject", entry.subject(), tenantId);
         if (entry.description() == null || !entry.description().contains("[")) {
-            trackUnbracketed(entry.id(), entry.description(), tenantId);
+            trackUnbracketed(leSourceId, entry.description(), tenantId);
             return entry;
         }
 
@@ -218,6 +220,8 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private RelationshipEntry processRelationship(RelationshipEntry entry, String tenantId) {
+        String relSourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        trackUnbracketed(relSourceId, entry.name(), tenantId);
         if (entry.bdi() == null) return entry;
         RelationshipEntry.BdiValues bdi = entry.bdi();
         boolean hasBrackets = (bdi.beliefs() != null && bdi.beliefs().contains("["))
@@ -244,6 +248,8 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private GoalEntry processGoal(GoalEntry entry, String tenantId) {
+        String goalSourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        trackUnbracketed(goalSourceId, entry.name(), tenantId);
         if (entry.subGoals() == null || entry.subGoals().isEmpty()) return entry;
         boolean hasBrackets = entry.subGoals().stream()
                                    .anyMatch(sg -> sg.description() != null && sg.description().contains("["));
