@@ -10,8 +10,6 @@ import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryQuery;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,13 +82,7 @@ public class CognitiveMemoryRetriever {
         if (federatedCorpusSearch == null) {
             return List.of();
         }
-        var fedResult = federatedCorpusSearch.search(query, tenantId);
-        List<CorpusSearchResult> results = fedResult.results();
-        if (results.isEmpty()) {return results;}
-        List<ModulationFactor<CorpusSearchResult>> factors = List.of(
-                ModulationFactors.recencyDecay(Duration.ofDays(30), Instant.now())
-        );
-        return RetrievalModulator.modulate(results, ModulationProfiles.CORPUS, factors);
+        return federatedCorpusSearch.search(query, tenantId).results();
     }
 
     private List<ModulationFactor<Memory>> buildFactors(ModulationContext ctx) {

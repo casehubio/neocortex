@@ -27,11 +27,11 @@ class CognitiveMemoryRetrieverCorpusTest {
     private static final CorpusRef CORPUS_REF = new CorpusRef("tenant-1", "agent-01-interactions");
 
     @Test
-    void queryCorporaAppliesRecencyModulation() {
-        var recent = corpusResult("entry-1", NOW.minus(1, ChronoUnit.HOURS), 0.9);
-        var old = corpusResult("entry-2", NOW.minus(60, ChronoUnit.DAYS), 0.95);
+    void queryCorporaPreservesSearchPipelineOrdering() {
+        var first = corpusResult("entry-1", NOW.minus(60, ChronoUnit.DAYS), 0.95);
+        var second = corpusResult("entry-2", NOW.minus(1, ChronoUnit.HOURS), 0.9);
 
-        var search = stubSearch(List.of(old, recent));
+        var search = stubSearch(List.of(first, second));
         var retriever = new CognitiveMemoryRetriever(emptyStore(), List.of(), List.of(), List.of(), search);
 
         var ctx = new ModulationContext(null, "tenant-1", null, null, null);
