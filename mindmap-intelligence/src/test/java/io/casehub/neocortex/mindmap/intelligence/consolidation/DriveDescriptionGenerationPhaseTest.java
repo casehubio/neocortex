@@ -359,6 +359,26 @@ class DriveDescriptionGenerationPhaseTest {
     }
 
     @Test
+    void systemPromptRequiresFormationMemoryAsBodyEcho() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+
+        phase.run(TENANT, List.of());
+
+        var systemPrompt = capturedInits.stream()
+                                        .filter(i -> !i.systemPrompt().contains("discrimination"))
+                                        .findFirst().orElseThrow()
+                                        .systemPrompt();
+        assertThat(systemPrompt).as("must require formation memory as body sensation")
+                                .containsIgnoringCase("body learned");
+        assertThat(systemPrompt).as("must include anti-pattern guidance")
+                                .contains("NOT");
+        assertThat(systemPrompt).as("contrast must not be called single most important")
+                                .doesNotContain("single most important");
+    }
+
+
+    @Test
     void discriminationPromptRequestsMultiChannelCriteria() {
         seedDriveNode("gallantry", 0.9);
         seedDriveNode("proving-worth", 0.7);
