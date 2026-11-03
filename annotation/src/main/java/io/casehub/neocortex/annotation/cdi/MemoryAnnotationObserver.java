@@ -1,5 +1,6 @@
 package io.casehub.neocortex.annotation.cdi;
 
+import io.casehub.neocortex.annotation.AnnotationMethod;
 import io.casehub.neocortex.annotation.EntityAnnotation;
 import io.casehub.neocortex.annotation.EntityAnnotationIndex;
 import io.casehub.neocortex.memory.experience.ExperienceRecorded;
@@ -81,7 +82,7 @@ public class MemoryAnnotationObserver {
                     UUID.randomUUID().toString(), tenantId,
                     "memory", memoryId, m.nodeId(),
                     m.startOffset(), m.endOffset(), m.mentionText(),
-                    1.0, "entity-scan", agentId, now))
+                    1.0, AnnotationMethod.ENTITY_SCAN, agentId, now))
                 .toList();
 
             index.addAnnotations(annotations);
@@ -91,7 +92,7 @@ public class MemoryAnnotationObserver {
         }
     }
 
-    private List<EntityCandidate> buildCandidates(MindMapStore store, String tenantId) {
+    public static List<EntityCandidate> buildCandidates(MindMapStore store, String tenantId) {
         return store.listSubgraphs(tenantId).stream()
             .filter(sg -> ENTITY_SUBGRAPH_TYPES.contains(sg.type()))
             .flatMap(sg -> store.nodesIn(sg.id(), tenantId).stream())
@@ -101,7 +102,7 @@ public class MemoryAnnotationObserver {
             .toList();
     }
 
-    static List<MatchedSpan> scanForMatches(String text, List<EntityCandidate> candidates) {
+    public static List<MatchedSpan> scanForMatches(String text, List<EntityCandidate> candidates) {
         List<MatchedSpan> allMatches = new ArrayList<>();
         for (EntityCandidate c : candidates) {
             int pos = 0;
@@ -122,9 +123,9 @@ public class MemoryAnnotationObserver {
         return filtered;
     }
 
-    record EntityCandidate(String nodeId, String name) {}
+    public record EntityCandidate(String nodeId, String name) {}
 
-    record MatchedSpan(String nodeId, String mentionText, int startOffset, int endOffset) {}
+    public record MatchedSpan(String nodeId, String mentionText, int startOffset, int endOffset) {}
 
     @SuppressWarnings("unchecked")
     private static class SingletonInstance<T> implements Instance<T> {

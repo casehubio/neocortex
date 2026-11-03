@@ -39,6 +39,7 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     private final MindMapStore mindMapStore;
     private final AnchorAnnotationParser parser = new AnchorAnnotationParser();
     private final List<PendingAnchor> pendingAnchors = new ArrayList<>();
+    private final List<UnbracketedEntry> unbracketedEntries = new ArrayList<>();
 
     @Inject
     public AnchorBiographyPreprocessor(EntityAnnotationIndex annotationIndex,
@@ -97,7 +98,12 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
 
     @Override
     public void afterImport(String agentId, String tenantId) {
-        if (pendingAnchors.isEmpty()) return;
+        if (pendingAnchors.isEmpty() && unbracketedEntries.isEmpty()) return;
+        if (pendingAnchors.isEmpty()) {
+            scanUnbracketedEntries(tenantId);
+            unbracketedEntries.clear();
+            return;
+        }
 
         Map<String, String> aliasToNodeId = resolveAliases(tenantId);
 
@@ -131,10 +137,16 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
         }
 
         pendingAnchors.clear();
+
+        scanUnbracketedEntries(tenantId);
+        unbracketedEntries.clear();
     }
 
     private LifeEventEntry processLifeEvent(LifeEventEntry entry, String tenantId) {
-        if (entry.description() == null || !entry.description().contains("[")) return entry;
+        if (entry.description() == null || !entry.description().contains("[")) {
+            trackUnbracketed(entry.id(), entry.description(), tenantId);
+            return entry;
+        }
 
         AnchorParseResult result = parser.parse(entry.description());
         String sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
@@ -150,7 +162,10 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private BeliefEntry processBelief(BeliefEntry entry, String tenantId) {
-        if (entry.description() == null || !entry.description().contains("[")) {return entry;}
+        if (entry.description() == null || !entry.description().contains("[")) {
+            trackUnbracketed(entry.id(), entry.description(), tenantId);
+            return entry;
+        }
 
         AnchorParseResult result   = parser.parse(entry.description());
         String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
@@ -163,7 +178,10 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private CulturalContextEntry processCulturalContext(CulturalContextEntry entry, String tenantId) {
-        if (entry.description() == null || !entry.description().contains("[")) {return entry;}
+        if (entry.description() == null || !entry.description().contains("[")) {
+            trackUnbracketed(entry.id(), entry.description(), tenantId);
+            return entry;
+        }
         AnchorParseResult result   = parser.parse(entry.description());
         String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
         collectAnchors(result, sourceId, tenantId);
@@ -173,7 +191,10 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private ActivityEntry processActivity(ActivityEntry entry, String tenantId) {
-        if (entry.notes() == null || !entry.notes().contains("[")) {return entry;}
+        if (entry.notes() == null || !entry.notes().contains("[")) {
+            trackUnbracketed(entry.id(), entry.notes(), tenantId);
+            return entry;
+        }
         AnchorParseResult result   = parser.parse(entry.notes());
         String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
         collectAnchors(result, sourceId, tenantId);
@@ -184,7 +205,10 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private ProjectEntry processProject(ProjectEntry entry, String tenantId) {
-        if (entry.description() == null || !entry.description().contains("[")) {return entry;}
+        if (entry.description() == null || !entry.description().contains("[")) {
+            trackUnbracketed(entry.id(), entry.description(), tenantId);
+            return entry;
+        }
         AnchorParseResult result   = parser.parse(entry.description());
         String            sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
         collectAnchors(result, sourceId, tenantId);
@@ -194,12 +218,18 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private RelationshipEntry processRelationship(RelationshipEntry entry, String tenantId) {
-        if (entry.bdi() == null) {return entry;}
+        if (entry.bdi() == null) return entry;
         RelationshipEntry.BdiValues bdi = entry.bdi();
         boolean hasBrackets = (bdi.beliefs() != null && bdi.beliefs().contains("["))
                               || (bdi.desires() != null && bdi.desires().contains("["))
                               || (bdi.intentions() != null && bdi.intentions().contains("["));
-        if (!hasBrackets) {return entry;}
+        if (!hasBrackets) {
+            String sourceId = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+            trackUnbracketed(sourceId + "-beliefs", bdi.beliefs(), tenantId);
+            trackUnbracketed(sourceId + "-desires", bdi.desires(), tenantId);
+            trackUnbracketed(sourceId + "-intentions", bdi.intentions(), tenantId);
+            return entry;
+        }
 
         String sourceId        = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
         String cleanBeliefs    = processTextField(bdi.beliefs(), sourceId + "-beliefs", tenantId);
@@ -214,10 +244,15 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
     }
 
     private GoalEntry processGoal(GoalEntry entry, String tenantId) {
-        if (entry.subGoals() == null || entry.subGoals().isEmpty()) {return entry;}
+        if (entry.subGoals() == null || entry.subGoals().isEmpty()) return entry;
         boolean hasBrackets = entry.subGoals().stream()
                                    .anyMatch(sg -> sg.description() != null && sg.description().contains("["));
-        if (!hasBrackets) {return entry;}
+        if (!hasBrackets) {
+            entry.subGoals().forEach(sg -> trackUnbracketed(
+                sg.id() != null ? sg.id() : UUID.randomUUID().toString(),
+                sg.description(), tenantId));
+            return entry;
+        }
 
         List<GoalEntry.SubGoal> cleanedSubGoals = entry.subGoals().stream()
                                              .map(sg -> processSubGoal(sg, tenantId))
@@ -244,6 +279,39 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
         AnchorParseResult result = parser.parse(text);
         collectAnchors(result, sourceId, tenantId);
         return result.cleanText();
+    }
+
+    private void trackUnbracketed(String entryId, String text, String tenantId) {
+        if (text == null || text.isBlank()) {return;}
+        String sourceId = entryId != null ? entryId : UUID.randomUUID().toString();
+        unbracketedEntries.add(new UnbracketedEntry(sourceId, text, tenantId));
+    }
+
+    private void scanUnbracketedEntries(String tenantId) {
+        if (unbracketedEntries.isEmpty()) {return;}
+
+        List<MemoryAnnotationObserver.EntityCandidate> candidates =
+                MemoryAnnotationObserver.buildCandidates(mindMapStore, tenantId);
+        if (candidates.isEmpty()) {return;}
+
+        Instant                now         = Instant.now();
+        List<EntityAnnotation> annotations = new ArrayList<>();
+
+        for (UnbracketedEntry ue : unbracketedEntries) {
+            List<MemoryAnnotationObserver.MatchedSpan> matches =
+                    MemoryAnnotationObserver.scanForMatches(ue.text(), candidates);
+            for (var m : matches) {
+                annotations.add(new EntityAnnotation(
+                        UUID.randomUUID().toString(), ue.tenantId(),
+                        "biography", ue.sourceId(), m.nodeId(),
+                        m.startOffset(), m.endOffset(), m.mentionText(),
+                        0.8, AnnotationMethod.ENTITY_SCAN, null, now));
+            }
+        }
+
+        if (!annotations.isEmpty()) {
+            annotationIndex.addAnnotations(annotations);
+        }
     }
 
 
@@ -278,4 +346,8 @@ public class AnchorBiographyPreprocessor implements BiographyProfilePreprocessor
 
     record PendingAnchor(String alias, String surfaceForm, int startOffset, int endOffset,
                           String sourceId, String tenantId) {}
+
+    record UnbracketedEntry(String sourceId, String text, String tenantId) {}
+
+
 }

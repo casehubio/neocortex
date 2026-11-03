@@ -3,15 +3,15 @@ package io.casehub.neocortex.annotation.cdi;
 import io.casehub.neocortex.annotation.EntityAnnotation;
 import io.casehub.neocortex.annotation.inmem.InMemoryEntityAnnotationIndex;
 import io.casehub.neocortex.memory.seeding.biography.ActivityEntry;
-import io.casehub.neocortex.memory.seeding.biography.RelationshipEntry.BdiValues;
 import io.casehub.neocortex.memory.seeding.biography.BeliefEntry;
 import io.casehub.neocortex.memory.seeding.biography.BiographyProfile;
 import io.casehub.neocortex.memory.seeding.biography.CulturalContextEntry;
 import io.casehub.neocortex.memory.seeding.biography.GoalEntry;
+import io.casehub.neocortex.memory.seeding.biography.GoalEntry.SubGoal;
 import io.casehub.neocortex.memory.seeding.biography.LifeEventEntry;
 import io.casehub.neocortex.memory.seeding.biography.ProjectEntry;
 import io.casehub.neocortex.memory.seeding.biography.RelationshipEntry;
-import io.casehub.neocortex.memory.seeding.biography.GoalEntry.SubGoal;
+import io.casehub.neocortex.memory.seeding.biography.RelationshipEntry.BdiValues;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -249,6 +249,40 @@ class AnchorBiographyPreprocessorTest {
 
         assertThat(cleaned.goals().getFirst().subGoals().getFirst().description())
                 .isEqualTo("Ask Frida to review the portfolio.");
+    }
+
+    @Test
+    void scansUnbracketedEntriesForEntityNames() {
+        var entry = new LifeEventEntry(
+                "le-scan-1", null, null, null,
+                "Guillermo demonstrated darkroom techniques.",
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null);
+
+        var profile = profileWith(List.of(entry), List.of());
+        preprocessor.preprocess(profile, "agent-1", "t1");
+        preprocessor.afterImport("agent-1", "t1");
+
+        var annotations = annotationIndex.findBySource("biography", "le-scan-1", "t1");
+        assertThat(annotations).hasSize(1);
+        assertThat(annotations.getFirst().mentionText()).isEqualTo("Guillermo");
+        assertThat(annotations.getFirst().method()).isEqualTo("entity-scan");
+    }
+
+    @Test
+    void unbracketedScanSkipsShortNames() {
+        var entry = new LifeEventEntry(
+                "le-scan-2", null, null, null,
+                "A quiet day.",
+                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null);
+
+        var profile = profileWith(List.of(entry), List.of());
+        preprocessor.preprocess(profile, "agent-1", "t1");
+        preprocessor.afterImport("agent-1", "t1");
+
+        var annotations = annotationIndex.findBySource("biography", "le-scan-2", "t1");
+        assertThat(annotations).isEmpty();
     }
 
 
