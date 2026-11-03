@@ -103,6 +103,8 @@
     <module>schema-generator</module>
     <module>knowledge-pipeline-api</module>
     <module>knowledge-pipeline</module>
+    <module>corpus-management-api</module>
+    <module>corpus-management</module>
 
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
@@ -545,6 +547,16 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-knowledge-pipeline</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-corpus-management-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-corpus-management</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

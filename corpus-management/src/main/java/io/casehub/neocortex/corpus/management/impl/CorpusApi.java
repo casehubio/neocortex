@@ -1,0 +1,82 @@
+package io.casehub.neocortex.corpus.management.impl;
+
+import io.casehub.neocortex.rag.ProvenanceRecord;
+import io.casehub.neocortex.rag.ProvenanceStats;
+import io.casehub.platform.api.mcp.McpDomain;
+import io.casehub.platform.api.mcp.PlatformMutation;
+import io.casehub.platform.api.mcp.PlatformQuery;
+
+import java.util.List;
+
+// corpusId parameters are accepted for forward-compatibility with multi-corpus routing.
+// Current implementations use a single injected CorpusRef; the corpusId value is not dispatched.
+@McpDomain(value = "neocortex/corpus", app = "neocortex",
+        summary = "Corpus knowledge management — search, lifecycle, provenance, and feedback")
+public interface CorpusApi {
+
+    @PlatformQuery("Search a corpus with optional domain, type, and tag filters. "
+            + "Supports search profiles and inline stack overrides for BOM-style filtering.")
+    List<SearchResult> search(String corpusId, String query,
+            List<String> domains, String type, String tags,
+            Integer limit, String profile, String stack);
+
+    @PlatformQuery("Adaptive search with keyword boosting — extends results "
+            + "when initial set is too small, trims when too large")
+    AdaptiveResult adaptiveSearch(String corpusId, String query, String keywords,
+            List<String> domains, String type, String tags, Integer limit,
+            String profile, String stack);
+
+    @PlatformQuery("Fetch a single corpus entry by ID — returns frontmatter metadata and markdown body")
+    EntryDetail entry(String corpusId, String entryId);
+
+    @PlatformQuery("Index status: entry count, corpus path, collection state")
+    CorpusStatus status(String corpusId);
+
+    @PlatformQuery("List entries that have never been retrieved or are stale")
+    UnretrievedReport unretrieved(String corpusId, Integer minDays, Integer staleDays);
+
+    @PlatformMutation("Trigger full re-index: delete collection and rebuild from source")
+    GardenReindexService.ReindexResult reindex(String corpusId);
+
+    @PlatformMutation("Re-index a single entry: delete vectors then re-extract and re-ingest")
+    String reindexEntry(String corpusId, String entryId);
+
+    @PlatformMutation("Delete a single entry's vectors from the index")
+    String deleteEntry(String corpusId, String entryId);
+
+    @PlatformQuery("Get a search profile's BOM stack by name")
+    String profile(String name);
+
+    @PlatformQuery("List all search profile names")
+    List<String> profiles();
+
+    @PlatformMutation("Create or update a search profile with a BOM stack definition")
+    void saveProfile(String name, String stack);
+
+    @PlatformMutation("Delete a search profile by name")
+    boolean deleteProfile(String name);
+
+    @PlatformQuery("Forward lineage: which corpus entries were used for a given issue")
+    List<ProvenanceRecord> forwardLineage(String issueRepo, Integer issueNumber);
+
+    @PlatformQuery("Reverse lineage: which issues consumed a given corpus entry")
+    List<ProvenanceRecord> reverseLineage(String entryId);
+
+    @PlatformQuery("Provenance statistics: total links, active entries, coverage")
+    ProvenanceStats provenanceStats();
+
+    @PlatformMutation("Record provenance links between corpus entries and an issue/spec")
+    int recordProvenance(String issueRepo, Integer issueNumber,
+            String specName, String entryIds, String recordedBy);
+
+    @PlatformQuery("Outcome report: summary of recorded outcomes across entries")
+    String outcomeReport();
+
+    @PlatformMutation("Record an outcome for a corpus entry (success/failure with context)")
+    String recordOutcome(String entryId, String issueRepo, Integer issueNumber,
+            String workContext, Double successRate, String detail);
+
+    @PlatformMutation("Record retrieval feedback for entries — updates staleness tracking and provenance context")
+    String recordFeedback(String entryIds, String outcome,
+            String stack, String issueRepo, Integer issueNumber);
+}
