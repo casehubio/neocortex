@@ -1,15 +1,13 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.cognition.mentalmodel.AttributedState;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
 import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfileQuery;
 import io.casehub.neocortex.cognitive.index.CorrelationStrength;
 import io.casehub.neocortex.cognitive.index.DomainActivation;
 import io.casehub.neocortex.cognitive.index.DomainActivationQuery;
-import io.casehub.neocortex.cognition.mentalmodel.AttributedState;
-import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
-import io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot;
 import io.casehub.neocortex.memory.MemoryDomain;
-import io.casehub.neocortex.mindmap.MindMapEdge;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -51,36 +49,39 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     static final String DESCRIPTION_TRAIT = "DriveDescriptionGenerated";
 
     // Barrett (2017) constructionist 4-channel framework: somatic (Damasio 1994), attentional
-    // (Easterbrook 1959), temporal (Barrett prediction), action tendency (Frijda 1986)
+// (Easterbrook 1959), temporal (Barrett prediction), action tendency (Frijda 1986)
     private static final String SYSTEM_PROMPT = """
                                                 You derive character-specific drive profiles from personality and formation memories.
                                                 For each drive, describe how it TYPICALLY manifests in THIS person's body — shaped \
                                                 by their unique history, personality scores, and attachment style.
-
+                                                
+                                                FORMATION MEMORY: When formation memories are listed, START with what the body \
+                                                LEARNED from them — not what happened, but the somatic imprint left behind. \
+                                                Each description must include at least one formation memory rendered as a body \
+                                                sensation. NOT "like when you were ten" — instead describe what the body does \
+                                                NOW because of that memory ("your chest opens the way it first opened at ten, \
+                                                crouched over buried treasure").
+                                                
                                                 Personality scores are body calibration: high Callousness means the sympathy region \
                                                 is quiet; high Suspiciousness means shoulders square before worry registers. \
                                                 Attachment is the somatic ground state.
-
-                                                START the description with where this pull lives in the body — use the assigned \
-                                                body territory. Use discovery verbs (arrives, settles, pools, fizzes, shifts, \
-                                                tightens, drops, spreads) not analytical verbs (calculates, assesses, determines, \
-                                                considers, evaluates).
-
+                                                
+                                                BODY TERRITORY: Each pull has an assigned body location. Anchor the description \
+                                                in that territory — the formation memory echo lives HERE, in this part of the body. \
+                                                Never place a pull in another pull's territory. Use discovery verbs (arrives, \
+                                                settles, pools, fizzes, shifts, tightens, drops, spreads) not analytical verbs \
+                                                (calculates, assesses, determines, considers, evaluates).
+                                                
                                                 Weave the two primary channels as the backbone. The four channels:
                                                 - Somatic: where exactly, what sensation (tension, warmth, numbness, weight)
                                                 - Attentional: what seized focus, what stopped being noticed
                                                 - Temporal: compressed, stretched, frozen, urgent
                                                 - Action tendency: what the body prepares to do before deciding
                                                 Add the other two channels as texture, not sections.
-
-                                                BODY TERRITORY: Each pull has an assigned body location. Describe it using \
-                                                ONLY that territory. Never place a pull in another pull's territory.
-
-                                                CONTRAST: When other pulls' body locations are listed, include explicit contrast \
-                                                in the description: "Not the [other-location]. This is [body-territory] — [sensation]." \
-                                                This is the single most important differentiator.
-
-                                                Ground in specific formation memories where possible.
+                                                
+                                                CONTRAST: When other pulls' body locations are listed, note the contrast \
+                                                briefly: "Not the [other-location] — this is [body-territory]."
+                                                
                                                 Write in second person. Do not name the drive. 3-5 sentences.
                                                 Respond with JSON only: {"description": "..."}""";
 
@@ -396,9 +397,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
 
         if (!servingMemories.isEmpty()) {
-            promptBuilder.append("Formation memories that shaped this pull:\n");
+            promptBuilder.append("Formation memories — describe what the body LEARNED from each, not what happened:\n");
             for (int i = 0; i < servingMemories.size(); i++) {
-                promptBuilder.append(i + 1).append(". ").append(servingMemories.get(i).name()).append("\n");
+                promptBuilder.append(i + 1).append(". ").append(servingMemories.get(i).name())
+                             .append("\n   → What does your body do NOW when this pull arrives, because of this memory?\n");
             }
             promptBuilder.append("\n");
         }
