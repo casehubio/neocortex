@@ -377,6 +377,21 @@ class DriveDescriptionGenerationPhaseTest {
                                 .doesNotContain("single most important");
     }
 
+    @Test
+    void promptIncludesSomaticRenderingInstructionPerMemory() {
+        seedDriveNode("gallantry", 0.9);
+        seedFormationMemory("Your father knelt to help the stranger", "gallantry");
+
+        phase.run(TENANT, List.of());
+
+        assertThat(capturedUserPrompts).hasSize(1);
+        var userPrompt = capturedUserPrompts.getFirst();
+        assertThat(userPrompt).as("must instruct somatic rendering")
+                              .containsIgnoringCase("body LEARNED");
+        assertThat(userPrompt).as("must include per-memory rendering cue")
+                              .containsIgnoringCase("what does your body do NOW");
+    }
+
 
     @Test
     void discriminationPromptRequestsMultiChannelCriteria() {

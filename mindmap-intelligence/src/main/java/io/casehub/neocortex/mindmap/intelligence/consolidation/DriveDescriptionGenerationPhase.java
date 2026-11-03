@@ -397,9 +397,10 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
         }
 
         if (!servingMemories.isEmpty()) {
-            promptBuilder.append("Formation memories that shaped this pull:\n");
+            promptBuilder.append("Formation memories — describe what the body LEARNED from each, not what happened:\n");
             for (int i = 0; i < servingMemories.size(); i++) {
-                promptBuilder.append(i + 1).append(". ").append(servingMemories.get(i).name()).append("\n");
+                promptBuilder.append(i + 1).append(". ").append(servingMemories.get(i).name())
+                             .append("\n   → What does your body do NOW when this pull arrives, because of this memory?\n");
             }
             promptBuilder.append("\n");
         }
