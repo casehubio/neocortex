@@ -135,4 +135,45 @@ class EntityIdentityCacheTest {
         EntityIdentity identity = cache.getIdentity(nodeId, TENANT);
         assertThat(identity.aliases()).isEmpty();
     }
+
+    @Test
+    void discoversAlterEgosViaPersonaOfEdge() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
+        String bowieId = store.addNode(
+                NodeInput.of("David Bowie", sgId)
+                         .withProperties(Map.of("canonicalFirst", "David", "canonicalLast", "Bowie")),
+                TENANT);
+        String ziggyId = store.addNode(
+                NodeInput.of("Ziggy Stardust", sgId)
+                         .withProperties(Map.of("canonicalFirst", "Ziggy", "preferredShort", "Ziggy", "personaQualifier", "ziggy")),
+                TENANT);
+        store.addEdge(io.casehub.neocortex.mindmap.EdgeInput.of(ziggyId, bowieId, "persona-of"), TENANT);
+
+        EntityIdentity bowie = cache.getIdentity(bowieId, TENANT);
+        assertThat(bowie).isNotNull();
+        assertThat(bowie.alterEgos()).containsKey("ziggy");
+        EntityIdentity ziggyEgo = bowie.alterEgos().get("ziggy");
+        assertThat(ziggyEgo.entityId()).isEqualTo(bowieId + ".ziggy");
+        assertThat(ziggyEgo.canonicalFull()).isEqualTo("Ziggy Stardust");
+        assertThat(ziggyEgo.nameParts()).containsEntry("canonicalFirst", "Ziggy");
+    }
+
+    @Test
+    void entityWithNoPersonasHasEmptyAlterEgos() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
+        store.addNode(NodeInput.of("Jane Doe", sgId).withProperties(Map.of("canonicalFirst", "Jane")), TENANT);
+        var all = cache.getAllIdentities(TENANT);
+        assertThat(all.values()).allMatch(id -> id.alterEgos().isEmpty());
+    }
+
+    @Test
+    void personaNodeNotIncludedAsTopLevelEntity() {
+        String sgId    = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
+        String bowieId = store.addNode(NodeInput.of("David Bowie", sgId), TENANT);
+        String ziggyId = store.addNode(NodeInput.of("Ziggy Stardust", sgId)
+                                                .withProperties(Map.of("personaQualifier", "ziggy")), TENANT);
+        store.addEdge(io.casehub.neocortex.mindmap.EdgeInput.of(ziggyId, bowieId, "persona-of"), TENANT);
+        assertThat(cache.getAllIdentities(TENANT)).doesNotContainKey(ziggyId);
+        assertThat(cache.getAllIdentities(TENANT)).containsKey(bowieId);
+    }
 }

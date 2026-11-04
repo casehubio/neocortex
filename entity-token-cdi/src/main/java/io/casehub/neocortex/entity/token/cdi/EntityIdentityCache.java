@@ -63,13 +63,50 @@ public class EntityIdentityCache {
     }
 
     private Map<String, EntityIdentity> buildTenantCache(String tenantId) {
-        Map<String, EntityIdentity> cache = new ConcurrentHashMap<>();
+        Map<String, EntityIdentity> cache          = new ConcurrentHashMap<>();
+        Set<String>                 personaNodeIds = new java.util.HashSet<>();
+
         for (var subgraph : store.listSubgraphs(tenantId)) {
-            if (!ENTITY_SUBGRAPH_TYPES.contains(subgraph.type())) continue;
+            if (!ENTITY_SUBGRAPH_TYPES.contains(subgraph.type())) {continue;}
             for (var node : store.nodesIn(subgraph.id(), tenantId)) {
-                EntityIdentity identity = buildIdentity(node);
-                if (identity != null) {
-                    cache.put(node.id(), identity);
+                for (var edge : store.neighbors(node.id(), tenantId)) {
+                    if ("persona-of".equals(edge.edgeType()) && edge.sourceNodeId().equals(node.id())) {
+                        personaNodeIds.add(node.id());
+                    }
+                }
+            }
+        }
+
+        for (var subgraph : store.listSubgraphs(tenantId)) {
+            if (!ENTITY_SUBGRAPH_TYPES.contains(subgraph.type())) {continue;}
+            for (var node : store.nodesIn(subgraph.id(), tenantId)) {
+                if (personaNodeIds.contains(node.id())) {continue;}
+                EntityIdentity baseIdentity = buildIdentity(node);
+                if (baseIdentity == null) {continue;}
+
+                Map<String, EntityIdentity> alterEgos = new LinkedHashMap<>();
+                for (var edge : store.neighbors(node.id(), tenantId)) {
+                    if ("persona-of".equals(edge.edgeType()) && edge.targetNodeId().equals(node.id())) {
+                        MindMapNode personaNode = store.getNode(edge.sourceNodeId(), tenantId);
+                        if (personaNode == null) {continue;}
+                        String qualifier = personaNode.properties().get("personaQualifier");
+                        if (qualifier == null || qualifier.isBlank()) {continue;}
+                        EntityIdentity personaIdentity = buildIdentity(personaNode);
+                        if (personaIdentity == null) {continue;}
+                        alterEgos.put(qualifier, EntityIdentity.of(
+                                node.id() + "." + qualifier, personaIdentity.canonicalFull(),
+                                personaIdentity.nameParts(), personaIdentity.pronouns(),
+                                personaIdentity.preferred(), personaIdentity.aliases()));
+                    }
+                }
+
+                if (alterEgos.isEmpty()) {
+                    cache.put(node.id(), baseIdentity);
+                } else {
+                    cache.put(node.id(), new EntityIdentity(
+                            baseIdentity.entityId(), baseIdentity.canonicalFull(),
+                            baseIdentity.nameParts(), baseIdentity.pronouns(),
+                            baseIdentity.preferred(), baseIdentity.aliases(), alterEgos));
                 }
             }
         }
