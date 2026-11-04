@@ -16,7 +16,7 @@ Between these tiers, the API layer has **6 leaks** where Hortora assumptions ble
 
 ## Use Cases
 
-Six lenses stress-test the abstractions:
+Eight lenses stress-test the abstractions — the first six are curated corpora; the last two are agent-driven research workspaces where the LLM builds the corpus as part of the research process:
 
 | Use case | Document types | Metadata model | Federation needs |
 |----------|---------------|----------------|------------------|
@@ -26,6 +26,18 @@ Six lenses stress-test the abstractions:
 | **Research literature** | PDFs, BibTeX/RIS citations, LaTeX source, preprints | DOI, authors, venue, impact factor, citation count, peer-review status, retraction status | Cross-institutional: arXiv → institutional repo → project library |
 | **Software documentation** | Markdown API docs, changelogs, multi-version tech docs | Version, API surface, deprecation status | Version-branched: v3 → v2 fallback |
 | **Hortora (existing)** | Markdown with YAML frontmatter | GE-ID, domain, type, score, staleness, tags, see-also | DAG: upstream/peer gardens |
+| **Market research** | Crawled HTML pages, competitor PDFs, analyst reports, screenshots, JSON API responses, pricing tables | Source URL, fetch timestamp, content freshness, competitor name, content type, reliability | Ephemeral: web scrapes expire in weeks; no stable federation — sources appear and disappear |
+| **Product research** | Internal roadmaps, user feedback, support tickets, synthesized analysis docs layered on top of a market research corpus | Derivation chain (raw → extracted → analysed → synthesised), source references, confidence, coverage gaps | Layered: external market corpus → internal corpus → synthesis layer |
+
+The market/product research lenses expose pressures the curated-corpus lenses do not:
+
+- **Agent-driven ingestion:** The LLM decides what to ingest next based on gaps in what it's found so far. The corpus is built iteratively during a research session, not batch-loaded by a human.
+- **Heterogeneous content in a single corpus:** A market research corpus contains HTML, PDF, JSON, and screenshots side by side. There is no single `MetadataExtractor` that handles all of them — the system needs content-type dispatch.
+- **Provenance and freshness:** Every entry needs a source URL, fetch timestamp, and freshness status. A pricing page scraped last month is unreliable. The current `CorpusEntry` has no source-provenance fields.
+- **Progressive enrichment:** Raw web scrape → extracted facts → competitive comparison → synthesized insight. Later entries derive from and reference earlier ones. `CorpusEntry` has no parent/derivation chain.
+- **Ephemeral lifecycle:** Market research content goes stale in weeks, not months. `CorpusLifecycle` (ACTIVE/ARCHIVED) is too coarse — needs DRAFT/VALIDATING/CURRENT/STALE/SUPERSEDED.
+
+**Assessment:** The curated-corpus use cases (L1-L6) can be served by a remediated corpus-management with domain-neutral SPIs. The agent research workspace is a different beast — it needs its own abstraction layer (e.g. a `ResearchWorkspace` that composes `CorpusStore` + provenance + lifecycle + enrichment tracking) rather than stretching `CorpusEntry` to cover both curated and agentic patterns. A simple git folder with markdown files handles 80% of the agentic case; the remaining 20% (semantic search over scraped content, derivation tracking) is where corpus-management's RAG pipeline adds value. Including these lenses in the audit shows where the current abstractions hit their ceiling — even fully remediated, corpus-management serves curated corpora, not agentic research workflows.
 
 ## Classification Scheme
 
@@ -56,6 +68,8 @@ The `body` field is `String`, forcing all corpus content through a text represen
 | Legal | Blocked | Case filings are PDF; opinions may be HTML |
 | Game NPC | Works | Backstories and world facts are text |
 | Research | Blocked | PDFs, LaTeX source, BibTeX citation files are not plain text |
+| Market research | Blocked | Scraped HTML, downloaded PDFs, screenshots, JSON API responses |
+| Product research | Partial | Analysis docs are text, but raw inputs (support tickets, feedback exports) may not be |
 | Software | Partial | Markdown docs work; architecture diagrams don't |
 | Hortora | Works | All entries are markdown |
 
@@ -74,6 +88,8 @@ The `body` field is `String`, forcing all corpus content through a text represen
 | Legal | Blocked | No matching type; would need `LEGAL_PRECEDENT` with `jurisdiction`, `court_level`, `overruled_by` |
 | Game NPC | Blocked | No matching type; would need `WORLD_KNOWLEDGE` with `faction`, `location`, `quest_ref` |
 | Research | Partial | `RESEARCH` type exists but its fields (`staleness_threshold`, `provenance`) are garden-shaped, not literature-shaped (needs `doi`, `venue`, `impact_factor`, `peer_review_status`) |
+| Market research | Blocked | No matching type; would need `source_url`, `fetch_timestamp`, `content_freshness`, `competitor`, `reliability` |
+| Product research | Blocked | No matching type; would need `derivation_chain`, `source_refs`, `coverage_gaps`, `confidence` |
 | Software | Partial | Could use `KNOWLEDGE_GARDEN` awkwardly; `staleness_threshold` maps loosely to deprecation |
 | Hortora | Works | These constants exist for Hortora |
 
@@ -92,6 +108,8 @@ The `body` field is `String`, forcing all corpus content through a text represen
 | Legal | Blocked | Court proceedings aren't "AGENT_HUMAN" interactions |
 | Game NPC | Partial | NPC dialogue could stretch into AGENT_HUMAN, but ActivityType values don't fit |
 | Research | Blocked | Literature surveys have no "agents" or "turns"; peer review is not "SELF_REFLECTION" |
+| Market research | Partial | The LLM agent IS an agent, but ActivityType values (DEBUGGING, IMPLEMENTATION) don't map to research activities |
+| Product research | Partial | Same — the agent interaction model fits loosely, but the activity taxonomy is wrong |
 | Software | Partial | Could map code review to REVIEW, but it's a forced mapping |
 | Hortora | Works | These types describe Claude session transcripts |
 
@@ -110,6 +128,8 @@ The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store impl
 | Legal | Low | Same — infrastructure choice, not a blocking issue |
 | Game NPC | Low | Might not use vector search at all; field is vestigial |
 | Research | Low | Would use vector search for semantic paper retrieval, but field name is misleading |
+| Market research | Low | Would use vector search; field name is misleading |
+| Product research | Low | Same |
 | Software | Low | Same infrastructure |
 | Hortora | Works | Uses Qdrant |
 
@@ -128,6 +148,8 @@ The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store impl
 | Legal | Partial | Case search by text works, but citation graph traversal needs structured queries |
 | Game NPC | Works | Text search for character names and facts is sufficient |
 | Research | Partial | Text search finds papers by topic, but citation graph queries and DOI lookups need structured queries |
+| Market research | Partial | Text search finds competitor mentions, but "show me all pricing pages" needs structured queries |
+| Product research | Partial | Text search over analysis docs works, but "what gaps haven't I covered?" needs derivation-aware queries |
 | Software | Works | Text search for API names and concepts is sufficient |
 | Hortora | Works | Text search is the primary access pattern |
 
@@ -146,6 +168,8 @@ The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store impl
 | Legal | Partial | Case metadata (court, date, parties) isn't "frontmatter" |
 | Game NPC | Partial | YAML character sheets map OK, but naming is misleading |
 | Research | Partial | BibTeX/RIS metadata is structured but not "frontmatter"; naming is misleading |
+| Market research | Partial | Source URL, fetch timestamp, content type are metadata but not "frontmatter" |
+| Product research | Partial | Derivation chain, source refs, confidence are metadata but not "frontmatter" |
 | Software | Works | Markdown docs with YAML frontmatter is a common pattern |
 | Hortora | Works | All entries use YAML frontmatter |
 
