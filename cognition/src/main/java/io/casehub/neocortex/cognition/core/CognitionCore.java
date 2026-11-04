@@ -123,6 +123,8 @@ public class CognitionCore {
     private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
     private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
     private volatile io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant subThoughtParticipant;
+    private volatile io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant regulationParticipant;
+
 
     private volatile @Nullable Consumer<MoodState> moodPersister;
     private volatile String lastAgentId;
@@ -723,6 +725,33 @@ public @Nullable String lastTargetAgentId() {
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy) {
         configureAppraisal(appraisalStrategy, salienceStrategy, this.defaultsRegistry);
+    }
+
+    public void configureRegulation() {
+        if (!config.regulationEnabled() || appraisalParticipant == null) {return;}
+
+        var generationPhase = sessionPipeline != null
+                              ? new io.casehub.neocortex.cognition.regulation.EmotionRegulationGenerationPhase(sessionPipeline)
+                              : null;
+
+        String cogSgId = null;
+        if (mindMapStore != null) {
+            var sgList = mindMapStore.listSubgraphs(lastTenantId != null ? lastTenantId : "default");
+            for (var sg : sgList) {
+                if (io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE.equals(sg.type())) {
+                    cogSgId = sg.id();
+                    break;
+                }
+            }
+        }
+
+        this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
+                appraisalParticipant, config, generationPhase, mindMapStore, cogSgId);
+        addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
+    }
+
+    public io.casehub.neocortex.cognition.regulation.@Nullable EmotionRegulationTickParticipant regulationParticipant() {
+        return regulationParticipant;
     }
 
 
