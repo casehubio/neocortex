@@ -29,15 +29,27 @@ public final class EntityRenderer {
     private static String resolveToken(ParsedToken token,
                                        Function<String, EntityIdentity> identityLookup,
                                        RenderMode mode) {
-        EntityIdentity identity = identityLookup.apply(token.entityId());
-        if (identity == null) return token.surfaceForm();
+        String         entityId = token.entityId();
+        EntityIdentity identity;
+        int            dot      = entityId.indexOf('.');
+        if (dot > 0) {
+            String         baseId    = entityId.substring(0, dot);
+            String         qualifier = entityId.substring(dot + 1);
+            EntityIdentity base      = identityLookup.apply(baseId);
+            if (base == null) {return token.surfaceForm();}
+            identity = base.alterEgos().get(qualifier);
+            if (identity == null) {return token.surfaceForm();}
+        } else {
+            identity = identityLookup.apply(entityId);
+            if (identity == null) {return token.surfaceForm();}
+        }
 
         String resolved = identity.resolveVariant(token.variant());
-        if (resolved == null) return token.surfaceForm();
+        if (resolved == null) {return token.surfaceForm();}
 
         if (mode == RenderMode.ANNOTATED && token.variant().startsWith("pronoun:")) {
             String label = identity.resolveVariant("canonicalFirst");
-            if (label == null) label = identity.canonicalFull();
+            if (label == null) {label = identity.canonicalFull();}
             return resolved + " [" + label + "]";
         }
 

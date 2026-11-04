@@ -15,6 +15,21 @@ class EntityRendererTest {
         Map.of("pronounsSubject", "she", "pronounsObject", "her"),
         Map.of("preferredShort", "Janey"),
         Set.of());
+    private final EntityIdentity ziggy = new EntityIdentity(
+            "bowie.ziggy", "Ziggy Stardust",
+            Map.of("canonicalFirst", "Ziggy"),
+            Map.of("pronounsSubject", "he"),
+            Map.of("preferredShort", "Ziggy"),
+            Set.of(), Map.of());
+
+    private final EntityIdentity bowie = new EntityIdentity(
+            "bowie", "David Bowie",
+            Map.of("canonicalFirst", "David", "canonicalLast", "Bowie"),
+            Map.of("pronounsSubject", "he"),
+            Map.of(),
+            Set.of("David Robert Jones"),
+            Map.of("ziggy", ziggy));
+
 
     @Test
     void renderProseResolvesToCurrentName() {
@@ -112,5 +127,44 @@ class EntityRendererTest {
         String result = EntityRenderer.render(text,
             id -> "p1".equals(id) ? jane : null, RenderMode.PROSE);
         assertThat(result).isEqualTo("Original Text here");
+    }
+
+    @Test
+    void renderAlterEgoResolvesViaDotNotation() {
+        String text = "{{bowie.ziggy:full:Ziggy Stardust}} performed";
+        String result = EntityRenderer.render(text,
+                                              id -> "bowie".equals(id) ? bowie : null, RenderMode.PROSE);
+        assertThat(result).isEqualTo("Ziggy Stardust performed");
+    }
+
+    @Test
+    void renderAlterEgoVariantResolution() {
+        String text = "{{bowie.ziggy:preferredShort:Zig}} sang";
+        String result = EntityRenderer.render(text,
+                                              id -> "bowie".equals(id) ? bowie : null, RenderMode.PROSE);
+        assertThat(result).isEqualTo("Ziggy sang");
+    }
+
+    @Test
+    void renderAlterEgoFallsBackWhenBaseUnknown() {
+        String text   = "{{unknown.persona:full:Mystery}} appeared";
+        String result = EntityRenderer.render(text, id -> null, RenderMode.PROSE);
+        assertThat(result).isEqualTo("Mystery appeared");
+    }
+
+    @Test
+    void renderAlterEgoFallsBackWhenQualifierUnknown() {
+        String text = "{{bowie.duke:full:Thin White Duke}} era";
+        String result = EntityRenderer.render(text,
+                                              id -> "bowie".equals(id) ? bowie : null, RenderMode.PROSE);
+        assertThat(result).isEqualTo("Thin White Duke era");
+    }
+
+    @Test
+    void renderAlterEgoPronounAnnotated() {
+        String text = "{{bowie.ziggy:pronoun:subject:He}} sang";
+        String result = EntityRenderer.render(text,
+                                              id -> "bowie".equals(id) ? bowie : null, RenderMode.ANNOTATED);
+        assertThat(result).isEqualTo("he [Ziggy] sang");
     }
 }
