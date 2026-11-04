@@ -666,6 +666,7 @@
         <module>examples/example-rag-analytics</module>
         <module>examples/example-mindmap-intelligence</module>
         <module>examples/example-goal-cognition</module>
+        <module>examples/example-corpus-management</module>
       </modules>
     </profile>
     <profile>
