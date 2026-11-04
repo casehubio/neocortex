@@ -861,6 +861,16 @@ public @Nullable String lastTargetAgentId() {
     }
 
 
+    public void configureEntityRendering(
+            java.util.function.@Nullable BiFunction<String, String,
+                                                           io.casehub.neocortex.entity.token.EntityIdentity> identityLookup) {
+        chainSectionCustomizer(sections -> sections.stream()
+                                                   .<io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer>map(
+                                                           s -> new io.casehub.neocortex.cognition.prompt.EntityRenderingSection(
+                                                                   s, identityLookup))
+                                                   .toList());
+    }
+
     public void setMoodPersister(@Nullable Consumer<MoodState> moodPersister) {
         this.moodPersister = moodPersister;
     }
