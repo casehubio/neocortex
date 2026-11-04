@@ -19,14 +19,14 @@ import io.casehub.platform.api.identity.PrincipalId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class CognitiveProfileTest {
 
@@ -385,6 +385,58 @@ class CognitiveProfileTest {
         assertThat(result.get().memories()).isEmpty();
         assertThat(result.get().trajectory()).isNull();
         assertThat(result.get().unresolvedRefs()).isEmpty();
+    }
+
+    @Test
+    void resolveIncludesPersonaMemories() {
+        String bowieId = mindMapStore.addNode(node("David Bowie"), TENANT);
+        String ziggyId = mindMapStore.addNode(node("Ziggy Stardust"), TENANT);
+        mindMapStore.addEdge(new EdgeInput(ziggyId, bowieId, "persona-of", CONF,
+                null, null, null, null, null, null, Map.of()), TENANT);
+
+        memoryStore.store(new MemoryInput(bowieId, EXPERIENCE, TENANT, null,
+                "Bowie composed Heroes", Map.of(), CONF, null, null, null));
+        memoryStore.store(new MemoryInput(ziggyId, EXPERIENCE, TENANT, null,
+                "Ziggy performed at Hammersmith", Map.of(), CONF, null, null, null));
+
+        var result = profile.resolve(CognitiveProfileQuery.byId(bowieId, TENANT));
+
+        assertThat(result).isPresent();
+        var experienceMemories = result.get().memories().get(EXPERIENCE);
+        assertThat(experienceMemories).hasSize(2);
+        assertThat(experienceMemories).extracting(Memory::text)
+                .containsExactlyInAnyOrder("Bowie composed Heroes", "Ziggy performed at Hammersmith");
+    }
+
+    @Test
+    void resolveIncludesPersonaEdges() {
+        String bowieId = mindMapStore.addNode(node("David Bowie"), TENANT);
+        String ziggyId = mindMapStore.addNode(node("Ziggy Stardust"), TENANT);
+        String venueId = mindMapStore.addNode(node("Hammersmith Odeon"), TENANT);
+        mindMapStore.addEdge(new EdgeInput(ziggyId, bowieId, "persona-of", CONF,
+                null, null, null, null, null, null, Map.of()), TENANT);
+        mindMapStore.addEdge(new EdgeInput(ziggyId, venueId, "performed-at", CONF,
+                null, null, null, null, null, null, Map.of()), TENANT);
+
+        var result = profile.resolve(CognitiveProfileQuery.byId(bowieId, TENANT));
+
+        assertThat(result).isPresent();
+        assertThat(result.get().edges()).anyMatch(e -> "performed-at".equals(e.edgeType()));
+    }
+
+    @Test
+    void resolveExcludesPersonaOfEdgeFromPersonaEdges() {
+        String bowieId = mindMapStore.addNode(node("David Bowie"), TENANT);
+        String ziggyId = mindMapStore.addNode(node("Ziggy Stardust"), TENANT);
+        mindMapStore.addEdge(new EdgeInput(ziggyId, bowieId, "persona-of", CONF,
+                null, null, null, null, null, null, Map.of()), TENANT);
+
+        var result = profile.resolve(CognitiveProfileQuery.byId(bowieId, TENANT));
+
+        assertThat(result).isPresent();
+        var personaOfEdges = result.get().edges().stream()
+                .filter(e -> "persona-of".equals(e.edgeType())).toList();
+        assertThat(personaOfEdges).hasSize(1);
     }
 
     // --- helpers ---

@@ -78,12 +78,33 @@ public class CognitiveProfile {
             node = resolved.getFirst();
         }
 
-        List<String> entityIds      = collectEntityIds(node);
+        List<String> entityIds      = new java.util.ArrayList<>(collectEntityIds(node));
         Set<NodeRef> unresolvedRefs = collectUnresolvedRefs(node);
 
         List<MindMapEdge> edges = query.includeEdges()
-                                  ? mindMapStore.neighbors(node.id(), query.tenantId())
-                                  : List.of();
+                                  ? new java.util.ArrayList<>(mindMapStore.neighbors(node.id(), query.tenantId()))
+                                  : new java.util.ArrayList<>();
+
+        List<String> personaNodeIds = new java.util.ArrayList<>();
+        for (MindMapEdge edge : mindMapStore.neighbors(node.id(), query.tenantId())) {
+            if ("persona-of".equals(edge.edgeType()) && edge.targetNodeId().equals(node.id())) {
+                String personaId = edge.sourceNodeId();
+                if (!entityIds.contains(personaId)) {
+                    entityIds.add(personaId);
+                }
+                personaNodeIds.add(personaId);
+            }
+        }
+
+        if (query.includeEdges()) {
+            for (String personaId : personaNodeIds) {
+                for (MindMapEdge personaEdge : mindMapStore.neighbors(personaId, query.tenantId())) {
+                    if (!"persona-of".equals(personaEdge.edgeType())) {
+                        edges.add(personaEdge);
+                    }
+                }
+            }
+        }
 
         Set<MemoryDomain> domains = query.domains().isEmpty()
                                     ? DEFAULT_DOMAINS : query.domains();
