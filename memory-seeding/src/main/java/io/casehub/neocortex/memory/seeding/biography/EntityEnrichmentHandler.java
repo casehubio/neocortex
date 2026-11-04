@@ -86,6 +86,10 @@ public class EntityEnrichmentHandler implements BiographyHandler {
                 }
             }
 
+            if (entry.identity() != null) {
+                props.putAll(entry.identity().toProperties());
+            }
+
             if (!props.isEmpty()) {
                 store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
             }

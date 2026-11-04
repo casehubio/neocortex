@@ -46,7 +46,7 @@ class EntityEnrichmentHandlerTest {
         var baselines = Map.of(
                 "curiosity", new EntityEnrichmentEntry.DriveBaseline(0.85, "Strong exploration"),
                 "competence", new EntityEnrichmentEntry.DriveBaseline(0.88, "High skill drive"));
-        var entry = new EntityEnrichmentEntry("enrich-1", "Frida Kahlo", baselines, null, null, null, null);
+        var entry = new EntityEnrichmentEntry("enrich-1", "Frida Kahlo", baselines, null, null, null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 
@@ -67,7 +67,7 @@ class EntityEnrichmentHandlerTest {
 
         var patterns = List.of(
                 new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8, null, null));
-        var entry = new EntityEnrichmentEntry("enrich-2", "Test Entity", null, patterns, null, null, null);
+        var entry = new EntityEnrichmentEntry("enrich-2", "Test Entity", null, patterns, null, null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 
@@ -85,7 +85,7 @@ class EntityEnrichmentHandlerTest {
 
         var entry = new EntityEnrichmentEntry("enrich-3", "Unknown Entity",
                                               Map.of("curiosity", new EntityEnrichmentEntry.DriveBaseline(0.5, null)),
-                                              null, null, null, null);
+                                              null, null, null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
     }
@@ -104,7 +104,7 @@ class EntityEnrichmentHandlerTest {
                                                      "Diego championed her art"),
                 new EntityEnrichmentEntry.Transition("passionate", "turbulent", "1934-1935", null));
         var stages = List.of(new EntityEnrichmentEntry.RelationshipStage("Diego Rivera", transitions));
-        var entry  = new EntityEnrichmentEntry("enrich-4", "Frida Kahlo", null, null, null, stages, null);
+        var entry  = new EntityEnrichmentEntry("enrich-4", "Frida Kahlo", null, null, null, stages, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 
@@ -142,7 +142,7 @@ class EntityEnrichmentHandlerTest {
         var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
         store.addNode(NodeInput.of("Test Entity", subgraph).withProvenance("test"), TENANT);
 
-        var entry = new EntityEnrichmentEntry("enrich-5", "Test Entity", null, null, null, null, null);
+        var entry = new EntityEnrichmentEntry("enrich-5", "Test Entity", null, null, null, null, null, null);
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 
         var memories = memoryStore.query(RelationshipQuery.forAgent("agent-1", TENANT));
@@ -163,7 +163,7 @@ class EntityEnrichmentHandlerTest {
                 new EntityEnrichmentEntry.CapsPattern(
                         "betrayal → trust_violation → AUTONOMY_ASSERTION", 3.0, 0.87,
                         Map.of("betrayal", 0.9, "abandonment", 0.6)));
-        var entry = new EntityEnrichmentEntry("enrich-caps", "Frida Kahlo", null, patterns, null, null, null);
+        var entry = new EntityEnrichmentEntry("enrich-caps", "Frida Kahlo", null, patterns, null, null, null, null);
 
         var disposition = new DispositionProfileEntry(
                 "disp-1", "Frida Kahlo", "cooperative", null, "bold", "high", "confrontational", null);
@@ -193,7 +193,7 @@ class EntityEnrichmentHandlerTest {
 
         var patterns = List.of(
                 new EntityEnrichmentEntry.CapsPattern("threat -> creative", 0.8, null, null));
-        var entry = new EntityEnrichmentEntry("enrich-no-caps", "Test Entity", null, patterns, null, null, null);
+        var entry = new EntityEnrichmentEntry("enrich-no-caps", "Test Entity", null, patterns, null, null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 
@@ -223,7 +223,7 @@ class EntityEnrichmentHandlerTest {
                         "Mentorship dynamics, art-world hierarchies",
                         "Assert intellectual authority, demand recognition",
                         0.85));
-        var entry = new EntityEnrichmentEntry("enrich-ba", "Frida Kahlo", null, null, attractors, null, null);
+        var entry = new EntityEnrichmentEntry("enrich-ba", "Frida Kahlo", null, null, attractors, null, null, null);
 
         handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
 
@@ -265,6 +265,59 @@ class EntityEnrichmentHandlerTest {
                                  .containsExactlyInAnyOrder(
                                          "defiance-through-artistic-authenticity",
                                          "autonomy-seeking-through-intellectual-equality");
+    }
+
+
+    @Test
+    void storesIdentityPropertiesOnEntityNode() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Frida Kahlo", subgraph).withProvenance("test"), TENANT);
+
+        var identity = new EntityEnrichmentEntry.IdentityFields(
+                "Frida", "Kahlo", null,
+                "she", "her", "her", "herself",
+                "Frida", "Frida Kahlo de Rivera",
+                List.of("Friducha", "La Heroína del Dolor"));
+        var entry = new EntityEnrichmentEntry("enrich-id", "Frida Kahlo",
+                                              null, null, null, null, null, identity);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var node = store.resolveNode("Frida Kahlo", subgraph, TENANT);
+        assertThat(node.properties())
+                .containsEntry("canonicalFirst", "Frida")
+                .containsEntry("canonicalLast", "Kahlo")
+                .containsEntry("pronounsSubject", "she")
+                .containsEntry("pronounsObject", "her")
+                .containsEntry("pronounsPossessive", "her")
+                .containsEntry("pronounsReflexive", "herself")
+                .containsEntry("preferredShort", "Frida")
+                .containsEntry("preferredLong", "Frida Kahlo de Rivera");
+        assertThat(node.properties()).doesNotContainKey("canonicalTitlePrefix");
+    }
+
+
+    @Test
+    void skipsNullIdentityFields() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Test Entity", subgraph).withProvenance("test"), TENANT);
+
+        var entry = new EntityEnrichmentEntry("enrich-no-id", "Test Entity",
+                                              null, null, null, null, null, null);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var node = store.resolveNode("Test Entity", subgraph, TENANT);
+        assertThat(node.properties()).doesNotContainKey("canonicalFirst");
+        assertThat(node.properties()).doesNotContainKey("pronounsSubject");
     }
 
     private BiographyProfile profileWith(List<EntityEnrichmentEntry> enrichments) {
