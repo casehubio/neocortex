@@ -273,7 +273,7 @@ class ChainWalkerFederatedSearchTest {
     }
 
     private static CorpusQuery query(String text, int maxResults, CorpusRef... corpora) {
-        return new CorpusQuery(text, null, Set.of(corpora), maxResults, -1, false, Map.of());
+        return new CorpusQuery(text, null, null, Set.of(corpora), maxResults, -1, false, Map.of());
     }
 
     // --- Stubs ---
