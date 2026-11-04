@@ -51,7 +51,8 @@ public class JpaMemoryStore implements CaseMemoryStore {
             MemoryCapability.CROSS_TENANT_ERASE,
             MemoryCapability.SCAN,
             MemoryCapability.DISCOVER_TENANTS,
-            MemoryCapability.PURGE
+            MemoryCapability.PURGE,
+            MemoryCapability.UPDATE_TEXT
         );
     }
 
@@ -439,4 +440,19 @@ public class JpaMemoryStore implements CaseMemoryStore {
         }
     }
 
+
+    @Override
+    public void updateText(String memoryId, String newText, String tenantId) {
+        if (newText == null || newText.isBlank()) {
+            throw new IllegalArgumentException("newText must not be null or blank");
+        }
+        int rows = em.createQuery("UPDATE MemoryEntry m SET m.text = :text WHERE m.memoryId = :id AND m.tenantId = :tenant")
+                     .setParameter("text", newText)
+                     .setParameter("id", memoryId)
+                     .setParameter("tenant", tenantId)
+                     .executeUpdate();
+        if (rows == 0) {
+            throw new IllegalArgumentException("Memory not found: " + memoryId);
+        }
+    }
 }
