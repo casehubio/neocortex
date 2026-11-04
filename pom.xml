@@ -31,6 +31,7 @@
     <module>inference-bayes</module>
     <module>inference-bayes-llm</module>
     <module>fusion-api</module>
+    <module>entity-token</module>
     <module>annotation-api</module>
     <module>annotation-testing</module>
     <module>annotation-inmem</module>
@@ -267,6 +268,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-fusion-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-entity-token</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
