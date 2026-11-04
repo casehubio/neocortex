@@ -32,14 +32,14 @@ class TranscriptCorpusInitializerTest {
         assertThat(ref.tenantId()).isEqualTo("tenant-1");
         assertThat(manager.created).hasSize(1);
         assertThat(manager.created.get(0).name).isEqualTo("agent-01-interactions");
-        assertThat(manager.created.get(0).type).isEqualTo(CorpusType.TRANSCRIPT);
+        assertThat(manager.created.get(0).type).isEqualTo(BuiltInCorpusTypes.TRANSCRIPT);
         assertThat(manager.created.get(0).metadata).containsEntry("agent_id", "agent-01");
     }
 
     @Test
     void skipsCreationWhenAlreadyExists() {
         var descriptor = new CorpusDescriptor(
-            "id-1", "agent-01-interactions", CorpusType.TRANSCRIPT,
+            "id-1", "agent-01-interactions", BuiltInCorpusTypes.TRANSCRIPT,
             CorpusLifecycle.ACTIVE, new CorpusRef("tenant-1", "agent-01-interactions"),
             "qdrant-coll", List.of(), List.of(), Map.of(), Instant.now(), Instant.now()
         );

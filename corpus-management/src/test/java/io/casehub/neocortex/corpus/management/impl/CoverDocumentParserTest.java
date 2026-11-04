@@ -1,7 +1,6 @@
 package io.casehub.neocortex.corpus.management.impl;
 
 import io.casehub.neocortex.corpus.management.CorpusEntry;
-import io.casehub.neocortex.corpus.management.CorpusType;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +28,7 @@ class CoverDocumentParserTest {
             - Stage 1: SWS stabilisation
             - Stage 2: REM integration
             """;
-        CorpusEntry entry = parser.parse(cover, CorpusType.RESEARCH);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.RESEARCH);
 
         assertThat(entry.id()).isEqualTo("CE-20261102-abc123");
         assertThat(entry.stringField("title")).isEqualTo("Sleep consolidation follows a two-stage process");
@@ -54,7 +53,7 @@ class CoverDocumentParserTest {
             ---
             Brainstorming session on unified knowledge management.
             """;
-        CorpusEntry entry = parser.parse(cover, CorpusType.TRANSCRIPT);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.TRANSCRIPT);
 
         assertThat(entry.id()).isEqualTo("CE-20261102-t4u5v6");
         assertThat(entry.stringField("interaction_type")).isEqualTo("agent-human");
@@ -74,7 +73,7 @@ class CoverDocumentParserTest {
             ---
             Body text.
             """;
-        assertThatThrownBy(() -> parser.parse(cover, CorpusType.RESEARCH))
+        assertThatThrownBy(() -> parser.parse(cover, BuiltInCorpusTypes.RESEARCH))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("domain");
     }
@@ -92,7 +91,7 @@ class CoverDocumentParserTest {
             ---
             Some brief.
             """;
-        assertThatThrownBy(() -> parser.parse(cover, CorpusType.TRANSCRIPT))
+        assertThatThrownBy(() -> parser.parse(cover, BuiltInCorpusTypes.TRANSCRIPT))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("artifact_ref");
     }
@@ -112,7 +111,7 @@ class CoverDocumentParserTest {
             SmallRye @ConfigMapping interfaces cannot share defaults
             across profiles.
             """;
-        CorpusEntry entry = parser.parse(cover, CorpusType.KNOWLEDGE_GARDEN);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.KNOWLEDGE_GARDEN);
 
         assertThat(entry.id()).isEqualTo("GE-20261102-ff1234");
         assertThat(entry.stringField("type")).isEqualTo("gotcha");
@@ -129,14 +128,14 @@ class CoverDocumentParserTest {
             domain: test
             ---
             """;
-        CorpusEntry entry = parser.parse(cover, CorpusType.KNOWLEDGE_GARDEN);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.KNOWLEDGE_GARDEN);
         assertThat(entry.body()).isEmpty();
     }
 
     @Test
     void stripsLeadingWhitespaceFromFrontmatter() {
         String      cover = "---\nid: CE-ws\ntitle: \"Whitespace\"\ntype: test\ndomain: test\n---\nBody with leading spaces preserved.\n";
-        CorpusEntry entry = parser.parse(cover, CorpusType.KNOWLEDGE_GARDEN);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.KNOWLEDGE_GARDEN);
         assertThat(entry.id()).isEqualTo("CE-ws");
         assertThat(entry.body()).isEqualTo("Body with leading spaces preserved.");
     }

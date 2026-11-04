@@ -2,7 +2,6 @@ package io.casehub.neocortex.corpus.management.impl;
 
 import io.casehub.neocortex.corpus.management.ActivityType;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
-import io.casehub.neocortex.corpus.management.CorpusType;
 import io.casehub.neocortex.corpus.management.InteractionContext;
 import io.casehub.neocortex.corpus.management.InteractionType;
 import org.junit.jupiter.api.Test;
@@ -36,7 +35,7 @@ class CoverDocumentGeneratorTest {
         assertThat(cover).contains("artifact_ref:");
         assertThat(cover).contains("turn_count: 47");
 
-        CorpusEntry entry = parser.parse(cover, CorpusType.TRANSCRIPT);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.TRANSCRIPT);
         assertThat(entry.id()).startsWith("CE-");
         assertThat(entry.stringField("interaction_type")).isEqualTo("agent-human");
         assertThat(entry.stringField("activity_type")).isEqualTo("design-discussion");
@@ -65,8 +64,8 @@ class CoverDocumentGeneratorTest {
         String cover1 = generator.generateTranscriptCover(context);
         String cover2 = generator.generateTranscriptCover(context);
 
-        CorpusEntry entry1 = parser.parse(cover1, CorpusType.TRANSCRIPT);
-        CorpusEntry entry2 = parser.parse(cover2, CorpusType.TRANSCRIPT);
+        CorpusEntry entry1 = parser.parse(cover1, BuiltInCorpusTypes.TRANSCRIPT);
+        CorpusEntry entry2 = parser.parse(cover2, BuiltInCorpusTypes.TRANSCRIPT);
         assertThat(entry1.id()).isNotEqualTo(entry2.id());
     }
 
@@ -85,7 +84,7 @@ class CoverDocumentGeneratorTest {
         );
         String cover = generator.generateTranscriptCover(context);
 
-        CorpusEntry entry = parser.parse(cover, CorpusType.TRANSCRIPT);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.TRANSCRIPT);
         assertThat(entry.stringListField("related_nodes")).containsExactly("node-abc", "node-def");
     }
 
@@ -103,7 +102,7 @@ class CoverDocumentGeneratorTest {
         );
         String cover = generator.generateTranscriptCover(context);
 
-        CorpusEntry entry = parser.parse(cover, CorpusType.TRANSCRIPT);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.TRANSCRIPT);
         assertThat(entry.stringField("title")).isNotBlank();
         assertThat(entry.stringField("title").length()).isLessThanOrEqualTo(80);
     }
@@ -122,7 +121,7 @@ class CoverDocumentGeneratorTest {
         );
         String cover = generator.generateTranscriptCover(context);
 
-        CorpusEntry entry = parser.parse(cover, CorpusType.TRANSCRIPT);
+        CorpusEntry entry = parser.parse(cover, BuiltInCorpusTypes.TRANSCRIPT);
         assertThat(entry.stringField("domain")).isNull();
     }
 

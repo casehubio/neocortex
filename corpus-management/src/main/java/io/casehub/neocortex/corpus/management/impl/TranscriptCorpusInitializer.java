@@ -3,7 +3,6 @@ package io.casehub.neocortex.corpus.management.impl;
 import io.casehub.neocortex.corpus.management.CorpusCatalogue;
 import io.casehub.neocortex.corpus.management.CorpusDescriptor;
 import io.casehub.neocortex.corpus.management.CorpusManager;
-import io.casehub.neocortex.corpus.management.CorpusType;
 import io.casehub.neocortex.rag.CorpusRef;
 
 import java.util.List;
@@ -27,7 +26,7 @@ public class TranscriptCorpusInitializer {
         if (existing.isPresent()) {
             return ref;
         }
-        manager.create(corpusName, CorpusType.TRANSCRIPT, tenantId,
+        manager.create(corpusName, BuiltInCorpusTypes.TRANSCRIPT, tenantId,
             List.of(), List.of(), Map.of("agent_id", agentId));
         return ref;
     }

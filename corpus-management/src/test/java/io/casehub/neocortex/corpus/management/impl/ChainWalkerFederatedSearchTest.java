@@ -262,7 +262,7 @@ class ChainWalkerFederatedSearchTest {
 
     private CorpusDescriptor descriptor(String name, List<FederationRef> upstream, List<FederationRef> peers) {
         return new CorpusDescriptor(
-            UUID.randomUUID().toString(), name, CorpusType.RESEARCH, CorpusLifecycle.ACTIVE,
+            UUID.randomUUID().toString(), name, BuiltInCorpusTypes.RESEARCH, CorpusLifecycle.ACTIVE,
             new CorpusRef(TENANT, name), name + "-collection",
             upstream, peers, Map.of(), Instant.now(), Instant.now());
     }

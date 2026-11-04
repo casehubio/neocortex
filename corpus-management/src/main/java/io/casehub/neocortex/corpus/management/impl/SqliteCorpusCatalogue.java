@@ -213,9 +213,9 @@ public class SqliteCorpusCatalogue implements CorpusCatalogue {
 
     private static CorpusType resolveType(String name) {
         return switch (name) {
-            case "knowledge-garden" -> CorpusType.KNOWLEDGE_GARDEN;
-            case "research" -> CorpusType.RESEARCH;
-            case "transcript" -> CorpusType.TRANSCRIPT;
+            case "knowledge-garden" -> BuiltInCorpusTypes.KNOWLEDGE_GARDEN;
+            case "research" -> BuiltInCorpusTypes.RESEARCH;
+            case "transcript" -> BuiltInCorpusTypes.TRANSCRIPT;
             default -> new CorpusType(name, Map.of(), Map.of(), null);
         };
     }

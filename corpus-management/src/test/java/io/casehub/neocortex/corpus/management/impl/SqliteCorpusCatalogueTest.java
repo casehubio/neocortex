@@ -2,7 +2,6 @@ package io.casehub.neocortex.corpus.management.impl;
 
 import io.casehub.neocortex.corpus.management.CorpusDescriptor;
 import io.casehub.neocortex.corpus.management.CorpusLifecycle;
-import io.casehub.neocortex.corpus.management.CorpusType;
 import io.casehub.neocortex.corpus.management.FederationRef;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
@@ -27,14 +26,14 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void registerAndRetrieve() {
-        var desc = catalogue.register("test-corpus", CorpusType.RESEARCH, "tenant-1",
+        var desc = catalogue.register("test-corpus", BuiltInCorpusTypes.RESEARCH, "tenant-1",
                 "qdrant-test-corpus", List.of(), List.of(), Map.of());
 
         assertThat(catalogue.get(new CorpusRef("tenant-1", "test-corpus")))
             .isPresent()
             .hasValueSatisfying(d -> {
                 assertThat(d.name()).isEqualTo("test-corpus");
-                assertThat(d.type().name()).isEqualTo(CorpusType.RESEARCH.name());
+                assertThat(d.type().name()).isEqualTo(BuiltInCorpusTypes.RESEARCH.name());
                 assertThat(d.lifecycle()).isEqualTo(CorpusLifecycle.ACTIVE);
                 assertThat(d.vectorCollection()).isEqualTo("qdrant-test-corpus");
                 assertThat(d.corpusRef()).isEqualTo(new CorpusRef("tenant-1", "test-corpus"));
@@ -43,19 +42,19 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void duplicateNameSameTenantThrows() {
-        catalogue.register("dup", CorpusType.RESEARCH, "tenant-1",
+        catalogue.register("dup", BuiltInCorpusTypes.RESEARCH, "tenant-1",
                 "qdrant-dup", List.of(), List.of(), Map.of());
 
-        assertThatThrownBy(() -> catalogue.register("dup", CorpusType.RESEARCH, "tenant-1",
+        assertThatThrownBy(() -> catalogue.register("dup", BuiltInCorpusTypes.RESEARCH, "tenant-1",
                 "qdrant-dup-2", List.of(), List.of(), Map.of()))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void sameNameDifferentTenantAllowed() {
-        catalogue.register("shared", CorpusType.RESEARCH, "tenant-1",
+        catalogue.register("shared", BuiltInCorpusTypes.RESEARCH, "tenant-1",
                 "qdrant-shared-1", List.of(), List.of(), Map.of());
-        catalogue.register("shared", CorpusType.RESEARCH, "tenant-2",
+        catalogue.register("shared", BuiltInCorpusTypes.RESEARCH, "tenant-2",
                 "qdrant-shared-2", List.of(), List.of(), Map.of());
 
         assertThat(catalogue.get(new CorpusRef("tenant-1", "shared"))).isPresent();
@@ -64,11 +63,11 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void listByLifecycle() {
-        catalogue.register("active-one", CorpusType.RESEARCH, "t1",
+        catalogue.register("active-one", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q1", List.of(), List.of(), Map.of());
-        catalogue.register("active-two", CorpusType.TRANSCRIPT, "t1",
+        catalogue.register("active-two", BuiltInCorpusTypes.TRANSCRIPT, "t1",
                 "q2", List.of(), List.of(), Map.of());
-        catalogue.register("to-archive", CorpusType.KNOWLEDGE_GARDEN, "t1",
+        catalogue.register("to-archive", BuiltInCorpusTypes.KNOWLEDGE_GARDEN, "t1",
                 "q3", List.of(), List.of(), Map.of());
         catalogue.updateLifecycle(new CorpusRef("t1", "to-archive"), CorpusLifecycle.ARCHIVED);
 
@@ -80,20 +79,20 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void forTypeFilters() {
-        catalogue.register("research-1", CorpusType.RESEARCH, "t1",
+        catalogue.register("research-1", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q1", List.of(), List.of(), Map.of());
-        catalogue.register("transcript-1", CorpusType.TRANSCRIPT, "t1",
+        catalogue.register("transcript-1", BuiltInCorpusTypes.TRANSCRIPT, "t1",
                 "q2", List.of(), List.of(), Map.of());
-        catalogue.register("research-2", CorpusType.RESEARCH, "t1",
+        catalogue.register("research-2", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q3", List.of(), List.of(), Map.of());
 
-        assertThat(catalogue.forType(CorpusType.RESEARCH, "t1")).hasSize(2);
-        assertThat(catalogue.forType(CorpusType.TRANSCRIPT, "t1")).hasSize(1);
+        assertThat(catalogue.forType(BuiltInCorpusTypes.RESEARCH, "t1")).hasSize(2);
+        assertThat(catalogue.forType(BuiltInCorpusTypes.TRANSCRIPT, "t1")).hasSize(1);
     }
 
     @Test
     void deleteRemovesEntry() {
-        catalogue.register("doomed", CorpusType.RESEARCH, "t1",
+        catalogue.register("doomed", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q1", List.of(), List.of(), Map.of());
         assertThat(catalogue.get(new CorpusRef("t1", "doomed"))).isPresent();
 
@@ -103,11 +102,11 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void searchScopeIncludesUpstream() {
-        catalogue.register("parent", CorpusType.KNOWLEDGE_GARDEN, "t1",
+        catalogue.register("parent", BuiltInCorpusTypes.KNOWLEDGE_GARDEN, "t1",
                 "q-parent", List.of(), List.of(), Map.of());
 
         var parentRef = new CorpusRef("t1", "parent");
-        catalogue.register("child", CorpusType.RESEARCH, "t1",
+        catalogue.register("child", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q-child",
                 List.of(new FederationRef(parentRef, null, null, "default")),
                 List.of(),
@@ -120,13 +119,13 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void searchScopeIncludesPeers() {
-        catalogue.register("main", CorpusType.RESEARCH, "t1",
+        catalogue.register("main", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q-main", List.of(), List.of(), Map.of());
-        catalogue.register("peer-a", CorpusType.RESEARCH, "t1",
+        catalogue.register("peer-a", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q-peer-a", List.of(), List.of(), Map.of());
 
         var peerRef = new CorpusRef("t1", "peer-a");
-        catalogue.register("searcher", CorpusType.RESEARCH, "t1",
+        catalogue.register("searcher", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q-searcher",
                 List.of(),
                 List.of(new FederationRef(peerRef, null, null, null)),
@@ -139,9 +138,9 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void searchScopeDetectsCycles() {
-        catalogue.register("a", CorpusType.RESEARCH, "t1",
+        catalogue.register("a", BuiltInCorpusTypes.RESEARCH, "t1",
                 "qa", List.of(), List.of(), Map.of());
-        catalogue.register("b", CorpusType.RESEARCH, "t1",
+        catalogue.register("b", BuiltInCorpusTypes.RESEARCH, "t1",
                 "qb",
                 List.of(new FederationRef(new CorpusRef("t1", "a"), null, null, "default")),
                 List.of(),
@@ -164,7 +163,7 @@ class SqliteCorpusCatalogueTest {
 
     @Test
     void updateLifecycleToArchivedAndBack() {
-        catalogue.register("flip", CorpusType.RESEARCH, "t1",
+        catalogue.register("flip", BuiltInCorpusTypes.RESEARCH, "t1",
                 "q1", List.of(), List.of(), Map.of());
 
         catalogue.updateLifecycle(new CorpusRef("t1", "flip"), CorpusLifecycle.ARCHIVED);
