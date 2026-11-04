@@ -50,4 +50,31 @@ class CognitionConfigTest {
         assertThat(config.entityKnowledgeEnabled()).isTrue();
     }
 
+
+    @Test
+    void allDisablesRegulation() {
+        assertThat(CognitionConfig.all().regulationEnabled()).isFalse();
+    }
+
+    @Test
+    void noneDisablesRegulation() {
+        assertThat(CognitionConfig.none().regulationEnabled()).isFalse();
+    }
+
+    @Test
+    void withAllSubsystemsEnablesRegulation() {
+        assertThat(CognitionConfig.withAllSubsystems().regulationEnabled()).isTrue();
+    }
+
+    @Test
+    void withRegulationToggles() {
+        var config = CognitionConfig.none().with("regulation", true);
+        assertThat(config.regulationEnabled()).isTrue();
+    }
+
+    @Test
+    void withoutRegulationDisables() {
+        var config = CognitionConfig.withAllSubsystems().without("regulation");
+        assertThat(config.regulationEnabled()).isFalse();
+    }
 }
