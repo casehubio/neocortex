@@ -76,10 +76,17 @@ public class EmotionRegulationGenerationPhase {
     public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
                                                        AppraisalResult appraisal,
                                                        List<EmotionRegulationResult> history) {
+        return generate(context, appraisal, history, 1.0);
+    }
+
+    public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
+                                                       AppraisalResult appraisal,
+                                                       List<EmotionRegulationResult> history,
+                                                       double regulationEffort) {
         if (sessionPipeline == null) return null;
 
         try {
-            String response = invokeLlm(context, appraisal, history);
+            String response = invokeLlm(context, appraisal, history, regulationEffort);
             if (response == null) return null;
             return parseResponse(response);
         } catch (Exception e) {
@@ -89,9 +96,9 @@ public class EmotionRegulationGenerationPhase {
     }
 
     private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
-                              List<EmotionRegulationResult> history) {
+                              List<EmotionRegulationResult> history, double regulationEffort) {
         var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
-        var userMessage = buildUserMessage(context, appraisal, history);
+        var userMessage = buildUserMessage(context, appraisal, history, regulationEffort);
         var responseText = new StringBuilder();
         session.query(userMessage).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -101,8 +108,11 @@ public class EmotionRegulationGenerationPhase {
     }
 
     private static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
-                                            List<EmotionRegulationResult> history) {
+                                            List<EmotionRegulationResult> history, double regulationEffort) {
         var sb = new StringBuilder();
+
+        sb.append("Regulation effort: ").append(String.format("%.2f", regulationEffort))
+                .append(" (0=negligible, 1=maximum urgency)\n\n");
 
         sb.append("Current emotions (post-appraisal):\n");
         for (var emotion : appraisal.emotions()) {

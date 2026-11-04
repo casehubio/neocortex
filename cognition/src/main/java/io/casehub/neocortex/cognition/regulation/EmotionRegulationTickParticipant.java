@@ -19,11 +19,15 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable MindMapStore                     mindMapStore;
     private final @Nullable String                           cognitiveSubgraphId;
 
-    // Bosse et al. 2010 — homeostatic baseline intensity
-    static final         double BASELINE_INTENSITY   = 0.3;
-    // Starting threshold for empirical tuning
-    static final         double ACTIVATION_THRESHOLD = 0.4;
-    private static final int    HISTORY_LIMIT        = 5;
+    // Bosse et al. 2010 — homeostatic baseline intensity (ERL_norm = 0.25 on [0,2], normalized to 0.3 on [0,1])
+    static final double BASELINE_INTENSITY = 0.3;
+    // Bosse et al. 2010 — maximum possible discrepancy from baseline
+    static final double D_MAX = 1.0 - BASELINE_INTENSITY;
+    // Default willingness to regulate (α_n in Bosse). Personality-dependent: high neuroticism → higher α.
+    static final double DEFAULT_ALPHA = 0.5;
+    // Noise floor: skip regulation when effort is negligible (cost optimization, not a theoretical gate)
+    static final double EFFORT_NOISE_FLOOR = 0.01;
+    private static final int HISTORY_LIMIT = 5;
 
     private final ConcurrentHashMap<String, EmotionRegulationResult> results = new ConcurrentHashMap<>();
 
@@ -64,7 +68,9 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                          .mapToDouble(e -> Math.abs(e.intensity() - BASELINE_INTENSITY))
                                          .max().orElse(0.0);
 
-        if (maxDiscrepancy <= ACTIVATION_THRESHOLD) {return;}
+        // Bosse et al. 2010: regulation effort v_n = α_n × d / d_max (proportional to discrepancy)
+        double regulationEffort = DEFAULT_ALPHA * maxDiscrepancy / D_MAX;
+        if (regulationEffort < EFFORT_NOISE_FLOOR) {return;}
 
         if (generationPhase == null) {return;}
 
@@ -73,7 +79,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                 mindMapStore, context.agentId(), context.tenantId(), HISTORY_LIMIT)
                       : List.<EmotionRegulationResult>of();
 
-        var result = generationPhase.generate(context, appraisal.get(), history);
+        var result = generationPhase.generate(context, appraisal.get(), history, regulationEffort);
         if (result != null) {
             String key = context.agentId() + ":" + context.tenantId();
             results.put(key, result);
