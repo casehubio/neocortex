@@ -344,6 +344,46 @@ class EntityEnrichmentHandlerTest {
         assertThat(node.properties()).containsEntry("aliases", "David Robert Jones,Davy Jones");
     }
 
+
+    @Test
+    void createsPersonaNodesFromAlterEgos() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("David Bowie", subgraph).withProvenance("test"), TENANT);
+
+        var ziggy = new EntityEnrichmentEntry.IdentityFields(
+                "Ziggy", null, null, "he", "him", "his", "himself",
+                "Ziggy", null, List.of(), null);
+        var duke = new EntityEnrichmentEntry.IdentityFields(
+                null, null, null, null, null, null, null,
+                "The Duke", null, List.of(), null);
+        var identity = new EntityEnrichmentEntry.IdentityFields(
+                "David", "Bowie", null, "he", "him", "his", "himself",
+                "Bowie", null, List.of("David Robert Jones"),
+                Map.of("ziggy", ziggy, "duke", duke));
+        var entry = new EntityEnrichmentEntry("enrich-persona", "David Bowie",
+                                              null, null, null, null, null, identity);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var allNodes = store.nodesIn(subgraph, TENANT);
+        assertThat(allNodes).hasSize(3);
+
+        var ziggyNode = allNodes.stream()
+                                .filter(n -> "ziggy".equals(n.properties().get("personaQualifier")))
+                                .findFirst();
+        assertThat(ziggyNode).isPresent();
+        assertThat(ziggyNode.get().properties()).containsEntry("canonicalFirst", "Ziggy");
+        assertThat(ziggyNode.get().properties()).containsEntry("preferredShort", "Ziggy");
+        assertThat(ziggyNode.get().properties()).containsEntry("provenance", "biographical-import");
+
+        var edges = store.neighbors(ziggyNode.get().id(), TENANT);
+        assertThat(edges).anyMatch(e -> "persona-of".equals(e.edgeType()));
+    }
+
     private BiographyProfile profileWith(List<EntityEnrichmentEntry> enrichments) {
         return new BiographyProfile("a1", "t1",
                                     List.of(), List.of(), List.of(), List.of(), List.of(),

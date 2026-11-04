@@ -94,6 +94,28 @@ public class EntityEnrichmentHandler implements BiographyHandler {
                 store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
             }
 
+            if (entry.identity() != null && entry.identity().alterEgos() != null) {
+                String baseSgId = findSubgraphForNode(nodeId, tenantId);
+                if (baseSgId != null) {
+                    for (var ego : entry.identity().alterEgos().entrySet()) {
+                        String qualifier = ego.getKey();
+                        var egoFields = ego.getValue();
+                        var egoProps = egoFields.toProperties();
+                        egoProps.put("personaQualifier", qualifier);
+                        egoProps.put("provenance", "biographical-import");
+                        String personaName = egoFields.preferredShort() != null
+                            ? egoFields.preferredShort()
+                            : (egoFields.canonicalFirst() != null ? egoFields.canonicalFirst() : qualifier);
+                        String personaNodeId = store.addNode(
+                            NodeInput.of(personaName, baseSgId)
+                                .withProperties(egoProps).withProvenance("biographical-import"),
+                            tenantId);
+                        store.addEdge(EdgeInput.of(personaNodeId, nodeId, "persona-of")
+                            .withProvenance("biographical-import"), tenantId);
+                    }
+                }
+            }
+
             if (entry.behaviouralAttractors() != null && !entry.behaviouralAttractors().isEmpty()) {
                 if (behavioralSgId == null) {
                     behavioralSgId = BiographyUtils.ensureSubgraph(store, SubgraphTypes.BEHAVIORAL, tenantId);
@@ -202,6 +224,16 @@ public class EntityEnrichmentHandler implements BiographyHandler {
             return node.id();
         }
         LOG.fine("Goal not found for coherence edge: " + goalName);
+        return null;
+    }
+
+
+    private String findSubgraphForNode(String nodeId, String tenantId) {
+        for (var sg : store.listSubgraphs(tenantId)) {
+            for (var n : store.nodesIn(sg.id(), tenantId)) {
+                if (n.id().equals(nodeId)) {return sg.id();}
+            }
+        }
         return null;
     }
 
