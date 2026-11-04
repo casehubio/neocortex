@@ -754,6 +754,13 @@ public @Nullable String lastTargetAgentId() {
         return regulationParticipant;
     }
 
+    public void configureRegulationGoals() {
+        if (regulationParticipant == null || goals == null) {return;}
+        var goalParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationGoalParticipant(
+                regulationParticipant, goals);
+        addParticipant(CognitionPhase.TERMINAL, goalParticipant);
+    }
+
 
     public void setGutFeelingParticipant(GutFeelingParticipant participant) {
         this.gutFeelingParticipant = participant;
