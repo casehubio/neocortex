@@ -74,6 +74,8 @@ public class CognitionCoreFactory {
     Instance<io.casehub.neocortex.cognition.mood.GoalEmotionMoodBridge>     goalEmotionMoodBridge;
     @Inject
     Instance<io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever> cognitiveMemoryRetriever;
+    @Inject
+    Instance<io.casehub.neocortex.entity.token.cdi.EntityIdentityCache>     entityIdentityCache;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -127,6 +129,12 @@ public class CognitionCoreFactory {
         }
         if (cognitiveMemoryRetriever.isResolvable()) {
             builder.cognitiveMemoryRetriever(cognitiveMemoryRetriever.get());
+        }
+        if (entityIdentityCache.isResolvable()) {
+            var cache = entityIdentityCache.get();
+            builder.entityRendering((entityId, tenantId) -> cache.getIdentity(entityId, tenantId));
+        } else {
+            builder.entityRendering(null);
         }
 
         return builder.build();

@@ -75,6 +75,8 @@ public final class CognitivePipelineBuilder {
     private           io.casehub.neocortex.cognition.goal.@org.jspecify.annotations.Nullable CognitiveGoalOrchestrator cognitiveGoalOrchestrator;
     private           io.casehub.neocortex.cognition.mood.@org.jspecify.annotations.Nullable GoalEmotionMoodBridge     goalEmotionMoodBridge;
     private           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
+    private           java.util.function.@Nullable BiFunction<String, String, io.casehub.neocortex.entity.token.EntityIdentity> entityIdentityLookup;
+    private           boolean                                                                                                   entityRenderingConfigured;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -223,6 +225,12 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder entityRendering(java.util.function.@Nullable BiFunction<String, String, io.casehub.neocortex.entity.token.EntityIdentity> identityLookup) {
+        this.entityIdentityLookup      = identityLookup;
+        this.entityRenderingConfigured = true;
+        return this;
+    }
+
 
     public CognitionCore build() {
         var core = new CognitionCore(
@@ -262,6 +270,9 @@ public final class CognitivePipelineBuilder {
         }
         if (cognitiveMemoryRetriever != null) {
             core.configureCognitiveMemoryRetriever(cognitiveMemoryRetriever);
+        }
+        if (entityRenderingConfigured) {
+            core.configureEntityRendering(entityIdentityLookup);
         }
 
         return core;
