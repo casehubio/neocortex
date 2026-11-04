@@ -1,8 +1,5 @@
 package io.casehub.neocortex.cognition.salience;
 
-import io.casehub.neocortex.annotation.AnnotationMethod;
-import io.casehub.neocortex.annotation.EntityAnnotation;
-import io.casehub.neocortex.annotation.inmem.InMemoryEntityAnnotationIndex;
 import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
 import io.casehub.neocortex.cognition.appraisal.SalienceContext;
 import io.casehub.neocortex.memory.Memory;
@@ -13,18 +10,15 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EntityAwareSalienceStrategyTest {
 
-    private InMemoryEntityAnnotationIndex annotationIndex;
     private ConcernBasedSalienceStrategy delegate;
 
     @BeforeEach
     void setUp() {
-        annotationIndex = new InMemoryEntityAnnotationIndex();
         delegate = new ConcernBasedSalienceStrategy();
     }
 
@@ -34,20 +28,12 @@ class EntityAwareSalienceStrategyTest {
                           java.util.Map.of(), Instant.now(), null, null, null, null, null, null);
     }
 
-    private void addAnnotation(String memoryId, String entityNodeId, String mentionText) {
-        annotationIndex.addAnnotation(new EntityAnnotation(
-            UUID.randomUUID().toString(), "t1", "memory", memoryId,
-            entityNodeId, 0, mentionText.length(), mentionText,
-            0.9, AnnotationMethod.LLM_EXTRACTION, null, Instant.now()));
-    }
-
     @Test
     void boostsSalienceWhenEntityNameFoundInObservation() {
-        Memory c1 = concern("mem-1", "discussion about photography");
-        addAnnotation("mem-1", "node-alice", "Alice");
+        Memory c1 = concern("mem-1", "{{node-alice:full:Alice}} discussed photography");
 
-        var strategy = new EntityAwareSalienceStrategy(delegate, annotationIndex);
-        var context = new SalienceContext("Alice walked into the room.", List.of(), null, List.of(c1), List.of(), "t1");
+        var strategy = new EntityAwareSalienceStrategy(delegate);
+        var context  = new SalienceContext("Alice walked into the room.", List.of(), null, List.of(c1), List.of(), "t1");
 
         PerceivedSituation result = strategy.perceive(context);
 
@@ -57,11 +43,10 @@ class EntityAwareSalienceStrategyTest {
 
     @Test
     void noBoostWhenNoEntityMatch() {
-        Memory c1 = concern("mem-1", "discussion about photography");
-        addAnnotation("mem-1", "node-alice", "Alice");
+        Memory c1 = concern("mem-1", "{{node-alice:full:Alice}} discussed photography");
 
-        var strategy = new EntityAwareSalienceStrategy(delegate, annotationIndex);
-        var context = new SalienceContext("The weather was pleasant.", List.of(), null, List.of(c1), List.of(), "t1");
+        var strategy = new EntityAwareSalienceStrategy(delegate);
+        var context  = new SalienceContext("The weather was pleasant.", List.of(), null, List.of(c1), List.of(), "t1");
 
         PerceivedSituation result = strategy.perceive(context);
 
@@ -70,11 +55,10 @@ class EntityAwareSalienceStrategyTest {
 
     @Test
     void addsToDelegateSalience() {
-        Memory c1 = concern("mem-1", "photography art");
-        addAnnotation("mem-1", "node-frida", "Frida");
+        Memory c1 = concern("mem-1", "{{node-frida:full:Frida}} exhibited photography art.");
 
-        var strategy = new EntityAwareSalienceStrategy(delegate, annotationIndex);
-        var context = new SalienceContext("Frida exhibited photography art.", List.of(), null, List.of(c1), List.of(), "t1");
+        var strategy = new EntityAwareSalienceStrategy(delegate);
+        var context  = new SalienceContext("Frida exhibited photography art.", List.of(), null, List.of(c1), List.of(), "t1");
 
         PerceivedSituation result = strategy.perceive(context);
 
@@ -83,11 +67,10 @@ class EntityAwareSalienceStrategyTest {
 
     @Test
     void caseInsensitiveMatch() {
-        Memory c1 = concern("mem-1", "a walk in the garden");
-        addAnnotation("mem-1", "node-james", "James");
+        Memory c1 = concern("mem-1", "{{node-james:full:James}} was in the garden");
 
-        var strategy = new EntityAwareSalienceStrategy(delegate, annotationIndex);
-        var context = new SalienceContext("james was in the garden.", List.of(), null, List.of(c1), List.of(), "t1");
+        var strategy = new EntityAwareSalienceStrategy(delegate);
+        var context  = new SalienceContext("james was in the garden.", List.of(), null, List.of(c1), List.of(), "t1");
 
         PerceivedSituation result = strategy.perceive(context);
 
@@ -95,11 +78,11 @@ class EntityAwareSalienceStrategyTest {
     }
 
     @Test
-    void noConcernAnnotationsNoBoost() {
-        Memory c1 = concern("mem-1", "photography");
+    void noTokensNoBoost() {
+        Memory c1 = concern("mem-1", "plain text about photography");
 
-        var strategy = new EntityAwareSalienceStrategy(delegate, annotationIndex);
-        var context = new SalienceContext("Alice walked in.", List.of(), null, List.of(c1), List.of(), "t1");
+        var strategy = new EntityAwareSalienceStrategy(delegate);
+        var context  = new SalienceContext("Alice walked in.", List.of(), null, List.of(c1), List.of(), "t1");
 
         PerceivedSituation result = strategy.perceive(context);
 

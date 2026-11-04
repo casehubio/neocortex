@@ -133,18 +133,14 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy(
-            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore,
-            Instance<io.casehub.neocortex.annotation.EntityAnnotationIndex> annotationIndex) {
+            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore) {
         io.casehub.neocortex.cognition.appraisal.SalienceStrategy base;
         if (mindMapStore.isResolvable()) {
             base = new io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy();
         } else {
             base = new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy();
         }
-        if (annotationIndex.isResolvable()) {
-            return new io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy(base, annotationIndex.get());
-        }
-        return base;
+        return new io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy(base);
     }
 
     @Produces
@@ -240,8 +236,7 @@ public class CognitionDefaultBeans {
     io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever cognitiveMemoryRetriever(
             Instance<io.casehub.neocortex.memory.CaseMemoryStore> memoryStore,
             io.casehub.neocortex.cognitive.index.RetrievalModulationConfig config,
-            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore,
-            Instance<io.casehub.neocortex.annotation.EntityAnnotationIndex> annotationIndex) {
+            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore) {
         if (!memoryStore.isResolvable()) {return null;}
         var staticFactors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
         var now = java.time.Instant.now();
@@ -270,11 +265,10 @@ public class CognitionDefaultBeans {
                 return io.casehub.neocortex.cognitive.index.ModulationFactors.domainWeight(ctx.personalityWeights());
             });
         }
-        if (config.entityOverlapEnabled() && annotationIndex.isResolvable()) {
-            var ai = annotationIndex.get();
+        if (config.entityOverlapEnabled()) {
             contextualFactories.add(ctx -> {
                 if (ctx.contextEntityNodeIds().isEmpty()) return null;
-                return new io.casehub.neocortex.cognitive.index.EntityOverlapModulationFactor(ai, ctx.tenantId(), ctx.contextEntityNodeIds());
+                return new io.casehub.neocortex.cognitive.index.EntityOverlapModulationFactor(ctx.contextEntityNodeIds());
             });
         }
         return new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(

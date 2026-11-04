@@ -3,8 +3,8 @@ package io.casehub.neocortex.cognition.reflection;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.casehub.neocortex.annotation.EntityAnnotation;
-import io.casehub.neocortex.annotation.EntityAnnotationIndex;
+import io.casehub.neocortex.entity.token.ParsedToken;
+import io.casehub.neocortex.entity.token.TokenFormat;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
@@ -73,23 +73,12 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
 
     private final Instance<SessionPipeline> pipelineInstance;
     private final Instance<CaseMemoryStore> storeInstance;
-    private final EntityAnnotationIndex annotationIndex;
 
     @Inject
     public LlmReflectionSynthesizer(Instance<SessionPipeline> pipelineInstance,
-                                     Instance<CaseMemoryStore> storeInstance,
-                                     Instance<EntityAnnotationIndex> annotationIndex) {
+                                     Instance<CaseMemoryStore> storeInstance) {
         this.pipelineInstance = pipelineInstance;
         this.storeInstance = storeInstance;
-        this.annotationIndex = annotationIndex.isResolvable() ? annotationIndex.get() : null;
-    }
-
-    LlmReflectionSynthesizer(Instance<SessionPipeline> pipelineInstance,
-                               Instance<CaseMemoryStore> storeInstance,
-                               EntityAnnotationIndex annotationIndex) {
-        this.pipelineInstance = pipelineInstance;
-        this.storeInstance = storeInstance;
-        this.annotationIndex = annotationIndex;
     }
 
     @Override
@@ -105,7 +94,7 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
         var trajectoryOutcomeIndex = buildTrajectoryOutcomeIndex(trajectories);
         var existingReflections = loadExistingReflections(agentId, tenantId);
 
-        String userPrompt = buildUserPrompt(trajectories, existingReflections, sources, tenantId);
+        String userPrompt = buildUserPrompt(trajectories, existingReflections, sources);
 
         try {
             String llmResponse = invokeLlm(userPrompt);
@@ -183,8 +172,7 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
 
     private String buildUserPrompt(List<Trajectory> trajectories,
                                    List<String> existingReflections,
-                                   List<Memory> sources,
-                                   String tenantId) {
+                                   List<Memory> sources) {
         var sb = new StringBuilder();
         sb.append("## Experience Trajectories\n\n");
 
@@ -215,15 +203,12 @@ public class LlmReflectionSynthesizer implements ReflectionSynthesizer {
             sb.append("\n");
         }
 
-        if (annotationIndex != null && !sources.isEmpty() && tenantId != null) {
+        if (!sources.isEmpty()) {
             Map<String, Set<String>> entityMentions = new LinkedHashMap<>();
             for (var mem : sources) {
-                Set<String> entities = annotationIndex.distinctEntitiesInSource("memory", mem.memoryId(), tenantId);
-                for (String entityId : entities) {
-                    for (EntityAnnotation ann : annotationIndex.findByEntity(entityId, tenantId)) {
-                        entityMentions.computeIfAbsent(ann.mentionText(), k -> new LinkedHashSet<>())
-                                      .add(mem.memoryId());
-                    }
+                for (ParsedToken token : TokenFormat.parse(mem.text())) {
+                    entityMentions.computeIfAbsent(token.surfaceForm(), k -> new LinkedHashSet<>())
+                                  .add(mem.memoryId());
                 }
             }
             if (!entityMentions.isEmpty()) {

@@ -13,11 +13,11 @@ import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.rag.CorpusRef;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class CorpusKnowledgePromptSectionTest {
 
@@ -78,9 +78,9 @@ class CorpusKnowledgePromptSectionTest {
 
     private static CognitiveMemoryRetriever retrieverWith(List<CorpusSearchResult> results) {
         return new CognitiveMemoryRetriever(
-            emptyStore(), List.of(), List.of(),
-            (query, tenantId) -> new FederatedSearchResult(results,
-                new SearchReport(List.of(), List.of(), false)));
+                emptyStore(), List.of(), List.of(), List.of(),
+                (query, tenantId) -> new FederatedSearchResult(results,
+                                                               new SearchReport(List.of(), List.of(), false)));
     }
 
     private static CaseMemoryStore emptyStore() {

@@ -1,8 +1,6 @@
 package io.casehub.neocortex.cognition;
 
-import io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy;
 import io.casehub.neocortex.cognition.appraisal.SalienceStrategy;
-import io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy;
 import jakarta.enterprise.inject.Instance;
 import org.junit.jupiter.api.Test;
 
@@ -36,24 +34,16 @@ class CognitionDefaultBeansTest {
     }
 
     @Test
-    void salienceStrategyReturnsConcernBasedWhenMindMapStoreAvailable() {
+    void salienceStrategyWrapsWithEntityAwareWhenMindMapStoreAvailable() {
         var              beans    = new CognitionDefaultBeans();
-        SalienceStrategy strategy = beans.salienceStrategy(resolvable(), unresolvable());
-        assertThat(strategy).isInstanceOf(ConcernBasedSalienceStrategy.class);
+        SalienceStrategy strategy = beans.salienceStrategy(resolvable());
+        assertThat(strategy).isInstanceOf(io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy.class);
     }
 
     @Test
-    void salienceStrategyReturnsNoOpWhenMindMapStoreUnavailable() {
+    void salienceStrategyWrapsNoOpWhenMindMapStoreUnavailable() {
         var              beans    = new CognitionDefaultBeans();
-        SalienceStrategy strategy = beans.salienceStrategy(unresolvable(), unresolvable());
-        assertThat(strategy).isInstanceOf(NoOpSalienceStrategy.class);
-    }
-
-    @Test
-    void salienceStrategyWrapsWithEntityAwareWhenAnnotationIndexAvailable() {
-        var              beans    = new CognitionDefaultBeans();
-        var              index    = new io.casehub.neocortex.annotation.inmem.InMemoryEntityAnnotationIndex();
-        SalienceStrategy strategy = beans.salienceStrategy(resolvable(), resolvable(index));
+        SalienceStrategy strategy = beans.salienceStrategy(unresolvable());
         assertThat(strategy).isInstanceOf(io.casehub.neocortex.cognition.salience.EntityAwareSalienceStrategy.class);
     }
 }
