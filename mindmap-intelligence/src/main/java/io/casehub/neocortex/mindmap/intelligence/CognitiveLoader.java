@@ -21,6 +21,7 @@ import io.casehub.neocortex.cognitive.index.CognitiveProfilesReloaded;
 import io.casehub.neocortex.mindmap.ActivityVocabulary;
 import io.casehub.neocortex.mindmap.GoalVocabulary;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.PersonaVocabulary;
 import io.casehub.neocortex.mindmap.RelationshipVocabulary;
 import io.casehub.neocortex.mindmap.VocabularyConflictException;
 import jakarta.annotation.PostConstruct;
@@ -74,6 +75,9 @@ public class CognitiveLoader {
 
         store.registerVocabulary(RelationshipVocabulary.RELATIONSHIP_VOCABULARY);
         LOG.fine("Registered relationship vocabulary");
+
+        store.registerVocabulary(PersonaVocabulary.PERSONA_VOCABULARY);
+        LOG.fine("Registered persona vocabulary");
 
         int registered = 0;
         for (CognitiveDefaults defaults : profiles) {
