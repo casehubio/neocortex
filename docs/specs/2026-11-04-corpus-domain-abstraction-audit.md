@@ -303,6 +303,40 @@ corpus-management-hortora/ -- Hortora-specific: GardenMetadataExtractor, garden 
 
 ---
 
+## Architectural Insight: Corpus vs Workspace
+
+The eight use-case lenses reveal two fundamentally different patterns that should not be served by the same API:
+
+**Corpus** — the library. Curated, long-lived, human-organised content with stable metadata schemas and federation across instances. Clinical guidelines, legal precedents, research literature, software docs, Hortora's knowledge garden. The content is authoritative and changes slowly.
+
+**Workspace** — the desk. Ephemeral, agent-driven, in-progress content built iteratively during a research session. Market research scrapes, product analysis, competitive intelligence. The content is provisional and changes constantly.
+
+Both need the same shared subsystems:
+
+```
+┌─────────────────────┐  ┌─────────────────────┐
+│   corpus-mgmt-api   │  │  workspace-api       │
+│   (curated lifecycle,│  │  (provenance, enrich-│
+│    federation,       │  │   ment chain, fresh- │
+│    catalogue)        │  │   ness, agent-driven │
+│                      │  │   ingestion)         │
+└────────┬────────────┘  └────────┬────────────┘
+         │                        │
+         ▼                        ▼
+┌─────────────────────────────────────────────┐
+│         Shared Subsystems                    │
+│  corpus-api: CorpusStore, CorpusReader,      │
+│              ChangeSource (byte-level I/O)   │
+│  rag:        EmbeddingIngestor, CaseRetriever│
+│              MetadataExtractor (search)       │
+│  fusion-api: ScoreFusion (ranking)           │
+└─────────────────────────────────────────────┘
+```
+
+The shared subsystems are already the clean Tier 1 code identified in this audit. Remediation (Phases 1-3) makes corpus-management genuinely generic for the curated pattern. A separate `workspace-api` + `workspace` module pair would serve the agentic pattern, composing the same storage and search primitives with a different lifecycle and metadata model on top.
+
+---
+
 ## Summary Assessment
 
 **Is corpus-management genuinely generic?** Partially. The architecture is sound — the SPI boundaries are in the right places, and the newer management-layer SPIs (`CorpusCatalogue`, `CorpusManager`, `CorpusSearch`) are clean. A non-Hortora consumer could build on the platform today by:
@@ -314,6 +348,8 @@ corpus-management-hortora/ -- Hortora-specific: GardenMetadataExtractor, garden 
 **What blocks genuine multi-consumer adoption?** The 6 API-layer leaks (L1-L6). Of these, L1 (String body) and L2 (garden constants in API) are the most impactful. L1 blocks any non-text corpus. L2 pollutes the API namespace with Hortora vocabulary.
 
 **What's cosmetic?** The implementation-layer leaks (L7-L13) are internal to the Hortora deployment. They should be cleaned up for clarity, but they don't block other consumers who would provide their own implementations.
+
+**What's beyond scope?** Agent-driven research workflows (market/product research) need a separate `workspace-api` — stretching corpus-management to cover both curated and agentic patterns would over-fit one API to two different problems. The shared subsystems (`corpus-api`, RAG pipeline, fusion) are already domain-neutral and would serve both.
 
 ## References
 
