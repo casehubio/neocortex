@@ -60,6 +60,23 @@ public final class TokenFormat {
         return Set.copyOf(ids);
     }
 
+    public static Set<String> extractEntityIds(String text, SurfaceFormTrie trie) {
+        Set<String> fromTokens = extractEntityIds(text);
+        if (!fromTokens.isEmpty()) {
+            return fromTokens;
+        }
+        if (trie == null) {
+            return Set.of();
+        }
+        List<TrieMatch> matches = trie.scan(text);
+        Set<String>     ids     = new LinkedHashSet<>();
+        for (TrieMatch match : matches) {
+            ids.add(match.form().entityId());
+        }
+        return Set.copyOf(ids);
+    }
+
+
     public static String stripTokens(String text) {
         if (text == null || !text.contains("{{")) return text;
 

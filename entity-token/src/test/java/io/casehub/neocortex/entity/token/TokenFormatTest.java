@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.List;
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TokenFormatTest {
@@ -105,5 +108,48 @@ class TokenFormatTest {
     @Test
     void stripTokensNull() {
         assertThat(TokenFormat.stripTokens(null)).isNull();
+    }
+
+    @Test
+    void extractEntityIds_withTrie_prefersTokens_when_tokensPresent() {
+        String text = "{{person-1:full:Alice}} met {{person-2:full:Bob}}";
+        SurfaceFormTrie trie = SurfaceFormTrie.build(List.of(
+                new SurfaceForm("Alice", "full", "person-1"),
+                new SurfaceForm("Bob", "full", "person-2")));
+        Set<String> ids = TokenFormat.extractEntityIds(text, trie);
+        assertThat(ids).containsExactlyInAnyOrder("person-1", "person-2");
+    }
+
+    @Test
+    void extractEntityIds_withTrie_fallsBackToTrie_when_noTokens() {
+        String text = "Alice met Bob at the park";
+        SurfaceFormTrie trie = SurfaceFormTrie.build(List.of(
+                new SurfaceForm("Alice", "full", "person-1"),
+                new SurfaceForm("Bob", "full", "person-2")));
+        Set<String> ids = TokenFormat.extractEntityIds(text, trie);
+        assertThat(ids).containsExactlyInAnyOrder("person-1", "person-2");
+    }
+
+    @Test
+    void extractEntityIds_withTrie_returnsEmpty_when_noTokensAndNoTrieMatches() {
+        String text = "the weather was nice today";
+        SurfaceFormTrie trie = SurfaceFormTrie.build(List.of(
+                new SurfaceForm("Alice", "full", "person-1")));
+        Set<String> ids = TokenFormat.extractEntityIds(text, trie);
+        assertThat(ids).isEmpty();
+    }
+
+    @Test
+    void extractEntityIds_withNullTrie_returnsTokenIdsOnly() {
+        String text = "{{person-1:full:Alice}} walked";
+        Set<String> ids = TokenFormat.extractEntityIds(text, null);
+        assertThat(ids).containsExactly("person-1");
+    }
+
+    @Test
+    void extractEntityIds_withNullTrie_returnsEmpty_when_noTokens() {
+        String text = "Alice walked";
+        Set<String> ids = TokenFormat.extractEntityIds(text, null);
+        assertThat(ids).isEmpty();
     }
 }
