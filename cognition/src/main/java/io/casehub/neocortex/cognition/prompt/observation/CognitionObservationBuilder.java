@@ -272,6 +272,20 @@ public class CognitionObservationBuilder {
             }
         }
 
+        if (cognitionCore != null && cognitionCore.regulationParticipant() != null) {
+            var regResult = cognitionCore.regulationParticipant().currentResult(agentId, tenantId);
+            if (regResult.isPresent()) {
+                var reg = regResult.get();
+                var regText = "**Regulation** — " + reg.strategy().name()
+                        + " (effectiveness: " + String.format("%.1f", reg.effectiveness()) + ")\n"
+                        + reg.narrative();
+                if (!reg.targetEmotions().isEmpty()) {
+                    regText += "\nTargets: " + String.join(", ", reg.targetEmotions());
+                }
+                parts.add(regText);
+            }
+        }
+
         if (parts.isEmpty()) {return null;}
 
         var driveNames = filtered.stream().map(DriveSnapshot::type).collect(Collectors.joining(", "));
