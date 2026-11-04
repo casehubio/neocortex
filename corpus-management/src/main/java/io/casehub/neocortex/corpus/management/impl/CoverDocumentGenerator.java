@@ -1,7 +1,5 @@
 package io.casehub.neocortex.corpus.management.impl;
 
-import io.casehub.neocortex.corpus.management.InteractionContext;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;

@@ -1,9 +1,6 @@
 package io.casehub.neocortex.corpus.management.impl;
 
-import io.casehub.neocortex.corpus.management.ActivityType;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
-import io.casehub.neocortex.corpus.management.InteractionContext;
-import io.casehub.neocortex.corpus.management.InteractionType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package io.casehub.neocortex.corpus.management;
+package io.casehub.neocortex.corpus.management.impl;
 
 public enum ActivityType {
 
