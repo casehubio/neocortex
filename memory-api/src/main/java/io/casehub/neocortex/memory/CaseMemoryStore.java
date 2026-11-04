@@ -149,6 +149,10 @@ public interface CaseMemoryStore {
         throw new MemoryCapabilityException(MemoryCapability.ENRICH_ATTRIBUTES, getClass());
     }
 
+    default void updateText(String memoryId, String newText, String tenantId) {
+        throw new MemoryCapabilityException(MemoryCapability.UPDATE_TEXT, getClass());
+    }
+
 
     /**
      * Returns distinct tenantIds matching the given attribute filter.

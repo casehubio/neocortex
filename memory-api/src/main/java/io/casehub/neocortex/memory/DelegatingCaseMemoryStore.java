@@ -25,6 +25,10 @@ public abstract class DelegatingCaseMemoryStore implements CaseMemoryStore {
     @Override
     public void enrichAttributes(String memoryId, java.util.Map<String, String> additionalAttributes, String tenantId) {delegate.enrichAttributes(memoryId, additionalAttributes, tenantId);}
 
+    @Override
+    public void updateText(String memoryId, String newText, String tenantId) {delegate.updateText(memoryId, newText, tenantId);}
+
+
     @Override public Set<MemoryCapability> capabilities() { return delegate.capabilities(); }
     @Override public List<Memory> scan(MemoryScanRequest request) { return delegate.scan(request); }
     @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }

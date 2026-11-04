@@ -1,7 +1,6 @@
 package io.casehub.neocortex.memory.testing;
 
 import io.casehub.neocortex.cognitive.Confidence;
-import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryAttributeKeys;
@@ -11,6 +10,7 @@ import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.MemoryOrder;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.MemoryRetentionPolicy;
+import io.casehub.platform.api.identity.PrincipalId;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -532,5 +532,48 @@ public abstract class CaseMemoryStoreContractTest {
         assertEquals(PrincipalId.agent("alice"), results.getFirst().principalId());
         assertTrue(results.getFirst().sharedWith().contains("agent:bob"));
         assertTrue(results.getFirst().sharedWith().contains("agent:charlie"));
+    }
+
+    @Test
+    void updateText_changesStoredText() {
+        String id = store().store(input("original text"));
+        store().updateText(id, "updated text", TENANT);
+        var results = store().query(query());
+        assertEquals(1, results.size());
+        assertEquals("updated text", results.get(0).text());
+    }
+
+    @Test
+    void updateText_preservesOtherFields() {
+        var inp = input("original").withAttributes(Map.of("key", "val"))
+                                   .withPad(0.5, 0.3, 0.7);
+        String id = store().store(inp);
+        store().updateText(id, "updated", TENANT);
+        var m = store().query(query()).get(0);
+        assertEquals("updated", m.text());
+        assertEquals("val", m.attributes().get("key"));
+        assertEquals(0.5, m.pleasure(), 0.01);
+        assertEquals(0.3, m.arousal(), 0.01);
+        assertEquals(0.7, m.dominance(), 0.01);
+    }
+
+    @Test
+    void updateText_nullText_throws() {
+        String id = store().store(input("text"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> store().updateText(id, null, TENANT));
+    }
+
+    @Test
+    void updateText_blankText_throws() {
+        String id = store().store(input("text"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> store().updateText(id, "  ", TENANT));
+    }
+
+    @Test
+    void updateText_unknownMemoryId_throws() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> store().updateText("nonexistent", "text", TENANT));
     }
 }

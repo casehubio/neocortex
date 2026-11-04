@@ -56,6 +56,10 @@ public class CaseEnrichmentPipeline implements CaseMemoryStore {
     @Override public Set<String> discoverTenants(String attributeKey, String attributeValue) { return delegate.discoverTenants(attributeKey, attributeValue); }
     @Override public int purge(MemoryRetentionPolicy policy) { return delegate.purge(policy); }
 
+    @Override
+    public void updateText(String memoryId, String newText, String tenantId) {delegate.updateText(memoryId, newText, tenantId);}
+
+
     private MemoryInput applyEnrichment(MemoryInput input) {
         if (sortedSteps.isEmpty()) return input;
         MemoryInput result = input;

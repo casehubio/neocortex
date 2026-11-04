@@ -31,5 +31,7 @@ public enum MemoryCapability {
 
     PURGE,
 
-    ENRICH_ATTRIBUTES
+    ENRICH_ATTRIBUTES,
+
+    UPDATE_TEXT
 }
