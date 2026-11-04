@@ -247,6 +247,8 @@ public final class CognitivePipelineBuilder {
             core.configureAppraisal(appraisalStrategy, salienceStrategy,
                                     defaultsRegistry, situationClassifier);
         }
+        core.configureRegulation();
+        core.configureRegulationGoals();
         if (gutFeelingMemoryStore != null) {
             core.configureGutFeeling(gutFeelingMemoryStore, mood);
         }
