@@ -441,6 +441,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
     }
 
 
+    @Transactional(TxType.REQUIRED)
     @Override
     public void updateText(String memoryId, String newText, String tenantId) {
         if (newText == null || newText.isBlank()) {
