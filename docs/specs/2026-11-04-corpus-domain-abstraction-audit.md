@@ -16,13 +16,14 @@ Between these tiers, the API layer has **6 leaks** where Hortora assumptions ble
 
 ## Use Cases
 
-Five lenses stress-test the abstractions:
+Six lenses stress-test the abstractions:
 
 | Use case | Document types | Metadata model | Federation needs |
 |----------|---------------|----------------|------------------|
 | **Clinical guidelines** | HL7 FHIR JSON/XML bundles, PDF evidence summaries | Evidence grading (GRADE), regulatory versioning, CPG-on-FHIR | Hierarchical: WHO → national → hospital |
 | **Legal precedents** | PDF case filings, HTML opinions, citation graphs | Jurisdiction, court level, year, citations, overruled status | Jurisdictional: federal → state → circuit |
 | **Game NPC knowledge** | Text backstories, JSON dialogue trees, YAML world facts | Character traits, faction, location, quest references | Flat: single world, no federation |
+| **Research literature** | PDFs, BibTeX/RIS citations, LaTeX source, preprints | DOI, authors, venue, impact factor, citation count, peer-review status, retraction status | Cross-institutional: arXiv → institutional repo → project library |
 | **Software documentation** | Markdown API docs, changelogs, multi-version tech docs | Version, API surface, deprecation status | Version-branched: v3 → v2 fallback |
 | **Hortora (existing)** | Markdown with YAML frontmatter | GE-ID, domain, type, score, staleness, tags, see-also | DAG: upstream/peer gardens |
 
@@ -54,6 +55,7 @@ The `body` field is `String`, forcing all corpus content through a text represen
 | Clinical | Blocked | FHIR bundles are JSON/XML; evidence summaries are PDF |
 | Legal | Blocked | Case filings are PDF; opinions may be HTML |
 | Game NPC | Works | Backstories and world facts are text |
+| Research | Blocked | PDFs, LaTeX source, BibTeX citation files are not plain text |
 | Software | Partial | Markdown docs work; architecture diagrams don't |
 | Hortora | Works | All entries are markdown |
 
@@ -71,6 +73,7 @@ The `body` field is `String`, forcing all corpus content through a text represen
 | Clinical | Blocked | No matching type; would need custom `CLINICAL_GUIDELINE` with `evidence_grade`, `recommendation_strength` |
 | Legal | Blocked | No matching type; would need `LEGAL_PRECEDENT` with `jurisdiction`, `court_level`, `overruled_by` |
 | Game NPC | Blocked | No matching type; would need `WORLD_KNOWLEDGE` with `faction`, `location`, `quest_ref` |
+| Research | Partial | `RESEARCH` type exists but its fields (`staleness_threshold`, `provenance`) are garden-shaped, not literature-shaped (needs `doi`, `venue`, `impact_factor`, `peer_review_status`) |
 | Software | Partial | Could use `KNOWLEDGE_GARDEN` awkwardly; `staleness_threshold` maps loosely to deprecation |
 | Hortora | Works | These constants exist for Hortora |
 
@@ -88,6 +91,7 @@ The `body` field is `String`, forcing all corpus content through a text represen
 | Clinical | Blocked | Guidelines don't have agent interactions; evidence review is not "DEBUGGING" |
 | Legal | Blocked | Court proceedings aren't "AGENT_HUMAN" interactions |
 | Game NPC | Partial | NPC dialogue could stretch into AGENT_HUMAN, but ActivityType values don't fit |
+| Research | Blocked | Literature surveys have no "agents" or "turns"; peer review is not "SELF_REFLECTION" |
 | Software | Partial | Could map code review to REVIEW, but it's a forced mapping |
 | Hortora | Works | These types describe Claude session transcripts |
 
@@ -105,6 +109,7 @@ The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store impl
 | Clinical | Low | Would use Qdrant too (same infrastructure), but the field name is misleading |
 | Legal | Low | Same — infrastructure choice, not a blocking issue |
 | Game NPC | Low | Might not use vector search at all; field is vestigial |
+| Research | Low | Would use vector search for semantic paper retrieval, but field name is misleading |
 | Software | Low | Same infrastructure |
 | Hortora | Works | Uses Qdrant |
 
@@ -122,6 +127,7 @@ The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store impl
 | Clinical | Partial | Text search works for guideline titles, but FHIR code lookups need structured queries |
 | Legal | Partial | Case search by text works, but citation graph traversal needs structured queries |
 | Game NPC | Works | Text search for character names and facts is sufficient |
+| Research | Partial | Text search finds papers by topic, but citation graph queries and DOI lookups need structured queries |
 | Software | Works | Text search for API names and concepts is sufficient |
 | Hortora | Works | Text search is the primary access pattern |
 
@@ -139,6 +145,7 @@ The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store impl
 | Clinical | Partial | FHIR resources have structured metadata, but not as "frontmatter" |
 | Legal | Partial | Case metadata (court, date, parties) isn't "frontmatter" |
 | Game NPC | Partial | YAML character sheets map OK, but naming is misleading |
+| Research | Partial | BibTeX/RIS metadata is structured but not "frontmatter"; naming is misleading |
 | Software | Works | Markdown docs with YAML frontmatter is a common pattern |
 | Hortora | Works | All entries use YAML frontmatter |
 
