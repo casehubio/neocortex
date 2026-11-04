@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariDataSource;
-import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
@@ -19,6 +18,7 @@ import io.casehub.neocortex.memory.MemoryRetentionPolicy;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.StoreAllResult;
 import io.casehub.neocortex.memory.Subject;
+import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import io.casehub.platform.api.identity.PrincipalId;
 import io.micrometer.core.annotation.Timed;
@@ -65,7 +65,8 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             MemoryCapability.CROSS_TENANT_ERASE,
             MemoryCapability.SCAN,
             MemoryCapability.DISCOVER_TENANTS,
-            MemoryCapability.PURGE
+            MemoryCapability.PURGE,
+            MemoryCapability.UPDATE_TEXT
         );
     }
 
@@ -484,6 +485,27 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             throw new IllegalStateException("purge() failed", e);
         }
     }
+
+    @Override
+    public void updateText(String memoryId, String newText, String tenantId) {
+        if (newText == null || newText.isBlank()) {
+            throw new IllegalArgumentException("newText must not be null or blank");
+        }
+        String sql = "UPDATE memory_entry SET text = ? WHERE memory_id = ? AND tenant_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newText);
+            ps.setString(2, memoryId);
+            ps.setString(3, tenantId);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new IllegalArgumentException("Memory not found: " + memoryId);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("updateText() failed", e);
+        }
+    }
+
 
     private Memory toMemory(ResultSet rs) throws SQLException {
         return new Memory(
