@@ -1,6 +1,5 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
-import io.casehub.neocortex.annotation.EntityAnnotationIndex;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
@@ -41,7 +40,6 @@ public class MentalModelOrchestrator {
     private final MentalModelConfig config;
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
-    private final @Nullable EntityAnnotationIndex annotationIndex;
     private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
 
     private final ConcurrentHashMap<String, SubjectMentalState> states = new ConcurrentHashMap<>();
@@ -51,32 +49,20 @@ public class MentalModelOrchestrator {
                             MentalModelConfig config,
                             Clock clock,
                             @Nullable SessionPipeline sessionPipeline) {
-        this(modelMemory, config, clock, sessionPipeline, null, null);
+        this(modelMemory, config, clock, sessionPipeline, null);
     }
 
     public MentalModelOrchestrator(MentalModelMemory modelMemory,
                             MentalModelConfig config,
                             Clock clock,
                             @Nullable SessionPipeline sessionPipeline,
-                            @Nullable EntityAnnotationIndex annotationIndex) {
-        this(modelMemory, config, clock, sessionPipeline, annotationIndex, null);
-    }
-
-    public MentalModelOrchestrator(MentalModelMemory modelMemory,
-                            MentalModelConfig config,
-                            Clock clock,
-                            @Nullable SessionPipeline sessionPipeline,
-                            @Nullable EntityAnnotationIndex annotationIndex,
                             io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever) {
         this.modelMemory = modelMemory;
         this.config = config;
         this.clock = clock;
         this.sessionPipeline = sessionPipeline;
-        this.annotationIndex = annotationIndex;
         this.memoryRetriever = memoryRetriever;
     }
-
-    @Nullable EntityAnnotationIndex annotationIndex() {return annotationIndex;}
 
 
     public void record(MentalStateSignal signal,

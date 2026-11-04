@@ -360,7 +360,7 @@ class MentalModelOrchestratorTest {
                 0.1, 0.3, 3, Duration.ZERO,
                 20, 100, Duration.ofHours(24), Duration.ofMinutes(1),
                 "mental-model", "mental-model");
-        var orch = new MentalModelOrchestrator(memory, config, fixedClock, pipeline, null, retriever);
+        var orch = new MentalModelOrchestrator(memory, config, fixedClock, pipeline, retriever);
 
         orch.record(new MentalStateSignal.VerbalCue("I think X", CueType.BELIEF_STATEMENT), "agent1", "user1", "tenant1");
         orch.record(new MentalStateSignal.VerbalCue("I want Y", CueType.DESIRE_EXPRESSION), "agent1", "user1", "tenant1");

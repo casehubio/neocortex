@@ -33,11 +33,6 @@
     <module>fusion-api</module>
     <module>entity-token</module>
     <module>entity-token-cdi</module>
-    <module>annotation-api</module>
-    <module>annotation-testing</module>
-    <module>annotation-inmem</module>
-    <module>annotation-sqlite</module>
-    <module>annotation</module>
     <module>thing-api</module>
     <module>cognitive-api</module>
     <module>cognitive-index</module>
@@ -281,31 +276,7 @@
         <artifactId>casehub-neocortex-entity-token-cdi</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-annotation-api</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-annotation-testing</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-annotation-inmem</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-annotation-sqlite</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-annotation</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-thing-api</artifactId>
