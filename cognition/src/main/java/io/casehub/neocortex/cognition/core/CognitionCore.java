@@ -698,6 +698,10 @@ private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.an
     public void setAppraisalParticipant(AppraisalTickParticipant appraisalParticipant) {
         this.appraisalParticipant = appraisalParticipant;
     }
+
+    public @Nullable AppraisalTickParticipant appraisalParticipant() {
+        return appraisalParticipant;
+    }
 public @Nullable String lastTargetAgentId() {
     return lastTargetAgentId;
 }
@@ -747,6 +751,13 @@ public @Nullable String lastTargetAgentId() {
 
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
                 appraisalParticipant, config, generationPhase, mindMapStore, cogSgId);
+        addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
+    }
+
+    public void configureRegulation(io.casehub.neocortex.cognition.regulation.EmotionRegulationGenerationPhase generationPhase) {
+        if (!config.regulationEnabled() || appraisalParticipant == null) {return;}
+        this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
+                appraisalParticipant, config, generationPhase, mindMapStore, null);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
 
