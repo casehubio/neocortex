@@ -51,7 +51,8 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             MemoryCapability.SCAN,
             MemoryCapability.DISCOVER_TENANTS,
             MemoryCapability.PURGE,
-            MemoryCapability.ENRICH_ATTRIBUTES
+            MemoryCapability.ENRICH_ATTRIBUTES,
+            MemoryCapability.UPDATE_TEXT
         );
     }
 
@@ -305,5 +306,33 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
             throw new IllegalArgumentException("Memory not found: " + memoryId);
         }
     }
+
+    @Override
+    public void updateText(String memoryId, String newText, String tenantId) {
+        if (newText == null || newText.isBlank()) {
+            throw new IllegalArgumentException("newText must not be null or blank");
+        }
+        boolean found = false;
+        for (var entry : store.entrySet()) {
+            if (!entry.getKey().tenantId().equals(tenantId)) {continue;}
+            var memories = entry.getValue();
+            for (int i = 0; i < memories.size(); i++) {
+                var m = memories.get(i);
+                if (m.memoryId().equals(memoryId)) {
+                    memories.set(i, new Memory(m.memoryId(), m.subject(), m.domain(),
+                                               m.tenantId(), m.caseId(), newText, m.attributes(), m.createdAt(),
+                                               m.confidence(), m.pleasure(), m.arousal(), m.dominance(),
+                                               m.principalId(), m.sharedWith()));
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {break;}
+        }
+        if (!found) {
+            throw new IllegalArgumentException("Memory not found: " + memoryId);
+        }
+    }
+
 
 }
