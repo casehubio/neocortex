@@ -79,15 +79,12 @@
 | `knowledge-pipeline-api/` | `casehub-neocortex-knowledge-pipeline-api` | Pure Java | `KnowledgePipelineService` SPI (search + promote + refreshStale), `SpatialCacheStore` SPI (set/get/nearby/within/remove/expire/findExpired/discoverTenants), `EntityMatcher<T>` SPI, `SubsumptionRule` SPI, `TermNormalizer` SPI, `QueryClassifier` SPI, `ResearchSessionService` SPI, `KnowledgeQuery` sealed hierarchy (TextSearch/NearbySearch/CategorySearch), `CachedEntity`, `NormalizedQuery`, `MatchResult`, `MatchTier`, `PromotionRequest`/`PromotionResult`, `ResearchSession`, `ResearchState`, `CacheFilter`, `SpatialBucket` (geohash), `BoundingBox` |
 | `knowledge-pipeline/` | `casehub-neocortex-knowledge-pipeline` | JVM library | `KnowledgePipelineOrchestrator` (end-to-end search + promote), `SqliteSpatialCacheStore` (SQLite + R*Tree spatial index), `InMemorySpatialCacheStore` (test stub), `SpatialSubsumptionRule` (spatial circle containment + category narrowing), `CacheDecayPolicy` (field-type TTLs), `CacheEvictionScheduler` (session-aware eviction), `EntityResolutionEngine` (blocking + matching + three-tier decision), `PlaceMatcher` (place-specific matching signals), `EntityPromoter` (three-stage MindMap promotion), `ResearchOrchestrator` (lifecycle with MindMap RESEARCH_AREA subgraphs), `DedupIndexStore`/`EntityMetadataStore`/`QueryCacheStore`/`ResearchSessionStore` (all SQLite via sqlite-support), `CacheKeyGenerator`, `CacheEntityIdGenerator`, `Haversine`, `PhoneNormalizer`, `KnowledgePipelineMetrics` (Micrometer) |
 
-### Annotation Modules
+### Entity Tokenisation Modules
 
 | Module | artifactId | Type | Purpose |
 |--------|-----------|------|---------|
-| `annotation-api/` | `casehub-neocortex-annotation-api` | Pure Java, zero deps | `EntityAnnotationIndex` SPI, `EntityAnnotation` record (annotationId, tenantId, sourceType, sourceId, entityNodeId, startOffset, endOffset, mentionText, confidence, method, ownerSubjectId, createdAt), `AnnotationSpanResolver` (deterministic offset resolution), `AnchorAnnotationParser` (bracket syntax → clean text + anchors), `MentionInput`, `ResolvedSpan`, `ParsedAnchor`, `AnchorParseResult`, `AnnotationMethod` constants, `EntityAnnotated` CDI event |
-| `annotation-testing/` | `casehub-neocortex-annotation-testing` | Test library | `EntityAnnotationIndexContractTest` abstract base (16 tests) — CRUD, entity queries, pair queries, merge repointing with deduplication, tenant isolation |
-| `annotation-inmem/` | `casehub-neocortex-annotation-inmem` | Backend | `InMemoryEntityAnnotationIndex` — ConcurrentHashMap, `clearAll()` for test isolation |
-| `annotation-sqlite/` | `casehub-neocortex-annotation-sqlite` | Backend | `SqliteEntityAnnotationIndex` — SQLite + HikariCP WAL + Flyway (V1). Indexes: entity, source, owner |
-| `annotation/` | `casehub-neocortex-annotation` | CDI module | `MemoryEntityErasedObserver` (removes annotations by ownerSubjectId on memory erasure), `MergeRepointObserver` (repoints annotations on `GraphMutationRecorded`/`NodesMerged`), `AnchorBiographyPreprocessor` (biography YAML bracket syntax preprocessing) |
+| `entity-token/` | `casehub-neocortex-entity-token` | Pure Java, zero deps | `EntityIdentity` (type-extensible entity record — canonical name parts, pronouns, preferred forms, aliases → surface forms), `TokenFormat` (parse/emit/extractEntityIds/stripTokens for `{{entity_id:variant:surface_form}}` inline tokens), `SurfaceFormTrie` (Aho-Corasick multi-pattern scanner with word-boundary filtering), `EntityTokeniser` (text + trie → tokenised text), `EntityRenderer` (tokenised text + identity resolver → display text, `RenderMode` CANONICAL/SURFACE), `ParsedToken`, `SurfaceForm`, `TrieMatch`, `EntityReferenceIndex` SPI (entity→source reverse lookup), `InMemoryEntityReferenceIndex` |
+| `entity-token-cdi/` | `casehub-neocortex-entity-token-cdi` | CDI module | `EntityIdentityCache` (MindMapStore → EntityIdentity per tenant), `SurfaceFormTrieManager` (debounced trie rebuild), `TokenisingEnrichmentStep` (CaseEnrichmentStep — tokenises memory text at store time via Aho-Corasick), `TokenisingBiographyPreprocessor` (BiographyProfilePreprocessor — strips bracket syntax, triggers trie rebuild after import), `EntityReferenceRecordingObserver` (CDI observer — records entity references from tokenised memories), `SqliteEntityReferenceIndex` (SQLite + HikariCP WAL + Flyway), `EntityMergeTokenHandler`, `EntityErasureTokenHandler`, `MemoryErasureReferenceHandler` |
 
 ### Examples and Evaluation
 
@@ -300,21 +297,19 @@ Supports `reconcile(caseType, tenantId)`, `reconcileAll(caseType)`, `discoverTen
 
 `ErasureNotificationCbrRecordStore` (@Decorator @Priority(45)) fires `CbrRecordErased` CDI events after erasure. `CbrRecordErased` is a sealed interface with three variants: `ByRequest`, `ByEntity`, `ByScope`. Clock injection for testability.
 
-### Standoff Annotation Pipeline
+### Inline Entity Tokenisation Pipeline
 
-`MindMapExtractor` produces `ParsedMention(entityName, surfaceForm, mentionIndex)` alongside entities and relationships. `ExtractionRequestedObserver` runs after each extraction pass: maps entity names to node IDs from `ExtractionResult.entities()`, converts mentions to `MentionInput`, runs `AnnotationSpanResolver.resolve()` for deterministic offset computation, and writes `EntityAnnotation` records to `EntityAnnotationIndex`. Source type: `"conversation"`, source ID: `batchId` from `ExtractionRequested`.
+Entity references are embedded directly in stored text as inline tokens (`{{entity_id:variant:surface_form}}`), replacing the former standoff annotation approach. The pipeline operates at two points:
 
-`AnnotationSpanResolver` — sorts mentions by `mentionIndex`, scans the text left-to-right matching each surface form. Forward-only scan pointer prevents double-matching. Mentions not found in text are silently skipped.
+**Write time:** `TokenisingEnrichmentStep` (CaseEnrichmentStep, priority 100) runs during `CaseMemoryStore.store()` via `CaseEnrichmentDecorator`. Scans text against the `SurfaceFormTrie` (Aho-Corasick, built from `EntityIdentityCache`) and replaces matching names with inline tokens. Longest match wins for overlapping surface forms.
 
-`AnchorAnnotationParser` — regex-based parser for `word[alias]` bracket syntax. Strips brackets to produce clean text, records `ParsedAnchor(alias, surfaceForm, startOffset, endOffset)` with offsets into the clean text.
+**Read time:** `EntityRenderer` resolves tokens to current canonical names using `EntityIdentity` records. `RenderMode.CANONICAL` uses the variant-resolved name (e.g., first name, title form); `RenderMode.SURFACE` uses the original surface form.
 
-### Annotation Lifecycle Observers
+**Entity ID extraction:** `TokenFormat.extractEntityIds(text)` returns `Set<String>` — regex extraction of all entity IDs from tokenised text. Used by cognitive consumers (`EntityOverlapModulationFactor`, `EntityAwareSalienceStrategy`, `LlmReflectionSynthesizer`) instead of the former annotation index queries.
 
-`MemoryEntityErasedObserver` — `@Observes MemoryEntityErased`. Pattern-matches on the sealed interface: `ByEntity` and `ByRequest` call `removeByOwnerSubject("memory", subject.id(), tenantId)`. `CrossTenant` iterates all tenant IDs.
+**Biography import:** `TokenisingBiographyPreprocessor` (BiographyProfilePreprocessor) strips bracket syntax (`word[alias]` → `word`) during `preprocess()` and triggers trie rebuild in `afterImport()` so `TokenisingEnrichmentStep` has fresh surface forms for subsequent memory stores.
 
-`MergeRepointObserver` — `@Observes GraphMutationRecorded`. When the mutation is `NodesMerged`, calls `repointEntity(absorbedId, survivorId, tenantId)`. The store implementation deduplicates — if both entities already annotate the same span in the same document, the duplicate is dropped.
-
-`AnchorBiographyPreprocessor` — implements `BiographyProfilePreprocessor` SPI. During `preprocess()`, strips bracket syntax from `LifeEventEntry.description` and `BeliefEntry.description`, collecting `PendingAnchor` records. During `afterImport()` (called by `BiographyImportRunner` after all handlers finish), resolves aliases to MindMap node IDs via text search and writes annotations with source type `"biography"`.
+**Reference tracking:** `EntityReferenceRecordingObserver` records entity→memory reverse lookups in `EntityReferenceIndex` from parsed tokens in stored memories.
 
 ### CDI Decorator Priority Chain Summary
 
@@ -472,7 +467,10 @@ public class PersonableTraitRule implements TraitRule {
     public boolean matches(MindMapNode node, List<MindMapEdge> edges) {
         boolean hasProperties = node.property("birthday").isPresent()
             || node.property("role").isPresent()
-            || node.property("email").isPresent();
+            || node.property("email").isPresent()
+            || node.property("gender").isPresent()
+            || node.property("pronounsSubject").isPresent()
+            || node.property("canonicalFirst").isPresent();
         boolean hasEdges = edges.stream()
             .anyMatch(e -> "parent-of".equals(e.edgeType())
                 || "works-at".equals(e.edgeType()));
