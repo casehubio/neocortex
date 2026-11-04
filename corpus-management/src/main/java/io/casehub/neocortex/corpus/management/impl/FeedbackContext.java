@@ -1,4 +1,4 @@
 package io.casehub.neocortex.corpus.management.impl;
 
-public record FeedbackContext(String geId, String issueRepo, int issueNumber,
+public record FeedbackContext(String documentId, String issueRepo, int issueNumber,
                               String outcome, String recordedAt) {}

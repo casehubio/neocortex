@@ -17,7 +17,7 @@ public class CorpusApiBean implements CorpusApi {
     private final ProvenanceStore provenanceStore;
     private final CorpusOutcomeService outcomeService;
     private final CorpusRef corpusRef;
-    private final Path gardenRoot;
+    private final Path      corpusRoot;
 
     public CorpusApiBean(SearchResource searchResource,
                           CorpusIndexService indexService,
@@ -26,15 +26,15 @@ public class CorpusApiBean implements CorpusApi {
                           ProvenanceStore provenanceStore,
                           CorpusOutcomeService outcomeService,
                           CorpusRef corpusRef,
-                          Path gardenRoot) {
-        this.searchResource = searchResource;
-        this.indexService = indexService;
-        this.reindexService = reindexService;
-        this.profileStore = profileStore;
+                          Path corpusRoot) {
+        this.searchResource  = searchResource;
+        this.indexService    = indexService;
+        this.reindexService  = reindexService;
+        this.profileStore    = profileStore;
         this.provenanceStore = provenanceStore;
-        this.outcomeService = outcomeService;
-        this.corpusRef = corpusRef;
-        this.gardenRoot = gardenRoot;
+        this.outcomeService  = outcomeService;
+        this.corpusRef       = corpusRef;
+        this.corpusRoot      = corpusRoot;
     }
 
     @Override
@@ -60,13 +60,13 @@ public class CorpusApiBean implements CorpusApi {
 
     @Override
     public EntryDetail entry(String corpusId, String entryId) {
-        if (gardenRoot == null) return null;
-        return indexService.entry(gardenRoot, entryId);
+        if (corpusRoot == null) return null;
+        return indexService.entry(corpusRoot, entryId);
     }
 
     @Override
     public CorpusStatus status(String corpusId) {
-        return indexService.status(corpusRef, gardenRoot != null ? gardenRoot.toString() : "");
+        return indexService.status(corpusRef, corpusRoot != null ? corpusRoot.toString() : "");
     }
 
     @Override
@@ -83,8 +83,8 @@ public class CorpusApiBean implements CorpusApi {
 
     @Override
     public String reindexEntry(String corpusId, String entryId) {
-        if (gardenRoot == null) return "No garden root configured — cannot reindex.";
-        return indexService.reindexEntry(corpusRef, entryId, gardenRoot);
+        if (corpusRoot == null) return "No corpus root configured — cannot reindex.";
+        return indexService.reindexEntry(corpusRef, entryId, corpusRoot);
     }
 
     @Override

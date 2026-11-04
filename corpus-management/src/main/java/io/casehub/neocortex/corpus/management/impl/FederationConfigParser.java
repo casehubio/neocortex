@@ -54,12 +54,12 @@ public class FederationConfigParser {
             return defaultConfig(fallbackId, fallbackPrefix);
         }
 
-        String gardenId = requireString(yaml, "id", "SCHEMA.md must have an 'id' field");
+        String corpusId = requireString(yaml, "id", "SCHEMA.md must have an 'id' field");
         String idPrefix = requireString(yaml, "id-prefix", "SCHEMA.md must have an 'id-prefix' field");
 
         Map<String, Object> federation = (Map<String, Object>) yaml.get("federation");
         if (federation == null) {
-            return new FederationConfig(gardenId, idPrefix, "canonical",
+            return new FederationConfig(corpusId, idPrefix, "canonical",
                     DEFAULT_RELEVANCE_THRESHOLD, DEFAULT_MAX_DEPTH, DEFAULT_FEDERATION_TIMEOUT_SECONDS,
                     List.of(), List.of());
         }
@@ -87,7 +87,7 @@ public class FederationConfigParser {
         List<FederationConfig.PeerRef> peers = parsePeers(
                 (List<Map<String, Object>>) federation.get("peers"));
 
-        return new FederationConfig(gardenId, idPrefix, role, threshold, maxDepth, timeoutSeconds,
+        return new FederationConfig(corpusId, idPrefix, role, threshold, maxDepth, timeoutSeconds,
                 upstream, peers);
     }
 
@@ -137,8 +137,8 @@ public class FederationConfigParser {
         }
     }
 
-    private static FederationConfig defaultConfig(String gardenId, String idPrefix) {
-        return new FederationConfig(gardenId, idPrefix, "canonical",
+    private static FederationConfig defaultConfig(String corpusId, String idPrefix) {
+        return new FederationConfig(corpusId, idPrefix, "canonical",
                 DEFAULT_RELEVANCE_THRESHOLD, DEFAULT_MAX_DEPTH, DEFAULT_FEDERATION_TIMEOUT_SECONDS,
                 List.of(), List.of());
     }

@@ -83,15 +83,15 @@ class CorpusApiBeanTest {
     // --- null guard tests (findings 2, 3) ---
 
     @Test
-    void entry_returns_null_when_gardenRoot_is_null() {
+    void entry_returns_null_when_corpusRoot_is_null() {
         CorpusApiBean bean = new CorpusApiBean(null, null, null, null, null, null, null, null);
         assertThat(bean.entry("corpus", "GE-123")).isNull();
     }
 
     @Test
-    void reindexEntry_returns_error_when_gardenRoot_is_null() {
+    void reindexEntry_returns_error_when_corpusRoot_is_null() {
         CorpusApiBean bean = new CorpusApiBean(null, null, null, null, null, null, null, null);
-        assertThat(bean.reindexEntry("corpus", "GE-123")).contains("No garden root");
+        assertThat(bean.reindexEntry("corpus", "GE-123")).contains("No corpus root");
     }
 
     @Test

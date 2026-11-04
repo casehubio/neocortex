@@ -204,7 +204,7 @@ class CorpusIndexServiceTest {
     }
 
     @Test
-    void passesMinDaysFilter_non_ge_id_always_passes() {
+    void passesMinDaysFilter_non_document_id_always_passes() {
         assertThat(CorpusIndexService.passesMinDaysFilter("domain/readme.md", 30)).isTrue();
     }
 

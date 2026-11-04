@@ -72,11 +72,11 @@ public class CorpusIndexService {
         }
     }
 
-    public String reindexEntry(CorpusRef corpusRef, String entryId, Path gardenRoot) {
+    public String reindexEntry(CorpusRef corpusRef, String entryId, Path corpusRoot) {
         Map<String, String> idMap = buildEntryIdToDocIdMap(corpusRef);
         String docId = idMap.get(entryId);
         if (docId == null) {
-            docId = resolveEntryPath(gardenRoot, entryId);
+            docId = resolveEntryPath(corpusRoot, entryId);
             if (docId == null) {
                 return "Entry " + entryId + " not found in index or filesystem.";
             }
@@ -88,7 +88,7 @@ public class CorpusIndexService {
             LOG.log(Level.FINE, "No existing vectors to delete for " + entryId, e);
         }
 
-        Path filePath = gardenRoot.resolve(docId);
+        Path filePath = corpusRoot.resolve(docId);
         if (!Files.isRegularFile(filePath)) {
             return "File not found on disk: " + docId + ". Old vectors deleted if they existed.";
         }
@@ -194,10 +194,10 @@ public class CorpusIndexService {
                 + (isOutdated ? " (marked OUTDATED for stack: " + stack + ")" : "");
     }
 
-    public EntryDetail entry(Path gardenRoot, String entryId) {
+    public EntryDetail entry(Path corpusRoot, String entryId) {
         String filename = entryId + ".md";
         Path filePath;
-        try (var stream = Files.walk(gardenRoot)) {
+        try (var stream = Files.walk(corpusRoot)) {
             filePath = stream
                     .filter(Files::isRegularFile)
                     .filter(p -> p.getFileName().toString().equals(filename))
@@ -210,7 +210,7 @@ public class CorpusIndexService {
 
         try {
             byte[] content = Files.readAllBytes(filePath);
-            String docId = gardenRoot.relativize(filePath).toString();
+            String docId = corpusRoot.relativize(filePath).toString();
             ExtractionResult extraction = metadataExtractor.extract(docId, content);
             Map<String, String> meta = extraction.metadata();
             List<String> seeAlso = extraction.listMetadata().getOrDefault("see_also", List.of());
@@ -269,13 +269,13 @@ public class CorpusIndexService {
         }
     }
 
-    private String resolveEntryPath(Path gardenRoot, String entryId) {
+    private String resolveEntryPath(Path corpusRoot, String entryId) {
         String filename = entryId + ".md";
-        try (var stream = Files.walk(gardenRoot)) {
+        try (var stream = Files.walk(corpusRoot)) {
             return stream
                     .filter(Files::isRegularFile)
                     .filter(p -> p.getFileName().toString().equals(filename))
-                    .map(p -> gardenRoot.relativize(p).toString())
+                    .map(p -> corpusRoot.relativize(p).toString())
                     .findFirst()
                     .orElse(null);
         } catch (IOException e) {

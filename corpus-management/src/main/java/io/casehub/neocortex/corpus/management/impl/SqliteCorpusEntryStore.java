@@ -47,7 +47,7 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
             ps.setString(1, entry.id());
             ps.setString(2, corpus.tenantId());
             ps.setString(3, corpus.corpusName());
-            ps.setString(4, toJson(entry.frontmatter()));
+            ps.setString(4, toJson(entry.metadata()));
             ps.setString(5, entry.body());
             ps.setString(6, entry.artifactRef());
             ps.setString(7, now);
@@ -67,7 +67,7 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
         String sql = "UPDATE corpus_entries SET frontmatter_json = ?, body = ?, artifact_ref = ?, last_modified_at = ? WHERE id = ? AND corpus_tenant_id = ? AND corpus_name = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, toJson(entry.frontmatter()));
+            ps.setString(1, toJson(entry.metadata()));
             ps.setString(2, entry.body());
             ps.setString(3, entry.artifactRef());
             ps.setString(4, now);
@@ -120,7 +120,7 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
 
     private void ingestEmbedding(CorpusRef corpus, CorpusEntry entry) {
         var metadata = new HashMap<String, String>();
-        for (var e : entry.frontmatter().entrySet()) {
+        for (var e : entry.metadata().entrySet()) {
             if (e.getValue() instanceof String s) {
                 metadata.put(e.getKey(), s);
             }

@@ -120,7 +120,7 @@ The `body` field is `String`, forcing all corpus content through a text represen
 **File:** `corpus-management-api/.../CorpusDescriptor.java:15`
 **Impact:** Low | **Effort:** XS | **Risk:** Low
 
-The `qdrantCollection` field on `CorpusDescriptor` exposes the vector store implementation. A consumer using Pinecone, Weaviate, or no vector store at all still carries this field.
+The `vectorCollection` field on `CorpusDescriptor` exposes the vector store implementation. A consumer using Pinecone, Weaviate, or no vector store at all still carries this field.
 
 | Use case | Impact | Example |
 |----------|--------|---------|
@@ -262,7 +262,7 @@ Low-risk, high-clarity changes that don't alter behaviour:
 
 | Item | Change | Risk |
 |------|--------|------|
-| L4 | `qdrantCollection` → `vectorCollection` or absorb into `metadata` | Low |
+| L4 | `vectorCollection` → `vectorCollection` or absorb into `metadata` | Low |
 | L6 | `frontmatter` → `metadata` in `CorpusEntry` | Low |
 | L8 | `gardenId` → `corpusId` in `FederationConfig` | Low |
 | L11 | `ge_id` → `document_id` in ProvenanceStore schema + code | Low |

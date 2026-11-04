@@ -12,7 +12,7 @@ public record CorpusDescriptor(
     CorpusType type,
     CorpusLifecycle lifecycle,
     CorpusRef corpusRef,
-    String qdrantCollection,
+    String vectorCollection,
     List<FederationRef> upstream,
     List<FederationRef> peers,
     Map<String, String> metadata,

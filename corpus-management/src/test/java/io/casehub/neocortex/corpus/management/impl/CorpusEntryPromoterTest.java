@@ -45,7 +45,7 @@ class CorpusEntryPromoterTest {
 
         var updated = store.lastUpdated;
         assertThat(updated).isNotNull();
-        assertThat(updated.frontmatter().get("promoted_to")).isEqualTo(result.nodeId());
+        assertThat(updated.metadata().get("promoted_to")).isEqualTo(result.nodeId());
     }
 
     @Test

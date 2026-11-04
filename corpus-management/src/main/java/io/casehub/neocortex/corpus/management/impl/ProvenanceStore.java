@@ -28,12 +28,12 @@ public class ProvenanceStore implements ProvenanceTracker {
     }
 
     public int record(String issueRepo, int issueNumber, String specName,
-                      List<String> geIds, String recordedBy) {
+                      List<String> documentIds, String recordedBy) {
         String timestamp = Instant.now().toString();
         String sql = """
-                INSERT INTO provenance (issue_repo, issue_number, ge_id, spec_name, recorded_at, recorded_by)
+                INSERT INTO provenance (issue_repo, issue_number, document_id, spec_name, recorded_at, recorded_by)
                 VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(issue_repo, issue_number, ge_id) DO UPDATE SET
+                ON CONFLICT(issue_repo, issue_number, document_id) DO UPDATE SET
                     spec_name = CASE WHEN excluded.spec_name != '' THEN excluded.spec_name ELSE provenance.spec_name END,
                     recorded_at = excluded.recorded_at
                 """;
@@ -42,10 +42,10 @@ public class ProvenanceStore implements ProvenanceTracker {
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                for (String geId : geIds) {
+                for (String documentId : documentIds) {
                     ps.setString(1, issueRepo);
                     ps.setInt(2, issueNumber);
-                    ps.setString(3, geId);
+                    ps.setString(3, documentId);
                     ps.setString(4, specName != null ? specName : "");
                     ps.setString(5, timestamp);
                     ps.setString(6, recordedBy);
@@ -77,7 +77,7 @@ public class ProvenanceStore implements ProvenanceTracker {
     }
 
     public List<io.casehub.neocortex.rag.ProvenanceRecord> forwardLineage(String issueRepo, int issueNumber) {
-        String sql = "SELECT issue_repo, issue_number, spec_name, ge_id, recorded_at, recorded_by FROM provenance WHERE issue_repo = ? AND issue_number = ? ORDER BY recorded_at";
+        String sql = "SELECT issue_repo, issue_number, spec_name, document_id, recorded_at, recorded_by FROM provenance WHERE issue_repo = ? AND issue_number = ? ORDER BY recorded_at";
         List<io.casehub.neocortex.rag.ProvenanceRecord> results = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -98,7 +98,7 @@ public class ProvenanceStore implements ProvenanceTracker {
     public List<io.casehub.neocortex.rag.ProvenanceRecord> forwardLineage(String actionId, String actionType) {
         int issueNumber;
         try { issueNumber = Integer.parseInt(actionId); } catch (NumberFormatException e) { issueNumber = 0; }
-        String sql = "SELECT issue_repo, issue_number, spec_name, ge_id, recorded_at, recorded_by FROM provenance WHERE issue_number = ? ORDER BY recorded_at";
+        String sql = "SELECT issue_repo, issue_number, spec_name, document_id, recorded_at, recorded_by FROM provenance WHERE issue_number = ? ORDER BY recorded_at";
         List<io.casehub.neocortex.rag.ProvenanceRecord> results = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -116,7 +116,7 @@ public class ProvenanceStore implements ProvenanceTracker {
 
     @Override
     public List<io.casehub.neocortex.rag.ProvenanceRecord> reverseLineage(String documentId) {
-        String sql = "SELECT issue_repo, issue_number, spec_name, ge_id, recorded_at, recorded_by FROM provenance WHERE ge_id = ? ORDER BY recorded_at";
+        String sql = "SELECT issue_repo, issue_number, spec_name, document_id, recorded_at, recorded_by FROM provenance WHERE document_id = ? ORDER BY recorded_at";
         List<io.casehub.neocortex.rag.ProvenanceRecord> results = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -136,16 +136,16 @@ public class ProvenanceStore implements ProvenanceTracker {
     public io.casehub.neocortex.rag.ProvenanceStats stats(String retrievalContext) {
         try (Connection conn = dataSource.getConnection()) {
             long totalRecords = queryInt(conn, "SELECT COUNT(*) FROM provenance");
-            long uniqueDocuments = queryInt(conn, "SELECT COUNT(DISTINCT ge_id) FROM provenance");
+            long uniqueDocuments = queryInt(conn, "SELECT COUNT(DISTINCT document_id) FROM provenance");
             long uniqueActions = queryInt(conn, "SELECT COUNT(DISTINCT issue_repo || '#' || issue_number) FROM provenance");
 
             List<io.casehub.neocortex.rag.ProvenanceStats.DocumentRefCount> topReferenced = new ArrayList<>();
             try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT ge_id, COUNT(*) as cnt FROM provenance GROUP BY ge_id ORDER BY cnt DESC LIMIT 10")) {
+                    "SELECT document_id, COUNT(*) as cnt FROM provenance GROUP BY document_id ORDER BY cnt DESC LIMIT 10")) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         topReferenced.add(new io.casehub.neocortex.rag.ProvenanceStats.DocumentRefCount(
-                                rs.getString("ge_id"), rs.getLong("cnt")));
+                                rs.getString("document_id"), rs.getLong("cnt")));
                     }
                 }
             }
@@ -176,12 +176,12 @@ public class ProvenanceStore implements ProvenanceTracker {
         return stats(null);
     }
 
-    public void recordFeedbackContext(String geId, String issueRepo, int issueNumber, String outcome) {
+    public void recordFeedbackContext(String documentId, String issueRepo, int issueNumber, String outcome) {
         String timestamp = Instant.now().toString();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO feedback_context (ge_id, issue_repo, issue_number, outcome, recorded_at) VALUES (?, ?, ?, ?, ?)")) {
-            ps.setString(1, geId);
+                     "INSERT INTO feedback_context (document_id, issue_repo, issue_number, outcome, recorded_at) VALUES (?, ?, ?, ?, ?)")) {
+            ps.setString(1, documentId);
             ps.setString(2, issueRepo);
             ps.setInt(3, issueNumber);
             ps.setString(4, outcome);
@@ -192,16 +192,16 @@ public class ProvenanceStore implements ProvenanceTracker {
         }
     }
 
-    public List<FeedbackContext> findFeedbackContext(String geId) {
+    public List<FeedbackContext> findFeedbackContext(String documentId) {
         List<FeedbackContext> results = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT ge_id, issue_repo, issue_number, outcome, recorded_at FROM feedback_context WHERE ge_id = ? ORDER BY recorded_at DESC")) {
-            ps.setString(1, geId);
+                     "SELECT document_id, issue_repo, issue_number, outcome, recorded_at FROM feedback_context WHERE document_id = ? ORDER BY recorded_at DESC")) {
+            ps.setString(1, documentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     results.add(new FeedbackContext(
-                            rs.getString("ge_id"), rs.getString("issue_repo"),
+                            rs.getString("document_id"), rs.getString("issue_repo"),
                             rs.getInt("issue_number"), rs.getString("outcome"),
                             rs.getString("recorded_at")));
                 }
@@ -212,12 +212,12 @@ public class ProvenanceStore implements ProvenanceTracker {
         return results;
     }
 
-    public void recordStaleness(String geId, String stack, String reportedBy) {
+    public void recordStaleness(String documentId, String stack, String reportedBy) {
         String timestamp = Instant.now().toString();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO staleness_reports (ge_id, stack, reported_at, reported_by) VALUES (?, ?, ?, ?)")) {
-            ps.setString(1, geId);
+                     "INSERT INTO staleness_reports (document_id, stack, reported_at, reported_by) VALUES (?, ?, ?, ?)")) {
+            ps.setString(1, documentId);
             ps.setString(2, stack);
             ps.setString(3, timestamp);
             ps.setString(4, reportedBy);
@@ -227,16 +227,16 @@ public class ProvenanceStore implements ProvenanceTracker {
         }
     }
 
-    public List<StalenessReport> findStalenessReports(String geId) {
+    public List<StalenessReport> findStalenessReports(String documentId) {
         List<StalenessReport> results = new ArrayList<>();
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT ge_id, stack, reported_at, reported_by FROM staleness_reports WHERE ge_id = ? ORDER BY reported_at DESC")) {
-            ps.setString(1, geId);
+                     "SELECT document_id, stack, reported_at, reported_by FROM staleness_reports WHERE document_id = ? ORDER BY reported_at DESC")) {
+            ps.setString(1, documentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     results.add(new StalenessReport(
-                            rs.getString("ge_id"), rs.getString("stack"),
+                            rs.getString("document_id"), rs.getString("stack"),
                             rs.getString("reported_at"), rs.getString("reported_by")));
                 }
             }
@@ -251,10 +251,10 @@ public class ProvenanceStore implements ProvenanceTracker {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "SELECT ge_id, stack, reported_at, reported_by FROM staleness_reports ORDER BY reported_at DESC")) {
+                     "SELECT document_id, stack, reported_at, reported_by FROM staleness_reports ORDER BY reported_at DESC")) {
             while (rs.next()) {
                 results.add(new StalenessReport(
-                        rs.getString("ge_id"), rs.getString("stack"),
+                        rs.getString("document_id"), rs.getString("stack"),
                         rs.getString("reported_at"), rs.getString("reported_by")));
             }
         } catch (SQLException e) {
@@ -283,7 +283,7 @@ public class ProvenanceStore implements ProvenanceTracker {
                 rs.getString("issue_repo"),
                 String.valueOf(rs.getInt("issue_number")),
                 "github-issue",
-                rs.getString("ge_id"),
+                rs.getString("document_id"),
                 rs.getString("recorded_by"),
                 timestamp);
     }

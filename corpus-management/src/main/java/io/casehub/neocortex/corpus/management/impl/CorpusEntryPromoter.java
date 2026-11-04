@@ -57,7 +57,7 @@ public class CorpusEntryPromoter {
 
         String nodeId = mindMapStore.addNode(nodeInput, tenantId);
 
-        var updatedFrontmatter = new LinkedHashMap<>(entry.frontmatter());
+        var updatedFrontmatter = new LinkedHashMap<>(entry.metadata());
         updatedFrontmatter.put("promoted_to", nodeId);
         var updatedEntry = new CorpusEntry(entry.id(), Map.copyOf(updatedFrontmatter),
             entry.body(), entry.artifactRef());

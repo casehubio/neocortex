@@ -94,7 +94,7 @@ public class SearchResource {
                     chunk.content(),
                     chunk.relevanceScore(),
                     parseDouble(chunk.metadata().get("_crossEncoderScore")),
-                    federationConfig.gardenId(),
+                    federationConfig.corpusId(),
                     federationConfig.idPrefix(),
                     seeAlsoIds,
                     chunk.metadata()));
@@ -254,11 +254,11 @@ public class SearchResource {
     List<SearchResult> doSearch(String query, String keywords, List<String> domains, String type, String tags, int maxResults, String visitedHeader) {
         Set<String> visited = parseVisited(visitedHeader);
 
-        if (visited.contains(federationConfig.gardenId())) {
+        if (visited.contains(federationConfig.corpusId())) {
             return List.of();
         }
 
-        visited.add(federationConfig.gardenId());
+        visited.add(federationConfig.corpusId());
 
         boolean depthExceeded = visited.size() > federationConfig.maxDepth();
 
@@ -301,7 +301,7 @@ public class SearchResource {
                     chunk.content(),
                     chunk.relevanceScore(),
                     parseDouble(chunk.metadata().get("_crossEncoderScore")),
-                    federationConfig.gardenId(),
+                    federationConfig.corpusId(),
                     federationConfig.idPrefix(),
                     seeAlsoIds,
                     chunk.metadata()));

@@ -3,7 +3,7 @@ package io.casehub.neocortex.corpus.management.impl;
 import java.util.List;
 
 public record FederationConfig(
-        String gardenId,
+        String corpusId,
         String idPrefix,
         String role,
         double relevanceThreshold,

@@ -16,7 +16,7 @@ public class GardenReindexService {
 
     @FunctionalInterface
     public interface ResetAction {
-        void reset(CorpusRef corpusRef, String gardenId);
+        void reset(CorpusRef corpusRef, String corpusId);
     }
 
     public GardenReindexService(EmbeddingIngestor embeddingIngestor, CorpusRef corpusRef,

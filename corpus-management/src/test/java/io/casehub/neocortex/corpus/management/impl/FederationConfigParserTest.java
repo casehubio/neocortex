@@ -16,7 +16,7 @@ class FederationConfigParserTest {
     void parsesValidChildConfig() throws IOException {
         var config = parse("valid-child.yaml");
 
-        assertThat(config.gardenId()).isEqualTo("my-garden");
+        assertThat(config.corpusId()).isEqualTo("my-garden");
         assertThat(config.idPrefix()).isEqualTo("PE");
         assertThat(config.role()).isEqualTo("child");
         assertThat(config.relevanceThreshold()).isEqualTo(0.7);
@@ -39,7 +39,7 @@ class FederationConfigParserTest {
     void parsesCanonicalWithNoUpstreamOrPeers() throws IOException {
         var config = parse("valid-canonical.yaml");
 
-        assertThat(config.gardenId()).isEqualTo("jvm-garden");
+        assertThat(config.corpusId()).isEqualTo("jvm-garden");
         assertThat(config.idPrefix()).isEqualTo("GE");
         assertThat(config.role()).isEqualTo("canonical");
         assertThat(config.upstream()).isEmpty();
@@ -51,7 +51,7 @@ class FederationConfigParserTest {
     void noFederationBlockReturnsDefaults() throws IOException {
         var config = parse("no-federation.yaml");
 
-        assertThat(config.gardenId()).isEqualTo("solo-garden");
+        assertThat(config.corpusId()).isEqualTo("solo-garden");
         assertThat(config.idPrefix()).isEqualTo("SG");
         assertThat(config.role()).isEqualTo("canonical");
         assertThat(config.relevanceThreshold()).isEqualTo(0.7);
@@ -65,7 +65,7 @@ class FederationConfigParserTest {
         var config = FederationConfigParser.parse(
                 tempDir.resolve("nonexistent.yaml"), "default-garden", "DG");
 
-        assertThat(config.gardenId()).isEqualTo("default-garden");
+        assertThat(config.corpusId()).isEqualTo("default-garden");
         assertThat(config.idPrefix()).isEqualTo("DG");
         assertThat(config.role()).isEqualTo("canonical");
         assertThat(config.hasFederation()).isFalse();
@@ -127,7 +127,7 @@ class FederationConfigParserTest {
 
         var config = FederationConfigParser.parse(crlfFile, "fallback-id", "FB");
 
-        assertThat(config.gardenId()).isEqualTo("crlf-garden");
+        assertThat(config.corpusId()).isEqualTo("crlf-garden");
         assertThat(config.idPrefix()).isEqualTo("CR");
         assertThat(config.role()).isEqualTo("canonical");
     }

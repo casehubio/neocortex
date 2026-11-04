@@ -36,7 +36,7 @@ class SqliteCorpusCatalogueTest {
                 assertThat(d.name()).isEqualTo("test-corpus");
                 assertThat(d.type().name()).isEqualTo(CorpusType.RESEARCH.name());
                 assertThat(d.lifecycle()).isEqualTo(CorpusLifecycle.ACTIVE);
-                assertThat(d.qdrantCollection()).isEqualTo("qdrant-test-corpus");
+                assertThat(d.vectorCollection()).isEqualTo("qdrant-test-corpus");
                 assertThat(d.corpusRef()).isEqualTo(new CorpusRef("tenant-1", "test-corpus"));
             });
     }
