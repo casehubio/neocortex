@@ -57,7 +57,7 @@ class EntityTokeniserTest {
             new SurfaceForm("Jane Doe", "full", "p1")));
         String tokenised = EntityTokeniser.tokenise("Jane Doe painted", trie);
 
-        var identity = new EntityIdentity("p1", "Jane Doe",
+        var identity = EntityIdentity.of("p1", "Jane Doe",
             java.util.Map.of(), java.util.Map.of(), java.util.Map.of(), java.util.Set.of());
         String rendered = EntityRenderer.render(tokenised,
             id -> "p1".equals(id) ? identity : null, RenderMode.PROSE);

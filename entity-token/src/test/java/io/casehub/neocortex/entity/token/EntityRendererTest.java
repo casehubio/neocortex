@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class EntityRendererTest {
 
-    private final EntityIdentity jane = new EntityIdentity(
+    private final EntityIdentity jane = EntityIdentity.of(
         "p1", "Janet Doe",
         Map.of("canonicalFirst", "Janet", "canonicalLast", "Doe"),
         Map.of("pronounsSubject", "she", "pronounsObject", "her"),
@@ -83,7 +83,7 @@ class EntityRendererTest {
     @Test
     void renderMultipleTokens() {
         String text = "{{p1:canonicalFirst:Jane}} met {{p2:full:Diego Rivera}}";
-        var diego = new EntityIdentity("p2", "Diego Rivera",
+        var diego = EntityIdentity.of("p2", "Diego Rivera",
             Map.of("canonicalFirst", "Diego"), Map.of(), Map.of(), Set.of());
         String result = EntityRenderer.render(text,
             id -> switch (id) {

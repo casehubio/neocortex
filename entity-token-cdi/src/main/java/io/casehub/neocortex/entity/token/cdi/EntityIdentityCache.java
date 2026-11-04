@@ -78,18 +78,17 @@ public class EntityIdentityCache {
 
     static EntityIdentity buildIdentity(MindMapNode node) {
         String name = node.name();
-        if (name == null || name.isBlank()) return null;
+        if (name == null || name.isBlank()) {return null;}
 
-        Map<String, String> props = node.properties();
+        Map<String, String> props     = node.properties();
         Map<String, String> nameParts = new LinkedHashMap<>();
-        Map<String, String> pronouns = new HashMap<>();
+        Map<String, String> pronouns  = new HashMap<>();
         Map<String, String> preferred = new HashMap<>();
-        Set<String> aliases = Set.of();
 
         for (var entry : props.entrySet()) {
-            String key = entry.getKey();
+            String key   = entry.getKey();
             String value = entry.getValue();
-            if (value == null || value.isBlank()) continue;
+            if (value == null || value.isBlank()) {continue;}
 
             if (key.startsWith("canonical") && !"canonicalFull".equals(key)) {
                 nameParts.put(key, value);
@@ -102,6 +101,11 @@ public class EntityIdentityCache {
 
         String canonicalFull = props.getOrDefault("canonicalFull", name);
 
-        return new EntityIdentity(node.id(), canonicalFull, nameParts, pronouns, preferred, aliases);
+        String aliasString = props.get("aliases");
+        Set<String> aliases = (aliasString != null && !aliasString.isBlank())
+                              ? Set.copyOf(java.util.Arrays.asList(aliasString.split(",")))
+                              : Set.of();
+
+        return EntityIdentity.of(node.id(), canonicalFull, nameParts, pronouns, preferred, aliases);
     }
 }

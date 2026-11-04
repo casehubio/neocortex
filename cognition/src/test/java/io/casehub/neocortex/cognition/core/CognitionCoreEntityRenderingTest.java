@@ -19,7 +19,7 @@ class CognitionCoreEntityRenderingTest {
     private static final CognitionRenderContext CTX =
             new CognitionRenderContext("agent-1", "tenant-1", null, List.of());
 
-    private static final EntityIdentity FRIDA = new EntityIdentity(
+    private static final EntityIdentity FRIDA = EntityIdentity.of(
             "p1", "Frida Kahlo",
             Map.of("canonicalFirst", "Frida"),
             Map.of(), Map.of(), Set.of());

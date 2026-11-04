@@ -62,7 +62,8 @@ public record EntityEnrichmentEntry(
             @JsonProperty("pronouns_reflexive") String pronounsReflexive,
             @JsonProperty("preferred_short") String preferredShort,
             @JsonProperty("preferred_long") String preferredLong,
-            List<String> aliases
+            List<String> aliases,
+            @JsonProperty("alter_egos") Map<String, IdentityFields> alterEgos
     ) {
         public Map<String, String> toProperties() {
             var props = new java.util.HashMap<String, String>();
@@ -75,6 +76,9 @@ public record EntityEnrichmentEntry(
             if (pronounsReflexive != null) {props.put("pronounsReflexive", pronounsReflexive);}
             if (preferredShort != null) {props.put("preferredShort", preferredShort);}
             if (preferredLong != null) {props.put("preferredLong", preferredLong);}
+            if (aliases != null && !aliases.isEmpty()) {
+                props.put("aliases", String.join(",", aliases));
+            }
             return props;
         }
     }

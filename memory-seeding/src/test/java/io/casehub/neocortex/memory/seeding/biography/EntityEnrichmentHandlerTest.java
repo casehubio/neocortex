@@ -281,7 +281,7 @@ class EntityEnrichmentHandlerTest {
                 "Frida", "Kahlo", null,
                 "she", "her", "her", "herself",
                 "Frida", "Frida Kahlo de Rivera",
-                List.of("Friducha", "La Heroína del Dolor"));
+                List.of("Friducha", "La Heroína del Dolor"), null);
         var entry = new EntityEnrichmentEntry("enrich-id", "Frida Kahlo",
                                               null, null, null, null, null, identity);
 
@@ -318,6 +318,30 @@ class EntityEnrichmentHandlerTest {
         var node = store.resolveNode("Test Entity", subgraph, TENANT);
         assertThat(node.properties()).doesNotContainKey("canonicalFirst");
         assertThat(node.properties()).doesNotContainKey("pronounsSubject");
+    }
+
+
+    @Test
+    void storesAliasesAsPropertyOnEntityNode() {
+        var store       = new InMemoryMindMapStore();
+        var memoryStore = new InMemoryMemoryStore(principal);
+        var handler     = new EntityEnrichmentHandler(store, memoryStore, true);
+
+        var subgraph = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("David Bowie", subgraph).withProvenance("test"), TENANT);
+
+        var identity = new EntityEnrichmentEntry.IdentityFields(
+                "David", "Bowie", null,
+                "he", "him", "his", "himself",
+                "Bowie", null,
+                List.of("David Robert Jones", "Davy Jones"), null);
+        var entry = new EntityEnrichmentEntry("enrich-alias", "David Bowie",
+                                              null, null, null, null, null, identity);
+
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var node = store.resolveNode("David Bowie", subgraph, TENANT);
+        assertThat(node.properties()).containsEntry("aliases", "David Robert Jones,Davy Jones");
     }
 
     private BiographyProfile profileWith(List<EntityEnrichmentEntry> enrichments) {

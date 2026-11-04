@@ -1,7 +1,6 @@
 package io.casehub.neocortex.entity.token.cdi;
 
 import io.casehub.neocortex.entity.token.EntityIdentity;
-import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -109,5 +108,31 @@ class EntityIdentityCacheTest {
         var forms = identity.surfaceForms();
         assertThat(forms).extracting(f -> f.text())
             .contains("Jane Doe", "Jane", "Doe", "Janey");
+    }
+
+    @Test
+    void readsAliasesFromNodeProperties() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
+        String nodeId = store.addNode(
+                NodeInput.of("David Bowie", sgId)
+                         .withProperties(Map.of(
+                                 "canonicalFirst", "David",
+                                 "aliases", "David Robert Jones,Davy Jones")),
+                TENANT);
+
+        EntityIdentity identity = cache.getIdentity(nodeId, TENANT);
+        assertThat(identity.aliases()).containsExactlyInAnyOrder("David Robert Jones", "Davy Jones");
+    }
+
+    @Test
+    void emptyAliasPropertyReturnsEmptySet() {
+        String sgId = store.createSubgraph(new SubgraphInput("People", SubgraphTypes.PERSON, null), TENANT);
+        String nodeId = store.addNode(
+                NodeInput.of("Jane Doe", sgId)
+                         .withProperties(Map.of("canonicalFirst", "Jane")),
+                TENANT);
+
+        EntityIdentity identity = cache.getIdentity(nodeId, TENANT);
+        assertThat(identity.aliases()).isEmpty();
     }
 }

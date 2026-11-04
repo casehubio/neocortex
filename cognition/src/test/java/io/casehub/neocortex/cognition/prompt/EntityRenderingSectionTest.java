@@ -15,7 +15,7 @@ class EntityRenderingSectionTest {
     private static final CognitionRenderContext CTX =
             new CognitionRenderContext("agent-1", "tenant-1", null, List.of());
 
-    private static final EntityIdentity FRIDA = new EntityIdentity(
+    private static final EntityIdentity FRIDA = EntityIdentity.of(
             "p1", "Frida Kahlo",
             Map.of("canonicalFirst", "Frida", "canonicalLast", "Kahlo"),
             Map.of("pronounsSubject", "she", "pronounsObject", "her"),

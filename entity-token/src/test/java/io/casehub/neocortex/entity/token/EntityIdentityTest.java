@@ -11,7 +11,7 @@ class EntityIdentityTest {
 
     @Test
     void surfaceFormsIncludesAllVariants() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "person_001", "Jane Doe",
             Map.of("canonicalFirst", "Jane", "canonicalLast", "Doe"),
             Map.of("pronounsSubject", "she", "pronounsObject", "her"),
@@ -27,7 +27,7 @@ class EntityIdentityTest {
 
     @Test
     void surfaceFormsDeduplicatesIdenticalText() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "person_001", "Jane",
             Map.of("canonicalFirst", "Jane"),
             Map.of(), Map.of("preferredShort", "Jane"),
@@ -41,7 +41,7 @@ class EntityIdentityTest {
 
     @Test
     void surfaceFormsAllCarryEntityId() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Alice", Map.of(), Map.of(), Map.of(), Set.of("Al"));
         var forms = identity.surfaceForms();
         assertThat(forms).allMatch(f -> "p1".equals(f.entityId()));
@@ -49,14 +49,14 @@ class EntityIdentityTest {
 
     @Test
     void resolveVariantFull() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Jane Doe", Map.of(), Map.of(), Map.of(), Set.of());
         assertThat(identity.resolveVariant("full")).isEqualTo("Jane Doe");
     }
 
     @Test
     void resolveVariantFromNameParts() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Jane Doe",
             Map.of("canonicalFirst", "Jane", "canonicalLast", "Doe"),
             Map.of(), Map.of(), Set.of());
@@ -66,7 +66,7 @@ class EntityIdentityTest {
 
     @Test
     void resolveVariantFromPreferred() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Jane Doe", Map.of(), Map.of(),
             Map.of("preferredShort", "Janey"), Set.of());
         assertThat(identity.resolveVariant("preferredShort")).isEqualTo("Janey");
@@ -74,7 +74,7 @@ class EntityIdentityTest {
 
     @Test
     void resolveVariantPronoun() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Jane Doe", Map.of(),
             Map.of("pronounsSubject", "she", "pronounsObject", "her"),
             Map.of(), Set.of());
@@ -84,14 +84,14 @@ class EntityIdentityTest {
 
     @Test
     void resolveVariantUnknownReturnsNull() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Jane Doe", Map.of(), Map.of(), Map.of(), Set.of());
         assertThat(identity.resolveVariant("nonexistent")).isNull();
     }
 
     @Test
     void immutableCollections() {
-        var identity = new EntityIdentity(
+        var identity = EntityIdentity.of(
             "p1", "Jane Doe",
             Map.of("canonicalFirst", "Jane"),
             Map.of("pronounsSubject", "she"),
@@ -101,5 +101,48 @@ class EntityIdentityTest {
         assertThat(identity.pronouns()).isUnmodifiable();
         assertThat(identity.preferred()).isUnmodifiable();
         assertThat(identity.aliases()).isUnmodifiable();
+    }
+
+    @Test
+    void surfaceFormsIncludesAlterEgoForms() {
+        var ziggy = new EntityIdentity(
+                "bowie.ziggy", "Ziggy Stardust",
+                Map.of("canonicalFirst", "Ziggy"),
+                Map.of("pronounsSubject", "he"),
+                Map.of("preferredShort", "Ziggy"),
+                Set.of(), Map.of());
+        var bowie = new EntityIdentity(
+                "bowie", "David Bowie",
+                Map.of("canonicalFirst", "David", "canonicalLast", "Bowie"),
+                Map.of("pronounsSubject", "he"),
+                Map.of(), Set.of("David Robert Jones"),
+                Map.of("ziggy", ziggy));
+
+        var forms = bowie.surfaceForms();
+        assertThat(forms).extracting(SurfaceForm::text)
+                         .contains("David Bowie", "David", "Bowie", "David Robert Jones",
+                                   "Ziggy Stardust", "Ziggy");
+        assertThat(forms).filteredOn(f -> "Ziggy Stardust".equals(f.text()))
+                         .extracting(SurfaceForm::entityId)
+                         .containsExactly("bowie.ziggy");
+    }
+
+    @Test
+    void alterEgosMapIsImmutable() {
+        var ziggy = new EntityIdentity(
+                "bowie.ziggy", "Ziggy Stardust",
+                Map.of(), Map.of(), Map.of(), Set.of(), Map.of());
+        var bowie = new EntityIdentity(
+                "bowie", "David Bowie",
+                Map.of(), Map.of(), Map.of(), Set.of(),
+                Map.of("ziggy", ziggy));
+        assertThat(bowie.alterEgos()).isUnmodifiable();
+    }
+
+    @Test
+    void backwardCompatFactoryDefaultsAlterEgosToEmpty() {
+        var identity = EntityIdentity.of(
+                "p1", "Jane Doe", Map.of(), Map.of(), Map.of(), Set.of());
+        assertThat(identity.alterEgos()).isEmpty();
     }
 }

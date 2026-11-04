@@ -160,7 +160,7 @@ public class RetokenisationPhase implements ConsolidationPhase {
         }
 
         String canonicalFull = props.getOrDefault("canonicalFull", name);
-        return new EntityIdentity(node.id(), canonicalFull, nameParts, pronouns, preferred, Set.of());
+        return EntityIdentity.of(node.id(), canonicalFull, nameParts, pronouns, preferred, Set.of());
     }
 
     private String loadCursor(String tenantId) {
