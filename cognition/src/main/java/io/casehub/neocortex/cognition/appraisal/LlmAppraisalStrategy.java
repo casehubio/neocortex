@@ -81,7 +81,12 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
     }
 
     private AppraisalResult parseResponse(String response, AppraisalContext context) throws Exception {
-        var root = MAPPER.readTree(response);
+        var jsonStart = response.indexOf('{');
+        var jsonEnd = response.lastIndexOf('}');
+        if (jsonStart < 0 || jsonEnd <= jsonStart) {
+            return AppraisalResult.empty();
+        }
+        var root = MAPPER.readTree(response.substring(jsonStart, jsonEnd + 1));
 
         String narrative = root.has("narrative") ? root.get("narrative").asText(null) : null;
 
