@@ -96,14 +96,12 @@ Five related capabilities in one repo:
 | `mindmap-intelligence` | `casehub-neocortex-mindmap-intelligence` | `TypeRegistry`, trait interfaces (`Personable`, `Projectlike`, `Organisational`, `Eventlike`, `Locatable`, `Reviewable`, `Temporal`), `TraitRule` implementations, `MindMapExtractor` (parse/apply decomposition), `ConversationBridge` (principalId + confidence params), `CheckInService` (activity recording), `ActivityQueryService` (CRM queries) |
 | `mindmap-testing` | `casehub-neocortex-mindmap-testing` | `MindMapStoreContractTest` abstract base (72 tests) |
 
-### Entity Annotation
+### Entity Tokenisation
 
 | Module | artifactId | What you get |
 |--------|-----------|-------------|
-| `annotation-api` | `casehub-neocortex-annotation-api` | `EntityAnnotationIndex` SPI, `EntityAnnotation` record, `AnnotationSpanResolver`, `AnchorAnnotationParser`, `MentionInput`, `ResolvedSpan`, `AnnotationMethod` constants — pure Java, zero deps |
-| `annotation-sqlite` | `casehub-neocortex-annotation-sqlite` | SQLite + HikariCP WAL + Flyway — production backend |
-| `annotation-inmem` | `casehub-neocortex-annotation-inmem` | In-memory ConcurrentHashMap backend for tests |
-| `annotation` | `casehub-neocortex-annotation` | CDI lifecycle observers — memory erasure cleanup, node merge repointing |
+| `entity-token` | `casehub-neocortex-entity-token` | `EntityIdentity` (type-extensible identity record), `TokenFormat` (parse/emit/extractEntityIds for `{{entity_id:variant:surface_form}}` tokens), `SurfaceFormTrie` (Aho-Corasick scanner), `EntityTokeniser`, `EntityRenderer`, `EntityReferenceIndex` SPI — pure Java, zero deps |
+| `entity-token-cdi` | `casehub-neocortex-entity-token-cdi` | CDI lifecycle: `EntityIdentityCache`, `SurfaceFormTrieManager`, `TokenisingEnrichmentStep` (tokenises memory text at store time), `TokenisingBiographyPreprocessor`, `SqliteEntityReferenceIndex`, merge/erasure handlers |
 
 ### Knowledge Pipeline
 
@@ -261,22 +259,21 @@ Built-in CBR schema for personality evolution memory. Records when an agent's co
 
 Config-driven bridge that populates a RAG corpus from external sources. `CorpusIngestionService` orchestrates both event-driven ingestion (directory-watcher for filesystem corpora) and scheduled polling (for ZIP-based corpora). `MetadataExtractor` SPI extracts body + metadata from document content. `CursorStore` SPI provides pluggable cursor persistence for incremental polling.
 
-### EntityAnnotationIndex (annotation-api)
+### Inline Entity Tokenisation (entity-token)
 
-Standoff annotation index bridging text and knowledge graph. Stores `(text span → entity node ID)` mappings without modifying source text. Entity node IDs are opaque strings — no dependency on mindmap-api.
+Inline token format `{{entity_id:variant:surface_form}}` replaces literal names in stored text. Tokens are embedded at write time and resolved at read time.
 
-Key operations:
-- `findByEntity(entityNodeId, tenantId)` — all mentions of an entity across all sources
-- `findByEntityPair(id1, id2, tenantId)` — co-occurrence: annotations from documents mentioning both entities
-- `findBySource(sourceType, sourceId, tenantId)` — all annotations in a specific document
-- `distinctEntitiesInSource(sourceType, sourceId, tenantId)` — entity set for a document
-- `repointEntity(fromId, toId, tenantId)` — redirect annotations on node merge, with deduplication
+**TokenFormat** — parse, emit, and extract entity IDs from tokenised text:
+- `TokenFormat.parse(text)` → `List<ParsedToken>` with entity ID, variant, surface form, and offsets
+- `TokenFormat.extractEntityIds(text)` → `Set<String>` of all entity IDs in the text
+- `TokenFormat.emit(entityId, variant, surfaceForm)` → `"{{entity_id:variant:surface_form}}"`
+- `TokenFormat.stripTokens(text)` → plain text with tokens replaced by their surface forms
 
-All methods are tenant-isolated. Source types are extensible strings (`"memory"`, `"conversation"`, `"biography"`).
+**EntityTokeniser** — scans text against a `SurfaceFormTrie` (Aho-Corasick) and replaces matching names with inline tokens. Longest match wins for overlapping forms.
 
-`AnnotationSpanResolver` — deterministic left-to-right text scanner that converts LLM-reported surface forms into exact character offsets. Mentions sorted by text-order index before scanning.
+**EntityRenderer** — resolves tokens to current canonical names using entity identity records. `RenderMode.CANONICAL` uses the variant-resolved name; `RenderMode.SURFACE` uses the original surface form.
 
-`AnchorAnnotationParser` — parses bracket syntax (`James[alias]`) from biography YAML, producing clean text and `ParsedAnchor` records with offsets into the clean text.
+**EntityIdentity** — type-extensible entity record with canonical name parts, pronouns, preferred forms, and aliases. `surfaceForms()` produces the surface form lookup entries for the trie.
 
 ### Thing — The Universal Entity Base (thing-api)
 
