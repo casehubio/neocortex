@@ -8,6 +8,10 @@ import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.PadProjection;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.DescriptorView;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -90,6 +94,71 @@ class EmotionRegulationTickParticipantTest {
         when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.empty());
 
         var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        var participant = new EmotionRegulationTickParticipant(appraisalParticipant, config);
+        participant.tick(context);
+
+        assertThat(participant.currentResult("a1", "t1")).isEmpty();
+    }
+
+    @Test
+    void mechanicalPrediction_usesPersonalityWhenRegistryPresent() {
+        // strict + analytical + high autonomy → strong COGNITIVE_CHANGE signal
+        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
+        var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
+
+        var registry = mock(CognitiveDefaultsRegistry.class);
+        when(registry.forAgent("a1")).thenReturn(Optional.of(defaults));
+
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
+                Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        var participant = new EmotionRegulationTickParticipant(
+                appraisalParticipant, config, null, null, null, registry, null);
+        participant.tick(context);
+
+        var result = participant.currentResult("a1", "t1");
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
+        assertThat(result.get().narrative()).contains("reframe");
+    }
+
+    @Test
+    void mechanicalPrediction_fallsToLlmWhenAmbiguous() {
+        // moderate everything → ambiguous → needs LLM
+        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+        var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
+        var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
+
+        var registry = mock(CognitiveDefaultsRegistry.class);
+        when(registry.forAgent("a1")).thenReturn(Optional.of(defaults));
+
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
+                Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        // No generationPhase → after predictor falls through, no LLM available → no result
+        var participant = new EmotionRegulationTickParticipant(
+                appraisalParticipant, config, null, null, null, registry, null);
+        participant.tick(context);
+
+        assertThat(participant.currentResult("a1", "t1")).isEmpty();
+    }
+
+    @Test
+    void mechanicalPrediction_skippedWithNoRegistry() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
+                Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        // No registry, no generation phase → no result
         var participant = new EmotionRegulationTickParticipant(appraisalParticipant, config);
         participant.tick(context);
 
