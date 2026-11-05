@@ -35,10 +35,11 @@ class RegulationStrategyPredictorTest {
     }
 
     @Test
-    void suppressor_shame_predictsAttentionalDeployment() {
+    void suppressor_shame_predictsResponseModulation() {
+        // Cooperative suppressor: prosocial RM to maintain social harmony
         var result = predictor.predict(SUPPRESSOR, EmotionType.SHAME, 0.5, 0.0, null);
         assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
     }
 
     @Test
