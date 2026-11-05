@@ -46,12 +46,16 @@ class RegulationPredictorBackTest {
             - Personality (neuroticism -> suppression, openness -> reappraisal)
             - Controllability (controllable -> reappraisal/suppression, uncontrollable -> distraction)
 
-            Score the strategy selection from 1 to 5:
-            5 = Clearly the best choice for this personality + emotion
-            4 = Good choice, well-aligned with personality and emotion type
-            3 = Acceptable but not the most natural fit
-            2 = Questionable - a different strategy would fit better
-            1 = Wrong - this strategy contradicts the personality or emotion dynamics
+            Score the strategy selection from 1 to 5 based on how well it fits \
+            what this specific personality WOULD NATURALLY CHOOSE and can \
+            SUCCESSFULLY EXECUTE. Do not dock points because a different strategy \
+            would be theoretically more effective if this personality lacks the \
+            traits to execute it.
+            5 = Clearly the best choice this personality would make and can execute
+            4 = Good choice, personality-congruent and executable
+            3 = Acceptable but the personality would more naturally choose something else
+            2 = Poor fit - the personality lacks the traits to execute this strategy
+            1 = Wrong - contradicts the personality dynamics entirely
 
             Respond with ONLY a JSON object: {"score": N, "reasoning": "one sentence"}""";
 
@@ -106,32 +110,49 @@ class RegulationPredictorBackTest {
                     "ANGER at a betrayal of trust")
     );
 
+    record JudgeResult(String label, String strategy, int score, String reasoning) {}
+
+    private static final java.nio.file.Path RESULTS_PATH = java.nio.file.Path.of(
+            "target", "regulation-predictor-judge-results.json");
+
     @Test
-    void predictorSelectionsAreJudgedAppropriate() {
-        var details = new ArrayList<String>();
+    void predictorSelectionsAreJudgedAppropriate() throws Exception {
+        var results = new ArrayList<JudgeResult>();
         var scores = new ArrayList<Integer>();
         int skipped = 0;
 
         for (var tc : CASES) {
             var prediction = PREDICTOR.predict(tc.axes(), tc.emotion(), 0.55, 0.0, null);
             if (prediction.isEmpty()) {
-                details.add(String.format("  %s: predictor fell through (no confident prediction)", tc.label()));
+                results.add(new JudgeResult(tc.label(), "FELL_THROUGH", -1, "predictor not confident"));
                 skipped++;
                 continue;
             }
 
             var strategy = prediction.get().strategy();
-            int score = judgeStrategy(tc, strategy);
-            scores.add(score);
-            details.add(String.format("  %s: %s -> score %d", tc.label(), strategy, score));
+            var judgeResult = judgeStrategy(tc, strategy);
+            scores.add(judgeResult.score());
+            results.add(judgeResult);
         }
 
-        System.out.println("=== Predictor Judge Evaluation ===");
-        details.forEach(System.out::println);
-
         double mean = scores.stream().mapToInt(i -> i).average().orElse(0.0);
-        System.out.printf("%nScored: %d, Skipped: %d, Mean: %.1f%n", scores.size(), skipped, mean);
-        System.out.printf("Distribution: %s%n", scores);
+
+        // Write results to JSON file for observation
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var output = mapper.createObjectNode();
+        output.put("timestamp", java.time.Instant.now().toString());
+        output.put("scored", scores.size());
+        output.put("skipped", skipped);
+        output.put("mean", Math.round(mean * 10.0) / 10.0);
+        var casesArray = output.putArray("cases");
+        for (var r : results) {
+            var node = casesArray.addObject();
+            node.put("label", r.label());
+            node.put("strategy", r.strategy());
+            node.put("score", r.score());
+            node.put("reasoning", r.reasoning());
+        }
+        mapper.writerWithDefaultPrettyPrinter().writeValue(RESULTS_PATH.toFile(), output);
 
         assertThat(scores.size())
                 .as("Need at least 5 scored predictions")
@@ -141,7 +162,7 @@ class RegulationPredictorBackTest {
                 .isGreaterThanOrEqualTo(3.5);
     }
 
-    private int judgeStrategy(JudgeCase tc, EmotionRegulationStrategy strategy) {
+    private JudgeResult judgeStrategy(JudgeCase tc, EmotionRegulationStrategy strategy) {
         try {
             var session = sessionPipeline.openSession("regulation-judge",
                     AgentSessionInit.of(JUDGE_SYSTEM_PROMPT));
@@ -161,29 +182,27 @@ class RegulationPredictorBackTest {
                     .map(e -> ((AgentEvent.TextDelta) e).text())
                     .forEach(response::append);
 
-            return parseScore(response.toString());
+            return parseJudgeResponse(tc.label(), strategy.name(), response.toString());
         } catch (Exception e) {
-            System.err.printf("  Judge failed for %s: %s%n", tc.label(), e.getMessage());
-            return 3;
+            return new JudgeResult(tc.label(), strategy.name(), 3, "judge error: " + e.getMessage());
         }
     }
 
-    private static int parseScore(String response) {
+    private static JudgeResult parseJudgeResponse(String label, String strategy, String response) {
         try {
             int start = response.indexOf('{');
             int end = response.lastIndexOf('}');
-            if (start < 0 || end <= start) return 3;
+            if (start < 0 || end <= start) {
+                return new JudgeResult(label, strategy, 3, "no JSON in response: " + response.substring(0, Math.min(200, response.length())));
+            }
             var json = response.substring(start, end + 1);
             var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             var node = mapper.readTree(json);
-            int score = node.path("score").asInt(3);
-            String reasoning = node.path("reasoning").asText("");
-            if (!reasoning.isEmpty()) {
-                System.out.printf("    judge: %s%n", reasoning);
-            }
-            return Math.max(1, Math.min(5, score));
+            int score = Math.max(1, Math.min(5, node.path("score").asInt(3)));
+            String reasoning = node.path("reasoning").asText("no reasoning provided");
+            return new JudgeResult(label, strategy, score, reasoning);
         } catch (Exception e) {
-            return 3;
+            return new JudgeResult(label, strategy, 3, "parse error: " + e.getMessage());
         }
     }
 }

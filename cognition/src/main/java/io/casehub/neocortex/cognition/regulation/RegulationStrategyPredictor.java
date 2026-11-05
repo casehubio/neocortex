@@ -60,27 +60,24 @@ public class RegulationStrategyPredictor {
     }
 
     // ANGER, HATE, RESENTMENT — agent believes they can act on this
-    // Judge findings:
-    //   - Competitive+avoidant + RM scored 3/5: "risks passive-aggressive escalation"
-    //     → CC better: "reappraising the contradiction as non-threatening to status"
-    //   - Pure avoidant + RM scored 4/5: personality-congruent suppression
-    //   - Analytical/open + CC scored 5/5: optimal match
+    // Judge findings across 3 runs:
+    //   - Reappraiser + CC: 5/5 consistently (optimal)
+    //   - Pure suppressor + RM: 3-4/5 (personality-congruent, judge notes CC more adaptive)
+    //   - Competitive+avoidant + CC: 2/5 (personality can't execute — low autonomy blocks reframing)
+    //   - Competitive+avoidant + RM: 3/5 run 1 (congruent but risks escalation)
+    //   - Mild reappraiser + CC: 3/5 (personality lacks levers to power reframing)
+    //
+    // Rule: only predict what the personality can EXECUTE, not what's theoretically optimal.
+    // CC requires reappraisal capacity (3+ signals). RM requires suppression tolerance.
+    // Conflicted or underpowered personalities fall through to LLM.
     private Optional<RegulationPrediction> predictForControllableNegative(DispositionAxes axes) {
-        if (isConflictedEngager(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.65, ALIGNED_EFFECTIVENESS));
-        }
         if (isReappraiser(axes)) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, ALIGNED_EFFECTIVENESS));
         }
-        if (isSuppressor(axes)) {
+        if (isSuppressor(axes) && !isConflictedEngager(axes)) {
             return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.75, ALIGNED_EFFECTIVENESS));
-        }
-        if (isMildReappraiser(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.55, ALIGNED_EFFECTIVENESS));
+                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.70, ALIGNED_EFFECTIVENESS));
         }
         return Optional.empty();
     }

@@ -127,9 +127,9 @@ class EmotionRegulationTickParticipantTest {
     }
 
     @Test
-    void mechanicalPrediction_fallsToLlmWhenTrulyAmbiguous() {
-        // independent + competitive + no reappraiser signals → truly ambiguous
-        var axes = new DispositionAxes("independent", "moderate", "calculated", "moderate", "competitive");
+    void mechanicalPrediction_fallsToLlmWhenAmbiguous() {
+        // cooperative + moderate → mild reappraiser signals but insufficient for prediction
+        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
