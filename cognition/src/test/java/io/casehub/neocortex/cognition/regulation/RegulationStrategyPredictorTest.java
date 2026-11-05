@@ -86,19 +86,32 @@ class RegulationStrategyPredictorTest {
     // --- Competitive+avoidant conflict falls through ---
 
     @Test
-    void competitiveAvoidant_anger_fallsThrough() {
-        // Judge finding: competitive+avoidant → RM risks passive-aggressive escalation (score 3/5)
+    void competitiveAvoidant_anger_predictsCognitiveChange() {
+        // Judge run 1: RM scored 3/5 — "risks passive-aggressive escalation"
+        // CC better: "reappraising the contradiction as non-threatening to status"
         var controller = new DispositionAxes("competitive", "flexible", "conservative", "low", "avoidant");
         var result = predictor.predict(controller, EmotionType.ANGER, 0.5, 0.0, null);
-        assertThat(result).isEmpty();
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
     }
 
-    // --- Mixed personality falls through ---
+    // --- Mild reappraiser predicts CC at lower confidence ---
 
     @Test
-    void mixedPersonality_anger_fallsThrough() {
+    void mildReappraiser_anger_predictsCognitiveChange() {
+        // cooperative social + cooperative conflict = 2 reappraiser signals → mild CC
         var mixed = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
         var result = predictor.predict(mixed, EmotionType.ANGER, 0.5, 0.0, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
+    }
+
+    // --- Truly ambiguous personality falls through ---
+
+    @Test
+    void trulyAmbiguous_anger_fallsThrough() {
+        var ambiguous = new DispositionAxes("independent", "moderate", "calculated", "moderate", "competitive");
+        var result = predictor.predict(ambiguous, EmotionType.ANGER, 0.5, 0.0, null);
         assertThat(result).isEmpty();
     }
 

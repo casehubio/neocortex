@@ -60,20 +60,27 @@ public class RegulationStrategyPredictor {
     }
 
     // ANGER, HATE, RESENTMENT — agent believes they can act on this
-    // Avoidant/conservative → RM (suppress the impulse to act)
-    // Analytical/open → CC (reframe: "not worth the cost")
-    // Competitive+avoidant → fall through (judge: tension risks passive-aggressive escalation)
+    // Judge findings:
+    //   - Competitive+avoidant + RM scored 3/5: "risks passive-aggressive escalation"
+    //     → CC better: "reappraising the contradiction as non-threatening to status"
+    //   - Pure avoidant + RM scored 4/5: personality-congruent suppression
+    //   - Analytical/open + CC scored 5/5: optimal match
     private Optional<RegulationPrediction> predictForControllableNegative(DispositionAxes axes) {
         if (isConflictedEngager(axes)) {
-            return Optional.empty();
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.65, ALIGNED_EFFECTIVENESS));
+        }
+        if (isReappraiser(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, ALIGNED_EFFECTIVENESS));
         }
         if (isSuppressor(axes)) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.RESPONSE_MODULATION, 0.75, ALIGNED_EFFECTIVENESS));
         }
-        if (isReappraiser(axes)) {
+        if (isMildReappraiser(axes)) {
             return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, ALIGNED_EFFECTIVENESS));
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.55, ALIGNED_EFFECTIVENESS));
         }
         return Optional.empty();
     }
@@ -138,6 +145,14 @@ public class RegulationStrategyPredictor {
     }
 
     boolean isReappraiser(DispositionAxes axes) {
+        return reappraiserSignals(axes) >= 3;
+    }
+
+    boolean isMildReappraiser(DispositionAxes axes) {
+        return reappraiserSignals(axes) >= 2;
+    }
+
+    private int reappraiserSignals(DispositionAxes axes) {
         int signals = 0;
         if ("analytical".equals(axes.conflictMode())) signals += 2;
         if ("strict".equals(axes.ruleFollowing())) signals++;
@@ -145,7 +160,7 @@ public class RegulationStrategyPredictor {
         if ("high".equals(axes.autonomy())) signals++;
         if ("bold".equals(axes.riskAppetite())) signals++;
         if ("cooperative".equals(axes.conflictMode())) signals++;
-        return signals >= 3;
+        return signals;
     }
 
     private static EmotionRegulationStrategy predictUnderHighLoad(DispositionAxes axes) {

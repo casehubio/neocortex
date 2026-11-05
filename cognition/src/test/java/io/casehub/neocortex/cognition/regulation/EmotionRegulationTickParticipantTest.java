@@ -127,9 +127,9 @@ class EmotionRegulationTickParticipantTest {
     }
 
     @Test
-    void mechanicalPrediction_fallsToLlmWhenAmbiguous() {
-        // moderate everything → ambiguous → needs LLM
-        var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
+    void mechanicalPrediction_fallsToLlmWhenTrulyAmbiguous() {
+        // independent + competitive + no reappraiser signals → truly ambiguous
+        var axes = new DispositionAxes("independent", "moderate", "calculated", "moderate", "competitive");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
@@ -142,7 +142,6 @@ class EmotionRegulationTickParticipantTest {
         when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
 
         var config = CognitionConfig.none().with("regulation", true).with("appraisal", true);
-        // No generationPhase → after predictor falls through, no LLM available → no result
         var participant = new EmotionRegulationTickParticipant(
                 appraisalParticipant, config, null, null, null, registry, null);
         participant.tick(context);
