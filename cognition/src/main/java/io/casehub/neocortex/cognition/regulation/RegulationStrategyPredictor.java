@@ -62,7 +62,11 @@ public class RegulationStrategyPredictor {
     // ANGER, HATE, RESENTMENT — agent believes they can act on this
     // Avoidant/conservative → RM (suppress the impulse to act)
     // Analytical/open → CC (reframe: "not worth the cost")
+    // Competitive+avoidant → fall through (judge: tension risks passive-aggressive escalation)
     private Optional<RegulationPrediction> predictForControllableNegative(DispositionAxes axes) {
+        if (isConflictedEngager(axes)) {
+            return Optional.empty();
+        }
         if (isSuppressor(axes)) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.RESPONSE_MODULATION, 0.75, ALIGNED_EFFECTIVENESS));
@@ -82,16 +86,18 @@ public class RegulationStrategyPredictor {
     }
 
     // SHAME, REMORSE — self-attribution, failed own standards
-    // Avoidant → RM (hide visible shame)
-    // Analytical → CC (reframe what the standard means)
+    // Judge finding: suppressing shame is counterproductive (score 2/5) — "shame festers
+    // internally when merely suppressed rather than reprocessed." CC is appropriate for
+    // ALL personality types because shame is a self-evaluation that needs reframing,
+    // not containment. Even avoidant personalities benefit from reappraisal here.
     private Optional<RegulationPrediction> predictForSelfConscious(DispositionAxes axes) {
-        if (isSuppressor(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.75, ALIGNED_EFFECTIVENESS));
-        }
         if (isReappraiser(axes)) {
             return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.65, ALIGNED_EFFECTIVENESS));
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, ALIGNED_EFFECTIVENESS));
+        }
+        if (isSuppressor(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.60, ALIGNED_EFFECTIVENESS));
         }
         return Optional.empty();
     }
@@ -111,7 +117,15 @@ public class RegulationStrategyPredictor {
         return Optional.empty();
     }
 
-    // Personality classification — is this agent a natural suppressor or reappraiser?
+    // Competitive + avoidant: engagement drive conflicts with avoidance drive.
+    // Judge scored RM for this combo at 3/5 — "risks passive-aggressive escalation."
+    boolean isConflictedEngager(DispositionAxes axes) {
+        boolean competitive = "competitive".equals(axes.conflictMode())
+                || "competitive".equals(axes.socialOrient());
+        boolean avoidant = "avoidant".equals(axes.conflictMode());
+        return competitive && avoidant;
+    }
+
     boolean isSuppressor(DispositionAxes axes) {
         int signals = 0;
         if ("avoidant".equals(axes.conflictMode())) signals += 2;

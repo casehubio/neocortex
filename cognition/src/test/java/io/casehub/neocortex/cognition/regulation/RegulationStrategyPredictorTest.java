@@ -25,10 +25,12 @@ class RegulationStrategyPredictorTest {
     }
 
     @Test
-    void suppressor_shame_predictsResponseModulation() {
+    void suppressor_shame_predictsCognitiveChange() {
+        // Judge finding: suppressing shame is counterproductive (score 2/5).
+        // Even avoidant personalities get CC for shame — it needs reprocessing, not containment.
         var result = predictor.predict(SUPPRESSOR, EmotionType.SHAME, 0.5, 0.0, null);
         assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
     }
 
     @Test
@@ -78,6 +80,16 @@ class RegulationStrategyPredictorTest {
     @Test
     void positiveEmotion_noRegulation() {
         var result = predictor.predict(SUPPRESSOR, EmotionType.JOY, 0.5, 0.0, null);
+        assertThat(result).isEmpty();
+    }
+
+    // --- Competitive+avoidant conflict falls through ---
+
+    @Test
+    void competitiveAvoidant_anger_fallsThrough() {
+        // Judge finding: competitive+avoidant → RM risks passive-aggressive escalation (score 3/5)
+        var controller = new DispositionAxes("competitive", "flexible", "conservative", "low", "avoidant");
+        var result = predictor.predict(controller, EmotionType.ANGER, 0.5, 0.0, null);
         assertThat(result).isEmpty();
     }
 
