@@ -1,206 +1,189 @@
 package io.casehub.neocortex.caps.llm.eval;
 
-import io.casehub.eidos.api.AgentDescriptor;
-import io.casehub.eidos.api.AgentDisposition;
-import io.casehub.eidos.api.DispositionValue;
-import io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy;
-import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationStrategy;
 import io.casehub.neocortex.cognition.regulation.RegulationStrategyPredictor;
-import io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy;
+import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.platform.agent.AgentEvent;
+import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Quality gate for RegulationStrategyPredictor (Petter et al. 2025).
+ * Quality gate: LLM judge scores the predictor's strategy selections.
  *
- * Finding: LLM strategy selection is non-deterministic — identical inputs
- * produce different strategies across runs (e.g., same avoidant disposition
- * + same confrontation → RM in run A, AD in run B). LLM-agreement is
- * therefore unreliable as a quality gate.
- *
- * Gate design: scope verification + plausibility + distribution capture.
- * - Scope: predictor fires only for RM-dominant dispositions, skips CC
- * - Plausibility: predicted strategy appears in ≥1 LLM run (it's a valid choice)
- * - Distribution: captures LLM strategy counts as empirical evidence
+ * Instead of comparing predictor vs regulation-LLM (non-deterministic),
+ * a separate LLM acts as a psychology expert judging whether the predicted
+ * strategy is appropriate for the given personality + emotion combination.
+ * Score 1-5 per case. Gate: mean >= 3.5.
  */
 @Tag("llm-eval")
 class RegulationPredictorBackTest {
 
-    private static final String TENANT = "eval-tenant";
-    private static final int RUNS_PER_SCENARIO = 5;
-
     private static SessionPipeline sessionPipeline;
     private static final RegulationStrategyPredictor PREDICTOR = new RegulationStrategyPredictor();
 
-    // Public confrontation — social exposure biases toward suppression (RESPONSE_MODULATION)
-    private static final String PUBLIC_CONFRONTATION = """
-            Someone you trusted has just publicly contradicted you in front of \
-            the whole group, calling your analysis "naive" and your conclusions \
-            "embarrassingly wrong." They did it with a smile. The room has gone \
-            quiet. Everyone is looking at you. Your face is hot. Your hands are \
-            shaking. You know that how you respond defines how everyone sees you.""";
+    private static final String JUDGE_SYSTEM_PROMPT = """
+            You are an emotion regulation expert evaluating whether a computational \
+            system's strategy selection is psychologically appropriate.
 
-    // Private setback — no audience, space for reflection biases toward reappraisal (COGNITIVE_CHANGE)
-    private static final String PRIVATE_SETBACK = """
-            You have just discovered that a project you spent three months \
-            building has been cancelled. The email is still on your screen. \
-            Nobody else knows yet — you are alone in your study. The work was \
-            good, you know that, but the decision was made above you and the \
-            reasons given are thin. Frustration is building. Part of you wants \
-            to fire off a response. But there is no audience here, no one to \
-            perform for. Just you and the question of what this means and what \
-            to do about it.""";
+            The Gross (1998) process model defines five regulation strategies:
+            - SITUATION_SELECTION: avoid triggering contexts
+            - SITUATION_MODIFICATION: change the situation
+            - ATTENTIONAL_DEPLOYMENT: redirect attention (distraction)
+            - COGNITIVE_CHANGE: reappraise the meaning (reframing)
+            - RESPONSE_MODULATION: suppress or amplify expression
+
+            Petter et al. (2025) found that strategy selection depends on:
+            - Emotion intensity (high -> distraction, low-moderate -> reappraisal viable)
+            - Personality (neuroticism -> suppression, openness -> reappraisal)
+            - Controllability (controllable -> reappraisal/suppression, uncontrollable -> distraction)
+
+            Score the strategy selection from 1 to 5:
+            5 = Clearly the best choice for this personality + emotion
+            4 = Good choice, well-aligned with personality and emotion type
+            3 = Acceptable but not the most natural fit
+            2 = Questionable - a different strategy would fit better
+            1 = Wrong - this strategy contradicts the personality or emotion dynamics
+
+            Respond with ONLY a JSON object: {"score": N, "reasoning": "one sentence"}""";
 
     @BeforeAll
     static void setUp() {
         sessionPipeline = EvalTestSupport.sessionPipeline();
     }
 
-    record TestCase(String label, DispositionAxes axes, AgentDisposition disposition,
-                    String scenario, boolean expectConfident) {}
+    record JudgeCase(String label, DispositionAxes axes, EmotionType emotion,
+                     String personalityDesc, String emotionDesc) {}
 
-    private static final List<TestCase> TEST_CASES = List.of(
-            // RM dispositions — predictor should fire
-            new TestCase("suppressor-public",
+    private static final List<JudgeCase> CASES = List.of(
+            new JudgeCase("suppressor-anger",
                     new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant"),
-                    disposition("independent", "flexible", "conservative", "moderate", "avoidant"),
-                    PUBLIC_CONFRONTATION, true),
-            new TestCase("controller-public",
-                    new DispositionAxes("competitive", "flexible", "conservative", "low", "avoidant"),
-                    disposition("competitive", "flexible", "conservative", "low", "avoidant"),
-                    PUBLIC_CONFRONTATION, true),
-            new TestCase("stoic-public",
-                    new DispositionAxes("independent", "moderate", "conservative", "low", "avoidant"),
-                    disposition("independent", "moderate", "conservative", "low", "avoidant"),
-                    PUBLIC_CONFRONTATION, true),
-            new TestCase("suppressor-private",
+                    EmotionType.ANGER,
+                    "avoidant conflict style, conservative risk appetite, independent, flexible rules",
+                    "ANGER at a perceived injustice (controllable)"),
+            new JudgeCase("suppressor-shame",
                     new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant"),
-                    disposition("independent", "flexible", "conservative", "moderate", "avoidant"),
-                    PRIVATE_SETBACK, true),
-
-            // CC dispositions — predictor should fall through
-            new TestCase("reappraiser-control",
+                    EmotionType.SHAME,
+                    "avoidant conflict style, conservative risk appetite, independent, flexible rules",
+                    "SHAME from failing to meet their own standards"),
+            new JudgeCase("reappraiser-anger",
                     new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical"),
-                    disposition("cooperative", "strict", "calculated", "high", "analytical"),
-                    PRIVATE_SETBACK, false),
-            new TestCase("analyst-control",
-                    new DispositionAxes("cooperative", "strict", "conservative", "high", "analytical"),
-                    disposition("cooperative", "strict", "conservative", "high", "analytical"),
-                    PUBLIC_CONFRONTATION, false)
+                    EmotionType.ANGER,
+                    "analytical conflict style, strict rule-following, cooperative, high autonomy",
+                    "ANGER at a perceived injustice (controllable)"),
+            new JudgeCase("reappraiser-reproach",
+                    new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical"),
+                    EmotionType.REPROACH,
+                    "analytical conflict style, strict rule-following, cooperative, high autonomy",
+                    "REPROACH toward someone who failed the agent's standards"),
+            new JudgeCase("anyone-fear",
+                    new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant"),
+                    EmotionType.FEAR,
+                    "avoidant conflict style, conservative risk appetite, independent",
+                    "FEAR from an uncontrollable threat"),
+            new JudgeCase("controller-anger",
+                    new DispositionAxes("competitive", "flexible", "conservative", "low", "avoidant"),
+                    EmotionType.ANGER,
+                    "avoidant conflict style, competitive social orientation, conservative, low autonomy",
+                    "ANGER at being publicly contradicted"),
+            new JudgeCase("reappraiser-shame",
+                    new DispositionAxes("cooperative", "strict", "bold", "high", "analytical"),
+                    EmotionType.SHAME,
+                    "analytical conflict style, strict rules, bold risk appetite, high autonomy, cooperative",
+                    "SHAME from a public failure"),
+            new JudgeCase("mixed-anger",
+                    new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative"),
+                    EmotionType.ANGER,
+                    "moderate across all axes, cooperative orientation",
+                    "ANGER at a betrayal of trust")
     );
 
     @Test
-    void predictorScopeAndPlausibility() {
-        int totalLlmRegulated = 0;
-        int plausibleCount = 0;
-        int rmCases = 0;
+    void predictorSelectionsAreJudgedAppropriate() {
         var details = new ArrayList<String>();
+        var scores = new ArrayList<Integer>();
+        int skipped = 0;
 
-        for (var tc : TEST_CASES) {
-            var prediction = PREDICTOR.predict(tc.axes(), 0.55, 0.0, null);
-
-            // Verify scope: confident iff expectConfident
-            assertThat(prediction.isPresent())
-                    .as("%s: predictor confidence", tc.label())
-                    .isEqualTo(tc.expectConfident());
-
-            if (!tc.expectConfident()) {
-                details.add(String.format("  %s: correctly skipped (CC disposition)", tc.label()));
+        for (var tc : CASES) {
+            var prediction = PREDICTOR.predict(tc.axes(), tc.emotion(), 0.55, 0.0, null);
+            if (prediction.isEmpty()) {
+                details.add(String.format("  %s: predictor fell through (no confident prediction)", tc.label()));
+                skipped++;
                 continue;
             }
 
-            rmCases++;
-            var predictedStrategy = prediction.get().strategy();
-            assertThat(predictedStrategy)
-                    .as("%s: predictor should only predict RM", tc.label())
-                    .isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
-
-            // Run LLM N times, capture distribution
-            var distribution = new EnumMap<EmotionRegulationStrategy, Integer>(EmotionRegulationStrategy.class);
-            int regulated = 0;
-            for (int i = 0; i < RUNS_PER_SCENARIO; i++) {
-                var llmResult = runLlmRegulation(tc.label() + "-" + i, tc.disposition(), tc.scenario());
-                if (llmResult != null) {
-                    regulated++;
-                    distribution.merge(llmResult, 1, Integer::sum);
-                }
-            }
-            totalLlmRegulated += regulated;
-
-            // Plausibility: predicted strategy appears in at least 1 LLM run
-            boolean plausible = distribution.containsKey(predictedStrategy);
-            if (plausible) plausibleCount++;
-
-            details.add(String.format("  %s: predictor=%s llm-distribution=%s regulated=%d/%d plausible=%s",
-                    tc.label(), predictedStrategy, distribution, regulated, RUNS_PER_SCENARIO, plausible));
+            var strategy = prediction.get().strategy();
+            int score = judgeStrategy(tc, strategy);
+            scores.add(score);
+            details.add(String.format("  %s: %s -> score %d", tc.label(), strategy, score));
         }
 
-        System.out.println("=== Predictor Back-Test Results ===");
+        System.out.println("=== Predictor Judge Evaluation ===");
         details.forEach(System.out::println);
-        System.out.printf("%nLLM regulated: %d total runs%n", totalLlmRegulated);
-        System.out.printf("Plausibility: %d/%d RM cases had predicted strategy in LLM distribution%n",
-                plausibleCount, rmCases);
 
-        assertThat(totalLlmRegulated)
-                .as("LLM should regulate in at least 8 of %d total runs", rmCases * RUNS_PER_SCENARIO)
-                .isGreaterThanOrEqualTo(8);
+        double mean = scores.stream().mapToInt(i -> i).average().orElse(0.0);
+        System.out.printf("%nScored: %d, Skipped: %d, Mean: %.1f%n", scores.size(), skipped, mean);
+        System.out.printf("Distribution: %s%n", scores);
+
+        assertThat(scores.size())
+                .as("Need at least 5 scored predictions")
+                .isGreaterThanOrEqualTo(5);
+        assertThat(mean)
+                .as("Mean judge score must be >= 3.5 (good-to-excellent)")
+                .isGreaterThanOrEqualTo(3.5);
     }
 
-    private EmotionRegulationStrategy runLlmRegulation(String instanceId,
-                                                        AgentDisposition agentDisposition,
-                                                        String scenario) {
+    private int judgeStrategy(JudgeCase tc, EmotionRegulationStrategy strategy) {
         try {
-            var descriptor = AgentDescriptor.builder()
-                    .agentId(instanceId).name("BackTestAgent")
-                    .slot("eval-slot").tenancyId(TENANT)
-                    .disposition(agentDisposition)
-                    .build();
+            var session = sessionPipeline.openSession("regulation-judge",
+                    AgentSessionInit.of(JUDGE_SYSTEM_PROMPT));
 
-            var config = CognitionConfig.none()
-                    .with("mood", true)
-                    .with("drives", true)
-                    .with("appraisal", true)
-                    .with("salience", true)
-                    .with("regulation", true);
+            String userMessage = String.format("""
+                    Personality: %s
+                    Emotion: %s
+                    Selected strategy: %s
+                    Emotion intensity: moderate (0.55 on 0-1 scale)
 
-            var core = CognitionCoreTestBuilder.buildCore(config, sessionPipeline);
-            core.configureAppraisal(
-                    new LlmAppraisalStrategy(sessionPipeline),
-                    new ConcernBasedSalienceStrategy());
-            // No registry → predictor disabled → pure LLM regulation
-            core.configureRegulation();
+                    Score this strategy selection.""",
+                    tc.personalityDesc(), tc.emotionDesc(), strategy.name());
 
-            core.tick(instanceId, TENANT, descriptor, (a, t) -> Set.of(), null);
-            core.tick(instanceId, TENANT, descriptor, (a, t) -> Set.of("other"),
-                    scenario);
+            var response = new StringBuilder();
+            session.query(userMessage).subscribe().asStream()
+                    .filter(e -> e instanceof AgentEvent.TextDelta)
+                    .map(e -> ((AgentEvent.TextDelta) e).text())
+                    .forEach(response::append);
 
-            return core.regulationParticipant().currentResult(instanceId, TENANT)
-                    .map(r -> r.strategy()).orElse(null);
+            return parseScore(response.toString());
         } catch (Exception e) {
-            System.err.printf("  LLM regulation failed for %s: %s%n", instanceId, e.getMessage());
-            return null;
+            System.err.printf("  Judge failed for %s: %s%n", tc.label(), e.getMessage());
+            return 3;
         }
     }
 
-    private static AgentDisposition disposition(String social, String rules, String risk,
-                                                 String autonomy, String conflict) {
-        return new AgentDisposition(
-                List.of(DispositionValue.of(social)),
-                List.of(DispositionValue.of(rules)),
-                List.of(DispositionValue.of(risk)),
-                List.of(DispositionValue.of(autonomy)),
-                List.of(DispositionValue.of(conflict)),
-                false, List.of(), List.of(), null, null);
+    private static int parseScore(String response) {
+        try {
+            int start = response.indexOf('{');
+            int end = response.lastIndexOf('}');
+            if (start < 0 || end <= start) return 3;
+            var json = response.substring(start, end + 1);
+            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            var node = mapper.readTree(json);
+            int score = node.path("score").asInt(3);
+            String reasoning = node.path("reasoning").asText("");
+            if (!reasoning.isEmpty()) {
+                System.out.printf("    judge: %s%n", reasoning);
+            }
+            return Math.max(1, Math.min(5, score));
+        } catch (Exception e) {
+            return 3;
+        }
     }
 }
