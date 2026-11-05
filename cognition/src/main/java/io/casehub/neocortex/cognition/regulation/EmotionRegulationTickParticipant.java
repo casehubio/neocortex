@@ -18,6 +18,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable EmotionRegulationGenerationPhase generationPhase;
     private final @Nullable MindMapStore                     mindMapStore;
     private final @Nullable String                           cognitiveSubgraphId;
+    private final           RegulationFatigueTracker         fatigueTracker;
 
     // Bosse et al. 2010 — homeostatic baseline intensity (ERL_norm = 0.25 on [0,2], normalized to 0.3 on [0,1])
     static final double BASELINE_INTENSITY = 0.3;
@@ -52,6 +53,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.generationPhase      = generationPhase;
         this.mindMapStore         = mindMapStore;
         this.cognitiveSubgraphId  = cognitiveSubgraphId;
+        this.fatigueTracker       = new RegulationFatigueTracker();
     }
 
     @Override
@@ -69,8 +71,14 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                          .max().orElse(0.0);
 
         // Bosse et al. 2010: regulation effort v_n = α_n × d / d_max (proportional to discrepancy)
-        double regulationEffort = DEFAULT_ALPHA * maxDiscrepancy / D_MAX;
-        if (regulationEffort < EFFORT_NOISE_FLOOR) {return;}
+        double alpha = fatigueTracker.effectiveAlpha(
+                context.agentId(), context.tenantId(), DEFAULT_ALPHA);
+        double regulationEffort = alpha * maxDiscrepancy / D_MAX;
+
+        if (regulationEffort < EFFORT_NOISE_FLOOR) {
+            fatigueTracker.recordRecovery(context.agentId(), context.tenantId());
+            return;
+        }
 
         if (generationPhase == null) {return;}
 
@@ -79,15 +87,19 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                 mindMapStore, context.agentId(), context.tenantId(), HISTORY_LIMIT)
                       : List.<EmotionRegulationResult>of();
 
-        var result = generationPhase.generate(context, appraisal.get(), history, regulationEffort);
+        double currentFatigue = fatigueTracker.currentFatigue(context.agentId(), context.tenantId());
+        var result = generationPhase.generate(context, appraisal.get(), history, regulationEffort, currentFatigue);
         if (result != null) {
             String key = context.agentId() + ":" + context.tenantId();
             results.put(key, result);
+            fatigueTracker.recordRegulation(context.agentId(), context.tenantId(), regulationEffort);
             if (mindMapStore != null && cognitiveSubgraphId != null) {
                 EmotionRegulationMindMapAdapter.write(
                         mindMapStore, context.agentId(), context.tenantId(),
                         cognitiveSubgraphId, result);
             }
+        } else {
+            fatigueTracker.recordRecovery(context.agentId(), context.tenantId());
         }
     }
 

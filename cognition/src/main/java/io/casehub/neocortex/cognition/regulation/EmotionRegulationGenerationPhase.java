@@ -86,17 +86,25 @@ public class EmotionRegulationGenerationPhase {
     public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
                                                        AppraisalResult appraisal,
                                                        List<EmotionRegulationResult> history) {
-        return generate(context, appraisal, history, 1.0);
+        return generate(context, appraisal, history, 1.0, 0.0);
     }
 
     public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
                                                        AppraisalResult appraisal,
                                                        List<EmotionRegulationResult> history,
                                                        double regulationEffort) {
+        return generate(context, appraisal, history, regulationEffort, 0.0);
+    }
+
+    public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
+                                                       AppraisalResult appraisal,
+                                                       List<EmotionRegulationResult> history,
+                                                       double regulationEffort,
+                                                       double regulationFatigue) {
         if (sessionPipeline == null) return null;
 
         try {
-            String response = invokeLlm(context, appraisal, history, regulationEffort);
+            String response = invokeLlm(context, appraisal, history, regulationEffort, regulationFatigue);
             if (response == null) return null;
             return parseResponse(response);
         } catch (Exception e) {
@@ -106,12 +114,14 @@ public class EmotionRegulationGenerationPhase {
     }
 
     private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
-                              List<EmotionRegulationResult> history, double regulationEffort) {
+                              List<EmotionRegulationResult> history, double regulationEffort,
+                              double regulationFatigue) {
         var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                 ? loadEstimator.estimate(context.agentId(), context.tenantId())
                 : null;
-        var userMessage = buildUserMessage(context, appraisal, history, regulationEffort, loadEstimate);
+        var userMessage = buildUserMessage(context, appraisal, history, regulationEffort, loadEstimate,
+                regulationFatigue);
         var responseText = new StringBuilder();
         session.query(userMessage).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -122,11 +132,21 @@ public class EmotionRegulationGenerationPhase {
 
     static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
                                      List<EmotionRegulationResult> history, double regulationEffort,
-                                     @Nullable CognitiveLoadEstimate loadEstimate) {
+                                     @Nullable CognitiveLoadEstimate loadEstimate,
+                                     double regulationFatigue) {
         var sb = new StringBuilder();
 
         sb.append("Regulation effort: ").append(String.format("%.2f", regulationEffort))
                 .append(" (0=negligible, 1=maximum urgency)\n\n");
+
+        if (regulationFatigue > 0.01) {
+            sb.append("Regulation fatigue: ").append(String.format("%.0f%%", regulationFatigue * 100))
+                    .append(" — repeated regulation is depleting capacity");
+            if (regulationFatigue > 0.7) {
+                sb.append("; approaching breakdown, suppression may fail entirely");
+            }
+            sb.append("\n\n");
+        }
 
         if (loadEstimate != null) {
             sb.append("Cognitive load: ").append(loadEstimate.level().name())

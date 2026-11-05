@@ -174,7 +174,7 @@ class EmotionRegulationGenerationPhaseTest {
         var load      = new CognitiveLoadEstimate(CognitiveLoadLevel.HIGH, 3, 3, 2);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.6, load);
+                context, appraisal, List.of(), 0.6, load, 0.0);
 
         assertThat(message).contains("Cognitive load: HIGH");
         assertThat(message).contains("drives=3");
@@ -189,7 +189,7 @@ class EmotionRegulationGenerationPhaseTest {
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.3, null);
+                context, appraisal, List.of(), 0.3, null, 0.0);
 
         assertThat(message).doesNotContain("Cognitive load");
     }
@@ -199,5 +199,45 @@ class EmotionRegulationGenerationPhaseTest {
         assertThat(EmotionRegulationGenerationPhase.SYSTEM_PROMPT)
                 .contains("Cognitive load constrains strategy");
     }
+
+    @Test
+    void userMessageIncludesFatigueWhenPresent() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.7, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(-0.5, 0.6, 0.3));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.6, null, 0.45);
+
+        assertThat(message).contains("Regulation fatigue: 45%");
+        assertThat(message).contains("depleting capacity");
+        assertThat(message).doesNotContain("breakdown");
+    }
+
+    @Test
+    void userMessageWarnsOfBreakdownAtHighFatigue() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.7, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(-0.5, 0.6, 0.3));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.6, null, 0.85);
+
+        assertThat(message).contains("Regulation fatigue: 85%");
+        assertThat(message).contains("breakdown");
+    }
+
+    @Test
+    void userMessageOmitsFatigueWhenNegligible() {
+        var emotion = new CognitiveEmotion(EmotionType.JOY, 0.5, "success",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(0.5, 0.3, 0.4));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.3, null, 0.005);
+
+        assertThat(message).doesNotContain("fatigue");
+    }
+
 
 }
