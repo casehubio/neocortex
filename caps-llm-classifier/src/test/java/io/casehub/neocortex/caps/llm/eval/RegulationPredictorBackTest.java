@@ -158,8 +158,8 @@ class RegulationPredictorBackTest {
                 .as("Need at least 5 scored predictions")
                 .isGreaterThanOrEqualTo(5);
         assertThat(mean)
-                .as("Mean judge score must be >= 3.5 (good-to-excellent)")
-                .isGreaterThanOrEqualTo(3.5);
+                .as("Mean judge score must be >= 4.0 (personality-congruent and executable)")
+                .isGreaterThanOrEqualTo(4.0);
     }
 
     private JudgeResult judgeStrategy(JudgeCase tc, EmotionRegulationStrategy strategy) {
