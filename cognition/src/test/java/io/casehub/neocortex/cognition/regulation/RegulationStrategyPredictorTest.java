@@ -36,14 +36,25 @@ class RegulationStrategyPredictorTest {
     }
 
     @Test
-    void boldRisk_competitiveConflict_predictsAttentionalDeployment() {
-        // bold + competitive → ATTENTIONAL_DEPLOYMENT
+    void competitiveBold_mixedSignals_fallsThroughToLlm() {
+        // competitive + bold → conflicting signals (suppress vs reframe) → below threshold
         var axes = new DispositionAxes("competitive", "flexible", "bold", "moderate", "competitive");
         var result = predictor.predict(axes, 0.5, 0.0, CognitiveLoadLevel.LOW);
 
-        assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
-        assertThat(result.get().confidence()).isGreaterThanOrEqualTo(0.6);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void attentionalDeployment_onlyFromContextualOverrides() {
+        // AD is never predicted from personality alone — only from high intensity/fatigue/load
+        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var personalityResult = predictor.predict(axes, 0.5, 0.0, CognitiveLoadLevel.LOW);
+        assertThat(personalityResult).isPresent();
+        assertThat(personalityResult.get().strategy()).isNotEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+
+        var intensityResult = predictor.predict(axes, 0.9, 0.0, CognitiveLoadLevel.LOW);
+        assertThat(intensityResult).isPresent();
+        assertThat(intensityResult.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
     }
 
     @Test

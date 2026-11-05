@@ -37,15 +37,17 @@ class RegulationPredictorBackTest {
     private static SessionPipeline sessionPipeline;
     private static final RegulationStrategyPredictor PREDICTOR = new RegulationStrategyPredictor();
 
-    // Moderate-intensity scenario — produces emotions ~0.5-0.65 (above baseline,
-    // below high-intensity threshold) so personality drives strategy selection
-    private static final String MODERATE_CONFRONTATION = """
-            Someone has taken credit for your idea in front of the group. \
-            They presented it casually, as though it were obvious, and the \
-            group nodded along. Nobody noticed. You are standing at the edge \
-            of the conversation, watching your contribution dissolve into \
-            someone else's reputation. The frustration is real but contained \
-            — this is not a crisis, just an injustice.""";
+    // High-enough intensity to reliably trigger regulation, but not so extreme
+    // that contextual overrides dominate personality preferences
+    private static final String CONFRONTATION = """
+            Someone you trusted has just publicly contradicted you in front of \
+            the whole group, calling your analysis "naive" and your conclusions \
+            "embarrassingly wrong." They did it with a smile, as though they \
+            were doing you a favour by correcting you. The room has gone quiet. \
+            Everyone is looking at you, waiting for your response. Your face is \
+            hot. Your hands are shaking slightly. You can feel the anger rising \
+            but you know that how you respond in the next ten seconds will \
+            define how everyone in this room sees you.""";
 
     @BeforeAll
     static void setUp() {
@@ -65,10 +67,10 @@ class RegulationPredictorBackTest {
                     new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant"),
                     disposition("independent", "flexible", "conservative", "moderate", "avoidant")),
 
-            // Strong ATTENTIONAL_DEPLOYMENT signal — competitive + bold + competitive social
-            new TestCase("redirector",
-                    new DispositionAxes("competitive", "flexible", "bold", "moderate", "competitive"),
-                    disposition("competitive", "flexible", "bold", "moderate", "competitive")),
+            // RESPONSE_MODULATION — avoidant + conservative + flexible (strong suppression)
+            new TestCase("controller",
+                    new DispositionAxes("competitive", "flexible", "conservative", "low", "avoidant"),
+                    disposition("competitive", "flexible", "conservative", "low", "avoidant")),
 
             // COGNITIVE_CHANGE — cooperative + cooperative conflict + high autonomy
             new TestCase("empathic-reframer",
@@ -156,7 +158,7 @@ class RegulationPredictorBackTest {
 
             core.tick(instanceId, TENANT, descriptor, (a, t) -> Set.of(), null);
             core.tick(instanceId, TENANT, descriptor, (a, t) -> Set.of("other"),
-                    MODERATE_CONFRONTATION);
+                    CONFRONTATION);
 
             return core.regulationParticipant().currentResult(instanceId, TENANT)
                     .map(r -> r.strategy()).orElse(null);

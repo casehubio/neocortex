@@ -81,25 +81,27 @@ public class RegulationStrategyPredictor {
         // conflictMode: avoidant → neuroticism/avoidance → suppression (RESPONSE_MODULATION)
         // conflictMode: analytical → openness → reappraisal (COGNITIVE_CHANGE)
         // conflictMode: cooperative → agreeableness → reappraisal (COGNITIVE_CHANGE)
+        // conflictMode: competitive → engagement-oriented → controlled expression (RESPONSE_MODULATION)
         switch (axes.conflictMode()) {
             case "avoidant" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.35, Double::sum);
             case "analytical" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.3, Double::sum);
             case "cooperative" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.25, Double::sum);
-            case "competitive" -> votes.merge(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.2, Double::sum);
+            case "competitive" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.2, Double::sum);
         }
 
         // socialOrient: cooperative → agreeableness → empathic reappraisal
         // socialOrient: independent → low agreeableness → self-focused suppression
+        // socialOrient: competitive → engagement → controlled expression (RESPONSE_MODULATION)
         switch (axes.socialOrient()) {
             case "cooperative" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.2, Double::sum);
             case "independent" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.15, Double::sum);
-            case "competitive" -> votes.merge(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.15, Double::sum);
+            case "competitive" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.15, Double::sum);
         }
 
-        // riskAppetite: bold → low neuroticism/high extraversion → redirect engagement
+        // riskAppetite: bold → extraversion → confidence to reframe (COGNITIVE_CHANGE)
         // riskAppetite: conservative → high neuroticism → suppress and contain
         switch (axes.riskAppetite()) {
-            case "bold" -> votes.merge(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.25, Double::sum);
+            case "bold" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.25, Double::sum);
             case "conservative" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.2, Double::sum);
         }
 
