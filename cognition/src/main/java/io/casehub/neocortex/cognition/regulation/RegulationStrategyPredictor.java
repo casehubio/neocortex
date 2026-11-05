@@ -1,37 +1,27 @@
 package io.casehub.neocortex.cognition.regulation;
 
+import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.jspecify.annotations.Nullable;
 
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * Personality-driven regulation strategy prediction (Petter et al. 2025).
- * Maps DispositionAxes to strategy preferences, skipping LLM when confidence is high.
+ * Personality × emotion-type regulation strategy prediction (Petter et al. 2025).
+ * Emotion type encodes situation controllability (ANGER = controllable, FEAR = not),
+ * so the predictor is situation-aware without reading the scenario text.
  */
 public class RegulationStrategyPredictor {
 
-    static final double DEFAULT_CONFIDENCE_THRESHOLD = 0.6;
-    // Petter et al. 2025 — high intensity overwhelms cognitive resources
     static final double HIGH_INTENSITY_THRESHOLD = 0.75;
-    // Petter et al. 2025 — effectiveness baseline for personality-aligned strategies
     static final double ALIGNED_EFFECTIVENESS = 0.55;
     static final double MISALIGNED_EFFECTIVENESS = 0.35;
 
-    private final double confidenceThreshold;
-
-    public RegulationStrategyPredictor() {
-        this(DEFAULT_CONFIDENCE_THRESHOLD);
-    }
-
-    public RegulationStrategyPredictor(double confidenceThreshold) {
-        this.confidenceThreshold = confidenceThreshold;
-    }
+    public RegulationStrategyPredictor() {}
 
     public Optional<RegulationPrediction> predict(DispositionAxes axes,
+                                                   EmotionType dominantEmotion,
                                                    double peakIntensity,
                                                    double regulationFatigue,
                                                    @Nullable CognitiveLoadLevel cognitiveLoad) {
@@ -53,75 +43,98 @@ public class RegulationStrategyPredictor {
             return Optional.of(new RegulationPrediction(strategy, 0.75, ALIGNED_EFFECTIVENESS));
         }
 
-        // Personality-driven prediction — only RESPONSE_MODULATION is mechanically
-        // predicted. COGNITIVE_CHANGE is too situation-sensitive: back-testing showed
-        // 0/9 agreement with LLM (the LLM factors situation type, not just personality).
-        // RESPONSE_MODULATION showed 9/9 agreement — suppression is reliably personality-driven.
-        var votes = computeVotes(axes);
-        var best = findDominant(votes);
-        if (best == null || best.score < confidenceThreshold) {
-            return Optional.empty();
-        }
-        if (best.strategy != EmotionRegulationStrategy.RESPONSE_MODULATION) {
-            return Optional.empty();
-        }
-
-        return Optional.of(new RegulationPrediction(
-                best.strategy, best.score, ALIGNED_EFFECTIVENESS));
+        // Emotion-type × personality prediction
+        return predictFromEmotionAndPersonality(axes, dominantEmotion);
     }
 
-    // Petter 2025 Table 2 — disposition-to-strategy correlations adapted from Big Five
-    static Map<EmotionRegulationStrategy, Double> computeVotes(DispositionAxes axes) {
-        var votes = new EnumMap<EmotionRegulationStrategy, Double>(EmotionRegulationStrategy.class);
-        for (var s : INTERNAL_STRATEGIES) {
-            votes.put(s, 0.0);
-        }
+    // Petter 2025 + OCC: emotion type encodes controllability, personality selects within
+    Optional<RegulationPrediction> predictFromEmotionAndPersonality(
+            DispositionAxes axes, EmotionType emotion) {
+        return switch (emotionCategory(emotion)) {
+            case CONTROLLABLE_NEGATIVE -> predictForControllableNegative(axes);
+            case UNCONTROLLABLE_NEGATIVE -> predictForUncontrollableNegative(axes);
+            case SELF_CONSCIOUS -> predictForSelfConscious(axes);
+            case OTHER_DIRECTED -> predictForOtherDirected(axes);
+            case POSITIVE, UNKNOWN -> Optional.empty();
+        };
+    }
 
-        // ruleFollowing: strict → conscientiousness → structured coping (COGNITIVE_CHANGE)
-        // ruleFollowing: flexible → low conscientiousness → less deliberate (RESPONSE_MODULATION)
-        switch (axes.ruleFollowing()) {
-            case "strict" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.35, Double::sum);
-            case "flexible" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.2, Double::sum);
+    // ANGER, HATE, RESENTMENT — agent believes they can act on this
+    // Avoidant/conservative → RM (suppress the impulse to act)
+    // Analytical/open → CC (reframe: "not worth the cost")
+    private Optional<RegulationPrediction> predictForControllableNegative(DispositionAxes axes) {
+        if (isSuppressor(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.75, ALIGNED_EFFECTIVENESS));
         }
-
-        // conflictMode: avoidant → neuroticism/avoidance → suppression (RESPONSE_MODULATION)
-        // conflictMode: analytical → openness → reappraisal (COGNITIVE_CHANGE)
-        // conflictMode: cooperative → agreeableness → reappraisal (COGNITIVE_CHANGE)
-        // conflictMode: competitive → engagement-oriented → controlled expression (RESPONSE_MODULATION)
-        switch (axes.conflictMode()) {
-            case "avoidant" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.35, Double::sum);
-            case "analytical" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.3, Double::sum);
-            case "cooperative" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.25, Double::sum);
-            case "competitive" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.2, Double::sum);
+        if (isReappraiser(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, ALIGNED_EFFECTIVENESS));
         }
+        return Optional.empty();
+    }
 
-        // socialOrient: cooperative → agreeableness → empathic reappraisal
-        // socialOrient: independent → low agreeableness → self-focused suppression
-        // socialOrient: competitive → engagement → controlled expression (RESPONSE_MODULATION)
-        switch (axes.socialOrient()) {
-            case "cooperative" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.2, Double::sum);
-            case "independent" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.15, Double::sum);
-            case "competitive" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.15, Double::sum);
+    // FEAR, DISTRESS, FEARS_CONFIRMED — agent feels powerless
+    // Almost universal → AD (redirect from threat source)
+    private Optional<RegulationPrediction> predictForUncontrollableNegative(DispositionAxes axes) {
+        return Optional.of(new RegulationPrediction(
+                EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.80, ALIGNED_EFFECTIVENESS));
+    }
+
+    // SHAME, REMORSE — self-attribution, failed own standards
+    // Avoidant → RM (hide visible shame)
+    // Analytical → CC (reframe what the standard means)
+    private Optional<RegulationPrediction> predictForSelfConscious(DispositionAxes axes) {
+        if (isSuppressor(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.75, ALIGNED_EFFECTIVENESS));
         }
-
-        // riskAppetite: bold → extraversion → confidence to reframe (COGNITIVE_CHANGE)
-        // riskAppetite: conservative → high neuroticism → suppress and contain
-        switch (axes.riskAppetite()) {
-            case "bold" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.25, Double::sum);
-            case "conservative" -> votes.merge(EmotionRegulationStrategy.RESPONSE_MODULATION, 0.2, Double::sum);
+        if (isReappraiser(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.65, ALIGNED_EFFECTIVENESS));
         }
+        return Optional.empty();
+    }
 
-        // autonomy: high → openness/self-direction → reappraisal
-        switch (axes.autonomy()) {
-            case "high" -> votes.merge(EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.2, Double::sum);
+    // REPROACH, DISAPPOINTMENT, PITY — other failed the agent's standards
+    // Avoidant → RM (suppress visible judgment)
+    // Analytical → CC (reframe other's behavior)
+    private Optional<RegulationPrediction> predictForOtherDirected(DispositionAxes axes) {
+        if (isSuppressor(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.70, ALIGNED_EFFECTIVENESS));
         }
+        if (isReappraiser(axes)) {
+            return Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.65, ALIGNED_EFFECTIVENESS));
+        }
+        return Optional.empty();
+    }
 
-        return votes;
+    // Personality classification — is this agent a natural suppressor or reappraiser?
+    boolean isSuppressor(DispositionAxes axes) {
+        int signals = 0;
+        if ("avoidant".equals(axes.conflictMode())) signals += 2;
+        if ("conservative".equals(axes.riskAppetite())) signals++;
+        if ("independent".equals(axes.socialOrient())) signals++;
+        if ("flexible".equals(axes.ruleFollowing())) signals++;
+        if ("competitive".equals(axes.conflictMode())) signals++;
+        if ("competitive".equals(axes.socialOrient())) signals++;
+        return signals >= 3;
+    }
+
+    boolean isReappraiser(DispositionAxes axes) {
+        int signals = 0;
+        if ("analytical".equals(axes.conflictMode())) signals += 2;
+        if ("strict".equals(axes.ruleFollowing())) signals++;
+        if ("cooperative".equals(axes.socialOrient())) signals++;
+        if ("high".equals(axes.autonomy())) signals++;
+        if ("bold".equals(axes.riskAppetite())) signals++;
+        if ("cooperative".equals(axes.conflictMode())) signals++;
+        return signals >= 3;
     }
 
     private static EmotionRegulationStrategy predictUnderHighLoad(DispositionAxes axes) {
-        // High load: only low-cost strategies viable (Petter 2025)
-        // Suppression (RESPONSE_MODULATION) or distraction (ATTENTIONAL_DEPLOYMENT)
         return switch (axes.conflictMode()) {
             case "avoidant" -> EmotionRegulationStrategy.RESPONSE_MODULATION;
             case "competitive" -> EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;
@@ -132,33 +145,25 @@ public class RegulationStrategyPredictor {
         };
     }
 
-    record StrategyScore(EmotionRegulationStrategy strategy, double score) {}
-
-    static @Nullable StrategyScore findDominant(Map<EmotionRegulationStrategy, Double> votes) {
-        EmotionRegulationStrategy best = null;
-        double bestScore = 0.0;
-        double secondBest = 0.0;
-
-        for (var entry : votes.entrySet()) {
-            if (entry.getValue() > bestScore) {
-                secondBest = bestScore;
-                bestScore = entry.getValue();
-                best = entry.getKey();
-            } else if (entry.getValue() > secondBest) {
-                secondBest = entry.getValue();
-            }
-        }
-
-        if (best == null || bestScore == 0.0) return null;
-        return new StrategyScore(best, bestScore);
+    enum EmotionCategory {
+        CONTROLLABLE_NEGATIVE,
+        UNCONTROLLABLE_NEGATIVE,
+        SELF_CONSCIOUS,
+        OTHER_DIRECTED,
+        POSITIVE,
+        UNKNOWN
     }
 
-    // Environmental strategies need goal directives — never predicted mechanically
-    private static final List<EmotionRegulationStrategy> INTERNAL_STRATEGIES = List.of(
-            EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT,
-            EmotionRegulationStrategy.COGNITIVE_CHANGE,
-            EmotionRegulationStrategy.RESPONSE_MODULATION
-    );
+    static EmotionCategory emotionCategory(EmotionType type) {
+        return switch (type) {
+            case ANGER, HATE, RESENTMENT, GLOATING -> EmotionCategory.CONTROLLABLE_NEGATIVE;
+            case FEAR, DISTRESS, FEARS_CONFIRMED -> EmotionCategory.UNCONTROLLABLE_NEGATIVE;
+            case SHAME, REMORSE -> EmotionCategory.SELF_CONSCIOUS;
+            case REPROACH, DISAPPOINTMENT, PITY -> EmotionCategory.OTHER_DIRECTED;
+            case JOY, HOPE, SATISFACTION, RELIEF, PRIDE, ADMIRATION,
+                 GRATITUDE, GRATIFICATION, HAPPY_FOR, LOVE -> EmotionCategory.POSITIVE;
+        };
+    }
 
     static EmotionRegulationResult toResult(RegulationPrediction prediction,
                                              List<String> targetEmotions,

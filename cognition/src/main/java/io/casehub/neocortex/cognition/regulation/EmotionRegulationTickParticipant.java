@@ -146,21 +146,24 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         var axes = defaults.get().descriptor().disposition();
         if (axes == null) return null;
 
-        double peakIntensity = appraisal.emotions().stream()
-                .mapToDouble(e -> e.intensity()).max().orElse(0.0);
+        var peakEmotion = appraisal.emotions().stream()
+                .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
+                .orElse(null);
+        if (peakEmotion == null) return null;
 
         CognitiveLoadLevel loadLevel = (loadEstimator != null)
                 ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
                 : null;
 
-        var prediction = strategyPredictor.predict(axes, peakIntensity, currentFatigue, loadLevel);
+        var prediction = strategyPredictor.predict(
+                axes, peakEmotion.type(), peakEmotion.intensity(), currentFatigue, loadLevel);
         if (prediction.isEmpty()) return null;
 
         var targetEmotions = appraisal.emotions().stream()
                 .map(e -> e.type().name()).toList();
 
         return RegulationStrategyPredictor.toResult(
-                prediction.get(), targetEmotions, List.of(), peakIntensity);
+                prediction.get(), targetEmotions, List.of(), peakEmotion.intensity());
     }
 
     public Optional<EmotionRegulationResult> currentResult(String agentId, String tenantId) {
