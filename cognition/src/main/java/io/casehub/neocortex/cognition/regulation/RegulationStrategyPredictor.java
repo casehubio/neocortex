@@ -90,25 +90,19 @@ public class RegulationStrategyPredictor {
     }
 
     // SHAME, REMORSE — self-attribution, failed own standards
-    // Judge findings across 5 runs for shame:
-    //   - Incoherent suppressor (independent) + RM: 2 (self-protective → shame festers)
-    //   - Incoherent suppressor + CC: 5/3 (judge split on CC capacity)
-    //   - Incoherent suppressor + AD: 3 (avoidance reflex)
-    //   - Coherent suppressor (cooperative) + AD: 3 (second-choice)
-    //   - Judge for cooperative suppressor: suggests RM "to maintain social harmony"
-    //   - Reappraiser + CC: 5/5 consistently
+    // Judge findings across 7 runs for shame:
+    //   RM: 2-3 consistently ("shame festers when suppressed")
+    //   CC: 5 for reappraisers, 2-3 for suppressors (can't execute)
+    //   AD: 3 consistently ("avoidance reflex, second-choice")
     //
-    // Key distinction: cooperative suppression is prosocial (protect group harmony),
-    // not self-protective (hide from discomfort). Prosocial RM for shame has
-    // different outcomes than self-protective RM (Gross, expressive vs prosocial).
+    // Shame is self-evaluative — the only healthy regulation is engaging with
+    // the self-evaluation (CC). Suppressors can't execute CC. No strategy
+    // scores 4+ for suppressor+shame across 7 runs. Only reappraisers can
+    // mechanically regulate shame.
     private Optional<RegulationPrediction> predictForSelfConscious(DispositionAxes axes) {
         if (isReappraiser(axes)) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, ALIGNED_EFFECTIVENESS));
-        }
-        if (isSuppressor(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.70, ALIGNED_EFFECTIVENESS));
         }
         return Optional.empty();
     }

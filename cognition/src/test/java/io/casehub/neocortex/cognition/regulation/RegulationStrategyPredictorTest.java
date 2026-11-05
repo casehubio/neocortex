@@ -35,11 +35,11 @@ class RegulationStrategyPredictorTest {
     }
 
     @Test
-    void suppressor_shame_predictsResponseModulation() {
-        // Cooperative suppressor: prosocial RM to maintain social harmony
+    void suppressor_shame_fallsThrough() {
+        // 7 judge runs: RM=2-3, CC=2-3, AD=3. Shame is self-evaluative —
+        // no strategy scores 4+ for suppressors. LLM must handle this.
         var result = predictor.predict(SUPPRESSOR, EmotionType.SHAME, 0.5, 0.0, null);
-        assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
+        assertThat(result).isEmpty();
     }
 
     @Test
