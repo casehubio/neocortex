@@ -45,6 +45,9 @@ public class EmotionRegulationGenerationPhase {
             because it requires cognitive capacity
             - Personality shapes preference: high neuroticism → more RESPONSE_MODULATION, \
             high openness → more COGNITIVE_CHANGE, high conscientiousness → more SITUATION_SELECTION
+            - Cognitive load constrains strategy: HIGH load → prefer ATTENTIONAL_DEPLOYMENT \
+            or RESPONSE_MODULATION (low cognitive cost); LOW load → COGNITIVE_CHANGE \
+            or SITUATION_SELECTION are viable (require deliberation)
 
             Respond with JSON only:
             {
@@ -68,9 +71,16 @@ public class EmotionRegulationGenerationPhase {
             - regulatedIntensity = peakOriginalIntensity * (1 - effectiveness)""";
 
     private final @Nullable SessionPipeline sessionPipeline;
+    private final @Nullable CognitiveLoadEstimator loadEstimator;
 
     public EmotionRegulationGenerationPhase(@Nullable SessionPipeline sessionPipeline) {
+        this(sessionPipeline, null);
+    }
+
+    public EmotionRegulationGenerationPhase(@Nullable SessionPipeline sessionPipeline,
+                                             @Nullable CognitiveLoadEstimator loadEstimator) {
         this.sessionPipeline = sessionPipeline;
+        this.loadEstimator = loadEstimator;
     }
 
     public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
@@ -98,7 +108,10 @@ public class EmotionRegulationGenerationPhase {
     private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
                               List<EmotionRegulationResult> history, double regulationEffort) {
         var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
-        var userMessage = buildUserMessage(context, appraisal, history, regulationEffort);
+        var loadEstimate = (loadEstimator != null)
+                ? loadEstimator.estimate(context.agentId(), context.tenantId())
+                : null;
+        var userMessage = buildUserMessage(context, appraisal, history, regulationEffort, loadEstimate);
         var responseText = new StringBuilder();
         session.query(userMessage).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -107,12 +120,21 @@ public class EmotionRegulationGenerationPhase {
         return responseText.isEmpty() ? null : responseText.toString();
     }
 
-    private static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
-                                            List<EmotionRegulationResult> history, double regulationEffort) {
+    static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
+                                     List<EmotionRegulationResult> history, double regulationEffort,
+                                     @Nullable CognitiveLoadEstimate loadEstimate) {
         var sb = new StringBuilder();
 
         sb.append("Regulation effort: ").append(String.format("%.2f", regulationEffort))
                 .append(" (0=negligible, 1=maximum urgency)\n\n");
+
+        if (loadEstimate != null) {
+            sb.append("Cognitive load: ").append(loadEstimate.level().name())
+                    .append(" (drives=").append(loadEstimate.activeDrives())
+                    .append(", goals=").append(loadEstimate.activeGoals())
+                    .append(", ToM targets=").append(loadEstimate.mentalModelTargets())
+                    .append(")\n\n");
+        }
 
         sb.append("Current emotions (post-appraisal):\n");
         for (var emotion : appraisal.emotions()) {

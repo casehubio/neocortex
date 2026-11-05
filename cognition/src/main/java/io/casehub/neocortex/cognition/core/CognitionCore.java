@@ -734,8 +734,11 @@ public @Nullable String lastTargetAgentId() {
     public void configureRegulation() {
         if (!config.regulationEnabled() || appraisalParticipant == null) {return;}
 
+        var loadEstimator = new io.casehub.neocortex.cognition.regulation.CognitiveLoadEstimator(
+                drives, goals, mentalModel);
         var generationPhase = sessionPipeline != null
-                              ? new io.casehub.neocortex.cognition.regulation.EmotionRegulationGenerationPhase(sessionPipeline)
+                              ? new io.casehub.neocortex.cognition.regulation.EmotionRegulationGenerationPhase(
+                                      sessionPipeline, loadEstimator)
                               : null;
 
         String cogSgId = null;

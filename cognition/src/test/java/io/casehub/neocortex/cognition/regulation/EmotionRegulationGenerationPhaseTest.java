@@ -1,6 +1,5 @@
 package io.casehub.neocortex.cognition.regulation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
@@ -166,4 +165,39 @@ class EmotionRegulationGenerationPhaseTest {
                 .contains("intensity")
                 .contains("cognitive");
     }
+
+    @Test
+    void userMessageIncludesCognitiveLoad() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.7, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(-0.5, 0.6, 0.3));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var load      = new CognitiveLoadEstimate(CognitiveLoadLevel.HIGH, 3, 3, 2);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.6, load);
+
+        assertThat(message).contains("Cognitive load: HIGH");
+        assertThat(message).contains("drives=3");
+        assertThat(message).contains("goals=3");
+        assertThat(message).contains("ToM targets=2");
+    }
+
+    @Test
+    void userMessageOmitsLoadWhenNull() {
+        var emotion = new CognitiveEmotion(EmotionType.JOY, 0.5, "success",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(0.5, 0.3, 0.4));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.3, null);
+
+        assertThat(message).doesNotContain("Cognitive load");
+    }
+
+    @Test
+    void systemPromptIncludesCognitiveLoadGuidance() {
+        assertThat(EmotionRegulationGenerationPhase.SYSTEM_PROMPT)
+                .contains("Cognitive load constrains strategy");
+    }
+
 }
