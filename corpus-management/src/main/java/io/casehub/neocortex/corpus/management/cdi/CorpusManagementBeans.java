@@ -27,8 +27,11 @@ public class CorpusManagementBeans {
             synchronized (this) {
                 if (dataSource == null) {
                     var sqlite = config.sqlite();
+                    String path = sqlite.path()
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "casehub.corpus-management.sqlite.path must be set when sqlite is enabled"));
                     dataSource = SqliteDataSourceFactory.create(
-                            sqlite.path(), sqlite.maxPoolSize(), sqlite.busyTimeoutMs());
+                            path, sqlite.maxPoolSize(), sqlite.busyTimeoutMs());
                 }
             }
         }

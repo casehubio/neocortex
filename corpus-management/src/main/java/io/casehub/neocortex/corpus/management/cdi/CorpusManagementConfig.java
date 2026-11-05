@@ -3,6 +3,8 @@ package io.casehub.neocortex.corpus.management.cdi;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
+import java.util.Optional;
+
 @ConfigMapping(prefix = "casehub.corpus-management")
 public interface CorpusManagementConfig {
 
@@ -11,7 +13,7 @@ public interface CorpusManagementConfig {
     FederationConfig federation();
 
     interface SqliteConfig {
-        String path();
+        Optional<String> path();
 
         @WithDefault("5")
         int maxPoolSize();
