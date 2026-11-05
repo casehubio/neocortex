@@ -102,8 +102,8 @@ class EmotionRegulationTickParticipantTest {
 
     @Test
     void mechanicalPrediction_usesPersonalityWhenRegistryPresent() {
-        // avoidant + conservative + independent → strong RESPONSE_MODULATION signal
-        var axes = new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
+        // coherent suppressor: avoidant + conservative, no CC-enabling traits
+        var axes = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 

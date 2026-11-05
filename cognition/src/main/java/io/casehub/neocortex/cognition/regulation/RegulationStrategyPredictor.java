@@ -75,7 +75,7 @@ public class RegulationStrategyPredictor {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, ALIGNED_EFFECTIVENESS));
         }
-        if (isSuppressor(axes) && !isConflictedEngager(axes)) {
+        if (isSuppressor(axes) && !hasCompetitiveAvoidantConflict(axes)) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.RESPONSE_MODULATION, 0.70, ALIGNED_EFFECTIVENESS));
         }
@@ -126,41 +126,45 @@ public class RegulationStrategyPredictor {
     }
 
     // Competitive + avoidant: engagement drive conflicts with avoidance drive.
-    // Judge scored RM for this combo at 3/5 — "risks passive-aggressive escalation."
-    boolean isConflictedEngager(DispositionAxes axes) {
+    // Judge scored RM at 3/5 — "risks passive-aggressive escalation."
+    private boolean hasCompetitiveAvoidantConflict(DispositionAxes axes) {
         boolean competitive = "competitive".equals(axes.conflictMode())
                 || "competitive".equals(axes.socialOrient());
         boolean avoidant = "avoidant".equals(axes.conflictMode());
         return competitive && avoidant;
     }
 
+    // Coherence check: a personality is predictable only when its signals point
+    // one direction. Mixed signals (suppressor traits + CC-enabling traits) produce
+    // judge scores of 2-3 because the resolution depends on situational nuance.
     boolean isSuppressor(DispositionAxes axes) {
-        int signals = 0;
-        if ("avoidant".equals(axes.conflictMode())) signals += 2;
-        if ("conservative".equals(axes.riskAppetite())) signals++;
-        if ("independent".equals(axes.socialOrient())) signals++;
-        if ("flexible".equals(axes.ruleFollowing())) signals++;
-        if ("competitive".equals(axes.conflictMode())) signals++;
-        if ("competitive".equals(axes.socialOrient())) signals++;
-        return signals >= 3;
+        return suppressorSignals(axes) >= 3 && ccEnablingSignals(axes) < 2;
     }
 
     boolean isReappraiser(DispositionAxes axes) {
-        return reappraiserSignals(axes) >= 3;
+        return ccEnablingSignals(axes) >= 3 && suppressorSignals(axes) < 2;
     }
 
-    boolean isMildReappraiser(DispositionAxes axes) {
-        return reappraiserSignals(axes) >= 2;
+    private int suppressorSignals(DispositionAxes axes) {
+        int signals = 0;
+        if ("avoidant".equals(axes.conflictMode())) signals += 2;
+        if ("conservative".equals(axes.riskAppetite())) signals++;
+        if ("competitive".equals(axes.conflictMode())) signals++;
+        if ("competitive".equals(axes.socialOrient())) signals++;
+        return signals;
     }
 
-    private int reappraiserSignals(DispositionAxes axes) {
+    // Traits the judge consistently identifies as enabling cognitive reappraisal
+    private int ccEnablingSignals(DispositionAxes axes) {
         int signals = 0;
         if ("analytical".equals(axes.conflictMode())) signals += 2;
         if ("strict".equals(axes.ruleFollowing())) signals++;
         if ("cooperative".equals(axes.socialOrient())) signals++;
+        if ("cooperative".equals(axes.conflictMode())) signals++;
         if ("high".equals(axes.autonomy())) signals++;
         if ("bold".equals(axes.riskAppetite())) signals++;
-        if ("cooperative".equals(axes.conflictMode())) signals++;
+        if ("flexible".equals(axes.ruleFollowing())) signals++;
+        if ("independent".equals(axes.socialOrient())) signals++;
         return signals;
     }
 

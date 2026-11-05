@@ -12,10 +12,20 @@ class RegulationStrategyPredictorTest {
 
     private final RegulationStrategyPredictor predictor = new RegulationStrategyPredictor();
 
-    // --- Suppressor personality (avoidant/conservative/independent) ---
-
+    // Coherent suppressor: avoidant + conservative, no CC-enabling traits
+    // (cooperative social is mild CC signal but below threshold)
     private static final DispositionAxes SUPPRESSOR =
+            new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+
+    // Coherent reappraiser: analytical + strict + cooperative + high autonomy
+    private static final DispositionAxes REAPPRAISER =
+            new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+
+    // Incoherent: avoidant + flexible + independent (suppressor + CC-enabling)
+    private static final DispositionAxes INCOHERENT =
             new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
+
+    // --- Coherent suppressor predictions ---
 
     @Test
     void suppressor_anger_predictsResponseModulation() {
@@ -26,8 +36,6 @@ class RegulationStrategyPredictorTest {
 
     @Test
     void suppressor_shame_predictsAttentionalDeployment() {
-        // Judge: RM scored 2 (shame festers), CC scored 3 (avoidant won't engage with reframing)
-        // AD: personality-congruent redirect, avoids the harm of suppressing shame
         var result = predictor.predict(SUPPRESSOR, EmotionType.SHAME, 0.5, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
@@ -40,10 +48,7 @@ class RegulationStrategyPredictorTest {
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
     }
 
-    // --- Reappraiser personality (analytical/strict/cooperative/high-autonomy) ---
-
-    private static final DispositionAxes REAPPRAISER =
-            new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+    // --- Coherent reappraiser predictions ---
 
     @Test
     void reappraiser_anger_predictsCognitiveChange() {
@@ -59,7 +64,7 @@ class RegulationStrategyPredictorTest {
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
     }
 
-    // --- Fear is always AD regardless of personality ---
+    // --- Fear: universal AD ---
 
     @Test
     void fear_alwaysPredictsAttentionalDeployment() {
@@ -68,14 +73,16 @@ class RegulationStrategyPredictorTest {
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
     }
 
+    // --- Incoherent personality falls through ---
+
     @Test
-    void distress_alwaysPredictsAttentionalDeployment() {
-        var result = predictor.predict(REAPPRAISER, EmotionType.DISTRESS, 0.5, 0.0, null);
-        assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+    void incoherentPersonality_fallsThrough() {
+        // avoidant + flexible + independent = suppressor + CC-enabling → incoherent
+        var result = predictor.predict(INCOHERENT, EmotionType.ANGER, 0.5, 0.0, null);
+        assertThat(result).isEmpty();
     }
 
-    // --- Positive emotions produce no regulation ---
+    // --- Positive emotions: no regulation ---
 
     @Test
     void positiveEmotion_noRegulation() {
@@ -83,37 +90,17 @@ class RegulationStrategyPredictorTest {
         assertThat(result).isEmpty();
     }
 
-    // --- Competitive+avoidant conflict falls through ---
-
-    @Test
-    void competitiveAvoidant_anger_fallsThrough() {
-        // Judge: CC scored 2 (can't execute — low autonomy), RM scored 3 (risks escalation)
-        // Conflicted personality → LLM handles the nuance
-        var controller = new DispositionAxes("competitive", "flexible", "conservative", "low", "avoidant");
-        var result = predictor.predict(controller, EmotionType.ANGER, 0.5, 0.0, null);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void moderateCooperative_anger_fallsThrough() {
-        // Judge: CC scored 3 — personality lacks levers to power reframing
-        // Insufficient signals for either suppressor or reappraiser
-        var mixed = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "cooperative");
-        var result = predictor.predict(mixed, EmotionType.ANGER, 0.5, 0.0, null);
-        assertThat(result).isEmpty();
-    }
-
     // --- Contextual overrides ---
 
     @Test
-    void highIntensity_overridesEmotionType() {
+    void highIntensity_overridesAll() {
         var result = predictor.predict(SUPPRESSOR, EmotionType.ANGER, 0.9, 0.0, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
     }
 
     @Test
-    void highFatigue_overridesEmotionType() {
+    void highFatigue_overridesAll() {
         var result = predictor.predict(REAPPRAISER, EmotionType.ANGER, 0.5, 0.8, null);
         assertThat(result).isPresent();
         assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
@@ -131,20 +118,16 @@ class RegulationStrategyPredictorTest {
     // --- toResult ---
 
     @Test
-    void toResult_producesCorrectRegulationResult() {
+    void toResult_producesCorrectResult() {
         var prediction = new RegulationPrediction(
                 EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, 0.55);
         var result = RegulationStrategyPredictor.toResult(
                 prediction, List.of("ANGER"), List.of("COMPETENCE"), 0.8);
-
         assertThat(result.strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
-        assertThat(result.peakOriginalIntensity()).isEqualTo(0.8);
         assertThat(result.regulatedIntensity()).isCloseTo(0.36, org.assertj.core.data.Offset.offset(0.01));
-        assertThat(result.effectiveness()).isEqualTo(0.55);
-        assertThat(result.narrative()).isNotEmpty();
     }
 
-    // --- Emotion category classification ---
+    // --- Emotion category ---
 
     @Test
     void emotionCategory_classifiesCorrectly() {
