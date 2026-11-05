@@ -90,10 +90,14 @@ public class RegulationStrategyPredictor {
     }
 
     // SHAME, REMORSE — self-attribution, failed own standards
-    // Judge finding: suppressing shame is counterproductive (score 2/5) — "shame festers
-    // internally when merely suppressed rather than reprocessed." CC is appropriate for
-    // ALL personality types because shame is a self-evaluation that needs reframing,
-    // not containment. Even avoidant personalities benefit from reappraisal here.
+    // Judge findings across 4 runs for shame:
+    //   - Suppressor + RM: 2/5 (shame festers when suppressed)
+    //   - Suppressor + CC: 3/5 (avoidant wouldn't engage with reframing)
+    //   - Reappraiser + CC: 5/5 (optimal — analytical engages with meaning)
+    //
+    // Principle: suppressor personality can't do CC (won't engage) and shouldn't
+    // do RM (shame festers). AD is personality-congruent (avoidant redirects)
+    // and less harmful than suppression for self-conscious emotions.
     private Optional<RegulationPrediction> predictForSelfConscious(DispositionAxes axes) {
         if (isReappraiser(axes)) {
             return Optional.of(new RegulationPrediction(
@@ -101,7 +105,7 @@ public class RegulationStrategyPredictor {
         }
         if (isSuppressor(axes)) {
             return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.60, ALIGNED_EFFECTIVENESS));
+                    EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.70, ALIGNED_EFFECTIVENESS));
         }
         return Optional.empty();
     }

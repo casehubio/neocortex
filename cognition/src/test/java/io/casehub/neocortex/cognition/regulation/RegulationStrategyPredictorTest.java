@@ -25,12 +25,12 @@ class RegulationStrategyPredictorTest {
     }
 
     @Test
-    void suppressor_shame_predictsCognitiveChange() {
-        // Judge finding: suppressing shame is counterproductive (score 2/5).
-        // Even avoidant personalities get CC for shame — it needs reprocessing, not containment.
+    void suppressor_shame_predictsAttentionalDeployment() {
+        // Judge: RM scored 2 (shame festers), CC scored 3 (avoidant won't engage with reframing)
+        // AD: personality-congruent redirect, avoids the harm of suppressing shame
         var result = predictor.predict(SUPPRESSOR, EmotionType.SHAME, 0.5, 0.0, null);
         assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
     }
 
     @Test
