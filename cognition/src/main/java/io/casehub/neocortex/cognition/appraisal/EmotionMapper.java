@@ -29,10 +29,10 @@ public final class EmotionMapper {
         if (relevance < 0.2) return emotions;
 
         if (conduciveness < -0.2 && controllability < 0.4) {
-            double intensity = clampIntensity(relevance * Math.abs(conduciveness) * (1.0 - controllability));
+            double intensity = clampIntensity(relevance * Math.abs(conduciveness));
             emotions.add(emotion(EmotionType.FEAR, intensity, subjectId, now));
         } else if (conduciveness < -0.2 && controllability > 0.5) {
-            double intensity = clampIntensity(relevance * Math.abs(conduciveness) * controllability);
+            double intensity = clampIntensity(relevance * Math.abs(conduciveness));
             emotions.add(emotion(EmotionType.ANGER, intensity, subjectId, now));
         } else if (conduciveness < -0.2) {
             double intensity = clampIntensity(relevance * Math.abs(conduciveness));

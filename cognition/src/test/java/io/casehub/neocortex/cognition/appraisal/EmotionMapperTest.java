@@ -139,6 +139,36 @@ class EmotionMapperTest {
         assertThat(tendencies).extracting("readiness").contains(ActionReadiness.ATTENDING);
     }
 
+
+    @Test
+    void angerIntensityNotCompressedByThreeFactorProduct() {
+        var results = List.of(
+                SecResult.of("relevance", SecDimensions.RELEVANCE, 0.6, SecDimensions.NOVELTY, 0.5),
+                SecResult.of("implication", SecDimensions.CONDUCIVENESS, -0.5),
+                SecResult.of("coping", SecDimensions.CONTROLLABILITY, 0.6, SecDimensions.ADJUSTABILITY, 0.5));
+
+        var emotions = EmotionMapper.mapEmotions(results, "betrayal");
+        var anger = emotions.stream()
+                            .filter(e -> e.type() == EmotionType.ANGER).findFirst().orElseThrow();
+
+        assertThat(anger.intensity()).isGreaterThanOrEqualTo(0.25);
+    }
+
+    @Test
+    void fearIntensityNotCompressedByThreeFactorProduct() {
+        var results = List.of(
+                SecResult.of("relevance", SecDimensions.RELEVANCE, 0.6, SecDimensions.NOVELTY, 0.5),
+                SecResult.of("implication", SecDimensions.CONDUCIVENESS, -0.5),
+                SecResult.of("coping", SecDimensions.CONTROLLABILITY, 0.3, SecDimensions.ADJUSTABILITY, 0.3));
+
+        var emotions = EmotionMapper.mapEmotions(results, "threat");
+        var fear = emotions.stream()
+                           .filter(e -> e.type() == EmotionType.FEAR).findFirst().orElseThrow();
+
+        assertThat(fear.intensity()).isGreaterThanOrEqualTo(0.25);
+    }
+
+
     @Test
     void padFromAlmaTable() {
         var results = List.of(
