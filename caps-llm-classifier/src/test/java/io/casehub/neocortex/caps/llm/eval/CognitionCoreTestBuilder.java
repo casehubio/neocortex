@@ -38,10 +38,15 @@ public final class CognitionCoreTestBuilder {
     private CognitionCoreTestBuilder() {}
 
     public static CognitionCore buildCore(CognitionConfig config) {
-        return buildCore(config, null);
+        return buildCore(config, null, null);
     }
 
     public static CognitionCore buildCore(CognitionConfig config, @Nullable SessionPipeline sessionPipeline) {
+        return buildCore(config, sessionPipeline, null);
+    }
+
+    public static CognitionCore buildCore(CognitionConfig config, @Nullable SessionPipeline sessionPipeline,
+                                             io.casehub.neocortex.mindmap.@Nullable MindMapStore mindMapStore) {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
         var cbrStore = new InMemoryCbrRecordStore();
         var narrativeOrch = new NarrativeOrchestrator(
@@ -88,6 +93,7 @@ public final class CognitionCoreTestBuilder {
                 java.time.Clock.systemUTC());
 
         return new CognitionCore(mood, drives, userModel, mentalModel, strategy,
-                narrativeOrch, goals, noOpHygiene, innerLife, config, sessionPipeline);
+                narrativeOrch, goals, noOpHygiene, innerLife, config,
+                mindMapStore, null, null, null, null, null, null, sessionPipeline);
     }
 }
