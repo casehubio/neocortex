@@ -174,7 +174,7 @@ class EmotionRegulationGenerationPhaseTest {
         var load      = new CognitiveLoadEstimate(CognitiveLoadLevel.HIGH, 3, 3, 2);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.6, load, 0.0);
+                context, appraisal, List.of(), 0.6, load, 0.0, null);
 
         assertThat(message).contains("Cognitive load: HIGH");
         assertThat(message).contains("drives=3");
@@ -189,7 +189,7 @@ class EmotionRegulationGenerationPhaseTest {
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.3, null, 0.0);
+                context, appraisal, List.of(), 0.3, null, 0.0, null);
 
         assertThat(message).doesNotContain("Cognitive load");
     }
@@ -207,7 +207,7 @@ class EmotionRegulationGenerationPhaseTest {
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.6, null, 0.45);
+                context, appraisal, List.of(), 0.6, null, 0.45, null);
 
         assertThat(message).contains("Regulation fatigue: 45%");
         assertThat(message).contains("depleting capacity");
@@ -221,7 +221,7 @@ class EmotionRegulationGenerationPhaseTest {
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.6, null, 0.85);
+                context, appraisal, List.of(), 0.6, null, 0.85, null);
 
         assertThat(message).contains("Regulation fatigue: 85%");
         assertThat(message).contains("breakdown");
@@ -234,9 +234,43 @@ class EmotionRegulationGenerationPhaseTest {
         var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
 
         var message = EmotionRegulationGenerationPhase.buildUserMessage(
-                context, appraisal, List.of(), 0.3, null, 0.005);
+                context, appraisal, List.of(), 0.3, null, 0.005, null);
 
         assertThat(message).doesNotContain("fatigue");
+    }
+
+    @Test
+    void userMessageIncludesStrategyFailureSignal() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.7, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(-0.5, 0.6, 0.3));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var signal = new StrategyFailureSignal(
+                EmotionRegulationStrategy.RESPONSE_MODULATION, 3, 0.7, 0.3, false);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, signal);
+
+        assertThat(message).contains("STRATEGY FAILING");
+        assertThat(message).contains("RESPONSE_MODULATION");
+        assertThat(message).contains("0.70");
+        assertThat(message).contains("0.30");
+        assertThat(message).contains("3 ticks");
+    }
+
+    @Test
+    void userMessageIncludesBreakthroughSignal() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.7, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, new PadProjection(-0.5, 0.6, 0.3));
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var signal = new StrategyFailureSignal(
+                EmotionRegulationStrategy.RESPONSE_MODULATION, 5, 0.7, 0.05, true);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, signal);
+
+        assertThat(message).contains("BREAKTHROUGH");
+        assertThat(message).contains("breaking through");
+        assertThat(message).contains("different strategy");
     }
 
 

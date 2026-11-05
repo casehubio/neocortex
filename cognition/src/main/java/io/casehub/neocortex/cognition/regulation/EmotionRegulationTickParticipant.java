@@ -19,6 +19,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable MindMapStore                     mindMapStore;
     private final @Nullable String                           cognitiveSubgraphId;
     private final           RegulationFatigueTracker         fatigueTracker;
+    private final           RegulationMonitor                regulationMonitor;
+    private final ConcurrentHashMap<String, StrategyFailureSignal> failureSignals = new ConcurrentHashMap<>();
 
     // Bosse et al. 2010 — homeostatic baseline intensity (ERL_norm = 0.25 on [0,2], normalized to 0.3 on [0,1])
     static final double BASELINE_INTENSITY = 0.3;
@@ -54,6 +56,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.mindMapStore         = mindMapStore;
         this.cognitiveSubgraphId  = cognitiveSubgraphId;
         this.fatigueTracker       = new RegulationFatigueTracker();
+        this.regulationMonitor   = new RegulationMonitor();
     }
 
     @Override
@@ -88,11 +91,17 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                       : List.<EmotionRegulationResult>of();
 
         double currentFatigue = fatigueTracker.currentFatigue(context.agentId(), context.tenantId());
-        var result = generationPhase.generate(context, appraisal.get(), history, regulationEffort, currentFatigue);
+        var pendingSignal = failureSignals.remove(context.agentId() + ":" + context.tenantId());
+        var result = generationPhase.generate(context, appraisal.get(), history,
+                regulationEffort, currentFatigue, pendingSignal);
         if (result != null) {
             String key = context.agentId() + ":" + context.tenantId();
             results.put(key, result);
             fatigueTracker.recordRegulation(context.agentId(), context.tenantId(), regulationEffort);
+            var signal = regulationMonitor.record(context.agentId(), context.tenantId(), result);
+            if (signal != null) {
+                failureSignals.put(key, signal);
+            }
             if (mindMapStore != null && cognitiveSubgraphId != null) {
                 EmotionRegulationMindMapAdapter.write(
                         mindMapStore, context.agentId(), context.tenantId(),

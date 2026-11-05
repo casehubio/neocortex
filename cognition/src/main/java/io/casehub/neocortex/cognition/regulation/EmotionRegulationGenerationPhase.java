@@ -101,10 +101,20 @@ public class EmotionRegulationGenerationPhase {
                                                        List<EmotionRegulationResult> history,
                                                        double regulationEffort,
                                                        double regulationFatigue) {
+        return generate(context, appraisal, history, regulationEffort, regulationFatigue, null);
+    }
+
+    public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
+                                                       AppraisalResult appraisal,
+                                                       List<EmotionRegulationResult> history,
+                                                       double regulationEffort,
+                                                       double regulationFatigue,
+                                                       @Nullable StrategyFailureSignal failureSignal) {
         if (sessionPipeline == null) return null;
 
         try {
-            String response = invokeLlm(context, appraisal, history, regulationEffort, regulationFatigue);
+            String response = invokeLlm(context, appraisal, history, regulationEffort,
+                    regulationFatigue, failureSignal);
             if (response == null) return null;
             return parseResponse(response);
         } catch (Exception e) {
@@ -115,13 +125,14 @@ public class EmotionRegulationGenerationPhase {
 
     private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
                               List<EmotionRegulationResult> history, double regulationEffort,
-                              double regulationFatigue) {
+                              double regulationFatigue,
+                              @Nullable StrategyFailureSignal failureSignal) {
         var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                 ? loadEstimator.estimate(context.agentId(), context.tenantId())
                 : null;
         var userMessage = buildUserMessage(context, appraisal, history, regulationEffort, loadEstimate,
-                regulationFatigue);
+                regulationFatigue, failureSignal);
         var responseText = new StringBuilder();
         session.query(userMessage).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -133,7 +144,8 @@ public class EmotionRegulationGenerationPhase {
     static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
                                      List<EmotionRegulationResult> history, double regulationEffort,
                                      @Nullable CognitiveLoadEstimate loadEstimate,
-                                     double regulationFatigue) {
+                                     double regulationFatigue,
+                                     @Nullable StrategyFailureSignal failureSignal) {
         var sb = new StringBuilder();
 
         sb.append("Regulation effort: ").append(String.format("%.2f", regulationEffort))
@@ -154,6 +166,22 @@ public class EmotionRegulationGenerationPhase {
                     .append(", goals=").append(loadEstimate.activeGoals())
                     .append(", ToM targets=").append(loadEstimate.mentalModelTargets())
                     .append(")\n\n");
+        }
+
+        if (failureSignal != null) {
+            if (failureSignal.breakthrough()) {
+                sb.append("⚠ BREAKTHROUGH: ").append(failureSignal.failingStrategy().name())
+                        .append(" has failed entirely — effectiveness dropped to ")
+                        .append(String.format("%.2f", failureSignal.currentEffectiveness()))
+                        .append(". The held-back emotion is breaking through. Choose a different strategy.\n\n");
+            } else {
+                sb.append("⚠ STRATEGY FAILING: ").append(failureSignal.failingStrategy().name())
+                        .append(" effectiveness declined from ")
+                        .append(String.format("%.2f", failureSignal.initialEffectiveness()))
+                        .append(" to ").append(String.format("%.2f", failureSignal.currentEffectiveness()))
+                        .append(" over ").append(failureSignal.consecutiveDeclines())
+                        .append(" ticks. Consider switching strategies.\n\n");
+            }
         }
 
         sb.append("Current emotions (post-appraisal):\n");
