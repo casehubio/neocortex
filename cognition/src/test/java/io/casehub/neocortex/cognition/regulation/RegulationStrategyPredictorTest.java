@@ -14,14 +14,13 @@ class RegulationStrategyPredictorTest {
     // --- Personality-driven predictions ---
 
     @Test
-    void strictRuleFollowing_analyticalConflict_predictsCognitiveChange() {
-        // strict + analytical → strong COGNITIVE_CHANGE signal
+    void strictAnalytical_cognitiveChangeSignal_fallsThroughToLlm() {
+        // strict + analytical → strong CC signal, but CC is not mechanically predicted
+        // (back-test: 0/9 CC agreement — too situation-sensitive)
         var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
         var result = predictor.predict(axes, 0.5, 0.0, CognitiveLoadLevel.LOW);
 
-        assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
-        assertThat(result.get().confidence()).isGreaterThan(0.6);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -47,10 +46,10 @@ class RegulationStrategyPredictorTest {
     @Test
     void attentionalDeployment_onlyFromContextualOverrides() {
         // AD is never predicted from personality alone — only from high intensity/fatigue/load
-        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
         var personalityResult = predictor.predict(axes, 0.5, 0.0, CognitiveLoadLevel.LOW);
         assertThat(personalityResult).isPresent();
-        assertThat(personalityResult.get().strategy()).isNotEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+        assertThat(personalityResult.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
 
         var intensityResult = predictor.predict(axes, 0.9, 0.0, CognitiveLoadLevel.LOW);
         assertThat(intensityResult).isPresent();
@@ -165,11 +164,12 @@ class RegulationStrategyPredictorTest {
 
     @Test
     void nullCognitiveLoad_usesPersonalityOnly() {
-        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        // RM personality + null load → still predicts RM mechanically
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
         var result = predictor.predict(axes, 0.5, 0.0, null);
 
         assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
     }
 
     // --- Vote computation ---

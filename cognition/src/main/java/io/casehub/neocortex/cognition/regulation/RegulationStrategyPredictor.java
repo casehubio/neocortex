@@ -53,10 +53,16 @@ public class RegulationStrategyPredictor {
             return Optional.of(new RegulationPrediction(strategy, 0.75, ALIGNED_EFFECTIVENESS));
         }
 
-        // Personality-driven prediction
+        // Personality-driven prediction — only RESPONSE_MODULATION is mechanically
+        // predicted. COGNITIVE_CHANGE is too situation-sensitive: back-testing showed
+        // 0/9 agreement with LLM (the LLM factors situation type, not just personality).
+        // RESPONSE_MODULATION showed 9/9 agreement — suppression is reliably personality-driven.
         var votes = computeVotes(axes);
         var best = findDominant(votes);
         if (best == null || best.score < confidenceThreshold) {
+            return Optional.empty();
+        }
+        if (best.strategy != EmotionRegulationStrategy.RESPONSE_MODULATION) {
             return Optional.empty();
         }
 

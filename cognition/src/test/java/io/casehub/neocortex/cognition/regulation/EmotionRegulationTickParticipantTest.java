@@ -102,8 +102,8 @@ class EmotionRegulationTickParticipantTest {
 
     @Test
     void mechanicalPrediction_usesPersonalityWhenRegistryPresent() {
-        // strict + analytical + high autonomy → strong COGNITIVE_CHANGE signal
-        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        // avoidant + conservative + independent → strong RESPONSE_MODULATION signal
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
@@ -122,8 +122,8 @@ class EmotionRegulationTickParticipantTest {
 
         var result = participant.currentResult("a1", "t1");
         assertThat(result).isPresent();
-        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.COGNITIVE_CHANGE);
-        assertThat(result.get().narrative()).contains("reframe");
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.RESPONSE_MODULATION);
+        assertThat(result.get().narrative()).contains("hold");
     }
 
     @Test
