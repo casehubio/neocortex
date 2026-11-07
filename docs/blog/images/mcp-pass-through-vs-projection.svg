@@ -85,7 +85,7 @@
   <!-- Transformed MCP box -->
   <rect x="605" y="285" width="120" height="70" rx="4" fill="#f0fff4" stroke="#48bb78" stroke-width="1.5"/>
   <text x="665" y="302" font-size="11" font-weight="bold" fill="#2d3748" text-anchor="middle">MCP</text>
-  <text x="665" y="316" font-size="9" fill="#276749" text-anchor="middle">write (auto upsert)</text>
+  <text x="665" y="316" font-size="9" fill="#276749" text-anchor="middle">write (auto auto-route)</text>
   <text x="665" y="330" font-size="9" fill="#276749" text-anchor="middle">read (enriched)</text>
   <text x="665" y="344" font-size="9" fill="#276749" text-anchor="middle">structured params</text>
 
