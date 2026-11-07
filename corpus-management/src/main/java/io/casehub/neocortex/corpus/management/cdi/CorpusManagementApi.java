@@ -76,9 +76,9 @@ public interface CorpusManagementApi {
 
     // --- MCP-only tools (not projected to REST/GraphQL) ---
 
-    @McpOnly("What changed in a corpus since a point in time — returns structured changes with new cursor timestamp")
+    @McpOnly("What changed in a corpus since a point in time — pass an ISO-8601 timestamp, get structured changes back")
     @McpDelegate(spi = ChangeSource.class, method = "changesSince")
-    default ChangeSet changes(String cursor) {
+    default ChangeSet changes(@McpCursorMap(McpCursorType.INSTANT) String cursor) {
         throw new UnsupportedOperationException("MCP-only");
     }
 
