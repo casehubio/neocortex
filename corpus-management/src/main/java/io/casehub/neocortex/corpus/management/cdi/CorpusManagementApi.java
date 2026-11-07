@@ -5,6 +5,7 @@ import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusSearchResult;
 import io.casehub.neocortex.corpus.management.FederatedSearchResult;
 import io.casehub.neocortex.corpus.management.HealthReport;
+import io.casehub.platform.api.mcp.ContextParam;
 import io.casehub.platform.api.mcp.McpDomain;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
@@ -17,40 +18,40 @@ import java.util.Map;
 public interface CorpusManagementApi {
 
     @PlatformQuery("List all corpora for a tenant, filtered by lifecycle status (ACTIVE or ARCHIVED)")
-    List<CorpusDescriptor> listCorpora(String tenantId, String lifecycle);
+    List<CorpusDescriptor> listCorpora(@ContextParam("tenancyId") String tenancyId, String lifecycle);
 
     @PlatformQuery("Get a single corpus descriptor by tenant and corpus name")
-    CorpusDescriptor getCorpus(String tenantId, String corpusName);
+    CorpusDescriptor getCorpus(@ContextParam("tenancyId") String tenancyId, String corpusName);
 
     @PlatformQuery("List corpora of a given type for a tenant")
-    List<CorpusDescriptor> listByType(String typeName, String tenantId);
+    List<CorpusDescriptor> listByType(String typeName, @ContextParam("tenancyId") String tenancyId);
 
     @PlatformQuery("Resolve the full search scope for a corpus — includes upstream and peer corpora reachable via federation")
-    List<CorpusDescriptor> searchScope(String tenantId, String corpusName);
+    List<CorpusDescriptor> searchScope(@ContextParam("tenancyId") String tenancyId, String corpusName);
 
     @PlatformQuery("Run a health reconciliation check for a tenant's corpora")
-    HealthReport reconcile(String tenantId);
+    HealthReport reconcile(@ContextParam("tenancyId") String tenancyId);
 
     @PlatformMutation("Add a new entry to a corpus. metadata is a pipe-separated key=value list (e.g. 'title=My Doc|author=Jane')")
-    String addEntry(String tenantId, String corpusName, String entryId, String body,
+    String addEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId, String body,
                     String metadata, String artifactRef);
 
     @PlatformQuery("Get a single entry from a corpus by ID")
-    CorpusEntry getEntry(String tenantId, String corpusName, String entryId);
+    CorpusEntry getEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId);
 
     @PlatformMutation("Update an existing entry in a corpus")
-    String updateEntry(String tenantId, String corpusName, String entryId, String body,
+    String updateEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId, String body,
                        String metadata, String artifactRef);
 
     @PlatformMutation("Remove an entry from a corpus and its vector index")
-    String removeEntry(String tenantId, String corpusName, String entryId);
+    String removeEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId);
 
     @PlatformQuery("Search a single corpus by text query")
-    List<CorpusSearchResult> searchCorpus(String tenantId, String corpusName,
+    List<CorpusSearchResult> searchCorpus(@ContextParam("tenancyId") String tenancyId, String corpusName,
                                           String query, Integer maxResults);
 
     @PlatformQuery("Federated search across corpora — walks upstream and peer federation links, "
             + "deduplicates by entry ID, returns results ranked by tier then score")
-    FederatedSearchResult federatedSearch(String tenantId, String query,
+    FederatedSearchResult federatedSearch(@ContextParam("tenancyId") String tenancyId, String query,
                                           Integer maxResults, Integer federationDepth);
 }

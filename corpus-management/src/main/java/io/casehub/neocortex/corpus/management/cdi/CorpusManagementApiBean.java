@@ -29,74 +29,74 @@ public class CorpusManagementApiBean implements CorpusManagementApi {
     @Inject FederatedCorpusSearch federatedSearch;
 
     @Override
-    public List<CorpusDescriptor> listCorpora(String tenantId, String lifecycle) {
+    public List<CorpusDescriptor> listCorpora(String tenancyId, String lifecycle) {
         CorpusLifecycle status = lifecycle != null
                 ? CorpusLifecycle.valueOf(lifecycle.toUpperCase())
                 : CorpusLifecycle.ACTIVE;
-        return catalogue.list(tenantId, status);
+        return catalogue.list(tenancyId, status);
     }
 
     @Override
-    public CorpusDescriptor getCorpus(String tenantId, String corpusName) {
-        return catalogue.get(new CorpusRef(tenantId, corpusName)).orElse(null);
+    public CorpusDescriptor getCorpus(String tenancyId, String corpusName) {
+        return catalogue.get(new CorpusRef(tenancyId, corpusName)).orElse(null);
     }
 
     @Override
-    public List<CorpusDescriptor> listByType(String typeName, String tenantId) {
-        return catalogue.forType(new CorpusType(typeName, Map.of(), Map.of(), null), tenantId);
+    public List<CorpusDescriptor> listByType(String typeName, String tenancyId) {
+        return catalogue.forType(new CorpusType(typeName, Map.of(), Map.of(), null), tenancyId);
     }
 
     @Override
-    public List<CorpusDescriptor> searchScope(String tenantId, String corpusName) {
-        return catalogue.searchScope(new CorpusRef(tenantId, corpusName));
+    public List<CorpusDescriptor> searchScope(String tenancyId, String corpusName) {
+        return catalogue.searchScope(new CorpusRef(tenancyId, corpusName));
     }
 
     @Override
-    public HealthReport reconcile(String tenantId) {
-        return catalogue.reconcile(tenantId);
+    public HealthReport reconcile(String tenancyId) {
+        return catalogue.reconcile(tenancyId);
     }
 
     @Override
-    public String addEntry(String tenantId, String corpusName, String entryId, String body,
+    public String addEntry(String tenancyId, String corpusName, String entryId, String body,
                            String metadata, String artifactRef) {
         var entry = new CorpusEntry(entryId, parseMetadata(metadata), body, artifactRef);
-        return entryStore.add(new CorpusRef(tenantId, corpusName), entry);
+        return entryStore.add(new CorpusRef(tenancyId, corpusName), entry);
     }
 
     @Override
-    public CorpusEntry getEntry(String tenantId, String corpusName, String entryId) {
-        return entryStore.get(new CorpusRef(tenantId, corpusName), entryId).orElse(null);
+    public CorpusEntry getEntry(String tenancyId, String corpusName, String entryId) {
+        return entryStore.get(new CorpusRef(tenancyId, corpusName), entryId).orElse(null);
     }
 
     @Override
-    public String updateEntry(String tenantId, String corpusName, String entryId, String body,
+    public String updateEntry(String tenancyId, String corpusName, String entryId, String body,
                               String metadata, String artifactRef) {
         var entry = new CorpusEntry(entryId, parseMetadata(metadata), body, artifactRef);
-        entryStore.update(new CorpusRef(tenantId, corpusName), entryId, entry);
+        entryStore.update(new CorpusRef(tenancyId, corpusName), entryId, entry);
         return entryId;
     }
 
     @Override
-    public String removeEntry(String tenantId, String corpusName, String entryId) {
-        entryStore.remove(new CorpusRef(tenantId, corpusName), entryId);
+    public String removeEntry(String tenancyId, String corpusName, String entryId) {
+        entryStore.remove(new CorpusRef(tenancyId, corpusName), entryId);
         return entryId;
     }
 
     @Override
-    public List<CorpusSearchResult> searchCorpus(String tenantId, String corpusName,
+    public List<CorpusSearchResult> searchCorpus(String tenancyId, String corpusName,
                                                   String query, Integer maxResults) {
         int limit = maxResults != null ? maxResults : 10;
         return corpusSearch.search(
-                new CorpusRef(tenantId, corpusName), CorpusQuery.of(query, limit));
+                new CorpusRef(tenancyId, corpusName), CorpusQuery.of(query, limit));
     }
 
     @Override
-    public FederatedSearchResult federatedSearch(String tenantId, String query,
+    public FederatedSearchResult federatedSearch(String tenancyId, String query,
                                                   Integer maxResults, Integer federationDepth) {
         int limit = maxResults != null ? maxResults : 10;
         int depth = federationDepth != null ? federationDepth : -1;
         var corpusQuery = CorpusQuery.of(query, limit).withFederationDepth(depth);
-        return federatedSearch.search(corpusQuery, tenantId);
+        return federatedSearch.search(corpusQuery, tenancyId);
     }
 
     static Map<String, Object> parseMetadata(String metadata) {
