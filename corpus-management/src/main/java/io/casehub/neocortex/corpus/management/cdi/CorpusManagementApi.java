@@ -20,6 +20,7 @@ import io.casehub.platform.api.mcp.McpOnly;
 import io.casehub.platform.api.mcp.McpParam;
 import io.casehub.platform.api.mcp.McpParamFormat;
 import io.casehub.platform.api.mcp.McpAutoRoute;
+import io.casehub.platform.api.mcp.McpTransform;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
@@ -88,8 +89,9 @@ public interface CorpusManagementApi {
         throw new UnsupportedOperationException("MCP-only");
     }
 
-    @McpOnly("Read a historical version of a document by version number")
+    @McpOnly("Read a historical version of a document — returns parsed content with metadata")
     @McpDelegate(spi = CorpusReader.class, method = "readVersion")
+    @McpTransform(spi = io.casehub.neocortex.corpus.management.impl.GardenMetadataExtractor.class, method = "extract")
     default byte[] readVersion(String path, int version) {
         throw new UnsupportedOperationException("MCP-only");
     }
