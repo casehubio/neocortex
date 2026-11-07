@@ -5,11 +5,18 @@ import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusSearchResult;
 import io.casehub.neocortex.corpus.management.FederatedSearchResult;
 import io.casehub.neocortex.corpus.management.HealthReport;
+import io.casehub.neocortex.corpus.ChangeSet;
+import io.casehub.neocortex.corpus.ChangeSource;
 import io.casehub.neocortex.corpus.CorpusReader;
+import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.platform.api.mcp.ContextParam;
+import io.casehub.platform.api.mcp.McpCursorMap;
+import io.casehub.platform.api.mcp.McpCursorType;
+import io.casehub.platform.api.mcp.McpDelegate;
 import io.casehub.platform.api.mcp.McpDomain;
 import io.casehub.platform.api.mcp.McpEnrich;
 import io.casehub.platform.api.mcp.McpExclude;
+import io.casehub.platform.api.mcp.McpOnly;
 import io.casehub.platform.api.mcp.McpParam;
 import io.casehub.platform.api.mcp.McpParamFormat;
 import io.casehub.platform.api.mcp.McpTrack;
@@ -66,4 +73,30 @@ public interface CorpusManagementApi {
             + "deduplicates by entry ID, returns results ranked by tier then score")
     FederatedSearchResult federatedSearch(@ContextParam("tenancyId") String tenancyId, String query,
                                           Integer maxResults, Integer federationDepth);
+
+    // --- MCP-only tools (not projected to REST/GraphQL) ---
+
+    @McpOnly("What changed in a corpus since a point in time — returns structured changes with new cursor timestamp")
+    @McpDelegate(spi = ChangeSource.class, method = "changesSince")
+    default ChangeSet changes(String cursor) {
+        throw new UnsupportedOperationException("MCP-only");
+    }
+
+    @McpOnly("Version history of a specific document — all versions with timestamps and source references")
+    @McpDelegate(spi = CorpusReader.class, method = "versions")
+    default List<VersionInfo> history(String path) {
+        throw new UnsupportedOperationException("MCP-only");
+    }
+
+    @McpOnly("Read a historical version of a document by version number")
+    @McpDelegate(spi = CorpusReader.class, method = "readVersion")
+    default byte[] readVersion(String path, int version) {
+        throw new UnsupportedOperationException("MCP-only");
+    }
+
+    @McpOnly("List all entries in a corpus, optionally filtered by path prefix")
+    @McpDelegate(spi = CorpusReader.class, method = "list")
+    default List<String> listEntries(String prefix) {
+        throw new UnsupportedOperationException("MCP-only");
+    }
 }
