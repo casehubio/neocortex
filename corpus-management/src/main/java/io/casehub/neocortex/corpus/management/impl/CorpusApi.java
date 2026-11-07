@@ -3,6 +3,8 @@ package io.casehub.neocortex.corpus.management.impl;
 import io.casehub.neocortex.rag.ProvenanceRecord;
 import io.casehub.neocortex.rag.ProvenanceStats;
 import io.casehub.platform.api.mcp.McpDomain;
+import io.casehub.platform.api.mcp.McpParam;
+import io.casehub.platform.api.mcp.McpParamFormat;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
@@ -15,16 +17,18 @@ import java.util.List;
 public interface CorpusApi {
 
     @PlatformQuery("Search a corpus with optional domain, type, and tag filters. "
-            + "Supports search profiles and inline stack overrides for BOM-style filtering.")
+            + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26').")
     List<SearchResult> search(String corpusId, String query,
-            List<String> domains, String type, String tags,
+            List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
             Integer limit, String profile, String stack);
 
     @PlatformQuery("Adaptive search with keyword boosting — extends results "
-            + "when initial set is too small, trims when too large")
-    AdaptiveResult adaptiveSearch(String corpusId, String query, String keywords,
-            List<String> domains, String type, String tags, Integer limit,
-            String profile, String stack);
+            + "when initial set is too small, trims when too large. "
+            + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26').")
+    AdaptiveResult adaptiveSearch(String corpusId, String query,
+            @McpParam(format = McpParamFormat.LIST) String keywords,
+            List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
+            Integer limit, String profile, String stack);
 
     @PlatformQuery("Fetch a single corpus entry by ID — returns frontmatter metadata and markdown body")
     EntryDetail entry(String corpusId, String entryId);
@@ -67,7 +71,7 @@ public interface CorpusApi {
 
     @PlatformMutation("Record provenance links between corpus entries and an issue/spec")
     int recordProvenance(String issueRepo, Integer issueNumber,
-            String specName, String entryIds, String recordedBy);
+            String specName, @McpParam(format = McpParamFormat.LIST) String entryIds, String recordedBy);
 
     @PlatformQuery("Outcome report: summary of recorded outcomes across entries")
     String outcomeReport();
@@ -76,7 +80,8 @@ public interface CorpusApi {
     String recordOutcome(String entryId, String issueRepo, Integer issueNumber,
             String workContext, Double successRate, String detail);
 
-    @PlatformMutation("Record retrieval feedback for entries — updates staleness tracking and provenance context")
-    String recordFeedback(String entryIds, String outcome,
+    @PlatformMutation("Record retrieval feedback for entries — updates staleness tracking and provenance context. "
+            + "Valid outcome values: RELEVANT, PARTIALLY_RELEVANT, NOT_RELEVANT, OUTDATED.")
+    String recordFeedback(@McpParam(format = McpParamFormat.LIST) String entryIds, String outcome,
             String stack, String issueRepo, Integer issueNumber);
 }
