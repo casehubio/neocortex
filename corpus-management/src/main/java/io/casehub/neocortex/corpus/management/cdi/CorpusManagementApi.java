@@ -7,6 +7,9 @@ import io.casehub.neocortex.corpus.management.FederatedSearchResult;
 import io.casehub.neocortex.corpus.management.HealthReport;
 import io.casehub.platform.api.mcp.ContextParam;
 import io.casehub.platform.api.mcp.McpDomain;
+import io.casehub.platform.api.mcp.McpExclude;
+import io.casehub.platform.api.mcp.McpParam;
+import io.casehub.platform.api.mcp.McpParamFormat;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
@@ -32,16 +35,17 @@ public interface CorpusManagementApi {
     @PlatformQuery("Run a health reconciliation check for a tenant's corpora")
     HealthReport reconcile(@ContextParam("tenancyId") String tenancyId);
 
-    @PlatformMutation("Add a new entry to a corpus. metadata is a pipe-separated key=value list (e.g. 'title=My Doc|author=Jane')")
+    @PlatformMutation("Add a new entry to a corpus")
     String addEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId, String body,
-                    String metadata, String artifactRef);
+                    @McpParam(format = McpParamFormat.MAP) String metadata, String artifactRef);
 
     @PlatformQuery("Get a single entry from a corpus by ID")
     CorpusEntry getEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId);
 
+    @McpExclude
     @PlatformMutation("Update an existing entry in a corpus")
     String updateEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId, String body,
-                       String metadata, String artifactRef);
+                       @McpParam(format = McpParamFormat.MAP) String metadata, String artifactRef);
 
     @PlatformMutation("Remove an entry from a corpus and its vector index")
     String removeEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId);
