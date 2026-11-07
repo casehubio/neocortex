@@ -12,8 +12,12 @@ import io.casehub.neocortex.corpus.management.CorpusType;
 import io.casehub.neocortex.corpus.management.FederatedCorpusSearch;
 import io.casehub.neocortex.corpus.management.FederatedSearchResult;
 import io.casehub.neocortex.corpus.management.HealthReport;
+import io.casehub.neocortex.corpus.CorpusReader;
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.platform.api.identity.CurrentPrincipal;
+import io.casehub.platform.api.mcp.ReadTracker;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.util.LinkedHashMap;
@@ -27,6 +31,9 @@ public class CorpusManagementApiBean implements CorpusManagementApi {
     @Inject CorpusEntryStore entryStore;
     @Inject CorpusSearch corpusSearch;
     @Inject FederatedCorpusSearch federatedSearch;
+    @Inject Instance<CorpusReader> corpusReaderInstance;
+    @Inject Instance<ReadTracker> readTrackerInstance;
+    @Inject CurrentPrincipal principal;
 
     @Override
     public List<CorpusDescriptor> listCorpora(String tenancyId, String lifecycle) {
@@ -97,6 +104,19 @@ public class CorpusManagementApiBean implements CorpusManagementApi {
         int depth = federationDepth != null ? federationDepth : -1;
         var corpusQuery = CorpusQuery.of(query, limit).withFederationDepth(depth);
         return federatedSearch.search(corpusQuery, tenancyId);
+    }
+
+    @Override
+    public List<String> unread(String tenancyId, String corpusName, Integer limit) {
+        if (!readTrackerInstance.isResolvable() || !corpusReaderInstance.isResolvable()) {
+            return List.of();
+        }
+        ReadTracker tracker = readTrackerInstance.get();
+        CorpusReader reader = corpusReaderInstance.get();
+        List<String> allEntries = reader.list();
+        int cap = limit != null ? limit : 20;
+        return tracker.unread(principal.actorId(), "corpus-management", allEntries, null)
+                .stream().limit(cap).toList();
     }
 
     static Map<String, Object> parseMetadata(String metadata) {

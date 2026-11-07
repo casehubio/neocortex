@@ -19,8 +19,6 @@ import io.casehub.platform.api.mcp.McpExclude;
 import io.casehub.platform.api.mcp.McpOnly;
 import io.casehub.platform.api.mcp.McpParam;
 import io.casehub.platform.api.mcp.McpParamFormat;
-import io.casehub.platform.api.mcp.McpTrack;
-import io.casehub.platform.api.mcp.McpTrackType;
 import io.casehub.platform.api.mcp.McpUpsert;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
@@ -53,8 +51,7 @@ public interface CorpusManagementApi {
                     @McpParam(format = McpParamFormat.MAP) String metadata, String artifactRef);
 
     @McpEnrich(spi = CorpusReader.class, method = "versions", as = "versions")
-    @McpTrack(McpTrackType.ACCESS)
-    @PlatformQuery("Read a document with full context — content, metadata, version history, provenance tracked")
+    @PlatformQuery(value = "Read a document with full context — content, metadata, version history, provenance tracked", track = true)
     CorpusEntry getEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId);
 
     @McpExclude
@@ -73,6 +70,9 @@ public interface CorpusManagementApi {
             + "deduplicates by entry ID, returns results ranked by tier then score")
     FederatedSearchResult federatedSearch(@ContextParam("tenancyId") String tenancyId, String query,
                                           Integer maxResults, Integer federationDepth);
+
+    @PlatformQuery("Entries the agent hasn't read — blind spot detection powered by automatic read tracking")
+    List<String> unread(@ContextParam("tenancyId") String tenancyId, String corpusName, Integer limit);
 
     // --- MCP-only tools (not projected to REST/GraphQL) ---
 
