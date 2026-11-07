@@ -70,9 +70,9 @@
   <rect x="470" y="164" width="180" height="26" rx="3" fill="#e2e8f0" stroke="#a0aec0" stroke-width="1"/>
   <text x="560" y="181" font-size="10" fill="#2d3748" text-anchor="middle">reconcile</text>
 
-  <!-- Transformed: write (upsert) -->
+  <!-- Transformed: write (auto-route) -->
   <rect x="470" y="194" width="180" height="26" rx="3" fill="#f0fff4" stroke="#48bb78" stroke-width="1.5"/>
-  <text x="560" y="211" font-size="10" font-weight="bold" fill="#276749" text-anchor="middle">write (auto upsert)</text>
+  <text x="560" y="211" font-size="10" font-weight="bold" fill="#276749" text-anchor="middle">write (auto auto-route)</text>
   <rect x="655" y="196" width="85" height="18" rx="3" fill="#f0fff4" stroke="#48bb78" stroke-width="1"/>
   <text x="697" y="208" font-size="8" fill="#276749" text-anchor="middle">add + update</text>
 

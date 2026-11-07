@@ -76,10 +76,10 @@ CorpusEntry getEntry(@ContextParam("tenancyId") String tenancyId,
 
 REST returns `CorpusEntry`. MCP returns `{...entry fields..., versions: [...]}` — the entry enriched with its version history. One call, complete result.
 
-**`@McpUpsert`** merges add and update into one auto-detecting tool:
+**`@McpAutoRoute`** merges two related methods into one auto-detecting tool:
 
 ```java
-@McpUpsert(existsCheck = "getEntry", update = "updateEntry")
+@McpAutoRoute(check = "getEntry", alternate = "updateEntry")
 @PlatformMutation("Add or update a corpus entry")
 String addEntry(...);
 
@@ -88,7 +88,7 @@ String addEntry(...);
 String updateEntry(...);
 ```
 
-The MCP tool checks existence, routes to add or update, returns `{success, id, created: true|false, timestamp}`. The agent says "put this content here" and doesn't care whether it's new.
+The MCP tool calls the check method first. If the resource exists, it routes to the alternate. If not, the primary runs. The result includes `{success, id, created: true|false, timestamp}`. The agent says "put this content here" and doesn't care whether it's new. The same pattern works for any pair of methods where one handles the "exists" case and the other handles "doesn't exist."
 
 **`PlatformQuery(track = true)`** records access via a platform `ReadTracker` utility. Every read by a specific agent is logged. This enables the blind-spot query later.
 
@@ -116,7 +116,7 @@ The `CorpusManagementApi` started with eleven methods projected identically to R
 
 After annotation:
 
-- `addEntry` + `updateEntry` → one `write` tool with upsert semantics and structured metadata
+- `addEntry` + `updateEntry` → one `write` tool with auto-routing and structured metadata
 - `getEntry` → enriched with version history, access tracked for provenance
 - `removeEntry` → typed result instead of bare string
 - Four new MCP-only tools: `changes`, `history`, `readVersion`, `listEntries`
@@ -144,7 +144,7 @@ The annotation vocabulary is small — eight annotations, one attribute, one uti
 | `@McpExclude` | Hide from MCP |
 | `@McpParam(MAP\|LIST)` | JSON object/array with automatic serialisation |
 | `@McpEnrich` | Compose with second SPI, merge result |
-| `@McpUpsert` | Auto-detecting create-or-update |
+| `@McpAutoRoute` | Auto-detecting method routing |
 | `@McpOnly` | MCP-only tool |
 | `@McpDelegate` | Route to specified SPI |
 | `@McpCursorMap` | Transparent timestamp conversion |

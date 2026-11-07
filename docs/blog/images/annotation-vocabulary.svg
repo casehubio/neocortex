@@ -35,12 +35,12 @@
   <text x="105" y="246" font-size="10" fill="#276749" text-anchor="middle">@McpEnrich</text>
 
   <rect x="170" y="230" width="110" height="24" rx="4" fill="#f0fff4" stroke="#48bb78" stroke-width="1"/>
-  <text x="225" y="246" font-size="10" fill="#276749" text-anchor="middle">@McpUpsert</text>
+  <text x="225" y="246" font-size="10" fill="#276749" text-anchor="middle">@McpAutoRoute</text>
 
   <rect x="290" y="230" width="160" height="24" rx="4" fill="#f0fff4" stroke="#48bb78" stroke-width="1"/>
   <text x="370" y="246" font-size="10" fill="#276749" text-anchor="middle">PlatformQuery(track=true)</text>
 
-  <text x="50" y="278" font-size="9" fill="#a0aec0">Enrich with version info  ·  Merge add+update  ·  Automatic provenance tracking</text>
+  <text x="50" y="278" font-size="9" fill="#a0aec0">Enrich with version info  ·  Auto-route methods  ·  Automatic provenance tracking</text>
 
   <!-- Connecting line 2->3 -->
   <line x1="280" y1="290" x2="280" y2="310" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3,3"/>
