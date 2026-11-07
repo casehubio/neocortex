@@ -19,7 +19,7 @@ import io.casehub.platform.api.mcp.McpExclude;
 import io.casehub.platform.api.mcp.McpOnly;
 import io.casehub.platform.api.mcp.McpParam;
 import io.casehub.platform.api.mcp.McpParamFormat;
-import io.casehub.platform.api.mcp.McpUpsert;
+import io.casehub.platform.api.mcp.McpAutoRoute;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
@@ -45,7 +45,7 @@ public interface CorpusManagementApi {
     @PlatformQuery("Run a health reconciliation check for a tenant's corpora")
     HealthReport reconcile(@ContextParam("tenancyId") String tenancyId);
 
-    @McpUpsert(existsCheck = "getEntry", update = "updateEntry")
+    @McpAutoRoute(check = "getEntry", alternate = "updateEntry")
     @PlatformMutation("Add or update a corpus entry — auto-detects create vs update")
     String addEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId, String body,
                     @McpParam(format = McpParamFormat.MAP) String metadata, String artifactRef);
