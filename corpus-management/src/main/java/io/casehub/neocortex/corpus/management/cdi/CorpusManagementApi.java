@@ -5,11 +5,16 @@ import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusSearchResult;
 import io.casehub.neocortex.corpus.management.FederatedSearchResult;
 import io.casehub.neocortex.corpus.management.HealthReport;
+import io.casehub.neocortex.corpus.CorpusReader;
 import io.casehub.platform.api.mcp.ContextParam;
 import io.casehub.platform.api.mcp.McpDomain;
+import io.casehub.platform.api.mcp.McpEnrich;
 import io.casehub.platform.api.mcp.McpExclude;
 import io.casehub.platform.api.mcp.McpParam;
 import io.casehub.platform.api.mcp.McpParamFormat;
+import io.casehub.platform.api.mcp.McpTrack;
+import io.casehub.platform.api.mcp.McpTrackType;
+import io.casehub.platform.api.mcp.McpUpsert;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
@@ -35,11 +40,14 @@ public interface CorpusManagementApi {
     @PlatformQuery("Run a health reconciliation check for a tenant's corpora")
     HealthReport reconcile(@ContextParam("tenancyId") String tenancyId);
 
-    @PlatformMutation("Add a new entry to a corpus")
+    @McpUpsert(existsCheck = "getEntry", update = "updateEntry")
+    @PlatformMutation("Add or update a corpus entry — auto-detects create vs update")
     String addEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId, String body,
                     @McpParam(format = McpParamFormat.MAP) String metadata, String artifactRef);
 
-    @PlatformQuery("Get a single entry from a corpus by ID")
+    @McpEnrich(spi = CorpusReader.class, method = "versions", as = "versions")
+    @McpTrack(McpTrackType.ACCESS)
+    @PlatformQuery("Read a document with full context — content, metadata, version history, provenance tracked")
     CorpusEntry getEntry(@ContextParam("tenancyId") String tenancyId, String corpusName, String entryId);
 
     @McpExclude
