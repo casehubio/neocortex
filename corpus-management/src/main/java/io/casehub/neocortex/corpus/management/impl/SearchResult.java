@@ -36,7 +36,7 @@ public record SearchResult(
     }
 
     public SearchResult withPreview(int maxLength) {
-        if (body == null || body.length() <= maxLength) {return this;}
+        if (maxLength <= 0 || body == null || body.length() <= maxLength) {return this;}
         String truncated = body.substring(0, maxLength) + "...";
         return new SearchResult(id, title, domain, type, score, truncated,
                                 relevance, crossEncoderScore, source, sourcePrefix, seeAlsoIds, metadata);

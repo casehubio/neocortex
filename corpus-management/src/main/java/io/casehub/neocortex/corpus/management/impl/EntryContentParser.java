@@ -9,8 +9,6 @@ import java.util.Map;
 
 final class EntryContentParser {
 
-    private static final Yaml YAML = new Yaml();
-
     private EntryContentParser() {}
 
     static CorpusEntry parse(String entryId, byte[] content) {
@@ -29,7 +27,7 @@ final class EntryContentParser {
 
         Map<String, Object> metadata;
         try {
-            metadata = YAML.load(yamlBlock);
+            metadata = new Yaml().load(yamlBlock);
         } catch (Exception e) {
             return new CorpusEntry(entryId, Map.of(), text.strip(), null);
         }
