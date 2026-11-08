@@ -196,4 +196,56 @@ public class CorpusApiBean implements CorpusApi {
                 .toList();
         return indexService.recordFeedback(corpusRef, ids, outcome, stack, issueRepo, issueNumber);
     }
+
+    @Override
+    public String recordFinding(String corpusId, String topic, String insight,
+            String sourceIssue, String tags, String domain, String type) {
+        if (topic == null || topic.isBlank()) {return "Error: topic is required.";}
+        if (insight == null || insight.isBlank()) {return "Error: insight is required.";}
+
+        String entryId = generateEntryId();
+
+        var metadata = new java.util.LinkedHashMap<String, Object>();
+        metadata.put("title", topic);
+        if (domain != null && !domain.isBlank()) {metadata.put("domain", domain);}
+        if (type != null && !type.isBlank()) {metadata.put("type", type);}
+        if (tags != null && !tags.isBlank()) {
+            metadata.put("tags", Arrays.stream(tags.split("[|,]"))
+                    .map(String::trim).filter(s -> !s.isEmpty()).toList());
+        }
+
+        var entry = new CorpusEntry(entryId, java.util.Map.copyOf(metadata), insight, null);
+        entryStore.add(corpusRef, entry);
+
+        if (sourceIssue != null && !sourceIssue.isBlank()) {
+            var parts = parseIssueRef(sourceIssue);
+            if (parts != null) {
+                provenanceStore.record(parts[0], Integer.parseInt(parts[1]),
+                        "", List.of(entryId), "recordFinding");
+            }
+        }
+
+        return entryId;
+    }
+
+    private static String generateEntryId() {
+        String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+        byte[] bytes = new byte[3];
+        java.util.concurrent.ThreadLocalRandom.current().nextBytes(bytes);
+        String hex = String.format("%02x%02x%02x", bytes[0] & 0xFF, bytes[1] & 0xFF, bytes[2] & 0xFF);
+        return "GE-" + date + "-" + hex;
+    }
+
+    private static String[] parseIssueRef(String issueRef) {
+        int hashIndex = issueRef.lastIndexOf('#');
+        if (hashIndex <= 0) {return null;}
+        String repo = issueRef.substring(0, hashIndex);
+        String number = issueRef.substring(hashIndex + 1);
+        try {
+            Integer.parseInt(number);
+            return new String[]{repo, number};
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }
