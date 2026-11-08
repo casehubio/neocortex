@@ -194,7 +194,7 @@ public class CorpusIndexService {
                 + (isOutdated ? " (marked OUTDATED for stack: " + stack + ")" : "");
     }
 
-    public EntryDetail entry(Path corpusRoot, String entryId) {
+    public SearchResult entry(Path corpusRoot, String entryId) {
         String filename = entryId + ".md";
         Path filePath;
         try (var stream = Files.walk(corpusRoot)) {
@@ -214,16 +214,19 @@ public class CorpusIndexService {
             ExtractionResult extraction = metadataExtractor.extract(docId, content);
             Map<String, String> meta = extraction.metadata();
             List<String> seeAlso = extraction.listMetadata().getOrDefault("see_also", List.of());
-            return new EntryDetail(
+            return new SearchResult(
                     entryId,
                     meta.getOrDefault("title", entryId),
                     meta.getOrDefault("domain", ""),
                     meta.getOrDefault("type", ""),
-                    0.0,
+                    0,
                     extraction.body(),
+                    1.0,
+                    null,
                     meta.getOrDefault("source", ""),
                     meta.getOrDefault("source_prefix", ""),
-                    seeAlso);
+                    seeAlso,
+                    meta);
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to read entry " + entryId, e);
             return null;

@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,9 +16,10 @@ public abstract class CorpusStoreContractTest {
     protected abstract CorpusReader reader();
 
     @Test
-    void appendBytesThenReadReturnsSameContent() {
+    void writeBytesThenReadReturnsSameContent() {
         byte[] content = "hello world".getBytes();
-        store().append("doc.txt", content);
+        store().write("doc.txt", content);
+        store().flush();
 
         var read = reader().read("doc.txt");
         assertThat(read).isPresent();
@@ -27,9 +27,10 @@ public abstract class CorpusStoreContractTest {
     }
 
     @Test
-    void appendStreamThenReadReturnsSameContent() {
+    void writeStreamThenReadReturnsSameContent() {
         byte[] content = "stream content".getBytes();
-        store().append("stream.txt", new ByteArrayInputStream(content));
+        store().write("stream.txt", new ByteArrayInputStream(content));
+        store().flush();
 
         var read = reader().read("stream.txt");
         assertThat(read).isPresent();
@@ -37,15 +38,17 @@ public abstract class CorpusStoreContractTest {
     }
 
     @Test
-    void appendThenListIncludesPath() {
-        store().append("listed.txt", "content".getBytes());
+    void writeThenListIncludesPath() {
+        store().write("listed.txt", "content".getBytes());
+        store().flush();
 
         assertThat(reader().list()).contains("listed.txt");
     }
 
     @Test
-    void appendThenExistsReturnsTrue() {
-        store().append("exists.txt", "content".getBytes());
+    void writeThenExistsReturnsTrue() {
+        store().write("exists.txt", "content".getBytes());
+        store().flush();
 
         assertThat(reader().exists("exists.txt")).isTrue();
     }
@@ -67,10 +70,12 @@ public abstract class CorpusStoreContractTest {
 
     @Test
     void deleteRemovesEntry() {
-        store().append("to-delete.txt", "content".getBytes());
+        store().write("to-delete.txt", "content".getBytes());
+        store().flush();
         assertThat(reader().exists("to-delete.txt")).isTrue();
 
         store().delete("to-delete.txt");
+        store().flush();
 
         assertThat(reader().exists("to-delete.txt")).isFalse();
         assertThat(reader().read("to-delete.txt")).isEmpty();
@@ -78,9 +83,10 @@ public abstract class CorpusStoreContractTest {
 
     @Test
     void listWithPrefixFiltersCorrectly() {
-        store().append("docs/a.md", "a".getBytes());
-        store().append("docs/b.md", "b".getBytes());
-        store().append("other/c.md", "c".getBytes());
+        store().write("docs/a.md", "a".getBytes());
+        store().write("docs/b.md", "b".getBytes());
+        store().write("other/c.md", "c".getBytes());
+        store().flush();
 
         var filtered = reader().list("docs/");
         assertThat(filtered).containsExactlyInAnyOrder("docs/a.md", "docs/b.md");
@@ -89,7 +95,8 @@ public abstract class CorpusStoreContractTest {
     @Test
     void readStreamReturnsContent() throws IOException {
         byte[] content = "stream test".getBytes();
-        store().append("readable.txt", content);
+        store().write("readable.txt", content);
+        store().flush();
 
         var stream = reader().readStream("readable.txt");
         assertThat(stream).isPresent();
@@ -97,8 +104,9 @@ public abstract class CorpusStoreContractTest {
     }
 
     @Test
-    void versionsReturnsNonEmptyAfterAppend() {
-        store().append("versioned.txt", "content".getBytes());
+    void versionsReturnsNonEmptyAfterWrite() {
+        store().write("versioned.txt", "content".getBytes());
+        store().flush();
 
         var versions = reader().versions("versioned.txt");
         assertThat(versions).isNotEmpty();
@@ -113,7 +121,8 @@ public abstract class CorpusStoreContractTest {
     @Test
     void readVersionOneMatchesCurrentContent() {
         byte[] content = "version content".getBytes();
-        store().append("v1.txt", content);
+        store().write("v1.txt", content);
+        store().flush();
 
         var read = reader().readVersion("v1.txt", 1);
         assertThat(read).isPresent();
@@ -123,5 +132,20 @@ public abstract class CorpusStoreContractTest {
     @Test
     void listReturnsEmptyInitially() {
         assertThat(reader().list()).isEmpty();
+    }
+
+    @Test
+    void flushDoesNotThrow() {
+        store().write("flush-test.txt", "content".getBytes());
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> store().flush());
+    }
+
+    @Test
+    void writeAndFlushThenRead() {
+        store().write("flush-read.txt", "hello".getBytes());
+        store().flush();
+        var result = reader().read("flush-read.txt");
+        assertThat(result).isPresent();
+        assertThat(new String(result.get())).isEqualTo("hello");
     }
 }

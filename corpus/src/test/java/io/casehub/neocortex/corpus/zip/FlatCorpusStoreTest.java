@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class FlatCorpusStoreTest {
 
     @Test
-    void appendAndRead(@TempDir Path tempDir) {
+    void writeAndRead(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
         byte[] content = "test content".getBytes();
 
-        store.append("docs/readme.md", content);
+        store.write("docs/readme.md", content);
 
         var read = store.read("docs/readme.md");
         assertTrue(read.isPresent());
@@ -28,11 +28,11 @@ class FlatCorpusStoreTest {
     }
 
     @Test
-    void appendOverwritesExistingFile(@TempDir Path tempDir) {
+    void writeOverwritesExistingFile(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("file.txt", "first".getBytes());
-        store.append("file.txt", "second".getBytes());
+        store.write("file.txt", "first".getBytes());
+        store.write("file.txt", "second".getBytes());
 
         var read = store.read("file.txt");
         assertTrue(read.isPresent());
@@ -52,7 +52,7 @@ class FlatCorpusStoreTest {
     void deleteRemovesFile(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("file.txt", "content".getBytes());
+        store.write("file.txt", "content".getBytes());
         assertTrue(store.exists("file.txt"));
 
         store.delete("file.txt");
@@ -64,9 +64,9 @@ class FlatCorpusStoreTest {
     void listReturnsAllFiles(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("a.txt", "a".getBytes());
-        store.append("b.txt", "b".getBytes());
-        store.append("sub/c.txt", "c".getBytes());
+        store.write("a.txt", "a".getBytes());
+        store.write("b.txt", "b".getBytes());
+        store.write("sub/c.txt", "c".getBytes());
 
         var files = store.list();
 
@@ -80,9 +80,9 @@ class FlatCorpusStoreTest {
     void listWithPrefix(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("docs/a.md", "a".getBytes());
-        store.append("docs/b.md", "b".getBytes());
-        store.append("other/c.md", "c".getBytes());
+        store.write("docs/a.md", "a".getBytes());
+        store.write("docs/b.md", "b".getBytes());
+        store.write("other/c.md", "c".getBytes());
 
         var files = store.list("docs/");
 
@@ -95,7 +95,7 @@ class FlatCorpusStoreTest {
     void existsWorks(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("file.txt", "content".getBytes());
+        store.write("file.txt", "content".getBytes());
 
         assertTrue(store.exists("file.txt"));
         assertFalse(store.exists("nonexistent.txt"));
@@ -105,7 +105,7 @@ class FlatCorpusStoreTest {
     void versionsReturnsSingleEntry(@TempDir Path tempDir) throws IOException {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("file.txt", "content".getBytes());
+        store.write("file.txt", "content".getBytes());
 
         var versions = store.versions("file.txt");
 
@@ -113,7 +113,7 @@ class FlatCorpusStoreTest {
         VersionInfo v = versions.get(0);
         assertEquals(1, v.version());
         assertNotNull(v.timestamp());
-        assertNull(v.zipFile());
+        assertNull(v.source());
     }
 
     @Test
@@ -130,7 +130,7 @@ class FlatCorpusStoreTest {
         var store = new FlatCorpusStore(tempDir);
         byte[] content = "content".getBytes();
 
-        store.append("file.txt", content);
+        store.write("file.txt", content);
 
         var v1 = store.readVersion("file.txt", 1);
         assertTrue(v1.isPresent());
@@ -145,16 +145,16 @@ class FlatCorpusStoreTest {
         var store = new FlatCorpusStore(tempDir);
 
         var ex = assertThrows(IllegalArgumentException.class,
-            () -> store.append("_foo", "content".getBytes()));
+            () -> store.write("_foo", "content".getBytes()));
 
         assertTrue(ex.getMessage().contains("reserved"));
     }
 
     @Test
-    void appendCreatesParentDirectories(@TempDir Path tempDir) {
+    void writeCreatesParentDirectories(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("deep/nested/file.md", "content".getBytes());
+        store.write("deep/nested/file.md", "content".getBytes());
 
         assertTrue(store.exists("deep/nested/file.md"));
         var read = store.read("deep/nested/file.md");
@@ -163,11 +163,11 @@ class FlatCorpusStoreTest {
     }
 
     @Test
-    void appendWithInputStream(@TempDir Path tempDir) {
+    void writeWithInputStream(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
         byte[] content = "stream content".getBytes();
 
-        store.append("file.txt", new ByteArrayInputStream(content));
+        store.write("file.txt", new ByteArrayInputStream(content));
 
         var read = store.read("file.txt");
         assertTrue(read.isPresent());
@@ -175,13 +175,13 @@ class FlatCorpusStoreTest {
     }
 
     @Test
-    void appendWithPath(@TempDir Path tempDir) throws IOException {
+    void writeWithPath(@TempDir Path tempDir) throws IOException {
         var store = new FlatCorpusStore(tempDir);
         byte[] content = "file content".getBytes();
         Path srcFile = tempDir.resolve("source.txt");
         Files.write(srcFile, content);
 
-        store.append("dest.txt", srcFile);
+        store.write("dest.txt", srcFile);
 
         var read = store.read("dest.txt");
         assertTrue(read.isPresent());
@@ -193,7 +193,7 @@ class FlatCorpusStoreTest {
         var store = new FlatCorpusStore(tempDir);
         byte[] content = "stream test".getBytes();
 
-        store.append("file.txt", content);
+        store.write("file.txt", content);
 
         var stream = store.readStream("file.txt");
         assertTrue(stream.isPresent());
@@ -222,7 +222,7 @@ class FlatCorpusStoreTest {
         Files.writeString(tempDir.resolve(".DS_Store"), "data");
 
         // Create normal file
-        store.append("visible.txt", "content".getBytes());
+        store.write("visible.txt", "content".getBytes());
 
         List<String> listed = store.list();
         assertThat(listed).containsExactly("visible.txt");
@@ -232,7 +232,7 @@ class FlatCorpusStoreTest {
     void list_excludesHiddenFilesInSubdirectories(@TempDir Path tempDir) throws Exception {
         var store = new FlatCorpusStore(tempDir);
 
-        store.append("docs/readme.md", "content".getBytes());
+        store.write("docs/readme.md", "content".getBytes());
         Path subHidden = tempDir.resolve("docs/.hidden");
         Files.createDirectories(subHidden.getParent());
         Files.writeString(subHidden, "secret");
@@ -248,8 +248,8 @@ class FlatCorpusStoreTest {
         // _prefixed at root level → filtered (existing behavior)
         Files.writeString(tempDir.resolve("_internal.txt"), "meta");
         // _prefixed in subdirectory → NOT filtered (existing behavior)
-        store.append("sub/_notes.txt", "notes".getBytes());
-        store.append("visible.txt", "content".getBytes());
+        store.write("sub/_notes.txt", "notes".getBytes());
+        store.write("visible.txt", "content".getBytes());
 
         List<String> listed = store.list();
         assertThat(listed).containsExactlyInAnyOrder("visible.txt", "sub/_notes.txt");

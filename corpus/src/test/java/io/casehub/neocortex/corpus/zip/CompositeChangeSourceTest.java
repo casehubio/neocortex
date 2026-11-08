@@ -66,7 +66,7 @@ class CompositeChangeSourceTest {
     @Test
     void modifiedFlatFileResyncedToZip() throws Exception {
         // Initial write via composite (goes to both stores)
-        compositeStore.append("docs/readme.md", "version one".getBytes(StandardCharsets.UTF_8));
+        compositeStore.write("docs/readme.md", "version one".getBytes(StandardCharsets.UTF_8));
 
         // Get initial cursor
         ChangeSet initial = changeSource.fullScan();
@@ -130,7 +130,7 @@ class CompositeChangeSourceTest {
     @Test
     void fullScanIncludesAllFiles() throws Exception {
         // Write one file via composite
-        compositeStore.append("docs/via-composite.md", "composite".getBytes(StandardCharsets.UTF_8));
+        compositeStore.write("docs/via-composite.md", "composite".getBytes(StandardCharsets.UTF_8));
 
         // Write another directly to flat
         Path externalPath = flatDir.resolve("docs/external.md");

@@ -1,15 +1,12 @@
 package io.casehub.neocortex.rag.runtime;
 
-import io.casehub.neocortex.rag.TextChunker;
 import io.casehub.neocortex.corpus.ChangeSet;
-import io.casehub.neocortex.corpus.ChangeType;
 import io.casehub.neocortex.corpus.ChangedEntry;
 import io.casehub.neocortex.corpus.WatchableChangeSource;
-import io.casehub.neocortex.rag.ChunkInput;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.CursorStore;
 import io.casehub.neocortex.rag.EmbeddingIngestor;
-import io.casehub.neocortex.rag.ExtractionResult;
+import io.casehub.neocortex.rag.TextChunker;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,13 +23,37 @@ public class CorpusIngestionService {
     private static final Logger LOG = Logger.getLogger(CorpusIngestionService.class.getName());
 
     private final EmbeddingIngestor ingestor;
-    private final CursorStore cursorStore;
-    private final ConcurrentHashMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
-    private final List<WatchableChangeSource> activeWatchers = new ArrayList<>();
+    private final IngestionPipeline pipeline;
+
+    private final CursorStore                              cursorStore;
+    private final ConcurrentHashMap<String, ReentrantLock> locks          = new ConcurrentHashMap<>();
+    private final List<WatchableChangeSource>              activeWatchers = new ArrayList<>();
 
     public CorpusIngestionService(EmbeddingIngestor ingestor, CursorStore cursorStore) {
-        this.ingestor = ingestor;
+        this.ingestor    = ingestor;
         this.cursorStore = cursorStore;
+        this.pipeline    = new IngestionPipeline(ingestor);
+    }
+
+    static IngestionMode modeFor(CorpusIngestionBinding binding, IngestionConfig config) {
+        if (config == null) {return IngestionMode.AUTO;}
+        var corpusConfig = config.corpora().get(binding.name());
+        if (corpusConfig == null) {return IngestionMode.AUTO;}
+        return corpusConfig.mode();
+    }
+
+    static TextChunker splitterFor(String corpusName, IngestionConfig config) {
+        if (config == null) {return null;}
+        var corpusConfig = config.corpora().get(corpusName);
+        if (corpusConfig == null || "none".equalsIgnoreCase(corpusConfig.chunking())) {
+            return null;
+        }
+        if ("recursive".equalsIgnoreCase(corpusConfig.chunking())) {
+            int maxSize = corpusConfig.chunkingMaxSize().orElse(1000);
+            int overlap = corpusConfig.chunkingOverlapSize().orElse(200);
+            return TextChunker.recursive(maxSize, overlap);
+        }
+        return null;
     }
 
     public List<WatchableChangeSource> activeWatchers() {
@@ -40,10 +61,10 @@ public class CorpusIngestionService {
     }
 
     public void startAutoBindings(Iterable<CorpusIngestionBinding> bindings,
-                                   IngestionConfig config) {
+                                  IngestionConfig config) {
         for (CorpusIngestionBinding binding : bindings) {
             IngestionMode mode = modeFor(binding, config);
-            if (mode != IngestionMode.AUTO) continue;
+            if (mode != IngestionMode.AUTO) {continue;}
 
             processBinding(binding, splitterFor(binding.name(), config));
 
@@ -55,7 +76,7 @@ public class CorpusIngestionService {
                 } catch (Exception e) {
                     LOG.log(Level.WARNING,
                             "Failed to start watcher for corpus '" + binding.name()
-                                    + "' — falling back to polling", e);
+                            + "' — falling back to polling", e);
                 }
             }
         }
@@ -73,13 +94,13 @@ public class CorpusIngestionService {
     }
 
     private void onWatchEvent(CorpusIngestionBinding binding, List<ChangedEntry> entries,
-                               IngestionConfig config) {
-        if (entries.isEmpty()) return;
+                              IngestionConfig config) {
+        if (entries.isEmpty()) {return;}
 
         ReentrantLock lock = locks.computeIfAbsent(binding.name(), k -> new ReentrantLock());
         if (!lock.tryLock()) {
             LOG.fine(() -> "Skipping watch event for corpus '"
-                    + binding.name() + "' — already being processed");
+                           + binding.name() + "' — already being processed");
             return;
         }
         try {
@@ -92,45 +113,22 @@ public class CorpusIngestionService {
     private void doProcessWatchEvent(CorpusIngestionBinding binding,
                                      List<ChangedEntry> entries,
                                      TextChunker splitter) {
-        CorpusRef corpusRef = binding.corpusRef();
+        IngestionContext context = new IngestionContext(
+                binding.corpusRef(), binding.metadataExtractor(), splitter);
         boolean anyFailure = false;
 
         for (ChangedEntry entry : entries) {
-            if (entry.type() == ChangeType.DELETED || entry.type() == ChangeType.MODIFIED) {
-                try {
-                    ingestor.deleteDocument(corpusRef, entry.path());
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to delete document '" + entry.path() + "'", e);
-                    anyFailure = true;
-                }
-            }
-        }
-
-        List<ChunkInput> allChunks = new ArrayList<>();
-        for (ChangedEntry entry : entries) {
-            if (entry.type() == ChangeType.ADDED || entry.type() == ChangeType.MODIFIED) {
-                try {
-                    Optional<byte[]> content = binding.corpusReader().read(entry.path());
-                    if (content.isEmpty()) {
-                        LOG.fine(() -> "Document '" + entry.path() + "' no longer readable — skipping");
-                        continue;
-                    }
-
-                    ExtractionResult result = binding.metadataExtractor().extract(entry.path(), content.get());
-                    List<ChunkInput> chunks = chunkDocument(entry.path(), result, splitter);
-                    allChunks.addAll(chunks);
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to process document '" + entry.path() + "'", e);
-                    anyFailure = true;
-                }
-            }
-        }
-
-        if (!allChunks.isEmpty()) {
             try {
-                ingestor.ingest(corpusRef, allChunks);
+                switch (entry.type()) {
+                    case DELETED -> pipeline.delete(entry.path(), binding.corpusRef());
+                    case ADDED -> pipeline.ingest(entry.path(), binding.corpusReader(), context);
+                    case MODIFIED -> {
+                        pipeline.delete(entry.path(), binding.corpusRef());
+                        pipeline.ingest(entry.path(), binding.corpusReader(), context);
+                    }
+                }
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to batch ingest chunks for corpus '" + binding.name() + "'", e);
+                LOG.log(Level.WARNING, "Failed to process document '" + entry.path() + "'", e);
                 anyFailure = true;
             }
         }
@@ -189,45 +187,22 @@ public class CorpusIngestionService {
             return;
         }
 
-        CorpusRef corpusRef = binding.corpusRef();
+        IngestionContext context = new IngestionContext(
+                binding.corpusRef(), binding.metadataExtractor(), splitter);
         boolean anyFailure = false;
 
         for (ChangedEntry entry : changeSet.entries()) {
-            if (entry.type() == ChangeType.DELETED || entry.type() == ChangeType.MODIFIED) {
-                try {
-                    ingestor.deleteDocument(corpusRef, entry.path());
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to delete document '" + entry.path() + "' from corpus '" + binding.name() + "'", e);
-                    anyFailure = true;
-                }
-            }
-        }
-
-        List<ChunkInput> allChunks = new ArrayList<>();
-        for (ChangedEntry entry : changeSet.entries()) {
-            if (entry.type() == ChangeType.ADDED || entry.type() == ChangeType.MODIFIED) {
-                try {
-                    Optional<byte[]> content = binding.corpusReader().read(entry.path());
-                    if (content.isEmpty()) {
-                        LOG.fine(() -> "Document '" + entry.path() + "' no longer readable — skipping");
-                        continue;
-                    }
-
-                    ExtractionResult result = binding.metadataExtractor().extract(entry.path(), content.get());
-                    List<ChunkInput> chunks = chunkDocument(entry.path(), result, splitter);
-                    allChunks.addAll(chunks);
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to process document '" + entry.path() + "' in corpus '" + binding.name() + "'", e);
-                    anyFailure = true;
-                }
-            }
-        }
-
-        if (!allChunks.isEmpty()) {
             try {
-                ingestor.ingest(corpusRef, allChunks);
+                switch (entry.type()) {
+                    case DELETED -> pipeline.delete(entry.path(), binding.corpusRef());
+                    case ADDED -> pipeline.ingest(entry.path(), binding.corpusReader(), context);
+                    case MODIFIED -> {
+                        pipeline.delete(entry.path(), binding.corpusRef());
+                        pipeline.ingest(entry.path(), binding.corpusReader(), context);
+                    }
+                }
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to batch ingest chunks for corpus '" + binding.name() + "'", e);
+                LOG.log(Level.WARNING, "Failed to process document '" + entry.path() + "' in corpus '" + binding.name() + "'", e);
                 anyFailure = true;
             }
         }
@@ -252,37 +227,23 @@ public class CorpusIngestionService {
         }
         Set<String> qdrantPaths = new HashSet<>(qdrantDocs);
 
-        List<ChunkInput> allChunks = new ArrayList<>();
+        IngestionContext context = new IngestionContext(
+                binding.corpusRef(), binding.metadataExtractor(), splitter);
+
         for (String path : corpusPaths) {
             if (!qdrantPaths.contains(path)) {
                 try {
-                    Optional<byte[]> content = binding.corpusReader().read(path);
-                    if (content.isEmpty()) {
-                        LOG.fine(() -> "Document '" + path + "' no longer readable during reconciliation — skipping");
-                        continue;
-                    }
-
-                    ExtractionResult result = binding.metadataExtractor().extract(path, content.get());
-                    List<ChunkInput> chunks = chunkDocument(path, result, splitter);
-                    allChunks.addAll(chunks);
+                    pipeline.ingest(path, binding.corpusReader(), context);
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "Failed to process document '" + path + "' during reconciliation", e);
                 }
             }
         }
 
-        if (!allChunks.isEmpty()) {
-            try {
-                ingestor.ingest(corpusRef, allChunks);
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to batch ingest chunks for corpus '" + corpusName + "' during reconciliation", e);
-            }
-        }
-
         for (String path : qdrantPaths) {
             if (!corpusPaths.contains(path)) {
                 try {
-                    ingestor.deleteDocument(corpusRef, path);
+                    pipeline.delete(path, corpusRef);
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "Failed to delete stale document '" + path + "' during reconciliation", e);
                 }
@@ -290,23 +251,6 @@ public class CorpusIngestionService {
         }
 
         cursorStore.save(corpusName, fullScan.newCursor());
-    }
-
-    public List<ChunkInput> chunkDocument(String path, ExtractionResult result, TextChunker splitter) {
-        if (result.body().isBlank()) {
-            return List.of();
-        }
-        if (splitter == null) {
-            return List.of(new ChunkInput(result.body(), path, result.metadata(), result.listMetadata()));
-        }
-        List<String> segments = splitter.chunk(result.body());
-        List<ChunkInput> chunks = new ArrayList<>(segments.size());
-        for (String segment : segments) {
-            if (!segment.isBlank()) {
-                chunks.add(new ChunkInput(segment, path, result.metadata(), result.listMetadata()));
-            }
-        }
-        return chunks;
     }
 
     public void poll(Iterable<CorpusIngestionBinding> bindings, IngestionConfig config) {
@@ -336,7 +280,7 @@ public class CorpusIngestionService {
     }
 
     public void triggerManual(String corpusName, Iterable<CorpusIngestionBinding> bindings,
-                               IngestionConfig config) {
+                              IngestionConfig config) {
         for (CorpusIngestionBinding binding : bindings) {
             if (binding.name().equals(corpusName)) {
                 processBinding(binding, splitterFor(binding.name(), config));
@@ -347,7 +291,7 @@ public class CorpusIngestionService {
     }
 
     public void reconcile(String corpusName, Iterable<CorpusIngestionBinding> bindings,
-                            IngestionConfig config) {
+                          IngestionConfig config) {
         for (CorpusIngestionBinding binding : bindings) {
             if (binding.name().equals(corpusName)) {
                 reconcile(corpusName, binding, splitterFor(binding.name(), config));
@@ -361,26 +305,5 @@ public class CorpusIngestionService {
         for (CorpusIngestionBinding binding : bindings) {
             reconcile(binding.name(), binding, splitterFor(binding.name(), config));
         }
-    }
-
-    static IngestionMode modeFor(CorpusIngestionBinding binding, IngestionConfig config) {
-        if (config == null) return IngestionMode.AUTO;
-        var corpusConfig = config.corpora().get(binding.name());
-        if (corpusConfig == null) return IngestionMode.AUTO;
-        return corpusConfig.mode();
-    }
-
-    static TextChunker splitterFor(String corpusName, IngestionConfig config) {
-        if (config == null) return null;
-        var corpusConfig = config.corpora().get(corpusName);
-        if (corpusConfig == null || "none".equalsIgnoreCase(corpusConfig.chunking())) {
-            return null;
-        }
-        if ("recursive".equalsIgnoreCase(corpusConfig.chunking())) {
-            int maxSize = corpusConfig.chunkingMaxSize().orElse(1000);
-            int overlap = corpusConfig.chunkingOverlapSize().orElse(200);
-            return TextChunker.recursive(maxSize, overlap);
-        }
-        return null;
     }
 }

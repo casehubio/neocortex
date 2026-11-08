@@ -1,6 +1,8 @@
 package io.casehub.neocortex.corpus.management.cdi;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.corpus.CorpusStore;
+import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.corpus.management.CorpusCatalogue;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
 import io.casehub.neocortex.corpus.management.CorpusSearch;
@@ -8,7 +10,9 @@ import io.casehub.neocortex.corpus.management.FederatedCorpusSearch;
 import io.casehub.neocortex.corpus.management.impl.ChainWalkerFederatedSearch;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusCatalogue;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusEntryStore;
-import io.casehub.neocortex.rag.EmbeddingIngestor;
+import io.casehub.neocortex.rag.runtime.IngestionContext;
+import io.casehub.neocortex.rag.runtime.IngestionPipeline;
+import jakarta.enterprise.inject.Instance;
 import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.PreDestroy;
@@ -47,8 +51,13 @@ public class CorpusManagementBeans {
     @Produces
     @Singleton
     public CorpusEntryStore corpusEntryStore(CorpusManagementConfig config,
-                                             EmbeddingIngestor embeddingIngestor) {
-        return new SqliteCorpusEntryStore(dataSource(config), embeddingIngestor);
+                                             IngestionPipeline pipeline,
+                                             IngestionContext defaultContext,
+                                             Instance<CorpusStore> backendStore,
+                                             Instance<ContentSerializer> serializer) {
+        return new SqliteCorpusEntryStore(dataSource(config), pipeline, defaultContext,
+                backendStore.isResolvable() ? backendStore.get() : null,
+                serializer.isResolvable() ? serializer.get() : null);
     }
 
     @Produces

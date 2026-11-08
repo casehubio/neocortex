@@ -36,7 +36,7 @@ public final class CorpusMigrator {
                 .filter(p -> !p.getFileName().toString().startsWith("_"))
                 .forEach(file -> {
                     String relativePath = sourceDir.relativize(file).toString();
-                    target.append(relativePath, file);
+                    target.write(relativePath, file);
                     count[0]++;
                 });
         } catch (IOException e) {

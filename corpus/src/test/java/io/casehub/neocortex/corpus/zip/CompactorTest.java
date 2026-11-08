@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -22,10 +21,10 @@ class CompactorTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 1024);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("docs/readme.md", "v1".getBytes());
-        store.append("docs/guide.md", "v1".getBytes());
+        store.write("docs/readme.md", "v1".getBytes());
+        store.write("docs/guide.md", "v1".getBytes());
         store.delete("docs/guide.md");
-        store.append("docs/api.md", "v1".getBytes());
+        store.write("docs/api.md", "v1".getBytes());
 
         // Trigger rollover
         forceRollover(store, config);
@@ -83,9 +82,9 @@ class CompactorTest {
         ZipCorpusStore store = new ZipCorpusStore(config);
 
         // Append same path 3 times
-        store.append("docs/readme.md", "v1".getBytes());
-        store.append("docs/readme.md", "v2".getBytes());
-        store.append("docs/readme.md", "v3".getBytes());
+        store.write("docs/readme.md", "v1".getBytes());
+        store.write("docs/readme.md", "v2".getBytes());
+        store.write("docs/readme.md", "v3".getBytes());
 
         // Trigger rollover
         forceRollover(store, config);
@@ -123,8 +122,8 @@ class CompactorTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 1024);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("docs/readme.md", "v1".getBytes());
-        store.append("docs/readme.md", "v2".getBytes());
+        store.write("docs/readme.md", "v1".getBytes());
+        store.write("docs/readme.md", "v2".getBytes());
         store.delete("docs/readme.md");
 
         // Trigger rollover
@@ -157,7 +156,7 @@ class CompactorTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 1024);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("docs/readme.md", "v1".getBytes());
+        store.write("docs/readme.md", "v1".getBytes());
 
         forceRollover(store, config);
 
@@ -199,7 +198,7 @@ class CompactorTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 1024);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("docs/readme.md", "v1".getBytes());
+        store.write("docs/readme.md", "v1".getBytes());
 
         ChainManifest manifest = ChainManifest.load(tempDir.resolve("chain.json"));
         ChainEntry activeEntry = manifest.activeEntry().orElseThrow();
@@ -218,9 +217,9 @@ class CompactorTest {
         ZipCorpusStore store = new ZipCorpusStore(config);
 
         // Append 3 versions
-        store.append("docs/readme.md", "v1".getBytes());
-        store.append("docs/readme.md", "v2".getBytes());
-        store.append("docs/readme.md", "v3".getBytes());
+        store.write("docs/readme.md", "v1".getBytes());
+        store.write("docs/readme.md", "v2".getBytes());
+        store.write("docs/readme.md", "v3".getBytes());
 
         forceRollover(store, config);
 
@@ -258,8 +257,8 @@ class CompactorTest {
         // Use pattern from ZipIntegrityCheckerTest
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("rollover1.bin", payload);
-        store.append("rollover2.bin", payload);
-        store.append("rollover3.bin", payload); // This should trigger rollover
+        store.write("rollover1.bin", payload);
+        store.write("rollover2.bin", payload);
+        store.write("rollover3.bin", payload); // This should trigger rollover
     }
 }

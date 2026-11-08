@@ -16,7 +16,11 @@ import io.casehub.neocortex.corpus.management.impl.ChainWalkerFederatedSearch;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusCatalogue;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusEntryStore;
 import io.casehub.neocortex.rag.CorpusRef;
-import io.casehub.neocortex.rag.EmbeddingIngestor;
+import io.casehub.neocortex.corpus.CorpusStore;
+import io.casehub.neocortex.corpus.management.ContentSerializer;
+import io.casehub.neocortex.rag.runtime.IngestionContext;
+import io.casehub.neocortex.rag.runtime.IngestionPipeline;
+import org.springframework.lang.Nullable;
 import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,8 +54,12 @@ public class CorpusManagementAutoConfiguration {
 
         @Bean
         CorpusEntryStore corpusEntryStore(HikariDataSource corpusManagementDataSource,
-                                          EmbeddingIngestor embeddingIngestor) {
-            return new SqliteCorpusEntryStore(corpusManagementDataSource, embeddingIngestor);
+                                          IngestionPipeline pipeline,
+                                          IngestionContext defaultContext,
+                                          @Nullable CorpusStore backendStore,
+                                          @Nullable ContentSerializer serializer) {
+            return new SqliteCorpusEntryStore(corpusManagementDataSource, pipeline, defaultContext,
+                    backendStore, serializer);
         }
 
         @Bean

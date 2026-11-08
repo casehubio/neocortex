@@ -37,7 +37,7 @@ class ZipCorpusStoreConcurrencyTest {
                 futures.add(executor.submit(() -> {
                     try {
                         latch.await();
-                        store.append(path, content);
+                        store.write(path, content);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -77,7 +77,7 @@ class ZipCorpusStoreConcurrencyTest {
                 futures.add(executor.submit(() -> {
                     try {
                         latch.await();
-                        store.append("shared/doc.json", content);
+                        store.write("shared/doc.json", content);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }

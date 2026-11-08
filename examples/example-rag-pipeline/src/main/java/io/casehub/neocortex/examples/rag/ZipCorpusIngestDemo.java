@@ -26,7 +26,7 @@ public final class ZipCorpusIngestDemo {
             try (InputStream is = ZipCorpusIngestDemo.class.getClassLoader().getResourceAsStream(file)) {
                 if (is == null) throw new IllegalStateException("Missing classpath resource: " + file);
                 String relativePath = file.substring("corpus/".length());
-                store.append(relativePath, is.readAllBytes());
+                store.write(relativePath, is.readAllBytes());
             }
         }
 

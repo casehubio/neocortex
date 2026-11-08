@@ -2,7 +2,6 @@ package io.casehub.neocortex.corpus.zip;
 
 import io.casehub.neocortex.corpus.ChangeListener;
 import io.casehub.neocortex.corpus.ChangeSet;
-import io.casehub.neocortex.corpus.ChangedEntry;
 import io.casehub.neocortex.corpus.WatchableChangeSource;
 import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
@@ -167,10 +166,10 @@ public final class CompositeChangeSource implements WatchableChangeSource {
             var existing = index.get(relativePath);
             if (existing.isEmpty()) {
                 byte[] content = Files.readAllBytes(file);
-                zipStore.append(relativePath, content);
+                zipStore.write(relativePath, content);
             } else if (flatMtime > existing.get().timestamp()) {
                 byte[] content = Files.readAllBytes(file);
-                zipStore.append(relativePath, content);
+                zipStore.write(relativePath, content);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(

@@ -96,8 +96,9 @@ public interface CorpusManagementApi {
         throw new UnsupportedOperationException("MCP-only");
     }
 
-    @McpOnly("List all entries in a corpus, optionally filtered by path prefix")
+    @McpOnly("List all entries in a corpus with title, last modified, and version count — optionally filtered by path prefix")
     @McpDelegate(spi = CorpusReader.class, method = "list")
+    @McpTransform(spi = io.casehub.neocortex.corpus.management.impl.EntrySummariser.class, method = "summarise", perElement = true)
     default List<String> listEntries(String prefix) {
         throw new UnsupportedOperationException("MCP-only");
     }

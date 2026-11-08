@@ -4,6 +4,7 @@ import io.casehub.neocortex.rag.CorpusRef;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -128,12 +129,12 @@ class CorpusApiBeanTest {
     // --- outcome delegation ---
 
     @Test
-    void outcomeReport_delegates() {
+    void outcomeEntries_delegates() {
         var cbrStore = new io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore();
         var outcomeService = new CorpusOutcomeService(cbrStore, "t1", "test", "corpus-outcome");
         CorpusApiBean bean = new CorpusApiBean(null, null, null, null, null, outcomeService, null, null);
-        String report = bean.outcomeReport();
-        assertThat(report).isNotNull();
+        List<OutcomeEntry> entries = bean.outcomeEntries();
+        assertThat(entries).isNotNull();
     }
 
     // --- deleteEntry delegation ---

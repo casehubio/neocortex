@@ -1,6 +1,5 @@
 package io.casehub.neocortex.corpus.zip;
 
-import io.casehub.neocortex.corpus.IntegrityIssue;
 import io.casehub.neocortex.corpus.IntegrityReport;
 import io.casehub.neocortex.corpus.Severity;
 import net.lingala.zip4j.ZipFile;
@@ -24,9 +23,9 @@ class ZipIntegrityCheckerTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 512);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("doc1.txt", "content 1".getBytes());
-        store.append("doc2.txt", "content 2".getBytes());
-        store.append("doc3.txt", "content 3 with much longer content to trigger rollover".getBytes());
+        store.write("doc1.txt", "content 1".getBytes());
+        store.write("doc2.txt", "content 2".getBytes());
+        store.write("doc3.txt", "content 3 with much longer content to trigger rollover".getBytes());
 
         // Run integrity check
         ZipIntegrityChecker checker = new ZipIntegrityChecker(tempDir, "test-corpus");
@@ -44,11 +43,11 @@ class ZipIntegrityCheckerTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 512);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("doc1.txt", "content 1".getBytes());
-        store.append("doc2.txt", "content 2".getBytes());
+        store.write("doc1.txt", "content 1".getBytes());
+        store.write("doc2.txt", "content 2".getBytes());
 
         // Trigger rollover to close the first ZIP
-        store.append("doc3.txt", "content 3 with much longer content to trigger rollover".getBytes());
+        store.write("doc3.txt", "content 3 with much longer content to trigger rollover".getBytes());
 
         // Delete the first (closed) ZIP file
         Path firstZip = tempDir.resolve("test-corpus-1.zip");
@@ -70,7 +69,7 @@ class ZipIntegrityCheckerTest {
         CorpusConfig config = new CorpusConfig("test-corpus", tempDir, 1024);
         ZipCorpusStore store = new ZipCorpusStore(config);
 
-        store.append("doc1.txt", "content 1".getBytes());
+        store.write("doc1.txt", "content 1".getBytes());
 
         // Create an orphaned ZIP file (not referenced in chain.json)
         Path orphan = tempDir.resolve("orphan.zip");
@@ -103,9 +102,9 @@ class ZipIntegrityCheckerTest {
         // Append multiple documents to force rollover
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("doc1.txt", payload);
-        store.append("doc2.txt", payload);
-        store.append("doc3.txt", payload);  // This should trigger rollover
+        store.write("doc1.txt", payload);
+        store.write("doc2.txt", payload);
+        store.write("doc3.txt", payload);  // This should trigger rollover
 
         // Verify rollover happened — should have test-corpus-1.zip (closed) and test-corpus-2.zip (active)
         Path firstZip = tempDir.resolve("test-corpus-1.zip");
@@ -138,9 +137,9 @@ class ZipIntegrityCheckerTest {
         // Append multiple documents to force rollover
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("doc1.txt", payload);
-        store.append("doc2.txt", payload);
-        store.append("doc3.txt", payload);
+        store.write("doc1.txt", payload);
+        store.write("doc2.txt", payload);
+        store.write("doc3.txt", payload);
 
         // Remove _chain/meta.json from the closed ZIP
         Path firstZip = tempDir.resolve("test-corpus-1.zip");
@@ -170,9 +169,9 @@ class ZipIntegrityCheckerTest {
         // Append multiple documents to force rollover
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("doc1.txt", payload);
-        store.append("doc2.txt", payload);
-        store.append("doc3.txt", payload);
+        store.write("doc1.txt", payload);
+        store.write("doc2.txt", payload);
+        store.write("doc3.txt", payload);
 
         // Delete chain.json
         Path chainJson = tempDir.resolve("chain.json");
@@ -200,9 +199,9 @@ class ZipIntegrityCheckerTest {
         // Append multiple documents to force rollover
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("doc1.txt", payload);
-        store.append("doc2.txt", payload);
-        store.append("doc3.txt", payload);
+        store.write("doc1.txt", payload);
+        store.write("doc2.txt", payload);
+        store.write("doc3.txt", payload);
 
         // Tamper with the closed ZIP by appending garbage
         Path firstZip = tempDir.resolve("test-corpus-1.zip");
@@ -232,9 +231,9 @@ class ZipIntegrityCheckerTest {
         // Append multiple documents to force rollover
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("doc1.txt", payload);
-        store.append("doc2.txt", payload);
-        store.append("doc3.txt", payload);
+        store.write("doc1.txt", payload);
+        store.write("doc2.txt", payload);
+        store.write("doc3.txt", payload);
 
         // Remove _chain/meta.json from the closed ZIP
         Path firstZip = tempDir.resolve("test-corpus-1.zip");

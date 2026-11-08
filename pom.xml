@@ -103,6 +103,7 @@
     <module>corpus-management-api</module>
     <module>corpus-management</module>
     <module>corpus-management-spring</module>
+    <module>corpus-git</module>
 
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
@@ -159,6 +160,7 @@
     <djl.tokenizers.version>0.36.0</djl.tokenizers.version>
     <qdrant.client.version>1.18.1</qdrant.client.version>
     <zip4j.version>2.11.6</zip4j.version>
+    <jgit.version>7.2.0.202503040940-r</jgit.version>
     <download-maven-plugin.version>1.9.0</download-maven-plugin.version>
     <directory-watcher.version>0.19.1</directory-watcher.version>
   </properties>
@@ -552,6 +554,11 @@
         <groupId>net.lingala.zip4j</groupId>
         <artifactId>zip4j</artifactId>
         <version>${zip4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jgit</groupId>
+        <artifactId>org.eclipse.jgit</artifactId>
+        <version>${jgit.version}</version>
       </dependency>
       <dependency>
         <groupId>io.methvin</groupId>
