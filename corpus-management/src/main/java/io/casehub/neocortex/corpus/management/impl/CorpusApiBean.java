@@ -61,7 +61,7 @@ public class CorpusApiBean implements CorpusApi {
         } else {
             results = searchResource.search(query, domains, type, tags, limit, null, includeStatus);
         }
-        return applyPreview(results, previewLength);
+        return enrichWithAnnotationCounts(applyPreview(results, previewLength));
     }
 
     @Override
@@ -72,8 +72,9 @@ public class CorpusApiBean implements CorpusApi {
                                   ? keywords.replace("|", " ") : null;
         AdaptiveResult result = searchResource.searchAdaptive(query, expandedKeywords,
                                                               domains, type, tags, limit, profile, stack, includeStatus);
-        if (previewLength == null) {return result;}
-        return result.withResults(applyPreview(result.results(), previewLength));
+        var enriched = enrichWithAnnotationCounts(applyPreview(result.results(),
+                                                               previewLength != null ? previewLength : null));
+        return result.withResults(enriched);
     }
 
     private static List<SearchResult> applyPreview(List<SearchResult> results, Integer previewLength) {
@@ -81,10 +82,27 @@ public class CorpusApiBean implements CorpusApi {
         return results.stream().map(r -> r.withPreview(previewLength)).toList();
     }
 
+    private List<SearchResult> enrichWithAnnotationCounts(List<SearchResult> results) {
+        if (results.isEmpty()) {return results;}
+        var ids    = results.stream().map(SearchResult::id).toList();
+        var counts = entryStore.annotationCounts(corpusRef, ids);
+        if (counts.isEmpty()) {return results;}
+        return results.stream()
+                      .map(r -> {
+                          Integer count = counts.get(r.id());
+                          return count != null && count > 0 ? r.withAnnotationData(count, null) : r;
+                      })
+                      .toList();
+    }
+
+
     @Override
     public SearchResult entry(String corpusId, String entryId) {
-        if (corpusRoot == null) return null;
-        return indexService.entry(corpusRoot, entryId);
+        if (corpusRoot == null) {return null;}
+        SearchResult result = indexService.entry(corpusRoot, entryId);
+        if (result == null) {return null;}
+        var annotationList = entryStore.annotations(corpusRef, entryId);
+        return result.withAnnotationData(annotationList.size(), annotationList);
     }
 
     @Override
@@ -331,6 +349,27 @@ public class CorpusApiBean implements CorpusApi {
                               .filter(c -> since == null || c.timestamp().isAfter(since))
                               .filter(c -> sessionId == null || sessionId.isBlank() || sessionId.equals(c.sessionId()))
                               .toList();
+    }
+
+    private static final java.util.Set<String> VALID_ANNOTATION_TYPES =
+            java.util.Set.of("correction", "caveat", "update", "question");
+
+    @Override
+    public String annotate(String corpusId, String entryId, String note, String annotationType) {
+        if (entryId == null || entryId.isBlank()) {return "Error: entryId is required.";}
+        if (note == null || note.isBlank()) {return "Error: note is required.";}
+        if (annotationType == null || annotationType.isBlank()) {return "Error: annotationType is required.";}
+        String normalised = annotationType.toLowerCase();
+        if (!VALID_ANNOTATION_TYPES.contains(normalised)) {
+            return "Error: annotationType must be one of: correction, caveat, update, question.";
+        }
+        return entryStore.addAnnotation(corpusRef, entryId, note, normalised, "agent");
+    }
+
+    @Override
+    public java.util.List<io.casehub.neocortex.corpus.management.Annotation> annotations(String corpusId, String entryId) {
+        if (entryId == null || entryId.isBlank()) {return java.util.List.of();}
+        return entryStore.annotations(corpusRef, entryId);
     }
 
 

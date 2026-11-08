@@ -7,6 +7,7 @@ import io.casehub.neocortex.corpus.ChangeType;
 import io.casehub.neocortex.corpus.CorpusReader;
 import io.casehub.neocortex.corpus.CorpusStore;
 import io.casehub.neocortex.corpus.VersionInfo;
+import io.casehub.neocortex.corpus.management.Annotation;
 import io.casehub.neocortex.corpus.management.ChangeRecord;
 import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
@@ -209,6 +210,79 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
         if (reader == null) {return Optional.empty();}
         return reader.readVersion(entryId, version)
                      .map(bytes -> EntryContentParser.parse(entryId, bytes));
+    }
+
+    @Override
+    public String addAnnotation(CorpusRef corpus, String entryId,
+                                String note, String annotationType, String annotatedBy) {
+        String id = "ANN-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE)
+                    + "-" + String.format("%06x", java.util.concurrent.ThreadLocalRandom.current().nextInt(0xFFFFFF));
+        String now = Instant.now().toString();
+        String sql = "INSERT INTO corpus_annotations (id, entry_id, corpus_tenant_id, corpus_name, note, annotation_type, annotated_by, created_at) VALUES (?,?,?,?,?,?,?,?)";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.setString(2, entryId);
+            ps.setString(3, corpus.tenantId());
+            ps.setString(4, corpus.corpusName());
+            ps.setString(5, note);
+            ps.setString(6, annotationType);
+            ps.setString(7, annotatedBy);
+            ps.setString(8, now);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to add annotation for entry " + entryId, e);
+        }
+        return id;
+    }
+
+    @Override
+    public List<Annotation> annotations(CorpusRef corpus, String entryId) {
+        String           sql    = "SELECT id, entry_id, note, annotation_type, annotated_by, created_at FROM corpus_annotations WHERE entry_id = ? AND corpus_tenant_id = ? AND corpus_name = ? ORDER BY created_at ASC";
+        List<Annotation> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, entryId);
+            ps.setString(2, corpus.tenantId());
+            ps.setString(3, corpus.corpusName());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(new Annotation(
+                            rs.getString("id"),
+                            rs.getString("entry_id"),
+                            rs.getString("note"),
+                            rs.getString("annotation_type"),
+                            rs.getString("annotated_by"),
+                            Instant.parse(rs.getString("created_at"))));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get annotations for entry " + entryId, e);
+        }
+        return List.copyOf(result);
+    }
+
+    @Override
+    public Map<String, Integer> annotationCounts(CorpusRef corpus, List<String> entryIds) {
+        if (entryIds == null || entryIds.isEmpty()) {return Map.of();}
+        String               placeholders = String.join(",", entryIds.stream().map(id -> "?").toList());
+        String               sql          = "SELECT entry_id, COUNT(*) AS cnt FROM corpus_annotations WHERE entry_id IN (" + placeholders + ") AND corpus_tenant_id = ? AND corpus_name = ? GROUP BY entry_id";
+        Map<String, Integer> result       = new HashMap<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 1;
+            for (String id : entryIds) {ps.setString(idx++, id);}
+            ps.setString(idx++, corpus.tenantId());
+            ps.setString(idx, corpus.corpusName());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.put(rs.getString("entry_id"), rs.getInt("cnt"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get annotation counts", e);
+        }
+        return Map.copyOf(result);
     }
 
 

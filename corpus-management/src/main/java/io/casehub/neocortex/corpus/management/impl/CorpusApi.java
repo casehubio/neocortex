@@ -147,5 +147,15 @@ public interface CorpusApi {
     List<ContributionRecord> contributions(@ContextParam("corpusId") String corpusId,
                                            Instant since, String sessionId);
 
+    @PlatformMutation("Add an annotation to a corpus entry — visible to future sessions alongside the entry content. "
+                      + "annotationType must be one of: correction, caveat, update, question. "
+                      + "Annotations accumulate — multiple agents can annotate the same entry.")
+    String annotate(@ContextParam("corpusId") String corpusId, String entryId,
+                    String note, String annotationType);
+
+    @PlatformQuery("List all annotations on a corpus entry — returns typed notes with author and timestamp")
+    List<io.casehub.neocortex.corpus.management.Annotation> annotations(
+            @ContextParam("corpusId") String corpusId, String entryId);
+
 
 }
