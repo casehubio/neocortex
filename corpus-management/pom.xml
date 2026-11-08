@@ -75,6 +75,12 @@
       <artifactId>casehub-platform-api</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-knowledge-pipeline-api</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
 
     <dependency>
       <groupId>io.casehub</groupId>

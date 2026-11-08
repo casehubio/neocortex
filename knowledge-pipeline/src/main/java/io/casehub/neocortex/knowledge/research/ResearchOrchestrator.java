@@ -93,6 +93,14 @@ public class ResearchOrchestrator implements ResearchSessionService {
     }
 
     @Override
+    public List<ResearchSession> list(String tenantId) {
+        List<ResearchSession> result = new java.util.ArrayList<>(sessionStore.listByState(tenantId, ResearchState.ACTIVE));
+        result.addAll(sessionStore.listByState(tenantId, ResearchState.PAUSED));
+        return result;
+    }
+
+
+    @Override
     public ResearchSession get(String sessionId) {
         return sessionStore.get(sessionId).orElse(null);
     }

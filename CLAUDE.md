@@ -45,6 +45,12 @@ Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/
 
 ---
 
+## Generator-First Annotation Hygiene
+
+When adding or modifying annotations that feed code generators (`@McpDomain`, `@PlatformQuery`, `@PlatformMutation`, `@McpParam`, `@ContextParam`, etc.), always check whether richer annotation metadata would improve the generated output (REST endpoints, GraphQL resolvers, MCP tool descriptions). If improving an annotation improves what the generator produces, take the time to do it — even if the immediate task doesn't require it. Generators amplify annotation quality across every consumer.
+
+---
+
 ## What This Project Is
 
 `casehub-neocortex` provides five capability areas for the casehubio platform:
@@ -122,7 +128,7 @@ rag-query-augmentation/ — DocumentQueryAugmenter implementation via AgentProvi
 rag-tracking/       — Retrieval tracking: CDI @Decorator @Priority(40) on CaseRetriever — records retrieval events via RetrievalTracker SPI, fires RetrievalRecorded CDI events, SqliteRetrievalTracker (SQLite + HikariCP WAL + Flyway), RetentionScheduler (@ApplicationScoped, ScheduledExecutorService daemon thread, casehub.rag.tracking.retention.days default 90, purge every 24h). Classpath + config activated (`casehub.rag.tracking.enabled=true`)
 corpus-api/         — CorpusStore + CorpusReader + ChangeSource + WatchableChangeSource + CorpusIntegrity SPIs, value types — zero deps, Hortora-eligible
 corpus/             — Zip4j implementation: ZipCorpusStore (rolling archives, chain manifest), FlatCorpusStore, CompositeCorpusStore, compaction, migration — Hortora-eligible. CorpusStoreContractTest abstract base (14 tests), ChangeSourceContractTest abstract base (7 tests)
-corpus-management-api/ — CorpusCatalogue + CorpusEntryStore + CorpusSearch + FederatedCorpusSearch + CorpusManager SPIs, CorpusQuery (text/vector/filter with federation depth), CorpusDescriptor, CorpusType, FederationRef, CorpusLifecycle, HealthReport. Pure Java, zero CDI.
+corpus-management-api/ — CorpusCatalogue + CorpusEntryStore + CorpusSearch + FederatedCorpusSearch + CorpusManager SPIs, CorpusQuery (text/vector/filter with federation depth), CorpusDescriptor, CorpusType, FederationRef, CorpusLifecycle, HealthReport, Annotation (typed notes on entries: correction/caveat/update/question with annotator + timestamp). Pure Java, zero CDI.
 corpus-management/  — CDI wiring + SQLite implementations. NoOp @DefaultBean stubs (NoOpCorpusCatalogue, NoOpCorpusEntryStore, NoOpCorpusSearch, NoOpFederatedCorpusSearch). @IfBuildProperty-gated CorpusManagementBeans produces SqliteCorpusCatalogue, SqliteCorpusEntryStore, ChainWalkerFederatedSearch when casehub.corpus-management.sqlite.enabled=true. CorpusManagementConfig @ConfigMapping (casehub.corpus-management.sqlite.path, federation.relevance-threshold default 0.3). Also: CorpusApiBean (@McpDomain), CorpusIndexService, SearchResource, GardenReindexService, ProvenanceStore, SearchProfileStore, CorpusOutcomeService, FederationConfigParser, HttpFederationWalker, CoverDocumentParser/Generator, TranscriptCorpusInitializer.
 corpus-management-hortora/ — Hortora-specific corpus wiring
 corpus-management-parsers/ — Document parser implementations

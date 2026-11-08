@@ -28,4 +28,32 @@ public interface CorpusEntryStore {
     default Optional<CorpusEntry> getVersion(CorpusRef corpus, String entryId, int version) {
         return Optional.empty();
     }
+
+    default String addAnnotation(CorpusRef corpus, String entryId,
+                                 String note, String annotationType, String annotatedBy) {
+        throw new UnsupportedOperationException("Annotations not supported by this store");
+    }
+
+    default List<Annotation> annotations(CorpusRef corpus, String entryId) {
+        return List.of();
+    }
+
+    default java.util.Map<String, Integer> annotationCounts(CorpusRef corpus, java.util.List<String> entryIds) {
+        return java.util.Map.of();
+    }
+
+    default String addRelationship(CorpusRef corpus, String fromEntryId, String toEntryId,
+                                   String relationshipType, String createdBy) {
+        throw new UnsupportedOperationException("Relationships not supported by this store");
+    }
+
+    default List<EntryRelationship> relationships(CorpusRef corpus, String entryId) {
+        return List.of();
+    }
+
+    default java.util.Map<String, Integer> relationshipCounts(CorpusRef corpus, java.util.List<String> entryIds) {
+        return java.util.Map.of();
+    }
+
+
 }
