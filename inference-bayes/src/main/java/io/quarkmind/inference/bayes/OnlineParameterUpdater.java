@@ -11,7 +11,7 @@ import java.util.Map;
 public class OnlineParameterUpdater {
 
     private final BayesNetwork network;
-    private final JunctionTree tree;
+    private volatile JunctionTree tree;
     private final Map<String, VarStats> stats;
     private final double decayFactor;
     private long observationCount;
@@ -130,11 +130,7 @@ public class OnlineParameterUpdater {
     }
 
     private void reinitializeCliquePotentials() {
-        for (JunctionTreeClique clique : tree.getJunctionTreeNodes()) {
-            if (clique == null) continue;
-            Arrays.fill(clique.getPotentials(), 0.0);
-        }
-        tree.recurseJTNodesAndInitialisePotentials(network, tree.getRoot());
+        tree = new JunctionTreeBuilder(network).build();
     }
 
     private int parentConfigIndex(BayesVariable<?> var, Map<String, String> observation) {
@@ -193,9 +189,12 @@ public class OnlineParameterUpdater {
                 }
             }
 
+            double[][] cpt = var.getProbabilityTable();
             double[][] counts = new double[parentCombinations][numOutcomes];
-            for (double[] row : counts) {
-                Arrays.fill(row, alpha);
+            for (int row = 0; row < parentCombinations; row++) {
+                for (int col = 0; col < numOutcomes; col++) {
+                    counts[row][col] = cpt[row][col] * alpha + alpha;
+                }
             }
             stats.put(var.getName(), new VarStats(counts));
         }
