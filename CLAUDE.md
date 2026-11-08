@@ -45,6 +45,12 @@ Read `docs/guides/consumer-guide.md` for app-level work. Only read `docs/guides/
 
 ---
 
+## Generator-First Annotation Hygiene
+
+When adding or modifying annotations that feed code generators (`@McpDomain`, `@PlatformQuery`, `@PlatformMutation`, `@McpParam`, `@ContextParam`, etc.), always check whether richer annotation metadata would improve the generated output (REST endpoints, GraphQL resolvers, MCP tool descriptions). If improving an annotation improves what the generator produces, take the time to do it — even if the immediate task doesn't require it. Generators amplify annotation quality across every consumer.
+
+---
+
 ## What This Project Is
 
 `casehub-neocortex` provides five capability areas for the casehubio platform:
