@@ -103,4 +103,11 @@ public interface CorpusApi {
             + "OUTDATED requires stack (e.g. 'quarkus:3.36.1|jdk:26') — marks the entry for revision")
     String recordFeedback(@McpParam(format = McpParamFormat.LIST) String entryIds, String outcome,
             String stack, String issueRepo, Integer issueNumber);
+
+    @PlatformMutation("Record a research finding — stores as a corpus entry with metadata and provenance in one call. "
+            + "Returns the generated entry ID. If sourceIssue is provided (e.g. 'casehubio/neocortex#856'), "
+            + "provenance is recorded automatically.")
+    String recordFinding(@ContextParam("corpusId") String corpusId, String topic, String insight,
+            String sourceIssue, @McpParam(format = McpParamFormat.LIST) String tags,
+            String domain, String type);
 }
