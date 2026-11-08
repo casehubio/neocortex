@@ -2,7 +2,6 @@ package io.quarkmind.inference.bayes;
 
 import io.quarkmind.inference.bayes.graph.GraphNode;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,6 +92,22 @@ public class OnlineParameterUpdater {
     public synchronized BayesInstance<?> getInstance() {
         return new BayesInstance<>(tree);
     }
+
+    /**
+     * Creates a BayesInstance from the current junction tree without acquiring
+     * the updater lock. Safe for concurrent use from scoring threads because
+     * the volatile tree field is only assigned after a fully-built replacement
+     * tree is ready — callers always read a consistent, complete tree snapshot.
+     *
+     * <p>Use this from hot scoring paths where lock contention matters.
+     * Use {@link #getInstance()} when you need a happens-before guarantee
+     * with a concurrent {@link #update} call (e.g. verifying CPT state
+     * immediately after learning).
+     */
+    public BayesInstance<?> getInstanceSnapshot() {
+        return new BayesInstance<>(tree);
+    }
+
 
     public synchronized double[][] getCpt(String variableName) {
         for (GraphNode<BayesVariable> node : network) {
