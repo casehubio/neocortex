@@ -1,6 +1,7 @@
 package io.casehub.neocortex.corpus.management.cdi;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.corpus.CorpusReader;
 import io.casehub.neocortex.corpus.CorpusStore;
 import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.corpus.management.CorpusCatalogue;
@@ -12,11 +13,11 @@ import io.casehub.neocortex.corpus.management.impl.SqliteCorpusCatalogue;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusEntryStore;
 import io.casehub.neocortex.rag.runtime.IngestionContext;
 import io.casehub.neocortex.rag.runtime.IngestionPipeline;
-import jakarta.enterprise.inject.Instance;
 import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 
@@ -54,10 +55,12 @@ public class CorpusManagementBeans {
                                              IngestionPipeline pipeline,
                                              IngestionContext defaultContext,
                                              Instance<CorpusStore> backendStore,
-                                             Instance<ContentSerializer> serializer) {
+                                             Instance<ContentSerializer> serializer,
+                                             Instance<CorpusReader> corpusReader) {
         return new SqliteCorpusEntryStore(dataSource(config), pipeline, defaultContext,
-                backendStore.isResolvable() ? backendStore.get() : null,
-                serializer.isResolvable() ? serializer.get() : null);
+                                          backendStore.isResolvable() ? backendStore.get() : null,
+                                          serializer.isResolvable() ? serializer.get() : null,
+                                          corpusReader.isResolvable() ? corpusReader.get() : null);
     }
 
     @Produces

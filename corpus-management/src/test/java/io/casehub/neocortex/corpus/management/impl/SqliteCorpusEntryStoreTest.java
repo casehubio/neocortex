@@ -29,7 +29,7 @@ class SqliteCorpusEntryStoreTest {
         ingestor = new StubIngestor();
         var pipeline = new IngestionPipeline(ingestor);
         var context = new IngestionContext(CORPUS, null, null);
-        store = new SqliteCorpusEntryStore(ds, pipeline, context, null, null);
+        store = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, null);
     }
 
     @Test
@@ -120,6 +120,65 @@ class SqliteCorpusEntryStoreTest {
         assertThat(store.get(corpus2, "e1").get().stringField("title")).isEqualTo("B");
     }
 
+    @Test
+    void recentChangesShouldReturnChangesAfterTimestamp() {
+        var reader  = new StubCorpusReader();
+        var oldTime = java.time.Instant.parse("2026-01-01T00:00:00Z");
+        var newTime = java.time.Instant.parse("2026-11-01T00:00:00Z");
+        reader.addEntry("old.md", oldTime, "Alice", "old content");
+        reader.addEntry("new.md", newTime, "Bob", "new content");
+
+        var ds              = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var pipeline        = new IngestionPipeline(new StubIngestor());
+        var context         = new IngestionContext(CORPUS, null, null);
+        var storeWithReader = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, reader);
+
+        var since  = java.time.Instant.parse("2026-06-01T00:00:00Z");
+        var result = storeWithReader.recentChanges(CORPUS, since);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).path()).isEqualTo("new.md");
+        assertThat(result.get(0).type()).isEqualTo(io.casehub.neocortex.corpus.ChangeType.ADDED);
+        assertThat(result.get(0).author()).isEqualTo("Bob");
+        assertThat(result.get(0).preview()).isEqualTo("new content");
+    }
+
+    @Test
+    void recentChangesShouldReturnEmptyWhenNoChanges() {
+        var reader = new StubCorpusReader();
+        reader.addEntry("old.md", java.time.Instant.parse("2026-01-01T00:00:00Z"), null, "old");
+
+        var ds              = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var pipeline        = new IngestionPipeline(new StubIngestor());
+        var context         = new IngestionContext(CORPUS, null, null);
+        var storeWithReader = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, reader);
+
+        var future = java.time.Instant.parse("2027-01-01T00:00:00Z");
+        assertThat(storeWithReader.recentChanges(CORPUS, future)).isEmpty();
+    }
+
+    @Test
+    void recentChangesShouldDetectModification() {
+        var reader  = new StubCorpusReader();
+        var oldTime = java.time.Instant.parse("2026-01-01T00:00:00Z");
+        var newTime = java.time.Instant.parse("2026-11-01T00:00:00Z");
+        reader.addEntry("doc.md", oldTime, "Alice", "v1");
+        reader.addEntry("doc.md", newTime, "Bob", "v2");
+
+        var ds              = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var pipeline        = new IngestionPipeline(new StubIngestor());
+        var context         = new IngestionContext(CORPUS, null, null);
+        var storeWithReader = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, reader);
+
+        var since  = java.time.Instant.parse("2026-06-01T00:00:00Z");
+        var result = storeWithReader.recentChanges(CORPUS, since);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).type()).isEqualTo(io.casehub.neocortex.corpus.ChangeType.MODIFIED);
+        assertThat(result.get(0).author()).isEqualTo("Bob");
+    }
+
+
     // --- Stubs ---
 
     static class StubIngestor implements EmbeddingIngestor {
@@ -144,4 +203,48 @@ class SqliteCorpusEntryStoreTest {
             return List.of();
         }
     }
+
+    static class StubCorpusReader implements io.casehub.neocortex.corpus.CorpusReader {
+        private final Map<String, List<io.casehub.neocortex.corpus.VersionInfo>> versionMap = new java.util.LinkedHashMap<>();
+        private final Map<String, byte[]>                                        content    = new java.util.LinkedHashMap<>();
+
+        void addEntry(String path, java.time.Instant timestamp, String author, String text) {
+            var versions = versionMap.computeIfAbsent(path, k -> new ArrayList<>());
+            int version  = versions.size() + 1;
+            versions.add(new io.casehub.neocortex.corpus.VersionInfo(version, timestamp, "src-" + version, author));
+            content.put(path, text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public java.util.Optional<byte[]> read(String path) {
+            return java.util.Optional.ofNullable(content.get(path));
+        }
+
+        @Override
+        public java.util.Optional<java.io.InputStream> readStream(String path) {
+            return read(path).map(java.io.ByteArrayInputStream::new);
+        }
+
+        @Override
+        public java.util.Optional<byte[]> readVersion(String path, int version) {
+            return read(path);
+        }
+
+        @Override
+        public List<io.casehub.neocortex.corpus.VersionInfo> versions(String path) {
+            return versionMap.getOrDefault(path, List.of());
+        }
+
+        @Override
+        public List<String> list() {return new ArrayList<>(versionMap.keySet());}
+
+        @Override
+        public List<String> list(String prefix) {
+            return list().stream().filter(p -> p.startsWith(prefix)).toList();
+        }
+
+        @Override
+        public boolean exists(String path) {return content.containsKey(path);}
+    }
+
 }

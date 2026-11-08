@@ -76,7 +76,7 @@ public class GitCorpusReader implements CorpusReader {
     public List<VersionInfo> versions(String path) {
         try {
             ObjectId head = repository.resolve(refSpec);
-            if (head == null) return List.of();
+            if (head == null) {return List.of();}
             try (RevWalk revWalk = new RevWalk(repository)) {
                 revWalk.markStart(revWalk.parseCommit(head));
                 revWalk.setTreeFilter(PathFilter.create(path));
@@ -89,7 +89,7 @@ public class GitCorpusReader implements CorpusReader {
                 for (int i = 0; i < commits.size(); i++) {
                     RevCommit c = commits.get(i);
                     versions.add(new VersionInfo(i + 1, c.getAuthorIdent().getWhenAsInstant(),
-                            c.getId().getName()));
+                                                 c.getId().getName(), c.getAuthorIdent().getName()));
                 }
                 return versions;
             }

@@ -3,7 +3,11 @@ package io.casehub.neocortex.corpus.management.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.casehub.neocortex.corpus.ChangeType;
+import io.casehub.neocortex.corpus.CorpusReader;
 import io.casehub.neocortex.corpus.CorpusStore;
+import io.casehub.neocortex.corpus.VersionInfo;
+import io.casehub.neocortex.corpus.management.ChangeRecord;
 import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
@@ -19,6 +23,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,15 +40,18 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
     private final IngestionContext   defaultContext;
     private final CorpusStore        backendStore;
     private final ContentSerializer  serializer;
+    private final CorpusReader       reader;
 
     public SqliteCorpusEntryStore(DataSource dataSource, IngestionPipeline pipeline,
                                   IngestionContext defaultContext,
-                                  CorpusStore backendStore, ContentSerializer serializer) {
+                                  CorpusStore backendStore, ContentSerializer serializer,
+                                  CorpusReader reader) {
         this.dataSource     = dataSource;
         this.pipeline       = pipeline;
         this.defaultContext = defaultContext;
         this.backendStore   = backendStore;
         this.serializer     = serializer;
+        this.reader         = reader;
         if (dataSource instanceof com.zaxxer.hikari.HikariDataSource hds) {
             SqliteDataSourceFactory.migrate(hds, FLYWAY_LOCATION);
         }
@@ -155,6 +163,50 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
         }
         return Optional.empty();
     }
+
+    private static final int DEFAULT_PREVIEW_LENGTH = 500;
+
+    @Override
+    public List<ChangeRecord> recentChanges(CorpusRef corpus, Instant since) {
+        if (reader == null) {return List.of();}
+        List<String>       paths   = reader.list();
+        List<ChangeRecord> changes = new ArrayList<>();
+
+        for (String path : paths) {
+            List<VersionInfo> versions = reader.versions(path);
+            if (versions.isEmpty()) {continue;}
+
+            List<VersionInfo> afterSince = versions.stream()
+                                                   .filter(v -> v.timestamp().isAfter(since))
+                                                   .toList();
+
+            if (afterSince.isEmpty()) {continue;}
+
+            boolean    allAfterSince = afterSince.size() == versions.size();
+            ChangeType type          = allAfterSince ? ChangeType.ADDED : ChangeType.MODIFIED;
+
+            VersionInfo latest = afterSince.stream()
+                                           .max(java.util.Comparator.comparing(VersionInfo::timestamp))
+                                           .orElseThrow();
+
+            String preview = loadPreview(path);
+
+            changes.add(new ChangeRecord(path, type, latest.timestamp(), latest.author(), preview));
+        }
+
+        changes.sort(java.util.Comparator.comparing(ChangeRecord::timestamp).reversed());
+        return List.copyOf(changes);
+    }
+
+    private String loadPreview(String path) {
+        return reader.read(path)
+                     .map(bytes -> new String(bytes, java.nio.charset.StandardCharsets.UTF_8))
+                     .map(content -> content.length() > DEFAULT_PREVIEW_LENGTH
+                                     ? content.substring(0, DEFAULT_PREVIEW_LENGTH)
+                                     : content)
+                     .orElse(null);
+    }
+
 
     private void ingestEntry(CorpusRef corpus, CorpusEntry entry) {
         var metadata     = new HashMap<String, String>();
