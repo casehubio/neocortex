@@ -46,26 +46,26 @@ public class CorpusApiBean implements CorpusApi {
 
     @Override
     public List<SearchResult> search(String corpusId, String query,
-            List<String> domains, String type, String tags,
-            Integer limit, String profile, String stack, Integer previewLength) {
+                                     List<String> domains, String type, String tags,
+                                     Integer limit, String profile, String stack, Integer previewLength, String includeStatus) {
         List<SearchResult> results;
         if (profile != null || stack != null) {
             results = searchResource.searchAdaptive(query, null, domains, type, tags,
-                    limit, profile, stack).results();
+                                                    limit, profile, stack, includeStatus).results();
         } else {
-            results = searchResource.search(query, domains, type, tags, limit, null);
+            results = searchResource.search(query, domains, type, tags, limit, null, includeStatus);
         }
         return applyPreview(results, previewLength);
     }
 
     @Override
     public AdaptiveResult adaptiveSearch(String corpusId, String query,
-            String keywords, List<String> domains, String type,
-            String tags, Integer limit, String profile, String stack, Integer previewLength) {
+                                         String keywords, List<String> domains, String type,
+                                         String tags, Integer limit, String profile, String stack, Integer previewLength, String includeStatus) {
         String expandedKeywords = keywords != null && !keywords.isBlank()
-                ? keywords.replace("|", " ") : null;
+                                  ? keywords.replace("|", " ") : null;
         AdaptiveResult result = searchResource.searchAdaptive(query, expandedKeywords,
-                domains, type, tags, limit, profile, stack);
+                                                              domains, type, tags, limit, profile, stack, includeStatus);
         if (previewLength == null) {return result;}
         return result.withResults(applyPreview(result.results(), previewLength));
     }
@@ -199,7 +199,7 @@ public class CorpusApiBean implements CorpusApi {
 
     @Override
     public String recordFinding(String corpusId, String topic, String insight,
-                                String sourceIssue, String tags, String domain, String type) {
+                                String sourceIssue, String tags, String domain, String type, String status) {
         if (topic == null || topic.isBlank()) {return "Error: topic is required.";}
         if (insight == null || insight.isBlank()) {return "Error: insight is required.";}
 
@@ -207,7 +207,8 @@ public class CorpusApiBean implements CorpusApi {
                                   ? Arrays.stream(tags.split("[|,]")).map(String::trim).filter(s -> !s.isEmpty()).toList()
                                   : List.of();
 
-        return storeFinding(topic, insight, sourceIssue, parsedTags, domain, type);
+        String resolvedStatus = (status != null && !status.isBlank()) ? status.toLowerCase() : "published";
+        return storeFinding(topic, insight, sourceIssue, parsedTags, domain, type, resolvedStatus);
     }
 
     @Override
@@ -230,8 +231,9 @@ public class CorpusApiBean implements CorpusApi {
                 continue;
             }
             try {
-                List<String> tags = f.tags() != null ? f.tags() : List.of();
-                String       id   = storeFinding(f.topic(), f.insight(), f.sourceIssue(), tags, f.domain(), f.type());
+                List<String> tags           = f.tags() != null ? f.tags() : List.of();
+                String       resolvedStatus = (f.status() != null && !f.status().isBlank()) ? f.status().toLowerCase() : "published";
+                String       id             = storeFinding(f.topic(), f.insight(), f.sourceIssue(), tags, f.domain(), f.type(), resolvedStatus);
                 entryIds.add(id);
             } catch (Exception e) {
                 errors.add("Finding " + (i + 1) + " (" + f.topic() + "): " + e.getMessage());
@@ -241,9 +243,34 @@ public class CorpusApiBean implements CorpusApi {
         return new BatchFindingResult(List.copyOf(entryIds), findings.size(), entryIds.size(), List.copyOf(errors));
     }
 
+    @Override
+    public String publishEntry(String corpusId, String entryId) {
+        return transitionStatus(entryId, "published");
+    }
+
+    @Override
+    public String archiveEntry(String corpusId, String entryId) {
+        return transitionStatus(entryId, "archived");
+    }
+
+    private String transitionStatus(String entryId, String newStatus) {
+        if (entryId == null || entryId.isBlank()) {return "Error: entryId is required.";}
+        var existing = entryStore.get(corpusRef, entryId);
+        if (existing.isEmpty()) {return "Error: entry not found: " + entryId;}
+
+        var    metadata  = new java.util.LinkedHashMap<>(existing.get().metadata());
+        String oldStatus = (String) metadata.getOrDefault("status", "published");
+        metadata.put("status", newStatus);
+
+        var updated = new CorpusEntry(entryId, java.util.Map.copyOf(metadata),
+                                      existing.get().body(), existing.get().artifactRef());
+        entryStore.update(corpusRef, entryId, updated);
+        return oldStatus + " → " + newStatus;
+    }
+
 
     private String storeFinding(String topic, String insight, String sourceIssue,
-                                List<String> tags, String domain, String type) {
+                                List<String> tags, String domain, String type, String status) {
         String entryId = generateEntryId();
 
         var metadata = new java.util.LinkedHashMap<String, Object>();
@@ -251,6 +278,7 @@ public class CorpusApiBean implements CorpusApi {
         if (domain != null && !domain.isBlank()) {metadata.put("domain", domain);}
         if (type != null && !type.isBlank()) {metadata.put("type", type);}
         if (tags != null && !tags.isEmpty()) {metadata.put("tags", tags);}
+        metadata.put("status", status != null ? status : "published");
 
         var entry = new CorpusEntry(entryId, java.util.Map.copyOf(metadata), insight, null);
         entryStore.add(corpusRef, entry);

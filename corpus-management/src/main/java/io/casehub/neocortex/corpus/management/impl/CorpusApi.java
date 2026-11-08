@@ -22,20 +22,23 @@ import java.util.List;
 public interface CorpusApi {
 
     @PlatformQuery("Search a corpus with optional domain, type, and tag filters. "
-            + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26'). "
-            + "Results include document body; set previewLength to truncate long bodies.")
+                   + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26'). "
+                   + "Results include document body; set previewLength to truncate long bodies. "
+                   + "includeStatus controls lifecycle filtering: null=published only (default), 'draft'=include drafts, "
+                   + "'archived'=include archived, 'all'=no filtering.")
     List<SearchResult> search(@ContextParam("corpusId") String corpusId, String query,
-            List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
-            Integer limit, String profile, String stack, Integer previewLength);
+                              List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
+                              Integer limit, String profile, String stack, Integer previewLength, String includeStatus);
 
     @PlatformQuery("Adaptive search with keyword boosting — extends results "
-            + "when initial set is too small, trims when too large. "
-            + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26'). "
-            + "Results include document body; set previewLength to truncate long bodies.")
+                   + "when initial set is too small, trims when too large. "
+                   + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26'). "
+                   + "Results include document body; set previewLength to truncate long bodies. "
+                   + "includeStatus controls lifecycle filtering: null=published only (default), 'all'=no filtering.")
     AdaptiveResult adaptiveSearch(@ContextParam("corpusId") String corpusId, String query,
-            @McpParam(format = McpParamFormat.LIST) String keywords,
-            List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
-            Integer limit, String profile, String stack, Integer previewLength);
+                                  @McpParam(format = McpParamFormat.LIST) String keywords,
+                                  List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
+                                  Integer limit, String profile, String stack, Integer previewLength, String includeStatus);
 
     @PlatformQuery("Fetch a single corpus entry by ID — same shape as search results for consistent agent experience")
     SearchResult entry(@ContextParam("corpusId") String corpusId, String entryId);
@@ -105,14 +108,22 @@ public interface CorpusApi {
             String stack, String issueRepo, Integer issueNumber);
 
     @PlatformMutation("Record a research finding — stores as a corpus entry with metadata and provenance in one call. "
-            + "Returns the generated entry ID. If sourceIssue is provided (e.g. 'casehubio/neocortex#856'), "
-            + "provenance is recorded automatically.")
+                      + "Returns the generated entry ID. If sourceIssue is provided (e.g. 'casehubio/neocortex#856'), "
+                      + "provenance is recorded automatically. "
+                      + "status defaults to 'published'; set to 'draft' for provisional findings.")
     String recordFinding(@ContextParam("corpusId") String corpusId, String topic, String insight,
-            String sourceIssue, @McpParam(format = McpParamFormat.LIST) String tags,
-            String domain, String type);
+                         String sourceIssue, @McpParam(format = McpParamFormat.LIST) String tags,
+                         String domain, String type, String status);
 
     @PlatformMutation("Record multiple findings in one call — each finding becomes a corpus entry with provenance. "
                       + "Returns entry IDs for successes; partial failures don't block successful entries.")
     BatchFindingResult recordFindings(@ContextParam("corpusId") String corpusId, List<FindingInput> findings);
+
+    @PlatformMutation("Promote a draft entry to published — makes it visible in default search results")
+    String publishEntry(@ContextParam("corpusId") String corpusId, String entryId);
+
+    @PlatformMutation("Archive an entry — removes it from default search results without deleting it")
+    String archiveEntry(@ContextParam("corpusId") String corpusId, String entryId);
+
 
 }
