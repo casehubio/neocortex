@@ -246,6 +246,58 @@ class RecordFindingTest {
         assertThat(((io.casehub.neocortex.rag.PayloadFilter.Eq) not.inner()).value()).isEqualTo("archived");
     }
 
+    @Test
+    void contributionsTracksCreatedEntries() {
+        bean.recordFinding("test", "Topic A", "insight a", null, null, null, null, null, null);
+        bean.recordFinding("test", "Topic B", "insight b", null, null, null, null, null, null);
+
+        List<ContributionRecord> contribs = bean.contributions("test", null, null);
+
+        assertThat(contribs).hasSize(2);
+        assertThat(contribs.get(0).action()).isEqualTo("created");
+        assertThat(contribs.get(0).title()).isEqualTo("Topic A");
+        assertThat(contribs.get(1).title()).isEqualTo("Topic B");
+    }
+
+    @Test
+    void contributionsFiltersBySince() {
+        bean.recordFinding("test", "Old", "old insight", null, null, null, null, null, null);
+        java.time.Instant cutoff = java.time.Instant.now();
+        bean.recordFinding("test", "New", "new insight", null, null, null, null, null, null);
+
+        List<ContributionRecord> contribs = bean.contributions("test", cutoff, null);
+
+        assertThat(contribs).hasSize(1);
+        assertThat(contribs.get(0).title()).isEqualTo("New");
+    }
+
+    @Test
+    void contributionsFiltersBySessionId() {
+        bean.recordFinding("test", "Session A", "insight", null, null, null, null, null, "sess-1");
+        bean.recordFinding("test", "Session B", "insight", null, null, null, null, null, "sess-2");
+        bean.recordFinding("test", "No Session", "insight", null, null, null, null, null, null);
+
+        List<ContributionRecord> contribs = bean.contributions("test", null, "sess-1");
+
+        assertThat(contribs).hasSize(1);
+        assertThat(contribs.get(0).title()).isEqualTo("Session A");
+        assertThat(contribs.get(0).sessionId()).isEqualTo("sess-1");
+    }
+
+    @Test
+    void contributionsTracksModifications() {
+        bean.recordFinding("test", "Topic", "insight", null, null, null, null, null, null);
+        String entryId = entryStore.lastEntry.id();
+        entryStore.stored.put(entryId, entryStore.lastEntry);
+
+        bean.archiveEntry("test", entryId);
+
+        List<ContributionRecord> contribs = bean.contributions("test", null, null);
+        assertThat(contribs).hasSize(2);
+        assertThat(contribs.get(0).action()).isEqualTo("created");
+        assertThat(contribs.get(1).action()).isEqualTo("modified");
+    }
+
 
     // --- Stubs ---
 

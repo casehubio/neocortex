@@ -25,6 +25,7 @@ public class CorpusApiBean implements CorpusApi {
     private final CorpusEntryStore entryStore;
     private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
 
     public CorpusApiBean(SearchResource searchResource,
@@ -271,6 +272,11 @@ public class CorpusApiBean implements CorpusApi {
         var updated = new CorpusEntry(entryId, java.util.Map.copyOf(metadata),
                                       existing.get().body(), existing.get().artifactRef());
         entryStore.update(corpusRef, entryId, updated);
+
+        String title     = (String) metadata.getOrDefault("title", entryId);
+        String sessionId = (String) metadata.get("sessionId");
+        contributionLog.add(new ContributionRecord(entryId, title, "modified", java.time.Instant.now(), sessionId));
+
         return oldStatus + " → " + newStatus;
     }
 
@@ -319,6 +325,15 @@ public class CorpusApiBean implements CorpusApi {
                              .toList();
     }
 
+    @Override
+    public List<ContributionRecord> contributions(String corpusId, java.time.Instant since, String sessionId) {
+        return contributionLog.stream()
+                              .filter(c -> since == null || c.timestamp().isAfter(since))
+                              .filter(c -> sessionId == null || sessionId.isBlank() || sessionId.equals(c.sessionId()))
+                              .toList();
+    }
+
+
     private ResearchSessionView toView(io.casehub.neocortex.knowledge.ResearchSession session) {
         List<ResearchSessionView.FindingSummary> findings =
                 sessionFindings.getOrDefault(session.id(), List.of());
@@ -357,6 +372,8 @@ public class CorpusApiBean implements CorpusApi {
             sessionFindings.computeIfAbsent(sessionId, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>()))
                            .add(new ResearchSessionView.FindingSummary(entryId, topic));
         }
+
+        contributionLog.add(new ContributionRecord(entryId, topic, "created", java.time.Instant.now(), sessionId));
 
         return entryId;
     }

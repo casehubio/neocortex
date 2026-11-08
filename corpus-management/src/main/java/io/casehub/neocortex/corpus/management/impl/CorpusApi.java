@@ -142,5 +142,10 @@ public interface CorpusApi {
     @PlatformQuery("List active and paused research sessions")
     List<ResearchSessionView> sessions(@ContextParam("corpusId") String corpusId);
 
+    @PlatformQuery("List entries created or modified in this corpus — scoped by time range and optional session. "
+                   + "Shows what was contributed for session handover.")
+    List<ContributionRecord> contributions(@ContextParam("corpusId") String corpusId,
+                                           Instant since, String sessionId);
+
 
 }
