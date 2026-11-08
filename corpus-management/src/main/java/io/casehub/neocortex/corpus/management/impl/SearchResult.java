@@ -100,5 +100,20 @@ public record SearchResult(
         return count != null ? Integer.parseInt(count) : null;
     }
 
+    @com.fasterxml.jackson.annotation.JsonProperty
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public String createdBy() {return metadata != null ? metadata.get("created_by") : null;}
+
+    @com.fasterxml.jackson.annotation.JsonProperty
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public String updatedBy() {return metadata != null ? metadata.get("updated_by") : null;}
+
+    @com.fasterxml.jackson.annotation.JsonProperty
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public String createdAt() {return metadata != null ? metadata.get("created_at") : null;}
+
+    @com.fasterxml.jackson.annotation.JsonProperty
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public String updatedAt() {return metadata != null ? metadata.get("updated_at") : null;}
 
 }

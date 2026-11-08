@@ -13,9 +13,21 @@ public interface CorpusEntryStore {
 
     void update(CorpusRef corpus, String entryId, CorpusEntry entry);
 
+    default String add(CorpusRef corpus, CorpusEntry entry, String actorId) {
+        return add(corpus, entry);
+    }
+
+    default void update(CorpusRef corpus, String entryId, CorpusEntry entry, String actorId) {
+        update(corpus, entryId, entry);
+    }
+
     void remove(CorpusRef corpus, String entryId);
 
     Optional<CorpusEntry> get(CorpusRef corpus, String entryId);
+
+    default Optional<AuditInfo> auditInfo(CorpusRef corpus, String entryId) {
+        return Optional.empty();
+    }
 
     default List<ChangeRecord> recentChanges(CorpusRef corpus, Instant since) {
         return List.of();
