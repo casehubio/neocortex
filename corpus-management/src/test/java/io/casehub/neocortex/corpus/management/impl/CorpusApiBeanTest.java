@@ -225,8 +225,61 @@ class CorpusApiBeanTest {
         assertThat(bean.annotations("corpus", null)).isEmpty();
     }
 
+
+// --- relationship validation ---
+
+    @Test
+    void relateEntries_rejects_null_fromEntryId() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.relateEntries("corpus", null, "e2", "supersedes")).contains("Error");
+    }
+
+    @Test
+    void relateEntries_rejects_invalid_type() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.relateEntries("corpus", "e1", "e2", "invalid")).contains("Error");
+    }
+
+    @Test
+    void relateEntries_accepts_valid_types() {
+        for (String type : List.of("supersedes", "updates", "contradicts", "see-also", "derived-from")) {
+            var           entryStore = new StubAnnotationStore();
+            var           corpusRef  = new CorpusRef("test", "test-corpus");
+            CorpusApiBean bean       = new CorpusApiBean(null, null, null, null, null, null, corpusRef, null, entryStore, null);
+            String        result     = bean.relateEntries("corpus", "e1", "e2", type);
+            assertThat(result).startsWith("REL-");
+        }
+    }
+
+    @Test
+    void relatedEntries_returns_empty_for_null_entryId() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.relatedEntries("corpus", null)).isEmpty();
+    }
+
+    @Test
+    void relatedEntries_resolves_direction() {
+        var           entryStore = new StubAnnotationStore();
+        var           corpusRef  = new CorpusRef("test", "test-corpus");
+        CorpusApiBean bean       = new CorpusApiBean(null, null, null, null, null, null, corpusRef, null, entryStore, null);
+
+        entryStore.storedRelationships.add(new io.casehub.neocortex.corpus.management.EntryRelationship(
+                "REL-1", "e1", "e2", "supersedes", "agent", java.time.Instant.now()));
+
+        var fromE1 = bean.relatedEntries("corpus", "e1");
+        assertThat(fromE1).hasSize(1);
+        assertThat(fromE1.get(0).relationshipType()).isEqualTo("supersedes");
+        assertThat(fromE1.get(0).direction()).isEqualTo("forward");
+
+        var fromE2 = bean.relatedEntries("corpus", "e2");
+        assertThat(fromE2).hasSize(1);
+        assertThat(fromE2.get(0).relationshipType()).isEqualTo("superseded-by");
+        assertThat(fromE2.get(0).direction()).isEqualTo("inverse");
+    }
+
     static class StubAnnotationStore implements io.casehub.neocortex.corpus.management.CorpusEntryStore {
         String lastAnnotationType;
+        final java.util.List<io.casehub.neocortex.corpus.management.EntryRelationship> storedRelationships = new java.util.ArrayList<>();
 
         @Override
         public String add(CorpusRef corpus, io.casehub.neocortex.corpus.management.CorpusEntry entry) {return entry.id();}
@@ -248,6 +301,20 @@ class CorpusApiBeanTest {
 
         @Override
         public List<io.casehub.neocortex.corpus.management.Annotation> annotations(CorpusRef corpus, String entryId) {return List.of();}
+
+        @Override
+        public String addRelationship(CorpusRef corpus, String fromEntryId, String toEntryId, String relationshipType, String createdBy) {
+            storedRelationships.add(new io.casehub.neocortex.corpus.management.EntryRelationship(
+                    "REL-test-123", fromEntryId, toEntryId, relationshipType, createdBy, java.time.Instant.now()));
+            return "REL-test-123";
+        }
+
+        @Override
+        public List<io.casehub.neocortex.corpus.management.EntryRelationship> relationships(CorpusRef corpus, String entryId) {
+            return storedRelationships.stream()
+                                      .filter(r -> r.fromEntryId().equals(entryId) || r.toEntryId().equals(entryId))
+                                      .toList();
+        }
     }
 
     private CorpusApiBean createBean() {

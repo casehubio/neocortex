@@ -58,6 +58,15 @@ public record SearchResult(
                                 count, annotationList);
     }
 
+    public SearchResult withExtraMetadata(String key, String value) {
+        var extended = new java.util.LinkedHashMap<>(metadata != null ? metadata : java.util.Map.<String, String>of());
+        extended.put(key, value);
+        return new SearchResult(id, title, domain, type, score, body,
+                                relevance, crossEncoderScore, source, sourcePrefix, seeAlsoIds,
+                                java.util.Map.copyOf(extended), annotationCount, annotations);
+    }
+
+
     @com.fasterxml.jackson.annotation.JsonProperty
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public String stalenessThreshold() {return metadata != null ? metadata.get("staleness_threshold") : null;}
@@ -82,5 +91,14 @@ public record SearchResult(
     @com.fasterxml.jackson.annotation.JsonProperty
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public String verifiedOn() {return metadata != null ? metadata.get("verified_on") : null;}
+
+    @com.fasterxml.jackson.annotation.JsonProperty
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public Integer relationshipCount() {
+        if (metadata == null) {return null;}
+        String count = metadata.get("relationship_count");
+        return count != null ? Integer.parseInt(count) : null;
+    }
+
 
 }

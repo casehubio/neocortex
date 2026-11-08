@@ -61,7 +61,7 @@ public class CorpusApiBean implements CorpusApi {
         } else {
             results = searchResource.search(query, domains, type, tags, limit, null, includeStatus);
         }
-        return enrichWithAnnotationCounts(applyPreview(results, previewLength));
+        return enrichWithRelationshipCounts(enrichWithAnnotationCounts(applyPreview(results, previewLength)));
     }
 
     @Override
@@ -72,8 +72,8 @@ public class CorpusApiBean implements CorpusApi {
                                   ? keywords.replace("|", " ") : null;
         AdaptiveResult result = searchResource.searchAdaptive(query, expandedKeywords,
                                                               domains, type, tags, limit, profile, stack, includeStatus);
-        var enriched = enrichWithAnnotationCounts(applyPreview(result.results(),
-                                                               previewLength != null ? previewLength : null));
+        var enriched = enrichWithRelationshipCounts(enrichWithAnnotationCounts(
+                applyPreview(result.results(), previewLength != null ? previewLength : null)));
         return result.withResults(enriched);
     }
 
@@ -91,6 +91,19 @@ public class CorpusApiBean implements CorpusApi {
                       .map(r -> {
                           Integer count = counts.get(r.id());
                           return count != null && count > 0 ? r.withAnnotationData(count, null) : r;
+                      })
+                      .toList();
+    }
+
+    private List<SearchResult> enrichWithRelationshipCounts(List<SearchResult> results) {
+        if (results.isEmpty()) {return results;}
+        var ids    = results.stream().map(SearchResult::id).toList();
+        var counts = entryStore.relationshipCounts(corpusRef, ids);
+        if (counts.isEmpty()) {return results;}
+        return results.stream()
+                      .map(r -> {
+                          Integer count = counts.get(r.id());
+                          return count != null && count > 0 ? r.withExtraMetadata("relationship_count", String.valueOf(count)) : r;
                       })
                       .toList();
     }
@@ -370,6 +383,42 @@ public class CorpusApiBean implements CorpusApi {
     public java.util.List<io.casehub.neocortex.corpus.management.Annotation> annotations(String corpusId, String entryId) {
         if (entryId == null || entryId.isBlank()) {return java.util.List.of();}
         return entryStore.annotations(corpusRef, entryId);
+    }
+
+    private static final java.util.Set<String> VALID_RELATIONSHIP_TYPES =
+            java.util.Set.of("supersedes", "updates", "contradicts", "see-also", "derived-from");
+
+    @Override
+    public String relateEntries(String corpusId, String fromEntryId, String toEntryId, String relationship) {
+        if (fromEntryId == null || fromEntryId.isBlank()) {return "Error: fromEntryId is required.";}
+        if (toEntryId == null || toEntryId.isBlank()) {return "Error: toEntryId is required.";}
+        if (relationship == null || relationship.isBlank()) {return "Error: relationship is required.";}
+        String normalised = relationship.toLowerCase();
+        if (!VALID_RELATIONSHIP_TYPES.contains(normalised)) {
+            return "Error: relationship must be one of: supersedes, updates, contradicts, see-also, derived-from.";
+        }
+        String id = entryStore.addRelationship(corpusRef, fromEntryId, toEntryId, normalised, "agent");
+
+        if ("supersedes".equals(normalised)) {
+            transitionStatus(toEntryId, "archived");
+        }
+
+        return id;
+    }
+
+    @Override
+    public java.util.List<RelatedEntry> relatedEntries(String corpusId, String entryId) {
+        if (entryId == null || entryId.isBlank()) {return java.util.List.of();}
+        var relationships = entryStore.relationships(corpusRef, entryId);
+        return relationships.stream()
+                            .map(r -> {
+                                if (r.fromEntryId().equals(entryId)) {
+                                    return RelatedEntry.forward(r.toEntryId(), r.relationshipType(), r.createdAt());
+                                } else {
+                                    return RelatedEntry.inverse(r.fromEntryId(), r.relationshipType(), r.createdAt());
+                                }
+                            })
+                            .toList();
     }
 
 

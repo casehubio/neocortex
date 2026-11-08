@@ -157,5 +157,15 @@ public interface CorpusApi {
     List<io.casehub.neocortex.corpus.management.Annotation> annotations(
             @ContextParam("corpusId") String corpusId, String entryId);
 
+    @PlatformMutation("Link two entries with a typed relationship. "
+                      + "relationship must be one of: supersedes, updates, contradicts, see-also, derived-from. "
+                      + "'supersedes' also archives the target entry.")
+    String relateEntries(@ContextParam("corpusId") String corpusId,
+                         String fromEntryId, String toEntryId, String relationship);
+
+    @PlatformQuery("Get entries related to a given entry — returns bidirectional relationships "
+                   + "(e.g. A supersedes B → B shows as 'superseded-by A')")
+    List<RelatedEntry> relatedEntries(@ContextParam("corpusId") String corpusId, String entryId);
+
 
 }

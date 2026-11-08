@@ -337,6 +337,74 @@ class SqliteCorpusEntryStoreTest {
         assertThat(annotations.get(0).id()).startsWith("ANN-");
     }
 
+
+    @Test
+    void addRelationshipReturnsId() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body", null));
+        String relId = store.addRelationship(CORPUS, "e1", "e2", "supersedes", "agent-1");
+        assertThat(relId).startsWith("REL-");
+    }
+
+    @Test
+    void relationshipsReturnsBidirectional() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body", null));
+        store.addRelationship(CORPUS, "e1", "e2", "supersedes", "agent-1");
+
+        var fromE1 = store.relationships(CORPUS, "e1");
+        assertThat(fromE1).hasSize(1);
+        assertThat(fromE1.get(0).fromEntryId()).isEqualTo("e1");
+        assertThat(fromE1.get(0).toEntryId()).isEqualTo("e2");
+
+        var fromE2 = store.relationships(CORPUS, "e2");
+        assertThat(fromE2).hasSize(1);
+        assertThat(fromE2.get(0).fromEntryId()).isEqualTo("e1");
+    }
+
+    @Test
+    void relationshipsAccumulate() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e3", Map.of("title", "C"), "Body", null));
+        store.addRelationship(CORPUS, "e1", "e2", "supersedes", "agent-1");
+        store.addRelationship(CORPUS, "e1", "e3", "see-also", "agent-1");
+
+        assertThat(store.relationships(CORPUS, "e1")).hasSize(2);
+    }
+
+    @Test
+    void relationshipsIsolatedByCorpus() {
+        var corpus2 = new CorpusRef("tenant-1", "other-corpus");
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body", null));
+        store.add(corpus2, new CorpusEntry("e1", Map.of("title", "C"), "Body", null));
+        store.add(corpus2, new CorpusEntry("e2", Map.of("title", "D"), "Body", null));
+        store.addRelationship(CORPUS, "e1", "e2", "updates", "agent-1");
+
+        assertThat(store.relationships(CORPUS, "e1")).hasSize(1);
+        assertThat(store.relationships(corpus2, "e1")).isEmpty();
+    }
+
+    @Test
+    void relationshipCountsBidirectional() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e3", Map.of("title", "C"), "Body", null));
+        store.addRelationship(CORPUS, "e1", "e2", "supersedes", "agent-1");
+        store.addRelationship(CORPUS, "e3", "e1", "see-also", "agent-1");
+
+        var counts = store.relationshipCounts(CORPUS, List.of("e1", "e2", "e3"));
+        assertThat(counts).containsEntry("e1", 2);
+        assertThat(counts).containsEntry("e2", 1);
+        assertThat(counts).containsEntry("e3", 1);
+    }
+
+    @Test
+    void relationshipsReturnsEmptyForMissingEntry() {
+        assertThat(store.relationships(CORPUS, "nonexistent")).isEmpty();
+    }
+
     static class StubIngestor implements EmbeddingIngestor {
         final List<ChunkInput> ingested = new ArrayList<>();
         final List<String> deleted = new ArrayList<>();
