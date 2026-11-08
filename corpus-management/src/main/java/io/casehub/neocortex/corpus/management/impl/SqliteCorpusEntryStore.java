@@ -198,6 +198,20 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
         return List.copyOf(changes);
     }
 
+    @Override
+    public List<VersionInfo> versions(CorpusRef corpus, String entryId) {
+        if (reader == null) {return List.of();}
+        return reader.versions(entryId);
+    }
+
+    @Override
+    public Optional<CorpusEntry> getVersion(CorpusRef corpus, String entryId, int version) {
+        if (reader == null) {return Optional.empty();}
+        return reader.readVersion(entryId, version)
+                     .map(bytes -> EntryContentParser.parse(entryId, bytes));
+    }
+
+
     private String loadPreview(String path) {
         return reader.read(path)
                      .map(bytes -> new String(bytes, java.nio.charset.StandardCharsets.UTF_8))

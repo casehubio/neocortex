@@ -1,6 +1,8 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
+import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
@@ -73,6 +75,16 @@ public class CorpusApiBean implements CorpusApi {
     public ChangeResult changes(String corpusId, java.time.Instant since) {
         var records = entryStore.recentChanges(corpusRef, since);
         return new ChangeResult(records);
+    }
+
+    @Override
+    public List<VersionInfo> versions(String corpusId, String entryId) {
+        return entryStore.versions(corpusRef, entryId);
+    }
+
+    @Override
+    public CorpusEntry version(String corpusId, String entryId, int version) {
+        return entryStore.getVersion(corpusRef, entryId, version).orElse(null);
     }
 
 

@@ -1,10 +1,12 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
 import io.casehub.neocortex.rag.CorpusRef;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -43,4 +45,19 @@ public class AccessTrackingEntryStore implements CorpusEntryStore {
         }
         return result;
     }
+
+    @Override
+    public List<VersionInfo> versions(CorpusRef corpus, String entryId) {
+        return delegate.versions(corpus, entryId);
+    }
+
+    @Override
+    public Optional<CorpusEntry> getVersion(CorpusRef corpus, String entryId, int version) {
+        Optional<CorpusEntry> result = delegate.getVersion(corpus, entryId, version);
+        if (result.isPresent()) {
+            eventSink.accept(new EntryAccessEvent(corpus, entryId, Instant.now()));
+        }
+        return result;
+    }
+
 }
