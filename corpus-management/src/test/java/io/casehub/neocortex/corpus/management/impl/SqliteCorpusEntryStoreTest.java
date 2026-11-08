@@ -247,6 +247,96 @@ class SqliteCorpusEntryStoreTest {
 
     // --- Stubs ---
 
+
+    @Test
+    void addAnnotationReturnsId() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "Test"), "Body", null));
+        String annId = store.addAnnotation(CORPUS, "e1", "Factual error in section 2", "correction", "agent-1");
+        assertThat(annId).startsWith("ANN-");
+    }
+
+    @Test
+    void annotationsAccumulate() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "Test"), "Body", null));
+        store.addAnnotation(CORPUS, "e1", "First note", "correction", "agent-1");
+        store.addAnnotation(CORPUS, "e1", "Second note", "caveat", "agent-2");
+
+        var annotations = store.annotations(CORPUS, "e1");
+        assertThat(annotations).hasSize(2);
+        assertThat(annotations.get(0).note()).isEqualTo("First note");
+        assertThat(annotations.get(0).annotationType()).isEqualTo("correction");
+        assertThat(annotations.get(0).annotatedBy()).isEqualTo("agent-1");
+        assertThat(annotations.get(1).note()).isEqualTo("Second note");
+        assertThat(annotations.get(1).annotationType()).isEqualTo("caveat");
+    }
+
+    @Test
+    void annotationsOrderedChronologically() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "Test"), "Body", null));
+        store.addAnnotation(CORPUS, "e1", "First", "update", "agent-1");
+        store.addAnnotation(CORPUS, "e1", "Second", "question", "agent-1");
+
+        var annotations = store.annotations(CORPUS, "e1");
+        assertThat(annotations.get(0).createdAt()).isBeforeOrEqualTo(annotations.get(1).createdAt());
+    }
+
+    @Test
+    void annotationsIsolatedByEntry() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body A", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body B", null));
+        store.addAnnotation(CORPUS, "e1", "Note on A", "correction", "agent-1");
+        store.addAnnotation(CORPUS, "e2", "Note on B", "caveat", "agent-1");
+
+        assertThat(store.annotations(CORPUS, "e1")).hasSize(1);
+        assertThat(store.annotations(CORPUS, "e1").get(0).note()).isEqualTo("Note on A");
+        assertThat(store.annotations(CORPUS, "e2")).hasSize(1);
+        assertThat(store.annotations(CORPUS, "e2").get(0).note()).isEqualTo("Note on B");
+    }
+
+    @Test
+    void annotationsIsolatedByCorpus() {
+        var corpus2 = new CorpusRef("tenant-1", "other-corpus");
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body A", null));
+        store.add(corpus2, new CorpusEntry("e1", Map.of("title", "B"), "Body B", null));
+        store.addAnnotation(CORPUS, "e1", "Note in corpus 1", "correction", "agent-1");
+
+        assertThat(store.annotations(CORPUS, "e1")).hasSize(1);
+        assertThat(store.annotations(corpus2, "e1")).isEmpty();
+    }
+
+    @Test
+    void annotationsReturnsEmptyForMissingEntry() {
+        assertThat(store.annotations(CORPUS, "nonexistent")).isEmpty();
+    }
+
+    @Test
+    void annotationCountsBatchQuery() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "A"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e2", Map.of("title", "B"), "Body", null));
+        store.add(CORPUS, new CorpusEntry("e3", Map.of("title", "C"), "Body", null));
+        store.addAnnotation(CORPUS, "e1", "Note 1", "correction", "agent-1");
+        store.addAnnotation(CORPUS, "e1", "Note 2", "caveat", "agent-1");
+        store.addAnnotation(CORPUS, "e2", "Note 3", "update", "agent-2");
+
+        var counts = store.annotationCounts(CORPUS, List.of("e1", "e2", "e3"));
+        assertThat(counts).containsEntry("e1", 2);
+        assertThat(counts).containsEntry("e2", 1);
+        assertThat(counts).doesNotContainKey("e3");
+    }
+
+    @Test
+    void annotationIncludesTimestampAndAnnotator() {
+        store.add(CORPUS, new CorpusEntry("e1", Map.of("title", "Test"), "Body", null));
+        store.addAnnotation(CORPUS, "e1", "Note", "correction", "agent-1");
+
+        var annotations = store.annotations(CORPUS, "e1");
+        assertThat(annotations).hasSize(1);
+        assertThat(annotations.get(0).annotatedBy()).isEqualTo("agent-1");
+        assertThat(annotations.get(0).createdAt()).isNotNull();
+        assertThat(annotations.get(0).entryId()).isEqualTo("e1");
+        assertThat(annotations.get(0).id()).startsWith("ANN-");
+    }
+
     static class StubIngestor implements EmbeddingIngestor {
         final List<ChunkInput> ingested = new ArrayList<>();
         final List<String> deleted = new ArrayList<>();

@@ -178,6 +178,78 @@ class CorpusApiBeanTest {
         assertThat(annotation.app()).isEqualTo("neocortex");
     }
 
+
+// --- annotate validation ---
+
+    @Test
+    void annotate_rejects_null_entryId() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.annotate("corpus", null, "note", "correction")).contains("Error");
+    }
+
+    @Test
+    void annotate_rejects_blank_note() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.annotate("corpus", "e1", "", "correction")).contains("Error");
+    }
+
+    @Test
+    void annotate_rejects_invalid_type() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.annotate("corpus", "e1", "note", "invalid")).contains("Error");
+    }
+
+    @Test
+    void annotate_accepts_valid_types() {
+        for (String type : List.of("correction", "caveat", "update", "question")) {
+            var           entryStore = new StubAnnotationStore();
+            var           corpusRef  = new CorpusRef("test", "test-corpus");
+            CorpusApiBean bean       = new CorpusApiBean(null, null, null, null, null, null, corpusRef, null, entryStore, null);
+            String        result     = bean.annotate("corpus", "e1", "note", type);
+            assertThat(result).startsWith("ANN-");
+        }
+    }
+
+    @Test
+    void annotate_normalises_type_to_lowercase() {
+        var           entryStore = new StubAnnotationStore();
+        var           corpusRef  = new CorpusRef("test", "test-corpus");
+        CorpusApiBean bean       = new CorpusApiBean(null, null, null, null, null, null, corpusRef, null, entryStore, null);
+        bean.annotate("corpus", "e1", "note", "CORRECTION");
+        assertThat(entryStore.lastAnnotationType).isEqualTo("correction");
+    }
+
+    @Test
+    void annotations_returns_empty_for_null_entryId() {
+        CorpusApiBean bean = createBean();
+        assertThat(bean.annotations("corpus", null)).isEmpty();
+    }
+
+    static class StubAnnotationStore implements io.casehub.neocortex.corpus.management.CorpusEntryStore {
+        String lastAnnotationType;
+
+        @Override
+        public String add(CorpusRef corpus, io.casehub.neocortex.corpus.management.CorpusEntry entry) {return entry.id();}
+
+        @Override
+        public void update(CorpusRef corpus, String entryId, io.casehub.neocortex.corpus.management.CorpusEntry entry) {}
+
+        @Override
+        public void remove(CorpusRef corpus, String entryId) {}
+
+        @Override
+        public java.util.Optional<io.casehub.neocortex.corpus.management.CorpusEntry> get(CorpusRef corpus, String entryId) {return java.util.Optional.empty();}
+
+        @Override
+        public String addAnnotation(CorpusRef corpus, String entryId, String note, String annotationType, String annotatedBy) {
+            lastAnnotationType = annotationType;
+            return "ANN-test-123";
+        }
+
+        @Override
+        public List<io.casehub.neocortex.corpus.management.Annotation> annotations(CorpusRef corpus, String entryId) {return List.of();}
+    }
+
     private CorpusApiBean createBean() {
         return new CorpusApiBean(null, null, null, null, null, null, null, null, null, null);
     }
