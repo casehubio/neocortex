@@ -110,4 +110,9 @@ public interface CorpusApi {
     String recordFinding(@ContextParam("corpusId") String corpusId, String topic, String insight,
             String sourceIssue, @McpParam(format = McpParamFormat.LIST) String tags,
             String domain, String type);
+
+    @PlatformMutation("Record multiple findings in one call — each finding becomes a corpus entry with provenance. "
+                      + "Returns entry IDs for successes; partial failures don't block successful entries.")
+    BatchFindingResult recordFindings(@ContextParam("corpusId") String corpusId, List<FindingInput> findings);
+
 }

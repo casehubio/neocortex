@@ -199,20 +199,58 @@ public class CorpusApiBean implements CorpusApi {
 
     @Override
     public String recordFinding(String corpusId, String topic, String insight,
-            String sourceIssue, String tags, String domain, String type) {
+                                String sourceIssue, String tags, String domain, String type) {
         if (topic == null || topic.isBlank()) {return "Error: topic is required.";}
         if (insight == null || insight.isBlank()) {return "Error: insight is required.";}
 
+        List<String> parsedTags = tags != null && !tags.isBlank()
+                                  ? Arrays.stream(tags.split("[|,]")).map(String::trim).filter(s -> !s.isEmpty()).toList()
+                                  : List.of();
+
+        return storeFinding(topic, insight, sourceIssue, parsedTags, domain, type);
+    }
+
+    @Override
+    public BatchFindingResult recordFindings(String corpusId, List<FindingInput> findings) {
+        if (findings == null || findings.isEmpty()) {
+            return new BatchFindingResult(List.of(), 0, 0, List.of("Error: findings list is empty."));
+        }
+
+        var entryIds = new java.util.ArrayList<String>();
+        var errors   = new java.util.ArrayList<String>();
+
+        for (int i = 0; i < findings.size(); i++) {
+            FindingInput f = findings.get(i);
+            if (f.topic() == null || f.topic().isBlank()) {
+                errors.add("Finding " + (i + 1) + ": topic is required.");
+                continue;
+            }
+            if (f.insight() == null || f.insight().isBlank()) {
+                errors.add("Finding " + (i + 1) + ": insight is required.");
+                continue;
+            }
+            try {
+                List<String> tags = f.tags() != null ? f.tags() : List.of();
+                String       id   = storeFinding(f.topic(), f.insight(), f.sourceIssue(), tags, f.domain(), f.type());
+                entryIds.add(id);
+            } catch (Exception e) {
+                errors.add("Finding " + (i + 1) + " (" + f.topic() + "): " + e.getMessage());
+            }
+        }
+
+        return new BatchFindingResult(List.copyOf(entryIds), findings.size(), entryIds.size(), List.copyOf(errors));
+    }
+
+
+    private String storeFinding(String topic, String insight, String sourceIssue,
+                                List<String> tags, String domain, String type) {
         String entryId = generateEntryId();
 
         var metadata = new java.util.LinkedHashMap<String, Object>();
         metadata.put("title", topic);
         if (domain != null && !domain.isBlank()) {metadata.put("domain", domain);}
         if (type != null && !type.isBlank()) {metadata.put("type", type);}
-        if (tags != null && !tags.isBlank()) {
-            metadata.put("tags", Arrays.stream(tags.split("[|,]"))
-                    .map(String::trim).filter(s -> !s.isEmpty()).toList());
-        }
+        if (tags != null && !tags.isEmpty()) {metadata.put("tags", tags);}
 
         var entry = new CorpusEntry(entryId, java.util.Map.copyOf(metadata), insight, null);
         entryStore.add(corpusRef, entry);
@@ -221,7 +259,7 @@ public class CorpusApiBean implements CorpusApi {
             var parts = parseIssueRef(sourceIssue);
             if (parts != null) {
                 provenanceStore.record(parts[0], Integer.parseInt(parts[1]),
-                        "", List.of(entryId), "recordFinding");
+                                       "", List.of(entryId), "recordFinding");
             }
         }
 

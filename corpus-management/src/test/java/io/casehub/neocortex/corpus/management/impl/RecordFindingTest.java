@@ -108,20 +108,93 @@ class RecordFindingTest {
         assertThat(id1).isNotEqualTo(id2);
     }
 
+    @Test
+    void recordFindingsStoresMultipleEntries() {
+        var findings = List.of(
+                new FindingInput("Topic A", "Insight A", null, List.of("java"), "jvm", "finding"),
+                new FindingInput("Topic B", "Insight B", null, List.of("python"), "ml", "observation"));
+
+        BatchFindingResult result = bean.recordFindings("test", findings);
+
+        assertThat(result.total()).isEqualTo(2);
+        assertThat(result.succeeded()).isEqualTo(2);
+        assertThat(result.entryIds()).hasSize(2);
+        assertThat(result.errors()).isEmpty();
+        assertThat(entryStore.allEntries).hasSize(2);
+        assertThat(entryStore.allEntries.get(0).stringField("title")).isEqualTo("Topic A");
+        assertThat(entryStore.allEntries.get(1).stringField("title")).isEqualTo("Topic B");
+    }
+
+    @Test
+    void recordFindingsHandlesPartialFailures() {
+        var findings = List.of(
+                new FindingInput("Valid", "insight", null, null, null, null),
+                new FindingInput("", "insight", null, null, null, null),
+                new FindingInput("Also valid", "another insight", null, null, null, null));
+
+        BatchFindingResult result = bean.recordFindings("test", findings);
+
+        assertThat(result.total()).isEqualTo(3);
+        assertThat(result.succeeded()).isEqualTo(2);
+        assertThat(result.entryIds()).hasSize(2);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().get(0)).contains("Finding 2");
+    }
+
+    @Test
+    void recordFindingsRecordsProvenancePerFinding() {
+        var findings = List.of(
+                new FindingInput("A", "a", "casehubio/neocortex#100", null, null, null),
+                new FindingInput("B", "b", "casehubio/neocortex#200", null, null, null),
+                new FindingInput("C", "c", null, null, null, null));
+
+        bean.recordFindings("test", findings);
+
+        assertThat(provenanceStore.recorded).hasSize(2);
+        assertThat(provenanceStore.recorded.get(0).issueNumber()).isEqualTo(100);
+        assertThat(provenanceStore.recorded.get(1).issueNumber()).isEqualTo(200);
+    }
+
+    @Test
+    void recordFindingsRejectsEmptyList() {
+        BatchFindingResult result = bean.recordFindings("test", List.of());
+
+        assertThat(result.total()).isZero();
+        assertThat(result.succeeded()).isZero();
+        assertThat(result.errors()).hasSize(1);
+    }
+
+    @Test
+    void recordFindingsRejectsNull() {
+        BatchFindingResult result = bean.recordFindings("test", null);
+
+        assertThat(result.total()).isZero();
+        assertThat(result.succeeded()).isZero();
+        assertThat(result.errors()).hasSize(1);
+    }
+
+
     // --- Stubs ---
 
     static class RecordingEntryStore implements CorpusEntryStore {
         CorpusEntry lastEntry;
+        final List<CorpusEntry> allEntries = new ArrayList<>();
 
         @Override
         public String add(CorpusRef corpus, CorpusEntry entry) {
             lastEntry = entry;
+            allEntries.add(entry);
             return entry.id();
         }
 
-        @Override public void update(CorpusRef corpus, String entryId, CorpusEntry entry) {}
-        @Override public void remove(CorpusRef corpus, String entryId) {}
-        @Override public Optional<CorpusEntry> get(CorpusRef corpus, String entryId) {
+        @Override
+        public void update(CorpusRef corpus, String entryId, CorpusEntry entry) {}
+
+        @Override
+        public void remove(CorpusRef corpus, String entryId)                    {}
+
+        @Override
+        public Optional<CorpusEntry> get(CorpusRef corpus, String entryId) {
             return Optional.empty();
         }
     }
