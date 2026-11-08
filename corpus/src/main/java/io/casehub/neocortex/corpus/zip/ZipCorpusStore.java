@@ -77,7 +77,7 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
     // ── CorpusStore ─────────────────────────────────────────────────────
 
     @Override
-    public void append(String path, byte[] content) {
+    public void write(String path, byte[] content) {
         validatePath(path);
         synchronized (writeLock) {
             try {
@@ -105,18 +105,18 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
     }
 
     @Override
-    public void append(String path, InputStream content) {
+    public void write(String path, InputStream content) {
         try {
-            append(path, content.readAllBytes());
+            write(path, content.readAllBytes());
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read InputStream for: " + path, e);
         }
     }
 
     @Override
-    public void append(String path, Path file) {
+    public void write(String path, Path file) {
         try {
-            append(path, Files.readAllBytes(file));
+            write(path, Files.readAllBytes(file));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read file: " + file, e);
         }
@@ -141,6 +141,12 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
         }
     }
 
+    @Override
+    public void flush() {
+        // Zip writes are immediately durable via Zip4j — no buffering
+    }
+
+
     // ── CorpusReader ────────────────────────────────────────────────────
 
     @Override
@@ -163,7 +169,7 @@ public final class ZipCorpusStore implements CorpusStore, CorpusReader {
                 .findFirst()
                 .flatMap(vi -> {
                     EntryLocation loc = new EntryLocation(
-                            vi.zipFile(), vi.version(), vi.timestamp().toEpochMilli());
+                            vi.source(), vi.version(), vi.timestamp().toEpochMilli());
                     return readEntry(path, loc);
                 });
     }

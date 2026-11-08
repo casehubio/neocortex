@@ -95,7 +95,7 @@ class CorpusIndexServiceTest {
                 Map.of("title", "Test Entry", "domain", "jvm", "type", "gotcha"),
                 Map.of("see_also", List.of("GE-20261002-def456")));
 
-        EntryDetail detail = service.entry(tempDir, "GE-20261001-abc123");
+        SearchResult detail = service.entry(tempDir, "GE-20261001-abc123");
         assertThat(detail).isNotNull();
         assertThat(detail.id()).isEqualTo("GE-20261001-abc123");
         assertThat(detail.title()).isEqualTo("Test Entry");
@@ -106,7 +106,7 @@ class CorpusIndexServiceTest {
 
     @Test
     void entry_returns_null_when_not_found(@TempDir Path tempDir) {
-        EntryDetail detail = service.entry(tempDir, "GE-20261001-missing");
+        SearchResult detail = service.entry(tempDir, "GE-20261001-missing");
         assertThat(detail).isNull();
     }
 

@@ -36,10 +36,10 @@ class CompositeCorpusStoreTest {
     // --- append writes to both stores ---
 
     @Test
-    void appendWritesToBothStores() {
+    void writeWritesToBothStores() {
         byte[] content = "hello composite".getBytes(StandardCharsets.UTF_8);
 
-        composite.append("docs/readme.md", content);
+        composite.write("docs/readme.md", content);
 
         // Readable from ZIP
         assertThat(asString(zipStore.read("docs/readme.md"))).isEqualTo("hello composite");
@@ -50,11 +50,11 @@ class CompositeCorpusStoreTest {
     // --- append with InputStream writes to both ---
 
     @Test
-    void appendInputStreamWritesToBothStores() {
+    void writeInputStreamWritesToBothStores() {
         byte[] content = "stream content".getBytes(StandardCharsets.UTF_8);
         InputStream is = new ByteArrayInputStream(content);
 
-        composite.append("docs/stream.md", is);
+        composite.write("docs/stream.md", is);
 
         assertThat(asString(zipStore.read("docs/stream.md"))).isEqualTo("stream content");
         assertThat(asString(flatStore.read("docs/stream.md"))).isEqualTo("stream content");
@@ -63,11 +63,11 @@ class CompositeCorpusStoreTest {
     // --- append with Path writes to both ---
 
     @Test
-    void appendPathWritesToBothStores() throws Exception {
+    void writePathWritesToBothStores() throws Exception {
         Path file = tempDir.resolve("input.txt");
         Files.writeString(file, "from file");
 
-        composite.append("docs/from-file.md", file);
+        composite.write("docs/from-file.md", file);
 
         assertThat(asString(zipStore.read("docs/from-file.md"))).isEqualTo("from file");
         assertThat(asString(flatStore.read("docs/from-file.md"))).isEqualTo("from file");
@@ -78,7 +78,7 @@ class CompositeCorpusStoreTest {
     @Test
     void readDelegatesToZipStore() {
         byte[] content = "zip content".getBytes(StandardCharsets.UTF_8);
-        composite.append("docs/readme.md", content);
+        composite.write("docs/readme.md", content);
 
         // Read via composite — should come from ZIP
         assertThat(asString(composite.read("docs/readme.md"))).isEqualTo("zip content");
@@ -87,7 +87,7 @@ class CompositeCorpusStoreTest {
     @Test
     void readDoesNotSeeFileOnlyInFlat() {
         // Write directly to flat, bypassing composite
-        flatStore.append("docs/flat-only.md", "flat only".getBytes(StandardCharsets.UTF_8));
+        flatStore.write("docs/flat-only.md", "flat only".getBytes(StandardCharsets.UTF_8));
 
         // Composite reads from ZIP — flat-only file not visible
         assertThat(composite.read("docs/flat-only.md")).isEmpty();
@@ -98,7 +98,7 @@ class CompositeCorpusStoreTest {
 
     @Test
     void deleteDeletesFromBoth() {
-        composite.append("docs/readme.md", "content".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "content".getBytes(StandardCharsets.UTF_8));
 
         composite.delete("docs/readme.md");
 
@@ -113,17 +113,17 @@ class CompositeCorpusStoreTest {
 
     @Test
     void listDelegatesToZipStore() {
-        composite.append("a.md", "a".getBytes(StandardCharsets.UTF_8));
-        composite.append("b.md", "b".getBytes(StandardCharsets.UTF_8));
+        composite.write("a.md", "a".getBytes(StandardCharsets.UTF_8));
+        composite.write("b.md", "b".getBytes(StandardCharsets.UTF_8));
 
         assertThat(composite.list()).containsExactly("a.md", "b.md");
     }
 
     @Test
     void listWithPrefixDelegatesToZipStore() {
-        composite.append("docs/a.md", "a".getBytes(StandardCharsets.UTF_8));
-        composite.append("docs/b.md", "b".getBytes(StandardCharsets.UTF_8));
-        composite.append("other/c.md", "c".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/a.md", "a".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/b.md", "b".getBytes(StandardCharsets.UTF_8));
+        composite.write("other/c.md", "c".getBytes(StandardCharsets.UTF_8));
 
         assertThat(composite.list("docs/")).containsExactly("docs/a.md", "docs/b.md");
     }
@@ -132,7 +132,7 @@ class CompositeCorpusStoreTest {
 
     @Test
     void existsDelegatesToZipStore() {
-        composite.append("docs/readme.md", "content".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "content".getBytes(StandardCharsets.UTF_8));
 
         assertThat(composite.exists("docs/readme.md")).isTrue();
         assertThat(composite.exists("no/such/path")).isFalse();
@@ -142,8 +142,8 @@ class CompositeCorpusStoreTest {
 
     @Test
     void versionsDelegatesToZipStore() {
-        composite.append("docs/readme.md", "v1".getBytes(StandardCharsets.UTF_8));
-        composite.append("docs/readme.md", "v2".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "v1".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "v2".getBytes(StandardCharsets.UTF_8));
 
         var versions = composite.versions("docs/readme.md");
         assertThat(versions).hasSize(2);
@@ -155,8 +155,8 @@ class CompositeCorpusStoreTest {
 
     @Test
     void readVersionDelegatesToZipStore() {
-        composite.append("docs/readme.md", "first".getBytes(StandardCharsets.UTF_8));
-        composite.append("docs/readme.md", "second".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "first".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "second".getBytes(StandardCharsets.UTF_8));
 
         assertThat(asString(composite.readVersion("docs/readme.md", 1))).isEqualTo("first");
         assertThat(asString(composite.readVersion("docs/readme.md", 2))).isEqualTo("second");
@@ -166,7 +166,7 @@ class CompositeCorpusStoreTest {
 
     @Test
     void readStreamDelegatesToZipStore() throws Exception {
-        composite.append("docs/readme.md", "stream data".getBytes(StandardCharsets.UTF_8));
+        composite.write("docs/readme.md", "stream data".getBytes(StandardCharsets.UTF_8));
 
         Optional<InputStream> result = composite.readStream("docs/readme.md");
         assertThat(result).isPresent();

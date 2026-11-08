@@ -4,6 +4,8 @@ import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.rag.ChunkInput;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.EmbeddingIngestor;
+import io.casehub.neocortex.rag.runtime.IngestionContext;
+import io.casehub.neocortex.rag.runtime.IngestionPipeline;
 import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,9 @@ class SqliteCorpusEntryStoreTest {
     void setUp() {
         var ds = SqliteDataSourceFactory.create(":memory:", 1, 3000);
         ingestor = new StubIngestor();
-        store = new SqliteCorpusEntryStore(ds, ingestor);
+        var pipeline = new IngestionPipeline(ingestor);
+        var context = new IngestionContext(CORPUS, null, null);
+        store = new SqliteCorpusEntryStore(ds, pipeline, context, null, null);
     }
 
     @Test

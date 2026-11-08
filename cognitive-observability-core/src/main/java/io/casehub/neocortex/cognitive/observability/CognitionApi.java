@@ -3,6 +3,8 @@ package io.casehub.neocortex.cognitive.observability;
 import io.casehub.neocortex.cognitive.index.EntityKnowledge;
 import io.casehub.platform.api.mcp.ContextParam;
 import io.casehub.platform.api.mcp.McpDomain;
+import io.casehub.platform.api.mcp.McpExclude;
+import io.casehub.platform.api.mcp.McpOnly;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
 @McpDomain(value = "neocortex/cognition", app = "neocortex", summary = "Cognitive observability — reasoning traces and decision transparency")
@@ -51,9 +53,32 @@ public interface CognitionApi {
     GraphAnalyticsResult analytics(@ContextParam("tenancyId") String tenancyId, String subgraphId,
                                    Integer kCoreK, Integer staleThresholdDays, Double lowConfidenceThreshold);
 
-    @PlatformQuery("Activity queries — queryType selects the query: "
-            + "lastSeenWith (personName required), activitiesWithPerson (personName required), "
-            + "placesVisited (personName required), activitiesAtPlace (placeName required)")
+    @McpExclude
+    @PlatformQuery("Activity queries — internal dispatch method")
     java.util.List<io.casehub.neocortex.mindmap.intelligence.ActivitySummary> activities(
             @ContextParam("tenancyId") String tenancyId, String queryType, String personName, String placeName, Integer limit);
+
+    @McpOnly("When was a person last seen — returns the most recent activity involving them")
+    default java.util.List<io.casehub.neocortex.mindmap.intelligence.ActivitySummary> lastSeenWith(
+            @ContextParam("tenancyId") String tenancyId, String personName, Integer limit) {
+        return activities(tenancyId, "lastSeenWith", personName, null, limit);
+    }
+
+    @McpOnly("All recorded activities involving a specific person")
+    default java.util.List<io.casehub.neocortex.mindmap.intelligence.ActivitySummary> activitiesWithPerson(
+            @ContextParam("tenancyId") String tenancyId, String personName, Integer limit) {
+        return activities(tenancyId, "activitiesWithPerson", personName, null, limit);
+    }
+
+    @McpOnly("All places a person has visited")
+    default java.util.List<io.casehub.neocortex.mindmap.intelligence.ActivitySummary> placesVisited(
+            @ContextParam("tenancyId") String tenancyId, String personName, Integer limit) {
+        return activities(tenancyId, "placesVisited", personName, null, limit);
+    }
+
+    @McpOnly("All recorded activities at a specific place")
+    default java.util.List<io.casehub.neocortex.mindmap.intelligence.ActivitySummary> activitiesAtPlace(
+            @ContextParam("tenancyId") String tenancyId, String placeName, Integer limit) {
+        return activities(tenancyId, "activitiesAtPlace", null, placeName, limit);
+    }
 }

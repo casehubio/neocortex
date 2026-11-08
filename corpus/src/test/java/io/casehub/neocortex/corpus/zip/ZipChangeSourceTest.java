@@ -24,9 +24,9 @@ class ZipChangeSourceTest {
     @Test
     void fullScanReturnsAllEntries() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "content a".getBytes());
-        store.append("docs/b.txt", "content b".getBytes());
-        store.append("src/Main.java", "class Main {}".getBytes());
+        store.write("docs/a.txt", "content a".getBytes());
+        store.write("docs/b.txt", "content b".getBytes());
+        store.write("src/Main.java", "class Main {}".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         ChangeSet result = source.fullScan();
@@ -46,8 +46,8 @@ class ZipChangeSourceTest {
     @Test
     void changesSinceNullEquivalentToFullScan() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "content a".getBytes());
-        store.append("docs/b.txt", "content b".getBytes());
+        store.write("docs/a.txt", "content a".getBytes());
+        store.write("docs/b.txt", "content b".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         ChangeSet fullScan = source.fullScan();
@@ -60,15 +60,15 @@ class ZipChangeSourceTest {
     @Test
     void changesSinceDetectsNewEntries() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "content a".getBytes());
-        store.append("docs/b.txt", "content b".getBytes());
+        store.write("docs/a.txt", "content a".getBytes());
+        store.write("docs/b.txt", "content b".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         String cursor1 = source.fullScan().newCursor();
 
         // Add more entries
-        store.append("docs/c.txt", "content c".getBytes());
-        store.append("src/Main.java", "class Main {}".getBytes());
+        store.write("docs/c.txt", "content c".getBytes());
+        store.write("src/Main.java", "class Main {}".getBytes());
 
         ChangeSet changes = source.changesSince(cursor1);
 
@@ -86,14 +86,14 @@ class ZipChangeSourceTest {
     @Test
     void changesSinceDetectsModifiedEntries() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "version 1".getBytes());
-        store.append("docs/b.txt", "version 1".getBytes());
+        store.write("docs/a.txt", "version 1".getBytes());
+        store.write("docs/b.txt", "version 1".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         String cursor1 = source.fullScan().newCursor();
 
         // Modify one entry
-        store.append("docs/a.txt", "version 2".getBytes());
+        store.write("docs/a.txt", "version 2".getBytes());
 
         ChangeSet changes = source.changesSince(cursor1);
 
@@ -106,9 +106,9 @@ class ZipChangeSourceTest {
     @Test
     void changesSinceDetectsDeletedEntries() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "content a".getBytes());
-        store.append("docs/b.txt", "content b".getBytes());
-        store.append("docs/c.txt", "content c".getBytes());
+        store.write("docs/a.txt", "content a".getBytes());
+        store.write("docs/b.txt", "content b".getBytes());
+        store.write("docs/c.txt", "content c".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         String cursor1 = source.fullScan().newCursor();
@@ -127,7 +127,7 @@ class ZipChangeSourceTest {
     @Test
     void changesSinceWithNothingNewReturnsEmpty() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "content a".getBytes());
+        store.write("docs/a.txt", "content a".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         String cursor1 = source.fullScan().newCursor();
@@ -142,14 +142,14 @@ class ZipChangeSourceTest {
     @Test
     void cursorIsStableAcrossInstances() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "content a".getBytes());
-        store.append("docs/b.txt", "content b".getBytes());
+        store.write("docs/a.txt", "content a".getBytes());
+        store.write("docs/b.txt", "content b".getBytes());
 
         ZipChangeSource source1 = new ZipChangeSource(store);
         String cursor = source1.fullScan().newCursor();
 
         // Add more entries
-        store.append("docs/c.txt", "content c".getBytes());
+        store.write("docs/c.txt", "content c".getBytes());
 
         // Create new ZipChangeSource instance
         ZipChangeSource source2 = new ZipChangeSource(store);
@@ -163,17 +163,17 @@ class ZipChangeSourceTest {
     @Test
     void changesSinceCombinesMultipleChangeTypes() {
         ZipCorpusStore store = createStore();
-        store.append("docs/a.txt", "version 1".getBytes());
-        store.append("docs/b.txt", "version 1".getBytes());
-        store.append("docs/c.txt", "version 1".getBytes());
+        store.write("docs/a.txt", "version 1".getBytes());
+        store.write("docs/b.txt", "version 1".getBytes());
+        store.write("docs/c.txt", "version 1".getBytes());
 
         ZipChangeSource source = new ZipChangeSource(store);
         String cursor = source.fullScan().newCursor();
 
         // Make multiple changes
-        store.append("docs/a.txt", "version 2".getBytes()); // MODIFIED
+        store.write("docs/a.txt", "version 2".getBytes()); // MODIFIED
         store.delete("docs/b.txt");                          // DELETED
-        store.append("docs/d.txt", "new".getBytes());        // ADDED
+        store.write("docs/d.txt", "new".getBytes());        // ADDED
 
         ChangeSet changes = source.changesSince(cursor);
 

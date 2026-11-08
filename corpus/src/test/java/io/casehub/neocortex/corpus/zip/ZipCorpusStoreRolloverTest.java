@@ -45,11 +45,11 @@ class ZipCorpusStoreRolloverTest {
         var store = createSmallStore(1024);
 
         // First append — small, won't trigger rollover
-        store.append("doc/a.txt", "hello".getBytes(StandardCharsets.UTF_8));
+        store.write("doc/a.txt", "hello".getBytes(StandardCharsets.UTF_8));
         assertThat(zipFiles()).hasSize(1);
 
         // Append enough incompressible data to exceed 1024 bytes and trigger rollover
-        store.append("doc/b.txt", payload(4000));
+        store.write("doc/b.txt", payload(4000));
 
         // Verify chain.json shows a closed entry and a new active entry
         Path chainJson = tempDir.resolve("chain.json");
@@ -58,7 +58,7 @@ class ZipCorpusStoreRolloverTest {
         assertThat(chain).contains("\"status\": \"active\"");
 
         // Append to the new active zip — this materialises the second ZIP on disk
-        store.append("doc/c.txt", "after-rollover".getBytes(StandardCharsets.UTF_8));
+        store.write("doc/c.txt", "after-rollover".getBytes(StandardCharsets.UTF_8));
         assertThat(zipFiles()).hasSizeGreaterThanOrEqualTo(2);
     }
 
@@ -69,14 +69,14 @@ class ZipCorpusStoreRolloverTest {
         var store = createSmallStore(1024);
 
         byte[] contentA = "content-A".getBytes(StandardCharsets.UTF_8);
-        store.append("doc/a.txt", contentA);
+        store.write("doc/a.txt", contentA);
 
         // Force rollover with large incompressible payload
-        store.append("doc/b.txt", payload(2000));
+        store.write("doc/b.txt", payload(2000));
 
         // This should be in the second ZIP
         byte[] contentC = "content-C".getBytes(StandardCharsets.UTF_8);
-        store.append("doc/c.txt", contentC);
+        store.write("doc/c.txt", contentC);
 
         // All entries should be readable regardless of which ZIP they're in
         assertThat(asString(store.read("doc/a.txt"))).isEqualTo("content-A");
@@ -91,13 +91,13 @@ class ZipCorpusStoreRolloverTest {
         var store = createSmallStore(1024);
 
         // v1 in ZIP-1
-        store.append("doc/readme.md", "version-1".getBytes(StandardCharsets.UTF_8));
+        store.write("doc/readme.md", "version-1".getBytes(StandardCharsets.UTF_8));
 
         // Force rollover
-        store.append("doc/filler.txt", payload(2000));
+        store.write("doc/filler.txt", payload(2000));
 
         // v2 in ZIP-2
-        store.append("doc/readme.md", "version-2".getBytes(StandardCharsets.UTF_8));
+        store.write("doc/readme.md", "version-2".getBytes(StandardCharsets.UTF_8));
 
         List<VersionInfo> versions = store.versions("doc/readme.md");
         assertThat(versions).hasSize(2);
@@ -105,7 +105,7 @@ class ZipCorpusStoreRolloverTest {
         assertThat(versions.get(1).version()).isEqualTo(2);
 
         // Different ZIP files for each version
-        assertThat(versions.get(0).zipFile()).isNotEqualTo(versions.get(1).zipFile());
+        assertThat(versions.get(0).source()).isNotEqualTo(versions.get(1).source());
 
         // Content is correct for each version
         assertThat(asString(store.readVersion("doc/readme.md", 1))).isEqualTo("version-1");
@@ -118,8 +118,8 @@ class ZipCorpusStoreRolloverTest {
     void chainJsonReflectsRollover() throws IOException {
         var store = createSmallStore(1024);
 
-        store.append("doc/a.txt", "hello".getBytes(StandardCharsets.UTF_8));
-        store.append("doc/b.txt", payload(2000));
+        store.write("doc/a.txt", "hello".getBytes(StandardCharsets.UTF_8));
+        store.write("doc/b.txt", payload(2000));
 
         // Verify chain.json exists and has expected content
         Path chainJson = tempDir.resolve("chain.json");
@@ -140,8 +140,8 @@ class ZipCorpusStoreRolloverTest {
     void closedZipContainsInternalMeta() throws IOException {
         var store = createSmallStore(1024);
 
-        store.append("doc/a.txt", "hello".getBytes(StandardCharsets.UTF_8));
-        store.append("doc/b.txt", payload(2000));
+        store.write("doc/a.txt", "hello".getBytes(StandardCharsets.UTF_8));
+        store.write("doc/b.txt", payload(2000));
 
         // Find the first ZIP (the one that was closed)
         Path firstZip = tempDir.resolve("test-corpus-1.zip");
@@ -168,10 +168,10 @@ class ZipCorpusStoreRolloverTest {
         // Phase 1: create store, populate, and trigger rollover
         var store1 = createSmallStore(1024);
         byte[] contentA = "data-A".getBytes(StandardCharsets.UTF_8);
-        store1.append("doc/a.txt", contentA);
-        store1.append("doc/filler.txt", payload(2000)); // trigger rollover
+        store1.write("doc/a.txt", contentA);
+        store1.write("doc/filler.txt", payload(2000)); // trigger rollover
         byte[] contentB = "data-B".getBytes(StandardCharsets.UTF_8);
-        store1.append("doc/b.txt", contentB);
+        store1.write("doc/b.txt", contentB);
 
         // Verify multiple ZIPs exist
         assertThat(zipFiles()).hasSizeGreaterThanOrEqualTo(2);
@@ -189,7 +189,7 @@ class ZipCorpusStoreRolloverTest {
                 "doc/a.txt", "doc/filler.txt", "doc/b.txt");
 
         // Should still be able to append
-        store2.append("doc/c.txt", "data-C".getBytes(StandardCharsets.UTF_8));
+        store2.write("doc/c.txt", "data-C".getBytes(StandardCharsets.UTF_8));
         assertThat(asString(store2.read("doc/c.txt"))).isEqualTo("data-C");
     }
 

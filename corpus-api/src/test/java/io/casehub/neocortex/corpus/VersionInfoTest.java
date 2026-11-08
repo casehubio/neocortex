@@ -15,7 +15,7 @@ class VersionInfoTest {
         var info = new VersionInfo(5, now, "corpus_v5.zip");
         assertThat(info.version()).isEqualTo(5);
         assertThat(info.timestamp()).isEqualTo(now);
-        assertThat(info.zipFile()).isEqualTo("corpus_v5.zip");
+        assertThat(info.source()).isEqualTo("corpus_v5.zip");
     }
 
     @Test
@@ -39,6 +39,6 @@ class VersionInfoTest {
     @Test
     void nullZipFileAllowed() {
         var info = new VersionInfo(1, Instant.now(), null);
-        assertThat(info.zipFile()).isNull();
+        assertThat(info.source()).isNull();
     }
 }

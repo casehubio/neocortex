@@ -77,6 +77,13 @@ public class CorpusOutcomeService {
         return sb.toString();
     }
 
+    public List<OutcomeEntry> outcomeEntries() {
+        return scanAllCases().stream()
+                .sorted(Comparator.comparingDouble(c -> c.trustScore() != null ? c.trustScore() : 1.0))
+                .map(c -> new OutcomeEntry(c.caseId(), c.trustScore()))
+                .toList();
+    }
+
     public void clearAll() {
         cbrStore.eraseByScope(Path.of(scopePrefix, tenantId), tenantId);
     }

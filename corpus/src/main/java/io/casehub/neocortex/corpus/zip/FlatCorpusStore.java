@@ -39,7 +39,7 @@ public final class FlatCorpusStore implements CorpusStore, CorpusReader {
     }
 
     @Override
-    public void append(String path, byte[] content) {
+    public void write(String path, byte[] content) {
         validatePath(path);
         Path target = rootDir.resolve(path);
         try {
@@ -51,18 +51,18 @@ public final class FlatCorpusStore implements CorpusStore, CorpusReader {
     }
 
     @Override
-    public void append(String path, InputStream content) {
+    public void write(String path, InputStream content) {
         try {
-            append(path, content.readAllBytes());
+            write(path, content.readAllBytes());
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read input stream for: " + path, e);
         }
     }
 
     @Override
-    public void append(String path, Path file) {
+    public void write(String path, Path file) {
         try {
-            append(path, Files.readAllBytes(file));
+            write(path, Files.readAllBytes(file));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read file: " + file, e);
         }
@@ -78,6 +78,12 @@ public final class FlatCorpusStore implements CorpusStore, CorpusReader {
             throw new UncheckedIOException("Failed to delete: " + path, e);
         }
     }
+
+    @Override
+    public void flush() {
+        // Flat writes are immediately durable — no buffering
+    }
+
 
     @Override
     public Optional<byte[]> read(String path) {

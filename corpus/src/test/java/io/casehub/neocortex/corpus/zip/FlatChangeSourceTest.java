@@ -21,9 +21,9 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("a.txt", "a".getBytes());
-        store.append("b.txt", "b".getBytes());
-        store.append("sub/c.txt", "c".getBytes());
+        store.write("a.txt", "a".getBytes());
+        store.write("b.txt", "b".getBytes());
+        store.write("sub/c.txt", "c".getBytes());
 
         var changeSet = changeSource.fullScan();
 
@@ -44,10 +44,10 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("existing.txt", "content".getBytes());
+        store.write("existing.txt", "content".getBytes());
         var cursor = changeSource.fullScan().newCursor();
 
-        store.append("new.txt", "new content".getBytes());
+        store.write("new.txt", "new content".getBytes());
 
         var changeSet = changeSource.changesSince(cursor);
 
@@ -61,7 +61,7 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("file.txt", "content".getBytes());
+        store.write("file.txt", "content".getBytes());
         var cursor = changeSource.fullScan().newCursor();
 
         store.delete("file.txt");
@@ -78,13 +78,13 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("file.txt", "original".getBytes());
+        store.write("file.txt", "original".getBytes());
         var cursor = changeSource.fullScan().newCursor();
 
         // Sleep briefly to ensure mtime changes
         TimeUnit.MILLISECONDS.sleep(10);
 
-        store.append("file.txt", "modified".getBytes());
+        store.write("file.txt", "modified".getBytes());
 
         var changeSet = changeSource.changesSince(cursor);
 
@@ -98,7 +98,7 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("file.txt", "content".getBytes());
+        store.write("file.txt", "content".getBytes());
         var cursor = changeSource.fullScan().newCursor();
 
         var changeSet = changeSource.changesSince(cursor);
@@ -123,8 +123,8 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("a.txt", "a".getBytes());
-        store.append("b.txt", "b".getBytes());
+        store.write("a.txt", "a".getBytes());
+        store.write("b.txt", "b".getBytes());
 
         var changeSet = changeSource.changesSince(null);
 
@@ -138,16 +138,16 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("existing.txt", "content".getBytes());
-        store.append("to-delete.txt", "delete me".getBytes());
-        store.append("to-modify.txt", "original".getBytes());
+        store.write("existing.txt", "content".getBytes());
+        store.write("to-delete.txt", "delete me".getBytes());
+        store.write("to-modify.txt", "original".getBytes());
         var cursor = changeSource.fullScan().newCursor();
 
         TimeUnit.MILLISECONDS.sleep(10);
 
-        store.append("new.txt", "new".getBytes());
+        store.write("new.txt", "new".getBytes());
         store.delete("to-delete.txt");
-        store.append("to-modify.txt", "modified".getBytes());
+        store.write("to-modify.txt", "modified".getBytes());
 
         var changeSet = changeSource.changesSince(cursor);
 
@@ -165,7 +165,7 @@ class FlatChangeSourceTest {
         var store = new FlatCorpusStore(tempDir);
         var changeSource = new FlatChangeSource(store, tempDir);
 
-        store.append("visible.txt", "content".getBytes());
+        store.write("visible.txt", "content".getBytes());
         Path gitObj = tempDir.resolve(".git/objects/abc");
         Files.createDirectories(gitObj.getParent());
         Files.writeString(gitObj, "blob");

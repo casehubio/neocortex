@@ -37,26 +37,26 @@ public final class CompositeCorpusStore implements CorpusStore, CorpusReader {
     // ── CorpusStore (write to both) ────────────────────────────────────
 
     @Override
-    public void append(String path, byte[] content) {
-        zipStore.append(path, content);
-        flatStore.append(path, content);
+    public void write(String path, byte[] content) {
+        zipStore.write(path, content);
+        flatStore.write(path, content);
     }
 
     @Override
-    public void append(String path, InputStream content) {
+    public void write(String path, InputStream content) {
         try {
             byte[] bytes = content.readAllBytes();
-            append(path, bytes);
+            write(path, bytes);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read InputStream for: " + path, e);
         }
     }
 
     @Override
-    public void append(String path, Path file) {
+    public void write(String path, Path file) {
         try {
             byte[] bytes = Files.readAllBytes(file);
-            append(path, bytes);
+            write(path, bytes);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read file: " + file, e);
         }
@@ -67,6 +67,13 @@ public final class CompositeCorpusStore implements CorpusStore, CorpusReader {
         zipStore.delete(path);
         flatStore.delete(path);
     }
+
+    @Override
+    public void flush() {
+        zipStore.flush();
+        flatStore.flush();
+    }
+
 
     // ── CorpusReader (read from ZIP — authoritative) ───────────────────
 

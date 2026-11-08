@@ -23,17 +23,17 @@ class ZipCorpusIngestSmokeTest {
         var config = new CorpusConfig("zip-examples", tempDir, 1024);
         var store = new ZipCorpusStore(config);
 
-        store.append("docs/readme.md", "---\ntitle: Test\ndomain: tech\n---\nHello world.".getBytes());
-        store.append("docs/guide.md", "---\ntitle: Guide\ndomain: tech\n---\nA guide.".getBytes());
+        store.write("docs/readme.md", "---\ntitle: Test\ndomain: tech\n---\nHello world.".getBytes());
+        store.write("docs/guide.md", "---\ntitle: Guide\ndomain: tech\n---\nA guide.".getBytes());
         store.delete("docs/guide.md");
-        store.append("docs/api.md", "---\ntitle: API\ndomain: tech\n---\nAPI reference.".getBytes());
+        store.write("docs/api.md", "---\ntitle: API\ndomain: tech\n---\nAPI reference.".getBytes());
 
         // Force rollover by exceeding maxZipSize (1KB)
         byte[] payload = new byte[400];
         new java.util.Random(42).nextBytes(payload);
-        store.append("rollover1.bin", payload);
-        store.append("rollover2.bin", payload);
-        store.append("rollover3.bin", payload);
+        store.write("rollover1.bin", payload);
+        store.write("rollover2.bin", payload);
+        store.write("rollover3.bin", payload);
 
         var manifest = ChainManifest.load(tempDir.resolve("chain.json"));
         var closedEntry = manifest.entries().stream()

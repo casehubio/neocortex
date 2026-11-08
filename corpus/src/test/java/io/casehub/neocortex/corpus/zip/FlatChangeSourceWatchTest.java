@@ -39,7 +39,7 @@ class FlatChangeSourceWatchTest {
     @Test
     void watchDetectsFileDeletion(@TempDir Path tempDir) throws Exception {
         var store = new FlatCorpusStore(tempDir);
-        store.append("doomed.txt", "goodbye".getBytes());
+        store.write("doomed.txt", "goodbye".getBytes());
 
         var source = new FlatChangeSource(store, tempDir);
         var received = new CopyOnWriteArrayList<ChangedEntry>();
@@ -61,7 +61,7 @@ class FlatChangeSourceWatchTest {
     @Test
     void watchDetectsFileModification(@TempDir Path tempDir) throws Exception {
         var store = new FlatCorpusStore(tempDir);
-        store.append("existing.txt", "original".getBytes());
+        store.write("existing.txt", "original".getBytes());
 
         var source = new FlatChangeSource(store, tempDir);
         var received = new CopyOnWriteArrayList<ChangedEntry>();
@@ -106,7 +106,7 @@ class FlatChangeSourceWatchTest {
     @Test
     void currentCursorReflectsWatchedState(@TempDir Path tempDir) throws Exception {
         var store = new FlatCorpusStore(tempDir);
-        store.append("baseline.txt", "data".getBytes());
+        store.write("baseline.txt", "data".getBytes());
         var source = new FlatChangeSource(store, tempDir);
         var received = new CopyOnWriteArrayList<ChangedEntry>();
 
@@ -160,7 +160,7 @@ class FlatChangeSourceWatchTest {
     @Test
     void pullMethodsStillWorkDuringWatch(@TempDir Path tempDir) {
         var store = new FlatCorpusStore(tempDir);
-        store.append("a.txt", "a".getBytes());
+        store.write("a.txt", "a".getBytes());
         var source = new FlatChangeSource(store, tempDir);
 
         source.watch(entries -> {});

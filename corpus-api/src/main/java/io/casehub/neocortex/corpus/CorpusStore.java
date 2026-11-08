@@ -4,8 +4,11 @@ import java.io.InputStream;
 import java.nio.file.Path;
 
 public interface CorpusStore {
-    void append(String path, byte[] content);
-    void append(String path, InputStream content);
-    void append(String path, Path file);
+    void write(String path, byte[] content);
+    void write(String path, InputStream content);
+    void write(String path, Path file);
     void delete(String path);
+
+    void flush();
+
 }

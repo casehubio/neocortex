@@ -29,8 +29,8 @@ public abstract class ChangeSourceContractTest {
 
     @Test
     void fullScanAfterAppendsIncludesEntries() {
-        store().append("a.txt", "a".getBytes());
-        store().append("b.txt", "b".getBytes());
+        store().write("a.txt", "a".getBytes());
+        store().write("b.txt", "b".getBytes());
 
         var changeSet = changeSource().fullScan();
         assertThat(changeSet.entries()).hasSize(2);
@@ -41,7 +41,7 @@ public abstract class ChangeSourceContractTest {
 
     @Test
     void changesSinceWithNullCursorBehavesLikeFullScan() {
-        store().append("file.txt", "content".getBytes());
+        store().write("file.txt", "content".getBytes());
 
         var changeSet = changeSource().changesSince(null);
         assertThat(changeSet.entries()).isNotEmpty();
@@ -50,10 +50,10 @@ public abstract class ChangeSourceContractTest {
 
     @Test
     void changesSinceAfterScanReturnsOnlyNewChanges() {
-        store().append("existing.txt", "content".getBytes());
+        store().write("existing.txt", "content".getBytes());
         var cursor = changeSource().fullScan().newCursor();
 
-        store().append("new.txt", "new content".getBytes());
+        store().write("new.txt", "new content".getBytes());
         var changeSet = changeSource().changesSince(cursor);
 
         assertThat(changeSet.entries()).hasSize(1);
@@ -63,7 +63,7 @@ public abstract class ChangeSourceContractTest {
 
     @Test
     void changesSinceWithNothingNewReturnsEmpty() {
-        store().append("file.txt", "content".getBytes());
+        store().write("file.txt", "content".getBytes());
         var cursor = changeSource().fullScan().newCursor();
 
         var changeSet = changeSource().changesSince(cursor);
@@ -73,7 +73,7 @@ public abstract class ChangeSourceContractTest {
 
     @Test
     void changesSinceDetectsDeletes() {
-        store().append("file.txt", "content".getBytes());
+        store().write("file.txt", "content".getBytes());
         var cursor = changeSource().fullScan().newCursor();
 
         store().delete("file.txt");

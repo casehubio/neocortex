@@ -59,7 +59,7 @@ public class CorpusApiBean implements CorpusApi {
     }
 
     @Override
-    public EntryDetail entry(String corpusId, String entryId) {
+    public SearchResult entry(String corpusId, String entryId) {
         if (corpusRoot == null) return null;
         return indexService.entry(corpusRoot, entryId);
     }
@@ -140,8 +140,8 @@ public class CorpusApiBean implements CorpusApi {
     }
 
     @Override
-    public String outcomeReport() {
-        return outcomeService.outcomeReport();
+    public List<OutcomeEntry> outcomeEntries() {
+        return outcomeService.outcomeEntries();
     }
 
     @Override
