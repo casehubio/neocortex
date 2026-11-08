@@ -245,7 +245,56 @@ class SqliteCorpusEntryStoreTest {
     }
 
 
+    @Test
+    void addUsesStructuralChunkerForPositionalMarkdown() {
+        var ds = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var structuralIngestor = new StubIngestor();
+        var pipeline = new IngestionPipeline(structuralIngestor);
+        var context = new IngestionContext(CORPUS, null, null);
+        var chunker = new StubStructuralChunker();
+        var structuralStore = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, null, chunker);
+
+        var entry = new CorpusEntry("e1",
+                Map.of("title", "Test", "content_format", "positional-markdown"),
+                "#@ page: 1\nSome content\n#@ page: 2\nMore content", null);
+        structuralStore.add(CORPUS, entry);
+
+        assertThat(chunker.called).isTrue();
+        assertThat(structuralIngestor.ingested).hasSize(2);
+        assertThat(structuralIngestor.ingested.get(0).content()).isEqualTo("chunk-1");
+        assertThat(structuralIngestor.ingested.get(1).content()).isEqualTo("chunk-2");
+    }
+
+    @Test
+    void addUsesDefaultPipelineForNonPositionalMarkdown() {
+        var ds = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var defaultIngestor = new StubIngestor();
+        var pipeline = new IngestionPipeline(defaultIngestor);
+        var context = new IngestionContext(CORPUS, null, null);
+        var chunker = new StubStructuralChunker();
+        var defaultStore = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, null, chunker);
+
+        var entry = new CorpusEntry("e1", Map.of("title", "Test"), "Plain body", null);
+        defaultStore.add(CORPUS, entry);
+
+        assertThat(chunker.called).isFalse();
+        assertThat(defaultIngestor.ingested).hasSize(1);
+        assertThat(defaultIngestor.ingested.get(0).content()).isEqualTo("Plain body");
+    }
+
     // --- Stubs ---
+
+    static class StubStructuralChunker implements io.casehub.neocortex.corpus.management.StructuralChunker {
+        boolean called = false;
+
+        @Override
+        public List<io.casehub.neocortex.corpus.management.StructuredChunk> chunk(String positionalMarkdown, int maxChunkSize) {
+            called = true;
+            return List.of(
+                    new io.casehub.neocortex.corpus.management.StructuredChunk("chunk-1", Map.of("page", "1")),
+                    new io.casehub.neocortex.corpus.management.StructuredChunk("chunk-2", Map.of("page", "2")));
+        }
+    }
 
 
     @Test

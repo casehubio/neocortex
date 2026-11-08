@@ -41,6 +41,10 @@ public class IngestionPipeline {
         }
     }
 
+    public EmbeddingIngestor ingestor() {
+        return ingestor;
+    }
+
     public void delete(String path, CorpusRef corpusRef) {
         ingestor.deleteDocument(corpusRef, path);
     }
