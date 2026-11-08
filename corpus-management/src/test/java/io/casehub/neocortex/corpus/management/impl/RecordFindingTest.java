@@ -25,14 +25,14 @@ class RecordFindingTest {
         entryStore = new RecordingEntryStore();
         provenanceStore = new RecordingProvenanceStore();
         bean = new CorpusApiBean(null, null, null, null,
-                provenanceStore, null, CORPUS, null, entryStore);
+                provenanceStore, null, CORPUS, null, entryStore, null);
     }
 
     @Test
     void recordFindingCreatesEntryWithMetadata() {
         String id = bean.recordFinding("test", "ONNX thread safety",
                 "OrtSession is thread-safe but OrtEnvironment must be singleton",
-                null, "java|onnx", "jvm", "finding", null);
+                null, "java|onnx", "jvm", "finding", null, null);
 
         assertThat(id).startsWith("GE-");
         assertThat(entryStore.lastEntry).isNotNull();
@@ -46,7 +46,7 @@ class RecordFindingTest {
 
     @Test
     void recordFindingParsesTagsFromPipeDelimited() {
-        bean.recordFinding("test", "Tag test", "insight", null, "java|onnx|quarkus", null, null, null);
+        bean.recordFinding("test", "Tag test", "insight", null, "java|onnx|quarkus", null, null, null, null);
 
         assertThat(entryStore.lastEntry.stringListField("tags"))
                 .containsExactly("java", "onnx", "quarkus");
@@ -54,7 +54,7 @@ class RecordFindingTest {
 
     @Test
     void recordFindingParsesTagsFromCommaDelimited() {
-        bean.recordFinding("test", "Tag test", "insight", null, "java,onnx,quarkus", null, null, null);
+        bean.recordFinding("test", "Tag test", "insight", null, "java,onnx,quarkus", null, null, null, null);
 
         assertThat(entryStore.lastEntry.stringListField("tags"))
                 .containsExactly("java", "onnx", "quarkus");
@@ -63,7 +63,7 @@ class RecordFindingTest {
     @Test
     void recordFindingRecordsProvenanceWhenSourceIssueProvided() {
         bean.recordFinding("test", "Finding", "insight",
-                "casehubio/neocortex#856", null, null, null, null);
+                "casehubio/neocortex#856", null, null, null, null, null);
 
         assertThat(provenanceStore.recorded).hasSize(1);
         assertThat(provenanceStore.recorded.get(0).issueRepo).isEqualTo("casehubio/neocortex");
@@ -72,14 +72,14 @@ class RecordFindingTest {
 
     @Test
     void recordFindingSkipsProvenanceWhenNoSourceIssue() {
-        bean.recordFinding("test", "Finding", "insight", null, null, null, null, null);
+        bean.recordFinding("test", "Finding", "insight", null, null, null, null, null, null);
 
         assertThat(provenanceStore.recorded).isEmpty();
     }
 
     @Test
     void recordFindingRejectsBlankTopic() {
-        String result = bean.recordFinding("test", "", "insight", null, null, null, null, null);
+        String result = bean.recordFinding("test", "", "insight", null, null, null, null, null, null);
 
         assertThat(result).contains("Error");
         assertThat(entryStore.lastEntry).isNull();
@@ -87,7 +87,7 @@ class RecordFindingTest {
 
     @Test
     void recordFindingRejectsBlankInsight() {
-        String result = bean.recordFinding("test", "Topic", "", null, null, null, null, null);
+        String result = bean.recordFinding("test", "Topic", "", null, null, null, null, null, null);
 
         assertThat(result).contains("Error");
         assertThat(entryStore.lastEntry).isNull();
@@ -95,15 +95,15 @@ class RecordFindingTest {
 
     @Test
     void recordFindingOmitsNullMetadataFields() {
-        bean.recordFinding("test", "Topic only", "insight", null, null, null, null, null);
+        bean.recordFinding("test", "Topic only", "insight", null, null, null, null, null, null);
 
         assertThat(entryStore.lastEntry.metadata()).containsOnlyKeys("title", "status");
     }
 
     @Test
     void recordFindingGeneratesUniqueIds() {
-        String id1 = bean.recordFinding("test", "A", "a", null, null, null, null, null);
-        String id2 = bean.recordFinding("test", "B", "b", null, null, null, null, null);
+        String id1 = bean.recordFinding("test", "A", "a", null, null, null, null, null, null);
+        String id2 = bean.recordFinding("test", "B", "b", null, null, null, null, null, null);
 
         assertThat(id1).isNotEqualTo(id2);
     }
@@ -111,8 +111,8 @@ class RecordFindingTest {
     @Test
     void recordFindingsStoresMultipleEntries() {
         var findings = List.of(
-                new FindingInput("Topic A", "Insight A", null, List.of("java"), "jvm", "finding", null),
-                new FindingInput("Topic B", "Insight B", null, List.of("python"), "ml", "observation", null));
+                new FindingInput("Topic A", "Insight A", null, List.of("java"), "jvm", "finding", null, null),
+                new FindingInput("Topic B", "Insight B", null, List.of("python"), "ml", "observation", null, null));
 
         BatchFindingResult result = bean.recordFindings("test", findings);
 
@@ -128,9 +128,9 @@ class RecordFindingTest {
     @Test
     void recordFindingsHandlesPartialFailures() {
         var findings = List.of(
-                new FindingInput("Valid", "insight", null, null, null, null, null),
-                new FindingInput("", "insight", null, null, null, null, null),
-                new FindingInput("Also valid", "another insight", null, null, null, null, null));
+                new FindingInput("Valid", "insight", null, null, null, null, null, null),
+                new FindingInput("", "insight", null, null, null, null, null, null),
+                new FindingInput("Also valid", "another insight", null, null, null, null, null, null));
 
         BatchFindingResult result = bean.recordFindings("test", findings);
 
@@ -144,9 +144,9 @@ class RecordFindingTest {
     @Test
     void recordFindingsRecordsProvenancePerFinding() {
         var findings = List.of(
-                new FindingInput("A", "a", "casehubio/neocortex#100", null, null, null, null),
-                new FindingInput("B", "b", "casehubio/neocortex#200", null, null, null, null),
-                new FindingInput("C", "c", null, null, null, null, null));
+                new FindingInput("A", "a", "casehubio/neocortex#100", null, null, null, null, null),
+                new FindingInput("B", "b", "casehubio/neocortex#200", null, null, null, null, null),
+                new FindingInput("C", "c", null, null, null, null, null, null));
 
         bean.recordFindings("test", findings);
 
@@ -175,21 +175,21 @@ class RecordFindingTest {
 
     @Test
     void recordFindingDefaultsToPublished() {
-        bean.recordFinding("test", "Topic", "insight", null, null, null, null, null);
+        bean.recordFinding("test", "Topic", "insight", null, null, null, null, null, null);
 
         assertThat(entryStore.lastEntry.stringField("status")).isEqualTo("published");
     }
 
     @Test
     void recordFindingAcceptsDraftStatus() {
-        bean.recordFinding("test", "Topic", "insight", null, null, null, null, "draft");
+        bean.recordFinding("test", "Topic", "insight", null, null, null, null, "draft", null);
 
         assertThat(entryStore.lastEntry.stringField("status")).isEqualTo("draft");
     }
 
     @Test
     void publishEntryTransitionsDraftToPublished() {
-        bean.recordFinding("test", "Topic", "insight", null, null, null, null, "draft");
+        bean.recordFinding("test", "Topic", "insight", null, null, null, null, "draft", null);
         String entryId = entryStore.lastEntry.id();
         entryStore.stored.put(entryId, entryStore.lastEntry);
 
@@ -201,7 +201,7 @@ class RecordFindingTest {
 
     @Test
     void archiveEntryTransitionsToArchived() {
-        bean.recordFinding("test", "Topic", "insight", null, null, null, null, null);
+        bean.recordFinding("test", "Topic", "insight", null, null, null, null, null, null);
         String entryId = entryStore.lastEntry.id();
         entryStore.stored.put(entryId, entryStore.lastEntry);
 

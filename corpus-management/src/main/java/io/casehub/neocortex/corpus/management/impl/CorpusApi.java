@@ -110,10 +110,11 @@ public interface CorpusApi {
     @PlatformMutation("Record a research finding — stores as a corpus entry with metadata and provenance in one call. "
                       + "Returns the generated entry ID. If sourceIssue is provided (e.g. 'casehubio/neocortex#856'), "
                       + "provenance is recorded automatically. "
-                      + "status defaults to 'published'; set to 'draft' for provisional findings.")
+                      + "status defaults to 'published'; set to 'draft' for provisional findings. "
+                      + "sessionId links the finding to a research session for cross-session continuity.")
     String recordFinding(@ContextParam("corpusId") String corpusId, String topic, String insight,
                          String sourceIssue, @McpParam(format = McpParamFormat.LIST) String tags,
-                         String domain, String type, String status);
+                         String domain, String type, String status, String sessionId);
 
     @PlatformMutation("Record multiple findings in one call — each finding becomes a corpus entry with provenance. "
                       + "Returns entry IDs for successes; partial failures don't block successful entries.")
@@ -124,6 +125,22 @@ public interface CorpusApi {
 
     @PlatformMutation("Archive an entry — removes it from default search results without deleting it")
     String archiveEntry(@ContextParam("corpusId") String corpusId, String entryId);
+
+    @PlatformMutation("Start a research session — creates a named context for cross-session continuity. "
+                      + "Returns the session ID. The topic describes what this research investigates.")
+    String startSession(@ContextParam("corpusId") String corpusId, String name, String topic);
+
+    @PlatformQuery("Resume a research session — loads context including findings recorded during the session")
+    ResearchSessionView resumeSession(@ContextParam("corpusId") String corpusId, String sessionId);
+
+    @PlatformMutation("Pause a research session — saves state for later resumption")
+    String pauseSession(@ContextParam("corpusId") String corpusId, String sessionId);
+
+    @PlatformMutation("Complete a research session — marks as done, preserves all findings")
+    String completeSession(@ContextParam("corpusId") String corpusId, String sessionId, String summary);
+
+    @PlatformQuery("List active and paused research sessions")
+    List<ResearchSessionView> sessions(@ContextParam("corpusId") String corpusId);
 
 
 }

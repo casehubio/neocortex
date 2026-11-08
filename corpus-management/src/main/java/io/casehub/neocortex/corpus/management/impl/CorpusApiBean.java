@@ -23,6 +23,9 @@ public class CorpusApiBean implements CorpusApi {
     private final CorpusRef corpusRef;
     private final Path      corpusRoot;
     private final CorpusEntryStore entryStore;
+    private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
+
 
     public CorpusApiBean(SearchResource searchResource,
                          CorpusIndexService indexService,
@@ -32,7 +35,8 @@ public class CorpusApiBean implements CorpusApi {
                          CorpusOutcomeService outcomeService,
                          CorpusRef corpusRef,
                          Path corpusRoot,
-                         CorpusEntryStore entryStore) {
+                         CorpusEntryStore entryStore,
+                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService) {
         this.searchResource  = searchResource;
         this.indexService    = indexService;
         this.reindexService  = reindexService;
@@ -42,6 +46,7 @@ public class CorpusApiBean implements CorpusApi {
         this.corpusRef       = corpusRef;
         this.corpusRoot      = corpusRoot;
         this.entryStore      = entryStore;
+        this.sessionService  = sessionService;
     }
 
     @Override
@@ -199,7 +204,8 @@ public class CorpusApiBean implements CorpusApi {
 
     @Override
     public String recordFinding(String corpusId, String topic, String insight,
-                                String sourceIssue, String tags, String domain, String type, String status) {
+                                String sourceIssue, String tags, String domain, String type,
+                                String status, String sessionId) {
         if (topic == null || topic.isBlank()) {return "Error: topic is required.";}
         if (insight == null || insight.isBlank()) {return "Error: insight is required.";}
 
@@ -208,7 +214,7 @@ public class CorpusApiBean implements CorpusApi {
                                   : List.of();
 
         String resolvedStatus = (status != null && !status.isBlank()) ? status.toLowerCase() : "published";
-        return storeFinding(topic, insight, sourceIssue, parsedTags, domain, type, resolvedStatus);
+        return storeFinding(topic, insight, sourceIssue, parsedTags, domain, type, resolvedStatus, sessionId);
     }
 
     @Override
@@ -233,7 +239,7 @@ public class CorpusApiBean implements CorpusApi {
             try {
                 List<String> tags           = f.tags() != null ? f.tags() : List.of();
                 String       resolvedStatus = (f.status() != null && !f.status().isBlank()) ? f.status().toLowerCase() : "published";
-                String       id             = storeFinding(f.topic(), f.insight(), f.sourceIssue(), tags, f.domain(), f.type(), resolvedStatus);
+                String       id             = storeFinding(f.topic(), f.insight(), f.sourceIssue(), tags, f.domain(), f.type(), resolvedStatus, f.sessionId());
                 entryIds.add(id);
             } catch (Exception e) {
                 errors.add("Finding " + (i + 1) + " (" + f.topic() + "): " + e.getMessage());
@@ -268,9 +274,64 @@ public class CorpusApiBean implements CorpusApi {
         return oldStatus + " → " + newStatus;
     }
 
+    @Override
+    public String startSession(String corpusId, String name, String topic) {
+        if (sessionService == null) {return "Error: research sessions not available.";}
+        if (name == null || name.isBlank()) {return "Error: session name is required.";}
+        var session = sessionService.create(name, topic, corpusRef.tenantId());
+        return session.id();
+    }
+
+    @Override
+    public ResearchSessionView resumeSession(String corpusId, String sessionId) {
+        if (sessionService == null) {return null;}
+        if (sessionId == null || sessionId.isBlank()) {return null;}
+        var session = sessionService.get(sessionId);
+        if (session == null) {return null;}
+        if (session.state() == io.casehub.neocortex.knowledge.ResearchState.PAUSED) {
+            sessionService.resume(sessionId);
+            session = sessionService.get(sessionId);
+        }
+        return toView(session);
+    }
+
+    @Override
+    public String pauseSession(String corpusId, String sessionId) {
+        if (sessionService == null) {return "Error: research sessions not available.";}
+        if (sessionId == null || sessionId.isBlank()) {return "Error: sessionId is required.";}
+        sessionService.pause(sessionId);
+        return "Session paused.";
+    }
+
+    @Override
+    public String completeSession(String corpusId, String sessionId, String summary) {
+        if (sessionService == null) {return "Error: research sessions not available.";}
+        if (sessionId == null || sessionId.isBlank()) {return "Error: sessionId is required.";}
+        sessionService.complete(sessionId);
+        return "Session completed.";
+    }
+
+    @Override
+    public List<ResearchSessionView> sessions(String corpusId) {
+        if (sessionService == null) {return List.of();}
+        return sessionService.list(corpusRef.tenantId()).stream()
+                             .map(this::toView)
+                             .toList();
+    }
+
+    private ResearchSessionView toView(io.casehub.neocortex.knowledge.ResearchSession session) {
+        List<ResearchSessionView.FindingSummary> findings =
+                sessionFindings.getOrDefault(session.id(), List.of());
+        return new ResearchSessionView(
+                session.id(), session.name(), session.criteria(),
+                session.state().name().toLowerCase(), session.mindMapSubgraphId(),
+                session.createdAt(), session.lastActive(), List.copyOf(findings));
+    }
+
 
     private String storeFinding(String topic, String insight, String sourceIssue,
-                                List<String> tags, String domain, String type, String status) {
+                                List<String> tags, String domain, String type,
+                                String status, String sessionId) {
         String entryId = generateEntryId();
 
         var metadata = new java.util.LinkedHashMap<String, Object>();
@@ -279,6 +340,7 @@ public class CorpusApiBean implements CorpusApi {
         if (type != null && !type.isBlank()) {metadata.put("type", type);}
         if (tags != null && !tags.isEmpty()) {metadata.put("tags", tags);}
         metadata.put("status", status != null ? status : "published");
+        if (sessionId != null && !sessionId.isBlank()) {metadata.put("sessionId", sessionId);}
 
         var entry = new CorpusEntry(entryId, java.util.Map.copyOf(metadata), insight, null);
         entryStore.add(corpusRef, entry);
@@ -289,6 +351,11 @@ public class CorpusApiBean implements CorpusApi {
                 provenanceStore.record(parts[0], Integer.parseInt(parts[1]),
                                        "", List.of(entryId), "recordFinding");
             }
+        }
+
+        if (sessionId != null && !sessionId.isBlank()) {
+            sessionFindings.computeIfAbsent(sessionId, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>()))
+                           .add(new ResearchSessionView.FindingSummary(entryId, topic));
         }
 
         return entryId;

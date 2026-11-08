@@ -14,5 +14,10 @@ public interface ResearchSessionService {
 
     List<ResearchSession> listActive(String tenantId);
 
+    default List<ResearchSession> list(String tenantId) {
+        return listActive(tenantId);
+    }
+
+
     ResearchSession get(String sessionId);
 }
