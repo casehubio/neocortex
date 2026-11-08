@@ -13,6 +13,9 @@ import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
 import io.casehub.neocortex.corpus.management.EntryRelationship;
+import io.casehub.neocortex.corpus.management.StructuralChunker;
+import io.casehub.neocortex.corpus.management.StructuredChunk;
+import io.casehub.neocortex.rag.ChunkInput;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ExtractionResult;
 import io.casehub.neocortex.rag.runtime.IngestionContext;
@@ -37,23 +40,32 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
     private static final ObjectMapper                       MAPPER          = new ObjectMapper();
     private static final TypeReference<Map<String, Object>> MAP_TYPE        = new TypeReference<>() {};
 
-    private final DataSource         dataSource;
-    private final IngestionPipeline  pipeline;
-    private final IngestionContext   defaultContext;
-    private final CorpusStore        backendStore;
-    private final ContentSerializer  serializer;
-    private final CorpusReader       reader;
+    private final DataSource          dataSource;
+    private final IngestionPipeline   pipeline;
+    private final IngestionContext    defaultContext;
+    private final CorpusStore         backendStore;
+    private final ContentSerializer   serializer;
+    private final CorpusReader        reader;
+    private final StructuralChunker   structuralChunker;
 
     public SqliteCorpusEntryStore(DataSource dataSource, IngestionPipeline pipeline,
                                   IngestionContext defaultContext,
                                   CorpusStore backendStore, ContentSerializer serializer,
                                   CorpusReader reader) {
-        this.dataSource     = dataSource;
-        this.pipeline       = pipeline;
-        this.defaultContext = defaultContext;
-        this.backendStore   = backendStore;
-        this.serializer     = serializer;
-        this.reader         = reader;
+        this(dataSource, pipeline, defaultContext, backendStore, serializer, reader, null);
+    }
+
+    public SqliteCorpusEntryStore(DataSource dataSource, IngestionPipeline pipeline,
+                                  IngestionContext defaultContext,
+                                  CorpusStore backendStore, ContentSerializer serializer,
+                                  CorpusReader reader, StructuralChunker structuralChunker) {
+        this.dataSource        = dataSource;
+        this.pipeline          = pipeline;
+        this.defaultContext    = defaultContext;
+        this.backendStore      = backendStore;
+        this.serializer        = serializer;
+        this.reader            = reader;
+        this.structuralChunker = structuralChunker;
         if (dataSource instanceof com.zaxxer.hikari.HikariDataSource hds) {
             SqliteDataSourceFactory.migrate(hds, FLYWAY_LOCATION);
         }
@@ -379,6 +391,11 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
 
 
     private void ingestEntry(CorpusRef corpus, CorpusEntry entry) {
+        if (structuralChunker != null
+                && "positional-markdown".equals(entry.metadata().get("content_format"))) {
+            ingestStructural(corpus, entry);
+            return;
+        }
         var metadata     = new HashMap<String, String>();
         var listMetadata = new HashMap<String, List<String>>();
         for (var e : entry.metadata().entrySet()) {
@@ -390,6 +407,27 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
         }
         var extracted = new ExtractionResult(entry.body(), metadata, listMetadata);
         pipeline.ingest(entry.id(), extracted, defaultContext);
+    }
+
+    private void ingestStructural(CorpusRef corpus, CorpusEntry entry) {
+        List<StructuredChunk> chunks = structuralChunker.chunk(entry.body(), 512);
+        List<ChunkInput> inputs = chunks.stream()
+                .map(sc -> new ChunkInput(sc.text(), entry.id(), mergeChunkMetadata(entry, sc)))
+                .toList();
+        if (!inputs.isEmpty()) {
+            pipeline.ingestor().ingest(corpus, inputs);
+        }
+    }
+
+    private static Map<String, String> mergeChunkMetadata(CorpusEntry entry, StructuredChunk chunk) {
+        var merged = new HashMap<String, String>();
+        for (var e : entry.metadata().entrySet()) {
+            if (e.getValue() instanceof String s) {
+                merged.put(e.getKey(), s);
+            }
+        }
+        merged.putAll(chunk.metadata());
+        return merged;
     }
 
     private void persistToBackend(CorpusEntry entry) {
