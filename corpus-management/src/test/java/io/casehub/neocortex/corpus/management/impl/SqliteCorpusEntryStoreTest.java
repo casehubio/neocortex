@@ -178,6 +178,72 @@ class SqliteCorpusEntryStoreTest {
         assertThat(result.get(0).author()).isEqualTo("Bob");
     }
 
+    @Test
+    void versionsReturnsVersionInfoFromReader() {
+        var reader = new StubCorpusReader();
+        var t1     = java.time.Instant.parse("2026-01-01T00:00:00Z");
+        var t2     = java.time.Instant.parse("2026-06-01T00:00:00Z");
+        reader.addEntry("doc.md", t1, "Alice", "v1 content");
+        reader.addEntry("doc.md", t2, "Bob", "v2 content");
+
+        var ds              = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var pipeline        = new IngestionPipeline(new StubIngestor());
+        var context         = new IngestionContext(CORPUS, null, null);
+        var storeWithReader = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, reader);
+
+        var versions = storeWithReader.versions(CORPUS, "doc.md");
+
+        assertThat(versions).hasSize(2);
+        assertThat(versions.get(0).version()).isEqualTo(1);
+        assertThat(versions.get(0).author()).isEqualTo("Alice");
+        assertThat(versions.get(1).version()).isEqualTo(2);
+        assertThat(versions.get(1).author()).isEqualTo("Bob");
+    }
+
+    @Test
+    void versionsReturnsEmptyWhenNoReader() {
+        assertThat(store.versions(CORPUS, "doc.md")).isEmpty();
+    }
+
+    @Test
+    void getVersionParsesContentToCorpusEntry() {
+        var    reader    = new StubCorpusReader();
+        var    t1        = java.time.Instant.parse("2026-01-01T00:00:00Z");
+        String v1Content = "---\ntitle: Version One\ndomain: jvm\n---\n\nBody of version one.";
+        reader.addEntry("doc.md", t1, "Alice", v1Content);
+
+        var ds              = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var pipeline        = new IngestionPipeline(new StubIngestor());
+        var context         = new IngestionContext(CORPUS, null, null);
+        var storeWithReader = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, reader);
+
+        var entry = storeWithReader.getVersion(CORPUS, "doc.md", 1);
+
+        assertThat(entry).isPresent();
+        assertThat(entry.get().id()).isEqualTo("doc.md");
+        assertThat(entry.get().stringField("title")).isEqualTo("Version One");
+        assertThat(entry.get().stringField("domain")).isEqualTo("jvm");
+        assertThat(entry.get().body()).isEqualTo("Body of version one.");
+    }
+
+    @Test
+    void getVersionReturnsEmptyWhenNoReader() {
+        assertThat(store.getVersion(CORPUS, "doc.md", 1)).isEmpty();
+    }
+
+    @Test
+    void getVersionReturnsEmptyForUnknownVersion() {
+        var reader = new StubCorpusReader();
+        reader.addEntry("doc.md", java.time.Instant.parse("2026-01-01T00:00:00Z"), null, "content");
+
+        var ds              = SqliteDataSourceFactory.create(":memory:", 1, 3000);
+        var pipeline        = new IngestionPipeline(new StubIngestor());
+        var context         = new IngestionContext(CORPUS, null, null);
+        var storeWithReader = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, reader);
+
+        assertThat(storeWithReader.getVersion(CORPUS, "doc.md", 99)).isEmpty();
+    }
+
 
     // --- Stubs ---
 
@@ -205,14 +271,17 @@ class SqliteCorpusEntryStoreTest {
     }
 
     static class StubCorpusReader implements io.casehub.neocortex.corpus.CorpusReader {
-        private final Map<String, List<io.casehub.neocortex.corpus.VersionInfo>> versionMap = new java.util.LinkedHashMap<>();
-        private final Map<String, byte[]>                                        content    = new java.util.LinkedHashMap<>();
+        private final Map<String, List<io.casehub.neocortex.corpus.VersionInfo>> versionMap     = new java.util.LinkedHashMap<>();
+        private final Map<String, byte[]>                                        content        = new java.util.LinkedHashMap<>();
+        private final Map<String, Map<Integer, byte[]>>                          versionContent = new java.util.LinkedHashMap<>();
 
         void addEntry(String path, java.time.Instant timestamp, String author, String text) {
             var versions = versionMap.computeIfAbsent(path, k -> new ArrayList<>());
             int version  = versions.size() + 1;
             versions.add(new io.casehub.neocortex.corpus.VersionInfo(version, timestamp, "src-" + version, author));
-            content.put(path, text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            byte[] bytes = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            content.put(path, bytes);
+            versionContent.computeIfAbsent(path, k -> new java.util.LinkedHashMap<>()).put(version, bytes);
         }
 
         @Override
@@ -227,7 +296,9 @@ class SqliteCorpusEntryStoreTest {
 
         @Override
         public java.util.Optional<byte[]> readVersion(String path, int version) {
-            return read(path);
+            var perVersion = versionContent.get(path);
+            if (perVersion == null) {return java.util.Optional.empty();}
+            return java.util.Optional.ofNullable(perVersion.get(version));
         }
 
         @Override

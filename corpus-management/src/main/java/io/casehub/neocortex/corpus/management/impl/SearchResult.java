@@ -35,6 +35,14 @@ public record SearchResult(
                 newRelevance, newCeScore, source, sourcePrefix, seeAlsoIds, metadata);
     }
 
+    public SearchResult withPreview(int maxLength) {
+        if (maxLength <= 0 || body == null || body.length() <= maxLength) {return this;}
+        String truncated = body.substring(0, maxLength) + "...";
+        return new SearchResult(id, title, domain, type, score, truncated,
+                                relevance, crossEncoderScore, source, sourcePrefix, seeAlsoIds, metadata);
+    }
+
+
     @com.fasterxml.jackson.annotation.JsonProperty
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public String stalenessThreshold() {return metadata != null ? metadata.get("staleness_threshold") : null;}

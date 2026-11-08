@@ -1,6 +1,8 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
+import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
@@ -45,22 +47,32 @@ public class CorpusApiBean implements CorpusApi {
     @Override
     public List<SearchResult> search(String corpusId, String query,
             List<String> domains, String type, String tags,
-            Integer limit, String profile, String stack) {
+            Integer limit, String profile, String stack, Integer previewLength) {
+        List<SearchResult> results;
         if (profile != null || stack != null) {
-            return searchResource.searchAdaptive(query, null, domains, type, tags,
+            results = searchResource.searchAdaptive(query, null, domains, type, tags,
                     limit, profile, stack).results();
+        } else {
+            results = searchResource.search(query, domains, type, tags, limit, null);
         }
-        return searchResource.search(query, domains, type, tags, limit, null);
+        return applyPreview(results, previewLength);
     }
 
     @Override
     public AdaptiveResult adaptiveSearch(String corpusId, String query,
             String keywords, List<String> domains, String type,
-            String tags, Integer limit, String profile, String stack) {
+            String tags, Integer limit, String profile, String stack, Integer previewLength) {
         String expandedKeywords = keywords != null && !keywords.isBlank()
                 ? keywords.replace("|", " ") : null;
-        return searchResource.searchAdaptive(query, expandedKeywords,
+        AdaptiveResult result = searchResource.searchAdaptive(query, expandedKeywords,
                 domains, type, tags, limit, profile, stack);
+        if (previewLength == null) {return result;}
+        return result.withResults(applyPreview(result.results(), previewLength));
+    }
+
+    private static List<SearchResult> applyPreview(List<SearchResult> results, Integer previewLength) {
+        if (previewLength == null || results.isEmpty()) {return results;}
+        return results.stream().map(r -> r.withPreview(previewLength)).toList();
     }
 
     @Override
@@ -73,6 +85,16 @@ public class CorpusApiBean implements CorpusApi {
     public ChangeResult changes(String corpusId, java.time.Instant since) {
         var records = entryStore.recentChanges(corpusRef, since);
         return new ChangeResult(records);
+    }
+
+    @Override
+    public List<VersionInfo> versions(String corpusId, String entryId) {
+        return entryStore.versions(corpusRef, entryId);
+    }
+
+    @Override
+    public CorpusEntry version(String corpusId, String entryId, int version) {
+        return entryStore.getVersion(corpusRef, entryId, version).orElse(null);
     }
 
 

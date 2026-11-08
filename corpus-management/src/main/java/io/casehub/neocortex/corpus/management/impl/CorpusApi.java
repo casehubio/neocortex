@@ -1,5 +1,8 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.neocortex.corpus.VersionInfo;
+import io.casehub.neocortex.corpus.management.ChangeResult;
+import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.rag.ProvenanceRecord;
 import io.casehub.neocortex.rag.ProvenanceStats;
 import io.casehub.platform.api.mcp.ContextParam;
@@ -8,8 +11,6 @@ import io.casehub.platform.api.mcp.McpParam;
 import io.casehub.platform.api.mcp.McpParamFormat;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
-
-import io.casehub.neocortex.corpus.management.ChangeResult;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,18 +22,20 @@ import java.util.List;
 public interface CorpusApi {
 
     @PlatformQuery("Search a corpus with optional domain, type, and tag filters. "
-            + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26').")
+            + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26'). "
+            + "Results include document body; set previewLength to truncate long bodies.")
     List<SearchResult> search(@ContextParam("corpusId") String corpusId, String query,
             List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
-            Integer limit, String profile, String stack);
+            Integer limit, String profile, String stack, Integer previewLength);
 
     @PlatformQuery("Adaptive search with keyword boosting — extends results "
             + "when initial set is too small, trims when too large. "
-            + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26').")
+            + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26'). "
+            + "Results include document body; set previewLength to truncate long bodies.")
     AdaptiveResult adaptiveSearch(@ContextParam("corpusId") String corpusId, String query,
             @McpParam(format = McpParamFormat.LIST) String keywords,
             List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
-            Integer limit, String profile, String stack);
+            Integer limit, String profile, String stack, Integer previewLength);
 
     @PlatformQuery("Fetch a single corpus entry by ID — same shape as search results for consistent agent experience")
     SearchResult entry(@ContextParam("corpusId") String corpusId, String entryId);
@@ -40,6 +43,12 @@ public interface CorpusApi {
     @PlatformQuery("List changes to a corpus since a given timestamp — shows added and modified entries with content previews. "
                    + "Agent provides a timestamp, system handles cursor management internally.")
     ChangeResult changes(@ContextParam("corpusId") String corpusId, Instant since);
+
+    @PlatformQuery("List all versions of a document — shows version number, timestamp, source, and author for each revision")
+    List<VersionInfo> versions(@ContextParam("corpusId") String corpusId, String entryId);
+
+    @PlatformQuery("Fetch a specific historical version of a document as structured content — returns metadata and body for the requested version")
+    CorpusEntry version(@ContextParam("corpusId") String corpusId, String entryId, int version);
 
 
     @PlatformQuery("Index status: entry count, corpus path, collection state")
