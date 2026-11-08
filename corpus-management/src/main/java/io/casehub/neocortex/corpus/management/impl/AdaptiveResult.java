@@ -16,4 +16,9 @@ public record AdaptiveResult(
                           boolean trimmed, int floorFiltered) {
         this(results, requestedLimit, availableAboveFloor, extended, trimmed, floorFiltered, true);
     }
+
+    public AdaptiveResult withResults(List<SearchResult> newResults) {
+        return new AdaptiveResult(newResults, requestedLimit, availableAboveFloor,
+                                  extended, trimmed, floorFiltered, collectionReady);
+    }
 }

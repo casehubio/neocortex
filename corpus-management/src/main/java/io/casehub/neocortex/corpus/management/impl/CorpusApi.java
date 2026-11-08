@@ -22,18 +22,20 @@ import java.util.List;
 public interface CorpusApi {
 
     @PlatformQuery("Search a corpus with optional domain, type, and tag filters. "
-            + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26').")
+            + "Supports search profiles and inline stack overrides (e.g. 'quarkus:3.36.1|jdk:26'). "
+            + "Results include document body; set previewLength to truncate long bodies.")
     List<SearchResult> search(@ContextParam("corpusId") String corpusId, String query,
             List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
-            Integer limit, String profile, String stack);
+            Integer limit, String profile, String stack, Integer previewLength);
 
     @PlatformQuery("Adaptive search with keyword boosting — extends results "
             + "when initial set is too small, trims when too large. "
-            + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26').")
+            + "Stack format: 'artifact:version' pairs (e.g. 'quarkus:3.36.1|jdk:26'). "
+            + "Results include document body; set previewLength to truncate long bodies.")
     AdaptiveResult adaptiveSearch(@ContextParam("corpusId") String corpusId, String query,
             @McpParam(format = McpParamFormat.LIST) String keywords,
             List<String> domains, String type, @McpParam(format = McpParamFormat.LIST) String tags,
-            Integer limit, String profile, String stack);
+            Integer limit, String profile, String stack, Integer previewLength);
 
     @PlatformQuery("Fetch a single corpus entry by ID — same shape as search results for consistent agent experience")
     SearchResult entry(@ContextParam("corpusId") String corpusId, String entryId);
