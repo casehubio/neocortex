@@ -216,6 +216,27 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
         return Optional.empty();
     }
 
+    @Override
+    public List<CorpusEntry> findByMetadataField(CorpusRef corpus, String key, String value) {
+        String sql = "SELECT id, frontmatter_json, body, artifact_ref FROM corpus_entries WHERE corpus_tenant_id = ? AND corpus_name = ? AND json_extract(frontmatter_json, '$.' || ?) = ?";
+        List<CorpusEntry> results = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, corpus.tenantId());
+            ps.setString(2, corpus.corpusName());
+            ps.setString(3, key);
+            ps.setString(4, value);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    results.add(fromRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find entries by metadata " + key + "=" + value, e);
+        }
+        return results;
+    }
+
     private static final int DEFAULT_PREVIEW_LENGTH = 500;
 
     @Override

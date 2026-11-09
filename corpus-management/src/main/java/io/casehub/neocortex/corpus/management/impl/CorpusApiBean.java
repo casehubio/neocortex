@@ -4,6 +4,8 @@ import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
+import io.casehub.neocortex.corpus.management.HtmlToMarkdownParser;
+import io.casehub.neocortex.corpus.management.WebCaptureMetadata;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
 import io.casehub.neocortex.rag.ProvenanceStats;
@@ -24,6 +26,8 @@ public class CorpusApiBean implements CorpusApi {
     private final Path      corpusRoot;
     private final CorpusEntryStore entryStore;
     private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
+    private final WebCaptureService webCaptureService;
+    private final HtmlToMarkdownParser htmlParser;
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -38,16 +42,33 @@ public class CorpusApiBean implements CorpusApi {
                          Path corpusRoot,
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService) {
-        this.searchResource  = searchResource;
-        this.indexService    = indexService;
-        this.reindexService  = reindexService;
-        this.profileStore    = profileStore;
-        this.provenanceStore = provenanceStore;
-        this.outcomeService  = outcomeService;
-        this.corpusRef       = corpusRef;
-        this.corpusRoot      = corpusRoot;
-        this.entryStore      = entryStore;
-        this.sessionService  = sessionService;
+        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, null);
+    }
+
+    public CorpusApiBean(SearchResource searchResource,
+                         CorpusIndexService indexService,
+                         GardenReindexService reindexService,
+                         SearchProfileStore profileStore,
+                         ProvenanceStore provenanceStore,
+                         CorpusOutcomeService outcomeService,
+                         CorpusRef corpusRef,
+                         Path corpusRoot,
+                         CorpusEntryStore entryStore,
+                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
+                         HtmlToMarkdownParser htmlParser) {
+        this.searchResource    = searchResource;
+        this.indexService      = indexService;
+        this.reindexService    = reindexService;
+        this.profileStore      = profileStore;
+        this.provenanceStore   = provenanceStore;
+        this.outcomeService    = outcomeService;
+        this.corpusRef         = corpusRef;
+        this.corpusRoot        = corpusRoot;
+        this.entryStore        = entryStore;
+        this.sessionService    = sessionService;
+        this.webCaptureService = new WebCaptureService(entryStore);
+        this.htmlParser        = htmlParser;
     }
 
     @Override
@@ -485,6 +506,76 @@ public class CorpusApiBean implements CorpusApi {
         java.util.concurrent.ThreadLocalRandom.current().nextBytes(bytes);
         String hex = String.format("%02x%02x%02x", bytes[0] & 0xFF, bytes[1] & 0xFF, bytes[2] & 0xFF);
         return "GE-" + date + "-" + hex;
+    }
+
+    @Override
+    public WebCaptureResult webCapture(String corpusId, String url, String html,
+                                       Integer ttlDays, String artifactRef) {
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("url is required");
+        }
+
+        int ttl = ttlDays != null ? ttlDays : WebCaptureMetadata.DEFAULT_TTL_DAYS;
+
+        java.util.Optional<io.casehub.neocortex.corpus.management.CorpusEntry> cached =
+                webCaptureService.findFreshByUrl(corpusRef, url, ttl);
+
+        if (cached.isPresent()) {
+            var entry = cached.get();
+            return new WebCaptureResult(
+                    entry.id(), url,
+                    entry.stringField("title"),
+                    entry.body(),
+                    entry.stringField(WebCaptureMetadata.FETCHED_AT),
+                    true);
+        }
+
+        String content;
+        String contentType;
+        int httpStatus;
+
+        if (html != null && !html.isBlank()) {
+            content = html;
+            contentType = "text/html";
+            httpStatus = 200;
+        } else {
+            try {
+                var httpClient = java.net.http.HttpClient.newBuilder()
+                        .followRedirects(java.net.http.HttpClient.Redirect.NORMAL)
+                        .connectTimeout(java.time.Duration.ofSeconds(10))
+                        .build();
+                var request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create(url))
+                        .timeout(java.time.Duration.ofSeconds(30))
+                        .GET()
+                        .build();
+                var response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+                content = response.body();
+                contentType = response.headers().firstValue("content-type").orElse("text/html");
+                httpStatus = response.statusCode();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to fetch URL: " + url, e);
+            }
+        }
+
+        String markdown = htmlParser != null ? htmlParser.parse(content, url) : content;
+
+        String title = null;
+        if (htmlParser != null) {
+            int titleEnd = markdown.indexOf('\n');
+            if (titleEnd > 0) {
+                String firstLine = markdown.substring(0, titleEnd).strip();
+                if (firstLine.startsWith("# ")) {
+                    title = firstLine.substring(2).strip();
+                }
+            }
+        }
+
+        var result = webCaptureService.capture(corpusRef, url, markdown,
+                httpStatus, contentType, "mcp-tool", ttl, artifactRef, "corpus-api");
+
+        return new WebCaptureResult(result.entryId(), url, title, markdown,
+                java.time.Instant.now().toString(), false);
     }
 
     private static String[] parseIssueRef(String issueRef) {
