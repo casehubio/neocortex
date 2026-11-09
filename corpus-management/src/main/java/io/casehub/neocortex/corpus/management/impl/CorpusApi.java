@@ -61,7 +61,7 @@ public interface CorpusApi {
     UnretrievedReport unretrieved(@ContextParam("corpusId") String corpusId, Integer minDays, Integer staleDays);
 
     @PlatformMutation("Trigger full re-index: delete collection and rebuild from source")
-    GardenReindexService.ReindexResult reindex(@ContextParam("corpusId") String corpusId);
+    CorpusReindexService.ReindexResult reindex(@ContextParam("corpusId") String corpusId);
 
     @PlatformMutation("Re-index a single entry: delete vectors then re-extract and re-ingest")
     String reindexEntry(@ContextParam("corpusId") String corpusId, String entryId);

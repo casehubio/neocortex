@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -345,7 +344,7 @@ class CorpusIndexServiceTest {
         }
     }
 
-    static class StubExtractor extends GardenMetadataExtractor {
+    static class StubExtractor extends CorpusMetadataExtractor {
         ExtractionResult result = new ExtractionResult("", Map.of());
 
         @Override

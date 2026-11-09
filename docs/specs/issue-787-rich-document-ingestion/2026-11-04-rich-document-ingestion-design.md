@@ -262,7 +262,7 @@ Three document processing components exist, serving different layers:
 
 **TikaDocumentParser** in `rag-tika` is a standalone utility that uses Tika's `AutoDetectParser` to extract flat text from PDFs/DOCX/images, then chunks via `TextChunker`. It is NOT superseded by the new `DocumentParser` implementations. The new `PdfDocumentParser` uses Apache PDFBox directly (not Tika) for structural text extraction with positions — a fundamentally different approach that preserves spatial layout. `DocxDocumentParser` uses Apache POI. `ImageDocumentParser` uses Tika's `TesseractOCRParser` for OCR only.
 
-`GardenMetadataExtractor` (markdown → flat text for RAG) is not replaced.
+`CorpusMetadataExtractor` (markdown → flat text for RAG) is not replaced.
 
 #### Ingestion path constraint
 

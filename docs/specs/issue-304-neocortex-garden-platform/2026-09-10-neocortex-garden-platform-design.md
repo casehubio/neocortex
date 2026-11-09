@@ -239,13 +239,13 @@ Unified under the `Resolution` concept. A case store holds `ResolvedCase` entrie
 | Component | Why it stays |
 |---|---|
 | `GardenMcpTools` (~652 LOC) | Application surface — MCP tool definitions with garden-specific descriptions. Thin delegation to platform services. |
-| `GardenMetadataExtractor` (~145 LOC) | Implements neocortex `MetadataExtractor` SPI with garden-specific field names and GE-ID patterns. |
+| `CorpusMetadataExtractor` (~145 LOC) | Implements neocortex `MetadataExtractor` SPI with garden-specific field names and GE-ID patterns. |
 | `GardenOutcomeService` (~97 LOC) | JPA-coupled, uses garden-specific CASE_TYPE and tenant from GardenConfig. Bridges to `CbrCaseMemoryStore.recordOutcome()`. |
 | `SearchProfileStore` (~118 LOC) | BOM snapshot store — stays until a second consumer needs profiles. |
 | `ProvenanceStore` (~192 LOC) | Hortora-specific schema. Implements the new `ProvenanceTracker` SPI with domain parameter mapping. |
 | `ChainWalker` (~184 LOC) | First `FederationStrategy` implementation. Stays until federation SPI is validated by a second consumer. |
 | `ReconcileScheduler` (~29 LOC) | Thin delegation to existing neocortex `CorpusIngestionService`. |
-| `GardenReindexService` (~42 LOC) | Thin delegation to existing neocortex `EmbeddingIngestor` + `CursorStore`. |
+| `CorpusReindexService` (~42 LOC) | Thin delegation to existing neocortex `EmbeddingIngestor` + `CursorStore`. |
 | Config, CDI producers (~215 LOC) | Deployment wiring. |
 
 After extraction, engine's dependency on neocortex grows (new SPIs to implement), but engine's own code shrinks (scoring, migration checks, query augmentation SPI move out). Engine becomes: neocortex dep + config + MCP tools + federation + domain-specific SPI implementations.

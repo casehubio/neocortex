@@ -6,9 +6,9 @@ import io.casehub.neocortex.rag.EmbeddingIngestor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GardenReindexService {
+public class CorpusReindexService {
 
-    private static final Logger LOG = Logger.getLogger(GardenReindexService.class.getName());
+    private static final Logger LOG = Logger.getLogger(CorpusReindexService.class.getName());
 
     private final EmbeddingIngestor embeddingIngestor;
     private final CorpusRef corpusRef;
@@ -19,8 +19,8 @@ public class GardenReindexService {
         void reset(CorpusRef corpusRef, String corpusId);
     }
 
-    public GardenReindexService(EmbeddingIngestor embeddingIngestor, CorpusRef corpusRef,
-                                 ResetAction resetAction) {
+    public CorpusReindexService(EmbeddingIngestor embeddingIngestor, CorpusRef corpusRef,
+                                ResetAction resetAction) {
         this.embeddingIngestor = embeddingIngestor;
         this.corpusRef = corpusRef;
         this.resetAction = resetAction;

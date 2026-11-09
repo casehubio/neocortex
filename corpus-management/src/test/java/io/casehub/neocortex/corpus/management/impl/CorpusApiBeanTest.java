@@ -117,7 +117,7 @@ class CorpusApiBeanTest {
 
     @Test
     void reindex_delegates_to_reindex_service() {
-        var reindexService = new GardenReindexService(
+        var reindexService = new CorpusReindexService(
                 new CorpusIndexServiceTest.StubIngestor(),
                 new CorpusRef("test", "test-corpus"),
                 (ref, id) -> {});

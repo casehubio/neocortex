@@ -9,6 +9,7 @@ import io.casehub.neocortex.corpus.ChangeSet;
 import io.casehub.neocortex.corpus.ChangeSource;
 import io.casehub.neocortex.corpus.CorpusReader;
 import io.casehub.neocortex.corpus.VersionInfo;
+import io.casehub.neocortex.corpus.management.impl.CorpusMetadataExtractor;
 import io.casehub.platform.api.mcp.ContextParam;
 import io.casehub.platform.api.mcp.McpCursorMap;
 import io.casehub.platform.api.mcp.McpCursorType;
@@ -25,7 +26,6 @@ import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
 import java.util.List;
-import java.util.Map;
 
 @McpDomain(value = "corpus-management", app = "neocortex",
         summary = "Corpus catalogue, entry CRUD, and federated search — generic SPI surface for LLM agents")
@@ -91,7 +91,7 @@ public interface CorpusManagementApi {
 
     @McpOnly("Read a historical version of a document — returns parsed content with metadata")
     @McpDelegate(spi = CorpusReader.class, method = "readVersion")
-    @McpTransform(spi = io.casehub.neocortex.corpus.management.impl.GardenMetadataExtractor.class, method = "extract")
+    @McpTransform(spi = CorpusMetadataExtractor.class, method = "extract")
     default byte[] readVersion(String path, int version) {
         throw new UnsupportedOperationException("MCP-only");
     }

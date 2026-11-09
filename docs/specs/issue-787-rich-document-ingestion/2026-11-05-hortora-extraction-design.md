@@ -15,7 +15,7 @@ After this work, a non-Hortora consumer can depend on `corpus-management-api` + 
 ## Scope
 
 **In scope (from audit):**
-- L7: Extract `GardenMetadataExtractor` to Hortora module
+- L7: Extract `CorpusMetadataExtractor` to Hortora module
 - L10: Extract `CorpusIndexService` (GE-ID patterns) to Hortora module
 - L9: Extract scoring strategies behind `ScoreModifier` SPI
 - L1: Confirmed resolved by #787's cover document pattern — no further work
@@ -125,7 +125,7 @@ Remove: `SearchScoringConfig` entirely — all 5 fields (`temporalDecayEnabled`/
 
 **Fix:** Remove these accessors from `SearchResult`. Consumers read the metadata map directly. The `GardenCorpusApi` MCP layer in the Hortora module can format garden-specific fields in its response if needed, or the MCP tool descriptions can document which metadata keys are available.
 
-The `seeAlsoIds` field (GE-ID cross-references) also moves to garden-specific handling — the `expandWithAdjacent()` method in `SearchResource` that uses it stays generic (it works on any `seeAlsoIds` list), but the population of `seeAlsoIds` from `see_also_ids` metadata is a garden convention documented by `GardenMetadataExtractor`.
+The `seeAlsoIds` field (GE-ID cross-references) also moves to garden-specific handling — the `expandWithAdjacent()` method in `SearchResource` that uses it stays generic (it works on any `seeAlsoIds` list), but the population of `seeAlsoIds` from `see_also_ids` metadata is a garden convention documented by `CorpusMetadataExtractor`.
 
 ### 5. CorpusApi split
 
@@ -182,7 +182,7 @@ The core `ProvenanceStore` keeps only: `record()`, `forwardLineage()`, `reverseL
 
 | Class | Reason |
 |-------|--------|
-| `GardenMetadataExtractor` | YAML frontmatter + GE-ID patterns (L7) |
+| `CorpusMetadataExtractor` | YAML frontmatter + GE-ID patterns (L7) |
 | `CorpusIndexService` | GE-ID regex, `.md` assumptions, GE-ID date parsing (L10) |
 | `BuiltInCorpusTypes` | `KNOWLEDGE_GARDEN`, `RESEARCH`, `TRANSCRIPT` constants |
 | `CorpusOutcomeService` | CBR-backed outcome tracking wired to garden entries |

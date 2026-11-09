@@ -10,7 +10,7 @@ The corpus-management codebase has a clean two-tier architecture:
 
 - **Tier 1 (domain-neutral):** `corpus-api` SPIs (`CorpusStore`, `CorpusReader`, `ChangeSource`), and `corpus-management-api` SPIs (`CorpusCatalogue`, `CorpusManager`, `CorpusSearch`, `FederatedCorpusSearch`, `CorpusQuery`). These are genuinely generic. A clinical guideline corpus, legal precedent library, or game NPC knowledge base could use them without modification.
 
-- **Tier 2 (Hortora-shaped):** Implementation classes in `corpus-management/impl` that were lifted from the Hortora garden engine without abstraction: `GardenMetadataExtractor`, `GardenReindexService`, `CorpusApiBean`, `SearchResource`, `CorpusIndexService`, `ProvenanceStore`, `FederationConfig`. These contain garden terminology, GE-ID patterns, markdown assumptions, and staleness-tier scoring baked in.
+- **Tier 2 (Hortora-shaped):** Implementation classes in `corpus-management/impl` that were lifted from the Hortora garden engine without abstraction: `CorpusMetadataExtractor`, `CorpusReindexService`, `CorpusApiBean`, `SearchResource`, `CorpusIndexService`, `ProvenanceStore`, `FederationConfig`. These contain garden terminology, GE-ID patterns, markdown assumptions, and staleness-tier scoring baked in.
 
 Between these tiers, the API layer has **6 leaks** where Hortora assumptions bled into the SPIs themselves. These are the highest-priority items because they constrain all consumers, not just the implementation.
 
@@ -285,7 +285,7 @@ Changes that restructure modules to cleanly separate Hortora-specific code:
 | Item | Change | Risk |
 |------|--------|------|
 | L1 | Introduce `Content` sealed hierarchy in `CorpusEntry` | Med — touches all entry consumers |
-| L7+L10 | Extract `GardenMetadataExtractor`, `CorpusIndexService` to a `corpus-management-hortora` module | Low — no API change |
+| L7+L10 | Extract `CorpusMetadataExtractor`, `CorpusIndexService` to a `corpus-management-hortora` module | Low — no API change |
 | L9 | Extract scoring strategies behind a `ScoringStrategy` SPI | Med — changes SearchResource internals |
 | L7 | Support pluggable metadata extraction per corpus type (already SPI-driven via `MetadataExtractor`, just needs proper module separation) | Low |
 

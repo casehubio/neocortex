@@ -17,9 +17,9 @@ import java.util.List;
 public class CorpusApiBean implements CorpusApi {
 
     private final SearchResource searchResource;
-    private final CorpusIndexService indexService;
-    private final GardenReindexService reindexService;
-    private final SearchProfileStore profileStore;
+    private final CorpusIndexService   indexService;
+    private final CorpusReindexService reindexService;
+    private final SearchProfileStore   profileStore;
     private final ProvenanceStore provenanceStore;
     private final CorpusOutcomeService outcomeService;
     private final CorpusRef corpusRef;
@@ -36,7 +36,7 @@ public class CorpusApiBean implements CorpusApi {
 
     public CorpusApiBean(SearchResource searchResource,
                          CorpusIndexService indexService,
-                         GardenReindexService reindexService,
+                         CorpusReindexService reindexService,
                          SearchProfileStore profileStore,
                          ProvenanceStore provenanceStore,
                          CorpusOutcomeService outcomeService,
@@ -50,7 +50,7 @@ public class CorpusApiBean implements CorpusApi {
 
     public CorpusApiBean(SearchResource searchResource,
                          CorpusIndexService indexService,
-                         GardenReindexService reindexService,
+                         CorpusReindexService reindexService,
                          SearchProfileStore profileStore,
                          ProvenanceStore provenanceStore,
                          CorpusOutcomeService outcomeService,
@@ -65,7 +65,7 @@ public class CorpusApiBean implements CorpusApi {
 
     public CorpusApiBean(SearchResource searchResource,
                          CorpusIndexService indexService,
-                         GardenReindexService reindexService,
+                         CorpusReindexService reindexService,
                          SearchProfileStore profileStore,
                          ProvenanceStore provenanceStore,
                          CorpusOutcomeService outcomeService,
@@ -81,7 +81,7 @@ public class CorpusApiBean implements CorpusApi {
 
     public CorpusApiBean(SearchResource searchResource,
                          CorpusIndexService indexService,
-                         GardenReindexService reindexService,
+                         CorpusReindexService reindexService,
                          SearchProfileStore profileStore,
                          ProvenanceStore provenanceStore,
                          CorpusOutcomeService outcomeService,
@@ -244,7 +244,7 @@ public class CorpusApiBean implements CorpusApi {
     }
 
     @Override
-    public GardenReindexService.ReindexResult reindex(String corpusId) {
+    public CorpusReindexService.ReindexResult reindex(String corpusId) {
         return reindexService.reindex();
     }
 
