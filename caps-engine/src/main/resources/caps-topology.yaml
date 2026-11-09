@@ -395,6 +395,49 @@ nodes:
           stopped: 0.4
           ended: 0.3
 
+    # Source: Reis et al. 2004 (PPR), Reeck et al. 2016 (SRC),
+    # Rimé 2009, Williams 2007, Schilke et al. 2021
+    social_context:
+      - id: perceived_responsiveness
+        description: "Felt understanding, validation, and caring from a present interaction partner"
+        vocabulary:
+          responsive: 0.8
+          understanding: 0.7
+          validating: 0.7
+          caring: 0.7
+          supportive: 0.6
+          attentive: 0.5
+          empathic: 0.5
+      - id: target_distress
+        description: "Observable distress in another agent — crying, trembling, visible anguish"
+        vocabulary:
+          distressed: 0.9
+          crying: 0.8
+          anguished: 0.8
+          suffering: 0.7
+          upset: 0.6
+          distraught: 0.7
+          troubled: 0.5
+      - id: social_isolation
+        description: "Absence of social contact — alone, no one nearby, ostracized"
+        vocabulary:
+          alone: 0.8
+          isolated: 0.8
+          nobody: 0.7
+          solitary: 0.6
+          empty: 0.4
+          deserted: 0.5
+      - id: power_asymmetry
+        description: "Relational power advantage — authority, dominance, perceived impunity"
+        vocabulary:
+          authority: 0.7
+          powerful: 0.7
+          superior: 0.6
+          dominant: 0.6
+          advantage: 0.5
+          impunity: 0.8
+          untouchable: 0.7
+
   mediating:
     self_model:
       - name: self_worth
@@ -534,6 +577,17 @@ nodes:
       - consolidate
       - generalize
       - discriminate
+    regulation:
+      - situation_selection
+      - situation_modification
+      - attentional_deployment
+      - cognitive_change
+      - response_modulation
+      - social_support_seeking
+      - social_sharing
+      - social_withdrawal
+      - co_regulation
+      - deliberate_provocation
 
 # Key connections with initial weights and provenance.
 # Format: source -> target, weight, provenance (empirical/consensus/estimated)
@@ -1047,6 +1101,221 @@ connections:
     provenance: consensus
     source: "window of tolerance: extreme arousal → FFFS"
     tags: [threat]
+
+  # Social-context → mediating connections (#806)
+  # Source: Reis et al. 2004, Reeck et al. 2016, Williams 2007,
+  # Festinger 1954, Schilke et al. 2021
+  - from: perceived_responsiveness
+    to: other_safety
+    weight: 0.35
+    provenance: consensus
+    source: "Reis et al. 2004: responsive partner → felt safety"
+    tags: [social_input]
+  - from: perceived_responsiveness
+    to: other_reliability
+    weight: 0.25
+    provenance: consensus
+    source: "responsiveness → current reliability assessment"
+    tags: [social_input]
+  - from: target_distress
+    to: arousal_level
+    weight: 0.30
+    provenance: consensus
+    source: "Preston & de Waal 2002: vicarious arousal"
+    tags: []
+  - from: social_isolation
+    to: BIS_activation
+    weight: 0.30
+    provenance: consensus
+    source: "Williams 2007: ostracism → behavioral inhibition"
+    tags: [bis]
+  - from: social_isolation
+    to: arousal_level
+    weight: 0.25
+    provenance: consensus
+    source: "social isolation elevates arousal"
+    tags: []
+  - from: power_asymmetry
+    to: social_comparison
+    weight: 0.35
+    provenance: consensus
+    source: "Festinger 1954: power differential → social comparison"
+    tags: []
+  - from: power_asymmetry
+    to: BAS_activation
+    weight: 0.25
+    provenance: consensus
+    source: "power advantage → approach motivation"
+    tags: [bas]
+
+  # Intrapersonal regulation connections (#806)
+  # Source: Gross 1998, Baranczuk 2019, Gross & John 2003, Bandura 1977
+  - from: arousal_level
+    to: attentional_deployment
+    weight: 0.45
+    provenance: consensus
+    source: "Baranczuk 2019: N→AD r≈.30-.40, arousal overwhelms cognitive resources"
+    tags: []
+  - from: threat_sensitivity
+    to: attentional_deployment
+    weight: 0.35
+    provenance: consensus
+    source: "threat sensitivity drives attention redirection"
+    tags: [threat]
+  - from: BIS_activation
+    to: attentional_deployment
+    weight: 0.30
+    provenance: consensus
+    source: "behavioral inhibition promotes disengagement"
+    tags: [bis]
+  - from: self_efficacy
+    to: cognitive_change
+    weight: 0.45
+    provenance: consensus
+    source: "Gross & John 2003: O→reappraisal r=.36, requires cognitive resources"
+    tags: []
+  - from: self_worth
+    to: cognitive_change
+    weight: 0.30
+    provenance: consensus
+    source: "positive self-model supports cognitive flexibility"
+    tags: []
+  - from: BIS_activation
+    to: cognitive_change
+    weight: -0.25
+    provenance: consensus
+    source: "Baranczuk 2019: N→reappraisal r=-.25, anxiety impairs reappraisal"
+    tags: [bis]
+  - from: BIS_activation
+    to: response_modulation
+    weight: 0.40
+    provenance: consensus
+    source: "Gross & John 2003: N→suppression r=.30, BIS-driven strategy"
+    tags: [bis]
+  - from: self_worth
+    to: response_modulation
+    weight: -0.25
+    provenance: consensus
+    source: "low self-worth drives suppression"
+    tags: []
+  - from: self_efficacy
+    to: response_modulation
+    weight: -0.25
+    provenance: consensus
+    source: "low efficacy → can't reappraise → suppress"
+    tags: []
+  - from: threat_sensitivity
+    to: situation_selection
+    weight: 0.40
+    provenance: consensus
+    source: "high threat anticipation drives avoidance"
+    tags: [threat]
+  - from: BIS_activation
+    to: situation_selection
+    weight: 0.35
+    provenance: consensus
+    source: "behavioral inhibition → avoidance"
+    tags: [bis]
+  - from: self_worth
+    to: situation_selection
+    weight: -0.25
+    provenance: consensus
+    source: "low self-worth → avoidance"
+    tags: []
+  - from: self_efficacy
+    to: situation_modification
+    weight: 0.40
+    provenance: consensus
+    source: "Bandura 1977: changing situation requires agency"
+    tags: []
+  - from: BAS_activation
+    to: situation_modification
+    weight: 0.35
+    provenance: consensus
+    source: "approach motivation → active coping"
+    tags: [bas]
+
+  # Social regulation connections (#806)
+  # Source: Zaki & Williams 2013, George & Solomon 1999,
+  # Tedeschi & Felson 1994, Anderson & Bushman 2002
+  - from: other_safety
+    to: social_support_seeking
+    weight: 0.35
+    provenance: consensus
+    source: "safety with other enables support seeking"
+    tags: [social_input]
+  - from: other_reliability
+    to: social_support_seeking
+    weight: 0.30
+    provenance: consensus
+    source: "trust in other enables seeking"
+    tags: []
+  - from: BIS_activation
+    to: social_support_seeking
+    weight: 0.30
+    provenance: consensus
+    source: "anxiety drives comfort-seeking"
+    tags: [bis]
+  - from: other_safety
+    to: social_sharing
+    weight: 0.35
+    provenance: consensus
+    source: "safety enables disclosure"
+    tags: [social_input]
+  - from: BAS_activation
+    to: social_sharing
+    weight: 0.30
+    provenance: consensus
+    source: "approach motivation for sharing"
+    tags: [bas]
+  - from: other_safety
+    to: social_withdrawal
+    weight: -0.30
+    provenance: consensus
+    source: "unsafe others → withdraw"
+    tags: [social_input]
+  - from: BIS_activation
+    to: social_withdrawal
+    weight: 0.35
+    provenance: consensus
+    source: "inhibition drives withdrawal"
+    tags: [bis]
+  - from: target_distress
+    to: co_regulation
+    weight: 0.40
+    provenance: consensus
+    source: "George & Solomon 1999: distress directly drives caregiving"
+    tags: []
+  - from: other_reliability
+    to: co_regulation
+    weight: 0.30
+    provenance: consensus
+    source: "value of the other enables co-regulation"
+    tags: []
+  - from: self_efficacy
+    to: co_regulation
+    weight: 0.30
+    provenance: consensus
+    source: "capability to help"
+    tags: []
+  - from: power_asymmetry
+    to: deliberate_provocation
+    weight: 0.40
+    provenance: consensus
+    source: "Tedeschi & Felson 1994: power advantage enables provocation"
+    tags: []
+  - from: BAS_activation
+    to: deliberate_provocation
+    weight: 0.35
+    provenance: consensus
+    source: "approach motivation for provocation"
+    tags: [bas]
+  - from: dominance
+    to: deliberate_provocation
+    weight: 0.35
+    provenance: consensus
+    source: "Anderson & Bushman 2002: dominance drives provocation"
+    tags: []
 
 # Disposition modulation — how DispositionAxes scale connection weights
 disposition_modifiers:
