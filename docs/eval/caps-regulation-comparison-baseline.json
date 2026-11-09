@@ -1,0 +1,88 @@
+{
+  "eval": "CapsRegulationComparisonEvalTest",
+  "date": "2026-11-09",
+  "branch": "issue-806-caps-regulation-integration",
+  "cascadeConfig": {"regulationConfidenceThreshold": 0.3, "regulationDominanceMargin": 0.15},
+  "scenarios": [
+    {
+      "name": "Situation Selection (avoidant shame)",
+      "agentId": "eval-sit-select",
+      "axes": {"socialOrient": "cooperative", "ruleFollowing": "flexible", "riskAppetite": "cautious", "autonomy": "low", "conflictMode": "avoidant"},
+      "capsTop": {"strategy": "ATTENTIONAL_DEPLOYMENT", "strength": 0.661},
+      "capsRunnerUp": {"strategy": "SITUATION_SELECTION", "strength": 0.609},
+      "capsMargin": 0.052,
+      "predictor": {"strategy": "SITUATION_SELECTION", "confidence": 0.75},
+      "cascade": "SITUATION_SELECTION",
+      "llmFree": "SITUATION_SELECTION",
+      "appraisal": [{"type": "FEAR", "intensity": 0.30}, {"type": "SHAME", "intensity": 0.42}, {"type": "REPROACH", "intensity": 0.36}]
+    },
+    {
+      "name": "Situation Modification (bold competition)",
+      "agentId": "eval-sit-modify",
+      "axes": {"socialOrient": "competitive", "ruleFollowing": "flexible", "riskAppetite": "bold", "autonomy": "high", "conflictMode": "competitive"},
+      "capsTop": {"strategy": "ATTENTIONAL_DEPLOYMENT", "strength": 0.644},
+      "capsRunnerUp": {"strategy": "SITUATION_SELECTION", "strength": 0.589},
+      "capsMargin": 0.055,
+      "predictor": {"strategy": "NONE", "confidence": 0.00},
+      "cascade": "COGNITIVE_CHANGE",
+      "llmFree": "ATTENTIONAL_DEPLOYMENT",
+      "appraisal": [{"type": "ANGER", "intensity": 0.45}, {"type": "REPROACH", "intensity": 0.41}]
+    },
+    {
+      "name": "Attentional Deployment (fear/urgency)",
+      "agentId": "eval-attn-deploy",
+      "axes": {"socialOrient": "cooperative", "ruleFollowing": "flexible", "riskAppetite": "bold", "autonomy": "low", "conflictMode": "protective"},
+      "capsTop": {"strategy": "ATTENTIONAL_DEPLOYMENT", "strength": 0.644},
+      "capsRunnerUp": {"strategy": "SITUATION_SELECTION", "strength": 0.589},
+      "capsMargin": 0.055,
+      "predictor": {"strategy": "ATTENTIONAL_DEPLOYMENT", "confidence": 0.80},
+      "cascade": "ATTENTIONAL_DEPLOYMENT",
+      "llmFree": "ATTENTIONAL_DEPLOYMENT",
+      "appraisal": [{"type": "DISTRESS", "intensity": 0.95}],
+      "note": "safety hard gate fired (intensity 0.95 > 0.75)"
+    },
+    {
+      "name": "Cognitive Change (reappraisal)",
+      "agentId": "eval-cog-change",
+      "axes": {"socialOrient": "cooperative", "ruleFollowing": "flexible", "riskAppetite": "cautious", "autonomy": "high", "conflictMode": "accommodating"},
+      "capsTop": {"strategy": "ATTENTIONAL_DEPLOYMENT", "strength": 0.661},
+      "capsRunnerUp": {"strategy": "SITUATION_SELECTION", "strength": 0.609},
+      "capsMargin": 0.052,
+      "predictor": {"strategy": "ATTENTIONAL_DEPLOYMENT", "confidence": 0.80},
+      "cascade": "ATTENTIONAL_DEPLOYMENT",
+      "llmFree": "COGNITIVE_CHANGE",
+      "appraisal": [{"type": "DISTRESS", "intensity": 0.18}],
+      "note": "predictor assigns AD for DISTRESS (UNCONTROLLABLE_NEGATIVE), LLM correctly reappraises mild annoyance"
+    },
+    {
+      "name": "Response Modulation (suppression)",
+      "agentId": "eval-resp-mod",
+      "axes": {"socialOrient": "competitive", "ruleFollowing": "strict", "riskAppetite": "cautious", "autonomy": "high", "conflictMode": "competitive"},
+      "capsTop": {"strategy": "ATTENTIONAL_DEPLOYMENT", "strength": 0.661},
+      "capsRunnerUp": {"strategy": "SITUATION_SELECTION", "strength": 0.609},
+      "capsMargin": 0.052,
+      "predictor": {"strategy": "ATTENTIONAL_DEPLOYMENT", "confidence": 0.80},
+      "cascade": "ATTENTIONAL_DEPLOYMENT",
+      "llmFree": "ATTENTIONAL_DEPLOYMENT",
+      "appraisal": [{"type": "DISTRESS", "intensity": 0.56}, {"type": "SHAME", "intensity": 0.56}, {"type": "REPROACH", "intensity": 0.48}]
+    }
+  ],
+  "agreement": {
+    "capsPredictor": {"matches": 3, "total": 5, "rate": 0.60},
+    "capsLlm": {"matches": 3, "total": 5, "rate": 0.60},
+    "predictorLlm": {"matches": 3, "total": 5, "rate": 0.60}
+  },
+  "thresholdSweep": [
+    {"threshold": 0.1, "pinned": 0, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.2, "pinned": 0, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.3, "pinned": 0, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.4, "pinned": 0, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.5, "pinned": 0, "concordance_predictor": 0.00, "concordance_llm": 0.00}
+  ],
+  "findings": [
+    "CAPS always settles to ATTENTIONAL_DEPLOYMENT as top attractor (structural weight advantage in topology)",
+    "Margin 0.052 never reaches 0.15 dominanceMargin — CAPS never pins, always falls through to predictor",
+    "Disposition resting activations produce near-identical CAPS profiles across 5 different personalities",
+    "Predictor over-assigns AD for DISTRESS (mapped to UNCONTROLLABLE_NEGATIVE regardless of intensity)"
+  ]
+}
