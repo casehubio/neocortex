@@ -6,5 +6,8 @@ public record WebCaptureResult(
     String title,
     String body,
     String fetchedAt,
-    boolean cached
+    boolean cached,
+    int imageCount,
+    String interventionId,
+    String error
 ) {}
