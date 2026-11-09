@@ -322,7 +322,7 @@ Filter applied to in-memory chunk list via metadata matching. `Eq` checks `metad
 | `FileCursorStore` | `rag:FileCursorStore` |
 | `ExtractionResult` | `rag-api:ExtractionResult` |
 | `QdrantClientProducer` | `rag:QdrantClientProducer` (`rag/src/main/java/io/casehub/rag/runtime/QdrantClientProducer.java`) |
-| `GardenMetadataExtractor` | Own impl of `MetadataExtractor` SPI (stays in engine) |
+| `CorpusMetadataExtractor` | Own impl of `MetadataExtractor` SPI (stays in engine) |
 
 **ExtractionResult field name change:** neural-text's `ExtractionResult` uses `body()`, Hortora's uses `content()`. When Hortora adopts neural-text's type, `GardenMetadataExtractor.extract()` must return `ExtractionResult(body, metadata)` instead of `ExtractionResult(content, metadata)`. Mechanical rename — Hortora-side only.
 

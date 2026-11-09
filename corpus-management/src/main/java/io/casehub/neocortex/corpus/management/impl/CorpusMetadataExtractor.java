@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GardenMetadataExtractor implements MetadataExtractor {
+public class CorpusMetadataExtractor implements MetadataExtractor {
 
     @Override
     public ExtractionResult extract(String path, byte[] content) {

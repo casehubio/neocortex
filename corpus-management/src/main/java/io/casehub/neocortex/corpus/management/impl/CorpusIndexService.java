@@ -33,13 +33,13 @@ public class CorpusIndexService {
     private static final Logger LOG = Logger.getLogger(CorpusIndexService.class.getName());
 
     private final EmbeddingIngestor embeddingIngestor;
-    private final RetrievalTracker retrievalTracker;
-    private final GardenMetadataExtractor metadataExtractor;
-    private final ProvenanceStore provenanceStore;
+    private final RetrievalTracker        retrievalTracker;
+    private final CorpusMetadataExtractor metadataExtractor;
+    private final ProvenanceStore         provenanceStore;
 
     public CorpusIndexService(EmbeddingIngestor embeddingIngestor,
                                RetrievalTracker retrievalTracker,
-                               GardenMetadataExtractor metadataExtractor,
+                               CorpusMetadataExtractor metadataExtractor,
                                ProvenanceStore provenanceStore) {
         this.embeddingIngestor = embeddingIngestor;
         this.retrievalTracker = retrievalTracker;
