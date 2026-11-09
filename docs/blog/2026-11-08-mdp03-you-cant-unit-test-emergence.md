@@ -85,7 +85,31 @@ The convenience layer is thin but matters. `harness.tick()` calls `CognitionCore
 
 Dual-mode execution matters for different scenarios. S3 needs the full consolidation pipeline — `RecurringThoughtPhase` runs, scores topics, produces artifacts, and the next tick drains them. S5 only needs to inject a continuum position and verify the budget computation — no consolidation required. The harness supports both: `tickAndConsolidate()` for the full path, `setContinuumPosition()` + `tick()` for the injection path.
 
-## The three tiers we haven't built yet
+## The harness that proved itself backward
+
+A harness built for new scenarios is one thing. A harness that retroactively simplifies existing tests is a stronger claim — it means the abstraction found the right seam.
+
+Three test classes predated the harness. Each had its own manual wiring: `SearchBudgetPathologicalThresholdTest` mocked `DriveOrchestrator`, `AppraisalTickParticipant`, and `CognitiveDefaultsRegistry` by hand. `ContinuumRenderingTest` constructed `CuriosityPromptSection` and `SearchBudgetPromptSection` directly, threading mocked dependencies through their constructors. `RecurringThoughtIntegrationTest` built its own stores, scorer, and prompt sections from scratch.
+
+All three migrated to the harness. The pathological threshold tests went from mocking five objects to a builder call:
+
+```java
+var harness = CognitionTestHarness.builder()
+    .agentFromDefaults(AGENT, CognitiveDefaults.empty(AGENT)
+        .withSearchBudgetConfig(SearchBudgetConfig.defaults())
+        .withHabituationConfig(HabituationConfig.defaults()))
+    .withHabituationState(AGENT, habituation)
+    .withAppraisalResult(AGENT, appraisalResult)
+    .build();
+```
+
+That `withAppraisalResult()` method didn't exist before the migration demanded it. The test needed to inject a specific emotional arousal score alongside a habituation failure state — the combination that triggers pathological convergence collapse. In the old test, that meant constructing a `CognitiveEmotion` with a `PadProjection`, wrapping it in an `AppraisalResult`, mocking `currentResult()` and `currentHabituation()` separately, and passing the mock to a manually-wired `SearchBudgetTickParticipant`. In the harness version, the same cognitive state is injected through two builder methods. The arousal is still a `CognitiveEmotion` — you can't simplify the domain concept — but the plumbing disappears.
+
+The migration was a net negative in lines of code. It also revealed something about which tests belong in the harness and which don't. `CuriosityDriveTest` and `CuriosityQualityTest` stayed as unit tests — they test `InformationGapDetector` and `CuriosityDrive.evaluate()` directly, verifying that entropy peaks at partial knowledge and that BFS proximity scoring works correctly. The harness abstracts those components behind `tick()`, which means migrating would test more pipeline than intended. The right boundary: harness tests verify pipeline integration; unit tests verify component computation. Both are necessary. Neither replaces the other.
+
+## The three tiers above
+
+The five scenarios are Tier 2 in a five-tier testing strategy. They prove the plumbing works — the right numbers reach the right components in the right order. Three tiers remain above them, each answering a harder question.
 
 The five scenarios are Tier 2 in a five-tier testing strategy. They prove the plumbing works — the right numbers reach the right components in the right order. Three tiers remain above them, each answering a harder question.
 
@@ -101,4 +125,4 @@ The scenarios prove the exploration pipeline's machinery works. Personality conf
 
 These are real claims, and they fail if the wiring breaks. But they're claims about plumbing, not about cognition. The pipeline computes the right state. Whether it *renders* that state in a way that shapes agent behaviour — that's the question the next three tiers exist to answer.
 
-The five scenarios are the foundation, not the finish line. Quality evaluation is deferred until the full exploration model is complete — Layers 4 (personality at extreme intensity) and 5 (intelligence capacity ceilings) will change what "correct" exploration behaviour looks like at the extremes, and testing an intermediate state means testing something that will move. When the model stabilises, the `CognitiveInfluenceEvalTest` pattern — seed, render, generate, judge — extends naturally to curiosity channels, search budget differentiation, recurring thought escalation, and pathological convergence collapse.
+The five scenarios are the foundation, not the finish line. All five layers of the exploration model are now complete — personality at extreme intensity reshapes how agents explore under pressure, and intelligence capacity ceilings give each agent a distinct cognitive horizon. The model has stabilised. The `CognitiveInfluenceEvalTest` pattern — seed, render, generate, judge — is ready to extend to curiosity channels, search budget differentiation, recurring thought escalation, and pathological convergence collapse. The question is no longer whether the pipeline computes the right state. It's whether an LLM, reading the rendered description of that state, actually explores differently.
