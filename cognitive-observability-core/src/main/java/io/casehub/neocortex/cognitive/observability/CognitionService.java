@@ -14,10 +14,10 @@ import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryQuery;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
-import io.casehub.neocortex.mindmap.intelligence.consolidation.CognitiveAttentionAccumulator;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.intelligence.ActivityQueryService;
 import io.casehub.neocortex.mindmap.intelligence.ActivitySummary;
+import io.casehub.neocortex.mindmap.intelligence.consolidation.CognitiveAttentionAccumulator;
 import io.casehub.neocortex.mindmap.runtime.MindMapAnalyzer;
 import io.casehub.platform.api.identity.PrincipalId;
 
@@ -34,6 +34,8 @@ public class CognitionService implements CognitionApi {
     private final DomainActivation     domainActivation;
     private final ActivityQueryService activityQueryService;
     private final CognitiveAttentionAccumulator attentionAccumulator;
+    private final io.casehub.neocortex.cognition.trace.CognitionStateProvider stateProvider;
+    private final PipelineSnapshotStore pipelineSnapshotStore;
 
 
     public CognitionService(MindMapStore store,
@@ -42,14 +44,18 @@ public class CognitionService implements CognitionApi {
                             CaseMemoryStore memoryStore,
                             DomainActivation domainActivation,
                             ActivityQueryService activityQueryService,
-                            CognitiveAttentionAccumulator attentionAccumulator) {
-        this.store                = store;
-        this.cognitiveProfile     = cognitiveProfile;
-        this.snapshotStore        = snapshotStore;
-        this.memoryStore          = memoryStore;
-        this.domainActivation     = domainActivation;
-        this.activityQueryService = activityQueryService;
-        this.attentionAccumulator = attentionAccumulator;
+                            CognitiveAttentionAccumulator attentionAccumulator,
+                            io.casehub.neocortex.cognition.trace.CognitionStateProvider stateProvider,
+                            PipelineSnapshotStore pipelineSnapshotStore) {
+        this.store                 = store;
+        this.cognitiveProfile      = cognitiveProfile;
+        this.snapshotStore         = snapshotStore;
+        this.memoryStore           = memoryStore;
+        this.domainActivation      = domainActivation;
+        this.activityQueryService  = activityQueryService;
+        this.attentionAccumulator  = attentionAccumulator;
+        this.stateProvider         = stateProvider;
+        this.pipelineSnapshotStore = pipelineSnapshotStore;
     }
 
     @Override
@@ -197,6 +203,25 @@ public class CognitionService implements CognitionApi {
                 MindMapAnalyzer.betweennessCentrality(store, subgraphId, tenancyId),
                 MindMapAnalyzer.kCores(store, subgraphId, tenancyId, k));
     }
+
+    @Override
+    public CognitivePipelineDump pipelineDump(String tenancyId, String agentId,
+                                              Integer tick, Integer fromTick, Integer toTick) {
+        if (tick != null && pipelineSnapshotStore != null) {
+            var snapshot = pipelineSnapshotStore.findByTick(tenancyId, agentId, tick);
+            return CognitivePipelineDump.single(tenancyId, agentId, snapshot.orElse(null));
+        }
+        if (fromTick != null && toTick != null && pipelineSnapshotStore != null) {
+            var snapshots = pipelineSnapshotStore.find(tenancyId, agentId, fromTick, toTick);
+            return CognitivePipelineDump.range(tenancyId, agentId, snapshots);
+        }
+        if (stateProvider != null) {
+            var trace = stateProvider.currentTrace(agentId, tenancyId);
+            return CognitivePipelineDump.live(tenancyId, agentId, trace.orElse(null));
+        }
+        return CognitivePipelineDump.live(tenancyId, agentId, null);
+    }
+
 
     @Override
     public java.util.List<ActivitySummary> activities(String tenancyId, String queryType,

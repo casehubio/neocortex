@@ -22,7 +22,9 @@ public class CognitionAutoConfiguration {
                                              ObjectProvider<SnapshotStore> snapshotStore,
                                              ObjectProvider<CaseMemoryStore> memoryStore,
                                              ObjectProvider<DomainActivation> domainActivation,
-                                             ObjectProvider<ActivityQueryService> activityQueryService) {
+                                             ObjectProvider<ActivityQueryService> activityQueryService,
+                                             ObjectProvider<io.casehub.neocortex.cognition.trace.CognitionStateProvider> stateProvider,
+                                             ObjectProvider<io.casehub.neocortex.cognitive.observability.PipelineSnapshotStore> pipelineSnapshotStore) {
         return new CognitionService(
                 store,
                 cognitiveProfile.getIfAvailable(),
@@ -30,6 +32,8 @@ public class CognitionAutoConfiguration {
                 memoryStore.getIfAvailable(),
                 domainActivation.getIfAvailable(),
                 activityQueryService.getIfAvailable(),
-                null);
+                null,
+                stateProvider.getIfAvailable(),
+                pipelineSnapshotStore.getIfAvailable());
     }
 }

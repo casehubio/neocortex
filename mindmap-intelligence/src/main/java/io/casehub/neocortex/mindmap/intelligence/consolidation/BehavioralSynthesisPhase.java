@@ -4,10 +4,10 @@ import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.BehavioralAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
-import io.casehub.neocortex.caps.DriveCompetitionDetector;
-import io.casehub.neocortex.caps.ClassificationResult;
-import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.ClassificationContext;
+import io.casehub.neocortex.caps.ClassificationResult;
+import io.casehub.neocortex.caps.DriveCompetitionDetector;
+import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
@@ -52,6 +52,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final int reinforcementScale;
     private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
     private final CbrRecordStore cbrRecordStore;
+    private final java.util.concurrent.ConcurrentHashMap<String, io.casehub.neocortex.caps.SettlingResult> lastSettlingResults = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>                      lastInputActivations = new java.util.concurrent.ConcurrentHashMap<>();
 
 
     @Inject
@@ -166,6 +168,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             try {
                 var result = capsEngine.settle(state, combinedActivations);
+                lastSettlingResults.put(agentId, result);
+                lastInputActivations.put(agentId, Map.copyOf(combinedActivations));
 
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
@@ -443,6 +447,15 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             .orElseGet(() -> store.createSubgraph(
                 new SubgraphInput("Behavioral", SubgraphTypes.BEHAVIORAL, null),
                 tenantId));
+    }
+
+
+    public java.util.Optional<io.casehub.neocortex.caps.SettlingResult> lastSettlingResult(String agentId) {
+        return java.util.Optional.ofNullable(lastSettlingResults.get(agentId));
+    }
+
+    public Map<String, Double> lastInputActivations(String agentId) {
+        return lastInputActivations.getOrDefault(agentId, Map.of());
     }
 
 }

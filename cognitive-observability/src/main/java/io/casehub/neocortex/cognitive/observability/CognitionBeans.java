@@ -21,7 +21,9 @@ public class CognitionBeans {
                                              Instance<CaseMemoryStore> memoryStore,
                                              Instance<DomainActivation> domainActivation,
                                              Instance<ActivityQueryService> activityQueryService,
-                                             Instance<CognitiveAttentionAccumulator> attentionAccumulator) {
+                                             Instance<CognitiveAttentionAccumulator> attentionAccumulator,
+                                             Instance<io.casehub.neocortex.cognition.trace.CognitionStateProvider> stateProvider,
+                                             Instance<PipelineSnapshotStore> pipelineSnapshotStore) {
         return new CognitionService(
                 store,
                 cognitiveProfile.isResolvable() ? cognitiveProfile.get() : null,
@@ -29,6 +31,8 @@ public class CognitionBeans {
                 memoryStore.isResolvable() ? memoryStore.get() : null,
                 domainActivation.isResolvable() ? domainActivation.get() : null,
                 activityQueryService.isResolvable() ? activityQueryService.get() : null,
-                attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null);
+                attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null,
+                stateProvider.isResolvable() ? stateProvider.get() : null,
+                pipelineSnapshotStore.isResolvable() ? pipelineSnapshotStore.get() : null);
     }
 }

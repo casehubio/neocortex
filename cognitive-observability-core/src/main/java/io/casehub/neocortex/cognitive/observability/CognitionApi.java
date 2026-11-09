@@ -53,6 +53,15 @@ public interface CognitionApi {
     GraphAnalyticsResult analytics(@ContextParam("tenancyId") String tenancyId, String subgraphId,
                                    Integer kCoreK, Integer staleThresholdDays, Double lowConfidenceThreshold);
 
+    @PlatformQuery("Pipeline state dump — live or historical. "
+                   + "No tick args = live state. tick = single historical. fromTick/toTick = range query")
+    CognitivePipelineDump pipelineDump(@ContextParam("tenancyId") String tenancyId,
+                                       String agentId,
+                                       Integer tick,
+                                       Integer fromTick,
+                                       Integer toTick);
+
+
     @McpExclude
     @PlatformQuery("Activity queries — internal dispatch method")
     java.util.List<io.casehub.neocortex.mindmap.intelligence.ActivitySummary> activities(
