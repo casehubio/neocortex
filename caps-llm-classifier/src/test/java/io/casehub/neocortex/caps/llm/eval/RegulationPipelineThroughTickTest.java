@@ -10,6 +10,7 @@ import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationGenerationPhase;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationResult;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationStrategy;
+import io.casehub.neocortex.cognition.regulation.StrategyFailureSignal;
 import io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionSource;
@@ -138,7 +139,10 @@ class RegulationPipelineThroughTickTest {
             public EmotionRegulationResult generate(CognitionTickContext context,
                                                      AppraisalResult appraisal,
                                                      List<EmotionRegulationResult> history,
-                                                     double regulationEffort) {
+                                                     double regulationEffort,
+                                                     double regulationFatigue,
+                                                     StrategyFailureSignal failureSignal,
+                                                     EmotionRegulationStrategy pinnedStrategy) {
                 return expected;
             }
         };

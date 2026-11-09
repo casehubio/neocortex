@@ -185,16 +185,16 @@
         <version>2.0</version>
       </dependency>
 
-      <!-- jsonschema — neocortex uses 4.38.0 (not parent's 5.0.0 which is for platform MCP SDK) -->
+      <!-- jsonschema — aligned with platform-schema-generator 5.0.0 (Jackson 3.x / tools.jackson namespace) -->
       <dependency>
         <groupId>com.github.victools</groupId>
         <artifactId>jsonschema-generator</artifactId>
-        <version>4.38.0</version>
+        <version>5.0.0</version>
       </dependency>
       <dependency>
         <groupId>com.github.victools</groupId>
         <artifactId>jsonschema-module-jackson</artifactId>
-        <version>4.38.0</version>
+        <version>5.0.0</version>
       </dependency>
 
       <!-- DJL API — pin to match djl.tokenizers version (0.36.0 vs langchain4j-embeddings' 0.31.1) -->
