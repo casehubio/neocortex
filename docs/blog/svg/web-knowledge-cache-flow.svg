@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#475569"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#16a34a"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="360" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">Web Knowledge Cache — Agent Fetch Flow</text>
+
+  <!-- Agent box -->
+  <rect x="20" y="60" width="120" height="50" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="80" y="82" text-anchor="middle" font-size="12" font-weight="500" fill="#312e81">Agent</text>
+  <text x="80" y="97" text-anchor="middle" font-size="10" fill="#4338ca">any runtime</text>
+
+  <!-- webCapture tool -->
+  <rect x="200" y="60" width="130" height="50" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="265" y="82" text-anchor="middle" font-size="12" font-weight="500" fill="#92400e">webCapture(url)</text>
+  <text x="265" y="97" text-anchor="middle" font-size="10" fill="#b45309">MCP tool</text>
+
+  <!-- Arrow: Agent -> webCapture -->
+  <line x1="140" y1="85" x2="195" y2="85" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Corpus check diamond -->
+  <polygon points="430,60 490,85 430,110 370,85" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="430" y="82" text-anchor="middle" font-size="11" font-weight="500" fill="#166534">cached?</text>
+
+  <!-- Arrow: webCapture -> diamond -->
+  <line x1="330" y1="85" x2="368" y2="85" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Cache hit path -->
+  <rect x="540" y="60" width="150" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="615" y="80" text-anchor="middle" font-size="11" font-weight="500" fill="#166534">Return cached</text>
+  <text x="615" y="95" text-anchor="middle" font-size="10" fill="#15803d">no network</text>
+
+  <!-- Arrow: diamond -> cached (right, "yes") -->
+  <line x1="490" y1="85" x2="535" y2="85" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="512" y="78" text-anchor="middle" font-size="10" fill="#16a34a">yes</text>
+
+  <!-- Cache miss path — down -->
+  <!-- Playwright -->
+  <rect x="340" y="150" width="130" height="50" rx="8" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text x="405" y="172" text-anchor="middle" font-size="12" font-weight="500" fill="#9d174d">Playwright</text>
+  <text x="405" y="187" text-anchor="middle" font-size="10" fill="#be185d">headless browser</text>
+
+  <!-- Arrow: diamond -> Playwright (down, "no") -->
+  <line x1="430" y1="110" x2="430" y2="145" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="445" y="132" font-size="10" fill="#64748b">no</text>
+
+  <!-- HTML Parser -->
+  <rect x="340" y="230" width="130" height="50" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="405" y="252" text-anchor="middle" font-size="12" font-weight="500" fill="#075985">HTML Parser</text>
+  <text x="405" y="267" text-anchor="middle" font-size="10" fill="#0369a1">Readability.js</text>
+
+  <!-- Arrow: Playwright -> HTML Parser -->
+  <line x1="405" y1="200" x2="405" y2="225" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Corpus Store -->
+  <rect x="160" y="230" width="130" height="50" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+  <text x="225" y="248" text-anchor="middle" font-size="12" font-weight="500" fill="#1e293b">Corpus Store</text>
+  <text x="225" y="265" text-anchor="middle" font-size="10" fill="#475569">web-cache domain</text>
+
+  <!-- Arrow: HTML Parser -> Corpus Store (left) -->
+  <line x1="340" y1="255" x2="295" y2="255" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- PDF + Archive -->
+  <rect x="540" y="230" width="150" height="50" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+  <text x="615" y="248" text-anchor="middle" font-size="11" font-weight="500" fill="#6b21a8">PDF archive</text>
+  <text x="615" y="265" text-anchor="middle" font-size="10" fill="#7e22ce">visual snapshot</text>
+
+  <!-- Arrow: Playwright -> PDF (right) -->
+  <line x1="470" y1="175" x2="535" y2="240" stroke="#9333ea" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+  <!-- Future agents note -->
+  <rect x="20" y="230" width="110" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="75" y="250" text-anchor="middle" font-size="11" font-weight="500" fill="#166534">Future agents</text>
+  <text x="75" y="265" text-anchor="middle" font-size="10" fill="#15803d">search first</text>
+
+  <!-- Arrow: Corpus Store -> Future agents -->
+  <line x1="160" y1="255" x2="135" y2="255" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+  <!-- TTL note -->
+  <text x="225" y="302" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">accessed entries stay alive; unused entries age out</text>
+</svg>
