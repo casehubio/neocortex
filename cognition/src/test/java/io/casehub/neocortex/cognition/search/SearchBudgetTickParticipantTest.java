@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -329,6 +332,56 @@ class SearchBudgetTickParticipantTest {
         assertEquals(nullPeakBudget.depth(), explicitPeakBudget.depth(), 1e-10);
         assertEquals(nullPeakBudget.laterality(), explicitPeakBudget.laterality(), 1e-10);
         assertEquals(nullPeakBudget.convergence(), explicitPeakBudget.convergence(), 1e-10);
+    }
+
+    @Test
+    void separate_amplification_threshold_diverges_from_decay_peak() {
+        var extreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults()
+                                                                             .withBreadthPeak(0.9)
+                                                                             .withAmplificationThreshold(0.6);
+        var config = SearchBudgetConfig.defaults()
+                                       .withExtremePeak(0.85)
+                                       .withExtremeInteraction(extreme);
+        var participant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.75, config);
+        participant.tick(context());
+        var separateBudget = participant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        var sharedExtreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults()
+                                                                                   .withBreadthPeak(0.9);
+        var sharedConfig = SearchBudgetConfig.defaults()
+                                             .withExtremePeak(0.85)
+                                             .withExtremeInteraction(sharedExtreme);
+        var sharedParticipant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.75, sharedConfig);
+        sharedParticipant.tick(context());
+        var sharedBudget = sharedParticipant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        assertNotEquals(separateBudget.breadth(), sharedBudget.breadth(),
+                        "Separate amplification threshold (0.6) should produce different breadth than shared peak (0.9) at intensity 0.75");
+    }
+
+    @Test
+    void null_amplification_threshold_falls_back_to_peak() {
+        var extreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults()
+                                                                             .withBreadthPeak(0.7);
+        var config = SearchBudgetConfig.defaults()
+                                       .withExtremePeak(0.85)
+                                       .withExtremeInteraction(extreme);
+        var participant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.9, config);
+        participant.tick(context());
+        var nullThresholdBudget = participant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        var explicitExtreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults()
+                                                                                     .withBreadthPeak(0.7)
+                                                                                     .withAmplificationThreshold(0.7);
+        var explicitConfig = SearchBudgetConfig.defaults()
+                                               .withExtremePeak(0.85)
+                                               .withExtremeInteraction(explicitExtreme);
+        var explicitParticipant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.9, explicitConfig);
+        explicitParticipant.tick(context());
+        var explicitThresholdBudget = explicitParticipant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        assertEquals(nullThresholdBudget.breadth(), explicitThresholdBudget.breadth(), 1e-10,
+                     "Null amplification threshold should behave identically to explicit threshold matching the peak");
     }
 
 

@@ -2,7 +2,9 @@ package io.casehub.neocortex.cognitive;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ExtremeInteractionConfigTest {
 
@@ -131,5 +133,41 @@ class ExtremeInteractionConfigTest {
         assertEquals(0.9, config.convergencePeak());
         assertNull(config.lateralityPeak());
     }
+
+    @Test
+    void defaults_have_null_amplification_threshold() {
+        var config = ExtremeInteractionConfig.defaults();
+        assertNull(config.amplificationThreshold());
+    }
+
+    @Test
+    void amplification_threshold_or_default_returns_threshold_when_set() {
+        var config = ExtremeInteractionConfig.defaults().withAmplificationThreshold(0.6);
+        assertEquals(0.6, config.amplificationThresholdOrDefault(0.85), 1e-10);
+    }
+
+    @Test
+    void amplification_threshold_or_default_returns_fallback_when_null() {
+        var config = ExtremeInteractionConfig.defaults();
+        assertEquals(0.85, config.amplificationThresholdOrDefault(0.85), 1e-10);
+    }
+
+    @Test
+    void amplification_threshold_out_of_range_rejected() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> ExtremeInteractionConfig.defaults().withAmplificationThreshold(1.5));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ExtremeInteractionConfig.defaults().withAmplificationThreshold(-0.1));
+    }
+
+    @Test
+    void withAmplificationThreshold_preserves_other_fields() {
+        var config = ExtremeInteractionConfig.defaults().withAmplificationThreshold(0.7);
+        assertEquals(0.7, config.amplificationThreshold());
+        assertNull(config.depthPeak());
+        assertEquals(1.5, config.breadthDecay());
+        assertEquals(-1.0, config.breadthAmplification());
+    }
+
 
 }

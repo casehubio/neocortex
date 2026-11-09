@@ -137,6 +137,39 @@ class SearchBudgetExtremeInteractionTest {
     }
 
     @Test
+    void amplification_threshold_is_derived() {
+        var bold        = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
+        var anxious     = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
+        var disciplined = CognitiveDerivationEngine.deriveSearchBudgetDefaults(disciplinedFacets(), disciplinedAxes(), 0.3);
+
+        assertNotNull(bold.extremeInteraction().amplificationThreshold());
+        assertNotNull(anxious.extremeInteraction().amplificationThreshold());
+        assertNotNull(disciplined.extremeInteraction().amplificationThreshold());
+    }
+
+    @Test
+    void conscientiousness_lowers_amplification_threshold() {
+        var disciplined = CognitiveDerivationEngine.deriveSearchBudgetDefaults(disciplinedFacets(), disciplinedAxes(), 0.3);
+        var anxious     = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
+
+        assertTrue(disciplined.extremeInteraction().amplificationThreshold() < anxious.extremeInteraction().amplificationThreshold(),
+                   "Higher conscientiousness should lower amplification threshold: disciplined=" + disciplined.extremeInteraction().amplificationThreshold()
+                   + " anxious=" + anxious.extremeInteraction().amplificationThreshold());
+    }
+
+    @Test
+    void amplification_threshold_in_valid_range() {
+        var bold    = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
+        var anxious = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
+
+        for (var config : List.of(bold, anxious)) {
+            double t = config.extremeInteraction().amplificationThreshold();
+            assertTrue(t >= 0.5 && t <= 0.95, "amplificationThreshold in range: " + t);
+        }
+    }
+
+
+    @Test
     void inverted_u_activates_past_per_parameter_peak() {
         var    anxious         = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
         double lateralityPeak  = anxious.extremeInteraction().lateralityPeak();

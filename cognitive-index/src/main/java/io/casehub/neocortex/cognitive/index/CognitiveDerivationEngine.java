@@ -808,10 +808,12 @@ public final class CognitiveDerivationEngine {
         double breadthAmplification     = -(1.0 - openness) * 1.5;
         double lateralityAmplification  = -(1.0 - openness) * 1.2;
         double convergenceAmplification = -(anxiousness * 2.0 - conscientiousness * 0.8);
+        double amplificationThreshold = clampPeak(extremePeak - conscientiousness * 0.1);
         var extremeInteraction = new ExtremeInteractionConfig(depthDecay, breadthDecay,
                                                               lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification,
                                                               lateralityAmplification, convergenceAmplification,
-                                                              depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+                                                              depthPeak, breadthPeak, lateralityPeak, convergencePeak,
+                                                              amplificationThreshold);
 
         int    fatigueMaxTicks = (int) (6 + conscientiousness * 8);
         double fatigueRecovery = 0.3 + conscientiousness * 0.4;
