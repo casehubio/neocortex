@@ -161,6 +161,16 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         var result = generationPhase.generate(context, appraisal.get(), history,
                                               regulationEffort, currentFatigue, pendingSignal, pinnedStrategy,
                                               axes, dominantType, rd, shameContext);
+        if (result != null && result.isSocialStrategy() && result.targetAgentId() != null) {
+            var regCtx = context.regulationContext();
+            if (regCtx == null || regCtx.interactingAgents() == null
+                    || !regCtx.interactingAgents().contains(result.targetAgentId())) {
+                var discarded = result;
+                LOG.fine(() -> "Discarding social regulation result — targetAgentId '"
+                        + discarded.targetAgentId() + "' not in interactingAgents");
+                result = null;
+            }
+        }
         if (result != null) {
             String key = context.agentId() + ":" + context.tenantId();
             results.put(key, result);
@@ -172,7 +182,9 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             if (mindMapStore != null && cognitiveSubgraphId != null) {
                 EmotionRegulationMindMapAdapter.write(
                         mindMapStore, context.agentId(), context.tenantId(),
-                        cognitiveSubgraphId, result);
+                        cognitiveSubgraphId, result,
+                        dominantType != null ? dominantType.name() : null,
+                        context.regulationContext());
             }
         } else {
             fatigueTracker.recordRecovery(context.agentId(), context.tenantId());

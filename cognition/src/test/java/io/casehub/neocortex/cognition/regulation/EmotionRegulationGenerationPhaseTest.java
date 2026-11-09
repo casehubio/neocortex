@@ -389,5 +389,110 @@ class EmotionRegulationGenerationPhaseTest {
         assertThat(message).doesNotContain("Self-conscious emotion guidance");
     }
 
+    @Test
+    void systemPromptContainsSocialStrategies() {
+        assertThat(EmotionRegulationGenerationPhase.SYSTEM_PROMPT)
+                .contains("SOCIAL_SUPPORT_SEEKING")
+                .contains("CO_REGULATION")
+                .contains("DELIBERATE_PROVOCATION")
+                .contains("targetAgentId");
+    }
+
+    @Test
+    void userMessageIncludesSocialContextWhenAgentsPresent() {
+        var regCtx = new RegulationContext("library", List.of("penelope-pitstop", "dick-dastardly"), "treasure");
+        var ctxWithAgents = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of(),
+                                                     null, null, null, regCtx);
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.7, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var rd        = new io.casehub.neocortex.cognitive.index.RegulationDefaults(0.5, 0.5, 0.5, 0.8);
+
+        var msg = EmotionRegulationGenerationPhase.buildUserMessage(
+                ctxWithAgents, appraisal, List.of(), 0.5, null, 0.0, null,
+                null, null, null, rd, null, null);
+
+        assertThat(msg).contains("Available agents:");
+        assertThat(msg).contains("penelope-pitstop");
+        assertThat(msg).contains("Social regulation tendency");
+    }
+
+    @Test
+    void userMessageOmitsSocialContextWhenNoAgents() {
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.7, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var rd        = new io.casehub.neocortex.cognitive.index.RegulationDefaults(0.5, 0.5, 0.5, 0.8);
+
+        var msg = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null,
+                null, null, null, rd, null, null);
+
+        assertThat(msg).doesNotContain("Available agents:");
+    }
+
+    @Test
+    void parsesSocialStrategyWithTargetAgentId() {
+        var json = """
+                   {
+                       "strategy": "SOCIAL_SUPPORT_SEEKING",
+                       "targetEmotions": ["fear"],
+                       "targetDrives": [],
+                       "peakOriginalIntensity": 0.8,
+                       "regulatedIntensity": 0.4,
+                       "effectiveness": 0.5,
+                       "narrative": "You seek comfort from Penelope",
+                       "regulationAxis": null,
+                       "environmentalDirective": null,
+                       "targetAgentId": "penelope-pitstop"
+                   }
+                   """;
+        when(managedSession.query(any())).thenReturn(
+                Multi.createFrom().item(new AgentEvent.TextDelta(json)));
+
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.8, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var phase  = new EmotionRegulationGenerationPhase(sessionPipeline);
+        var result = phase.generate(context, appraisal, List.of());
+
+        assertThat(result).isNotNull();
+        assertThat(result.strategy()).isEqualTo(EmotionRegulationStrategy.SOCIAL_SUPPORT_SEEKING);
+        assertThat(result.targetAgentId()).isEqualTo("penelope-pitstop");
+        assertThat(result.isSocialStrategy()).isTrue();
+    }
+
+    @Test
+    void parsesNullTargetAgentIdForIntrapersonalStrategy() {
+        var json = """
+                   {
+                       "strategy": "COGNITIVE_CHANGE",
+                       "targetEmotions": ["anger"],
+                       "targetDrives": [],
+                       "peakOriginalIntensity": 0.8,
+                       "regulatedIntensity": 0.4,
+                       "effectiveness": 0.6,
+                       "narrative": "You reframe the situation",
+                       "regulationAxis": null,
+                       "environmentalDirective": null,
+                       "targetAgentId": null
+                   }
+                   """;
+        when(managedSession.query(any())).thenReturn(
+                Multi.createFrom().item(new AgentEvent.TextDelta(json)));
+
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.8, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var phase  = new EmotionRegulationGenerationPhase(sessionPipeline);
+        var result = phase.generate(context, appraisal, List.of());
+
+        assertThat(result).isNotNull();
+        assertThat(result.targetAgentId()).isNull();
+        assertThat(result.isSocialStrategy()).isFalse();
+    }
+
 
 }

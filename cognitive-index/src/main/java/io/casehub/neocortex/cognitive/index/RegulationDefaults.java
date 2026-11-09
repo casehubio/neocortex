@@ -16,7 +16,13 @@
 package io.casehub.neocortex.cognitive.index;
 
 public record RegulationDefaults(
-    double reappraisalCapacity,
-    double suppressionCapacity,
-    double redirectTendency
-) {}
+        double reappraisalCapacity,
+        double suppressionCapacity,
+        double redirectTendency,
+        double socialRegulationTendency
+) {
+    public RegulationDefaults(double reappraisalCapacity, double suppressionCapacity,
+                              double redirectTendency) {
+        this(reappraisalCapacity, suppressionCapacity, redirectTendency, 0.5);
+    }
+}

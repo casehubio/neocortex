@@ -2,8 +2,13 @@ package io.casehub.neocortex.cognition.regulation;
 
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EmotionRegulationResultTest {
 
@@ -64,7 +69,56 @@ class EmotionRegulationResultTest {
     }
 
     @Test
-    void allFiveStrategiesExist() {
-        assertEquals(5, EmotionRegulationStrategy.values().length);
+    void allTenStrategiesExist() {
+        assertEquals(10, EmotionRegulationStrategy.values().length);
     }
+
+    @Test
+    void isSocialStrategy_trueForSocialStrategies() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.SOCIAL_SUPPORT_SEEKING,
+                List.of("ANXIETY"), List.of(), 0.8, 0.4, 0.6,
+                "You seek comfort", null, null, "agent-b");
+        assertTrue(result.isSocialStrategy());
+        assertFalse(result.isExtrinsicStrategy());
+    }
+
+    @Test
+    void isExtrinsicStrategy_trueForCoRegulation() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.CO_REGULATION,
+                List.of("EMPATHY"), List.of(), 0.7, 0.3, 0.7,
+                "You comfort them", null, null, "agent-c");
+        assertTrue(result.isExtrinsicStrategy());
+        assertTrue(result.isSocialStrategy());
+    }
+
+    @Test
+    void intrapersonalStrategy_notSocial() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                List.of("ANGER"), List.of(), 0.8, 0.4, 0.6,
+                "You reframe", null, null, null);
+        assertFalse(result.isSocialStrategy());
+        assertFalse(result.isExtrinsicStrategy());
+    }
+
+    @Test
+    void targetAgentIdAccessible() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.SOCIAL_SUPPORT_SEEKING,
+                List.of("ANXIETY"), List.of(), 0.8, 0.4, 0.6,
+                "You seek comfort", null, null, "penelope-pitstop");
+        assertEquals("penelope-pitstop", result.targetAgentId());
+    }
+
+    @Test
+    void existingConstructorPassesNullTargetAgentId() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                List.of("ANGER"), List.of(), 0.8, 0.4, 0.6,
+                "You reframe", null, null);
+        assertNull(result.targetAgentId());
+    }
+
 }

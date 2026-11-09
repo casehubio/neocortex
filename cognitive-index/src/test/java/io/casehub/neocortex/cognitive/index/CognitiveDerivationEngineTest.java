@@ -716,4 +716,18 @@ class CognitiveDerivationEngineTest {
         assertThat(CognitiveDerivationEngine.deriveRegulationDefaults(null)).isNull();
     }
 
+    @Test
+    void deriveRegulationDefaults_gregariousSocialTendency() {
+        var axes = new DispositionAxes("gregarious", "moderate", "calculated", "collaborative", "harmonizing");
+        var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
+        assertThat(rd.socialRegulationTendency()).isGreaterThan(0.6);
+    }
+
+    @Test
+    void deriveRegulationDefaults_reservedSocialTendency() {
+        var axes = new DispositionAxes("reserved", "moderate", "bold", "independent", "confrontational");
+        var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
+        assertThat(rd.socialRegulationTendency()).isLessThan(0.4);
+    }
+
 }

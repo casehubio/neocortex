@@ -232,12 +232,19 @@ private final              java.util.concurrent.atomic.AtomicInteger            
                      @Nullable AgentDescriptor descriptor,
                      SubjectResolver resolver,
                      @Nullable String observation,
-                     @Nullable String targetAgentId) {
-        this.lastDescriptor = descriptor;
-        this.lastAgentId    = agentId;
-        this.lastTenantId   = tenantId;
+                     @Nullable String targetAgentId) {tick(agentId, tenantId, descriptor, resolver, observation, targetAgentId, null);}
+
+    public void tick(String agentId, String tenantId,
+                     @Nullable AgentDescriptor descriptor,
+                     SubjectResolver resolver,
+                     @Nullable String observation,
+                     @Nullable String targetAgentId,
+                     io.casehub.neocortex.cognition.regulation.@Nullable RegulationContext regulationContext) {
+        this.lastDescriptor    = descriptor;
+        this.lastAgentId       = agentId;
+        this.lastTenantId      = tenantId;
         this.lastTargetAgentId = targetAgentId;
-        this.lastBriefing   = null;
+        this.lastBriefing      = null;
         if (attentionMediator != null) {
             var briefing = attentionMediator.drainAttention(agentId);
             if (config.attentionEnabled()) {
@@ -265,7 +272,7 @@ private final              java.util.concurrent.atomic.AtomicInteger            
             safeRun(() -> temporalFocus.tick(agentId, tenantId,
                                              resolver.relevantSubjects(agentId, tenantId)));
         }
-        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId);
+        var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId, regulationContext);
 
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
@@ -278,8 +285,8 @@ private final              java.util.concurrent.atomic.AtomicInteger            
         if (cognitiveMemoryRetriever != null) {
             var moodState = mood.currentMood(agentId, tenantId).orElse(null);
             var personality = defaultsRegistry != null
-                    ? defaultsRegistry.forAgentOrDefaults(agentId).personality()
-                    : null;
+                              ? defaultsRegistry.forAgentOrDefaults(agentId).personality()
+                              : null;
             cognitiveMemoryRetriever.setTickContext(
                     new io.casehub.neocortex.cognitive.index.ModulationContext(
                             agentId, tenantId, moodState, personality, Set.of()));
@@ -789,6 +796,27 @@ public @Nullable String lastTargetAgentId() {
     public io.casehub.neocortex.cognition.regulation.@Nullable EmotionRegulationTickParticipant regulationParticipant() {
         return regulationParticipant;
     }
+
+    private io.casehub.neocortex.cognition.regulation.ProactiveRegulationParticipant proactiveRegulationParticipant;
+
+    public void configureProactiveRegulation(
+            io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator goalOrchestrator,
+            io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
+            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
+            String cognitiveSubgraphId,
+            io.casehub.neocortex.cognition.regulation.ProactiveAvoidanceMode mode,
+            int decayHorizonTicks,
+            double tickIntervalSeconds) {
+        this.proactiveRegulationParticipant = new io.casehub.neocortex.cognition.regulation.ProactiveRegulationParticipant(
+                mindMapStore, goalOrchestrator, defaultsRegistry,
+                cognitiveSubgraphId, mode, decayHorizonTicks, tickIntervalSeconds);
+        addParticipant(CognitionPhase.FOUNDATION, this.proactiveRegulationParticipant);
+    }
+
+    public io.casehub.neocortex.cognition.regulation.ProactiveRegulationParticipant proactiveRegulationParticipant() {
+        return proactiveRegulationParticipant;
+    }
+
 
     public void configureRegulationGoals() {
         if (regulationParticipant == null || goals == null) {return;}

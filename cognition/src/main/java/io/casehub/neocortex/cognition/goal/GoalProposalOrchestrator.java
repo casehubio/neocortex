@@ -120,6 +120,15 @@ public class GoalProposalOrchestrator {
         state.registeredGoals = List.copyOf(goals);
     }
 
+    public void appendGoals(String agentId, String tenantId,
+                            List<DriveGoalProposal> goals) {
+        String            key    = agentId + "|" + tenantId;
+        GoalProposalState state  = states.computeIfAbsent(key, k -> new GoalProposalState());
+        var               merged = new java.util.ArrayList<>(state.registeredGoals);
+        merged.addAll(goals);
+        state.registeredGoals = List.copyOf(merged);
+    }
+
 
     public List<DriveGoalProposal> registeredGoals(String agentId, String tenantId) {
         GoalProposalState state = states.get(agentId + "|" + tenantId);

@@ -1,6 +1,8 @@
 package io.casehub.neocortex.cognition.regulation;
 
 import io.casehub.neocortex.cognition.drive.DriveAxis;
+import io.casehub.neocortex.cognition.regulation.RegulationContext;
+import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -103,4 +105,115 @@ class EmotionRegulationMindMapTest {
         var history = EmotionRegulationMindMapAdapter.loadHistory(mindMapStore, "a1", "t1", 3);
         assertThat(history).hasSize(3);
     }
+
+    @Test
+    void writeStoresDominantEmotionType() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.SITUATION_SELECTION,
+                List.of("SHAME"), List.of(),
+                0.8, 0.5, 0.3,
+                "You withdraw from the room", null, null);
+
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, result, "SHAME");
+
+        var nodes = mindMapStore.search(MindMapQuery.of("t1", 200).withType(SubgraphTypes.COGNITIVE));
+        var regulationNode = nodes.stream()
+                                  .filter(n -> "emotion-regulation-result".equals(n.properties().get("cognitiveKind")))
+                                  .findFirst().orElseThrow();
+
+        assertThat(regulationNode.properties().get("dominantEmotionType")).isEqualTo("SHAME");
+    }
+
+    @Test
+    void loadHistoryFiltersByEmotionType() {
+        var shameResult = new EmotionRegulationResult(
+                EmotionRegulationStrategy.SITUATION_SELECTION,
+                List.of("SHAME"), List.of(),
+                0.8, 0.5, 0.3,
+                "You withdraw", null, null);
+        var angerResult = new EmotionRegulationResult(
+                EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                List.of("ANGER"), List.of(),
+                0.7, 0.3, 0.6,
+                "You reframe", null, null);
+
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, shameResult, "SHAME");
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, angerResult, "ANGER");
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, shameResult, "SHAME");
+
+        var shameHistory = EmotionRegulationMindMapAdapter.loadHistory(
+                mindMapStore, "a1", "t1", EmotionType.SHAME, 10);
+        var angerHistory = EmotionRegulationMindMapAdapter.loadHistory(
+                mindMapStore, "a1", "t1", EmotionType.ANGER, 10);
+
+        assertThat(shameHistory).hasSize(2);
+        assertThat(angerHistory).hasSize(1);
+    }
+
+    @Test
+    void loadHistoryByEmotionTypeIgnoresNodesWithoutField() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.RESPONSE_MODULATION,
+                List.of("SHAME"), List.of(),
+                0.8, 0.4, 0.5,
+                "You suppress", null, null);
+
+        // Write without dominantEmotionType (legacy node)
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, result);
+        // Write with dominantEmotionType
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, result, "SHAME");
+
+        var filtered = EmotionRegulationMindMapAdapter.loadHistory(
+                mindMapStore, "a1", "t1", EmotionType.SHAME, 10);
+        var unfiltered = EmotionRegulationMindMapAdapter.loadHistory(
+                mindMapStore, "a1", "t1", 10);
+
+        assertThat(filtered).hasSize(1);
+        assertThat(unfiltered).hasSize(2);
+    }
+
+    @Test
+    void writeStoresRegulationContext() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                List.of("ANGER"), List.of("COMPETENCE"),
+                0.7, 0.3, 0.8, "reframed", DriveAxis.COMPETENCE, null);
+        var regCtx = new RegulationContext("library", List.of("dick-dastardly", "hooded-claw"), "treasure");
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, result, "ANGER", regCtx);
+
+        var nodes = mindMapStore.search(MindMapQuery.of("t1", 10).withType(SubgraphTypes.COGNITIVE));
+        var regNode = nodes.stream()
+                           .filter(n -> "emotion-regulation-result".equals(n.properties().get("cognitiveKind")))
+                           .findFirst().orElseThrow();
+        assertThat(regNode.properties().get("regulationLocation")).isEqualTo("library");
+        assertThat(regNode.properties().get("regulationAgents")).isEqualTo("dick-dastardly,hooded-claw");
+        assertThat(regNode.properties().get("regulationTopic")).isEqualTo("treasure");
+    }
+
+    @Test
+    void writeHandlesNullRegulationContext() {
+        var result = new EmotionRegulationResult(
+                EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                List.of("ANGER"), List.of("COMPETENCE"),
+                0.7, 0.3, 0.8, "reframed", DriveAxis.COMPETENCE, null);
+        EmotionRegulationMindMapAdapter.write(mindMapStore, "a1", "t1",
+                                              cognitiveSubgraphId, result, "ANGER", null);
+
+        var nodes = mindMapStore.search(MindMapQuery.of("t1", 10).withType(SubgraphTypes.COGNITIVE));
+        var regNode = nodes.stream()
+                           .filter(n -> "emotion-regulation-result".equals(n.properties().get("cognitiveKind")))
+                           .findFirst().orElseThrow();
+        assertThat(regNode.properties().get("regulationLocation")).isNull();
+        assertThat(regNode.properties().get("regulationAgents")).isNull();
+        assertThat(regNode.properties().get("regulationTopic")).isNull();
+    }
+
+
 }

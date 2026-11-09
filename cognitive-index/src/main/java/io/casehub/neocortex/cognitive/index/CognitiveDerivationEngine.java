@@ -173,6 +173,14 @@ public final class CognitiveDerivationEngine {
             "independent", 0.05, "cooperative", 0.0, "competitive", -0.05);
     private static final Map<String, Double> REDIRECT_RULES    = Map.of(
             "strict", 0.0, "moderate", 0.0, "flexible", -0.10);
+    private static final Map<String, Double> SOCIAL_REG_SOCIAL = Map.of(
+            "gregarious", 0.20, "reserved", -0.15, "selective", 0.05,
+            "cooperative", 0.10, "competitive", -0.05, "independent", -0.10);
+    private static final Map<String, Double> SOCIAL_REG_CONFLICT = Map.of(
+            "harmonizing", 0.15, "confrontational", -0.10, "analytical", 0.0, "avoidant", -0.05);
+    private static final Map<String, Double> SOCIAL_REG_AUTONOMY = Map.of(
+            "independent", -0.10, "collaborative", 0.10, "dependent", 0.15,
+            "high", -0.10, "moderate", 0.05, "low", 0.10);
 
 
     private CognitiveDerivationEngine() {}
@@ -567,10 +575,15 @@ public final class CognitiveDerivationEngine {
                           + REDIRECT_AUTONOMY.getOrDefault(lower(axes.autonomy()), 0.0)
                           + REDIRECT_SOCIAL.getOrDefault(lower(axes.socialOrient()), 0.0)
                           + REDIRECT_RULES.getOrDefault(lower(axes.ruleFollowing()), 0.0);
+        double social = 0.5
+                        + SOCIAL_REG_SOCIAL.getOrDefault(lower(axes.socialOrient()), 0.0)
+                        + SOCIAL_REG_CONFLICT.getOrDefault(lower(axes.conflictMode()), 0.0)
+                        + SOCIAL_REG_AUTONOMY.getOrDefault(lower(axes.autonomy()), 0.0);
         return new RegulationDefaults(
                 Math.max(0.0, Math.min(1.0, reappraisal)),
                 Math.max(0.0, Math.min(1.0, suppression)),
-                Math.max(0.0, Math.min(1.0, redirect)));
+                Math.max(0.0, Math.min(1.0, redirect)),
+                Math.max(0.0, Math.min(1.0, social)));
     }
 
     static RecurringThoughtConfig deriveRecurringThoughtConfig(List<PersonalityFacet> facets, DispositionAxes axes) {
