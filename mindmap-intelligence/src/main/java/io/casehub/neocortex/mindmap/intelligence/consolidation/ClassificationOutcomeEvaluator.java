@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.SettlingResult;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 
@@ -17,7 +17,7 @@ public final class ClassificationOutcomeEvaluator {
             case MAX_ITERATIONS -> 0.1;
         };
         double attractorFactor = result.attractors().stream()
-            .mapToDouble(BehavioralAttractor::strength)
+            .mapToDouble(CapsAttractor::strength)
             .max().orElse(0.0);
         double successRate = convergenceFactor * attractorFactor;
 

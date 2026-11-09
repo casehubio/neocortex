@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.caps.AgentCapsState;
-import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.ClassificationContext;
@@ -182,14 +182,14 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                     }
                 }
 
-                for (BehavioralAttractor attractor : result.attractors()) {
-                    BehavioralAttractor enriched = attractor;
+                for (CapsAttractor attractor : result.attractors()) {
+                    CapsAttractor enriched = attractor;
                     if (expressionStyles != null) {
                         String label = expressionStyles.expressionFor(attractor.category());
                         if (label != null) {
-                            enriched = new BehavioralAttractor(attractor.category(),
-                                    attractor.nodeId(), attractor.strength(),
-                                    attractor.highSaturation(), attractor.sourceGeneration(), label);
+                            enriched = new CapsAttractor(attractor.category(),
+                                                         attractor.nodeId(), attractor.strength(),
+                                                         attractor.highSaturation(), attractor.sourceGeneration(), label);
                         }
                     }
                     createOrStrengthenAttractor(
@@ -287,7 +287,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private void createOrStrengthenAttractor(String tenantId,
                                              String behavioralSgId,
                                              String agentId,
-                                             BehavioralAttractor attractor,
+                                             CapsAttractor attractor,
                                              Set<String> existingAttractors,
                                              List<String> sourceNodeNames,
                                              String dominantInput) {

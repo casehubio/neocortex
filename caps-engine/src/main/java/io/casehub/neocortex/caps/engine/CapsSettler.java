@@ -1,7 +1,7 @@
 package io.casehub.neocortex.caps.engine;
 
 import io.casehub.neocortex.caps.AgentCapsState;
-import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsNode;
 import io.casehub.neocortex.caps.CapsTopology;
@@ -191,7 +191,7 @@ public class CapsSettler {
         double  saturationRatio = computeSaturation(primaryState);
         boolean highSat         = saturationRatio > topology.weightUpdate().saturationWarningThreshold();
 
-        List<BehavioralAttractor> attractors = new ArrayList<>();
+        List<CapsAttractor> attractors = new ArrayList<>();
         extractAttractors(primaryState, attractors, highSat,
                           agentState.generation(), 1.0, agentState);
 
@@ -201,7 +201,7 @@ public class CapsSettler {
 
     // Attractor strength = settled activation + disposition baseline — Read et al. (2010)
     private void extractAttractors(Map<String, Double> activations,
-                                   List<BehavioralAttractor> attractors,
+                                   List<CapsAttractor> attractors,
                                    boolean highSat, long generation,
                                    double strengthMultiplier,
                                    AgentCapsState agentState) {
@@ -214,7 +214,7 @@ public class CapsSettler {
             double strength = Math.min(1.0, settled + ns.restingActivation())
                               * strengthMultiplier;
             if (strength > config.attractorStrengthMinFilter()) {
-                attractors.add(new BehavioralAttractor(
+                attractors.add(new CapsAttractor(
                         node.category(), node.id(), strength, highSat, generation));
             }
         }
