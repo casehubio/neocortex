@@ -682,4 +682,38 @@ class CognitiveDerivationEngineTest {
         assertThat(w.otherStandardsStrictness()).isCloseTo(1.6, within(0.01));
         assertThat(w.otherStandardsStrictness()).isLessThanOrEqualTo(2.0);
     }
+
+    @Test
+    void deriveRegulationDefaults_reappraiserProfile() {
+        var axes = new DispositionAxes("cooperative", "strict", "calculated", "high", "analytical");
+        var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
+        assertThat(rd).isNotNull();
+        assertThat(rd.reappraisalCapacity()).isGreaterThanOrEqualTo(0.85);
+        assertThat(rd.suppressionCapacity()).isLessThan(0.5);
+        assertThat(rd.redirectTendency()).isLessThan(0.3);
+    }
+
+    @Test
+    void deriveRegulationDefaults_suppressorProfile() {
+        var axes = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+        var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
+        assertThat(rd).isNotNull();
+        assertThat(rd.suppressionCapacity()).isGreaterThanOrEqualTo(0.7);
+        assertThat(rd.reappraisalCapacity()).isLessThan(0.5);
+        assertThat(rd.redirectTendency()).isGreaterThanOrEqualTo(0.5);
+    }
+
+    @Test
+    void deriveRegulationDefaults_mixedProfile() {
+        var axes = new DispositionAxes("independent", "moderate", "calculated", "moderate", "competitive");
+        var rd   = CognitiveDerivationEngine.deriveRegulationDefaults(axes);
+        assertThat(rd).isNotNull();
+        assertThat(Math.abs(rd.reappraisalCapacity() - rd.suppressionCapacity())).isLessThan(0.20);
+    }
+
+    @Test
+    void deriveRegulationDefaults_nullAxes() {
+        assertThat(CognitiveDerivationEngine.deriveRegulationDefaults(null)).isNull();
+    }
+
 }

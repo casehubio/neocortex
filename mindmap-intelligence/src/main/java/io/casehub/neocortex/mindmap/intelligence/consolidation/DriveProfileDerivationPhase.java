@@ -71,6 +71,13 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     public String name() {
         return "drive-profile-derivation";
     }
+@Override
+    public ConsolidationCapability capability() {
+        return new ConsolidationCapability(
+                Set.of("formative-experience"),
+                Set.of(PROFILE_TRAIT, COMPETITION_TRAIT));
+    }
+
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {

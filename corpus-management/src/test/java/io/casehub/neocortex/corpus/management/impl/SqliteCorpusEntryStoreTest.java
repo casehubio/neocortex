@@ -454,6 +454,7 @@ class SqliteCorpusEntryStoreTest {
         assertThat(store.relationships(CORPUS, "nonexistent")).isEmpty();
     }
 
+<<<<<<< HEAD
 
     @Test
     void addWithActorPopulatesAuditFields() {

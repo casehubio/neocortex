@@ -18,4 +18,7 @@ public interface ConsolidationPhase {
     default List<AttentionSignal> signals() {return List.of();}
 
     default List<ConsolidationArtifact> artifacts() {return List.of();}
+
+    default ConsolidationCapability capability()    {return ConsolidationCapability.empty();}
+
 }

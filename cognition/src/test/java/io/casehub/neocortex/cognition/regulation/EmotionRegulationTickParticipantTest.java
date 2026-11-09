@@ -21,8 +21,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 
 class EmotionRegulationTickParticipantTest {
 
@@ -162,4 +168,32 @@ class EmotionRegulationTickParticipantTest {
 
         assertThat(participant.currentResult("a1", "t1")).isEmpty();
     }
+
+    @Test
+    void passesDispositionAxesOnFallThrough() {
+        // Incoherent personality → predictor falls through
+        var axes       = new DispositionAxes("independent", "flexible", "conservative", "moderate", "avoidant");
+        var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
+        var defaults   = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
+
+        var registry = mock(CognitiveDefaultsRegistry.class);
+        when(registry.forAgent("a1")).thenReturn(Optional.of(defaults));
+
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var generationPhase = mock(EmotionRegulationGenerationPhase.class);
+        var config          = CognitionConfig.none().with("regulation", true).with("appraisal", true);
+        var participant = new EmotionRegulationTickParticipant(
+                appraisalParticipant, config, generationPhase, null, null, registry, null);
+        participant.tick(context);
+
+        // Verify generate was called with axes and dominant emotion type
+        verify(generationPhase).generate(
+                eq(context), any(), any(), anyDouble(), anyDouble(), isNull(), isNull(),
+                eq(axes), eq(EmotionType.ANGER), isNull(), isNull());
+    }
+
 }

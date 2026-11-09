@@ -1,0 +1,81 @@
+{
+  "timestamp" : "2026-11-07T23:23:35.840069Z",
+  "mixed-anger" : {
+    "personality" : "moderate across all axes, cooperative orientation",
+    "emotion" : "ANGER at a betrayal of trust",
+    "strategies" : {
+      "SITUATION_SELECTION" : {
+        "score" : 4,
+        "reasoning" : "A moderate personality facing moderate-intensity anger at betrayal would naturally gravitate toward avoiding the betrayer or similar situations to protect themselves; situation selection is a reasonable, low-effort strategy that doesn't require the high cognitive load of reappraisal while the trust wound is fresh, though a cooperative orientation might eventually favor cognitive change to preserve relationships."
+      },
+      "SITUATION_MODIFICATION" : {
+        "score" : 4,
+        "reasoning" : "A cooperative personality experiencing moderate anger at betrayal would naturally try to modify the situation — perhaps by confronting the betrayer, setting new boundaries, or renegotiating terms — which aligns well with their cooperative orientation's preference for addressing problems directly rather than withdrawing, and moderate intensity leaves enough cognitive bandwidth to actively reshape the situation."
+      },
+      "ATTENTIONAL_DEPLOYMENT" : {
+        "score" : 3,
+        "reasoning" : "Attentional deployment (distraction) is more naturally suited to high-intensity emotions where reappraisal fails; at moderate intensity a cooperative personality would more likely engage with the situation directly through modification or cognitive change rather than redirecting attention away from a trust betrayal that their cooperative nature would want to resolve."
+      },
+      "COGNITIVE_CHANGE" : {
+        "score" : 5,
+        "reasoning" : "Cognitive change (reappraisal) is the optimal match here: moderate intensity leaves ample cognitive bandwidth for reappraisal, a cooperative orientation naturally inclines toward understanding the other's perspective and reframing the betrayal to preserve the relationship, and moderate personality traits provide the flexibility and openness needed to successfully execute reappraisal rather than ruminate."
+      },
+      "RESPONSE_MODULATION" : {
+        "score" : 3,
+        "reasoning" : "Response modulation (suppression) is a suboptimal choice here: while a cooperative personality might suppress anger to maintain social harmony, at moderate intensity they have sufficient cognitive resources for more adaptive strategies like reappraisal, and suppression is associated with worse interpersonal and psychological outcomes that would ultimately undermine their cooperative goals."
+      }
+    }
+  },
+  "suppressor-shame" : {
+    "personality" : "avoidant conflict style, conservative risk appetite, cooperative, moderate rules, low autonomy",
+    "emotion" : "SHAME from failing to meet their own standards",
+    "strategies" : {
+      "SITUATION_SELECTION" : {
+        "score" : 5,
+        "reasoning" : "Situation selection is the natural first response for an avoidant conflict style with conservative risk appetite — they would instinctively withdraw from or avoid situations that expose their failure, and low autonomy means they lack the self-directed agency to actively reappraise or modify the situation, making avoidance the strategy they would both choose and successfully execute."
+      },
+      "SITUATION_MODIFICATION" : {
+        "score" : 2,
+        "reasoning" : "Situation modification requires assertive, proactive engagement to change the circumstances — directly at odds with an avoidant conflict style and low autonomy, which together mean this personality would neither naturally attempt to reshape a shame-inducing situation nor have the self-directed agency to follow through on such changes."
+      },
+      "ATTENTIONAL_DEPLOYMENT" : {
+        "score" : 4,
+        "reasoning" : "Attentional deployment aligns well with an avoidant conflict style — redirecting focus away from the shame-inducing failure is a natural cognitive cousin to behavioral avoidance, requires no assertiveness or autonomy to execute, and conservative risk appetite favors the safety of distraction over riskier strategies like confronting or reappraising the failure."
+      },
+      "COGNITIVE_CHANGE" : {
+        "score" : 2,
+        "reasoning" : "Cognitive change requires self-directed introspective work to reframe the meaning of one's failure — low autonomy undermines the self-initiated reflection needed, avoidant style works against sitting with the shame long enough to reappraise it, and conservative risk appetite discourages the psychological vulnerability of challenging one's own standards, making this a strategy this personality would rarely attempt."
+      },
+      "RESPONSE_MODULATION" : {
+        "score" : 4,
+        "reasoning" : "Response modulation (suppression) fits this personality well — an avoidant conflict style naturally suppresses emotional expression to avoid exposure, low autonomy means they defer to social expectations which motivates hiding shame, and cooperative orientation reinforces not burdening others with their distress, making suppression a strategy they would both instinctively choose and reliably execute."
+      }
+    }
+  },
+  "compounding-shame" : {
+    "personality" : "avoidant conflict style, conservative risk appetite, cooperative, moderate rules, low autonomy",
+    "emotion" : "SHAME from repeated failures — 4th episode of shame in recent history",
+    "strategies" : {
+      "SITUATION_SELECTION" : {
+        "score" : 4,
+        "reasoning" : "An avoidant personality would still instinctively reach for situation selection on the 4th shame episode, but repeated avoidance without resolution creates a narrowing world — the accumulating pattern means even this personality may begin sensing that withdrawal isn't working, slightly reducing the naturalness of the choice compared to a first occurrence, though they still lack the autonomy and assertiveness traits needed to pivot to alternatives."
+      },
+      "SITUATION_MODIFICATION" : {
+        "score" : 2,
+        "reasoning" : "Repeated shame episodes make situation modification even less likely for this personality — four failures would deepen avoidant entrenchment rather than spark proactive situational change, and low autonomy combined with conservative risk appetite means accumulated shame erodes rather than builds the agency needed to actively reshape circumstances."
+      },
+      "ATTENTIONAL_DEPLOYMENT" : {
+        "score" : 4,
+        "reasoning" : "Attentional deployment remains a strong fit even by the 4th episode — distraction is the cognitive equivalent of avoidance and requires no assertiveness or autonomy, though repeated shame may make it harder to sustain distraction as rumination builds, slightly undermining execution reliability compared to a first occurrence while still being a strategy this personality would naturally reach for."
+      },
+      "COGNITIVE_CHANGE" : {
+        "score" : 2,
+        "reasoning" : "Four episodes of shame might create faint pressure to rethink the pattern, but this personality still fundamentally lacks the self-directed agency and willingness to sit with discomfort that cognitive reappraisal demands — repeated failures more likely deepen helplessness and avoidant habits than catalyze the introspective confrontation reappraisal requires, especially with low autonomy and conservative risk appetite."
+      },
+      "RESPONSE_MODULATION" : {
+        "score" : 3,
+        "reasoning" : "This personality would still instinctively reach for suppression given their avoidant and cooperative traits, but by the 4th shame episode the accumulated burden of chronically suppressing shame depletes the cognitive resources needed to maintain it — suppression fatigue makes execution increasingly unreliable even though the impulse to hide distress remains strong, pushing this from a well-fitting strategy toward one that's starting to crack under repetition."
+      }
+    }
+  }
+}

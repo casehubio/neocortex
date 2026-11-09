@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" font-family="system-ui, -apple-system, sans-serif">
+  <!-- Title -->
+  <text x="360" y="28" text-anchor="middle" font-size="14" font-weight="600" fill="#1e293b">Five Scenarios, Five Emergent Properties</text>
+
+  <!-- Scenario boxes -->
+  <rect x="20" y="50" width="200" height="60" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="120" y="72" text-anchor="middle" font-size="12" font-weight="600" fill="#5b21b6">S1: Personality</text>
+  <text x="120" y="88" text-anchor="middle" font-size="10" fill="#6d28d9">Same input → different budgets</text>
+
+  <rect x="260" y="50" width="200" height="60" rx="6" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text x="360" y="72" text-anchor="middle" font-size="12" font-weight="600" fill="#9d174d">S2: Goal Direction</text>
+  <text x="360" y="88" text-anchor="middle" font-size="10" fill="#be185d">Goals reshape gap ranking</text>
+
+  <rect x="500" y="50" width="200" height="60" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="600" y="72" text-anchor="middle" font-size="12" font-weight="600" fill="#c2410c">S3: Escalation</text>
+  <text x="600" y="88" text-anchor="middle" font-size="10" fill="#ea580c">Repetition → fixation → obsession</text>
+
+  <rect x="100" y="130" width="200" height="60" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="200" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#047857">S4: Channel Shift</text>
+  <text x="200" y="168" text-anchor="middle" font-size="10" fill="#059669">Landscape change → focus change</text>
+
+  <rect x="420" y="130" width="200" height="60" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="520" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">S5: Collapse</text>
+  <text x="520" y="168" text-anchor="middle" font-size="10" fill="#dc2626">Arousal + fixation → convergence = 0</text>
+
+  <!-- Pipeline components they exercise -->
+  <text x="360" y="225" text-anchor="middle" font-size="12" font-weight="600" fill="#475569">Components exercised by each scenario</text>
+
+  <!-- Component rows -->
+  <text x="20" y="255" font-size="11" fill="#334155" font-weight="600">CuriosityDrive</text>
+  <circle cx="195" cy="251" r="6" fill="#7c3aed"/><circle cx="335" cy="251" r="6" fill="#db2777"/><circle cx="475" cy="251" r="6" fill="#ea580c" fill-opacity="0.3"/><circle cx="545" cy="251" r="6" fill="#059669"/><circle cx="615" cy="251" r="6" fill="#dc2626" fill-opacity="0.3"/>
+
+  <text x="20" y="280" font-size="11" fill="#334155" font-weight="600">SearchBudget</text>
+  <circle cx="195" cy="276" r="6" fill="#7c3aed"/><circle cx="335" cy="276" r="6" fill="#db2777" fill-opacity="0.3"/><circle cx="475" cy="276" r="6" fill="#ea580c" fill-opacity="0.3"/><circle cx="545" cy="276" r="6" fill="#059669"/><circle cx="615" cy="276" r="6" fill="#dc2626"/>
+
+  <text x="20" y="305" font-size="11" fill="#334155" font-weight="600">RecurringThought</text>
+  <circle cx="195" cy="301" r="6" fill="#7c3aed" fill-opacity="0.3"/><circle cx="335" cy="301" r="6" fill="#db2777" fill-opacity="0.3"/><circle cx="475" cy="301" r="6" fill="#ea580c"/><circle cx="545" cy="301" r="6" fill="#059669" fill-opacity="0.3"/><circle cx="615" cy="301" r="6" fill="#dc2626"/>
+
+  <text x="20" y="330" font-size="11" fill="#334155" font-weight="600">PromptRendering</text>
+  <circle cx="195" cy="326" r="6" fill="#7c3aed"/><circle cx="335" cy="326" r="6" fill="#db2777"/><circle cx="475" cy="326" r="6" fill="#ea580c"/><circle cx="545" cy="326" r="6" fill="#059669"/><circle cx="615" cy="326" r="6" fill="#dc2626"/>
+
+  <text x="20" y="355" font-size="11" fill="#334155" font-weight="600">Consolidation</text>
+  <circle cx="195" cy="351" r="6" fill="#7c3aed" fill-opacity="0.3"/><circle cx="335" cy="351" r="6" fill="#db2777" fill-opacity="0.3"/><circle cx="475" cy="351" r="6" fill="#ea580c"/><circle cx="545" cy="351" r="6" fill="#059669" fill-opacity="0.3"/><circle cx="615" cy="351" r="6" fill="#dc2626" fill-opacity="0.3"/>
+
+  <!-- Column headers -->
+  <text x="195" y="243" text-anchor="middle" font-size="9" fill="#7c3aed">S1</text>
+  <text x="335" y="243" text-anchor="middle" font-size="9" fill="#db2777">S2</text>
+  <text x="475" y="243" text-anchor="middle" font-size="9" fill="#ea580c">S3</text>
+  <text x="545" y="243" text-anchor="middle" font-size="9" fill="#059669">S4</text>
+  <text x="615" y="243" text-anchor="middle" font-size="9" fill="#dc2626">S5</text>
+
+  <!-- Legend -->
+  <circle cx="250" cy="385" r="6" fill="#7c3aed"/>
+  <text x="262" y="389" font-size="10" fill="#475569">Primary</text>
+  <circle cx="340" cy="385" r="6" fill="#7c3aed" fill-opacity="0.3"/>
+  <text x="352" y="389" font-size="10" fill="#475569">Secondary / not exercised</text>
+</svg>

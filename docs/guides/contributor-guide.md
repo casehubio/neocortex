@@ -1144,6 +1144,69 @@ In `QueryExpandingCaseRetriever`. `filterByDrift()` detects expanded queries tha
 
 Nested interface in `RagConfig`. `type()` (NONE/BINARY/SCALAR, default NONE), `alwaysRam()` (default true). Applied to ColBERT multi-vector params in `ensureCollection()` — same quantization wiring as `DenseQuantization` but targeting the ColBERT vector specifically.
 
+### Cognitive Exploration Subsystem
+
+Three interconnected components model how an agent explores, attends to, and gets stuck on topics.
+
+#### Search Budget (4D Exploration Parameters)
+
+`SearchBudgetTickParticipant` (DERIVED-phase tick participant in `cognition/`) computes four exploration parameters per agent per tick:
+
+| Parameter | What it models | Modulated by |
+|-----------|---------------|--------------|
+| Breadth | How widely to explore | Drive intensity, mood pleasure, gut valence |
+| Laterality | How much to diverge from the main path | Drive intensity, threat intensity (collapse floor) |
+| Depth | How deeply to investigate | Drive intensity, dominant drive axis |
+| Convergence | How quickly to settle | Drive intensity, gut valence, pathological threshold |
+
+Per-parameter logistic activation (`1/(1+exp(-k*(x-x0)))`) with configurable steepness and midpoint via `SearchBudgetConfig`. Laterality has a threat-collapse floor (Frijda approach/avoidance): when threat intensity exceeds `lateralityThreatFloor`, laterality drops to 0.
+
+**Pathological threshold** (Davis & Nolen-Hoeksema, 1998): when `arousalScore + habituationFailure > pathologicalThreshold` (default 1.4), convergence collapses to 0.0. Arousal derived from intensity-weighted PAD arousal of appraisal emotions. Habituation failure detected when any observation count exceeds `HabituationConfig.repetitionTolerance` while novelty exceeds `noveltyThreshold`.
+
+`SearchBudgetPromptSection` renders cognitive state descriptions. `SearchBudgetDescriptionGenerationPhase` (@Priority(28)) crystallises LLM prose at consolidation time.
+
+#### Curiosity (Information Gap Detection + Four Channels)
+
+`InformationGapDetector` (instance class in `mindmap-intelligence/`) scans MindMap nodes for partial-knowledge gaps via binary entropy H(confidence) × attention weight from edge connectivity. Four gap types: PARTIAL_KNOWLEDGE, TIP_OF_TONGUE, CONNECTED_UNKNOWN, GOAL_ADJACENT.
+
+`CuriosityChannelComputer` (in `mindmap-intelligence/`) derives four curiosity channels from gap scores:
+
+| Channel | Theory | What it measures |
+|---------|--------|-----------------|
+| Hedonic | Litman I/D (2005) | I-type (pleasurable exploration) vs D-type (aversive need-to-know) |
+| Comprehension | Silvia (2006) | Are pieces connecting (interest) or overwhelming (confusion)? |
+| Focus | Berlyne (1960) | SPECIFIC (locked on one question) vs DIVERSIVE (scanning broadly) |
+| Gap proximity | Loewenstein (1994) | How close to knowing — tip of tongue, or vast unknown? |
+
+`CuriosityDrive` is one of four `DriveSource` implementations feeding `DriveOrchestrator`. `CuriosityPromptSection` renders four-channel curiosity with proportional baseline deviation and drive rank context. `CuriosityDescriptionGenerationPhase` (@Priority(29)) generates LLM prose. `CuriositySignalGenerator` produces attention signals with affect dampening via `AffectTrajectoryAnalyzer`.
+
+#### Recurring Thought Continuum
+
+`RecurringThoughtScorer` (instance class in `mindmap-intelligence/`) computes a 7-symptom composite per topic:
+
+1. **Thought recurrence** — experience memory count within recurrence window
+2. **Habituation failure** — repeated observations without novelty decrease
+3. **Gap closure resistance** — low MindMap node confidence despite attention
+4. **Attentional capture** — proportion of attention signals targeting this topic
+5. **Arousal trajectory** — PAD arousal level and rumination signal (low arousal + low pleasure)
+6. **Valence** — inverted PAD pleasure (negative pleasure → higher score)
+7. **Action tendency** — CAPS attractor category (approach/avoidance/withdrawal)
+
+Weighted composite maps to `ContinuumPosition`: HEALTHY (< fixation threshold) → FIXATION → OBSESSION → RUMINATION.
+
+`RecurringThoughtConfig` (in `cognitive-api/`) holds symptom weights and thresholds. Personality-derived via `CognitiveDerivationEngine.deriveRecurringThoughtConfig()` using PID-5 facets: high ANXIOUSNESS lowers fixation threshold, high conscientiousness (ruleFollowing + low IMPULSIVITY) raises obsession threshold, high WITHDRAWAL + INTIMACY_AVOIDANCE lowers rumination threshold.
+
+`RecurringThoughtPhase` (@Priority(25) in `mindmap-intelligence/consolidation/`) runs at consolidation, scores topics per-agent, caches assessments, emits `THOUGHT_RECURRENCE` signals and `RecurringThoughtDetected` artifacts. `CognitionCore` drains these artifacts into a continuum map (`topicNodeId → ContinuumPosition`) and passes to prompt sections.
+
+**Prompt modulation by continuum position:**
+
+| Position | CuriosityPromptSection | SearchBudgetPromptSection |
+|----------|----------------------|--------------------------|
+| HEALTHY | Normal rendering | Normal rendering |
+| FIXATION | Adds urgency framing | Prepends "circling back" |
+| OBSESSION | Intrusive/unbidden language | Compulsive depth framing |
+| RUMINATION | Withdrawal, flat affect | All output collapsed |
+
 ### Cognitive API Cross-Cutting Types
 
 Shared types in `cognitive-api/` used by MindMap, Memory, and CBR subsystems.

@@ -44,6 +44,7 @@ public class ConsolidationMediator {
             case ConsolidationArtifact.MergeFlagged m -> true;
             case ConsolidationArtifact.CuriosityQuestion q -> true;
             case ConsolidationArtifact.CommunitySummaryCreated c -> true;
+            case ConsolidationArtifact.RecurringThoughtDetected r -> r.agentId().equals(agentId);
         };
     }
 

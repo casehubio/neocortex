@@ -819,4 +819,12 @@ class DriveDescriptionGenerationPhaseTest {
     }
 
 
+
+@Test
+void capabilityDeclaresRequiredKindsAndProducedTraits() {
+    var cap = phase.capability();
+    assertThat(cap.requiredNodeKinds()).containsExactlyInAnyOrder(
+        "personality-facet", "formative-experience", "drive-intensity");
+    assertThat(cap.producedTraits()).containsExactly("DriveDescriptionGenerated");
+}
 }

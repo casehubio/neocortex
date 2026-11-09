@@ -119,6 +119,8 @@ public class CognitionCore {
     private volatile @Nullable AttentionBriefing lastBriefing;
     private volatile @Nullable AgentDescriptor lastDescriptor;
     private volatile @Nullable List<ConsolidationArtifact> lastConsolidationArtifacts;
+    private volatile @Nullable Map<String, io.casehub.neocortex.mindmap.ContinuumPosition> lastContinuumMap;
+
     private UnaryOperator<List<CognitionPromptRenderer>> sectionCustomizer;
     private volatile @Nullable AppraisalTickParticipant  appraisalParticipant;
     private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
@@ -240,10 +242,20 @@ private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.an
             }
         }
         this.lastConsolidationArtifacts = null;
+        this.lastContinuumMap = null;
         if (consolidationMediator != null && config.consolidationEnabled()) {
             var artifacts = consolidationMediator.drainForAgent(agentId, tenantId);
             if (!artifacts.isEmpty()) {
                 this.lastConsolidationArtifacts = artifacts;
+                var continuumMap = new java.util.HashMap<String, io.casehub.neocortex.mindmap.ContinuumPosition>();
+                for (var artifact : artifacts) {
+                    if (artifact instanceof ConsolidationArtifact.RecurringThoughtDetected r) {
+                        continuumMap.put(r.assessment().topicNodeId(), r.assessment().position());
+                    }
+                }
+                if (!continuumMap.isEmpty()) {
+                    this.lastContinuumMap = java.util.Map.copyOf(continuumMap);
+                }
             }
         }
         if (config.temporalFocusEnabled() && temporalFocus != null) {
@@ -788,6 +800,56 @@ public @Nullable String lastTargetAgentId() {
         this.gutFeelingParticipant = new GutFeelingParticipant(cognitiveMemoryRetriever, memoryStore, moodOrchestrator, config);
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
+
+    /**
+     * Activates the search budget cognitive exploration model.
+     * Must be called AFTER configureAppraisal() and configureGutFeeling()
+     * to ensure intra-DERIVED phase ordering — participants execute in
+     * registration order.
+     */
+    public void configureSearchBudget(
+            DriveOrchestrator driveOrchestrator,
+            @Nullable MoodOrchestrator moodOrchestrator,
+            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
+            io.casehub.neocortex.cognition.drive.@Nullable CuriosityDrive curiosityDrive) {
+        var participant = new io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant(
+                driveOrchestrator,
+                this.appraisalParticipant,
+                this.gutFeelingParticipant,
+                moodOrchestrator,
+                defaultsRegistry,
+                config,
+                curiosityDrive);
+        addParticipant(CognitionPhase.DERIVED, participant);
+        chainSectionCustomizer(sections -> {
+            var result = new java.util.ArrayList<>(sections);
+            result.add(new io.casehub.neocortex.cognition.search.SearchBudgetPromptSection(participant, mindMapStore, this.lastContinuumMap));
+            return result;
+        });
+    }
+
+    /**
+     * Wire the curiosity prompt section into the cognitive pipeline.
+     * Called after drives are initialised — the prompt section reads
+     * gap data from CuriosityDrive and renders four-channel curiosity
+     * with proportional baseline deviation and drive rank context.
+     */
+    public void configureCuriosity(
+            io.casehub.neocortex.cognition.drive.CuriosityDrive curiosityDrive,
+            io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer channelComputer,
+            io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
+            double deprivationBias,
+            double baselineIntensity) {
+        chainSectionCustomizer(sections -> {
+            var result = new java.util.ArrayList<>(sections);
+            result.add(new io.casehub.neocortex.cognition.prompt.CuriosityPromptSection(
+                    curiosityDrive, channelComputer, drives, mindMapStore,
+                    deprivationBias, baselineIntensity, this.lastContinuumMap));
+            return result;
+        });
+    }
+
 
     /** Platform must call this during CognitionCore initialization to activate the sub-thought tick pipeline. */
     public void configureSubThoughts(io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant participant) {

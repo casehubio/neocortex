@@ -53,6 +53,9 @@ public final class CognitionCoreTestBuilder {
                 new io.casehub.neocortex.cognition.narrative.NarrativeMemory(
                         cbrStore, io.casehub.neocortex.cognition.narrative.NarrativeConfig.defaults()));
 
+        var noOpGapDetector = new io.casehub.neocortex.mindmap.intelligence.InformationGapDetector(
+                mindMapStore != null ? mindMapStore : new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore());
+
         MemoryHygieneOrchestrator noOpHygiene = new MemoryHygieneOrchestrator() {
             @Override public void tick(String agentId, String tenantId) {}
             @Override public KnowledgeGapSummary knowledgeGaps(String agentId, String tenantId) {
@@ -78,7 +81,7 @@ public final class CognitionCoreTestBuilder {
                 StrategyLearningConfig.defaults(), java.time.Clock.systemUTC(), sessionPipeline);
 
         var drives = new DriveOrchestrator(
-                new CuriosityDrive(noOpHygiene), new CompetenceDrive(strategy),
+                new CuriosityDrive(noOpGapDetector, new io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer(), 0.5), new CompetenceDrive(strategy),
                 new AffiliationDrive(userModel, 0.3, Duration.ofHours(1)),
                 new AutonomyDrive(mentalModel, 0.5),
                 mood, new DriveComposer(), DriveConfig.defaults());

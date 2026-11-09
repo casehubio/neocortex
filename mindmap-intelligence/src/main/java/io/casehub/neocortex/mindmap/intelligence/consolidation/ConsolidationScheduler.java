@@ -175,6 +175,39 @@ public class ConsolidationScheduler {
     public boolean hasSessionPipeline() {
         return this.sessionPipeline != null;
     }
+public ConsolidationManifest manifest() {
+        var phaseCapabilities = phases.stream()
+                .map(p -> {
+                    var cap = p.capability();
+                    return new ConsolidationManifest.PhaseCapability(
+                            p.name(), cap.requiredNodeKinds(), cap.producedTraits());
+                })
+                .toList();
+        var hashInput = phases.stream()
+                .map(p -> p.name() + ":" + p.capability().producedTraits())
+                .collect(java.util.stream.Collectors.joining("|"));
+        var hash = Integer.toHexString(hashInput.hashCode());
+        return new ConsolidationManifest(phaseCapabilities, hash);
+    }
+public List<MissingCapability> validateCapabilities(String tenantId,
+                                                        io.casehub.neocortex.mindmap.MindMapStore mindMapStore) {
+        var allNodes = mindMapStore.search(
+                io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 5000));
+        var presentTraits = allNodes.stream()
+                .flatMap(n -> n.traits().stream())
+                .collect(java.util.stream.Collectors.toSet());
+        var missing = new java.util.ArrayList<MissingCapability>();
+        for (var phase : phases) {
+            for (var trait : phase.capability().producedTraits()) {
+                if (!presentTraits.contains(trait)) {
+                    missing.add(new MissingCapability(phase.name(), trait));
+                }
+            }
+        }
+        return List.copyOf(missing);
+    }
+
+
 
 
     private void runPhases(String tenantId) {

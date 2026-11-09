@@ -25,4 +25,9 @@ public sealed interface ConsolidationArtifact {
     record CommunitySummaryCreated(String tenantId, String summaryNodeId,
             String subgraphId, String title, int memberCount,
             Instant timestamp) implements ConsolidationArtifact {}
+
+    record RecurringThoughtDetected(String tenantId, String agentId,
+                                    RecurringThoughtAssessment assessment,
+                                    Instant timestamp) implements ConsolidationArtifact {}
+
 }
