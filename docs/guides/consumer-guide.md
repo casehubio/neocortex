@@ -123,6 +123,8 @@ Five related capabilities in one repo:
 |--------|-----------|-------------|
 | `corpus-api` | `casehub-neocortex-corpus-api` | `CorpusStore`, `CorpusReader`, `ChangeSource` SPIs — pure Java, zero deps |
 | `corpus` | `casehub-neocortex-corpus` | Zip, flat filesystem, and composite implementations |
+| `corpus-management-api` | `casehub-neocortex-corpus-management-api` | `CorpusCatalogue`, `CorpusEntryStore`, `CorpusSearch`, `CorpusManager` SPIs, `Annotation` — pure Java |
+| `corpus-management` | `casehub-neocortex-corpus-management` | `@McpDomain("neocortex/corpus")` runtime — search, web capture, interventions, curation, annotations, research sessions, provenance |
 
 ---
 
@@ -258,6 +260,33 @@ Built-in CBR schema for personality evolution memory. Records when an agent's co
 ### Corpus Ingestion Bridge (rag)
 
 Config-driven bridge that populates a RAG corpus from external sources. `CorpusIngestionService` orchestrates both event-driven ingestion (directory-watcher for filesystem corpora) and scheduled polling (for ZIP-based corpora). `MetadataExtractor` SPI extracts body + metadata from document content. `CursorStore` SPI provides pluggable cursor persistence for incremental polling.
+
+### Web Capture Pipeline (corpus-management)
+
+Corpus-first web content acquisition via `@McpDomain("neocortex/corpus")` MCP tools. Uses the connectors `WebPlatform` SPI for fetch, parse, and image operations.
+
+**webCapture** — fetch a URL into the corpus with dedup and TTL:
+
+1. Agent calls `webCapture(corpusId, url, html, ttlDays, artifactRef)`
+2. If a fresh entry exists for the URL (within TTL), returns cached result — no re-parse, no re-fetch
+3. On miss: parses HTML to positional markdown, extracts and describes images, stores as a `web-cache` corpus entry
+4. Images become separate `web-cache-image` entries with `derived-from` relationships to the page entry
+
+Provide pre-rendered HTML (from Playwright `page.content()`) for JavaScript-heavy pages. Pass `html = null` to let the Java HttpClient fetch directly — works for static pages.
+
+**Intervention workflow** — human-in-the-loop for pages requiring authentication:
+
+1. Agent detects login wall, CAPTCHA, or paywall in fetched content
+2. Agent calls `requestIntervention(corpusId, url, reason, screenshotRef)` → returns intervention ID
+3. Agent presents the URL and reason to the human
+4. Human resolves the challenge in their browser (Playwright MCP)
+5. Human's browser cookies transfer to Java HttpClient via `WebPlatform.SessionTransfer`
+6. Agent calls `resolveIntervention(corpusId, interventionId, resolvedHtml, ttlDays, artifactRef)`
+7. Resolved content is parsed and stored through the normal capture pipeline
+
+Interventions expire after a configurable timeout (default 10 minutes). Expired or unknown IDs return an error result with a non-null `error` field.
+
+**TTL curation** — `WebCacheCurationService.purgeExpired()` removes entries past their TTL. Entries recently accessed via retrieval are renewed (not purged). Default TTL is 30 days; override per-capture via `ttlDays`.
 
 ### Inline Entity Tokenisation (entity-token)
 

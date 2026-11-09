@@ -104,12 +104,38 @@ The queue is in-memory — a `ConcurrentHashMap` with auto-expiry. Interventions
 
 The key architectural insight: no detection, no classification, no heuristic maintenance. The agent decides when it needs help. The queue doesn't care why. This means the same three MCP tools — `requestIntervention`, `pendingInterventions`, `resolveIntervention` — handle every barrier type that exists today and every type that will exist tomorrow. The extensibility is in the agent's judgment, not in the platform's pattern library.
 
+## Closing the loop: session transfer
+
+The intervention inbox creates a coordination gap. A human resolves a CAPTCHA in their Playwright browser session. That session now holds authentication cookies — session tokens, CSRF values, consent flags. The Java HttpClient that the agent uses for subsequent fetches knows nothing about those cookies. Without bridging this gap, the human solved the challenge but the agent still can't access the content.
+
+![Session transfer — Playwright cookies to Java HttpClient](svg/web-session-transfer.svg)
+
+`SessionTransfer` is a capability sub-interface on `WebPlatform`. It accepts a list of `BrowserCookie` records — capturing every field Playwright exposes: name, value, domain, path, secure, httpOnly, sameSite, expiry. The implementation loads these into a shared `CookieManager` on the `DefaultWebPlatform`. Every subsequent `Fetch` call copies the session cookies into its per-request `HttpClient`, merging any additional per-request cookies from `FetchOptions` on top.
+
+The design avoids global state. Each `DefaultWebPlatform` instance owns its own `CookieManager`. Session cookies are scoped to the platform instance, not to the JVM. Two platform instances serving different tenants maintain independent sessions. And `clearSession()` wipes the cookie store when the authenticated session is no longer needed — no cookies leaking between unrelated capture runs.
+
+The boundary between "human's browser" and "agent's HTTP client" is a record type. `BrowserCookie` is a pure value — no Playwright dependency, no browser dependency, no MCP dependency. Any system that can produce a list of cookies (Playwright MCP, a browser extension, a manual paste) can feed the session transfer. The protocol is data, not integration.
+
+## The connector that was hiding
+
+Every class in the web capture pipeline — the HTML parser, the image processor, the intervention queue, the document parsers — imports zero corpus types. They consume HTML and produce markdown, images, and queue state. None of them know about `CorpusEntryStore`, `CorpusRef`, or embedding ingestors. The corpus dependency flows one way: the MCP tool calls the pipeline, not the other way around.
+
+This means the pipeline isn't a corpus feature. It's a web content acquisition capability that the corpus happens to consume. Any application that needs to fetch, parse, and process web content — a chat agent, a research tool, a monitoring system — needs the same mechanics.
+
+![Connector extraction — from corpus-management to WebPlatform SPI](svg/web-connector-extraction.svg)
+
+The casehub connectors repo already has a pattern for this: `<domain>-spi` (the interface), `<domain>-ref` (an in-memory reference implementation for testing), `<domain>` (the production implementation). Location, email, chat, bank, voice, commerce, travel — eleven connector SPIs following this pattern. Web content acquisition is the twelfth.
+
+`WebPlatform` defines six capability sub-interfaces: `Fetch`, `Parse`, `ImageCapture`, `DocumentParsing`, `InterventionManagement`, `SessionTransfer`. Each is optional — `supports(Class<?>)` lets consumers check at runtime. `NoOpWebPlatform` is a `@DefaultBean` that throws `UnsupportedOperationException` on every operation — safe to inject when no web provider is on the classpath. `RefWebPlatform` provides a configurable in-memory implementation for tests — register URLs, stub images, exercise the full tool contract without network or browser.
+
+The extraction moved 27 source files and 11 test files from neocortex to connectors. What remained in neocortex is a thin bridge: `@Inject WebPlatform`, call its capabilities, store the results in `CorpusEntryStore`. The MCP tool went from constructing parsers and processors to delegating to an injected platform. The constructor that took three specific collaborators now takes one.
+
 ## What grows from this
 
 A knowledge system that accumulates from use changes what's possible for multi-agent research. Each session's web research becomes available to every future session. Topics that multiple agents investigate build rich, deduplicated coverage over time. The corpus doesn't just store what someone put in it — it grows from the collective activity of every agent that uses it.
 
-The practical architecture is seven components: an HTML parser built on established extraction libraries, a store with URL dedup and TTL-aware versioning, an MCP tool that makes the cache invisible to the agent, optional PDF archiving for visual fidelity, access-renewal curation that keeps the useful and evicts the noise, image extraction that captures the visual content alongside the text, and an intervention inbox that lets humans unblock what agents cannot access alone.
+The practical architecture is two repos and eight capabilities. The connectors repo owns the web content acquisition mechanics: fetch with session cookies, parse HTML to positional markdown, extract and describe images, parse PDFs and DOCX files, queue human interventions, transfer browser sessions. The neocortex repo owns the knowledge layer: URL dedup, TTL-aware versioning, access-renewal curation, corpus storage, and the MCP tools that make it all invisible to the agent.
 
-The system works because each component degrades gracefully. No image describer? Text capture works. No intervention queue? Direct fetch works. No parser module? Raw HTML is stored. Each capability enriches the pipeline when present and disappears without trace when absent. The SPI boundaries are not abstraction for its own sake — they are the mechanism that lets the pipeline run in configurations from minimal (fetch and store) to full (parse, extract images, describe, archive PDF, track access, curate by TTL, queue human interventions).
+The system works because each capability degrades gracefully. No image describer? Text capture works. No intervention queue? Direct fetch works. No parser module? Raw HTML is stored. No session transfer? Manual HTML paste works. Each capability enriches the pipeline when present and disappears without trace when absent. The SPI boundaries are not abstraction for its own sake — they are the mechanism that lets the pipeline run in configurations from minimal (fetch and store) to full (parse, extract images, describe, archive PDF, track access, curate by TTL, queue human interventions, transfer authenticated sessions).
 
-An agent that calls `webCapture(url)` doesn't know or care whether the content comes from the network or the corpus. That's the point. The cache is an implementation detail. The knowledge persistence is the feature.
+An agent that calls `webCapture(url)` doesn't know or care whether the content comes from the network or the corpus. It doesn't know whether the images were described by a vision model or stored without description. It doesn't know whether a human resolved a CAPTCHA ten minutes ago and transferred their browser session, or whether the page was always publicly accessible. That's the point. The complexity is real — authentication, parsing, image processing, curation — but the agent's interface to it is one tool call. The knowledge persistence is the feature. Everything else is plumbing.
