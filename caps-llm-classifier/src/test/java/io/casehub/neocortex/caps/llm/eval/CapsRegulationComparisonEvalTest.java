@@ -9,8 +9,8 @@ import io.casehub.neocortex.caps.testing.InMemoryCapsEngine;
 import io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionCore;
+import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationResult;
-import io.casehub.neocortex.cognition.regulation.EmotionRegulationStrategy;
 import io.casehub.neocortex.cognition.regulation.RegulationCascadeConfig;
 import io.casehub.neocortex.cognition.regulation.RegulationStrategyPredictor;
 import io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy;
@@ -95,7 +95,8 @@ class CapsRegulationComparisonEvalTest {
             capsEngine.initializeAgent(TENANT, s.agentId(), s.axes());
 
             // 1. Run cascade tick (CAPS → predictor → LLM)
-            var cascadeResult = runCascadeTick(s, capsEngine);
+            var cascadeCore = runCascadeTick(s, capsEngine);
+            var cascadeResult = cascadeCore.regulationParticipant().currentResult(s.agentId(), TENANT).orElse(null);
 
             // 2. Settle CAPS standalone for attractor data
             var capsState = capsEngine.loadState(TENANT, s.agentId());
@@ -114,14 +115,28 @@ class CapsRegulationComparisonEvalTest {
                     capsTop, capsTopStrength, capsRunnerUp, capsRunnerUpStrength,
                     capsTopStrength - capsRunnerUpStrength);
 
-            // 3. Run predictor standalone
+            // 3. Run predictor standalone (using emotion type from cascade appraisal)
             String predictorStrategy = "NONE";
             double predictorConfidence = 0.0;
-            var predictor = new RegulationStrategyPredictor();
-            var prediction = predictor.predict(s.rd(), s.axes(), null, 0.65, 0.0, null);
-            if (prediction.isPresent()) {
-                predictorStrategy = prediction.get().strategy().name();
-                predictorConfidence = prediction.get().confidence();
+            var appraisal = cascadeCore.appraisalParticipant().currentResult(s.agentId(), TENANT);
+            EmotionType peakType = null;
+            double peakIntensity = 0.65;
+            if (appraisal.isPresent() && !appraisal.get().emotions().isEmpty()) {
+                var peak = appraisal.get().emotions().stream()
+                        .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
+                        .orElse(null);
+                if (peak != null) {
+                    peakType = peak.type();
+                    peakIntensity = peak.intensity();
+                }
+            }
+            if (peakType != null) {
+                var predictor = new RegulationStrategyPredictor();
+                var prediction = predictor.predict(s.rd(), s.axes(), peakType, peakIntensity, 0.0, null);
+                if (prediction.isPresent()) {
+                    predictorStrategy = prediction.get().strategy().name();
+                    predictorConfidence = prediction.get().confidence();
+                }
             }
             System.out.printf("  Predictor: %s (confidence=%.2f)%n", predictorStrategy, predictorConfidence);
 
@@ -205,13 +220,13 @@ class CapsRegulationComparisonEvalTest {
         );
     }
 
-    private EmotionRegulationResult runCascadeTick(Scenario s, CapsEngine capsEngine) {
+    private CognitionCore runCascadeTick(Scenario s, CapsEngine capsEngine) {
         var config = CognitionConfig.none()
-                .with("mood", true).with("drives", true)
-                .with("appraisal", true).with("salience", true)
-                .with("regulation", true);
+                                    .with("mood", true).with("drives", true)
+                                    .with("appraisal", true).with("salience", true)
+                                    .with("regulation", true);
         var mindMap = new InMemoryMindMapStore();
-        var core = CognitionCoreTestBuilder.buildCore(config, sessionPipeline, mindMap, defaultsRegistry);
+        var core    = CognitionCoreTestBuilder.buildCore(config, sessionPipeline, mindMap, defaultsRegistry);
         core.configureAppraisal(new LlmAppraisalStrategy(sessionPipeline), new ConcernBasedSalienceStrategy());
         core.configureRegulation(capsEngine, RegulationCascadeConfig.defaults());
 
@@ -220,7 +235,7 @@ class CapsRegulationComparisonEvalTest {
         core.tick(s.agentId(), TENANT, descriptor, (a, t) -> Set.of("other"), s.observation());
 
         printAppraisal(core, s.agentId(), "cascade");
-        return core.regulationParticipant().currentResult(s.agentId(), TENANT).orElse(null);
+        return core;
     }
 
     private EmotionRegulationResult runFreeTick(Scenario s) {
