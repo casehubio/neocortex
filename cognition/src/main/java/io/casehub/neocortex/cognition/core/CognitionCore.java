@@ -69,7 +69,7 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
-public class CognitionCore {
+public class CognitionCore implements io.casehub.neocortex.cognition.trace.CognitionStateProvider {
 
     private static final System.Logger LOG =
             System.getLogger(CognitionCore.class.getName());
@@ -135,6 +135,9 @@ public class CognitionCore {
     private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 private volatile @Nullable String lastTargetAgentId;
 private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
+private volatile           io.casehub.neocortex.mindmap.intelligence.consolidation.@org.jspecify.annotations.Nullable BehavioralSynthesisPhase behavioralSynthesis;
+private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
+private final              java.util.concurrent.atomic.AtomicInteger                                                                           tickCounter = new java.util.concurrent.atomic.AtomicInteger();
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -311,6 +314,12 @@ private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.an
             safeRun(() -> goals.tick(agentId, tenantId, descriptor));
         }
         runCustomParticipants(CognitionPhase.TERMINAL, context);
+
+        if (pipelineSnapshotStore != null) {
+            int tick = tickCounter.incrementAndGet();
+            currentTrace(agentId, tenantId).ifPresent(trace ->
+                    pipelineSnapshotStore.store(tenantId, agentId, tick, java.time.Instant.now(), trace));
+        }
     }
 
 
@@ -914,6 +923,76 @@ public @Nullable String lastTargetAgentId() {
 
     public io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever() {
         return cognitiveMemoryRetriever;
+    }
+
+    public void configureBehavioralSynthesis(io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase phase) {
+        this.behavioralSynthesis = phase;
+    }
+
+    public void configurePipelineSnapshotStore(io.casehub.neocortex.cognitive.observability.PipelineSnapshotStore store) {
+        this.pipelineSnapshotStore = store;
+    }
+
+    @Override
+    public java.util.Optional<io.casehub.neocortex.cognition.trace.PipelineTrace> currentTrace(String agentId, String tenantId) {
+        if (lastAgentId == null) {return java.util.Optional.empty();}
+
+        io.casehub.neocortex.cognition.appraisal.AppraisalResult      appraisal       = null;
+        Map<String, Double>                                           concernSalience = Map.of();
+        io.casehub.neocortex.cognition.appraisal.ChannelWeightProfile channelWeights  = null;
+        io.casehub.neocortex.cognition.appraisal.HabituationState     habituation     = null;
+        if (appraisalParticipant != null) {
+            appraisal       = appraisalParticipant.currentResult(agentId, tenantId).orElse(null);
+            concernSalience = appraisalParticipant.currentConcernSalience(agentId, tenantId);
+            channelWeights  = appraisalParticipant.currentChannelWeights(agentId, tenantId).orElse(null);
+            habituation     = appraisalParticipant.currentHabituation(agentId, tenantId);
+        }
+
+        io.casehub.neocortex.cognition.regulation.EmotionRegulationResult regulation = null;
+        if (regulationParticipant != null) {
+            regulation = regulationParticipant.currentResult(agentId, tenantId).orElse(null);
+        }
+
+        io.casehub.neocortex.cognition.trace.PipelineTrace.CapsSettlingSnapshot capsSnapshot = null;
+        Map<String, Double>                                                     capsInputs   = Map.of();
+        if (behavioralSynthesis != null) {
+            capsInputs = behavioralSynthesis.lastInputActivations(agentId);
+            var settling = behavioralSynthesis.lastSettlingResult(agentId);
+            if (settling.isPresent()) {
+                var sr = settling.get();
+                capsSnapshot = new io.casehub.neocortex.cognition.trace.PipelineTrace.CapsSettlingSnapshot(
+                        sr.activations(), sr.iterations(), sr.convergence().name(), sr.saturationRatio());
+            }
+        }
+
+        var renderContext = new io.casehub.neocortex.cognition.prompt.CognitionRenderContext(
+                agentId, tenantId, lastTargetAgentId, activatedDriveCategories());
+        Map<String, String> renderedSections = new java.util.LinkedHashMap<>();
+        for (var renderer : promptSections()) {
+            try {
+                String text = renderer.render(renderContext);
+                if (text != null) {
+                    var    tag = renderer.blockTag();
+                    String key = tag != null ? tag.name() : renderer.getClass().getSimpleName();
+                    renderedSections.put(key, text);
+                }
+            } catch (Exception e) {
+                // skip sections with unresolvable dependencies
+            }
+        }
+
+        return java.util.Optional.of(new io.casehub.neocortex.cognition.trace.PipelineTrace(
+                appraisal, concernSalience, capsInputs, capsSnapshot,
+                regulation, channelWeights, habituation,
+                activatedDriveCategories(), renderedSections));
+    }
+
+    @Override
+    public List<String> activeAgents(String tenantId) {
+        if (lastAgentId != null && tenantId.equals(lastTenantId)) {
+            return List.of(lastAgentId);
+        }
+        return List.of();
     }
 
 

@@ -41,7 +41,7 @@ class CognitionServiceNewEndpointsTest {
     void setUp() {
         mindMapStore = new InMemoryMindMapStore();
         memoryStore = new InMemoryMemoryStore(principal);
-        service = new CognitionService(mindMapStore, null, null, memoryStore, null, null, null);
+        service = new CognitionService(mindMapStore, null, null, memoryStore, null, null, null, null, null);
     }
 
     @Test
@@ -99,7 +99,7 @@ class CognitionServiceNewEndpointsTest {
 
     @Test
     void affect_noMemoryStore_returnsNull() {
-        CognitionService noMemory = new CognitionService(mindMapStore, null, null, null, null, null, null);
+        CognitionService noMemory = new CognitionService(mindMapStore, null, null, null, null, null, null, null, null);
         assertThat(noMemory.affect(TENANT, null, null, null)).isNull();
     }
 
@@ -116,7 +116,7 @@ class CognitionServiceNewEndpointsTest {
         accumulator.addSignals(List.of(
                 new AttentionSignal("agent-1", TENANT, SignalCategory.DECAY_DETECTED, "n1", "Alice", 0.8, "stale"),
                 new AttentionSignal("agent-1", TENANT, SignalCategory.GOAL_RECOGNIZED, "n2", "Learn Java", 0.5, "new goal")));
-        var svc = new CognitionService(mindMapStore, null, null, memoryStore, null, null, accumulator);
+        var svc = new CognitionService(mindMapStore, null, null, memoryStore, null, null, accumulator, null, null);
 
         AttentionBriefing result = svc.attention(TENANT, "agent-1", 10);
 
@@ -135,7 +135,7 @@ class CognitionServiceNewEndpointsTest {
                 new AttentionSignal("agent-1", TENANT, SignalCategory.DECAY_DETECTED, "n1", "Alice", 0.8, "stale"),
                 new AttentionSignal("agent-1", TENANT, SignalCategory.GOAL_RECOGNIZED, "n2", "Learn Java", 0.5, "new goal"),
                 new AttentionSignal("agent-1", TENANT, SignalCategory.AFFECT_CHANGE, "n3", "Bob", 0.3, "PAD shift")));
-        var svc = new CognitionService(mindMapStore, null, null, memoryStore, null, null, accumulator);
+        var svc = new CognitionService(mindMapStore, null, null, memoryStore, null, null, accumulator, null, null);
 
         AttentionBriefing result = svc.attention(TENANT, "agent-1", 2);
 
@@ -148,7 +148,7 @@ class CognitionServiceNewEndpointsTest {
         var accumulator = new CognitiveAttentionAccumulator(
                 null, null, e -> {}, Clock.fixed(Instant.parse("2026-10-08T12:00:00Z"), ZoneOffset.UTC),
                 100.0, 60);
-        var svc = new CognitionService(mindMapStore, null, null, memoryStore, null, null, accumulator);
+        var svc = new CognitionService(mindMapStore, null, null, memoryStore, null, null, accumulator, null, null);
 
         AttentionBriefing result = svc.attention(TENANT, "agent-1", 5);
 

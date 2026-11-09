@@ -392,6 +392,64 @@ The design review (12 findings) caught that CognitionRenderContext doesn't carry
 | 2026-11-08 | You Can't Unit-Test Emergence | Five-tier testing strategy, Tier 2 structural scenarios, Tier 3-5 gap |
 | 2026-11-09 | When Personality Disappears Under Pressure | Extreme interaction: Yerkes-Dodson, situational strength, fatigue reallocation |
 | 2026-11-09 | The Gap Between Wanting to Think and Being Able To | Intelligence capacity layer: Openness/Intellect split, capacity as ceiling |
+| 2026-11-09 | The Test That Broke the Math | Per-modality eval findings: convergent fatigue, API gap, emergent monitor+fatigue |
+| 2026-11-09 | Where the Why Lives | Pipeline observability: three layers, SPI architecture, temporal behavior demands |
+
+## Stream 9: Cognitive Pipeline Observability (#520)
+
+**Issues:** #520
+**Dates:** 2026-11-09 (complete)
+**Epic:** #513 (cognitive pipeline completion — diagnostic tooling section)
+**Blog:** "Where the Why Lives" (2026-11-09)
+**Design spec:** `specs/issue-851-dynamic-regulatory-capacity/2026-11-09-cognitive-state-dump-design.md` (5 decisions, light review — 3 findings addressed)
+
+### The problem
+
+The existing cognitive observability module (`CognitionApi` with `@McpDomain("neocortex/cognition")`) provides 12+ query endpoints — all observing the knowledge graph (MindMap nodes, edges, mutations, confidence). Zero visibility into the live cognitive pipeline state: drives, CAPS settling, appraisal, regulation, concern salience, prompt section rendering. After every tick, the computational trace — the chain of intermediate states explaining *why this behavior* — evaporates.
+
+The eval work on #822 and #823 demonstrated why this matters: the convergent fatigue series, the null RegulationContext API gap, and the emergent monitor+fatigue interaction were all invisible without pipeline-level visibility. Transcripts show what happened; the pipeline trace shows why.
+
+### What was designed
+
+A three-component architecture extending the existing observability infrastructure:
+
+**1. CognitionStateProvider SPI** (in `cognition-api`, package `io.casehub.neocortex.cognition.trace`): Interface for querying live pipeline state. CognitionCore implements it. Returns `PipelineTrace` — a record capturing the nine pipeline stages missing from `CognitionSnapshot`.
+
+**2. PipelineTrace record** (in `cognition-api`): Nine fields covering the full pipeline: appraisalResult, concernSalience, capsInputActivations, capsSettling (inline `CapsSettlingSnapshot` record), regulationResult, channelWeights, habituation, activatedDriveCategories, promptSections. `CognitionSnapshot` gains `@Nullable PipelineTrace trace`.
+
+**3. PipelineSnapshotStore** (interface in `cognitive-observability-core`, SQLite impl in `-sqlite`, in-memory impl in `-testing`): Persists `PipelineTrace` per-tick for historical replay. Separate from `SnapshotStore` because it stores transient computational state, not graph topology.
+
+### Key architectural findings
+
+**CAPS settling is consolidation-time, not per-tick.** `CapsEngine.settle()` is called exclusively from `BehavioralSynthesisPhase` during consolidation — not from `CognitionCore.tick()`. The attractors that influence per-tick behavior were computed during the last consolidation. A pipeline trace captures "what was the CAPS state when this tick ran," not "what CAPS computation happened during this tick." This changes how CAPS data is captured: `BehavioralSynthesisPhase` caches its last `SettlingResult` per agent; `CognitionStateProvider` queries it.
+
+**Dependency cycles constrain type placement.** The original design placed `PipelineTrace` and `CognitionStateProvider` in `cognitive-observability-api`. This creates cycles through `cognitive-index`:
+- `cognitive-observability-api → caps-api → cognitive-index → cognitive-observability-api`
+- `cognitive-observability-api → cognition-api → cognitive-index → cognitive-observability-api`
+
+Root cause: `cognitive-index` depends on `cognitive-observability-api`, blocking any dependency from `-api` to anything `cognitive-index` depends on. Resolution: moved both types to `cognition-api` (package `io.casehub.neocortex.cognition.trace`). Added `cognition-api` as a dependency of `cognitive-observability-core` (no cycle — `-core` is a leaf). `SettlingResult` reference replaced with inline `CapsSettlingSnapshot` record to avoid the caps-api cycle entirely.
+
+**SPI preserves layer ordering.** Decision review (R1-04) caught that injecting `CognitionCore` into `CognitionService` creates an upward layer dependency (L23 → L25). The SPI pattern reverses this: `cognition-api` (L25) defines the contract, `CognitionCore` (L25) implements it, `CognitionService` (L23) consumes it. The dependency flows downward.
+
+### What was built
+
+| Artifact | Module | Status |
+|---|---|---|
+| `PipelineTrace` record (9 fields + `CapsSettlingSnapshot`) | cognition-api | ✅ |
+| `CognitionStateProvider` SPI | cognition-api | ✅ |
+| `CognitionSnapshot` + `@Nullable PipelineTrace trace` | cognition | ✅ |
+| `PipelineSnapshotStore` interface + `PipelineSnapshot` record | cognitive-observability-core | ✅ |
+| `InMemoryPipelineSnapshotStore` | cognitive-observability-testing | ✅ |
+| `PipelineSnapshotStoreContractTest` (9 tests) | cognitive-observability-testing | ✅ (9/9 pass) |
+| `SqlitePipelineSnapshotStore` with V2 Flyway migration | cognitive-observability-sqlite | ✅ (9/9 contract + 12 regression) |
+| CAPS result caching (`lastSettlingResults`, `lastInputActivations`) | mindmap-intelligence (BehavioralSynthesisPhase) | ✅ |
+| `CognitionCore implements CognitionStateProvider` | cognition | ✅ |
+| Tick capture (PipelineSnapshotStore.store at end of tick) | cognition (CognitionCore) | ✅ |
+| `CognitivePipelineDump` response type | cognitive-observability-core | ✅ |
+| `pipelineDump()` @PlatformQuery endpoint | cognitive-observability-core (CognitionApi/CognitionService) | ✅ |
+| CDI + Spring wiring (Instance<>/ObjectProvider<>) | cognitive-observability + cognitive-observability-spring | ✅ |
+| `CognitionStateProviderIntegrationTest` (7 tests) | cognition | ✅ (7/7 pass) |
+| Follow-up filed: #894 — pipeline coherence eval | — | filed |
 
 ## What's Next
 
@@ -406,8 +464,10 @@ The design review (12 findings) caught that CognitionRenderContext doesn't carry
 - **#846 integration wiring** ✅: Curiosity→search budget coupling (#847), goal-directed curiosity (#848), CognitionTestHarness + 5 structural scenarios (#849). Wiring verified structurally (Tier 2). Empirical quality proof deferred to #866.
 - **#596 Information-gap curiosity** ✅: Full Loewenstein model, four-channel rendering.
 - **#826 Recurring thought continuum** ✅: Seven-symptom composite, HEALTHY→FIXATION→OBSESSION→RUMINATION, prompt modulation.
+- **#520 Pipeline observability** ✅ (all 6 tasks, 5 batches): Full pipeline dump infrastructure — PipelineTrace record, CognitionStateProvider SPI, PipelineSnapshotStore (InMemory + SQLite + contract tests), CAPS caching in BehavioralSynthesisPhase, CognitionCore implements SPI with tick capture, pipelineDump @PlatformQuery endpoint, CDI/Spring wiring, integration test. Key findings: dependency cycles through cognitive-index block PipelineTrace in cognitive-observability-api — relocated to cognition-api. CAPS settle() is consolidation-time only. Prompt section rendering requires NPE resilience for unconfigured optional participants. Follow-up: #894 pipeline coherence eval
 
 ### Other near-term
+- **#894 Pipeline coherence eval**: LLM-classified trace chain validation using CognitionTestHarness. Shame→suppression, curiosity→exploration, cross-tick trajectory, appraisal→channel weight coherence. Two-tier Haiku→Opus classification, gate ≥ 4.0.
 - **Proactive regulation** (#819): Situation selection before appraisal — emotional memory driving spatial avoidance
 - **Social regulation** (#805): Interpersonal strategies (confiding, provocation, withdrawal) — requires intrapersonal system as foundation
 - **CAPS integration** (#806): Encode stable regulation patterns as CAPS nodes for personality-consistent regulation without per-tick LLM calls

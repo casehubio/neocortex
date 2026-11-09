@@ -7,6 +7,7 @@ import io.casehub.neocortex.cognition.narrative.NarrativeState;
 import io.casehub.neocortex.cognition.strategy.StrategyProfile;
 import io.casehub.neocortex.cognition.usermodel.UserProfile;
 import io.casehub.neocortex.memory.mood.MoodState;
+import io.casehub.neocortex.cognition.trace.PipelineTrace;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
 import org.jspecify.annotations.Nullable;
 
@@ -26,7 +27,8 @@ public record CognitionSnapshot(
         @Nullable StrategyProfile strategy,
         @Nullable NarrativeState narrative,
         List<DriveGoalProposal> goalProposals,
-        @Nullable AttentionBriefing lastBriefing
+        @Nullable AttentionBriefing lastBriefing,
+        @Nullable PipelineTrace trace
 ) {
 
     public CognitionDelta diffFrom(@Nullable CognitionSnapshot previous) {
