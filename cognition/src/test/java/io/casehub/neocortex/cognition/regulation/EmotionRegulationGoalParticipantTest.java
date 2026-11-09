@@ -48,7 +48,7 @@ class EmotionRegulationGoalParticipantTest {
         participant.tick(context);
 
         var captor = ArgumentCaptor.forClass(List.class);
-        verify(goalOrchestrator).registerGoals(eq("a1"), eq("t1"), captor.capture());
+        verify(goalOrchestrator).registerParticipantGoals(eq("emotion-regulation"), eq("a1"), eq("t1"), captor.capture());
 
         @SuppressWarnings("unchecked")
         List<DriveGoalProposal> goals = captor.getValue();
@@ -71,7 +71,7 @@ class EmotionRegulationGoalParticipantTest {
         var participant = new EmotionRegulationGoalParticipant(regulationParticipant, goalOrchestrator);
         participant.tick(context);
 
-        verify(goalOrchestrator).registerGoals(eq("a1"), eq("t1"), any());
+        verify(goalOrchestrator).registerParticipantGoals(eq("emotion-regulation"), eq("a1"), eq("t1"), any());
     }
 
     @Test
@@ -87,7 +87,7 @@ class EmotionRegulationGoalParticipantTest {
         var participant = new EmotionRegulationGoalParticipant(regulationParticipant, goalOrchestrator);
         participant.tick(context);
 
-        verify(goalOrchestrator, never()).registerGoals(any(), any(), any());
+        verify(goalOrchestrator, never()).registerParticipantGoals(any(), any(), any(), any());
     }
 
     @Test
@@ -98,7 +98,7 @@ class EmotionRegulationGoalParticipantTest {
         var participant = new EmotionRegulationGoalParticipant(regulationParticipant, goalOrchestrator);
         participant.tick(context);
 
-        verify(goalOrchestrator, never()).registerGoals(any(), any(), any());
+        verify(goalOrchestrator, never()).registerParticipantGoals(any(), any(), any(), any());
     }
 
     @Test
@@ -116,14 +116,13 @@ class EmotionRegulationGoalParticipantTest {
         participant.tick(context);
 
         var captor = ArgumentCaptor.forClass(List.class);
-        verify(goalOrchestrator).appendGoals(eq("a1"), eq("t1"), captor.capture());
+        verify(goalOrchestrator).registerParticipantGoals(eq("emotion-regulation"), eq("a1"), eq("t1"), captor.capture());
 
         @SuppressWarnings("unchecked")
         List<DriveGoalProposal> goals = captor.getValue();
         assertThat(goals).hasSize(1);
         assertThat(goals.getFirst().goalName()).contains("social-regulation");
         assertThat(goals.getFirst().goalDescription()).contains("penelope-pitstop");
-        verify(goalOrchestrator, never()).registerGoals(any(), any(), any());
     }
 
     @Test
@@ -141,7 +140,7 @@ class EmotionRegulationGoalParticipantTest {
         participant.tick(context);
 
         var captor = ArgumentCaptor.forClass(List.class);
-        verify(goalOrchestrator).appendGoals(eq("a1"), eq("t1"), captor.capture());
+        verify(goalOrchestrator).registerParticipantGoals(eq("emotion-regulation"), eq("a1"), eq("t1"), captor.capture());
 
         @SuppressWarnings("unchecked")
         List<DriveGoalProposal> goals = captor.getValue();
@@ -163,8 +162,7 @@ class EmotionRegulationGoalParticipantTest {
         var participant = new EmotionRegulationGoalParticipant(regulationParticipant, goalOrchestrator);
         participant.tick(context);
 
-        verify(goalOrchestrator).registerGoals(eq("a1"), eq("t1"), any());
-        verify(goalOrchestrator, never()).appendGoals(any(), any(), any());
+        verify(goalOrchestrator).registerParticipantGoals(eq("emotion-regulation"), eq("a1"), eq("t1"), any());
     }
 
 }

@@ -105,7 +105,7 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
         }
 
         if (!avoidanceGoals.isEmpty()) {
-            goalOrchestrator.appendGoals(context.agentId(), context.tenantId(), avoidanceGoals);
+            goalOrchestrator.registerParticipantGoals("proactive-regulation", context.agentId(), context.tenantId(), avoidanceGoals);
         }
     }
 
