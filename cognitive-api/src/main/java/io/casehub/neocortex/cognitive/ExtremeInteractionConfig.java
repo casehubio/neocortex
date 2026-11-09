@@ -25,6 +25,8 @@ package io.casehub.neocortex.cognitive;
  * @param breadthPeak              per-parameter peak for breadth, null = use global
  * @param lateralityPeak           per-parameter peak for laterality, null = use global
  * @param convergencePeak          per-parameter peak for convergence, null = use global
+ * @param amplificationThreshold   intensity threshold where drive modulation scaling
+ *                                 activates, null = use resolved per-parameter peak
  */
 public record ExtremeInteractionConfig(
         double depthDecay,
@@ -38,7 +40,8 @@ public record ExtremeInteractionConfig(
         Double depthPeak,
         Double breadthPeak,
         Double lateralityPeak,
-        Double convergencePeak) {
+        Double convergencePeak,
+        Double amplificationThreshold) {
 
     public ExtremeInteractionConfig {
         validateNonNegative("depthDecay", depthDecay);
@@ -49,6 +52,7 @@ public record ExtremeInteractionConfig(
         validatePeak("breadthPeak", breadthPeak);
         validatePeak("lateralityPeak", lateralityPeak);
         validatePeak("convergencePeak", convergencePeak);
+        validatePeak("amplificationThreshold", amplificationThreshold);
     }
 
     /**
@@ -62,7 +66,7 @@ public record ExtremeInteractionConfig(
         return new ExtremeInteractionConfig(
                 0.0, 1.5, 2.0, 0.5,
                 0.5, -1.0, -0.8, -1.5,
-                null, null, null, null);
+                null, null, null, null, null);
     }
 
     public double depthPeakOrDefault(double fallback) {
@@ -81,53 +85,63 @@ public record ExtremeInteractionConfig(
         return convergencePeak != null ? convergencePeak : fallback;
     }
 
+    public double amplificationThresholdOrDefault(double fallback) {
+        return amplificationThreshold != null ? amplificationThreshold : fallback;
+    }
+
+
     public ExtremeInteractionConfig withDepthDecay(double v) {
-        return new ExtremeInteractionConfig(v, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(v, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withBreadthDecay(double v) {
-        return new ExtremeInteractionConfig(depthDecay, v, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, v, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withLateralityDecay(double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, v, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, v, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withConvergenceDecay(double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, v, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, v, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withDepthAmplification(double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, v, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, v, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withBreadthAmplification(double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, v, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, v, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withLateralityAmplification(double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, v, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, v, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withConvergenceAmplification(double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, v, depthPeak, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, v, depthPeak, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withDepthPeak(Double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, v, breadthPeak, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, v, breadthPeak, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withBreadthPeak(Double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, v, lateralityPeak, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, v, lateralityPeak, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withLateralityPeak(Double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, v, convergencePeak);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, v, convergencePeak, amplificationThreshold);
     }
 
     public ExtremeInteractionConfig withConvergencePeak(Double v) {
-        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, v);
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, v, amplificationThreshold);
     }
+
+    public ExtremeInteractionConfig withAmplificationThreshold(Double v) {
+        return new ExtremeInteractionConfig(depthDecay, breadthDecay, lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification, lateralityAmplification, convergenceAmplification, depthPeak, breadthPeak, lateralityPeak, convergencePeak, v);
+    }
+
 
     private static void validateNonNegative(String name, double value) {
         if (value < 0.0) {

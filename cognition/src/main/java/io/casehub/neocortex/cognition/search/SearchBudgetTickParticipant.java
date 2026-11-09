@@ -196,7 +196,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         double base = ext != null
                       ? activationWithDecay(intensity, config.breadthSteepness(), config.breadthMidpoint(), ext.breadthDecay(), peak)
                       : logistic(intensity, config.breadthSteepness(), config.breadthMidpoint());
-        double scale = modulationScale(ext != null ? ext.breadthAmplification() : 0.0, intensity, peak);
+        double ampThreshold = ext != null ? ext.amplificationThresholdOrDefault(peak) : peak;
+        double scale = modulationScale(ext != null ? ext.breadthAmplification() : 0.0, intensity, ampThreshold);
         if (dominant == DriveAxis.CURIOSITY) {base += 0.15 * scale;}
         if (dominant == DriveAxis.AFFILIATION) {base += 0.08 * scale;}
         if (moodPleasure > 0.1) {base += moodPleasure * 0.1;}
@@ -212,7 +213,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         double base = ext != null
                       ? activationWithDecay(intensity, config.lateralitySteepness(), config.lateralityMidpoint(), ext.lateralityDecay(), peak)
                       : logistic(intensity, config.lateralitySteepness(), config.lateralityMidpoint());
-        double scale = modulationScale(ext != null ? ext.lateralityAmplification() : 0.0, intensity, peak);
+        double ampThreshold = ext != null ? ext.amplificationThresholdOrDefault(peak) : peak;
+        double scale = modulationScale(ext != null ? ext.lateralityAmplification() : 0.0, intensity, ampThreshold);
         if (dominant == DriveAxis.CURIOSITY) {base += 0.1 * scale;}
         if (dominant == DriveAxis.AUTONOMY) {base += 0.08 * scale;}
         return base;
@@ -224,7 +226,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         double base = ext != null
                       ? activationWithDecay(intensity, config.depthSteepness(), config.depthMidpoint(), ext.depthDecay(), peak)
                       : logistic(intensity, config.depthSteepness(), config.depthMidpoint());
-        double scale = modulationScale(ext != null ? ext.depthAmplification() : 0.0, intensity, peak);
+        double ampThreshold = ext != null ? ext.amplificationThresholdOrDefault(peak) : peak;
+        double scale = modulationScale(ext != null ? ext.depthAmplification() : 0.0, intensity, ampThreshold);
         if (dominant == DriveAxis.COMPETENCE) {base += 0.15 * scale;}
         if (dominant == DriveAxis.AUTONOMY) {base += 0.1 * scale;}
         if (dominant == DriveAxis.AFFILIATION) {base -= 0.1 * scale;}
@@ -241,7 +244,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         double base = ext != null
                       ? activationWithDecay(intensity, config.convergenceSteepness(), config.convergenceMidpoint(), ext.convergenceDecay(), peak)
                       : logistic(intensity, config.convergenceSteepness(), config.convergenceMidpoint());
-        double scale = modulationScale(ext != null ? ext.convergenceAmplification() : 0.0, intensity, peak);
+        double ampThreshold = ext != null ? ext.amplificationThresholdOrDefault(peak) : peak;
+        double scale = modulationScale(ext != null ? ext.convergenceAmplification() : 0.0, intensity, ampThreshold);
         if (dominant == DriveAxis.CURIOSITY) {base -= 0.1 * scale;}
         if (dominant == DriveAxis.COMPETENCE) {base += 0.1 * scale;}
         if (dominant == DriveAxis.AFFILIATION) {base += 0.1 * scale;}
