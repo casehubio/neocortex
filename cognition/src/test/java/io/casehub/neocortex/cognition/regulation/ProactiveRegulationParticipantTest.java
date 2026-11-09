@@ -70,7 +70,7 @@ class ProactiveRegulationParticipantTest {
 
         participant.tick(ctx);
 
-        verify(goalOrchestrator).appendGoals(eq("agent1"), eq("tenant1"), argThat(goals -> {
+        verify(goalOrchestrator).registerParticipantGoals(eq("proactive-regulation"), eq("agent1"), eq("tenant1"), argThat(goals -> {
             assertThat(goals).hasSize(1);
             assertThat(goals.getFirst().goalName()).contains("proactive-avoidance");
             assertThat(goals.getFirst().goalName()).contains("library");
@@ -93,7 +93,7 @@ class ProactiveRegulationParticipantTest {
         when(mindMapStore.search(any())).thenReturn(List.of(node));
 
         participant.tick(ctx);
-        verify(goalOrchestrator, never()).appendGoals(any(), any(), any());
+        verify(goalOrchestrator, never()).registerParticipantGoals(any(), any(), any(), any());
     }
 
     @Test
@@ -112,7 +112,7 @@ class ProactiveRegulationParticipantTest {
         when(mindMapStore.search(any())).thenReturn(List.of(node));
 
         participant.tick(ctx);
-        verify(goalOrchestrator, never()).appendGoals(any(), any(), any());
+        verify(goalOrchestrator, never()).registerParticipantGoals(any(), any(), any(), any());
     }
 
     @Test
@@ -132,7 +132,7 @@ class ProactiveRegulationParticipantTest {
         when(mindMapStore.search(any())).thenReturn(List.of(node));
 
         participant.tick(ctx);
-        verify(goalOrchestrator, never()).appendGoals(any(), any(), any());
+        verify(goalOrchestrator, never()).registerParticipantGoals(any(), any(), any(), any());
     }
 
     private MindMapNode mockRegulationNode(String location, String emotionType,

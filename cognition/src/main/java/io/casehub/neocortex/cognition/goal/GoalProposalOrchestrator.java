@@ -129,6 +129,13 @@ public class GoalProposalOrchestrator {
         state.registeredGoals = List.copyOf(merged);
     }
 
+    public void registerParticipantGoals(String participantId, String agentId,
+                                         String tenantId, List<DriveGoalProposal> goals) {
+        String            key   = agentId + "|" + tenantId;
+        GoalProposalState state = states.computeIfAbsent(key, k -> new GoalProposalState());
+        state.namespacedGoals.put(participantId, List.copyOf(goals));
+    }
+
 
     public List<DriveGoalProposal> registeredGoals(String agentId, String tenantId) {
         GoalProposalState state = states.get(agentId + "|" + tenantId);
@@ -137,11 +144,14 @@ public class GoalProposalOrchestrator {
 
     public Optional<List<DriveGoalProposal>> currentProposals(String agentId, String tenantId) {
         GoalProposalState state = states.get(agentId + "|" + tenantId);
-        if (state == null) return Optional.empty();
+        if (state == null) {return Optional.empty();}
         var merged = new ArrayList<DriveGoalProposal>();
         merged.addAll(state.registeredGoals);
+        for (var nsGoals : state.namespacedGoals.values()) {
+            merged.addAll(nsGoals);
+        }
         merged.addAll(state.cachedProposals);
-        if (merged.isEmpty()) return Optional.empty();
+        if (merged.isEmpty()) {return Optional.empty();}
         return Optional.of(List.copyOf(merged));
     }
 
@@ -550,6 +560,8 @@ public class GoalProposalOrchestrator {
         Instant lastProposalTimestamp;
         List<DriveGoalProposal> cachedProposals = List.of();
         List<DriveGoalProposal> registeredGoals = List.of();
+        Map<String, List<DriveGoalProposal>> namespacedGoals = new HashMap<>();
+
         List<String> cachedAbandonments = List.of();
         Map<String, Instant> driveGoalBelowThresholdSince = new HashMap<>();
         Set<String> failureSuppressedGoalNames = new HashSet<>();
