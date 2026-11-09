@@ -1,37 +1,34 @@
 package io.casehub.neocortex.cognition.prompt;
 
-import io.casehub.neocortex.cognition.drive.CuriosityChannel;
-import io.casehub.neocortex.cognition.drive.CuriosityDrive;
-import io.casehub.neocortex.cognition.drive.DriveAxis;
-import io.casehub.neocortex.cognition.drive.DriveIntensity;
-import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
-import io.casehub.neocortex.cognition.drive.DriveProfile;
-import io.casehub.neocortex.cognition.search.SearchBudget;
-import io.casehub.neocortex.cognition.search.SearchBudgetPromptSection;
-import io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant;
-import io.casehub.neocortex.cognition.search.SearchMotivation;
+import io.casehub.neocortex.cognition.eval.CognitionTestHarness;
+import io.casehub.neocortex.cognitive.Confidence;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.mindmap.ContinuumPosition;
-import io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer;
-import io.casehub.neocortex.mindmap.intelligence.InformationGapScore;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
+import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ContinuumRenderingTest {
 
-    private static final String AGENT = "agent1";
-    private static final String TENANT = "tenant1";
+    private static final String  AGENT  = "agent1";
+    private static final String  TENANT = "tenant1";
+    private static final Instant NOW    = Instant.now();
 
     @Test
     void curiositySectionHealthyRendersNormally() {
-        var section = createCuriositySection(Map.of());
-        var output = section.render(testContext());
+        var harness = harnessWithGaps(Map.of());
+        var output  = harness.renderPrompt(AGENT, TENANT);
         assertNotNull(output);
         assertFalse(output.contains("unbidden"));
         assertFalse(output.contains("intrusive"));
@@ -39,78 +36,76 @@ class ContinuumRenderingTest {
 
     @Test
     void curiositySectionFixationNarrowsToDominantChannel() {
-        var section = createCuriositySection(Map.of("topic-1", ContinuumPosition.FIXATION));
-        var output = section.render(testContext());
+        var harness = harnessWithGaps(Map.of("topic-1", ContinuumPosition.FIXATION));
+        var output  = harness.renderPrompt(AGENT, TENANT);
         assertNotNull(output);
     }
 
     @Test
     void curiositySectionObsessionRendersIntrusiveQuality() {
-        var section = createCuriositySection(Map.of("topic-1", ContinuumPosition.OBSESSION));
-        var output = section.render(testContext());
+        var harness = harnessWithGaps(Map.of("topic-1", ContinuumPosition.OBSESSION));
+        var output  = harness.renderPrompt(AGENT, TENANT);
         assertNotNull(output);
         assertTrue(output.contains("unbidden") || output.contains("intrusive"),
-                "Obsession should render intrusive quality, got: " + output);
+                   "Obsession should render intrusive quality, got: " + output);
     }
 
     @Test
     void curiositySectionRuminationRendersWithdrawal() {
-        var section = createCuriositySection(Map.of("topic-1", ContinuumPosition.RUMINATION));
-        var output = section.render(testContext());
+        var harness = harnessWithGaps(Map.of("topic-1", ContinuumPosition.RUMINATION));
+        var output  = harness.renderPrompt(AGENT, TENANT);
         assertNotNull(output);
     }
 
     @Test
     void searchBudgetFixationShiftsToPressured() {
-        var section = createSearchBudgetSection(Map.of("topic-1", ContinuumPosition.FIXATION));
-        var output = section.render(testContext());
+        var harness = harnessWithGaps(Map.of("topic-1", ContinuumPosition.FIXATION));
+        var output  = harness.renderPrompt(AGENT, TENANT);
         assertNotNull(output);
         assertTrue(output.contains("circling") || output.contains("back"),
-                "Fixation should add circling-back framing, got: " + output);
+                   "Fixation should add circling-back framing, got: " + output);
     }
 
     @Test
     void nullContinuumMapRendersNormally() {
-        var section = createCuriositySection(null);
-        var output = section.render(testContext());
+        var harness = harnessWithGaps(null);
+        var output  = harness.renderPrompt(AGENT, TENANT);
         assertNotNull(output, "Null continuum map should render without error");
     }
 
     @Test
     void emptyContinuumMapRendersNormally() {
-        var sectionEmpty = createCuriositySection(Map.of());
-        var sectionNull = createCuriositySection(null);
-        var outputEmpty = sectionEmpty.render(testContext());
-        var outputNull = sectionNull.render(testContext());
+        var harnessEmpty = harnessWithGaps(Map.of());
+        var harnessNull  = harnessWithGaps(null);
+        var outputEmpty  = harnessEmpty.renderPrompt(AGENT, TENANT);
+        var outputNull   = harnessNull.renderPrompt(AGENT, TENANT);
         assertEquals(outputEmpty, outputNull, "Empty and null maps should produce same output");
     }
 
     // --- helpers ---
 
-    private CuriosityPromptSection createCuriositySection(
-            Map<String, ContinuumPosition> continuum) {
-        var curiosityDrive = mock(CuriosityDrive.class);
-        var gap = new InformationGapScore("node-1", "test-topic", "CONCEPT",
-                0.6, 0.7, 3, 0.5,
-                InformationGapScore.GapType.PARTIAL_KNOWLEDGE, 0.0);
-        when(curiosityDrive.lastGaps()).thenReturn(List.of(gap));
+    private CognitionTestHarness harnessWithGaps(Map<String, ContinuumPosition> continuum) {
+        var store = new InMemoryMindMapStore();
+        var sgId = store.createSubgraph(
+                new SubgraphInput("concepts", SubgraphTypes.CONCEPT, null), TENANT);
+        var nodeId = store.addNode(NodeInput.of("test-topic", sgId)
+                                            .withConfidence(Confidence.inferred(0.4, NOW)), TENANT);
+        var ctxId = store.addNode(NodeInput.of("context", sgId)
+                                           .withConfidence(Confidence.stated(0.9, NOW)), TENANT);
+        store.addEdge(EdgeInput.of(nodeId, ctxId, "relates-to"), TENANT);
 
-        var channelComputer = new CuriosityChannelComputer();
+        var harness = CognitionTestHarness.builder()
+                                          .withMindMapStore(store)
+                                          .agentFromDefaults(AGENT, CognitiveDefaults.empty(AGENT))
+                                          .build();
 
-        return new CuriosityPromptSection(curiosityDrive, channelComputer,
-                null, null, 0.5, 0.5, continuum);
-    }
+        if (continuum != null && !continuum.isEmpty()) {
+            harness.setContinuumPosition(AGENT, TENANT, continuum);
+        }
 
-    private SearchBudgetPromptSection createSearchBudgetSection(
-            Map<String, ContinuumPosition> continuum) {
-        var participant = mock(SearchBudgetTickParticipant.class);
-        when(participant.currentBudget(AGENT, TENANT)).thenReturn(
-                Optional.of(new SearchBudget(0.5, 0.3, 0.6, 0.4,
-                        SearchMotivation.CURIOSITY, false, false, 0.0, 0.0, 0.0, Instant.now())));
-        return new SearchBudgetPromptSection(participant, null, continuum);
-    }
+        harness.observe(AGENT, TENANT, "exploring test topic");
+        harness.tick(AGENT, TENANT);
 
-    private CognitionRenderContext testContext() {
-        return new CognitionRenderContext(AGENT, TENANT, null, List.of());
+        return harness;
     }
 }

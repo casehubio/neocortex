@@ -1,44 +1,44 @@
 package io.casehub.neocortex.cognition.eval;
 
 import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.neocortex.cognition.core.CognitionConfig;
+import io.casehub.neocortex.cognition.core.CognitionCore;
+import io.casehub.neocortex.cognition.core.CognitionPhase;
+import io.casehub.neocortex.cognition.core.CognitionTestAccess;
+import io.casehub.neocortex.cognition.core.ConsolidationMediator;
+import io.casehub.neocortex.cognition.core.SubjectResolver;
+import io.casehub.neocortex.cognition.drive.CuriosityChannel;
+import io.casehub.neocortex.cognition.drive.CuriosityDrive;
+import io.casehub.neocortex.cognition.drive.DriveAxis;
+import io.casehub.neocortex.cognition.drive.DriveComposer;
+import io.casehub.neocortex.cognition.drive.DriveConfig;
+import io.casehub.neocortex.cognition.drive.DriveIntensity;
+import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
+import io.casehub.neocortex.cognition.drive.DriveSource;
+import io.casehub.neocortex.cognition.mood.MoodConfig;
+import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
+import io.casehub.neocortex.cognition.mood.MoodSignal;
+import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
+import io.casehub.neocortex.cognition.search.SearchBudget;
+import io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
-import io.casehub.neocortex.cognition.core.CognitionConfig;
-import io.casehub.neocortex.cognition.core.CognitionPhase;
-import io.casehub.neocortex.cognition.core.SubjectResolver;
-import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
-import io.casehub.neocortex.cognition.core.CognitionCore;
-import io.casehub.neocortex.cognition.core.CognitionTestAccess;
-import io.casehub.neocortex.cognition.core.ConsolidationMediator;
-import io.casehub.neocortex.cognition.drive.CuriosityDrive;
-import io.casehub.neocortex.cognition.drive.DriveComposer;
-import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
-import io.casehub.neocortex.cognition.mood.MoodConfig;
-import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
-import io.casehub.neocortex.cognition.mood.MoodSignal;
-import io.casehub.neocortex.cognition.search.SearchBudget;
-import io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant;
-import io.casehub.neocortex.cognition.drive.DriveAxis;
-import io.casehub.neocortex.cognition.drive.DriveConfig;
-import io.casehub.neocortex.cognition.drive.DriveIntensity;
-import io.casehub.neocortex.cognition.drive.DriveSource;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.experience.ExperienceEvent;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
-import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
+import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.neocortex.mindmap.ContinuumPosition;
-import io.casehub.neocortex.cognition.drive.CuriosityChannel;
-import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.RecurringThoughtAssessment;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer;
 import io.casehub.neocortex.mindmap.intelligence.InformationGapDetector;
 import io.casehub.neocortex.mindmap.intelligence.InformationGapScore;
-import io.casehub.neocortex.mindmap.RecurringThoughtAssessment;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationCompleted;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationPhase;
 
@@ -222,6 +222,8 @@ public class CognitionTestHarness {
         private CognitionConfig cognitionConfig;
         private boolean consolidationEnabled;
         private final Map<String, io.casehub.neocortex.cognition.appraisal.HabituationState> habituationStates = new HashMap<>();
+        private final Map<String, io.casehub.neocortex.cognition.appraisal.AppraisalResult>  appraisalResults  = new HashMap<>();
+
 
         public Builder withMindMapStore(MindMapStore store) {
             this.mindMapStore = store;
@@ -274,55 +276,67 @@ public class CognitionTestHarness {
             return this;
         }
 
+        public Builder withAppraisalResult(String agentId,
+                                           io.casehub.neocortex.cognition.appraisal.AppraisalResult result) {
+            this.appraisalResults.put(agentId, result);
+            return this;
+        }
+
+
         public CognitionTestHarness build() {
-            var store = mindMapStore != null ? mindMapStore : new InMemoryMindMapStore();
+            var store    = mindMapStore != null ? mindMapStore : new InMemoryMindMapStore();
             var memStore = memoryStore != null ? memoryStore : createDefaultMemoryStore();
 
             var allDefaults = agentDefaults.values().toArray(new CognitiveDefaults[0]);
-            var registry = CognitiveDefaultsRegistry.forTesting(allDefaults);
+            var registry    = CognitiveDefaultsRegistry.forTesting(allDefaults);
 
-            var gapDetector = new InformationGapDetector(store);
+            var gapDetector     = new InformationGapDetector(store);
             var channelComputer = new CuriosityChannelComputer();
-            var curiosityDrive = new CuriosityDrive(gapDetector, channelComputer, 0.5, goalNodeIds);
+            var curiosityDrive  = new CuriosityDrive(gapDetector, channelComputer, 0.5, goalNodeIds);
 
-            DriveSource competenceStub = (a, t) -> new DriveIntensity(DriveAxis.COMPETENCE, 0.1, "stub");
+            DriveSource competenceStub  = (a, t) -> new DriveIntensity(DriveAxis.COMPETENCE, 0.1, "stub");
             DriveSource affiliationStub = (a, t) -> new DriveIntensity(DriveAxis.AFFILIATION, 0.1, "stub");
-            DriveSource autonomyStub = (a, t) -> new DriveIntensity(DriveAxis.AUTONOMY, 0.1, "stub");
+            DriveSource autonomyStub    = (a, t) -> new DriveIntensity(DriveAxis.AUTONOMY, 0.1, "stub");
 
             var moodOrchestrator = new MoodOrchestrator(MoodConfig.defaults());
             var driveOrchestrator = new DriveOrchestrator(
-                curiosityDrive, competenceStub, affiliationStub, autonomyStub,
-                moodOrchestrator, new DriveComposer(), DriveConfig.defaults());
+                    curiosityDrive, competenceStub, affiliationStub, autonomyStub,
+                    moodOrchestrator, new DriveComposer(), DriveConfig.defaults());
 
             var mediator = new ConsolidationMediator();
-            var config = cognitionConfig != null ? cognitionConfig : CognitionConfig.all();
+            var config   = cognitionConfig != null ? cognitionConfig : CognitionConfig.all();
 
             var core = new CognitionCore(
-                moodOrchestrator, driveOrchestrator,
-                null, null, null, null, null, null,
-                null, config,
-                store, null, null, null, null, null,
-                mediator, null);
+                    moodOrchestrator, driveOrchestrator,
+                    null, null, null, null, null, null,
+                    null, config,
+                    store, null, null, null, null, null,
+                    mediator, null);
 
             core.setDefaultsRegistry(registry);
 
             io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant appraisalStub = null;
-            if (!habituationStates.isEmpty()) {
+            if (!habituationStates.isEmpty() || !appraisalResults.isEmpty()) {
                 appraisalStub = org.mockito.Mockito.mock(io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant.class);
                 for (var entry : habituationStates.entrySet()) {
                     org.mockito.Mockito.when(appraisalStub.currentHabituation(
-                        org.mockito.Mockito.eq(entry.getKey()), org.mockito.Mockito.anyString()))
-                        .thenReturn(entry.getValue());
+                               org.mockito.Mockito.eq(entry.getKey()), org.mockito.Mockito.anyString()))
+                                       .thenReturn(entry.getValue());
+                }
+                for (var entry : appraisalResults.entrySet()) {
+                    org.mockito.Mockito.when(appraisalStub.currentResult(
+                               org.mockito.Mockito.eq(entry.getKey()), org.mockito.Mockito.anyString()))
+                                       .thenReturn(java.util.Optional.of(entry.getValue()));
                 }
             }
 
             var budgetParticipant = new SearchBudgetTickParticipant(
-                driveOrchestrator, appraisalStub, null, moodOrchestrator,
-                registry, config, curiosityDrive);
+                    driveOrchestrator, appraisalStub, null, moodOrchestrator,
+                    registry, config, curiosityDrive);
             core.addParticipant(CognitionPhase.DERIVED, budgetParticipant);
 
             core.configureSearchBudget(driveOrchestrator, moodOrchestrator,
-                registry, store, curiosityDrive);
+                                       registry, store, curiosityDrive);
             core.configureCuriosity(curiosityDrive, channelComputer, store, 0.5, 0.5);
 
             var descriptors = new HashMap<String, AgentDescriptor>();
@@ -336,8 +350,8 @@ public class CognitionTestHarness {
             }
 
             return new CognitionTestHarness(core, store, memStore, curiosityDrive,
-                moodOrchestrator, budgetParticipant, registry, mediator,
-                phases, descriptors);
+                                            moodOrchestrator, budgetParticipant, registry, mediator,
+                                            phases, descriptors);
         }
 
         private static CaseMemoryStore createDefaultMemoryStore() {

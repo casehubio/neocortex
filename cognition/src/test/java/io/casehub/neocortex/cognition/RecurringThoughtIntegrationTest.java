@@ -1,10 +1,8 @@
 package io.casehub.neocortex.cognition;
 
-import io.casehub.neocortex.cognition.drive.CuriosityDrive;
-import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
-import io.casehub.neocortex.cognition.prompt.CuriosityPromptSection;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.RecurringThoughtConfig;
+import io.casehub.neocortex.cognition.eval.CognitionTestHarness;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
@@ -14,21 +12,16 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
-import io.casehub.neocortex.mindmap.intelligence.CuriosityChannelComputer;
-import io.casehub.neocortex.mindmap.intelligence.InformationGapScore;
 import io.casehub.neocortex.mindmap.intelligence.RecurringThoughtScorer;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class RecurringThoughtIntegrationTest {
 
@@ -79,27 +72,29 @@ class RecurringThoughtIntegrationTest {
 
     @Test
     void scorerToRenderingPipeline() {
-        // End-to-end: scorer produces assessment → build continuum map → render modulated output
-        String sgId = createSubgraph();
-        String nodeId = mindMapStore.addNode(NodeInput.of("spiral-topic", sgId)
-                .withConfidence(Confidence.stated(0.3, NOW))
-                .withPleasure(-0.7).withArousal(0.8), TENANT);
-        addExperienceMemories("spiral-topic", 8);
+        var store = new InMemoryMindMapStore();
+        String sgId = store.createSubgraph(
+                new SubgraphInput("cognitive", SubgraphTypes.CONCEPT, null), TENANT);
+        store.addNode(NodeInput.of("spiral-topic", sgId)
+                               .withConfidence(Confidence.stated(0.3, NOW))
+                               .withPleasure(-0.7).withArousal(0.8)
+                               .withProperty("agent-id", AGENT), TENANT);
 
-        var assessment = scorer.score(nodeId, TENANT, RecurringThoughtConfig.defaults(), null, null);
-        assertThat(assessment.position()).isNotEqualTo(ContinuumPosition.HEALTHY);
+        var harness = CognitionTestHarness.builder()
+                                          .withMindMapStore(store)
+                                          .agentFromDefaults(AGENT, io.casehub.neocortex.cognitive.index.CognitiveDefaults.empty(AGENT))
+                                          .withConsolidationEnabled(true)
+                                          .build();
 
-        var continuumMap = Map.of(nodeId, assessment.position());
+        harness.addExperienceMemories(AGENT, TENANT, "spiral-topic", 8);
+        harness.tickAndConsolidate(AGENT, TENANT);
 
-        var curiosityDrive = mock(CuriosityDrive.class);
-        var gap = new InformationGapScore("node-1", "spiral-topic", "CONCEPT",
-                0.6, 0.7, 3, 0.5, InformationGapScore.GapType.PARTIAL_KNOWLEDGE, 0.0);
-        when(curiosityDrive.lastGaps()).thenReturn(List.of(gap));
+        var cmap = harness.continuumMap(AGENT);
+        assertThat(cmap.values()).anySatisfy(p ->
+                                                     assertThat(p).isNotEqualTo(ContinuumPosition.HEALTHY));
 
-        var section = new CuriosityPromptSection(curiosityDrive, new CuriosityChannelComputer(),
-                null, null, 0.5, 0.5, continuumMap);
-        var output = section.render(new CognitionRenderContext(AGENT, TENANT, null, List.of()));
-        assertThat(output).isNotNull();
+        var prompt = harness.renderPrompt(AGENT, TENANT);
+        assertThat(prompt).isNotNull();
     }
 
     @Test
