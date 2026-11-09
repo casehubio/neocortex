@@ -233,4 +233,21 @@ class RegulationStrategyPredictorTest {
     }
 
 
+    @Test
+    void mildDistress_treatedAsControllable_allowsReappraisal() {
+        // #907: DISTRESS at low intensity should be reappraised, not forced to AD
+        var result = predictor.predict(REAPPRAISER_RD, REAPPRAISER, EmotionType.DISTRESS, 0.18, 0.0, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy())
+                .as("mild DISTRESS with high reappraisal capacity should not force AD")
+                .isNotEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+    }
+
+    @Test
+    void intenseDistress_remainsUncontrollable_forcesAD() {
+        // DISTRESS at high intensity is genuinely uncontrollable — AD is correct
+        var result = predictor.predict(REAPPRAISER_RD, REAPPRAISER, EmotionType.DISTRESS, 0.65, 0.0, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+    }
 }
