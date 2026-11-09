@@ -158,13 +158,13 @@ public class DispositionWeightMapper {
         } else if ("dependent".equals(disposition.autonomy())) {
             addResting(nodeStates, "other_reliability", 0.15);
         }
-        if ("confrontational".equals(disposition.conflictMode())) {
+        if ("competitive".equals(disposition.conflictMode())) {
             addResting(nodeStates, "threat_sensitivity", 0.15);
         } else if ("avoidant".equals(disposition.conflictMode())) {
             addResting(nodeStates, "escape_assessment", 0.2);
         }
 
-        // OUTPUT nodes — attractor baselines from disposition (Read et al. 2010)
+        // OUTPUT nodes — behavioral attractor baselines (Read et al. 2010)
         if ("competitive".equals(disposition.socialOrient())) {
             addResting(nodeStates, "approach", 0.2);
             addResting(nodeStates, "fight", 0.15);
@@ -185,7 +185,7 @@ public class DispositionWeightMapper {
             addResting(nodeStates, "cautious_approach", 0.15);
             addResting(nodeStates, "consolidate", 0.1);
         }
-        if ("confrontational".equals(disposition.conflictMode())) {
+        if ("competitive".equals(disposition.conflictMode())) {
             addResting(nodeStates, "fight", 0.15);
             addResting(nodeStates, "assert", 0.1);
         } else if ("avoidant".equals(disposition.conflictMode())) {
@@ -198,6 +198,34 @@ public class DispositionWeightMapper {
         } else if ("dependent".equals(disposition.autonomy())) {
             addResting(nodeStates, "depend", 0.15);
             addResting(nodeStates, "comply", 0.1);
+        }
+
+        // OUTPUT nodes — regulation attractor baselines (#806, Gross 1998, Zaki & Williams 2013)
+        if ("avoidant".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "situation_selection", 0.2);
+            addResting(nodeStates, "social_withdrawal", 0.15);
+        } else if ("analytical".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "cognitive_change", 0.2);
+        } else if ("cooperative".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "co_regulation", 0.15);
+            addResting(nodeStates, "social_sharing", 0.1);
+        } else if ("competitive".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "response_modulation", 0.15);
+            addResting(nodeStates, "deliberate_provocation", 0.1);
+        }
+        if ("conservative".equals(disposition.riskAppetite())) {
+            addResting(nodeStates, "situation_selection", 0.15);
+            addResting(nodeStates, "attentional_deployment", 0.1);
+        } else if ("bold".equals(disposition.riskAppetite())) {
+            addResting(nodeStates, "situation_modification", 0.2);
+            addResting(nodeStates, "cognitive_change", 0.1);
+        }
+        if ("cooperative".equals(disposition.socialOrient())) {
+            addResting(nodeStates, "social_support_seeking", 0.15);
+            addResting(nodeStates, "co_regulation", 0.1);
+        } else if ("independent".equals(disposition.socialOrient())) {
+            addResting(nodeStates, "response_modulation", 0.15);
+            addResting(nodeStates, "attentional_deployment", 0.1);
         }
     }
 
