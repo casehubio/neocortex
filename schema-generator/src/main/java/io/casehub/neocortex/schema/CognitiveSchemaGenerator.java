@@ -15,10 +15,10 @@
  */
 package io.casehub.neocortex.schema;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
@@ -46,15 +46,15 @@ public class CognitiveSchemaGenerator {
     static final         Map<Class<?>, ShorthandDefinition>   SHORTHAND_DEFINITIONS   = Map.of(
             Confidence.class, ShorthandDefinition.of(
                     config -> {
-                        ObjectNode n = config.createObjectNode();
+                        var n = config.createObjectNode();
                         n.put("type", "number").put("minimum", 0).put("maximum", 1);
                         return n;
                     },
                     config -> {
-                        ObjectNode full = config.createObjectNode();
+                        var full = config.createObjectNode();
                         full.put("type", "object");
-                        ObjectNode props  = full.putObject("properties");
-                        ObjectNode origin = props.putObject("origin");
+                        var props  = full.putObject("properties");
+                        var origin = props.putObject("origin");
                         origin.put("type", "string");
                         origin.putArray("enum")
                               .add("STATED").add("INFERRED").add("SPECULATED").add("UNKNOWN");
@@ -68,14 +68,14 @@ public class CognitiveSchemaGenerator {
                                                     ),
             NodeRef.class, ShorthandDefinition.of(
                     config -> {
-                        ObjectNode n = config.createObjectNode();
+                        var n = config.createObjectNode();
                         n.put("type", "string").put("pattern", "^[^:]+:.+$");
                         return n;
                     },
                     config -> {
-                        ObjectNode full = config.createObjectNode();
+                        var full = config.createObjectNode();
                         full.put("type", "object");
-                        ObjectNode props = full.putObject("properties");
+                        var props = full.putObject("properties");
                         props.putObject("scheme").put("type", "string");
                         props.putObject("id").put("type", "string");
                         props.putObject("qualifier").put("type", "string");
@@ -85,24 +85,24 @@ public class CognitiveSchemaGenerator {
                                                  ),
             RecurrenceRule.class, ShorthandDefinition.of(
                     config -> {
-                        ObjectNode n = config.createObjectNode();
+                        var n = config.createObjectNode();
                         n.put("type", "string").put("pattern", "^FREQ=");
                         return n;
                     },
                     config -> {
-                        ObjectNode full = config.createObjectNode();
+                        var full = config.createObjectNode();
                         full.put("type", "object");
-                        ObjectNode props = full.putObject("properties");
-                        ObjectNode freq  = props.putObject("freq");
+                        var props = full.putObject("properties");
+                        var freq  = props.putObject("freq");
                         freq.put("type", "string");
                         freq.putArray("enum")
                             .add("DAILY").add("WEEKLY").add("MONTHLY").add("YEARLY");
                         props.putObject("interval").put("type", "integer").put("minimum", 1);
                         props.putObject("count").put("type", "integer").put("minimum", 1);
                         props.putObject("until").put("type", "string").put("format", "date-time");
-                        ObjectNode byDay = props.putObject("byDay");
+                        var byDay = props.putObject("byDay");
                         byDay.put("type", "array");
-                        ObjectNode byDayItems = byDay.putObject("items");
+                        var byDayItems = byDay.putObject("items");
                         byDayItems.put("type", "string");
                         byDayItems.putArray("enum")
                                   .add("MO").add("TU").add("WE").add("TH").add("FR").add("SA").add("SU");
@@ -126,6 +126,7 @@ public class CognitiveSchemaGenerator {
                                                    )
                   );
     private final SchemaGenerator schemaGenerator;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public CognitiveSchemaGenerator() {
         var builder = new SchemaGeneratorConfigBuilder(
@@ -142,18 +143,22 @@ public class CognitiveSchemaGenerator {
     }
 
     public JsonNode generate(Class<?> rootType) {
-        return schemaGenerator.generateSchema(rootType);
+        var generated = schemaGenerator.generateSchema(rootType);
+        try {
+            return mapper.readTree(generated.toString());
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException("Failed to convert schema", e);
+        }
     }
 
     public void generateToYaml(Class<?> rootType, Path output) throws IOException {
         JsonNode schema = generate(rootType);
-        var yamlMapper = new com.fasterxml.jackson.databind.ObjectMapper(
+        ObjectMapper yamlMapper = new ObjectMapper(
                 new YAMLFactory()
                         .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
                         .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
         Files.createDirectories(output.getParent());
-        var jackson2Tree = yamlMapper.readTree(schema.toPrettyString());
         yamlMapper.writerWithDefaultPrettyPrinter()
-                  .writeValue(output.toFile(), jackson2Tree);
+                  .writeValue(output.toFile(), schema);
     }
 }

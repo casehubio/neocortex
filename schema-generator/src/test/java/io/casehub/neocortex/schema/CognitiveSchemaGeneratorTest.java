@@ -114,7 +114,9 @@ class CognitiveSchemaGeneratorTest {
         var defs = schema.get("$defs");
         if (defs != null) {
             boolean hasSimilaritySpec = false;
-            for (String name : defs.propertyNames()) {
+            var fieldNames = defs.fieldNames();
+            while (fieldNames.hasNext()) {
+                String name = fieldNames.next();
                 if (name.contains("SimilaritySpec") || name.contains("similaritySpec")) {
                     hasSimilaritySpec = true;
                 }
