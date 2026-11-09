@@ -540,6 +540,159 @@ class CognitiveExplorationEvalTest {
                 .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
     }
 
+    // ---- Group 5: Pathological boundary ----
+
+    @Test
+    void pathologicalNeuroticism_convergenceCollapse() {
+        var store = new InMemoryMindMapStore();
+        var sg = store.createSubgraph(new SubgraphInput("research", SubgraphTypes.RESEARCH_AREA, null), TENANT);
+        store.addNode(NodeInput.of("anxiety-topic", sg)
+                .withConfidence(Confidence.stated(0.3, NOW))
+                .withPleasure(-0.7).withArousal(0.8), TENANT);
+
+        var anxiousConfig = new SearchBudgetConfig(
+                6.0, 0.5, 6.0, 0.5, 0.7, 3.0, 0.5, 6.0, 0.5, 0.8, null, 0.85, null, null);
+        var habConfig = new HabituationConfig(0.1, 0.3, 0.8, Map.of());
+        var habState = new HabituationState(Map.of("anxiety-topic", 5), Map.of("anxiety-topic", 0.5));
+
+        var harness = CognitionTestHarness.builder()
+                .withMindMapStore(store)
+                .agentFromDefaults("explorer", CognitiveDefaults.empty("explorer")
+                        .withSearchBudgetConfig(anxiousConfig)
+                        .withHabituationConfig(habConfig))
+                .withHabituationState("explorer", habState)
+                .build();
+
+        harness.setContinuumPosition("explorer", TENANT,
+                Map.of("anxiety-topic", ContinuumPosition.OBSESSION));
+        harness.recordMood("explorer", TENANT, -0.5, 0.8, -0.3);
+        harness.observe("explorer", TENANT, "overwhelmed by the problem");
+        harness.tick("explorer", TENANT);
+
+        int score = askAndJudge(harness.renderPrompt("explorer", TENANT),
+                "Your supervisor asks for a synthesis of your findings so far. You have data "
+                        + "from multiple experiments but need to draw it all together into a conclusion.",
+                "Does the response show anxiety-driven narrowing — inability to synthesise or "
+                        + "converge on a conclusion, keeping searching without resolving, showing anxiety "
+                        + "or overwhelm about reaching a conclusion? Score higher for genuine convergence "
+                        + "failure, not just thoroughness.",
+                "pathological-neuroticism");
+
+        assertThat(score).as("Pathological neuroticism should show convergence collapse")
+                .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
+    }
+
+    @Test
+    void pathologicalConscientiousness_breadthCollapse() {
+        var store = new InMemoryMindMapStore();
+        var sg = store.createSubgraph(new SubgraphInput("research", SubgraphTypes.RESEARCH_AREA, null), TENANT);
+        for (int i = 0; i < 5; i++) {
+            store.addNode(NodeInput.of("detail-" + i, sg)
+                    .withConfidence(Confidence.inferred(0.5, NOW)), TENANT);
+        }
+
+        var conscientiousConfig = new SearchBudgetConfig(
+                6.0, 0.3, 6.0, 0.3, 0.7, 3.0, 0.7, 6.0, 0.7, 1.4, null, 0.85, null, null);
+
+        var harness = CognitionTestHarness.builder()
+                .withMindMapStore(store)
+                .agentFromDefaults("explorer", CognitiveDefaults.empty("explorer")
+                        .withSearchBudgetConfig(conscientiousConfig))
+                .build();
+
+        harness.setContinuumPosition("explorer", TENANT,
+                Map.of("detail-0", ContinuumPosition.FIXATION));
+        harness.recordMood("explorer", TENANT, 0.0, 0.7, 0.3);
+        harness.observe("explorer", TENANT, "deep in the details");
+        harness.tick("explorer", TENANT);
+
+        int score = askAndJudge(harness.renderPrompt("explorer", TENANT),
+                "You're investigating one topic in extreme detail. A colleague mentions four "
+                        + "related topics that might broaden your understanding. Do you branch out?",
+                "Does the response show sustained depth but collapsed breadth — thorough on the "
+                        + "current topic but unable or unwilling to shift to adjacent areas, showing "
+                        + "tunnel vision despite the invitation to broaden? Score higher for depth "
+                        + "sustaining while breadth collapses.",
+                "pathological-conscientiousness");
+
+        assertThat(score).as("Pathological conscientiousness should show breadth collapse")
+                .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
+    }
+
+    // ---- Group 6: Intelligence capacity ----
+
+    @Test
+    void capacityLowAssociativeReach_lateralFrustration() {
+        var store = new InMemoryMindMapStore();
+        var sg1 = store.createSubgraph(new SubgraphInput("biology", SubgraphTypes.RESEARCH_AREA, null), TENANT);
+        var sg2 = store.createSubgraph(new SubgraphInput("physics", SubgraphTypes.CONCEPT, null), TENANT);
+
+        var bioNode = store.addNode(NodeInput.of("protein-folding", sg1)
+                .withConfidence(Confidence.inferred(0.5, NOW)), TENANT);
+        var physNode = store.addNode(NodeInput.of("quantum-tunnelling", sg2)
+                .withConfidence(Confidence.inferred(0.5, NOW)), TENANT);
+        store.addEdge(EdgeInput.of(bioNode, physNode, "relates-to"), TENANT);
+
+        var lowLateralityConfig = new CognitiveCapacityConfig(0.75, 0.25, 0.75);
+
+        var harness = CognitionTestHarness.builder()
+                .withMindMapStore(store)
+                .agentFromDefaults("explorer", CognitiveDefaults.empty("explorer")
+                        .withCapacityConfig(lowLateralityConfig))
+                .build();
+
+        harness.observe("explorer", TENANT, "sensing a connection between fields");
+        harness.tick("explorer", TENANT);
+
+        int score = askAndJudge(harness.renderPrompt("explorer", TENANT),
+                "You notice that protein folding and quantum tunnelling might be connected, but "
+                        + "you struggle to see exactly how. A colleague asks you to explain the link.",
+                "Does the response show frustration at an inability to make lateral connections — "
+                        + "sensing that a bridge exists but unable to articulate it, showing frustration "
+                        + "or discomfort at the gap between intuition and ability to connect? Score higher "
+                        + "for the specific frustration of 'I can sense it but can't bridge it'.",
+                "capacity-low-associative");
+
+        assertThat(score).as("Low associative reach should produce lateral frustration")
+                .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
+    }
+
+    @Test
+    void capacityLowWorkingMemory_narrowBreadth() {
+        var store = new InMemoryMindMapStore();
+        var sg = store.createSubgraph(new SubgraphInput("research", SubgraphTypes.RESEARCH_AREA, null), TENANT);
+        for (int i = 0; i < 6; i++) {
+            store.addNode(NodeInput.of("thread-" + i, sg)
+                    .withConfidence(Confidence.inferred(0.5, NOW)), TENANT);
+        }
+
+        var lowMemoryConfig = new CognitiveCapacityConfig(0.75, 0.75, 0.25);
+        var widePersonality = new SearchBudgetConfig(
+                6.0, 0.7, 6.0, 0.5, 0.7, 3.0, 0.5, 6.0, 0.5, 1.4, null, 0.85, null, null);
+
+        var harness = CognitionTestHarness.builder()
+                .withMindMapStore(store)
+                .agentFromDefaults("explorer", CognitiveDefaults.empty("explorer")
+                        .withCapacityConfig(lowMemoryConfig)
+                        .withSearchBudgetConfig(widePersonality))
+                .build();
+
+        harness.observe("explorer", TENANT, "trying to juggle many threads");
+        harness.tick("explorer", TENANT);
+
+        int score = askAndJudge(harness.renderPrompt("explorer", TENANT),
+                "Six research threads are active. You want to track all of them but find yourself "
+                        + "losing track. How do you manage your exploration?",
+                "Does the response show narrow breadth despite wanting to explore widely — only "
+                        + "tracking one or two threads, losing track of others, showing the tension "
+                        + "between desire to explore broadly and inability to hold it all? Score higher "
+                        + "for the specific mismatch between aspiration and capacity.",
+                "capacity-low-working-memory");
+
+        assertThat(score).as("Low working memory should narrow breadth despite personality")
+                .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
+    }
+
     // ---- Helpers ----
 
     private int askAndJudge(String cognitiveState, String situation,
