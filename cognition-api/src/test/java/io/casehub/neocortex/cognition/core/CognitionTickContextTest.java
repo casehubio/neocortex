@@ -1,7 +1,8 @@
 package io.casehub.neocortex.cognition.core;
 
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CognitionTickContextTest {
 
@@ -36,4 +37,19 @@ class CognitionTickContextTest {
                 "obs", null, null);
         assertThat(ctx.targetAgentId()).isNull();
     }
+
+    @Test
+    void eightArgConstructor_regulationContextAccessible() {
+        var regCtx = new io.casehub.neocortex.cognition.regulation.RegulationContext("library", java.util.List.of("agent-a"), "treasure");
+        var ctx = new CognitionTickContext("agent-1", "tenant-1", null, NOOP_RESOLVER,
+                                           "obs", null, null, regCtx);
+        assertThat(ctx.regulationContext()).isEqualTo(regCtx);
+    }
+
+    @Test
+    void existingConstructors_regulationContextIsNull() {
+        var ctx = new CognitionTickContext("agent-1", "tenant-1", null, NOOP_RESOLVER);
+        assertThat(ctx.regulationContext()).isNull();
+    }
+
 }

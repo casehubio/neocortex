@@ -489,5 +489,33 @@ class GoalProposalOrchestratorTest {
         assertThat(changes.newProposals().get(0).goalName()).isEqualTo("explore");
     }
 
+    @Test
+    void appendGoalsAddsToExistingRegisteredGoals() {
+        var goal1 = new DriveGoalProposal(DriveAxis.AUTONOMY, "goal-1", "desc1", "reason1", 0.5);
+        var goal2 = new DriveGoalProposal(DriveAxis.AUTONOMY, "goal-2", "desc2", "reason2", 0.6);
+        var goal3 = new DriveGoalProposal(DriveAxis.AUTONOMY, "goal-3", "desc3", "reason3", 0.7);
+
+        orchestrator.registerGoals("agent1", "tenant1", List.of(goal1));
+        orchestrator.appendGoals("agent1", "tenant1", List.of(goal2, goal3));
+
+        var registered = orchestrator.registeredGoals("agent1", "tenant1");
+        assertThat(registered).hasSize(3);
+        assertThat(registered).extracting(DriveGoalProposal::goalName)
+                              .containsExactly("goal-1", "goal-2", "goal-3");
+    }
+
+    @Test
+    void registerGoalsReplacesAppendedGoals() {
+        var goal1 = new DriveGoalProposal(DriveAxis.AUTONOMY, "appended", "desc", "reason", 0.5);
+        var goal2 = new DriveGoalProposal(DriveAxis.AUTONOMY, "replaced", "desc", "reason", 0.6);
+
+        orchestrator.appendGoals("agent1", "tenant1", List.of(goal1));
+        orchestrator.registerGoals("agent1", "tenant1", List.of(goal2));
+
+        var registered = orchestrator.registeredGoals("agent1", "tenant1");
+        assertThat(registered).hasSize(1);
+        assertThat(registered.getFirst().goalName()).isEqualTo("replaced");
+    }
+
 
 }

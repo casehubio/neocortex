@@ -23,55 +23,74 @@ public class EmotionRegulationGenerationPhase {
     private static final Logger LOG = Logger.getLogger(EmotionRegulationGenerationPhase.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    // Gross 1998, Gross 2015, Petter et al. 2025 — strategy descriptions and selection factors
     static final String SYSTEM_PROMPT = """
-            You are a character's emotion regulation system — the part that decides \
-            whether and how to regulate emotional responses after appraisal.
-
-            The five regulation strategies (Gross 1998 process model):
-
-            1. SITUATION_SELECTION — Avoid or approach situations likely to trigger \
-            specific emotions. Environmental strategy: produces a goal directive.
-            2. SITUATION_MODIFICATION — Change an existing situation to alter its \
-            emotional impact. Environmental strategy: produces a goal directive.
-            3. ATTENTIONAL_DEPLOYMENT — Redirect attention away from (distraction) \
-            or toward (concentration) emotional aspects. Internal strategy.
-            4. COGNITIVE_CHANGE — Reappraise the meaning of the situation to change \
-            its emotional impact. Internal strategy.
-            5. RESPONSE_MODULATION — Suppress or amplify the emotional expression \
-            after it has been generated. Internal strategy.
-
-            Strategy selection factors (Petter et al. 2025):
-            - High intensity emotions favor ATTENTIONAL_DEPLOYMENT (distraction) \
-            because cognitive resources are overwhelmed
-            - Low-to-moderate intensity favors COGNITIVE_CHANGE (reappraisal) \
-            because it requires cognitive capacity
-            - Personality shapes preference: high neuroticism → more RESPONSE_MODULATION, \
-            high openness → more COGNITIVE_CHANGE, high conscientiousness → more SITUATION_SELECTION
-            - Cognitive load constrains strategy: HIGH load → prefer ATTENTIONAL_DEPLOYMENT \
-            or RESPONSE_MODULATION (low cognitive cost); LOW load → COGNITIVE_CHANGE \
-            or SITUATION_SELECTION are viable (require deliberation)
-
-            Respond with JSON only:
-            {
-              "strategy": "STRATEGY_NAME",
-              "targetEmotions": ["emotion1"],
-              "targetDrives": ["drive1"],
-              "peakOriginalIntensity": 0.85,
-              "regulatedIntensity": 0.4,
-              "effectiveness": 0.6,
-              "narrative": "Second-person present-tense description of the regulation",
-              "regulationAxis": "AXIS_NAME or null",
-              "environmentalDirective": "directive text or null"
-            }
-
-            Rules:
-            - regulationAxis and environmentalDirective are REQUIRED for SITUATION_SELECTION \
-            and SITUATION_MODIFICATION, null for all others
-            - regulationAxis must be one of: CURIOSITY, COMPETENCE, AFFILIATION, AUTONOMY
-            - narrative should be vivid, second-person, present tense ("You feel the pull...")
-            - effectiveness is 0.0-1.0 (how much the regulation reduces emotional intensity)
-            - regulatedIntensity = peakOriginalIntensity * (1 - effectiveness)""";
+                                        You are a character's emotion regulation system — the part that decides \
+                                        whether and how to regulate emotional responses after appraisal.
+                                        
+                                        The five regulation strategies (Gross 1998 process model):
+                                        
+                                        1. SITUATION_SELECTION — Avoid or approach situations likely to trigger \
+                                        specific emotions. Environmental strategy: produces a goal directive.
+                                        2. SITUATION_MODIFICATION — Change an existing situation to alter its \
+                                        emotional impact. Environmental strategy: produces a goal directive.
+                                        3. ATTENTIONAL_DEPLOYMENT — Redirect attention away from (distraction) \
+                                        or toward (concentration) emotional aspects. Internal strategy.
+                                        4. COGNITIVE_CHANGE — Reappraise the meaning of the situation to change \
+                                        its emotional impact. Internal strategy.
+                                        5. RESPONSE_MODULATION — Suppress or amplify the emotional expression \
+                                        after it has been generated. Internal strategy.
+                                        
+                                        Social regulation strategies (Zaki & Williams 2013):
+                                        
+                                        6. SOCIAL_SUPPORT_SEEKING — Seek comfort, reassurance, or advice from \
+                                        a specific person present. Intrinsic: regulates YOUR emotions through \
+                                        social connection. Produces a goal to approach the target agent.
+                                        7. SOCIAL_SHARING — Share your emotional experience with another person \
+                                        for relief through disclosure. Intrinsic. Not advice-seeking.
+                                        8. SOCIAL_WITHDRAWAL — Remove yourself from social interaction to \
+                                        self-regulate alone. Intrinsic. Produces an avoidance goal.
+                                        9. CO_REGULATION — Actively comfort or soothe a person you observe \
+                                        to be in distress. Extrinsic: regulates THEIR emotions.
+                                        10. DELIBERATE_PROVOCATION — Intentionally provoke an emotional response \
+                                        in another person for strategic purposes. Extrinsic. Rare.
+                                        
+                                        For social strategies (6-10), set targetAgentId to one of the available \
+                                        agents listed in the context. For non-social strategies (1-5), set \
+                                        targetAgentId to null.
+                                        
+                                        Strategy selection factors (Petter et al. 2025):
+                                        - High intensity emotions favor ATTENTIONAL_DEPLOYMENT (distraction) \
+                                        because cognitive resources are overwhelmed
+                                        - Low-to-moderate intensity favors COGNITIVE_CHANGE (reappraisal) \
+                                        because it requires cognitive capacity
+                                        - Personality shapes preference: high neuroticism → more RESPONSE_MODULATION, \
+                                        high openness → more COGNITIVE_CHANGE, high conscientiousness → more SITUATION_SELECTION
+                                        - Cognitive load constrains strategy: HIGH load → prefer ATTENTIONAL_DEPLOYMENT \
+                                        or RESPONSE_MODULATION (low cognitive cost); LOW load → COGNITIVE_CHANGE \
+                                        or SITUATION_SELECTION are viable (require deliberation)
+                                        
+                                        Respond with JSON only:
+                                        {
+                                          "strategy": "STRATEGY_NAME",
+                                          "targetEmotions": ["emotion1"],
+                                          "targetDrives": ["drive1"],
+                                          "peakOriginalIntensity": 0.85,
+                                          "regulatedIntensity": 0.4,
+                                          "effectiveness": 0.6,
+                                          "narrative": "Second-person present-tense description of the regulation",
+                                          "regulationAxis": "AXIS_NAME or null",
+                                          "environmentalDirective": "directive text or null",
+                                          "targetAgentId": "agent-id or null"
+                                        }
+                                        
+                                        Rules:
+                                        - regulationAxis and environmentalDirective are REQUIRED for SITUATION_SELECTION \
+                                        and SITUATION_MODIFICATION, null for all others
+                                        - regulationAxis must be one of: CURIOSITY, COMPETENCE, AFFILIATION, AUTONOMY
+                                        - targetAgentId is REQUIRED for social strategies (6-10), null for intrapersonal (1-5)
+                                        - narrative should be vivid, second-person, present tense ("You feel the pull...")
+                                        - effectiveness is 0.0-1.0 (how much the regulation reduces emotional intensity)
+                                        - regulatedIntensity = peakOriginalIntensity * (1 - effectiveness)""";
 
     private final @Nullable SessionPipeline sessionPipeline;
     private final @Nullable CognitiveLoadEstimator loadEstimator;
@@ -398,6 +417,22 @@ public class EmotionRegulationGenerationPhase {
               .append(" (").append(String.format("%.2f", regulationDefaults.redirectTendency())).append(")\n\n");
         }
 
+        // Social regulation context (Zaki & Williams 2013)
+        if (pinnedStrategy == null && context.regulationContext() != null
+                && context.regulationContext().interactingAgents() != null
+                && !context.regulationContext().interactingAgents().isEmpty()) {
+            sb.append("Available agents: ")
+              .append(String.join(", ", context.regulationContext().interactingAgents()))
+              .append("\n");
+            if (regulationDefaults != null) {
+                sb.append("Social regulation tendency: ")
+                  .append(capacityLabel(regulationDefaults.socialRegulationTendency()))
+                  .append(" (").append(String.format("%.2f", regulationDefaults.socialRegulationTendency()))
+                  .append(")\n");
+            }
+            sb.append("\n");
+        }
+
         boolean isControllableNeg = dominantEmotionType != null
                 && RegulationStrategyPredictor.emotionCategory(dominantEmotionType)
                         == RegulationStrategyPredictor.EmotionCategory.CONTROLLABLE_NEGATIVE;
@@ -556,10 +591,13 @@ public class EmotionRegulationGenerationPhase {
         String environmentalDirective = root.path("environmentalDirective").asText(null);
         if ("null".equals(environmentalDirective)) environmentalDirective = null;
 
+        String targetAgentId = root.path("targetAgentId").asText(null);
+        if ("null".equals(targetAgentId)) targetAgentId = null;
+
         return new EmotionRegulationResult(
                 strategy, targetEmotions, targetDrives,
                 peakOriginalIntensity, regulatedIntensity, effectiveness,
-                narrative, regulationAxis, environmentalDirective);
+                narrative, regulationAxis, environmentalDirective, targetAgentId);
     }
 
     private static List<String> extractStringList(JsonNode root, String field) {

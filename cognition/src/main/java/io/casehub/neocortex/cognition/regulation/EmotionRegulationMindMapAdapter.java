@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class EmotionRegulationMindMapAdapter {
 
@@ -20,7 +19,20 @@ public final class EmotionRegulationMindMapAdapter {
     private EmotionRegulationMindMapAdapter() {}
 
     public static void write(MindMapStore store, String agentId, String tenantId,
-                              String cognitiveSubgraphId, EmotionRegulationResult result) {
+                             String cognitiveSubgraphId, EmotionRegulationResult result) {
+        write(store, agentId, tenantId, cognitiveSubgraphId, result, null);
+    }
+
+    public static void write(MindMapStore store, String agentId, String tenantId,
+                             String cognitiveSubgraphId, EmotionRegulationResult result,
+                             @org.jspecify.annotations.Nullable String dominantEmotionType) {
+        write(store, agentId, tenantId, cognitiveSubgraphId, result, dominantEmotionType, null);
+    }
+
+    public static void write(MindMapStore store, String agentId, String tenantId,
+                             String cognitiveSubgraphId, EmotionRegulationResult result,
+                             @org.jspecify.annotations.Nullable String dominantEmotionType,
+                             @org.jspecify.annotations.Nullable RegulationContext regulationContext) {
         var props = new HashMap<String, String>();
         props.put("cognitiveKind", COGNITIVE_KIND);
         props.put("agent-id", agentId);
@@ -38,13 +50,28 @@ public final class EmotionRegulationMindMapAdapter {
         if (result.environmentalDirective() != null) {
             props.put("environmentalDirective", result.environmentalDirective());
         }
+        if (dominantEmotionType != null) {
+            props.put("dominantEmotionType", dominantEmotionType);
+        }
+        if (regulationContext != null) {
+            if (regulationContext.location() != null) {
+                props.put("regulationLocation", regulationContext.location());
+            }
+            if (regulationContext.interactingAgents() != null && !regulationContext.interactingAgents().isEmpty()) {
+                props.put("regulationAgents", String.join(",", regulationContext.interactingAgents()));
+            }
+            if (regulationContext.topic() != null) {
+                props.put("regulationTopic", regulationContext.topic());
+            }
+        }
 
         store.addNode(
                 NodeInput.of("emotion-regulation", cognitiveSubgraphId)
-                        .withProvenance("emotion-regulation")
-                        .withProperties(props),
+                         .withProvenance("emotion-regulation")
+                         .withProperties(props),
                 tenantId);
     }
+
 
     public static List<EmotionRegulationResult> loadHistory(MindMapStore store,
                                                              String agentId, String tenantId,
@@ -60,6 +87,25 @@ public final class EmotionRegulationMindMapAdapter {
                 .map(EmotionRegulationMindMapAdapter::fromNode)
                 .toList();
     }
+
+    public static List<EmotionRegulationResult> loadHistory(MindMapStore store,
+                                                            String agentId, String tenantId,
+                                                            io.casehub.neocortex.cognitive.EmotionType emotionType,
+                                                            int limit) {
+        String emotionName = emotionType.name();
+        return store.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+                    .stream()
+                    .filter(n -> COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
+                    .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                    .filter(n -> emotionName.equals(n.properties().get("dominantEmotionType")))
+                    .sorted(Comparator.comparing(
+                                              (MindMapNode n) -> n.properties().getOrDefault("timestamp", ""))
+                                      .reversed())
+                    .limit(limit)
+                    .map(EmotionRegulationMindMapAdapter::fromNode)
+                    .toList();
+    }
+
 
     private static EmotionRegulationResult fromNode(MindMapNode node) {
         var props = node.properties();

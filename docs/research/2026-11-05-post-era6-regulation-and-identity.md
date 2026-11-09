@@ -464,12 +464,16 @@ Root cause: `cognitive-index` depends on `cognitive-observability-api`, blocking
 - **#846 integration wiring** ✅: Curiosity→search budget coupling (#847), goal-directed curiosity (#848), CognitionTestHarness + 5 structural scenarios (#849). Wiring verified structurally (Tier 2). Empirical quality proof deferred to #866.
 - **#596 Information-gap curiosity** ✅: Full Loewenstein model, four-channel rendering.
 - **#826 Recurring thought continuum** ✅: Seven-symptom composite, HEALTHY→FIXATION→OBSESSION→RUMINATION, prompt modulation.
+- **#829 Scenario validation** ✅: 95% prediction rate across BASELINE cast
+- **#819 Proactive regulation** ✅: ProactiveRegulationParticipant with memory-driven anticipatory avoidance, temporal decay, personality-modulated thresholds
+- **#805 Social regulation** ✅: 5 social strategies (SOCIAL_SUPPORT_SEEKING, SOCIAL_SHARING, SOCIAL_WITHDRAWAL, CO_REGULATION, DELIBERATE_PROVOCATION), targetAgentId, socialRegulationTendency derivation, interactingAgents gate, appendGoals routing. Deferred: distress trajectory enrichment, feature toggle, integration test
+- **#822 Per-strategy eval** ✅: PerStrategyRegulationEvalTest with CognitiveDefaultsRegistry wired into CognitionCoreTestBuilder. Key finding: scenarios must produce moderate-intensity emotions (≤0.75) to avoid high-intensity ATTENTIONAL_DEPLOYMENT override. SITUATION_MODIFICATION requires LLM free choice (predictor cannot pin it)
+- **#823 Per-modality eval** ✅: PerModalityRegulationEvalTest — 4 modality tests (fatigue, automatic concordance, monitoring escalation, proactive avoidance). Key findings: (1) Fatigue accumulation is a convergent geometric series (effort × 0.15 where effort decays with fatigue), not linear — 5 ticks = 0.30 fatigue, ~20 ticks needed for 0.7 override threshold. (2) CognitionCore.tick() API gap — RegulationContext was never passed through the pipeline, making both proactive read path and regulation MindMap write path dead code. Fixed with 7-arg tick() overload. (3) Monitor+fatigue combined effect: LLM responds to fatigue prompt by reducing effectiveness, which triggers the monitor's consecutive-decline signal earlier than pure fatigue threshold. (4) Predictor high-intensity override (>0.75) confounds concordance tests — observations must stay moderate
 - **#520 Pipeline observability** ✅ (all 6 tasks, 5 batches): Full pipeline dump infrastructure — PipelineTrace record, CognitionStateProvider SPI, PipelineSnapshotStore (InMemory + SQLite + contract tests), CAPS caching in BehavioralSynthesisPhase, CognitionCore implements SPI with tick capture, pipelineDump @PlatformQuery endpoint, CDI/Spring wiring, integration test. Key findings: dependency cycles through cognitive-index block PipelineTrace in cognitive-observability-api — relocated to cognition-api. CAPS settle() is consolidation-time only. Prompt section rendering requires NPE resilience for unconfigured optional participants. Follow-up: #894 pipeline coherence eval
 
 ### Other near-term
 - **#894 Pipeline coherence eval**: LLM-classified trace chain validation using CognitionTestHarness. Shame→suppression, curiosity→exploration, cross-tick trajectory, appraisal→channel weight coherence. Two-tier Haiku→Opus classification, gate ≥ 4.0.
-- **Proactive regulation** (#819): Situation selection before appraisal — emotional memory driving spatial avoidance
-- **Social regulation** (#805): Interpersonal strategies (confiding, provocation, withdrawal) — requires intrapersonal system as foundation
+
 - **CAPS integration** (#806): Encode stable regulation patterns as CAPS nodes for personality-consistent regulation without per-tick LLM calls
 
 ### Deferred

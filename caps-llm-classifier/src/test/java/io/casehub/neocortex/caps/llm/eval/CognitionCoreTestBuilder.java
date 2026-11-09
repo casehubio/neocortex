@@ -99,4 +99,15 @@ public final class CognitionCoreTestBuilder {
                 narrativeOrch, goals, noOpHygiene, innerLife, config,
                 mindMapStore, null, null, null, null, null, null, sessionPipeline);
     }
+
+    public static CognitionCore buildCore(CognitionConfig config, @Nullable SessionPipeline sessionPipeline,
+                                          io.casehub.neocortex.mindmap.@Nullable MindMapStore mindMapStore,
+                                          io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
+        var core = buildCore(config, sessionPipeline, mindMapStore);
+        if (defaultsRegistry != null) {
+            core.setDefaultsRegistry(defaultsRegistry);
+        }
+        return core;
+    }
+
 }

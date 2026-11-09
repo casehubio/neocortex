@@ -1,6 +1,7 @@
 package io.casehub.neocortex.cognition.core;
 
 import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.neocortex.cognition.regulation.RegulationContext;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
 import org.jspecify.annotations.Nullable;
 
@@ -11,19 +12,20 @@ public record CognitionTickContext(
         SubjectResolver resolver,
         @Nullable String observation,
         @Nullable AttentionBriefing briefing,
-        @Nullable String targetAgentId
+        @Nullable String targetAgentId,
+        @Nullable RegulationContext regulationContext
 ) {
     public CognitionTickContext(String agentId, String tenantId,
                                 @Nullable AgentDescriptor descriptor,
                                 SubjectResolver resolver) {
-        this(agentId, tenantId, descriptor, resolver, null, null, null);
+        this(agentId, tenantId, descriptor, resolver, null, null, null, null);
     }
 
     public CognitionTickContext(String agentId, String tenantId,
                                 @Nullable AgentDescriptor descriptor,
                                 SubjectResolver resolver,
                                 @Nullable String observation) {
-        this(agentId, tenantId, descriptor, resolver, observation, null, null);
+        this(agentId, tenantId, descriptor, resolver, observation, null, null, null);
     }
 
     public CognitionTickContext(String agentId, String tenantId,
@@ -31,6 +33,15 @@ public record CognitionTickContext(
                                 SubjectResolver resolver,
                                 @Nullable String observation,
                                 @Nullable AttentionBriefing briefing) {
-        this(agentId, tenantId, descriptor, resolver, observation, briefing, null);
+        this(agentId, tenantId, descriptor, resolver, observation, briefing, null, null);
+    }
+
+    public CognitionTickContext(String agentId, String tenantId,
+                                @Nullable AgentDescriptor descriptor,
+                                SubjectResolver resolver,
+                                @Nullable String observation,
+                                @Nullable AttentionBriefing briefing,
+                                @Nullable String targetAgentId) {
+        this(agentId, tenantId, descriptor, resolver, observation, briefing, targetAgentId, null);
     }
 }
