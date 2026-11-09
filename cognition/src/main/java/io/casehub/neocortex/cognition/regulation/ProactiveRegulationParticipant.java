@@ -22,7 +22,7 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
     private final CognitiveDefaultsRegistry defaultsRegistry;
     private final String cognitiveSubgraphId;
     private final ProactiveAvoidanceMode mode;
-    private final int decayHorizonTicks;
+    private final int decayTimeConstant;
     private final double tickIntervalSeconds;
 
     public ProactiveRegulationParticipant(MindMapStore mindMapStore,
@@ -30,14 +30,14 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
                                           CognitiveDefaultsRegistry defaultsRegistry,
                                           String cognitiveSubgraphId,
                                           ProactiveAvoidanceMode mode,
-                                          int decayHorizonTicks,
+                                          int decayTimeConstant,
                                           double tickIntervalSeconds) {
         this.mindMapStore = mindMapStore;
         this.goalOrchestrator = goalOrchestrator;
         this.defaultsRegistry = defaultsRegistry;
         this.cognitiveSubgraphId = cognitiveSubgraphId;
         this.mode = mode;
-        this.decayHorizonTicks = decayHorizonTicks;
+        this.decayTimeConstant = decayTimeConstant;
         this.tickIntervalSeconds = tickIntervalSeconds;
     }
 
@@ -81,8 +81,7 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
             if (timestampStr == null) continue;
             Instant episodeTime = Instant.parse(timestampStr);
             double elapsedTicks = Duration.between(episodeTime, now).toSeconds() / tickIntervalSeconds;
-            double decayWeight = 1.0 - (elapsedTicks / decayHorizonTicks);
-            if (decayWeight <= 0) continue;
+            double decayWeight = Math.exp(-elapsedTicks / decayTimeConstant);
 
             double effectiveness = parseDouble(props.get("effectiveness"));
             double avoidanceScore = (1.0 - effectiveness) * decayWeight;

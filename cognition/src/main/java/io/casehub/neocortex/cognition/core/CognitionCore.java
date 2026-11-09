@@ -805,11 +805,11 @@ public @Nullable String lastTargetAgentId() {
             io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
             String cognitiveSubgraphId,
             io.casehub.neocortex.cognition.regulation.ProactiveAvoidanceMode mode,
-            int decayHorizonTicks,
+            int decayTimeConstant,
             double tickIntervalSeconds) {
         this.proactiveRegulationParticipant = new io.casehub.neocortex.cognition.regulation.ProactiveRegulationParticipant(
                 mindMapStore, goalOrchestrator, defaultsRegistry,
-                cognitiveSubgraphId, mode, decayHorizonTicks, tickIntervalSeconds);
+                cognitiveSubgraphId, mode, decayTimeConstant, tickIntervalSeconds);
         addParticipant(CognitionPhase.FOUNDATION, this.proactiveRegulationParticipant);
     }
 
