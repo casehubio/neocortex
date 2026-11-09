@@ -5,7 +5,7 @@ date: 2026-11-09
 entry_type: article
 subtype: diary
 projects: [casehubio/neocortex]
-tags: [architecture, corpus, llm-agents, knowledge-management, web-capture, library-reuse]
+tags: [architecture, corpus, llm-agents, knowledge-management, web-capture, library-reuse, image-processing, human-in-the-loop]
 series: issue-763-cognitive-knowledge-management
 ---
 
@@ -70,10 +70,46 @@ The multi-agent property is what makes this work. A page that five independent a
 
 No scheduled curation review. No LLM judgment calls. The cache works like a browser cache scaled across agents — content that earns its place stays; content that doesn't, doesn't.
 
+## Images are documents too
+
+Text extraction captures the article. It does not capture the diagram that explains the architecture, the chart that shows the performance data, or the screenshot that documents the UI state. For many technical pages, the images carry as much information as the prose.
+
+The image capture pipeline is mechanical. Jsoup parses the raw HTML and extracts every `<img>` element. Each `src` attribute is resolved to an absolute URL — relative paths, protocol-relative URLs, all normalised against the page's base URL. A shared `HttpClient` fetches the image bytes. No Playwright needed, no browser rendering — the images are fetched directly from their source URLs.
+
+![Image capture pipeline — mechanical extraction + LLM description](svg/web-image-capture-pipeline.svg)
+
+The LLM enters only where mechanical processing cannot: describing what the image contains. An `ImageDescriber` SPI accepts image bytes and a MIME type, returns a text description. The description is injected into the positional markdown as an attribute on the `#@ figure:` annotation — the same structural annotation the HTML parser already places for images. A chunker that understands `#@` annotations gets the description for free.
+
+Each captured image becomes its own corpus entry, linked to the parent page via a `derived-from` relationship. The image entry's body is the LLM description; the original bytes are stored as an artifact reference. This means images are independently searchable. An agent searching for "architecture diagram showing three tiers" can find the image entry directly, without needing to retrieve the parent page first.
+
+Graceful degradation is the design principle. No `ImageDescriber` on the classpath? Images are stored without descriptions. Image fetch fails? That image is skipped, the rest proceed. The `ImageDescriber` throws? Description is null for that image, processing continues. Every failure mode falls through to the next step rather than blocking the pipeline. Text capture never depends on image capture succeeding.
+
+## The page behind the wall
+
+Not every URL returns content. Some return a login page. Some return a CAPTCHA. Some return a paywall notice. Some return a cookie consent modal that blocks the article. The failure mode is always the same: the agent fetched HTML, but the HTML isn't the content it wanted.
+
+The first instinct is detection heuristics. Scan the HTML for known CAPTCHA signatures — `g-recaptcha`, `cf-challenge`, "please verify you are a human." Build a library of patterns for each provider and maintain it as providers change their markup.
+
+This is the wrong approach. Detection heuristics are brittle (new providers, obfuscated markup, custom implementations), narrow (each pattern covers one provider), and prone to both false positives (a page that mentions CAPTCHAs in its text) and false negatives (a challenge the heuristics don't recognise). And the CAPTCHA framing misses the broader problem — login walls are more common than CAPTCHAs, and paywalls more common still.
+
+The agent is in a better position to judge. If it rendered the page through Playwright, it can see what a human would see. It doesn't need keyword matching to recognise a login form — it can read the page.
+
+![Intervention inbox — agent-driven human resolution](svg/web-intervention-inbox.svg)
+
+The intervention inbox is a general-purpose queue. An agent calls `requestIntervention(url, reason)` when it encounters any page that requires human action. The reason is free text: "Login required," "Cloudflare CAPTCHA," "Paywall — subscription needed," "Cookie consent blocking content." The queue doesn't parse the reason or try to categorise it. It stores the request and waits.
+
+A human resolves the barrier — logs in, solves the challenge, accepts cookies, whatever the page requires. The agent re-fetches through Playwright (now authenticated via session transfer), and calls `resolveIntervention(id, resolvedHtml)`. The resolved HTML flows through the normal web capture pipeline: parse, image extraction, store, index. The intervention is removed from the queue.
+
+The queue is in-memory — a `ConcurrentHashMap` with auto-expiry. Interventions are transient state, resolved in minutes. If the server restarts, pending interventions are lost, and the agent re-fetches. This is the correct durability level for ephemeral requests. Expired entries are evicted on access — no background thread, no scheduled cleanup, no database table for state that lives less than ten minutes.
+
+The key architectural insight: no detection, no classification, no heuristic maintenance. The agent decides when it needs help. The queue doesn't care why. This means the same three MCP tools — `requestIntervention`, `pendingInterventions`, `resolveIntervention` — handle every barrier type that exists today and every type that will exist tomorrow. The extensibility is in the agent's judgment, not in the platform's pattern library.
+
 ## What grows from this
 
 A knowledge system that accumulates from use changes what's possible for multi-agent research. Each session's web research becomes available to every future session. Topics that multiple agents investigate build rich, deduplicated coverage over time. The corpus doesn't just store what someone put in it — it grows from the collective activity of every agent that uses it.
 
-The practical architecture is five components: an HTML parser built on established extraction libraries, a store with URL dedup and TTL-aware versioning, an MCP tool that makes the cache invisible to the agent, optional PDF archiving for visual fidelity, and access-renewal curation that keeps the useful and evicts the noise.
+The practical architecture is seven components: an HTML parser built on established extraction libraries, a store with URL dedup and TTL-aware versioning, an MCP tool that makes the cache invisible to the agent, optional PDF archiving for visual fidelity, access-renewal curation that keeps the useful and evicts the noise, image extraction that captures the visual content alongside the text, and an intervention inbox that lets humans unblock what agents cannot access alone.
+
+The system works because each component degrades gracefully. No image describer? Text capture works. No intervention queue? Direct fetch works. No parser module? Raw HTML is stored. Each capability enriches the pipeline when present and disappears without trace when absent. The SPI boundaries are not abstraction for its own sake — they are the mechanism that lets the pipeline run in configurations from minimal (fetch and store) to full (parse, extract images, describe, archive PDF, track access, curate by TTL, queue human interventions).
 
 An agent that calls `webCapture(url)` doesn't know or care whether the content comes from the network or the corpus. That's the point. The cache is an implementation detail. The knowledge persistence is the feature.

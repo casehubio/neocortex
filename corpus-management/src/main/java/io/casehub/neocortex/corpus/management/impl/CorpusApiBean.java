@@ -28,6 +28,8 @@ public class CorpusApiBean implements CorpusApi {
     private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
     private final WebCaptureService webCaptureService;
     private final HtmlToMarkdownParser htmlParser;
+    private final WebImageProcessor imageProcessor;
+    private final InterventionQueue interventionQueue;
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -43,7 +45,7 @@ public class CorpusApiBean implements CorpusApi {
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService) {
         this(searchResource, indexService, reindexService, profileStore, provenanceStore,
-             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, null);
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, null, null, null);
     }
 
     public CorpusApiBean(SearchResource searchResource,
@@ -57,6 +59,39 @@ public class CorpusApiBean implements CorpusApi {
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
                          HtmlToMarkdownParser htmlParser) {
+        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, htmlParser, null, null);
+    }
+
+    public CorpusApiBean(SearchResource searchResource,
+                         CorpusIndexService indexService,
+                         GardenReindexService reindexService,
+                         SearchProfileStore profileStore,
+                         ProvenanceStore provenanceStore,
+                         CorpusOutcomeService outcomeService,
+                         CorpusRef corpusRef,
+                         Path corpusRoot,
+                         CorpusEntryStore entryStore,
+                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
+                         HtmlToMarkdownParser htmlParser,
+                         WebImageProcessor imageProcessor) {
+        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, htmlParser, imageProcessor, null);
+    }
+
+    public CorpusApiBean(SearchResource searchResource,
+                         CorpusIndexService indexService,
+                         GardenReindexService reindexService,
+                         SearchProfileStore profileStore,
+                         ProvenanceStore provenanceStore,
+                         CorpusOutcomeService outcomeService,
+                         CorpusRef corpusRef,
+                         Path corpusRoot,
+                         CorpusEntryStore entryStore,
+                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
+                         HtmlToMarkdownParser htmlParser,
+                         WebImageProcessor imageProcessor,
+                         InterventionQueue interventionQueue) {
         this.searchResource    = searchResource;
         this.indexService      = indexService;
         this.reindexService    = reindexService;
@@ -69,7 +104,34 @@ public class CorpusApiBean implements CorpusApi {
         this.sessionService    = sessionService;
         this.webCaptureService = new WebCaptureService(entryStore);
         this.htmlParser        = htmlParser;
+        this.imageProcessor    = imageProcessor;
+        this.interventionQueue = interventionQueue;
     }
+
+    CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef,
+                  HtmlToMarkdownParser htmlParser, WebImageProcessor imageProcessor) {
+        this(entryStore, corpusRef, htmlParser, imageProcessor, null);
+    }
+
+    CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef,
+                  HtmlToMarkdownParser htmlParser, WebImageProcessor imageProcessor,
+                  InterventionQueue interventionQueue) {
+        this.searchResource     = null;
+        this.indexService       = null;
+        this.reindexService     = null;
+        this.profileStore       = null;
+        this.provenanceStore    = null;
+        this.outcomeService     = null;
+        this.corpusRef          = corpusRef;
+        this.corpusRoot         = null;
+        this.entryStore         = entryStore;
+        this.sessionService     = null;
+        this.webCaptureService  = new WebCaptureService(entryStore);
+        this.htmlParser         = htmlParser;
+        this.imageProcessor     = imageProcessor;
+        this.interventionQueue  = interventionQueue;
+    }
+
 
     @Override
     public List<SearchResult> search(String corpusId, String query,
@@ -527,7 +589,7 @@ public class CorpusApiBean implements CorpusApi {
                     entry.stringField("title"),
                     entry.body(),
                     entry.stringField(WebCaptureMetadata.FETCHED_AT),
-                    true);
+                    true, 0, null, null);
         }
 
         String content;
@@ -560,6 +622,15 @@ public class CorpusApiBean implements CorpusApi {
 
         String markdown = htmlParser != null ? htmlParser.parse(content, url) : content;
 
+        int imageCount = 0;
+        ImageProcessingResult imageResult = ImageProcessingResult.EMPTY;
+        if (imageProcessor != null) {
+            imageResult = imageProcessor.process(content, url);
+            if (!imageResult.images().isEmpty()) {
+                markdown = imageProcessor.enrichMarkdown(markdown, imageResult);
+            }
+        }
+
         String title = null;
         if (htmlParser != null) {
             int titleEnd = markdown.indexOf('\n');
@@ -574,9 +645,78 @@ public class CorpusApiBean implements CorpusApi {
         var result = webCaptureService.capture(corpusRef, url, markdown,
                 httpStatus, contentType, "mcp-tool", ttl, artifactRef, "corpus-api");
 
+        for (int i = 0; i < imageResult.images().size(); i++) {
+            CapturedImage img = imageResult.images().get(i);
+            String imageEntryId = "wci-" + result.entryId() + "-" + i;
+
+            java.util.Map<String, Object> imgMeta = new java.util.LinkedHashMap<>();
+            imgMeta.put("domain", "web-cache-image");
+            imgMeta.put("source_url", img.sourceUrl());
+            imgMeta.put("parent_url", url);
+            imgMeta.put("parent_entry_id", result.entryId());
+            imgMeta.put("alt_text", img.altText());
+            imgMeta.put("mime_type", img.mimeType());
+            imgMeta.put("fetched_at", java.time.Instant.now().toString());
+
+            String body = img.description() != null ? img.description() : img.altText();
+            var imageEntry = new CorpusEntry(imageEntryId, imgMeta, body, null);
+            entryStore.add(corpusRef, imageEntry, "corpus-api");
+
+            entryStore.addRelationship(corpusRef, imageEntryId,
+                    result.entryId(), "derived-from", "corpus-api");
+            imageCount++;
+        }
+
         return new WebCaptureResult(result.entryId(), url, title, markdown,
-                java.time.Instant.now().toString(), false);
+                java.time.Instant.now().toString(), false, imageCount, null, null);
     }
+
+    @Override
+    public InterventionResult requestIntervention(String corpusId, String url,
+                                                  String reason, String screenshotRef) {
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("url is required");
+        }
+        if (interventionQueue == null) {
+            throw new UnsupportedOperationException("Intervention queue not configured");
+        }
+        var request = interventionQueue.submit(url, reason, screenshotRef);
+        return new InterventionResult(request.id(), request.url(), request.reason(),
+                                      request.screenshotRef(), request.submittedAt().toString());
+    }
+
+    @Override
+    public java.util.List<InterventionResult> pendingInterventions(String corpusId) {
+        if (interventionQueue == null) {
+            return java.util.List.of();
+        }
+        return interventionQueue.pending().stream()
+                                .map(r -> new InterventionResult(r.id(), r.url(), r.reason(),
+                                                                 r.screenshotRef(), r.submittedAt().toString()))
+                                .toList();
+    }
+
+    @Override
+    public WebCaptureResult resolveIntervention(String corpusId, String interventionId,
+                                                String resolvedHtml, Integer ttlDays,
+                                                String artifactRef) {
+        if (interventionQueue == null) {
+            return new WebCaptureResult(null, null, null, null, null, false, 0,
+                                        interventionId, "Intervention queue not configured");
+        }
+        var resolved = interventionQueue.resolve(interventionId);
+        if (resolved.isEmpty()) {
+            return new WebCaptureResult(null, null, null, null, null, false, 0,
+                                        interventionId, "Intervention not found or expired");
+        }
+        var request       = resolved.get();
+        var captureResult = webCapture(corpusId, request.url(), resolvedHtml, ttlDays, artifactRef);
+        return new WebCaptureResult(captureResult.entryId(), captureResult.url(),
+                                    captureResult.title(), captureResult.body(), captureResult.fetchedAt(),
+                                    captureResult.cached(), captureResult.imageCount(),
+                                    interventionId, null);
+    }
+
 
     private static String[] parseIssueRef(String issueRef) {
         int hashIndex = issueRef.lastIndexOf('#');

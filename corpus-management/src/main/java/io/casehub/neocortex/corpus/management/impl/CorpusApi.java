@@ -176,4 +176,21 @@ public interface CorpusApi {
     WebCaptureResult webCapture(@ContextParam("corpusId") String corpusId, String url,
                                 String html, Integer ttlDays, String artifactRef);
 
+    @PlatformMutation("Request human intervention for a URL that requires manual action "
+                      + "(CAPTCHA, login, paywall, cookie wall). Returns an intervention ID. "
+                      + "The agent should present the URL and reason to the human, wait for resolution, "
+                      + "then call resolveIntervention with the post-resolution HTML.")
+    InterventionResult requestIntervention(@ContextParam("corpusId") String corpusId,
+                                           String url, String reason, String screenshotRef);
+
+    @PlatformQuery("List pending interventions that are waiting for human resolution.")
+    java.util.List<InterventionResult> pendingInterventions(@ContextParam("corpusId") String corpusId);
+
+    @PlatformMutation("Resolve a pending intervention with post-resolution HTML. "
+                      + "Processes the HTML through the normal web capture pipeline "
+                      + "(parse, image capture, store). Returns the web capture result. "
+                      + "Returns an error if the intervention has expired or is not found.")
+    WebCaptureResult resolveIntervention(@ContextParam("corpusId") String corpusId,
+                                         String interventionId, String resolvedHtml,
+                                         Integer ttlDays, String artifactRef);
 }
