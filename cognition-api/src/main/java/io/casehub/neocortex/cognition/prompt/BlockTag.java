@@ -10,6 +10,7 @@ public enum BlockTag {
     // Tier 2 — State (how you feel right now)
     MOOD(200),
     DRIVES(210),
+    CURIOSITY(215),
     APPRAISAL(220),
     NEEDS(230),
 
@@ -24,6 +25,7 @@ public enum BlockTag {
     // Tier 4 — Strategy (what you're trying to do)
     GOALS(400),
     STRATEGY(410),
+    SEARCH_BUDGET(415),
     ATTENTION(420),
     TEMPORAL(430),
 

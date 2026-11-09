@@ -2,9 +2,9 @@ package io.casehub.neocortex.cognition.regulation;
 
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.RegulationDefaults;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,152 +17,118 @@ public class RegulationStrategyPredictor {
     static final double HIGH_INTENSITY_THRESHOLD = 0.75;
     static final double ALIGNED_EFFECTIVENESS = 0.55;
     static final double MISALIGNED_EFFECTIVENESS = 0.35;
+    static final double REAPPRAISAL_THRESHOLD    = 0.65;
+    static final double SUPPRESSION_THRESHOLD    = 0.65;
+    static final double DOMINANCE_MARGIN         = 0.10;
+    static final double VIABLE_REAPPRAISAL       = 0.40;
+    static final double VIABLE_ALTERNATIVE       = 0.45;
+    static final double OVERWHELMING_DOMINANCE   = 0.30;
+
 
     public RegulationStrategyPredictor() {}
 
-    public Optional<RegulationPrediction> predict(DispositionAxes axes,
-                                                   EmotionType dominantEmotion,
-                                                   double peakIntensity,
-                                                   double regulationFatigue,
-                                                   @Nullable CognitiveLoadLevel cognitiveLoad) {
-        // Petter 2025: high fatigue forces low-cost strategy regardless of personality
+    public Optional<RegulationPrediction> predict(RegulationDefaults rd,
+                                                  DispositionAxes axes,
+                                                  EmotionType dominantEmotion,
+                                                  double peakIntensity,
+                                                  double regulationFatigue,
+                                                  @Nullable CognitiveLoadLevel cognitiveLoad) {
         if (regulationFatigue > 0.7) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.85, MISALIGNED_EFFECTIVENESS));
         }
-
-        // Petter 2025: high intensity overwhelms cognitive capacity → distraction
         if (peakIntensity > HIGH_INTENSITY_THRESHOLD) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.80, ALIGNED_EFFECTIVENESS));
         }
-
-        // Petter 2025: high cognitive load constrains to low-cost strategies
         if (cognitiveLoad == CognitiveLoadLevel.HIGH) {
             var strategy = predictUnderHighLoad(axes);
             return Optional.of(new RegulationPrediction(strategy, 0.75, ALIGNED_EFFECTIVENESS));
         }
-
-        // Emotion-type × personality prediction
-        return predictFromEmotionAndPersonality(axes, dominantEmotion);
+        if (rd == null) {
+            return Optional.empty();
+        }
+        return predictFromCapacities(rd, axes, dominantEmotion);
     }
 
-    // Petter 2025 + OCC: emotion type encodes controllability, personality selects within
-    Optional<RegulationPrediction> predictFromEmotionAndPersonality(
-            DispositionAxes axes, EmotionType emotion) {
+    Optional<RegulationPrediction> predictFromCapacities(
+            RegulationDefaults rd, DispositionAxes axes, EmotionType emotion) {
         return switch (emotionCategory(emotion)) {
-            case CONTROLLABLE_NEGATIVE -> predictForControllableNegative(axes);
-            case UNCONTROLLABLE_NEGATIVE -> predictForUncontrollableNegative(axes);
-            case SELF_CONSCIOUS -> predictForSelfConscious(axes);
-            case OTHER_DIRECTED -> predictForOtherDirected(axes);
+            case CONTROLLABLE_NEGATIVE -> predictControllableFromCapacities(rd, axes);
+            case UNCONTROLLABLE_NEGATIVE -> Optional.of(new RegulationPrediction(
+                    EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.80, ALIGNED_EFFECTIVENESS));
+            case SELF_CONSCIOUS -> predictSelfConsciousFromCapacities(rd, axes);
+            case OTHER_DIRECTED -> predictOtherDirectedFromCapacities(rd, axes);
             case POSITIVE, UNKNOWN -> Optional.empty();
         };
     }
 
-    // ANGER, HATE, RESENTMENT — agent believes they can act on this
-    // Judge findings across 3 runs:
-    //   - Reappraiser + CC: 5/5 consistently (optimal)
-    //   - Pure suppressor + RM: 3-4/5 (personality-congruent, judge notes CC more adaptive)
-    //   - Competitive+avoidant + CC: 2/5 (personality can't execute — low autonomy blocks reframing)
-    //   - Competitive+avoidant + RM: 3/5 run 1 (congruent but risks escalation)
-    //   - Mild reappraiser + CC: 3/5 (personality lacks levers to power reframing)
-    //
-    // Rule: only predict what the personality can EXECUTE, not what's theoretically optimal.
-    // CC requires reappraisal capacity (3+ signals). RM requires suppression tolerance.
-    // Conflicted or underpowered personalities fall through to LLM.
-    private Optional<RegulationPrediction> predictForControllableNegative(DispositionAxes axes) {
-        if (isReappraiser(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, ALIGNED_EFFECTIVENESS));
+    private Optional<RegulationPrediction> predictControllableFromCapacities(
+            RegulationDefaults rd, DispositionAxes axes) {
+        var dominant = dominantAboveThreshold(
+                rd.reappraisalCapacity(), EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                rd.suppressionCapacity(), EmotionRegulationStrategy.RESPONSE_MODULATION,
+                REAPPRAISAL_THRESHOLD, SUPPRESSION_THRESHOLD, DOMINANCE_MARGIN);
+        if (dominant == null) {return Optional.empty();}
+        if (dominant == EmotionRegulationStrategy.RESPONSE_MODULATION) {
+            if (hasCompetitiveAvoidantConflict(axes)) return Optional.empty();
+            if (rd.reappraisalCapacity() >= VIABLE_REAPPRAISAL) return Optional.empty();
         }
-        if (isSuppressor(axes) && !hasCompetitiveAvoidantConflict(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.70, ALIGNED_EFFECTIVENESS));
+        if (dominant == EmotionRegulationStrategy.COGNITIVE_CHANGE) {
+            double maxAlt = Math.max(rd.suppressionCapacity(), rd.redirectTendency());
+            if (maxAlt >= VIABLE_ALTERNATIVE
+                    && rd.reappraisalCapacity() - maxAlt < OVERWHELMING_DOMINANCE) {
+                return Optional.empty();
+            }
         }
-        return Optional.empty();
+        return Optional.of(new RegulationPrediction(dominant, 0.70, ALIGNED_EFFECTIVENESS));
     }
 
-    // FEAR, DISTRESS, FEARS_CONFIRMED — agent feels powerless
-    // Almost universal → AD (redirect from threat source)
-    private Optional<RegulationPrediction> predictForUncontrollableNegative(DispositionAxes axes) {
-        return Optional.of(new RegulationPrediction(
-                EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.80, ALIGNED_EFFECTIVENESS));
-    }
-
-    // SHAME, REMORSE — self-attribution, failed own standards
-    // Judge findings across 7 runs for shame:
-    //   RM: 2-3 consistently ("shame festers when suppressed")
-    //   CC: 5 for reappraisers, 2-3 for suppressors (can't execute)
-    //   AD: 3 consistently ("avoidance reflex, second-choice")
-    //
-    // Shame is self-evaluative — the only healthy regulation is engaging with
-    // the self-evaluation (CC). Suppressors can't execute CC. No strategy
-    // scores 4+ for suppressor+shame across 7 runs. Only reappraisers can
-    // mechanically regulate shame.
-    private Optional<RegulationPrediction> predictForSelfConscious(DispositionAxes axes) {
-        if (isReappraiser(axes)) {
+    private Optional<RegulationPrediction> predictSelfConsciousFromCapacities(RegulationDefaults rd, DispositionAxes axes) {
+        if (rd.reappraisalCapacity() >= REAPPRAISAL_THRESHOLD) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, ALIGNED_EFFECTIVENESS));
         }
-        return Optional.empty();
-    }
-
-    // REPROACH, DISAPPOINTMENT, PITY — other failed the agent's standards
-    // Avoidant → RM (suppress visible judgment)
-    // Analytical → CC (reframe other's behavior)
-    private Optional<RegulationPrediction> predictForOtherDirected(DispositionAxes axes) {
-        if (isSuppressor(axes)) {
+        // Nathanson 1992 compass of shame: avoidant personalities withdraw from shame
+        if (axes != null && "avoidant".equals(axes.conflictMode())) {
             return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.RESPONSE_MODULATION, 0.70, ALIGNED_EFFECTIVENESS));
-        }
-        if (isReappraiser(axes)) {
-            return Optional.of(new RegulationPrediction(
-                    EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.65, ALIGNED_EFFECTIVENESS));
+                    EmotionRegulationStrategy.SITUATION_SELECTION, 0.75, ALIGNED_EFFECTIVENESS));
         }
         return Optional.empty();
     }
 
-    // Competitive + avoidant: engagement drive conflicts with avoidance drive.
-    // Judge scored RM at 3/5 — "risks passive-aggressive escalation."
+    private Optional<RegulationPrediction> predictOtherDirectedFromCapacities(
+            RegulationDefaults rd, DispositionAxes axes) {
+        var dominant = dominantAboveThreshold(
+                rd.suppressionCapacity(), EmotionRegulationStrategy.RESPONSE_MODULATION,
+                rd.reappraisalCapacity(), EmotionRegulationStrategy.COGNITIVE_CHANGE,
+                SUPPRESSION_THRESHOLD, REAPPRAISAL_THRESHOLD, DOMINANCE_MARGIN);
+        if (dominant == null) {return Optional.empty();}
+        return Optional.of(new RegulationPrediction(dominant, 0.70, ALIGNED_EFFECTIVENESS));
+    }
+
+    static @Nullable EmotionRegulationStrategy dominantAboveThreshold(
+            double capacityA, EmotionRegulationStrategy strategyA,
+            double capacityB, EmotionRegulationStrategy strategyB,
+            double thresholdA, double thresholdB, double margin) {
+        boolean aAbove = capacityA >= thresholdA;
+        boolean bAbove = capacityB >= thresholdB;
+        if (aAbove && bAbove) {
+            if (capacityA - capacityB >= margin) {return strategyA;}
+            if (capacityB - capacityA >= margin) {return strategyB;}
+            return null;
+        }
+        if (aAbove) {return strategyA;}
+        if (bAbove) {return strategyB;}
+        return null;
+    }
+
+
     private boolean hasCompetitiveAvoidantConflict(DispositionAxes axes) {
         boolean competitive = "competitive".equals(axes.conflictMode())
                 || "competitive".equals(axes.socialOrient());
         boolean avoidant = "avoidant".equals(axes.conflictMode());
         return competitive && avoidant;
-    }
-
-    // Coherence check: a personality is predictable only when its signals point
-    // one direction. Mixed signals (suppressor traits + CC-enabling traits) produce
-    // judge scores of 2-3 because the resolution depends on situational nuance.
-    boolean isSuppressor(DispositionAxes axes) {
-        return suppressorSignals(axes) >= 3 && ccEnablingSignals(axes) < 2;
-    }
-
-    boolean isReappraiser(DispositionAxes axes) {
-        return ccEnablingSignals(axes) >= 3 && suppressorSignals(axes) < 2;
-    }
-
-    private int suppressorSignals(DispositionAxes axes) {
-        int signals = 0;
-        if ("avoidant".equals(axes.conflictMode())) signals += 2;
-        if ("conservative".equals(axes.riskAppetite())) signals++;
-        if ("competitive".equals(axes.conflictMode())) signals++;
-        if ("competitive".equals(axes.socialOrient())) signals++;
-        return signals;
-    }
-
-    // Traits the judge consistently identifies as enabling cognitive reappraisal
-    private int ccEnablingSignals(DispositionAxes axes) {
-        int signals = 0;
-        if ("analytical".equals(axes.conflictMode())) signals += 2;
-        if ("strict".equals(axes.ruleFollowing())) signals++;
-        if ("cooperative".equals(axes.socialOrient())) signals++;
-        if ("cooperative".equals(axes.conflictMode())) signals++;
-        if ("high".equals(axes.autonomy())) signals++;
-        if ("bold".equals(axes.riskAppetite())) signals++;
-        if ("flexible".equals(axes.ruleFollowing())) signals++;
-        if ("independent".equals(axes.socialOrient())) signals++;
-        return signals;
     }
 
     private static EmotionRegulationStrategy predictUnderHighLoad(DispositionAxes axes) {

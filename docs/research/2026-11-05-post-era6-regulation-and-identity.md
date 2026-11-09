@@ -1,6 +1,6 @@
-# Post-Era 6: Regulation, Identity, and Pipeline Completion
+# Post-Era 6: Regulation, Identity, Search Budget, and Pipeline Completion
 
-**Period:** 2026-11-01 → 2026-11-05
+**Period:** 2026-11-01 → 2026-11-08
 **Status:** Standalone gap document — to be incorporated into era 7 when that era is defined
 **Predecessor:** Era 6 — Cognitive Memory Architecture (Phase 3 completed 2026-11-01)
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Era 6 completed the three-layer memory architecture (leaf/derived/hot-read) on 2026-11-01. The work that followed falls into five distinct streams, all advancing in parallel across ~130 commits. The dominant stream — intrapersonal emotion regulation — is arguably era-scale in itself: a complete Gross 1998 process model implementation with Bosse 2010 fatigue dynamics, Petter 2025 personality correlations, and mechanical prediction fallback.
+Era 6 completed the three-layer memory architecture (leaf/derived/hot-read) on 2026-11-01. The work that followed falls into eight distinct streams, all advancing in parallel across ~160 commits. Three streams are arguably era-scale: intrapersonal emotion regulation (Gross 1998 process model with Bosse 2010 fatigue and Petter 2025 personality correlations), the cognitive search budget (a general model for personality-shaped effort allocation grounded in Guilford 1967, DeYoung 2015, Frijda 1986, and Pirolli & Card 1999), and the recurring thought continuum (curiosity → fixation → obsession → rumination as a unified mechanism grounded in Nolen-Hoeksema 1991, Ehring & Watkins 2008, and Litman 2008).
 
 ## Stream 1: Intrapersonal Emotion Regulation
 
@@ -42,7 +42,7 @@ The predictor (#818) provides a **strategy constraint** to the LLM generation ph
 
 The predictor uses categorical DispositionAxes values (set membership, not keyword matching) combined with OCC emotion type to determine strategy. Emotion type encodes controllability: ANGER = controllable (agent can act), FEAR = uncontrollable (agent is powerless), SHAME = self-evaluative (failed own standards), REPROACH = other-directed (someone else failed). Contextual overrides handle extreme states: high intensity → attentional deployment, high cognitive load → low-cost strategies only, high fatigue → attentional deployment.
 
-**Quality gate:** LLM-judge plausibility scoring. Floor: 4/5, Mean: 4.6/5, Gate: 4.0. Distribution: [4, 5, 4, 5, 5] across 5 scored predictions, 3 documented fall-throughs. See findings below.
+**Quality gate:** LLM-judge plausibility scoring. Phase 2 (calibrated): Mean: 4.4/5, Shame depth: 5.0/5, Gate: 4.0. 11 cases (8 original + 3 shame-specific). 8 of 11 cases stable 4+. Three boundary cases (mixed-anger, compounding-shame, suppressor-shame) swing 3-4 across runs — under investigation.
 
 ### Cascade dynamics
 
@@ -130,6 +130,133 @@ Domain abstraction audit (#785) validated corpus-management as genuinely domain-
 - **Spatial provider fix** (#777): Shared `Coordinates` type between connectors-api and location-spi
 - **SubThought cleanup** (#492): Stale accumulation cleanup in `SubThoughtConsolidationPhase`
 
+## Stream 1 Continuation: Regulation Predictor Quality (#830)
+
+**Issues:** #830, #820
+**Dates:** 2026-11-06 → 2026-11-07
+**Literature:** Barańczuk 2019 (meta-analysis), Hughes et al. 2020, Webb et al. 2012, Nathanson 1992, Yang et al. 2025
+**Blog:** "When Personality Isn't Enough" (2026-11-05), "When the Predictor Lets Go" (2026-11-06), "The Weight of Evidence" (2026-11-07)
+
+### Phase 1: LLM guidance for predictor fall-throughs (complete)
+
+Two conditional sections added to `EmotionRegulationGenerationPhase.buildUserMessage()` when the predictor returns `Optional.empty()`:
+
+1. **Disposition axes injection** — the LLM receives the five personality axes with explicit "predictor did not pin a strategy" framing
+2. **Self-conscious emotion guidance** — when dominant emotion is SHAME/REMORSE, the LLM receives literature-grounded temporal containment guidance (Webb 2012, Nathanson 1992, Yang 2025)
+
+**End-to-end eval results** (new `RegulationEndToEndEvalTest` — runs full predictor → LLM → judge pipeline):
+
+| Metric | Baseline (predictor-only) | Phase 1 (end-to-end) |
+|--------|--------------------------|---------------------|
+| Cases scored | 5 of 8 | 8 of 8 |
+| Strategy mean | 5.0 (pinned only) | 4.4 (all cases) |
+| Fall-through mean | not measured | 3.7 |
+| Temporal containment | not measured | 5.0 |
+
+Phase 1 proved: (a) the LLM with personality context handles fall-throughs reasonably, (b) temporal containment for suppressor-shame works, (c) mixed-anger (3) is the weakest case — signal for Phase 2.
+
+### Phase 2: Continuous weights + shame dimensions (implemented + calibrated)
+
+Full literature review at `docs/research/2026-11-07-regulation-continuous-weights-literature-review.md`. Boolean `isSuppressor`/`isReappraiser` classification removed entirely. Three-layer architecture:
+
+**Layer 1 — CDE RegulationDefaults:** `deriveRegulationDefaults(DispositionAxes)` produces continuous `(reappraisalCapacity, suppressionCapacity, redirectTendency)` from Barańczuk 2019 meta-analytic correlations. Weight tables calibrated post-eval: avoidant→suppression reduced 0.25→0.10 (avoidant redirects, doesn't suppress well per N→suppression r=0.09), flexible→reappraisal increased 0.10→0.15 (Openness r=0.20), flexible→redirect inverted +0.05→-0.10 (flexibility = approach, not avoidance).
+
+**Layer 2 — ShameContext:** Assembled per-tick for SELF_CONSCIOUS emotions. Three dimensions: memory compounding (episode count), relational closeness (person overlay), personality-gated depth (grandiosity × callousness).
+
+**Layer 3 — Interpretive rendering:** Capacity summary + ShameContext sections + controllable-emotion temporal staging + surface-level RM pin.
+
+**Calibration discoveries:**
+- **Viable alternative threshold (0.40):** For controllable negative emotions, don't pin RM when personality has reappraisalCapacity >= 0.40. Prevents forcing suppression when reappraisal is viable.
+- **Temporal staging:** Avoidant personalities with reappraisal capacity regulate in sequence: impulse management first (personality-congruent avoidance), then cognitive flexibility engages for sustained reappraisal. Fixed incoherent-anger from 3→4.
+- **Surface-level RM pin:** When grandiosity >= 0.7 AND callousness >= 0.7, override to RM. The judge consistently scored CC at 2-3 because externalization is modulation, not genuine reappraisal. Fixed surface-shame from 2→5.
+- **Variance as signal:** Cases scoring 5 (suppressor-anger, reappraiser-anger, anyone-fear, reappraiser-shame) NEVER vary across 6 runs. Cases scoring 3-4 ALWAYS vary. Variance indicates the model boundary, not noise.
+
+**End-to-end eval (post-calibration, 6 runs):**
+
+| Metric | Phase 1 | Phase 2 (calibrated) |
+|--------|---------|---------------------|
+| Cases scored | 8 | 11 (3 shame-specific added) |
+| Strategy mean | 4.4 | 4.4 |
+| Shame depth | — | 5.0 |
+| Floor | 3 (mixed-anger) | 3 (boundary cases) |
+| Stable 4+ cases | 5 of 8 | 8 of 11 |
+
+**Remaining boundary (3-4 across runs):** mixed-anger ("betrayal resists reappraisal"), compounding-shame ("serial suppression failing"), suppressor-shame ("AD viable over RM"). Filed #844 for regulation prediction feedback loop.
+
+## Stream 6: Cognitive Search Budget
+
+**Issues:** #825, #544, #784
+**Commits:** ~12 across neocortex
+**Literature:** Guilford 1967, De Bono 1970, DeYoung 2015, Frijda 1986, Charnov 1976, Pirolli & Card 1999, Mischel & Shoda 1995, Davis & Nolen-Hoeksema 1998, Schmidt & DeShon 2007, Louro et al. 2007, Anthropic 2026
+**Blog:** "How Much Should an Agent Think?" (2026-11-05)
+**Design spec:** `specs/issue-765-cognitive-richness/2026-11-05-cognitive-search-budget-design.md` (8 decisions, 22 references)
+
+### The problem
+
+Multiple cognitive subsystems produce motivation intensity (curiosity, goal pursuit, threat response, competence drive, relational obligation). There was no general model converting that intensity into a search envelope the LLM operates within. A cautious agent and a bold one approach the same information gap identically — no personality-shaped exploration style.
+
+### What was built
+
+A 4-dimensional search budget model that converts motivation intensity into a personality-shaped exploration envelope. The four parameters — breadth, laterality, depth, convergence pressure — are each orthogonal, independently grounded in the literature, and driven by distinct personality traits.
+
+| Component | Module | What it does |
+|-----------|--------|-------------|
+| `SearchBudgetConfig` | cognitive-api | 10-field per-parameter logistic activation tuning with `defaults()` factory |
+| `SearchMotivation` enum | cognition-api | 6-value source enum (CURIOSITY, COMPETENCE, AFFILIATION, AUTONOMY, THREAT, GOAL) with `fromDriveAxis()` |
+| `SearchBudget` record | cognition-api | 4D envelope: breadth, laterality, depth, convergence + source + timestamp |
+| `BlockTag.SEARCH_BUDGET(415)` | cognition-api | Strategy tier, between STRATEGY(410) and ATTENTION(420) |
+| `deriveSearchBudgetDefaults()` | cognitive-index (CDE) | PID-5 facets + DispositionAxes → personality-derived config baseline |
+| `CognitiveDefaults` field 18 | cognitive-index | `searchBudgetConfig` with `withSearchBudgetConfig()` builder |
+| `SearchBudgetTickParticipant` | cognition | DERIVED-phase participant computing numeric budget from personality baseline + transient state |
+| `SearchBudgetPromptSection` | cognition | Renders from crystallised prose + fallback per-motivation programmatic rendering |
+| `CognitionCore.configureSearchBudget()` | cognition | Wires participant + section, registers after appraisal + gut feeling for ordering |
+| `SearchBudgetDescriptionGenerationPhase` | mindmap-intelligence | @Priority(28) LLM prose crystallisation following DriveDescriptionGenerationPhase pattern |
+
+### Architecture: two-layer pattern
+
+Follows the established consolidation + tick pattern. Layer 1 (consolidation, background): LLM generates contextual cognitive-state prose describing the agent's default search disposition, crystallises to MindMap COGNITIVE subgraph. Layer 2 (tick, per-interaction): participant computes numeric budget from CDE-derived personality baseline + transient state (drives, mood, appraisal, gut feeling). Prompt section renders from modulated result + crystallised prose.
+
+### Key design decisions (all literature-grounded)
+
+**D1 — Four orthogonal parameters:** Guilford (1967) measures fluency (breadth) and flexibility (laterality) as independent cognitive operations. Depth and convergence are independent because fixation (depth=∞, convergence=never) requires them to vary independently.
+
+**D3 — No custom composition:** The search budget reads already-composed outputs from upstream subsystems. CAPS connectionist resolution (Mischel & Shoda 1995), Frijda's control precedence (1986), and Schmidt & DeShon's discrepancy-based resource allocation (2007) are all already implemented in the drive, appraisal, and goal subsystems.
+
+**D4 — PID-5 facets, not Big Five:** The derivation chain maps from PID-5 facets (Risk Taking, Impulsivity, Withdrawal, Suspiciousness, Anxiousness, Emotional Lability) and DispositionAxes directly. Big Five trait names serve as theoretical grounding but the operational pathway never constructs synthetic Big Five scores. Follows the pattern of `CognitiveDerivationEngine.deriveExpressionStyles()`.
+
+**D5 — Per-parameter activation functions:** Logistic (sigmoid) for breadth and depth (appetitive, smoothly graded). Logistic with threat-collapse floor for laterality (Frijda approach/avoidance). Piecewise with pathological floor for convergence (Davis & Nolen-Hoeksema perseveration). Different shapes for different dynamics, following CapsSettler's BIPOLAR/UNIPOLAR precedent.
+
+**D6 — Consolidation + tick rendering:** LLM generates prose at consolidation time (personality baseline changes slowly). Tick-time participant computes numeric values independently. Prompt section combines. Style grounded in Anthropic "Functional Emotions" (2026): cognitive state descriptions causally influence LLM behavior through internal representations.
+
+### Derivation chain (personality → budget parameters)
+
+| Parameter | Trait baseline (CDE) | Dynamic modulation (tick) |
+|-----------|---------------------|--------------------------|
+| **Breadth** | connectiveBias + Risk Taking (Openness/Intellect, DeYoung 2015, r=0.20 DT) | CURIOSITY boosts, positive mood boosts, GutValence.APPROACH boosts |
+| **Laterality** | low Withdrawal + low Intimacy Avoidance + low Suspiciousness (DeYoung 2015 "leaky filtering") | CURIOSITY boosts, AUTONOMY boosts, threat collapses to 0 |
+| **Depth** | ruleFollowing (strict→0.8) + low Impulsivity (Conscientiousness ↔ low Disinhibition, Krueger 2012) | COMPETENCE boosts, AUTONOMY boosts, AFFILIATION reduces |
+| **Convergence** | ruleFollowing modulated by Anxiousness + Emotional Lability | COMPETENCE accelerates, AFFILIATION accelerates, CURIOSITY delays, pathological: Anxiousness + HabituationState failure → 0 |
+
+### Pathological boundary
+
+Not a separate mode — the natural consequence of maximal intensity with no resolution. Fixation: breadth≈0, laterality=0, depth=1.0, convergence=0 (maximal intensity + HabituationState failure). Rumination: identical numeric parameters but high observation count (same ground retraced). The distinction is captured in the consolidation-time LLM prose, not the numbers.
+
+### Quality verification
+
+Bold explorer vs cautious analyst produce meaningfully different configs: breadth midpoint 0.44 vs 0.54, laterality midpoint 0.38 vs 0.55, pathological threshold 1.76 vs 1.14. Sigmoid at k=6.0 produces clear threshold (0.047 at intensity 0.0, 0.500 at 0.5, 0.953 at 1.0). Drive modulations produce distinct profiles: curiosity maxes breadth, competence maxes depth, affiliation shallows depth and accelerates convergence, autonomy boosts laterality and depth.
+
+Noted concern: at high intensity (>0.8), additive modulations compress against the ceiling — personality difference is clearest in moderate-intensity range. Calibration refinement, not structural flaw.
+
+### Intelligence as capacity ceiling (future direction)
+
+DeYoung's Openness/Intellect split: Openness drives *motivation* to explore (current model captures this), Intellect drives *capacity* to explore (not yet modelled). Halford's Relational Complexity bounds depth ceiling (how many reasoning hops). Mednick's associative reach bounds laterality ceiling (how far associations can bridge). Working memory span bounds breadth ceiling. Future work: model different types of intelligence as capacity ceilings for each parameter.
+
+### Supporting issues on this branch
+
+**#544 (OCC emotion vocabulary enforcement):** Added `EmotionType.normalise(String)` with 29 non-canonical aliases mapping to canonical OCC types. Unrecognised types dropped, aliases normalised. Addresses 12% LLM invention rate in emotion classification.
+
+**#784 (Consolidation cache drift detection):** Added `ConsolidationCapability` record (requiredNodeKinds + producedTraits) to `ConsolidationPhase` SPI. `ConsolidationScheduler.manifest()` exposes pipeline snapshot with hash for cache invalidation.
+
 ## Blog Coverage
 
 | Date | Title | Streams covered |
@@ -139,12 +266,152 @@ Domain abstraction audit (#785) validated corpus-management as genuinely domain-
 | 2026-11-03 | Signal Starvation | CAPS pipeline audit, 9/14 dead wires, three-layer personality |
 | 2026-11-03 | Formation Memory Grounding | Somatic echo, formation memory in prompts |
 | 2026-11-04 | The Gap Between Feeling and Acting | Full regulation deep dive |
+| 2026-11-05 | When Personality Isn't Enough | Predictor coherence, shame mismatch |
+| 2026-11-05 | When the Model Invents Feelings | OCC vocabulary enforcement, consolidation drift |
+| 2026-11-05 | She Said — But Who Is She? | Entity identity, alter ego resolution |
+| 2026-11-05 | How Much Should an Agent Think? | Search budget model, literature grounding, quality verification |
+| 2026-11-07 | Why Your AI Agent Isn't Curious | Information-gap curiosity, four-channel rendering, Loewenstein model |
+
+## Stream 7: Information-Gap Curiosity
+
+**Issues:** #596
+**Commits:** 9 across neocortex
+**Literature:** Loewenstein 1994, Golman & Loewenstein 2016, Litman 2005/2008, Silvia 2006/2008, Berlyne 1960, Kashdan 2018
+**Blog:** "Why Your AI Agent Isn't Curious" (2026-11-07)
+
+### The problem
+
+CuriosityDrive used memory retention statistics — ratio of low-retention memories and consolidation group diversity. This produced flat, uninformative signals. The number had almost nothing to do with curiosity as a cognitive phenomenon. Retention is about forgetting; curiosity is about almost knowing.
+
+### What was built
+
+Replaced retention-based curiosity with Loewenstein's information-gap model. Binary entropy H(confidence) × attention weight from edge connectivity produces gap intensity that peaks at partial knowledge — the sweet spot where the agent knows enough to sense what's missing. Four rendering channels give the LLM qualitatively different curiosity descriptions based on personality and gap distribution.
+
+| Component | Module | What it does |
+|-----------|--------|-------------|
+| `InformationGapScore` | mindmap-intelligence | Per-node gap score: entropy, edge count, confidence, GapType (PARTIAL_KNOWLEDGE/TIP_OF_TONGUE/CONNECTED_UNKNOWN/GOAL_ADJACENT) |
+| `InformationGapDetector` | mindmap-intelligence | Scans MindMap for partial-knowledge sweet spots, goal-adjacent boosting, sorted by intensity |
+| `CuriosityChannel` | cognition-api | Four-channel state: HedonicType (I_TYPE/D_TYPE/BLENDED), comprehension [0,1], FocusType (SPECIFIC/DIVERSIVE), gapProximity [0,1] |
+| `CuriosityChannelComputer` | mindmap-intelligence | Derives channels from gap scores + personality-driven deprivation bias |
+| `CuriosityDescriptionGenerationPhase` | mindmap-intelligence | @Priority(29) consolidation-time LLM prose through four channels, crystallised to COGNITIVE subgraph |
+| `CuriosityPromptSection` | cognition | BlockTag.CURIOSITY(215), crystallised prose or programmatic four-channel rendering with baseline deviation and drive rank |
+| `CognitionCore.configureCuriosity()` | cognition | Wiring method following configureSearchBudget() pattern |
+| `CuriosityDrive` (rewritten) | cognition | Now consumes InformationGapDetector instead of MemoryHygieneOrchestrator |
+
+### Architecture: same two-layer pattern as Stream 6
+
+Layer 1 (consolidation): `CuriosityDescriptionGenerationPhase` at @Priority(29) generates personality-specific curiosity prose from the four channels. Layer 2 (tick): `CuriosityDrive` evaluates information gaps, `CuriosityChannelComputer` derives channels, `CuriosityPromptSection` renders with proportional context.
+
+### Key design decisions
+
+**D1 — Binary entropy for gap intensity:** Golman & Loewenstein (2016) formalised information-gap theory as entropy × attention weight. Binary entropy H(p) peaks at p=0.5 and is zero at extremes — directly encoding Loewenstein's non-linearity. Attention weight uses log₁₊₁(edgeCount) to reward connected nodes without unbounded growth.
+
+**D2 — Four orthogonal channels:** Each channel is independently derived from different data (personality for hedonic, mean confidence for comprehension, distribution entropy for focus, mean gap entropy for proximity). The channels compose additively in prose rendering — no interaction effects to calibrate.
+
+**D3 — Deprivation bias from AppraisalWeights.fearOnsetThreshold():** Lower threshold = more anxiety-prone = higher D-type curiosity. Simpler than a full personality-facet derivation and empirically grounded — neuroticism correlates with deprivation-type curiosity (Litman 2008).
+
+**D4 — CuriosityChannelComputer in mindmap-intelligence:** Bridges InformationGapScore (mindmap-intelligence) and CuriosityChannel (cognition-api). The channel record is a pure value type in cognition-api; the computation that populates it needs gap data from the higher layer.
+
+### Quality verification
+
+33 new tests verify: personality differentiation (same gaps, different hedonic type), Loewenstein non-linearity (moderate confidence > low confidence > high confidence), Berlyne focus classification (single gap → specific, many equal → diversive), Silvia comprehension (high confidence gaps → interest, low → confusion), proportional baseline deviation, crystallised prose preference, entropy function symmetry and peak.
+
+## Stream 8: Recurring Thought Continuum
+
+**Issues:** #826 (complete — all 4 batches landed)
+**Commits:** 11 across neocortex
+**Literature:** Nolen-Hoeksema 1991 (rumination), Ehring & Watkins 2008 (repetitive negative thinking as transdiagnostic process), Litman 2008 (D-type curiosity at fixation boundary), Silvia 2008 (appraisal → confusion/anxiety), Eysenck 1967 (neuroticism × negative affect), Roberts et al. 2014 (conscientiousness × self-regulation), DeYoung 2015 (openness × attention fluidity)
+**Design spec:** `specs/issue-841-cognitive-exploration/2026-11-07-recurring-thought-continuum-design.md` (7 decisions, light review — 12 findings addressed)
+
+### The insight
+
+Curiosity, fixation, obsessive thought, and depressive rumination are the same computational mechanism — recurring thought about a specific topic — differentiated by valence, regulation capacity, and whether the loop resolves. Not separate systems. Same substrate, different parameter regimes.
+
+### What was built
+
+A continuum classifier that derives an agent's position from seven symptoms, each scored from existing data:
+
+| Component | Module | What it does |
+|-----------|--------|-------------|
+| `ContinuumPosition` enum | mindmap-api | HEALTHY → FIXATION → OBSESSION → RUMINATION |
+| `RecurringThoughtAssessment` record | mindmap-api | Seven symptom scores + composite + position |
+| `SignalCategory.THOUGHT_RECURRENCE` | mindmap-api | 12th signal category for attention pipeline |
+| `RecurringThoughtConfig` record | cognitive-api | Symptom weights, thresholds, recurrence window, min observations |
+| `CognitiveDefaults` field 19 | cognitive-index | `recurringThoughtConfig` with CDE 14th derivation pathway |
+| `RecurringThoughtScorer` | mindmap-intelligence | Seven-symptom composite scorer — experience frequency, habituation failure, gap closure resistance, attentional capture, arousal trajectory, valence, action tendency |
+| `RecurringThoughtPhase` @Priority(25) | mindmap-intelligence | ConsolidationPhase — discovers agents, scores topics, caches assessments, emits signals + artifacts |
+| `ConsolidationArtifact.RecurringThoughtDetected` | mindmap-api | Sealed variant for prompt rendering pipeline |
+| `SearchBudgetTickParticipant` pathologicalThreshold | cognition | Convergence collapses to 0 when arousalScore + habituationFailure > threshold |
+| `CuriosityPromptSection` continuum modulation | cognition | FIXATION urgency, OBSESSION intrusive language, RUMINATION withdrawal rendering |
+| `SearchBudgetPromptSection` continuum modulation | cognition | FIXATION circling-back, OBSESSION compulsive quality, RUMINATION collapsed output |
+| `CognitionCore` artifact drain | cognition | Drains RecurringThoughtDetected → builds continuum map → passes to prompt sections |
+| `AppraisalTickParticipant.currentHabituation()` | cognition | Public accessor for habituation state (used by search budget) |
+
+### Architecture: pure derivation, zero new state
+
+The continuum position is never stored — it's re-derived each consolidation cycle from existing data (experience memories, MindMap node PAD/confidence, CAPS attractors, attention signals). The classifier reads from five existing stores and produces a transient assessment.
+
+Two complementary mechanisms:
+- **Consolidation-level** (RecurringThoughtPhase): per-topic longitudinal classification. Derives ContinuumPosition from seven cross-tick symptom scores.
+- **Tick-level** (pathologicalThreshold wire-up, Batch 3): global convergence collapse when anxiousness + habituation failure exceeds threshold. Agent-wide, not per-topic.
+
+### Personality modulation
+
+14th CDE derivation pathway maps PID-5 facets + DispositionAxes → RecurringThoughtConfig:
+- High Anxiousness + Emotional Lability → lower fixation threshold (continuous: 0.9 anxiousness lowers by 0.08), higher arousal/valence symptom weights
+- High ruleFollowing + low Impulsivity (conscientiousness proxy) → higher obsession threshold, lower attentional capture weight
+- Low Withdrawal + low Suspiciousness + Risk Taking (openness proxy) → broader recurrence window (attention shifts more fluidly)
+- High Withdrawal + Intimacy Avoidance (isolation) → lower rumination threshold (Nolen-Hoeksema 1991: social isolation amplifies circular thinking)
+
+Two agents experiencing identical stimuli land at different continuum positions. Personality determines susceptibility.
+
+### Key design finding: prompt pathway requires artifact plumbing
+
+The design review (12 findings) caught that CognitionRenderContext doesn't carry continuum data, and prompt sections don't have access to CaseMemoryStore for re-derivation. Resolution: ConsolidationArtifact pathway → CognitionCore drains RecurringThoughtDetected artifacts → passes continuum map to prompt sections via constructor injection (same pattern as CuriosityDrive injection).
+
+### Quality verification
+
+26 new tests across 4 batches: scorer classification (9 tests), consolidation phase signals/artifacts (4 tests), pathological threshold convergence collapse (4 tests), continuum prompt rendering modulation (7 tests), integration tests — personality differentiation and scorer-to-rendering pipeline (3 tests). Full test suite green.
+
+## Blog Coverage
+
+| Date | Title | Streams covered |
+|------|-------|-----------------|
+| 2026-11-02 | Don't Stop the World to Remember | Non-blocking consolidation, CLS theory |
+| 2026-11-02 | The Plumbing Is Done | Pipeline hardening complete, cognitive richness frontier |
+| 2026-11-03 | Signal Starvation | CAPS pipeline audit, 9/14 dead wires, three-layer personality |
+| 2026-11-03 | Formation Memory Grounding | Somatic echo, formation memory in prompts |
+| 2026-11-04 | The Gap Between Feeling and Acting | Full regulation deep dive |
+| 2026-11-05 | When the Model Invents Feelings | OCC vocabulary enforcement, consolidation drift |
+| 2026-11-05 | She Said — But Who Is She? | Entity identity, alter ego resolution |
+| 2026-11-05 | How Much Should an Agent Think? | Search budget model, literature grounding, quality verification |
+| 2026-11-07 | Why Your AI Agent Isn't Curious | Information-gap curiosity, four-channel rendering, Loewenstein model |
+| 2026-11-07 | When Curiosity Won't Let Go | Recurring thought continuum, fixation/obsession/rumination as unified CAPS dynamics |
+| 2026-11-08 | Three Systems, One Exploration | Integration wiring: curiosity→search budget coupling, goal-directed curiosity |
+| 2026-11-08 | Curiosity That Knows Where It's Going | Goal-directed curiosity: BFS proximity, goalRelevance scoring |
+| 2026-11-08 | You Can't Unit-Test Emergence | Five-tier testing strategy, Tier 2 structural scenarios, Tier 3-5 gap |
+| 2026-11-09 | When Personality Disappears Under Pressure | Extreme interaction: Yerkes-Dodson, situational strength, fatigue reallocation |
+| 2026-11-09 | The Gap Between Wanting to Think and Being Able To | Intelligence capacity layer: Openness/Intellect split, capacity as ceiling |
 
 ## What's Next
 
-- **Scenario validation**: Run wacky-manor scenario with predictor active, verify output quality matches LLM-only regulation
+### Epic #841 — remaining layers
+- **#840 Intelligence capacity layer** 🔧 IN PROGRESS (Batches 1-3 of 4 complete): Separates motivation to explore from capacity to explore. Three dimensions: relational reasoning → depth ceiling (Halford 1998), associative reach → laterality ceiling (Mednick 1962), working memory span → breadth ceiling (Engle & Kane 2004). First-principles design: capacity is orthogonal to personality (Nusbaum & Silvia 2011 double dissociation — Openness predicts creativity, Intellect predicts Gf). CognitiveCapacityConfig record with boxed Double fields for per-field YAML merge. CDE derives from Jungian functions with compressed range [0.55, 0.95]. Hard ceiling after fatigue in tick pipeline (step 7). Capacity gap signal drives prose generation. Remaining: prose generation unified prompt + CognitionTestHarness scenario (Batch 4). Deferred: #890 learning rate modulation (Cattell Investment Theory), #891 convergence ceiling, #892 capacity→appraisal frustration pathway.
+- **#865 Migrate cognitive tests to CognitionTestHarness**: Systematic migration of scattered tests to the Tier 2 harness pattern established in #849.
+- **#866 Empirical quality testing**: LLM-judged evaluation of the full exploration pipeline across all layers. Deferred until #841 complete. Covers curiosity channels, search budget differentiation, recurring thought continuum, pathological boundary, intelligence capacity. Follows `CognitiveInfluenceEvalTest` pattern (4/4 at 5/5 verified 2026-11-08).
+
+### Completed since last update
+- **#840 Intelligence capacity layer** (Batches 1-3): CognitiveCapacityConfig record, CognitiveDefaults field 21, SearchBudget fields 8-11 (gap values), CDE Jungian→capacity derivation pathway, capacity ceiling + gap signal in SearchBudgetTickParticipant. 23 new tests (8 config, 8 derivation, 7 pipeline). Design spec reviewed (standard, 3 rounds, 16 issues — 13 fixed, 2 accepted, 1 deferred). Blog: "The Gap Between Wanting to Think and Being Able To" (2026-11-09).
+- **#839 Personality at extreme intensity** ✅: Inverted-U activation (Yerkes-Dodson), modulation scaling (situational strength), fatigue reallocation (Hockey 1997). Three mechanisms: activationWithDecay, per-parameter amplification/decay rates, FatigueState per-agent accumulator. Deferred: #878 per-parameter peaks, #879 separate amplification threshold, #880 shared fatigue substrate.
+- **#846 integration wiring** ✅: Curiosity→search budget coupling (#847), goal-directed curiosity (#848), CognitionTestHarness + 5 structural scenarios (#849). Wiring verified structurally (Tier 2). Empirical quality proof deferred to #866.
+- **#596 Information-gap curiosity** ✅: Full Loewenstein model, four-channel rendering.
+- **#826 Recurring thought continuum** ✅: Seven-symptom composite, HEALTHY→FIXATION→OBSESSION→RUMINATION, prompt modulation.
+
+### Other near-term
 - **Proactive regulation** (#819): Situation selection before appraisal — emotional memory driving spatial avoidance
 - **Social regulation** (#805): Interpersonal strategies (confiding, provocation, withdrawal) — requires intrapersonal system as foundation
 - **CAPS integration** (#806): Encode stable regulation patterns as CAPS nodes for personality-consistent regulation without per-tick LLM calls
-- **Era 6 Phase 4**: Condensation chains, persistent entity index, ACT-R decay (deferred, not blocked)
-- **Era 7 definition**: Regulate the era boundary — regulation + identity + pipeline wiring may constitute era 7, or may fold into era 6 Phase 4+
+
+### Deferred
+- **Era 6 Phase 4**: Condensation chains, persistent entity index, ACT-R decay (not blocked)
+- **Era 7 definition**: The post-era 6 work — regulation, identity, search budget, exploration pipeline — is era-scale in aggregate. Whether it constitutes era 7 or folds into era 6 Phase 4+ is a naming decision, not a technical one.

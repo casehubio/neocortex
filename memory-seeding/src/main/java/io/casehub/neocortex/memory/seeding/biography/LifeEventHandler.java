@@ -1,5 +1,6 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
+import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
@@ -87,13 +88,25 @@ public class LifeEventHandler implements BiographyHandler {
     }
 
     private static void storeOccEmotions(LifeEventEntry entry, HashMap<String, String> attrs) {
-        if (entry.occEmotions() == null || entry.occEmotions().isEmpty()) return;
-        attrs.put(EnrichmentAttributeKeys.OCC_EMOTION_COUNT, String.valueOf(entry.occEmotions().size()));
-        for (int i = 0; i < entry.occEmotions().size(); i++) {
-            var occ = entry.occEmotions().get(i);
-            if (occ.type() != null) attrs.put(EnrichmentAttributeKeys.occEmotionType(i), occ.type());
-            if (occ.intensity() != null) attrs.put(EnrichmentAttributeKeys.occEmotionIntensity(i), String.valueOf(occ.intensity()));
-            if (occ.source() != null) attrs.put(EnrichmentAttributeKeys.occEmotionSource(i), occ.source());
+        if (entry.occEmotions() == null || entry.occEmotions().isEmpty()) {return;}
+        var normalised = new java.util.ArrayList<LifeEventEntry.OccEmotion>();
+        for (var occ : entry.occEmotions()) {
+            if (occ.type() == null) {continue;}
+            var resolved = EmotionType.normalise(occ.type());
+            if (resolved.isPresent()) {
+                normalised.add(new LifeEventEntry.OccEmotion(
+                        resolved.get().canonicalName(), occ.intensity(), occ.source()));
+            }
+        }
+        if (normalised.isEmpty()) {return;}
+        attrs.put(EnrichmentAttributeKeys.OCC_EMOTION_COUNT, String.valueOf(normalised.size()));
+        for (int i = 0; i < normalised.size(); i++) {
+            var occ = normalised.get(i);
+            attrs.put(EnrichmentAttributeKeys.occEmotionType(i), occ.type());
+            if (occ.intensity() != null) {
+                attrs.put(EnrichmentAttributeKeys.occEmotionIntensity(i), String.valueOf(occ.intensity()));
+            }
+            if (occ.source() != null) {attrs.put(EnrichmentAttributeKeys.occEmotionSource(i), occ.source());}
         }
     }
 

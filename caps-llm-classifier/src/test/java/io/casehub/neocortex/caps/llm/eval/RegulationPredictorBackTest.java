@@ -3,6 +3,7 @@ package io.casehub.neocortex.caps.llm.eval;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationStrategy;
 import io.casehub.neocortex.cognition.regulation.RegulationStrategyPredictor;
 import io.casehub.neocortex.cognitive.EmotionType;
+import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
@@ -122,7 +123,8 @@ class RegulationPredictorBackTest {
         int skipped = 0;
 
         for (var tc : CASES) {
-            var prediction = PREDICTOR.predict(tc.axes(), tc.emotion(), 0.55, 0.0, null);
+            var rd = CognitiveDerivationEngine.deriveRegulationDefaults(tc.axes());
+            var prediction = PREDICTOR.predict(rd, tc.axes(), tc.emotion(), 0.55, 0.0, null);
             if (prediction.isEmpty()) {
                 results.add(new JudgeResult(tc.label(), "FELL_THROUGH", -1, "predictor not confident"));
                 skipped++;

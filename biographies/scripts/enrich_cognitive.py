@@ -40,9 +40,11 @@ For EACH memory, apply the COMPLETE type-discriminated checklist. Every field mu
 - pad_justification: one sentence per dimension explaining why these values
 
 ### 2. OCC Emotions [intensity 0.0-1.0, pick all that apply]
-22 types: joy, distress, hope, fear, pride, shame, admiration, reproach,
+Use ONLY these 22 types. If the emotion does not fit exactly, use the closest match:
+joy, distress, hope, fear, pride, shame, admiration, reproach,
 love, hate, happy-for, sorry-for, resentment, gloating, gratitude, anger,
-gratification, remorse, interest, disgust, surprise, relief
+gratification, remorse, satisfaction, disappointment, relief, fears-confirmed
+Do NOT invent types like "despair", "anxiety", "frustration" — map them to the nearest canonical type above.
 Format: {"type": "joy", "intensity": 0.8, "source": "INTRINSIC"}
 Source: INTRINSIC (directly felt), EMPATHIC (felt for another), ATTRIBUTED (inferred)
 

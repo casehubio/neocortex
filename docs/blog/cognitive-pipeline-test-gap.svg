@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="360" y="28" text-anchor="middle" font-size="14" font-weight="600" fill="#1e293b">The Testing Gap</text>
+
+  <!-- Unit test boxes -->
+  <rect x="20" y="50" width="130" height="50" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="85" y="72" text-anchor="middle" font-size="11" fill="#0369a1">CuriosityDrive</text>
+  <text x="85" y="86" text-anchor="middle" font-size="10" fill="#0369a1">unit tests ✓</text>
+
+  <rect x="170" y="50" width="130" height="50" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="235" y="72" text-anchor="middle" font-size="11" fill="#0369a1">SearchBudget</text>
+  <text x="235" y="86" text-anchor="middle" font-size="10" fill="#0369a1">unit tests ✓</text>
+
+  <rect x="320" y="50" width="130" height="50" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="385" y="72" text-anchor="middle" font-size="11" fill="#0369a1">RecurringThought</text>
+  <text x="385" y="86" text-anchor="middle" font-size="10" fill="#0369a1">unit tests ✓</text>
+
+  <rect x="470" y="50" width="130" height="50" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="535" y="72" text-anchor="middle" font-size="11" fill="#0369a1">PromptSections</text>
+  <text x="535" y="86" text-anchor="middle" font-size="10" fill="#0369a1">unit tests ✓</text>
+
+  <!-- Arrows down -->
+  <line x1="85" y1="100" x2="85" y2="140" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="235" y1="100" x2="235" y2="140" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="385" y1="100" x2="385" y2="140" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="535" y1="100" x2="535" y2="140" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Integration layer - the gap -->
+  <rect x="20" y="145" width="680" height="55" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="360" y="170" text-anchor="middle" font-size="13" font-weight="600" fill="#c2410c">?  Does personality → curiosity → budget → prompt  ?</text>
+  <text x="360" y="186" text-anchor="middle" font-size="11" fill="#9a3412">No test verified the chain. Each component passed alone.</text>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="200" x2="360" y2="235" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Empirical test box -->
+  <rect x="100" y="240" width="520" height="55" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="360" y="262" text-anchor="middle" font-size="13" font-weight="600" fill="#15803d">CognitionTestHarness — Empirical Scenario Testing</text>
+  <text x="360" y="280" text-anchor="middle" font-size="11" fill="#166534">Wires the full pipeline. Feeds stimuli. Asserts on output. Fills the gap.</text>
+
+  <!-- Labels -->
+  <text x="640" y="68" font-size="10" fill="#94a3b8">Component</text>
+  <text x="640" y="80" font-size="10" fill="#94a3b8">level</text>
+  <text x="640" y="170" font-size="10" fill="#94a3b8">Integration</text>
+  <text x="640" y="182" font-size="10" fill="#94a3b8">gap</text>
+  <text x="640" y="264" font-size="10" fill="#94a3b8">Empirical</text>
+  <text x="640" y="276" font-size="10" fill="#94a3b8">verification</text>
+</svg>

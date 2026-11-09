@@ -193,9 +193,9 @@ def build_coverage_report(entities: list[dict], nlp_baseline: dict) -> dict:
 
 ALL_OCC_EMOTIONS = {
     'joy', 'distress', 'hope', 'fear', 'pride', 'shame', 'admiration', 'reproach',
-    'love', 'hate', 'happy-for', 'sorry-for', 'resentment', 'gloating',
-    'gratitude', 'anger', 'gratification', 'remorse', 'interest', 'disgust',
-    'surprise', 'relief',
+    'love', 'hate', 'happy-for', 'pity', 'resentment', 'gloating',
+    'gratitude', 'anger', 'gratification', 'remorse', 'satisfaction',
+    'disappointment', 'relief', 'fears-confirmed',
 }
 
 ALL_ACTION_TENDENCIES = {
@@ -322,21 +322,22 @@ def audit_model_coverage(memories: list[dict]) -> dict:
 
 OCC_CANONICAL = frozenset({
     'joy', 'distress', 'hope', 'fear', 'pride', 'shame', 'admiration', 'reproach',
-    'love', 'hate', 'happy-for', 'sorry-for', 'resentment', 'gloating', 'gratitude',
-    'anger', 'gratification', 'remorse', 'interest', 'disgust', 'surprise', 'relief',
+    'love', 'hate', 'happy-for', 'pity', 'resentment', 'gloating', 'gratitude',
+    'anger', 'gratification', 'remorse', 'satisfaction', 'disappointment',
+    'relief', 'fears-confirmed',
 })
 
 OCC_NORMALISATION = {
     'despair': 'distress', 'sadness': 'distress', 'grief': 'distress',
-    'disappointment': 'distress', 'melancholy': 'distress', 'loss': 'distress',
+    'melancholy': 'distress', 'loss': 'distress',
     'helplessness': 'distress', 'longing': 'distress', 'homesickness': 'distress',
     'frustration': 'anger', 'indignation': 'anger',
     'anxiety': 'fear', 'abandonment_anxiety': 'fear',
     'betrayal': 'reproach', 'betrayal_analog_reproach': 'reproach',
     'contempt': 'reproach',
     'regret': 'remorse', 'guilt': 'remorse',
-    'sympathy': 'sorry-for',
-    'satisfaction': 'gratification', 'resolve': 'gratification',
+    'sorry-for': 'pity', 'sympathy': 'pity',
+    'resolve': 'gratification',
     'jealousy': 'resentment',
     'awe': 'admiration', 'inspiration': 'admiration',
     'passion': 'love',
@@ -344,6 +345,7 @@ OCC_NORMALISATION = {
     'courage': 'hope', 'determination': 'hope', 'defiance': 'pride',
     'creative_defiance': 'pride',
     'betrayal_analog_hate': 'hate',
+    'interest': 'hope', 'disgust': 'hate', 'surprise': 'fear',
 }
 
 

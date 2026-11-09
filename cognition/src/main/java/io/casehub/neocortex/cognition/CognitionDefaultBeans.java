@@ -8,17 +8,18 @@ import io.casehub.neocortex.cognition.drive.DriveConfig;
 import io.casehub.neocortex.cognition.emergence.NormDetectionConfig;
 import io.casehub.neocortex.cognition.emergence.NormFilter;
 import io.casehub.neocortex.cognition.goal.CognitiveGoalConfig;
-import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
 import io.casehub.neocortex.cognition.goal.GoalEscalationConfig;
 import io.casehub.neocortex.cognition.goal.GoalProposalConfig;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeConfig;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelConfig;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
 import io.casehub.neocortex.cognition.mood.MoodConfig;
 import io.casehub.neocortex.cognition.mood.MoodCongruenceConfig;
 import io.casehub.neocortex.cognition.narrative.NarrativeConfig;
 import io.casehub.neocortex.cognition.personality.PersonalityEvolutionConfig;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
+import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.platform.agent.session.SessionPipeline;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -282,5 +283,16 @@ public class CognitionDefaultBeans {
         return (agentId, subjectId, tenantId) -> java.util.Optional.empty();
     }
 
+    @Produces @DefaultBean @Singleton
+    SearchBudgetConfig searchBudgetConfig() {
+        return SearchBudgetConfig.defaults();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognitive.RecurringThoughtConfig recurringThoughtConfig() {
+        return io.casehub.neocortex.cognitive.RecurringThoughtConfig.defaults();
+    }
 
 }

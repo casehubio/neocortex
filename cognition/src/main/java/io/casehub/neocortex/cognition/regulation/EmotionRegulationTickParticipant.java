@@ -5,7 +5,12 @@ import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.PersonalityFacet;
+import io.casehub.neocortex.cognitive.index.RegulationDefaults;
+import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.mindmap.MindMapStore;
+import io.casehub.neocortex.mindmap.OverlayRef;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -104,30 +109,58 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
 
         double currentFatigue = fatigueTracker.currentFatigue(context.agentId(), context.tenantId());
-        var pendingSignal = failureSignals.remove(context.agentId() + ":" + context.tenantId());
+        var    pendingSignal  = failureSignals.remove(context.agentId() + ":" + context.tenantId());
 
         if (generationPhase == null) {return;}
 
+        var peakEmotion = appraisal.get().emotions().stream()
+                                   .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
+                                   .orElse(null);
+
         // Petter 2025: try personality-driven strategy prediction before LLM
-        EmotionRegulationStrategy pinnedStrategy = null;
+        EmotionRegulationStrategy                            pinnedStrategy = null;
+        io.casehub.neocortex.cognitive.index.DispositionAxes axes           = null;
         if (strategyPredictor != null && defaultsRegistry != null && pendingSignal == null) {
             pinnedStrategy = tryPredictStrategy(context, appraisal.get(), currentFatigue);
             if (pinnedStrategy != null) {
                 var pinned = pinnedStrategy;
                 LOG.fine(() -> String.format("regulation predictor: agent=%s strategy=%s (pinned)",
-                        context.agentId(), pinned));
+                                             context.agentId(), pinned));
             } else {
                 LOG.fine(() -> String.format("regulation predictor: agent=%s fell-through → LLM",
-                        context.agentId()));
+                                             context.agentId()));
+                // Pass personality context to LLM on fall-through
+                var defaults = defaultsRegistry.forAgent(context.agentId());
+                if (defaults.isPresent() && defaults.get().descriptor() != null) {
+                    axes = defaults.get().descriptor().disposition();
+                }
             }
         }
 
+        var dominantType = peakEmotion != null ? peakEmotion.type() : null;
         var history = (mindMapStore != null)
                       ? EmotionRegulationMindMapAdapter.loadHistory(
                 mindMapStore, context.agentId(), context.tenantId(), HISTORY_LIMIT)
                       : List.<EmotionRegulationResult>of();
+        RegulationDefaults rd = null;
+        ShameContext shameContext = null;
+        if (defaultsRegistry != null) {
+            var defs = defaultsRegistry.forAgent(context.agentId());
+            if (defs.isPresent()) {
+                rd = defs.get().regulationDefaults();
+            }
+        }
+        if (dominantType != null && RegulationStrategyPredictor.emotionCategory(dominantType)
+                == RegulationStrategyPredictor.EmotionCategory.SELF_CONSCIOUS) {
+            shameContext = assembleShameContext(context, history);
+            if (shameContext != null && shameContext.isSurfaceLevel()) {
+                pinnedStrategy = EmotionRegulationStrategy.RESPONSE_MODULATION;
+            }
+        }
+
         var result = generationPhase.generate(context, appraisal.get(), history,
-                regulationEffort, currentFatigue, pendingSignal, pinnedStrategy);
+                                              regulationEffort, currentFatigue, pendingSignal, pinnedStrategy,
+                                              axes, dominantType, rd, shameContext);
         if (result != null) {
             String key = context.agentId() + ":" + context.tenantId();
             results.put(key, result);
@@ -151,37 +184,120 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             io.casehub.neocortex.cognition.appraisal.AppraisalResult appraisal,
             double currentFatigue) {
         var defaults = defaultsRegistry.forAgent(context.agentId());
-        if (defaults.isEmpty() || defaults.get().descriptor() == null) return null;
+        if (defaults.isEmpty() || defaults.get().descriptor() == null) {return null;}
         var axes = defaults.get().descriptor().disposition();
-        if (axes == null) return null;
+        if (axes == null) {return null;}
+        var rd = defaults.get().regulationDefaults();
 
         var peakEmotion = appraisal.emotions().stream()
-                .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
-                .orElse(null);
-        if (peakEmotion == null) return null;
+                                   .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
+                                   .orElse(null);
+        if (peakEmotion == null) {return null;}
 
         CognitiveLoadLevel loadLevel = (loadEstimator != null)
-                ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
-                : null;
+                                       ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
+                                       : null;
 
         var prediction = strategyPredictor.predict(
-                axes, peakEmotion.type(), peakEmotion.intensity(), currentFatigue, loadLevel);
+                rd, axes, peakEmotion.type(), peakEmotion.intensity(), currentFatigue, loadLevel);
 
         if (LOG.isLoggable(java.util.logging.Level.FINE)) {
             if (prediction.isPresent()) {
                 LOG.fine(String.format("regulation predictor detail: agent=%s emotion=%s intensity=%.2f → %s (confidence=%.2f)",
-                        context.agentId(), peakEmotion.type(), peakEmotion.intensity(),
-                        prediction.get().strategy(), prediction.get().confidence()));
+                                       context.agentId(), peakEmotion.type(), peakEmotion.intensity(),
+                                       prediction.get().strategy(), prediction.get().confidence()));
             } else {
                 LOG.fine(String.format("regulation predictor detail: agent=%s emotion=%s intensity=%.2f → fell-through (personality=%s/%s/%s/%s/%s)",
-                        context.agentId(), peakEmotion.type(), peakEmotion.intensity(),
-                        axes.socialOrient(), axes.ruleFollowing(), axes.riskAppetite(),
-                        axes.autonomy(), axes.conflictMode()));
+                                       context.agentId(), peakEmotion.type(), peakEmotion.intensity(),
+                                       axes.socialOrient(), axes.ruleFollowing(), axes.riskAppetite(),
+                                       axes.autonomy(), axes.conflictMode()));
             }
         }
 
         return prediction.map(RegulationPrediction::strategy).orElse(null);
     }
+
+    private @Nullable ShameContext assembleShameContext(
+            CognitionTickContext context,
+            List<EmotionRegulationResult> history) {
+        int               shameCount = 0;
+        java.time.Instant mostRecent = null;
+        var               cutoff     = java.time.Instant.now().minus(java.time.Duration.ofMinutes(30));
+        for (var entry : history) {
+            boolean isSelfConscious = entry.targetEmotions().stream()
+                                           .anyMatch(e -> "SHAME".equals(e) || "REMORSE".equals(e));
+            if (!isSelfConscious) {continue;}
+            shameCount++;
+            if (mostRecent == null) {mostRecent = java.time.Instant.now();}
+        }
+
+        double closeness = 0.0;
+        String role      = null;
+        if (context.targetAgentId() != null
+            && !context.targetAgentId().equals(context.agentId())
+            && mindMapStore != null) {
+            var schema = resolveRelationalSchema(
+                    context.agentId(), context.targetAgentId(), context.tenantId());
+            if (schema != null) {
+                closeness = schema.intimacy();
+                role      = schema.role();
+            }
+        }
+
+        double grandiosity = 0.0;
+        double callousness = 0.0;
+        if (defaultsRegistry != null) {
+            var defaults = defaultsRegistry.forAgent(context.agentId());
+            if (defaults.isPresent() && defaults.get().personalityProfile() != null) {
+                var facets = defaults.get().personalityProfile().facets();
+                if (facets != null) {
+                    for (var f : facets) {
+                        if (PersonalityFacet.GRANDIOSITY.equals(f.facet())) {
+                            grandiosity = f.score();
+                        } else if (PersonalityFacet.CALLOUSNESS.equals(f.facet())) {
+                            callousness = f.score();
+                        }
+                    }
+                }
+            }
+        }
+
+        return new ShameContext(shameCount, mostRecent, closeness, role, grandiosity, callousness);
+    }
+
+    private @Nullable RelationalSchema resolveRelationalSchema(
+            String observerAgentId, String targetAgentId, String tenantId) {
+        var peopleSg = mindMapStore.listSubgraphs(tenantId).stream()
+                                   .filter(sg -> SubgraphTypes.PERSON.equals(sg.type())
+                                                 || SubgraphTypes.PERSON.equals(sg.name()))
+                                   .findFirst();
+        if (peopleSg.isEmpty()) {return null;}
+
+        var nodes = mindMapStore.nodesIn(peopleSg.get().id(), tenantId);
+
+        String targetNodeId = null;
+        for (var node : nodes) {
+            if (node.traits().contains("overlay")) {continue;}
+            if (targetAgentId.equals(node.property("agentId").orElse(null))) {
+                targetNodeId = node.id();
+                break;
+            }
+        }
+        if (targetNodeId == null) {return null;}
+
+        for (var overlay : nodes) {
+            if (!overlay.traits().contains("overlay")) {continue;}
+            if (!observerAgentId.equals(overlay.property(OverlayRef.AGENT_ID).orElse(null))) {
+                continue;
+            }
+            var sharedId = OverlayRef.sharedNodeId(overlay).orElse(null);
+            if (targetNodeId.equals(sharedId)) {
+                return RelationalSchema.fromProperties(overlay.properties());
+            }
+        }
+        return null;
+    }
+
 
     public Optional<EmotionRegulationResult> currentResult(String agentId, String tenantId) {
         return Optional.ofNullable(results.get(agentId + ":" + tenantId));

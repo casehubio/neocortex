@@ -15,7 +15,13 @@
  */
 package io.casehub.neocortex.cognitive.index;
 
+import io.casehub.neocortex.cognitive.ChannelModulationConfig;
+import io.casehub.neocortex.cognitive.CognitiveCapacityConfig;
+import io.casehub.neocortex.cognitive.ExtremeInteractionConfig;
+import io.casehub.neocortex.cognitive.FatigueConfig;
 import io.casehub.neocortex.cognitive.HabituationConfig;
+import io.casehub.neocortex.cognitive.RecurringThoughtConfig;
+import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.mood.MoodBaseline;
@@ -135,6 +141,39 @@ public final class CognitiveDerivationEngine {
         "analytical", ConflictInterpretation.NEUTRAL,
         "avoidant", ConflictInterpretation.DISENGAGE
     );
+    private static final Map<String, Double>                 REAPPRAISAL_CONFLICT    = Map.of(
+            "analytical", 0.30, "cooperative", 0.15, "avoidant", -0.15, "competitive", 0.05);
+    private static final Map<String, Double>                 REAPPRAISAL_AUTONOMY    = Map.of(
+            "high", 0.25, "moderate", 0.05, "low", -0.10);
+    private static final Map<String, Double>                 REAPPRAISAL_RULES       = Map.of(
+            "strict", 0.15, "flexible", 0.15, "moderate", 0.05);
+    private static final Map<String, Double>                 REAPPRAISAL_RISK        = Map.of(
+            "bold", 0.20, "calculated", 0.05, "conservative", -0.10);
+    private static final Map<String, Double>                 REAPPRAISAL_SOCIAL      = Map.of(
+            "cooperative", 0.10, "independent", 0.05, "competitive", 0.05);
+
+    private static final Map<String, Double> SUPPRESSION_CONFLICT = Map.of(
+            "avoidant", 0.10, "competitive", 0.15, "analytical", -0.10, "cooperative", -0.05);
+    private static final Map<String, Double> SUPPRESSION_SOCIAL   = Map.of(
+            "competitive", 0.10, "independent", 0.05, "cooperative", -0.05);
+    private static final Map<String, Double> SUPPRESSION_RISK     = Map.of(
+            "conservative", 0.15, "calculated", 0.05, "bold", -0.10);
+    private static final Map<String, Double> SUPPRESSION_AUTONOMY = Map.of(
+            "low", 0.10, "moderate", 0.05, "high", -0.05);
+    private static final Map<String, Double> SUPPRESSION_RULES    = Map.of(
+            "strict", 0.05, "moderate", 0.0, "flexible", -0.05);
+
+    private static final Map<String, Double> REDIRECT_CONFLICT = Map.of(
+            "avoidant", 0.25, "cooperative", 0.05, "analytical", -0.15, "competitive", -0.10);
+    private static final Map<String, Double> REDIRECT_RISK     = Map.of(
+            "conservative", 0.20, "calculated", 0.05, "bold", -0.15);
+    private static final Map<String, Double> REDIRECT_AUTONOMY = Map.of(
+            "low", 0.10, "moderate", 0.05, "high", -0.10);
+    private static final Map<String, Double> REDIRECT_SOCIAL   = Map.of(
+            "independent", 0.05, "cooperative", 0.0, "competitive", -0.05);
+    private static final Map<String, Double> REDIRECT_RULES    = Map.of(
+            "strict", 0.0, "moderate", 0.0, "flexible", -0.10);
+
 
     private CognitiveDerivationEngine() {}
 
@@ -149,6 +188,10 @@ public final class CognitiveDerivationEngine {
         ExtractionBiasDefaults  extractionBias   = deriveExtractionBias(descriptor.dispositionProfile());
         AppraisalWeights        appraisal        = deriveAppraisalWeights(descriptor.dispositionProfile(), descriptor.disposition());
         HabituationConfig       habituation      = deriveHabituationConfig(descriptor.disposition(), descriptor.goals());
+        RegulationDefaults      regulation       = deriveRegulationDefaults(descriptor.disposition());
+        SearchBudgetConfig      searchBudget     = deriveSearchBudgetDefaults(descriptor.personalityFacets(), descriptor.disposition(), graphStructure != null ? graphStructure.connectiveBias() : 0.5);
+        RecurringThoughtConfig  recurringThought = deriveRecurringThoughtConfig(descriptor.personalityFacets(), descriptor.disposition());
+        CognitiveCapacityConfig capacity         = deriveCapacity(descriptor.dispositionProfile());
         double                  personalityDom   = derivePersonalityDominance(descriptor.formationPadSummary());
         ExpressionStyleDefaults expressionStyles = deriveExpressionStyles(descriptor.personalityFacets());
         PersonalityProfile      personalityProf  = new PersonalityProfile(personality, personalityDom, expressionStyles, null, descriptor.personalityFacets());
@@ -163,7 +206,11 @@ public final class CognitiveDerivationEngine {
                                 .withGraphStructure(graphStructure)
                                 .withExtractionBias(extractionBias)
                                 .withAppraisalWeights(appraisal)
-                                .withHabituationConfig(habituation);
+                                .withHabituationConfig(habituation)
+                                .withRegulationDefaults(regulation)
+                                .withSearchBudgetConfig(searchBudget)
+                                .withRecurringThoughtConfig(recurringThought)
+                                .withCapacityConfig(capacity);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
@@ -184,6 +231,10 @@ public final class CognitiveDerivationEngine {
                                 .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
                                 .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
                                 .withHabituationConfig(explicit.habituationConfig() != null ? explicit.habituationConfig() : derived.habituationConfig())
+                                .withRegulationDefaults(explicit.regulationDefaults() != null ? explicit.regulationDefaults() : derived.regulationDefaults())
+                                .withSearchBudgetConfig(explicit.searchBudgetConfig() != null ? explicit.searchBudgetConfig() : derived.searchBudgetConfig())
+                                .withRecurringThoughtConfig(explicit.recurringThoughtConfig() != null ? explicit.recurringThoughtConfig() : derived.recurringThoughtConfig())
+                                .withCapacityConfig(mergeCapacity(explicit.capacityConfig(), derived.capacityConfig()))
                                 .withVocabulary(explicit.vocabulary())
                                 .withServices(explicit.services())
                                 .withTraitRules(explicit.traitRules())
@@ -203,6 +254,39 @@ public final class CognitiveDerivationEngine {
                 !explicit.facets().isEmpty() ? explicit.facets() : derived.facets()
         );
     }
+
+    static CognitiveCapacityConfig deriveCapacity(List<WeightedTerm> profile) {
+        if (profile == null || profile.isEmpty()) {return null;}
+
+        double tiWeight = 0.0, teWeight = 0.0, neWeight = 0.0, niWeight = 0.0, siWeight = 0.0;
+        for (WeightedTerm term : profile) {
+            String fn = term.term().toLowerCase();
+            switch (fn) {
+                case "ti" -> tiWeight = term.weight();
+                case "te" -> teWeight = term.weight();
+                case "ne" -> neWeight = term.weight();
+                case "ni" -> niWeight = term.weight();
+                case "si" -> siWeight = term.weight();
+            }
+        }
+
+        double relational  = compressCapacity(0.5 * (tiWeight + teWeight));
+        double associative = compressCapacity(0.5 * (neWeight + niWeight));
+        double wmSpan      = compressCapacity(0.5 * (teWeight + siWeight));
+
+        return new CognitiveCapacityConfig(relational, associative, wmSpan);
+    }
+
+    static CognitiveCapacityConfig mergeCapacity(CognitiveCapacityConfig explicit, CognitiveCapacityConfig derived) {
+        if (explicit == null) {return derived;}
+        if (derived == null) {return explicit;}
+        return explicit.mergeWith(derived);
+    }
+
+    private static double compressCapacity(double raw) {
+        return 0.55 + raw * 0.4;
+    }
+
 
     static PersonalityWeights derivePersonality(List<WeightedTerm> profile) {
         if (profile == null || profile.isEmpty()) {
@@ -463,6 +547,92 @@ public final class CognitiveDerivationEngine {
         return new HabituationConfig(habRate, novelty, Math.max(2.0, repTol), domainMod);
     }
 
+    public static RegulationDefaults deriveRegulationDefaults(DispositionAxes axes) {
+        if (axes == null) {return null;}
+        double reappraisal = 0.5
+                             + REAPPRAISAL_CONFLICT.getOrDefault(lower(axes.conflictMode()), 0.0)
+                             + REAPPRAISAL_AUTONOMY.getOrDefault(lower(axes.autonomy()), 0.0)
+                             + REAPPRAISAL_RULES.getOrDefault(lower(axes.ruleFollowing()), 0.0)
+                             + REAPPRAISAL_RISK.getOrDefault(lower(axes.riskAppetite()), 0.0)
+                             + REAPPRAISAL_SOCIAL.getOrDefault(lower(axes.socialOrient()), 0.0);
+        double suppression = 0.5
+                             + SUPPRESSION_CONFLICT.getOrDefault(lower(axes.conflictMode()), 0.0)
+                             + SUPPRESSION_SOCIAL.getOrDefault(lower(axes.socialOrient()), 0.0)
+                             + SUPPRESSION_RISK.getOrDefault(lower(axes.riskAppetite()), 0.0)
+                             + SUPPRESSION_AUTONOMY.getOrDefault(lower(axes.autonomy()), 0.0)
+                             + SUPPRESSION_RULES.getOrDefault(lower(axes.ruleFollowing()), 0.0);
+        double redirect = 0.3
+                          + REDIRECT_CONFLICT.getOrDefault(lower(axes.conflictMode()), 0.0)
+                          + REDIRECT_RISK.getOrDefault(lower(axes.riskAppetite()), 0.0)
+                          + REDIRECT_AUTONOMY.getOrDefault(lower(axes.autonomy()), 0.0)
+                          + REDIRECT_SOCIAL.getOrDefault(lower(axes.socialOrient()), 0.0)
+                          + REDIRECT_RULES.getOrDefault(lower(axes.ruleFollowing()), 0.0);
+        return new RegulationDefaults(
+                Math.max(0.0, Math.min(1.0, reappraisal)),
+                Math.max(0.0, Math.min(1.0, suppression)),
+                Math.max(0.0, Math.min(1.0, redirect)));
+    }
+
+    static RecurringThoughtConfig deriveRecurringThoughtConfig(List<PersonalityFacet> facets, DispositionAxes axes) {
+        if (facets == null || facets.isEmpty()) { return null; }
+
+        var defaults = RecurringThoughtConfig.defaults();
+
+        double anxiousness = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
+        double emotionalLability = facetScore(facets, PersonalityFacet.EMOTIONAL_LABILITY, 0.5);
+        double withdrawal = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
+        double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
+        double riskTaking = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
+        double suspiciousness = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
+        double intimacyAvoidance = facetScore(facets, PersonalityFacet.INTIMACY_AVOIDANCE, 0.5);
+
+        double ruleFollowingNumeric = axes != null
+                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+
+        // Neuroticism (Anxiousness + Emotional Lability) -> lower fixation threshold
+        // Eysenck (1967): neuroticism amplifies negative affect sensitivity
+        // Continuous modulation: high anxiousness (0.9) lowers by 0.08, moderate (0.5) by 0.0
+        double fixation = defaults.fixationThreshold()
+                - (anxiousness - 0.5) * 0.2
+                - (emotionalLability - 0.5) * 0.1;
+
+        // Conscientiousness (ruleFollowing + low Impulsivity) -> higher obsession threshold
+        // Roberts et al. (2014): self-regulation buffers against loss of control
+        double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
+        double obsession = defaults.obsessionThreshold()
+                + (conscientiousness - 0.5) * 0.15;
+
+        // Withdrawal + Intimacy Avoidance -> lower rumination threshold
+        // Nolen-Hoeksema (1991): social isolation amplifies circular thinking
+        double isolation = (withdrawal + intimacyAvoidance) / 2.0;
+        double rumination = defaults.ruminationThreshold()
+                - (isolation - 0.5) * 0.15;
+
+        // Openness proxy (low Withdrawal + low Suspiciousness + Risk Taking) -> broader window
+        // DeYoung (2015): open individuals shift attention more fluidly
+        double openness = (1.0 - withdrawal + 1.0 - suspiciousness + riskTaking) / 3.0;
+        int recurrenceDays = (int) Math.round(7.0 + (openness - 0.5) * 4.0);
+
+        // Symptom weights modulated by personality
+        Map<String, Double> weights = new HashMap<>();
+        if (anxiousness > 0.6) {
+            weights.put("arousalTrajectory", 1.0 + (anxiousness - 0.5));
+            weights.put("valence", 1.0 + (emotionalLability - 0.5));
+        }
+        if (conscientiousness > 0.6) {
+            weights.put("attentionalCapture", 1.0 - (conscientiousness - 0.5) * 0.5);
+        }
+
+        return new RecurringThoughtConfig(
+                weights,
+                Math.max(0.1, fixation),
+                Math.max(fixation + 0.1, obsession),
+                Math.max(obsession + 0.05, rumination),
+                java.time.Duration.ofDays(Math.max(3, recurrenceDays)),
+                3);
+    }
+
+
     static double derivePersonalityDominance(FormationPadSummary summary) {
         if (summary == null || summary.memoryCount() == 0 || summary.totalPositivePleasure() == 0.0) {
             return 0.5;
@@ -554,6 +724,135 @@ public final class CognitiveDerivationEngine {
         }
 
         return styles.isEmpty() ? null : new ExpressionStyleDefaults(styles);
+    }
+
+    private static final Map<String, Double> RULE_FOLLOWING_NUMERIC = Map.of(
+            "strict", 0.8, "moderate", 0.5, "flexible", 0.2
+    );
+
+    /**
+     * Derives personality-shaped search budget defaults from PID-5 facets and
+     * disposition axes. Each parameter mapping traces to published findings.
+     * <p>
+     * Breadth ← connectiveBias + Risk Taking (DeYoung 2015, Grajzel et al. 2023 r=0.20 DT).
+     * Laterality ← low Withdrawal + low Intimacy Avoidance + low Suspiciousness (DeYoung 2015).
+     * Depth ← ruleFollowing + low Impulsivity (Krueger et al. 2012 PID-5 dimensional alignment).
+     * Convergence ← ruleFollowing modulated by Anxiousness + Emotional Lability (Davis & Nolen-Hoeksema 1998).
+     *
+     * @param facets         PID-5 personality facets with scores in [0,1]
+     * @param axes           disposition axes (String values: strict/moderate/flexible etc.)
+     * @param connectiveBias from GraphStructureDefaults (0-1), higher = broader associative network
+     * @return personality-derived SearchBudgetConfig, or null if insufficient data
+     */
+    static SearchBudgetConfig deriveSearchBudgetDefaults(
+            List<PersonalityFacet> facets, DispositionAxes axes, double connectiveBias) {
+        if (facets == null || facets.isEmpty()) return null;
+
+        var defaults = SearchBudgetConfig.defaults();
+
+        double riskTaking = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
+        double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
+        double withdrawal = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
+        double intimacyAvoidance = facetScore(facets, PersonalityFacet.INTIMACY_AVOIDANCE, 0.5);
+        double suspiciousness = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
+        double anxiousness = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
+        double emotionalLability = facetScore(facets, PersonalityFacet.EMOTIONAL_LABILITY, 0.5);
+
+        double ruleFollowingNumeric = axes != null
+                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+
+        double breadthSteepness = defaults.breadthSteepness() + (connectiveBias - 0.5) * 4.0 + (riskTaking - 0.5) * 2.0;
+        double breadthMidpoint = defaults.breadthMidpoint() - (connectiveBias - 0.5) * 0.2;
+
+        double openness = (1.0 - withdrawal + 1.0 - intimacyAvoidance + 1.0 - suspiciousness) / 3.0;
+        double lateralityMidpoint = defaults.lateralityMidpoint() - (openness - 0.5) * 0.3;
+
+        double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
+        double depthMidpoint = defaults.depthMidpoint() - (conscientiousness - 0.5) * 0.3;
+
+        double convergenceMidpoint = defaults.convergenceMidpoint() - (conscientiousness - 0.5) * 0.2;
+
+        double pathologicalThreshold = defaults.pathologicalThreshold()
+                - (anxiousness - 0.5) * 0.6
+                - (emotionalLability - 0.5) * 0.4;
+        pathologicalThreshold = Math.max(0.5, pathologicalThreshold);
+
+        var channelModulation = deriveChannelModulationDefaults(facets, axes);
+
+        double extremePeak = 0.85 - (anxiousness - 0.5) * 0.3 - (emotionalLability - 0.5) * 0.2;
+        extremePeak = Math.max(0.5, Math.min(0.95, extremePeak));
+
+        double depthDecay = Math.max(0, (anxiousness - 0.3) * 2.0 - conscientiousness * 1.5);
+        double breadthDecay = 1.0 + (1.0 - openness) * 2.0;
+        double lateralityDecay = 1.5 + (1.0 - openness) * 1.5 + impulsivity * 1.0;
+        double convergenceDecay = Math.max(0, anxiousness * 1.5 - conscientiousness * 1.0);
+        double depthAmplification = conscientiousness * 1.0 - anxiousness * 0.5;
+        double breadthAmplification = -(1.0 - openness) * 1.5;
+        double lateralityAmplification = -(1.0 - openness) * 1.2;
+        double convergenceAmplification = -(anxiousness * 2.0 - conscientiousness * 0.8);
+        var extremeInteraction = new ExtremeInteractionConfig(depthDecay, breadthDecay,
+                lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification,
+                lateralityAmplification, convergenceAmplification);
+
+        int fatigueMaxTicks = (int) (6 + conscientiousness * 8);
+        double fatigueRecovery = 0.3 + conscientiousness * 0.4;
+        double fatigueDepth = Math.min(0.0, -0.08 * (1.0 - conscientiousness));
+        double fatigueBreadth = -(0.15 + (1.0 - openness) * 0.15);
+        double fatigueLat = -(0.1 + (1.0 - openness) * 0.1) + impulsivity * 0.15;
+        double fatigueConv = conscientiousness * 0.2 - anxiousness * 0.15;
+        var fatigue = new FatigueConfig(fatigueMaxTicks, fatigueRecovery,
+                fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
+
+        return new SearchBudgetConfig(
+                Math.max(1.0, breadthSteepness),
+                clamp01(breadthMidpoint),
+                defaults.lateralitySteepness(),
+                clamp01(lateralityMidpoint),
+                defaults.lateralityThreatFloor(),
+                defaults.depthSteepness(),
+                clamp01(depthMidpoint),
+                defaults.convergenceSteepness(),
+                clamp01(convergenceMidpoint),
+                pathologicalThreshold,
+                channelModulation,
+                extremePeak,
+                extremeInteraction,
+                fatigue);
+    }
+
+    private static ChannelModulationConfig deriveChannelModulationDefaults(
+            List<PersonalityFacet> facets, DispositionAxes axes) {
+        double withdrawal = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
+        double intimacyAvoidance = facetScore(facets, PersonalityFacet.INTIMACY_AVOIDANCE, 0.5);
+        double suspiciousness = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
+        double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
+        double anxiousness = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
+
+        double ruleFollowingNumeric = axes != null
+                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+
+        double openness = (1.0 - withdrawal + 1.0 - intimacyAvoidance + 1.0 - suspiciousness) / 3.0;
+        double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
+
+        var d = ChannelModulationConfig.defaults();
+        return new ChannelModulationConfig(
+                d.specificDepthBoost() + (conscientiousness - 0.5) * 0.08,
+                d.specificBreadthPenalty() + (conscientiousness - 0.5) * 0.06,
+                d.diversiveBreadthBoost() + (openness - 0.5) * 0.10,
+                d.diversiveLateralityBoost() + (openness - 0.5) * 0.08,
+                d.diversiveConvergencePenalty() + (openness - 0.5) * 0.06,
+                d.deprivationConvergenceBoost() + (anxiousness - 0.5) * 0.08,
+                d.lowComprehensionLateralityBoost() + (openness - 0.5) * 0.08,
+                d.highComprehensionConvergenceBoost() + (conscientiousness - 0.5) * 0.08);
+    }
+
+    private static double facetScore(List<PersonalityFacet> facets, String name, double defaultValue) {
+        return facets.stream().filter(f -> name.equals(f.facet())).findFirst()
+                .map(PersonalityFacet::score).orElse(defaultValue);
+    }
+
+    private static double clamp01(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
     }
 
     private static boolean isHigh(List<PersonalityFacet> facets, String name) {

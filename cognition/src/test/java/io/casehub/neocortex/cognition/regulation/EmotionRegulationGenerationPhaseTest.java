@@ -7,6 +7,7 @@ import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.PadProjection;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.ManagedSession;
@@ -271,6 +272,121 @@ class EmotionRegulationGenerationPhaseTest {
         assertThat(message).contains("BREAKTHROUGH");
         assertThat(message).contains("breaking through");
         assertThat(message).contains("different strategy");
+    }
+
+    @Test
+    void userMessageIncludesDispositionAxesWhenProvided() {
+        var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null, null, axes, EmotionType.SHAME);
+
+        assertThat(message).contains("Personality disposition");
+        assertThat(message).contains("predictor did not pin a strategy");
+        assertThat(message).contains("conflict-mode: avoidant");
+        assertThat(message).contains("social-orient: cooperative");
+        assertThat(message).contains("risk-appetite: conservative");
+        assertThat(message).contains("autonomy: low");
+        assertThat(message).contains("rule-following: moderate");
+    }
+
+    @Test
+    void userMessageOmitsAxesWhenStrategyIsPinned() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.5, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null,
+                EmotionRegulationStrategy.RESPONSE_MODULATION, axes, EmotionType.ANGER);
+
+        assertThat(message).doesNotContain("Personality disposition");
+        assertThat(message).contains("Strategy: RESPONSE_MODULATION");
+    }
+
+    @Test
+    void userMessageOmitsAxesWhenNull() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.5, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null, null, null, EmotionType.ANGER);
+
+        assertThat(message).doesNotContain("Personality disposition");
+    }
+
+    @Test
+    void userMessageIncludesSelfConsciousGuidanceForShame() {
+        var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "confronting");
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null, null, axes, EmotionType.SHAME);
+
+        assertThat(message).contains("Self-conscious emotion guidance");
+        assertThat(message).contains("self-evaluative");
+        assertThat(message).contains("Temporal containment");
+        assertThat(message).contains("Webb et al. 2012");
+    }
+
+    @Test
+    void userMessageIncludesAvoidantShameResponseForAvoidantAxes() {
+        var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var axes      = new DispositionAxes("cooperative", "moderate", "conservative", "low", "avoidant");
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null, null, axes, EmotionType.SHAME);
+
+        assertThat(message).contains("Avoidant shame response");
+        assertThat(message).contains("Nathanson 1992");
+        assertThat(message).contains("SITUATION_SELECTION");
+        assertThat(message).contains("self-evaluative");
+    }
+
+    @Test
+    void userMessageIncludesSelfConsciousGuidanceForRemorse() {
+        var emotion = new CognitiveEmotion(EmotionType.REMORSE, 0.6, "self",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null, null, null, EmotionType.REMORSE);
+
+        assertThat(message).contains("Self-conscious emotion guidance");
+    }
+
+    @Test
+    void userMessageOmitsSelfConsciousGuidanceForAnger() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.6, "rival",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null, null, null, EmotionType.ANGER);
+
+        assertThat(message).doesNotContain("Self-conscious emotion guidance");
+    }
+
+    @Test
+    void userMessageOmitsSelfConsciousGuidanceWhenStrategyPinned() {
+        var emotion = new CognitiveEmotion(EmotionType.SHAME, 0.6, "self",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var message = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null,
+                EmotionRegulationStrategy.COGNITIVE_CHANGE, null, EmotionType.SHAME);
+
+        assertThat(message).doesNotContain("Self-conscious emotion guidance");
     }
 
 

@@ -10,7 +10,6 @@ import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
-import io.casehub.neocortex.cognitive.index.PersonalityProfile;
 import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -198,6 +197,12 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     public Optional<AppraisalResult> currentResult(String agentId, String tenantId) {
         return Optional.ofNullable(results.get(agentId + ":" + tenantId));
     }
+
+    public @Nullable HabituationState currentHabituation(String agentId, String tenantId) {
+        var state = habituationStates.get(agentId + ":" + tenantId);
+        return state != null && !state.observationCounts().isEmpty() ? state : null;
+    }
+
 
     private static final io.casehub.neocortex.memory.MemoryDomain CONCERN_DOMAIN =
             new io.casehub.neocortex.memory.MemoryDomain("concern");

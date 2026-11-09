@@ -12,9 +12,9 @@ import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Set;
 
 class LifeEventHandlerTest {
 
@@ -100,6 +100,50 @@ class LifeEventHandlerTest {
         assertStoredUnderDomain(store, ExperienceEvents.DOMAIN, "Something unexpected.");
     }
 
+    @Test
+    void normalisesNonCanonicalOccEmotionTypes() {
+        var store   = new InMemoryMemoryStore(principal);
+        var handler = new LifeEventHandler(store);
+
+        var emotions = List.of(
+                new LifeEventEntry.OccEmotion("despair", 0.8, "INTRINSIC"),
+                new LifeEventEntry.OccEmotion("anxiety", 0.6, "INTRINSIC"),
+                new LifeEventEntry.OccEmotion("joy", 0.5, "INTRINSIC")
+                              );
+        var entry = entryWithEmotions("Felt overwhelmed by the diagnosis.", emotions);
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var results = store.query(
+                MemoryQuery.forSubject(Subject.of("agent", "agent-1"), ExperienceEvents.DOMAIN, TENANT));
+        assertThat(results).hasSize(1);
+        var attrs = results.getFirst().attributes();
+        assertThat(attrs).containsEntry(EnrichmentAttributeKeys.OCC_EMOTION_COUNT, "3");
+        assertThat(attrs).containsEntry(EnrichmentAttributeKeys.occEmotionType(0), "distress");
+        assertThat(attrs).containsEntry(EnrichmentAttributeKeys.occEmotionType(1), "fear");
+        assertThat(attrs).containsEntry(EnrichmentAttributeKeys.occEmotionType(2), "joy");
+    }
+
+    @Test
+    void dropsUnrecognisedOccEmotionTypes() {
+        var store   = new InMemoryMemoryStore(principal);
+        var handler = new LifeEventHandler(store);
+
+        var emotions = List.of(
+                new LifeEventEntry.OccEmotion("euphoria", 0.9, "INTRINSIC"),
+                new LifeEventEntry.OccEmotion("joy", 0.5, "INTRINSIC")
+                              );
+        var entry = entryWithEmotions("A mixed moment.", emotions);
+        handler.handle(profileWith(List.of(entry)), "agent-1", TENANT);
+
+        var results = store.query(
+                MemoryQuery.forSubject(Subject.of("agent", "agent-1"), ExperienceEvents.DOMAIN, TENANT));
+        assertThat(results).hasSize(1);
+        var attrs = results.getFirst().attributes();
+        assertThat(attrs).containsEntry(EnrichmentAttributeKeys.OCC_EMOTION_COUNT, "1");
+        assertThat(attrs).containsEntry(EnrichmentAttributeKeys.occEmotionType(0), "joy");
+    }
+
+
     private void assertStoredUnderDomain(InMemoryMemoryStore store, MemoryDomain domain, String expectedText) {
         var results = store.query(
             MemoryQuery.forSubject(Subject.of("agent", "agent-1"), domain, TENANT));
@@ -126,6 +170,16 @@ class LifeEventHandlerTest {
             null, null, null, null, null, null, null, null, null,
             subThoughts, List.of());
     }
+
+    private static LifeEventEntry entryWithEmotions(String description, List<LifeEventEntry.OccEmotion> emotions) {
+        return new LifeEventEntry("test-event", "source.md#test", null,
+                                  "1913-01-01", description,
+                                  null, null, null, null, null,
+                                  null,
+                                  emotions, null, null, null, null, null, null, null, null,
+                                  List.of(), List.of());
+    }
+
 
     private BiographyProfile profileWith(List<LifeEventEntry> events) {
         return new BiographyProfile("a1", "t1",

@@ -121,6 +121,13 @@ public class DriveDescriptionGenerationPhase implements ConsolidationPhase {
     public String name() {
         return "drive-description-generation";
     }
+@Override
+    public ConsolidationCapability capability() {
+        return new ConsolidationCapability(
+                Set.of("personality-facet", "formative-experience", "drive-intensity"),
+                Set.of(DESCRIPTION_TRAIT));
+    }
+
 
     @Override
     public void setSessionPipeline(SessionPipeline pipeline) {
