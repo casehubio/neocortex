@@ -97,8 +97,13 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
 
     @Override
     public String add(CorpusRef corpus, CorpusEntry entry) {
+        return add(corpus, entry, null);
+    }
+
+    @Override
+    public String add(CorpusRef corpus, CorpusEntry entry, String actorId) {
         String now = Instant.now().toString();
-        String sql = "INSERT INTO corpus_entries (id, corpus_tenant_id, corpus_name, frontmatter_json, body, artifact_ref, created_at, last_modified_at) VALUES (?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO corpus_entries (id, corpus_tenant_id, corpus_name, frontmatter_json, body, artifact_ref, created_at, last_modified_at, created_by, updated_by) VALUES (?,?,?,?,?,?,?,?,?,?)";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, entry.id());
@@ -109,6 +114,8 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
             ps.setString(6, entry.artifactRef());
             ps.setString(7, now);
             ps.setString(8, now);
+            ps.setString(9, actorId);
+            ps.setString(10, actorId);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add entry " + entry.id(), e);
@@ -121,17 +128,23 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
 
     @Override
     public void update(CorpusRef corpus, String entryId, CorpusEntry entry) {
+        update(corpus, entryId, entry, null);
+    }
+
+    @Override
+    public void update(CorpusRef corpus, String entryId, CorpusEntry entry, String actorId) {
         String now = Instant.now().toString();
-        String sql = "UPDATE corpus_entries SET frontmatter_json = ?, body = ?, artifact_ref = ?, last_modified_at = ? WHERE id = ? AND corpus_tenant_id = ? AND corpus_name = ?";
+        String sql = "UPDATE corpus_entries SET frontmatter_json = ?, body = ?, artifact_ref = ?, last_modified_at = ?, updated_by = ? WHERE id = ? AND corpus_tenant_id = ? AND corpus_name = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, toJson(entry.metadata()));
             ps.setString(2, entry.body());
             ps.setString(3, entry.artifactRef());
             ps.setString(4, now);
-            ps.setString(5, entryId);
-            ps.setString(6, corpus.tenantId());
-            ps.setString(7, corpus.corpusName());
+            ps.setString(5, actorId);
+            ps.setString(6, entryId);
+            ps.setString(7, corpus.tenantId());
+            ps.setString(8, corpus.corpusName());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update entry " + entryId, e);
@@ -174,6 +187,31 @@ public class SqliteCorpusEntryStore implements CorpusEntryStore {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get entry " + entryId, e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<io.casehub.neocortex.corpus.management.AuditInfo> auditInfo(CorpusRef corpus, String entryId) {
+        String sql = "SELECT created_by, created_at, updated_by, last_modified_at FROM corpus_entries WHERE id = ? AND corpus_tenant_id = ? AND corpus_name = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, entryId);
+            ps.setString(2, corpus.tenantId());
+            ps.setString(3, corpus.corpusName());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String createdAtStr = rs.getString("created_at");
+                    String updatedAtStr = rs.getString("last_modified_at");
+                    return Optional.of(new io.casehub.neocortex.corpus.management.AuditInfo(
+                            rs.getString("created_by"),
+                            createdAtStr != null ? Instant.parse(createdAtStr) : null,
+                            rs.getString("updated_by"),
+                            updatedAtStr != null ? Instant.parse(updatedAtStr) : null));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get audit info for entry " + entryId, e);
         }
         return Optional.empty();
     }

@@ -454,6 +454,53 @@ class SqliteCorpusEntryStoreTest {
         assertThat(store.relationships(CORPUS, "nonexistent")).isEmpty();
     }
 
+
+    @Test
+    void addWithActorPopulatesAuditFields() {
+        var entry = new CorpusEntry("e1", Map.of("title", "Test"), "Body", null);
+        store.add(CORPUS, entry, "alice");
+
+        var audit = store.auditInfo(CORPUS, "e1");
+        assertThat(audit).isPresent();
+        assertThat(audit.get().createdBy()).isEqualTo("alice");
+        assertThat(audit.get().updatedBy()).isEqualTo("alice");
+        assertThat(audit.get().createdAt()).isNotNull();
+        assertThat(audit.get().updatedAt()).isNotNull();
+    }
+
+    @Test
+    void updateWithActorSetsUpdatedBy() {
+        var entry = new CorpusEntry("e1", Map.of("title", "Original"), "Body", null);
+        store.add(CORPUS, entry, "alice");
+
+        var updated = new CorpusEntry("e1", Map.of("title", "Updated"), "New body", null);
+        store.update(CORPUS, "e1", updated, "bob");
+
+        var audit = store.auditInfo(CORPUS, "e1");
+        assertThat(audit).isPresent();
+        assertThat(audit.get().createdBy()).isEqualTo("alice");
+        assertThat(audit.get().updatedBy()).isEqualTo("bob");
+    }
+
+    @Test
+    void addWithoutActorLeavesAuditFieldsNull() {
+        var entry = new CorpusEntry("e1", Map.of("title", "Test"), "Body", null);
+        store.add(CORPUS, entry);
+
+        var audit = store.auditInfo(CORPUS, "e1");
+        assertThat(audit).isPresent();
+        assertThat(audit.get().createdBy()).isNull();
+        assertThat(audit.get().updatedBy()).isNull();
+        assertThat(audit.get().createdAt()).isNotNull();
+        assertThat(audit.get().updatedAt()).isNotNull();
+    }
+
+    @Test
+    void auditInfoReturnsEmptyForMissingEntry() {
+        assertThat(store.auditInfo(CORPUS, "nonexistent")).isEmpty();
+    }
+
+
     static class StubIngestor implements EmbeddingIngestor {
         final List<ChunkInput> ingested = new ArrayList<>();
         final List<String> deleted = new ArrayList<>();

@@ -115,7 +115,20 @@ public class CorpusApiBean implements CorpusApi {
         SearchResult result = indexService.entry(corpusRoot, entryId);
         if (result == null) {return null;}
         var annotationList = entryStore.annotations(corpusRef, entryId);
-        return result.withAnnotationData(annotationList.size(), annotationList);
+        result = result.withAnnotationData(annotationList.size(), annotationList);
+        result = enrichWithAuditInfo(result, entryId);
+        return result;
+    }
+
+    private SearchResult enrichWithAuditInfo(SearchResult result, String entryId) {
+        var audit = entryStore.auditInfo(corpusRef, entryId);
+        if (audit.isEmpty()) {return result;}
+        var info = audit.get();
+        if (info.createdBy() != null) {result = result.withExtraMetadata("created_by", info.createdBy());}
+        if (info.createdAt() != null) {result = result.withExtraMetadata("created_at", info.createdAt().toString());}
+        if (info.updatedBy() != null) {result = result.withExtraMetadata("updated_by", info.updatedBy());}
+        if (info.updatedAt() != null) {result = result.withExtraMetadata("updated_at", info.updatedAt().toString());}
+        return result;
     }
 
     @Override
@@ -302,7 +315,7 @@ public class CorpusApiBean implements CorpusApi {
 
         var updated = new CorpusEntry(entryId, java.util.Map.copyOf(metadata),
                                       existing.get().body(), existing.get().artifactRef());
-        entryStore.update(corpusRef, entryId, updated);
+        entryStore.update(corpusRef, entryId, updated, "agent");
 
         String title     = (String) metadata.getOrDefault("title", entryId);
         String sessionId = (String) metadata.get("sessionId");
@@ -446,7 +459,7 @@ public class CorpusApiBean implements CorpusApi {
         if (sessionId != null && !sessionId.isBlank()) {metadata.put("sessionId", sessionId);}
 
         var entry = new CorpusEntry(entryId, java.util.Map.copyOf(metadata), insight, null);
-        entryStore.add(corpusRef, entry);
+        entryStore.add(corpusRef, entry, "agent");
 
         if (sourceIssue != null && !sourceIssue.isBlank()) {
             var parts = parseIssueRef(sourceIssue);
