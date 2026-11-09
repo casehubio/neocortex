@@ -8,5 +8,5 @@ public record SettlingResult(
     int iterations,
     ConvergenceType convergence,
     double saturationRatio,
-    List<BehavioralAttractor> attractors
+    List<CapsAttractor> attractors
 ) {}

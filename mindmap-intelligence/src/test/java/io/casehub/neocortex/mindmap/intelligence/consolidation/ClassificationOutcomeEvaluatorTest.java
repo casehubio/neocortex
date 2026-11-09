@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.ConvergenceType;
 import io.casehub.neocortex.caps.SettlingResult;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
@@ -19,7 +19,7 @@ class ClassificationOutcomeEvaluatorTest {
     @Test
     void convergedWithStrongAttractor_highSuccessRate() {
         var result = new SettlingResult(Map.of(), 5, ConvergenceType.CONVERGED, 0.1,
-            List.of(new BehavioralAttractor("approach", "reward", 0.8, false, 1)));
+            List.of(new CapsAttractor("approach", "reward", 0.8, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 
@@ -41,7 +41,7 @@ class ClassificationOutcomeEvaluatorTest {
     @Test
     void oscillation_lowSuccessRate() {
         var result = new SettlingResult(Map.of(), 50, ConvergenceType.OSCILLATION, 0.5,
-            List.of(new BehavioralAttractor("approach", "reward", 0.8, false, 1)));
+            List.of(new CapsAttractor("approach", "reward", 0.8, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 
@@ -52,7 +52,7 @@ class ClassificationOutcomeEvaluatorTest {
     @Test
     void maxIterations_veryLowSuccessRate() {
         var result = new SettlingResult(Map.of(), 100, ConvergenceType.MAX_ITERATIONS, 0.9,
-            List.of(new BehavioralAttractor("approach", "reward", 0.7, false, 1)));
+            List.of(new CapsAttractor("approach", "reward", 0.7, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 
@@ -63,8 +63,8 @@ class ClassificationOutcomeEvaluatorTest {
     void multipleAttractors_usesMaxStrength() {
         var result = new SettlingResult(Map.of(), 5, ConvergenceType.CONVERGED, 0.1,
             List.of(
-                new BehavioralAttractor("approach", "reward", 0.3, false, 1),
-                new BehavioralAttractor("avoidance", "threat", 0.9, false, 1)));
+                new CapsAttractor("approach", "reward", 0.3, false, 1),
+                new CapsAttractor("avoidance", "threat", 0.9, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 
@@ -74,7 +74,7 @@ class ClassificationOutcomeEvaluatorTest {
     @Test
     void perfectConvergenceAndAttractor_fullSuccess() {
         var result = new SettlingResult(Map.of(), 3, ConvergenceType.CONVERGED, 0.0,
-            List.of(new BehavioralAttractor("approach", "reward", 1.0, false, 1)));
+            List.of(new CapsAttractor("approach", "reward", 1.0, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 
@@ -85,7 +85,7 @@ class ClassificationOutcomeEvaluatorTest {
     @Test
     void detailContainsConvergenceAndAttractorInfo() {
         var result = new SettlingResult(Map.of(), 5, ConvergenceType.CONVERGED, 0.1,
-            List.of(new BehavioralAttractor("approach", "reward", 0.75, false, 1)));
+            List.of(new CapsAttractor("approach", "reward", 0.75, false, 1)));
 
         CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(result, NOW);
 

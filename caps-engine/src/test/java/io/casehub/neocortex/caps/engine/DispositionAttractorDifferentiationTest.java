@@ -1,6 +1,6 @@
 package io.casehub.neocortex.caps.engine;
 
-import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.SettlingResult;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
@@ -50,11 +50,11 @@ class DispositionAttractorDifferentiationTest {
         var cooperative = settle("cooperative", "conservative", "strict", "dependent", "avoidant");
 
         var compTop = competitive.attractors().stream()
-                .max((a, b) -> Double.compare(a.strength(), b.strength()))
-                .map(BehavioralAttractor::nodeId).orElse("");
+                                 .max((a, b) -> Double.compare(a.strength(), b.strength()))
+                                 .map(CapsAttractor::nodeId).orElse("");
         var coopTop = cooperative.attractors().stream()
-                .max((a, b) -> Double.compare(a.strength(), b.strength()))
-                .map(BehavioralAttractor::nodeId).orElse("");
+                                 .max((a, b) -> Double.compare(a.strength(), b.strength()))
+                                 .map(CapsAttractor::nodeId).orElse("");
 
         assertThat(compTop).as("competitive dominant attractor")
                 .isNotEqualTo(coopTop);
@@ -78,7 +78,7 @@ class DispositionAttractorDifferentiationTest {
     private double strengthOf(SettlingResult result, String nodeId) {
         return result.attractors().stream()
                 .filter(a -> nodeId.equals(a.nodeId()))
-                .mapToDouble(BehavioralAttractor::strength)
+                .mapToDouble(CapsAttractor::strength)
                 .findFirst().orElse(0.0);
     }
 }

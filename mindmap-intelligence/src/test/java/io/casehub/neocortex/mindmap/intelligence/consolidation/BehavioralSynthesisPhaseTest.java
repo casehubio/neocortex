@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.caps.AgentCapsState;
-import io.casehub.neocortex.caps.BehavioralAttractor;
+import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.CapsTopology;
@@ -19,7 +19,6 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -555,7 +554,7 @@ class BehavioralSynthesisPhaseTest {
                                      Map<String, Double> inputActivations) {
             return new SettlingResult(
                 inputActivations, 5, ConvergenceType.CONVERGED, 0.1,
-                List.of(new BehavioralAttractor(
+                List.of(new CapsAttractor(
                     "approach_avoidance", "approach", 0.6,
                     false, state.generation())));
         }

@@ -503,7 +503,7 @@ When input nodes are clamped (e.g., `trust_offered = 0.8`), activation propagate
 | `saturationRatio` | Fraction of nodes at extreme activation |
 | `attractors` | Recurring behavioural patterns detected |
 
-**Type:** `BehavioralAttractor`
+**Type:** `CapsAttractor`
 
 | Field | Description |
 |-------|-------------|

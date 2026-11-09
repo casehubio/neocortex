@@ -108,14 +108,14 @@ public abstract class CognitiveEmergenceTest {
     protected static void assertAttractorPresent(SettlingResult result, String nodeId) {
         assertThat(result.attractors())
             .as("Expected attractor '%s' in %s", nodeId,
-                result.attractors().stream().map(BehavioralAttractor::nodeId).toList())
+                result.attractors().stream().map(CapsAttractor::nodeId).toList())
             .anySatisfy(a -> assertThat(a.nodeId()).isEqualTo(nodeId));
     }
 
     protected static void assertAttractorAbsent(SettlingResult result, String nodeId) {
         assertThat(result.attractors())
             .as("Expected no attractor '%s' but found in %s", nodeId,
-                result.attractors().stream().map(BehavioralAttractor::nodeId).toList())
+                result.attractors().stream().map(CapsAttractor::nodeId).toList())
             .noneSatisfy(a -> assertThat(a.nodeId()).isEqualTo(nodeId));
     }
 
@@ -124,11 +124,11 @@ public abstract class CognitiveEmergenceTest {
                                                        String weakerId) {
         double stronger = result.attractors().stream()
             .filter(a -> a.nodeId().equals(strongerId))
-            .mapToDouble(BehavioralAttractor::strength)
+            .mapToDouble(CapsAttractor::strength)
             .findFirst().orElse(0.0);
         double weaker = result.attractors().stream()
             .filter(a -> a.nodeId().equals(weakerId))
-            .mapToDouble(BehavioralAttractor::strength)
+            .mapToDouble(CapsAttractor::strength)
             .findFirst().orElse(0.0);
         assertThat(stronger)
             .as("Expected '%s' (%.3f) > '%s' (%.3f)",
@@ -139,7 +139,7 @@ public abstract class CognitiveEmergenceTest {
     protected static double attractorStrength(SettlingResult result, String nodeId) {
         return result.attractors().stream()
             .filter(a -> a.nodeId().equals(nodeId))
-            .mapToDouble(BehavioralAttractor::strength)
+            .mapToDouble(CapsAttractor::strength)
             .findFirst().orElse(0.0);
     }
 }
