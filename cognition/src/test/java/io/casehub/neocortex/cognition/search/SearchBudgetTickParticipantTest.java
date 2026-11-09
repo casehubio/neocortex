@@ -21,9 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -280,6 +278,59 @@ class SearchBudgetTickParticipantTest {
         var budget = participant.currentBudget(AGENT, TENANT).orElseThrow();
         assertFalse(budget.extremeActivation(), "Default config (null sub-records) should never set extremeActivation");
     }
+
+    @Test
+    void per_parameter_peak_differentiates_decay_onset() {
+        var extreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults()
+                                                                             .withBreadthPeak(0.6)
+                                                                             .withDepthPeak(0.95);
+        var config = SearchBudgetConfig.defaults()
+                                       .withExtremePeak(0.85)
+                                       .withExtremeInteraction(extreme);
+        var participant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.8, config);
+        participant.tick(context());
+        var budget = participant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        var uniformExtreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults();
+        var uniformConfig = SearchBudgetConfig.defaults()
+                                              .withExtremePeak(0.85)
+                                              .withExtremeInteraction(uniformExtreme);
+        var uniformParticipant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.8, uniformConfig);
+        uniformParticipant.tick(context());
+        var uniformBudget = uniformParticipant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        assertTrue(budget.breadth() < uniformBudget.breadth(),
+                   "Lower breadth peak (0.6) should cause more decay at intensity 0.8: per-param=" + budget.breadth() + " uniform=" + uniformBudget.breadth());
+        assertTrue(budget.depth() >= uniformBudget.depth(),
+                   "Higher depth peak (0.95) should not decay at intensity 0.8: per-param=" + budget.depth() + " uniform=" + uniformBudget.depth());
+    }
+
+    @Test
+    void null_per_parameter_peaks_fall_back_to_global() {
+        var extreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults();
+        var config = SearchBudgetConfig.defaults()
+                                       .withExtremePeak(0.7)
+                                       .withExtremeInteraction(extreme);
+        var participant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.9, config);
+        participant.tick(context());
+        var nullPeakBudget = participant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        var explicitExtreme = io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults()
+                                                                                     .withBreadthPeak(0.7).withDepthPeak(0.7).withLateralityPeak(0.7).withConvergencePeak(0.7);
+        var explicitConfig = SearchBudgetConfig.defaults()
+                                               .withExtremePeak(0.7)
+                                               .withExtremeInteraction(explicitExtreme);
+        var explicitParticipant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.9, explicitConfig);
+        explicitParticipant.tick(context());
+        var explicitPeakBudget = explicitParticipant.currentBudget(AGENT, TENANT).orElseThrow();
+
+        assertEquals(nullPeakBudget.breadth(), explicitPeakBudget.breadth(), 1e-10,
+                     "Null peaks should behave identically to explicit peaks matching the global");
+        assertEquals(nullPeakBudget.depth(), explicitPeakBudget.depth(), 1e-10);
+        assertEquals(nullPeakBudget.laterality(), explicitPeakBudget.laterality(), 1e-10);
+        assertEquals(nullPeakBudget.convergence(), explicitPeakBudget.convergence(), 1e-10);
+    }
+
 
 // --- fatigue tests ---
 

@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SearchBudgetExtremeInteractionTest {
 
@@ -91,6 +93,61 @@ class SearchBudgetExtremeInteractionTest {
         assertTrue(anxious.extremePeak() >= 0.5 && anxious.extremePeak() <= 0.95,
                 "Anxious peak in valid range: " + anxious.extremePeak());
     }
+
+    @Test
+    void per_parameter_peaks_are_derived() {
+        var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
+        assertNotNull(config.extremeInteraction().depthPeak());
+        assertNotNull(config.extremeInteraction().breadthPeak());
+        assertNotNull(config.extremeInteraction().lateralityPeak());
+        assertNotNull(config.extremeInteraction().convergencePeak());
+    }
+
+    @Test
+    void laterality_peaks_earliest_depth_latest() {
+        var config = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
+        var ext    = config.extremeInteraction();
+        assertTrue(ext.lateralityPeak() < ext.depthPeak(),
+                   "Laterality (creative association) should peak earlier than depth (complex reasoning): lat=" + ext.lateralityPeak() + " depth=" + ext.depthPeak());
+    }
+
+    @Test
+    void per_parameter_peaks_in_valid_range() {
+        var bold    = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
+        var anxious = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
+
+        for (var config : List.of(bold, anxious)) {
+            var ext = config.extremeInteraction();
+            assertTrue(ext.depthPeak() >= 0.5 && ext.depthPeak() <= 0.95, "depthPeak in range: " + ext.depthPeak());
+            assertTrue(ext.breadthPeak() >= 0.5 && ext.breadthPeak() <= 0.95, "breadthPeak in range: " + ext.breadthPeak());
+            assertTrue(ext.lateralityPeak() >= 0.5 && ext.lateralityPeak() <= 0.95, "lateralityPeak in range: " + ext.lateralityPeak());
+            assertTrue(ext.convergencePeak() >= 0.5 && ext.convergencePeak() <= 0.95, "convergencePeak in range: " + ext.convergencePeak());
+        }
+    }
+
+    @Test
+    void conscientiousness_raises_depth_and_convergence_peaks() {
+        var disciplined = CognitiveDerivationEngine.deriveSearchBudgetDefaults(disciplinedFacets(), disciplinedAxes(), 0.3);
+        var anxious     = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
+
+        assertTrue(disciplined.extremeInteraction().depthPeak() > anxious.extremeInteraction().depthPeak(),
+                   "Same anxiety, higher-C should raise depth peak: disciplined=" + disciplined.extremeInteraction().depthPeak() + " anxious=" + anxious.extremeInteraction().depthPeak());
+        assertTrue(disciplined.extremeInteraction().convergencePeak() > anxious.extremeInteraction().convergencePeak(),
+                   "Same anxiety, higher-C should raise convergence peak: disciplined=" + disciplined.extremeInteraction().convergencePeak() + " anxious=" + anxious.extremeInteraction().convergencePeak());
+    }
+
+    @Test
+    void inverted_u_activates_past_per_parameter_peak() {
+        var    anxious         = CognitiveDerivationEngine.deriveSearchBudgetDefaults(anxiousWorrierFacets(), anxiousWorrierAxes(), 0.3);
+        double lateralityPeak  = anxious.extremeInteraction().lateralityPeak();
+        double lateralityDecay = anxious.extremeInteraction().lateralityDecay();
+
+        double atPeak   = activationWithDecay(lateralityPeak, 6.0, 0.5, lateralityDecay, lateralityPeak);
+        double pastPeak = activationWithDecay(lateralityPeak + 0.1, 6.0, 0.5, lateralityDecay, lateralityPeak);
+
+        assertTrue(pastPeak < atPeak, "Past laterality peak should decline: at=" + atPeak + " past=" + pastPeak);
+    }
+
 
     // --- personality profile factories ---
 

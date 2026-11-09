@@ -759,35 +759,35 @@ public final class CognitiveDerivationEngine {
      */
     static SearchBudgetConfig deriveSearchBudgetDefaults(
             List<PersonalityFacet> facets, DispositionAxes axes, double connectiveBias) {
-        if (facets == null || facets.isEmpty()) return null;
+        if (facets == null || facets.isEmpty()) {return null;}
 
         var defaults = SearchBudgetConfig.defaults();
 
-        double riskTaking = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
-        double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
-        double withdrawal = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
+        double riskTaking        = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
+        double impulsivity       = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
+        double withdrawal        = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
         double intimacyAvoidance = facetScore(facets, PersonalityFacet.INTIMACY_AVOIDANCE, 0.5);
-        double suspiciousness = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
-        double anxiousness = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
+        double suspiciousness    = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
+        double anxiousness       = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
         double emotionalLability = facetScore(facets, PersonalityFacet.EMOTIONAL_LABILITY, 0.5);
 
         double ruleFollowingNumeric = axes != null
-                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+                                      ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
 
         double breadthSteepness = defaults.breadthSteepness() + (connectiveBias - 0.5) * 4.0 + (riskTaking - 0.5) * 2.0;
-        double breadthMidpoint = defaults.breadthMidpoint() - (connectiveBias - 0.5) * 0.2;
+        double breadthMidpoint  = defaults.breadthMidpoint() - (connectiveBias - 0.5) * 0.2;
 
-        double openness = (1.0 - withdrawal + 1.0 - intimacyAvoidance + 1.0 - suspiciousness) / 3.0;
+        double openness           = (1.0 - withdrawal + 1.0 - intimacyAvoidance + 1.0 - suspiciousness) / 3.0;
         double lateralityMidpoint = defaults.lateralityMidpoint() - (openness - 0.5) * 0.3;
 
         double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
-        double depthMidpoint = defaults.depthMidpoint() - (conscientiousness - 0.5) * 0.3;
+        double depthMidpoint     = defaults.depthMidpoint() - (conscientiousness - 0.5) * 0.3;
 
         double convergenceMidpoint = defaults.convergenceMidpoint() - (conscientiousness - 0.5) * 0.2;
 
         double pathologicalThreshold = defaults.pathologicalThreshold()
-                - (anxiousness - 0.5) * 0.6
-                - (emotionalLability - 0.5) * 0.4;
+                                       - (anxiousness - 0.5) * 0.6
+                                       - (emotionalLability - 0.5) * 0.4;
         pathologicalThreshold = Math.max(0.5, pathologicalThreshold);
 
         var channelModulation = deriveChannelModulationDefaults(facets, axes);
@@ -795,26 +795,32 @@ public final class CognitiveDerivationEngine {
         double extremePeak = 0.85 - (anxiousness - 0.5) * 0.3 - (emotionalLability - 0.5) * 0.2;
         extremePeak = Math.max(0.5, Math.min(0.95, extremePeak));
 
-        double depthDecay = Math.max(0, (anxiousness - 0.3) * 2.0 - conscientiousness * 1.5);
-        double breadthDecay = 1.0 + (1.0 - openness) * 2.0;
-        double lateralityDecay = 1.5 + (1.0 - openness) * 1.5 + impulsivity * 1.0;
-        double convergenceDecay = Math.max(0, anxiousness * 1.5 - conscientiousness * 1.0);
-        double depthAmplification = conscientiousness * 1.0 - anxiousness * 0.5;
-        double breadthAmplification = -(1.0 - openness) * 1.5;
-        double lateralityAmplification = -(1.0 - openness) * 1.2;
+        double depthPeak       = clampPeak(extremePeak - 0.05 + conscientiousness * 0.1);
+        double breadthPeak     = clampPeak(extremePeak + openness * 0.05);
+        double lateralityPeak  = clampPeak(extremePeak - 0.1 + openness * 0.08);
+        double convergencePeak = clampPeak(extremePeak + conscientiousness * 0.08);
+
+        double depthDecay               = Math.max(0, (anxiousness - 0.3) * 2.0 - conscientiousness * 1.5);
+        double breadthDecay             = 1.0 + (1.0 - openness) * 2.0;
+        double lateralityDecay          = 1.5 + (1.0 - openness) * 1.5 + impulsivity * 1.0;
+        double convergenceDecay         = Math.max(0, anxiousness * 1.5 - conscientiousness * 1.0);
+        double depthAmplification       = conscientiousness * 1.0 - anxiousness * 0.5;
+        double breadthAmplification     = -(1.0 - openness) * 1.5;
+        double lateralityAmplification  = -(1.0 - openness) * 1.2;
         double convergenceAmplification = -(anxiousness * 2.0 - conscientiousness * 0.8);
         var extremeInteraction = new ExtremeInteractionConfig(depthDecay, breadthDecay,
-                lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification,
-                lateralityAmplification, convergenceAmplification);
+                                                              lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification,
+                                                              lateralityAmplification, convergenceAmplification,
+                                                              depthPeak, breadthPeak, lateralityPeak, convergencePeak);
 
-        int fatigueMaxTicks = (int) (6 + conscientiousness * 8);
+        int    fatigueMaxTicks = (int) (6 + conscientiousness * 8);
         double fatigueRecovery = 0.3 + conscientiousness * 0.4;
-        double fatigueDepth = Math.min(0.0, -0.08 * (1.0 - conscientiousness));
-        double fatigueBreadth = -(0.15 + (1.0 - openness) * 0.15);
-        double fatigueLat = -(0.1 + (1.0 - openness) * 0.1) + impulsivity * 0.15;
-        double fatigueConv = conscientiousness * 0.2 - anxiousness * 0.15;
+        double fatigueDepth    = Math.min(0.0, -0.08 * (1.0 - conscientiousness));
+        double fatigueBreadth  = -(0.15 + (1.0 - openness) * 0.15);
+        double fatigueLat      = -(0.1 + (1.0 - openness) * 0.1) + impulsivity * 0.15;
+        double fatigueConv     = conscientiousness * 0.2 - anxiousness * 0.15;
         var fatigue = new FatigueConfig(fatigueMaxTicks, fatigueRecovery,
-                fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
+                                        fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
 
         return new SearchBudgetConfig(
                 Math.max(1.0, breadthSteepness),
@@ -867,6 +873,11 @@ public final class CognitiveDerivationEngine {
     private static double clamp01(double value) {
         return Math.max(0.0, Math.min(1.0, value));
     }
+
+    private static double clampPeak(double value) {
+        return Math.max(0.5, Math.min(0.95, value));
+    }
+
 
     private static boolean isHigh(List<PersonalityFacet> facets, String name) {
         return facets.stream().filter(f -> name.equals(f.facet())).findFirst()

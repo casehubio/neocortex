@@ -191,40 +191,43 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
     private double computeBreadth(double intensity, DriveAxis dominant,
                                   SearchBudgetConfig config, double moodPleasure,
                                   @Nullable GutValence gut) {
-        ExtremeInteractionConfig ext = config.extremeInteraction();
+        ExtremeInteractionConfig ext  = config.extremeInteraction();
+        double                   peak = ext != null ? ext.breadthPeakOrDefault(config.extremePeak()) : config.extremePeak();
         double base = ext != null
-                ? activationWithDecay(intensity, config.breadthSteepness(), config.breadthMidpoint(), ext.breadthDecay(), config.extremePeak())
-                : logistic(intensity, config.breadthSteepness(), config.breadthMidpoint());
-        double scale = modulationScale(ext != null ? ext.breadthAmplification() : 0.0, intensity, config.extremePeak());
-        if (dominant == DriveAxis.CURIOSITY) base += 0.15 * scale;
-        if (dominant == DriveAxis.AFFILIATION) base += 0.08 * scale;
-        if (moodPleasure > 0.1) base += moodPleasure * 0.1;
-        if (gut == GutValence.APPROACH) base += 0.05;
+                      ? activationWithDecay(intensity, config.breadthSteepness(), config.breadthMidpoint(), ext.breadthDecay(), peak)
+                      : logistic(intensity, config.breadthSteepness(), config.breadthMidpoint());
+        double scale = modulationScale(ext != null ? ext.breadthAmplification() : 0.0, intensity, peak);
+        if (dominant == DriveAxis.CURIOSITY) {base += 0.15 * scale;}
+        if (dominant == DriveAxis.AFFILIATION) {base += 0.08 * scale;}
+        if (moodPleasure > 0.1) {base += moodPleasure * 0.1;}
+        if (gut == GutValence.APPROACH) {base += 0.05;}
         return base;
     }
 
     private double computeLaterality(double intensity, DriveAxis dominant,
                                      SearchBudgetConfig config, double threatIntensity) {
-        if (threatIntensity > config.lateralityThreatFloor()) return 0.0;
-        ExtremeInteractionConfig ext = config.extremeInteraction();
+        if (threatIntensity > config.lateralityThreatFloor()) {return 0.0;}
+        ExtremeInteractionConfig ext  = config.extremeInteraction();
+        double                   peak = ext != null ? ext.lateralityPeakOrDefault(config.extremePeak()) : config.extremePeak();
         double base = ext != null
-                ? activationWithDecay(intensity, config.lateralitySteepness(), config.lateralityMidpoint(), ext.lateralityDecay(), config.extremePeak())
-                : logistic(intensity, config.lateralitySteepness(), config.lateralityMidpoint());
-        double scale = modulationScale(ext != null ? ext.lateralityAmplification() : 0.0, intensity, config.extremePeak());
-        if (dominant == DriveAxis.CURIOSITY) base += 0.1 * scale;
-        if (dominant == DriveAxis.AUTONOMY) base += 0.08 * scale;
+                      ? activationWithDecay(intensity, config.lateralitySteepness(), config.lateralityMidpoint(), ext.lateralityDecay(), peak)
+                      : logistic(intensity, config.lateralitySteepness(), config.lateralityMidpoint());
+        double scale = modulationScale(ext != null ? ext.lateralityAmplification() : 0.0, intensity, peak);
+        if (dominant == DriveAxis.CURIOSITY) {base += 0.1 * scale;}
+        if (dominant == DriveAxis.AUTONOMY) {base += 0.08 * scale;}
         return base;
     }
 
     private double computeDepth(double intensity, DriveAxis dominant, SearchBudgetConfig config) {
-        ExtremeInteractionConfig ext = config.extremeInteraction();
+        ExtremeInteractionConfig ext  = config.extremeInteraction();
+        double                   peak = ext != null ? ext.depthPeakOrDefault(config.extremePeak()) : config.extremePeak();
         double base = ext != null
-                ? activationWithDecay(intensity, config.depthSteepness(), config.depthMidpoint(), ext.depthDecay(), config.extremePeak())
-                : logistic(intensity, config.depthSteepness(), config.depthMidpoint());
-        double scale = modulationScale(ext != null ? ext.depthAmplification() : 0.0, intensity, config.extremePeak());
-        if (dominant == DriveAxis.COMPETENCE) base += 0.15 * scale;
-        if (dominant == DriveAxis.AUTONOMY) base += 0.1 * scale;
-        if (dominant == DriveAxis.AFFILIATION) base -= 0.1 * scale;
+                      ? activationWithDecay(intensity, config.depthSteepness(), config.depthMidpoint(), ext.depthDecay(), peak)
+                      : logistic(intensity, config.depthSteepness(), config.depthMidpoint());
+        double scale = modulationScale(ext != null ? ext.depthAmplification() : 0.0, intensity, peak);
+        if (dominant == DriveAxis.COMPETENCE) {base += 0.15 * scale;}
+        if (dominant == DriveAxis.AUTONOMY) {base += 0.1 * scale;}
+        if (dominant == DriveAxis.AFFILIATION) {base -= 0.1 * scale;}
         return base;
     }
 
@@ -233,11 +236,12 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
                                       @Nullable HabituationState habituation,
                                       @Nullable HabituationConfig habConfig,
                                       double arousalScore) {
-        ExtremeInteractionConfig ext = config.extremeInteraction();
+        ExtremeInteractionConfig ext  = config.extremeInteraction();
+        double                   peak = ext != null ? ext.convergencePeakOrDefault(config.extremePeak()) : config.extremePeak();
         double base = ext != null
-                ? activationWithDecay(intensity, config.convergenceSteepness(), config.convergenceMidpoint(), ext.convergenceDecay(), config.extremePeak())
-                : logistic(intensity, config.convergenceSteepness(), config.convergenceMidpoint());
-        double scale = modulationScale(ext != null ? ext.convergenceAmplification() : 0.0, intensity, config.extremePeak());
+                      ? activationWithDecay(intensity, config.convergenceSteepness(), config.convergenceMidpoint(), ext.convergenceDecay(), peak)
+                      : logistic(intensity, config.convergenceSteepness(), config.convergenceMidpoint());
+        double scale = modulationScale(ext != null ? ext.convergenceAmplification() : 0.0, intensity, peak);
         if (dominant == DriveAxis.CURIOSITY) {base -= 0.1 * scale;}
         if (dominant == DriveAxis.COMPETENCE) {base += 0.1 * scale;}
         if (dominant == DriveAxis.AFFILIATION) {base += 0.1 * scale;}
