@@ -13,7 +13,7 @@
     <description>JSON Schema generation for cognitive types — sealed hierarchy oneOf, enum inlining, shorthand polymorphism</description>
 
     <properties>
-        <version.victools.jsonschema>4.38.0</version.victools.jsonschema>
+        <version.victools.jsonschema>5.0.0</version.victools.jsonschema>
     </properties>
 
     <dependencies>

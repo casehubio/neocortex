@@ -15,11 +15,10 @@
  */
 package io.casehub.neocortex.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
@@ -148,12 +147,13 @@ public class CognitiveSchemaGenerator {
 
     public void generateToYaml(Class<?> rootType, Path output) throws IOException {
         JsonNode schema = generate(rootType);
-        ObjectMapper yamlMapper = new ObjectMapper(
+        var yamlMapper = new com.fasterxml.jackson.databind.ObjectMapper(
                 new YAMLFactory()
                         .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
                         .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
         Files.createDirectories(output.getParent());
+        var jackson2Tree = yamlMapper.readTree(schema.toPrettyString());
         yamlMapper.writerWithDefaultPrettyPrinter()
-                  .writeValue(output.toFile(), schema);
+                  .writeValue(output.toFile(), jackson2Tree);
     }
 }
