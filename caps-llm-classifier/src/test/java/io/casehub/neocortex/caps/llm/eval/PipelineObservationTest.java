@@ -159,6 +159,61 @@ class PipelineObservationTest {
         }
     }
 
+    @Test
+    void observeCompoundingShameWithDynamicCapacity() {
+        var tc = CASES.stream().filter(c -> "compounding-shame".equals(c.label())).findFirst().orElseThrow();
+        var baselineRd = CognitiveDerivationEngine.deriveRegulationDefaults(tc.axes());
+
+        // 4 recent SS failures: modulator = max(0.20, 1.0 - 4×0.12) = 0.52
+        var modulatedRd = new io.casehub.neocortex.cognitive.index.RegulationDefaults(
+                baselineRd.reappraisalCapacity(),
+                baselineRd.suppressionCapacity(),
+                baselineRd.redirectTendency() * 0.52,
+                baselineRd.socialRegulationTendency());
+        var prediction = PREDICTOR.predict(modulatedRd, tc.axes(), tc.emotion(), 0.55, 0.0, null);
+
+        System.out.println("\n" + "=".repeat(70));
+        System.out.println("CASE: compounding-shame-dynamic-capacity");
+        System.out.println("=".repeat(70));
+
+        System.out.println("\n--- STAGE 0: MODULATION ---");
+        System.out.println("Baseline RD: reappraisal=" + f(baselineRd.reappraisalCapacity())
+                + " suppression=" + f(baselineRd.suppressionCapacity())
+                + " redirect=" + f(baselineRd.redirectTendency()));
+        System.out.println("Modulated RD: reappraisal=" + f(modulatedRd.reappraisalCapacity())
+                + " suppression=" + f(modulatedRd.suppressionCapacity())
+                + " redirect=" + f(modulatedRd.redirectTendency()));
+
+        System.out.println("\n--- STAGE 1: PREDICTOR ---");
+        System.out.println("Result: " + (prediction.isPresent()
+                ? "PINNED " + prediction.get().strategy()
+                : "FELL_THROUGH (dynamic capacity caused fallthrough)"));
+
+        System.out.println("\n--- STAGE 2: GENERATION (LLM, unpinned) ---");
+        var context = new CognitionTickContext("eval-agent", "eval-tenant", null, (a, t) -> Set.of());
+        var emotion = new CognitiveEmotion(tc.emotion(), 0.55, "eval-subject",
+                Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), HabituationState.empty());
+
+        EmotionRegulationStrategy pinnedStrategy = prediction.map(p -> p.strategy()).orElse(null);
+        EmotionRegulationResult result = generationPhase.generate(context, appraisal, List.of(),
+                0.5, 0.0, null, pinnedStrategy,
+                tc.axes(), tc.emotion(), modulatedRd, tc.shameContext(), tc.emotionDesc());
+
+        if (result == null) {
+            System.out.println("RESULT: null (generation failed)");
+            return;
+        }
+        System.out.println("Strategy: " + result.strategy());
+        System.out.println("Effectiveness: " + f(result.effectiveness()));
+        System.out.println("Narrative: " + result.narrative());
+
+        System.out.println("\n--- STAGE 3: JUDGE ---");
+        var judgeScore = judgeStrategy(tc, result.strategy());
+        System.out.println("Congruence: " + judgeScore.congruence() + " — " + judgeScore.congruenceReasoning());
+        System.out.println("Effectiveness: " + judgeScore.effectiveness() + " — " + judgeScore.effectivenessReasoning());
+    }
+
     private static String f(double v) { return String.format("%.2f", v); }
 
     record ScoreResult(int congruence, String congruenceReasoning,
