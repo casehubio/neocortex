@@ -335,6 +335,8 @@ public class CognitionTestHarness {
                                org.mockito.Mockito.eq(entry.getKey()), org.mockito.Mockito.anyString()))
                                        .thenReturn(java.util.Optional.of(entry.getValue()));
                 }
+                org.mockito.Mockito.when(appraisalStub.thresholds())
+                                   .thenReturn(io.casehub.neocortex.cognition.appraisal.AppraisalThresholds.defaults());
                 org.mockito.Mockito.when(appraisalStub.currentConcernSalience(
                            org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString()))
                                    .thenReturn(java.util.Map.of());
