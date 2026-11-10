@@ -1,0 +1,86 @@
+{
+  "eval": "CapsRegulationComparisonEvalTest",
+  "date": "2026-11-10",
+  "branch": "issue-806-caps-regulation-integration",
+  "previousBaseline": "caps-regulation-comparison-baseline.json",
+  "changes": [
+    "self_efficacy → AD at -0.25 (new inhibitory connection)",
+    "arousal_level → AD from +0.45 to +0.35",
+    "self_worth → RM from -0.25 to -0.15",
+    "self_efficacy → RM from -0.25 to -0.15",
+    "disposition resting activations increased 50%"
+  ],
+  "cascadeConfig": {"regulationConfidenceThreshold": 0.3, "regulationDominanceMargin": 0.15},
+  "scenarios": [
+    {
+      "name": "Situation Selection (avoidant shame)",
+      "agentId": "eval-sit-select",
+      "capsTop": {"strategy": "SITUATION_SELECTION", "strength": 0.909},
+      "capsRunnerUp": {"strategy": "SOCIAL_SUPPORT_SEEKING", "strength": 0.806},
+      "capsMargin": 0.103,
+      "predictor": {"strategy": "SITUATION_SELECTION", "confidence": 0.75},
+      "cascade": "SITUATION_SELECTION",
+      "llmFree": "ATTENTIONAL_DEPLOYMENT",
+      "capsMatchesExpected": true
+    },
+    {
+      "name": "Situation Modification (bold competition)",
+      "agentId": "eval-sit-modify",
+      "capsTop": {"strategy": "SITUATION_MODIFICATION", "strength": 0.857},
+      "capsRunnerUp": {"strategy": "RESPONSE_MODULATION", "strength": 0.791},
+      "capsMargin": 0.066,
+      "predictor": {"strategy": "NONE", "confidence": 0.00},
+      "cascade": "COGNITIVE_CHANGE",
+      "llmFree": "RESPONSE_MODULATION",
+      "capsMatchesExpected": true
+    },
+    {
+      "name": "Attentional Deployment (fear/urgency)",
+      "agentId": "eval-attn-deploy",
+      "capsTop": {"strategy": "SITUATION_MODIFICATION", "strength": 0.857},
+      "capsRunnerUp": {"strategy": "SOCIAL_SUPPORT_SEEKING", "strength": 0.790},
+      "capsMargin": 0.066,
+      "predictor": {"strategy": "ATTENTIONAL_DEPLOYMENT", "confidence": 0.80},
+      "cascade": "ATTENTIONAL_DEPLOYMENT",
+      "llmFree": "ATTENTIONAL_DEPLOYMENT",
+      "capsMatchesExpected": false,
+      "note": "safety hard gate overrides CAPS (intensity 0.95 > 0.75) — design working correctly"
+    },
+    {
+      "name": "Cognitive Change (reappraisal)",
+      "agentId": "eval-cog-change",
+      "capsTop": {"strategy": "SOCIAL_SUPPORT_SEEKING", "strength": 0.806},
+      "capsRunnerUp": {"strategy": "CO_REGULATION", "strength": 0.654},
+      "capsMargin": 0.152,
+      "predictor": {"strategy": "COGNITIVE_CHANGE", "confidence": 0.75},
+      "cascade": "NONE",
+      "llmFree": "COGNITIVE_CHANGE",
+      "capsMatchesExpected": false,
+      "note": "agent has accommodating (not analytical) conflictMode — no CC resting activation. CAPS pinned SSS which was discarded (no interacting agents)."
+    },
+    {
+      "name": "Response Modulation (suppression)",
+      "agentId": "eval-resp-mod",
+      "capsTop": {"strategy": "RESPONSE_MODULATION", "strength": 0.812},
+      "capsRunnerUp": {"strategy": "DELIBERATE_PROVOCATION", "strength": 0.694},
+      "capsMargin": 0.118,
+      "predictor": {"strategy": "RESPONSE_MODULATION", "confidence": 0.70},
+      "cascade": "RESPONSE_MODULATION",
+      "llmFree": "RESPONSE_MODULATION",
+      "capsMatchesExpected": true
+    }
+  ],
+  "agreement": {
+    "capsPredictor": {"matches": 2, "total": 5, "rate": 0.40},
+    "capsLlm": {"matches": 1, "total": 5, "rate": 0.20},
+    "predictorLlm": {"matches": 3, "total": 5, "rate": 0.60}
+  },
+  "thresholdSweep": [
+    {"threshold": 0.1, "pinned": 1, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.2, "pinned": 1, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.3, "pinned": 1, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.4, "pinned": 1, "concordance_predictor": 0.00, "concordance_llm": 0.00},
+    {"threshold": 0.5, "pinned": 1, "concordance_predictor": 0.00, "concordance_llm": 0.00}
+  ],
+  "improvement": "3/5 correct CAPS predictions (was 0/5 in baseline). AD no longer dominates all scenarios."
+}
