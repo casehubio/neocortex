@@ -213,7 +213,8 @@ class PipelineCoherenceEvalTest {
                     @Nullable EmotionType dominantEmotionType,
                     @Nullable RegulationDefaults regulationDefaults,
                     @Nullable ShameContext shameContext,
-                    @Nullable String situationContext) {
+                    @Nullable String situationContext,
+                    java.util.@Nullable Map<String, io.casehub.neocortex.cognition.prompt.observation.RegulationTracker.TrajectoryResult> distressTrajectories) {
                 var strategy = pinnedStrategy != null ? pinnedStrategy : EmotionRegulationStrategy.COGNITIVE_CHANGE;
                 var emotions = appraisalArg.emotions().stream()
                     .map(e -> e.type().name()).toList();
