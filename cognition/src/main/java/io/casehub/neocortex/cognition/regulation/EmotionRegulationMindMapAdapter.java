@@ -33,6 +33,14 @@ public final class EmotionRegulationMindMapAdapter {
                              String cognitiveSubgraphId, EmotionRegulationResult result,
                              @org.jspecify.annotations.Nullable String dominantEmotionType,
                              @org.jspecify.annotations.Nullable RegulationContext regulationContext) {
+        write(store, agentId, tenantId, cognitiveSubgraphId, result, dominantEmotionType, regulationContext, null);
+    }
+
+    public static void write(MindMapStore store, String agentId, String tenantId,
+                             String cognitiveSubgraphId, EmotionRegulationResult result,
+                             @org.jspecify.annotations.Nullable String dominantEmotionType,
+                             @org.jspecify.annotations.Nullable RegulationContext regulationContext,
+                             @org.jspecify.annotations.Nullable String strategySource) {
         var props = new HashMap<String, String>();
         props.put("cognitiveKind", COGNITIVE_KIND);
         props.put("agent-id", agentId);
@@ -52,6 +60,9 @@ public final class EmotionRegulationMindMapAdapter {
         }
         if (dominantEmotionType != null) {
             props.put("dominantEmotionType", dominantEmotionType);
+        }
+        if (strategySource != null) {
+            props.put("strategySource", strategySource);
         }
         if (regulationContext != null) {
             if (regulationContext.location() != null) {
@@ -87,6 +98,33 @@ public final class EmotionRegulationMindMapAdapter {
                 .map(EmotionRegulationMindMapAdapter::fromNode)
                 .toList();
     }
+
+    public record SourceOutcomeSummary(String source, int episodeCount, double meanEffectiveness) {}
+
+    public static java.util.Map<String, SourceOutcomeSummary> loadOutcomeSummaryBySource(
+            MindMapStore store, String agentId, String tenantId, int episodeLimit) {
+        var nodes = store.search(MindMapQuery.of(tenantId, episodeLimit).withType(SubgraphTypes.COGNITIVE))
+                         .stream()
+                         .filter(n -> COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
+                         .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                         .toList();
+
+        var bySource = new HashMap<String, java.util.List<Double>>();
+        for (var node : nodes) {
+            String source        = node.properties().getOrDefault("strategySource", "UNKNOWN");
+            double effectiveness = parseDouble(node.properties().get("effectiveness"));
+            bySource.computeIfAbsent(source, k -> new java.util.ArrayList<>()).add(effectiveness);
+        }
+
+        var result = new HashMap<String, SourceOutcomeSummary>();
+        for (var entry : bySource.entrySet()) {
+            var    scores = entry.getValue();
+            double mean   = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            result.put(entry.getKey(), new SourceOutcomeSummary(entry.getKey(), scores.size(), mean));
+        }
+        return result;
+    }
+
 
     public static List<EmotionRegulationResult> loadHistory(MindMapStore store,
                                                             String agentId, String tenantId,

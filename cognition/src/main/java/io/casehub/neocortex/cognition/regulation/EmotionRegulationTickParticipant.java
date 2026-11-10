@@ -148,6 +148,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                    .orElse(null);
 
         EmotionRegulationStrategy                            pinnedStrategy       = null;
+        String                                               strategySource       = "LLM";
         io.casehub.neocortex.cognitive.index.DispositionAxes axes                 = null;
         Map<String, Double>                                  capsInputActivations = null;
         AgentCapsState                                       capsState            = null;
@@ -156,6 +157,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         if (peakEmotion != null && (currentFatigue > SAFETY_FATIGUE_THRESHOLD
                                     || peakEmotion.intensity() > SAFETY_INTENSITY_THRESHOLD)) {
             pinnedStrategy = EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;
+            strategySource = "SAFETY_GATE";
             var intensity = peakEmotion.intensity();
             LOG.fine(() -> String.format("safety hard gate: agent=%s → AD (fatigue=%.2f intensity=%.2f)",
                                          context.agentId(), currentFatigue, intensity));
@@ -178,6 +180,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                           >= cascadeConfig.regulationDominanceMargin();
                     if (dominant) {
                         pinnedStrategy = EmotionRegulationStrategy.valueOf(top.nodeId().toUpperCase());
+                        strategySource = "CAPS";
                         var pinned = pinnedStrategy;
                         LOG.fine(() -> String.format("CAPS cascade: agent=%s → %s (strength=%.3f)",
                                                      context.agentId(), pinned, top.strength()));
@@ -190,6 +193,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         if (pinnedStrategy == null && strategyPredictor != null && defaultsRegistry != null && pendingSignal == null) {
             pinnedStrategy = tryPredictStrategy(context, appraisal.get(), currentFatigue);
             if (pinnedStrategy != null) {
+                strategySource = "PREDICTOR";
                 var pinned = pinnedStrategy;
                 LOG.fine(() -> String.format("regulation predictor: agent=%s strategy=%s (pinned)",
                                              context.agentId(), pinned));
@@ -221,6 +225,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             shameContext = assembleShameContext(context, history);
             if (shameContext != null && shameContext.isSurfaceLevel()) {
                 pinnedStrategy = EmotionRegulationStrategy.RESPONSE_MODULATION;
+                strategySource = "SHAME_CONTEXT";
             }
         }
 
@@ -250,7 +255,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                         mindMapStore, context.agentId(), context.tenantId(),
                         cognitiveSubgraphId, result,
                         dominantType != null ? dominantType.name() : null,
-                        context.regulationContext());
+                        context.regulationContext(), strategySource);
             }
 
             // CAPS weight update with regulation effectiveness (Rescorla-Wagner)
