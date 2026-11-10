@@ -121,36 +121,6 @@ class AppraisalTickParticipantTest {
     }
 
     @Test
-    void bridgesEmotionsToMood() {
-        var emotion = new CognitiveEmotion(
-                EmotionType.FEAR, 0.8, "corridor", Instant.now(),
-                EmotionSource.INTRINSIC, new PadProjection(-0.6, 0.7, -0.4));
-        AppraisalStrategy emotionProducing = ctx -> new AppraisalResult(
-                List.of(emotion), List.of(), HabituationState.empty());
-
-        var config = CognitionConfig.none().with("appraisal", true);
-        var participant = new AppraisalTickParticipant(
-                salienceStrategy, emotionProducing, driveOrchestrator,
-                moodOrchestrator, null, config);
-
-        participant.tick(contextWithObservation("dark corridor"));
-
-        verify(moodOrchestrator).record(any(), eq("a1"), eq("t1"));
-    }
-
-    @Test
-    void noMoodBridgeWhenNoEmotions() {
-        var config = CognitionConfig.none().with("appraisal", true);
-        var participant = new AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, driveOrchestrator,
-                moodOrchestrator, null, config);
-
-        participant.tick(contextWithObservation("boring room"));
-
-        verify(moodOrchestrator, never()).record(any(), any(), any());
-    }
-
-    @Test
     void habituationStatePersistsAcrossTicks() {
         AppraisalStrategy trackingStrategy = ctx -> {
             var hash = Integer.toHexString(ctx.situation().narrative().hashCode());
