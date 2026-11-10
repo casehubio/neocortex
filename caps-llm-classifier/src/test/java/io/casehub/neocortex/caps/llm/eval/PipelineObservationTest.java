@@ -38,8 +38,8 @@ class PipelineObservationTest {
     private static EmotionRegulationGenerationPhase generationPhase;
 
     private static final String JUDGE_SYSTEM_PROMPT = """
-            You are an emotion regulation expert evaluating whether an AI character's \
-            regulation strategy is psychologically appropriate for their personality.
+            You are an emotion regulation expert evaluating an AI character's \
+            regulation strategy on two independent dimensions.
 
             The Gross (1998) process model defines five regulation strategies:
             - SITUATION_SELECTION: avoid or approach situations likely to trigger specific emotions
@@ -48,16 +48,28 @@ class PipelineObservationTest {
             - COGNITIVE_CHANGE: reappraise the meaning of the situation to change its emotional impact
             - RESPONSE_MODULATION: suppress or amplify the emotional expression after it has been generated
 
-            Score the strategy selection from 1 to 5 based on how well it fits \
-            what this specific personality WOULD NATURALLY CHOOSE and can \
-            SUCCESSFULLY EXECUTE.
+            Score TWO dimensions independently (1-5 each):
+
+            CONGRUENCE — how well this strategy fits what this personality \
+            WOULD NATURALLY CHOOSE and can EXECUTE, given their fixed traits.
             5 = Clearly the best choice this personality would make and can execute
             4 = Good choice, personality-congruent and executable
             3 = Acceptable but the personality would more naturally choose something else
-            2 = Poor fit
-            1 = Wrong
+            2 = Poor fit — the personality lacks the traits to execute this strategy
+            1 = Wrong — contradicts the personality dynamics entirely
 
-            Respond with ONLY a JSON object: {"score": N, "reasoning": "one sentence"}""";
+            EFFECTIVENESS — how well this strategy will REDUCE the emotional \
+            impact in this specific situation, given the context and history. \
+            Score the expected outcome, not the personality fit.
+            5 = Optimal — will substantially reduce emotional intensity
+            4 = Good — will meaningfully reduce emotional impact
+            3 = Moderate — partial reduction, may leave residual distress
+            2 = Poor — unlikely to reduce impact, may prolong the episode
+            1 = Counterproductive — will intensify or entrench the emotion
+
+            Respond with ONLY a JSON object:
+            {"congruence": N, "congruenceReasoning": "one sentence", \
+            "effectiveness": N, "effectivenessReasoning": "one sentence"}""";
 
     @BeforeAll
     static void setUp() {
@@ -142,14 +154,15 @@ class PipelineObservationTest {
             // Stage 3: Judge
             System.out.println("\n--- STAGE 3: JUDGE ---");
             var judgeScore = judgeStrategy(tc, result.strategy());
-            System.out.println("Score: " + judgeScore.score());
-            System.out.println("Reasoning: " + judgeScore.reasoning());
+            System.out.println("Congruence: " + judgeScore.congruence() + " — " + judgeScore.congruenceReasoning());
+            System.out.println("Effectiveness: " + judgeScore.effectiveness() + " — " + judgeScore.effectivenessReasoning());
         }
     }
 
     private static String f(double v) { return String.format("%.2f", v); }
 
-    record ScoreResult(int score, String reasoning) {}
+    record ScoreResult(int congruence, String congruenceReasoning,
+                       int effectiveness, String effectivenessReasoning) {}
 
     private ScoreResult judgeStrategy(BoundaryCase tc, EmotionRegulationStrategy strategy) {
         try {
@@ -171,7 +184,7 @@ class PipelineObservationTest {
                     .forEach(sb::append);
             return parseJudgeResponse(sb.toString());
         } catch (Exception e) {
-            return new ScoreResult(0, "error: " + e.getMessage());
+            return new ScoreResult(0, "error: " + e.getMessage(), 0, "error");
         }
     }
 
@@ -179,15 +192,17 @@ class PipelineObservationTest {
         try {
             int start = response.indexOf('{');
             int end = response.lastIndexOf('}');
-            if (start < 0 || end <= start) return new ScoreResult(0, "no JSON");
+            if (start < 0 || end <= start) return new ScoreResult(0, "no JSON", 0, "no JSON");
             var json = response.substring(start, end + 1);
             var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             var node = mapper.readTree(json);
             return new ScoreResult(
-                    Math.max(1, Math.min(5, node.path("score").asInt(3))),
-                    node.path("reasoning").asText("no reasoning"));
+                    Math.max(1, Math.min(5, node.path("congruence").asInt(3))),
+                    node.path("congruenceReasoning").asText("no reasoning"),
+                    Math.max(1, Math.min(5, node.path("effectiveness").asInt(3))),
+                    node.path("effectivenessReasoning").asText("no reasoning"));
         } catch (Exception e) {
-            return new ScoreResult(0, "parse error");
+            return new ScoreResult(0, "parse error", 0, "parse error");
         }
     }
 }
