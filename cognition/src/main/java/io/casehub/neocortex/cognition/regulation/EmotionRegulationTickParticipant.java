@@ -286,6 +286,12 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                    .orElse(null);
         if (peakEmotion == null) {return null;}
 
+        if (rd != null && mindMapStore != null) {
+            var emotionOutcomes = EmotionRegulationMindMapAdapter.loadHistory(
+                    mindMapStore, context.agentId(), context.tenantId(), peakEmotion.type(), HISTORY_LIMIT);
+            rd = RegulationCapacityModulator.modulate(rd, emotionOutcomes);
+        }
+
         CognitiveLoadLevel loadLevel = (loadEstimator != null)
                                        ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
                                        : null;

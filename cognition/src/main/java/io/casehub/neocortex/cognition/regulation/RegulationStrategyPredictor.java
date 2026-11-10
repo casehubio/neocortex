@@ -95,7 +95,9 @@ public class RegulationStrategyPredictor {
                     EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, ALIGNED_EFFECTIVENESS));
         }
         // Nathanson 1992 compass of shame: avoidant personalities withdraw from shame
-        if (axes != null && "avoidant".equals(axes.conflictMode())) {
+        // Bonanno & Burton 2013: fall through if redirect capacity degraded by prior failures
+        if (axes != null && "avoidant".equals(axes.conflictMode())
+                && rd.redirectTendency() >= VIABLE_ALTERNATIVE) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.SITUATION_SELECTION, 0.75, ALIGNED_EFFECTIVENESS));
         }
