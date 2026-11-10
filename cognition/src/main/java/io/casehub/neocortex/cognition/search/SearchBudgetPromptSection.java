@@ -107,7 +107,7 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
             return "This registers, but doesn't hold your attention.";
         }
 
-        return switch (budget.source()) {
+        String base = switch (budget.source()) {
             case CURIOSITY -> renderCuriosity(budget);
             case COMPETENCE -> renderCompetence(budget);
             case AFFILIATION -> renderAffiliation(budget);
@@ -115,14 +115,31 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
             case THREAT -> renderThreat(budget);
             case GOAL -> renderGoal(budget);
         };
+
+        String profile = renderProfileShape(budget);
+        if (profile != null) {
+            base = base + " " + profile;
+        }
+
+        if (budget.capacityConstrained()) {
+            base = base + " " + renderCapacityConstraint(budget);
+        }
+
+        return base;
     }
 
     private String renderCuriosity(SearchBudget b) {
         if (b.breadth() > 0.7 && b.laterality() > 0.5) {
             return "This pulls at your attention from multiple angles — the obvious answer isn't enough, and connections to adjacent areas keep surfacing.";
         }
+        if (b.breadth() > 0.5 && b.convergence() < 0.3) {
+            return "Your attention fans out — each thread suggests two more, and settling on one feels premature.";
+        }
         if (b.breadth() > 0.5) {
             return "Several angles present themselves. The first explanation doesn't quite satisfy.";
+        }
+        if (b.convergence() > 0.5 && b.depth() > 0.4) {
+            return "Something here catches your interest, and you want to follow it through methodically before moving on.";
         }
         return "Something here catches your interest, though it doesn't demand deep investigation.";
     }
@@ -154,6 +171,38 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
             return "The goal is close and the path is clear. Time to execute, not explore.";
         }
         return "There's a specific outcome to reach. Exploration serves the goal, not the other way around.";
+    }
+
+    private @Nullable String renderProfileShape(SearchBudget b) {
+        if (b.breadth() > 0.4 && b.laterality() > 0.3 && b.convergence() < 0.35) {
+            return "You resist narrowing down — staying open feels more productive than committing too early.";
+        }
+        if (b.convergence() > 0.5 && b.breadth() < 0.4 && b.laterality() < 0.4) {
+            return "You naturally converge — exhausting one line of inquiry before opening another, synthesising as you go.";
+        }
+        if (b.laterality() > 0.5 && b.breadth() < 0.4) {
+            return "Your mind jumps sideways — not many threads, but surprising ones.";
+        }
+        if (b.depth() > 0.6 && b.breadth() < 0.3) {
+            return "You bore in deep on what you have rather than reaching for more.";
+        }
+        return null;
+    }
+
+    private String renderCapacityConstraint(SearchBudget b) {
+        if (b.breadthGap() > 0.1 && b.lateralityGap() > 0.1) {
+            return "You sense more connections than you can hold — threads keep slipping before you can weave them together.";
+        }
+        if (b.breadthGap() > 0.1) {
+            return "You want to track more threads but can only hold a few at once. The others blur when you look away.";
+        }
+        if (b.lateralityGap() > 0.1) {
+            return "Distant connections hover at the edge of your awareness but won't crystallise — you can sense bridges you can't quite cross.";
+        }
+        if (b.depthGap() > 0.1) {
+            return "The chain of reasoning starts to fog after a few steps. You can feel there's more underneath, but the links blur.";
+        }
+        return "Something about this is just slightly out of reach.";
     }
 
     private String modulateByContinuum(String base) {
