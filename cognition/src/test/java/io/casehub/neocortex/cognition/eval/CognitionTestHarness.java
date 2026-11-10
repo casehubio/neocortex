@@ -332,11 +332,11 @@ public class CognitionTestHarness {
 
             var budgetParticipant = new SearchBudgetTickParticipant(
                     driveOrchestrator, appraisalStub, null, moodOrchestrator,
-                    registry, config, curiosityDrive);
+                    registry, config, curiosityDrive, null);
             core.addParticipant(CognitionPhase.DERIVED, budgetParticipant);
 
             core.configureSearchBudget(driveOrchestrator, moodOrchestrator,
-                                       registry, store, curiosityDrive);
+                                       registry, store, curiosityDrive, null);
             core.configureCuriosity(curiosityDrive, channelComputer, store, 0.5, 0.5);
 
             var descriptors = new HashMap<String, AgentDescriptor>();

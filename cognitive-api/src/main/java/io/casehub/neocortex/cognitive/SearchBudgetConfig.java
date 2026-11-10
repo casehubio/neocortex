@@ -24,7 +24,7 @@ package io.casehub.neocortex.cognitive;
  *                              and modulation scaling activate (Yerkes-Dodson)
  * @param extremeInteraction    nullable per-parameter decay and amplification rates;
  *                              null disables inverted-U and modulation scaling
- * @param fatigue               nullable per-parameter fatigue reallocation effects
+ * @param fatigueEffects               nullable per-parameter fatigue reallocation effects
  *                              (Hockey 1997); null disables fatigue dynamics
  * @see io.casehub.neocortex.cognitive.HabituationConfig
  */
@@ -42,7 +42,7 @@ public record SearchBudgetConfig(
         ChannelModulationConfig channelModulation,
         double extremePeak,
         ExtremeInteractionConfig extremeInteraction,
-        FatigueConfig fatigue) {
+        SearchFatigueEffects fatigueEffects) {
 
     public SearchBudgetConfig {
         validateSteepness("breadthSteepness", breadthSteepness);
@@ -67,14 +67,14 @@ public record SearchBudgetConfig(
     }
 
     public SearchBudgetConfig withExtremePeak(double v) {
-        return new SearchBudgetConfig(breadthSteepness, breadthMidpoint, lateralitySteepness, lateralityMidpoint, lateralityThreatFloor, depthSteepness, depthMidpoint, convergenceSteepness, convergenceMidpoint, pathologicalThreshold, channelModulation, v, extremeInteraction, fatigue);
+        return new SearchBudgetConfig(breadthSteepness, breadthMidpoint, lateralitySteepness, lateralityMidpoint, lateralityThreatFloor, depthSteepness, depthMidpoint, convergenceSteepness, convergenceMidpoint, pathologicalThreshold, channelModulation, v, extremeInteraction, fatigueEffects);
     }
 
     public SearchBudgetConfig withExtremeInteraction(ExtremeInteractionConfig v) {
-        return new SearchBudgetConfig(breadthSteepness, breadthMidpoint, lateralitySteepness, lateralityMidpoint, lateralityThreatFloor, depthSteepness, depthMidpoint, convergenceSteepness, convergenceMidpoint, pathologicalThreshold, channelModulation, extremePeak, v, fatigue);
+        return new SearchBudgetConfig(breadthSteepness, breadthMidpoint, lateralitySteepness, lateralityMidpoint, lateralityThreatFloor, depthSteepness, depthMidpoint, convergenceSteepness, convergenceMidpoint, pathologicalThreshold, channelModulation, extremePeak, v, fatigueEffects);
     }
 
-    public SearchBudgetConfig withFatigue(FatigueConfig v) {
+    public SearchBudgetConfig withFatigueEffects(SearchFatigueEffects v) {
         return new SearchBudgetConfig(breadthSteepness, breadthMidpoint, lateralitySteepness, lateralityMidpoint, lateralityThreatFloor, depthSteepness, depthMidpoint, convergenceSteepness, convergenceMidpoint, pathologicalThreshold, channelModulation, extremePeak, extremeInteraction, v);
     }
 

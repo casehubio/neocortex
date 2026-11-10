@@ -17,11 +17,12 @@ package io.casehub.neocortex.cognitive.index;
 
 import io.casehub.neocortex.cognitive.ChannelModulationConfig;
 import io.casehub.neocortex.cognitive.CognitiveCapacityConfig;
+import io.casehub.neocortex.cognitive.CognitiveResourcePoolConfig;
 import io.casehub.neocortex.cognitive.ExtremeInteractionConfig;
-import io.casehub.neocortex.cognitive.FatigueConfig;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.RecurringThoughtConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
+import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.mood.MoodBaseline;
@@ -198,6 +199,7 @@ public final class CognitiveDerivationEngine {
         HabituationConfig       habituation      = deriveHabituationConfig(descriptor.disposition(), descriptor.goals());
         RegulationDefaults      regulation       = deriveRegulationDefaults(descriptor.disposition());
         SearchBudgetConfig      searchBudget     = deriveSearchBudgetDefaults(descriptor.personalityFacets(), descriptor.disposition(), graphStructure != null ? graphStructure.connectiveBias() : 0.5);
+        CognitiveResourcePoolConfig poolConfig   = derivePoolConfig(descriptor.personalityFacets(), descriptor.disposition());
         RecurringThoughtConfig  recurringThought = deriveRecurringThoughtConfig(descriptor.personalityFacets(), descriptor.disposition());
         CognitiveCapacityConfig capacity         = deriveCapacity(descriptor.dispositionProfile());
         double                  personalityDom   = derivePersonalityDominance(descriptor.formationPadSummary());
@@ -218,7 +220,8 @@ public final class CognitiveDerivationEngine {
                                 .withRegulationDefaults(regulation)
                                 .withSearchBudgetConfig(searchBudget)
                                 .withRecurringThoughtConfig(recurringThought)
-                                .withCapacityConfig(capacity);
+                                .withCapacityConfig(capacity)
+                                .withCognitiveResourcePoolConfig(poolConfig);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
@@ -243,6 +246,7 @@ public final class CognitiveDerivationEngine {
                                 .withSearchBudgetConfig(explicit.searchBudgetConfig() != null ? explicit.searchBudgetConfig() : derived.searchBudgetConfig())
                                 .withRecurringThoughtConfig(explicit.recurringThoughtConfig() != null ? explicit.recurringThoughtConfig() : derived.recurringThoughtConfig())
                                 .withCapacityConfig(mergeCapacity(explicit.capacityConfig(), derived.capacityConfig()))
+                                .withCognitiveResourcePoolConfig(explicit.cognitiveResourcePoolConfig() != null ? explicit.cognitiveResourcePoolConfig() : derived.cognitiveResourcePoolConfig())
                                 .withVocabulary(explicit.vocabulary())
                                 .withServices(explicit.services())
                                 .withTraitRules(explicit.traitRules())
@@ -815,14 +819,11 @@ public final class CognitiveDerivationEngine {
                                                               depthPeak, breadthPeak, lateralityPeak, convergencePeak,
                                                               amplificationThreshold);
 
-        int    fatigueMaxTicks = (int) (6 + conscientiousness * 8);
-        double fatigueRecovery = 0.3 + conscientiousness * 0.4;
         double fatigueDepth    = Math.min(0.0, -0.08 * (1.0 - conscientiousness));
         double fatigueBreadth  = -(0.15 + (1.0 - openness) * 0.15);
         double fatigueLat      = -(0.1 + (1.0 - openness) * 0.1) + impulsivity * 0.15;
         double fatigueConv     = conscientiousness * 0.2 - anxiousness * 0.15;
-        var fatigue = new FatigueConfig(fatigueMaxTicks, fatigueRecovery,
-                                        fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
+        var fatigueEffects = new SearchFatigueEffects(fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
 
         return new SearchBudgetConfig(
                 Math.max(1.0, breadthSteepness),
@@ -838,8 +839,20 @@ public final class CognitiveDerivationEngine {
                 channelModulation,
                 extremePeak,
                 extremeInteraction,
-                fatigue);
+                fatigueEffects);
     }
+
+    static CognitiveResourcePoolConfig derivePoolConfig(List<PersonalityFacet> facets, DispositionAxes axes) {
+        if (facets == null || facets.isEmpty()) return null;
+        double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
+        double ruleFollowingNumeric = axes != null
+                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+        double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
+        int    maxEffort         = (int) (6 + conscientiousness * 8);
+        double recoveryRate      = 0.3 + conscientiousness * 0.4;
+        return new CognitiveResourcePoolConfig(maxEffort, recoveryRate);
+    }
+
 
     private static ChannelModulationConfig deriveChannelModulationDefaults(
             List<PersonalityFacet> facets, DispositionAxes axes) {
