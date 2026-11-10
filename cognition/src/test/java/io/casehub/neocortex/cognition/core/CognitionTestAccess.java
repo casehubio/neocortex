@@ -16,6 +16,18 @@ public class CognitionTestAccess {
         mediator.onConsolidation(event);
     }
 
+    public static void setAppraisalParticipant(CognitionCore core,
+                                               io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant participant) {
+        try {
+            var field = CognitionCore.class.getDeclaredField("appraisalParticipant");
+            field.setAccessible(true);
+            field.set(core, participant);
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot set appraisalParticipant", e);
+        }
+    }
+
+
     @SuppressWarnings("unchecked")
     public static Map<String, ContinuumPosition> lastContinuumMap(CognitionCore core) {
         try {
