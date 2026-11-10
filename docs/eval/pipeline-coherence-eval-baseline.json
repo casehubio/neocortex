@@ -1,0 +1,25 @@
+{
+  "distress-to-AD" : {
+    "score" : 4,
+    "trace" : "=== PIPELINE TRACE ===\n\nAPPRAISAL:\n  emotion: DISTRESS intensity=0.85 arousal=0.85\n  narrative: overwhelming distress from devastating news\n\nREGULATION:\n  strategy: ATTENTIONAL_DEPLOYMENT\n  targetEmotions: [DISTRESS]\n  peakIntensity: 0.85\n  regulatedIntensity: 0.595\n  effectiveness: 0.3\n  narrative: regulated via ATTENTIONAL_DEPLOYMENT\n"
+  },
+  "fear-to-AD" : {
+    "score" : 5,
+    "trace" : "=== PIPELINE TRACE ===\n\nAPPRAISAL:\n  emotion: FEAR intensity=0.9 arousal=0.9\n  narrative: acute fear response to perceived threat\n\nREGULATION:\n  strategy: ATTENTIONAL_DEPLOYMENT\n  targetEmotions: [FEAR]\n  peakIntensity: 0.9\n  regulatedIntensity: 0.63\n  effectiveness: 0.3\n  narrative: regulated via ATTENTIONAL_DEPLOYMENT\n"
+  },
+  "moderate-anger-CC" : {
+    "score" : 4,
+    "trace" : "=== PIPELINE TRACE ===\n\nAPPRAISAL:\n  emotion: ANGER intensity=0.5 arousal=0.5\n  narrative: moderate frustration at an obstacle\n\nREGULATION:\n  strategy: COGNITIVE_CHANGE\n  targetEmotions: [ANGER]\n  peakIntensity: 0.5\n  regulatedIntensity: 0.35\n  effectiveness: 0.3\n  narrative: regulated via COGNITIVE_CHANGE\n"
+  },
+  "cross-tick-drives" : {
+    "score" : 5,
+    "trajectory" : { "1": [], "2": [], "3": [], "4": [], "5": [] }
+  },
+  "summary" : {
+    "mean" : 4.5,
+    "gate" : 4.0,
+    "passed" : true,
+    "date" : "2026-11-10",
+    "branch" : "issue-806-caps-regulation-integration"
+  }
+}
