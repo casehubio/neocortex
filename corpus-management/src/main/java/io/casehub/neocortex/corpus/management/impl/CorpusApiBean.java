@@ -9,6 +9,7 @@ import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
+import io.casehub.neocortex.corpus.management.WebCaptureConfig;
 import io.casehub.neocortex.corpus.management.WebCaptureMetadata;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
@@ -32,6 +33,7 @@ public class CorpusApiBean implements CorpusApi {
     private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
     private final WebCaptureService webCaptureService;
     private final WebPlatform webPlatform;
+    private final WebCaptureConfig webCaptureConfig;
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -61,6 +63,22 @@ public class CorpusApiBean implements CorpusApi {
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
                          WebPlatform webPlatform) {
+        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, webPlatform, null);
+    }
+
+    public CorpusApiBean(SearchResource searchResource,
+                         CorpusIndexService indexService,
+                         CorpusReindexService reindexService,
+                         SearchProfileStore profileStore,
+                         ProvenanceStore provenanceStore,
+                         CorpusOutcomeService outcomeService,
+                         CorpusRef corpusRef,
+                         Path corpusRoot,
+                         CorpusEntryStore entryStore,
+                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
+                         WebPlatform webPlatform,
+                         WebCaptureConfig webCaptureConfig) {
         this.searchResource    = searchResource;
         this.indexService      = indexService;
         this.reindexService    = reindexService;
@@ -73,6 +91,7 @@ public class CorpusApiBean implements CorpusApi {
         this.sessionService    = sessionService;
         this.webCaptureService = new WebCaptureService(entryStore);
         this.webPlatform       = webPlatform;
+        this.webCaptureConfig  = webCaptureConfig != null ? webCaptureConfig : WebCaptureConfig.DEFAULT;
     }
 
     CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef, WebPlatform webPlatform) {
@@ -88,6 +107,7 @@ public class CorpusApiBean implements CorpusApi {
         this.sessionService     = null;
         this.webCaptureService  = new WebCaptureService(entryStore);
         this.webPlatform        = webPlatform;
+        this.webCaptureConfig   = WebCaptureConfig.DEFAULT;
     }
 
 
@@ -535,7 +555,7 @@ public class CorpusApiBean implements CorpusApi {
             throw new IllegalArgumentException("url is required");
         }
 
-        int ttl = ttlDays != null ? ttlDays : WebCaptureMetadata.DEFAULT_TTL_DAYS;
+        int ttl = ttlDays != null ? ttlDays : webCaptureConfig.defaultTtlDays();
 
         java.util.Optional<io.casehub.neocortex.corpus.management.CorpusEntry> cached =
                 webCaptureService.findFreshByUrl(corpusRef, url, ttl);

@@ -139,6 +139,19 @@ class WebCapturePipelineSmokeTest {
         assertThat(store.entries).isEmpty();
     }
 
+    @Test
+    void configTtlDefaultIsUsedWhenTtlDaysNull() {
+        var customConfig = new io.casehub.neocortex.corpus.management.WebCaptureConfig(7, 5);
+        var configBean = new CorpusApiBean(null, null, null, null, null, null,
+                                           CORPUS, null, store, null, webPlatform, customConfig);
+        String html   = "<html><body><p>TTL test</p></body></html>";
+        var    result = configBean.webCapture("smoke-test", "https://example.com/ttl-test", html, null, null);
+
+        assertThat(result.entryId()).isNotNull();
+        var entry = store.entries.get(result.entryId());
+        assertThat(entry.intField(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS)).isEqualTo(7);
+    }
+
 
     @Test
     void imageCaptureCreatesRelatedEntries() {
