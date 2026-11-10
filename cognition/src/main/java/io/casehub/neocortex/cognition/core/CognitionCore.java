@@ -317,6 +317,17 @@ private final              java.util.concurrent.atomic.AtomicInteger            
         }
         runCustomParticipants(CognitionPhase.DERIVED, context);
 
+        // Appraisal→mood→drive propagation: appraisal (DERIVED phase) records
+        // MoodSignals from appraised emotions via bridgeToMood. Re-tick mood to
+        // process those signals, then re-tick drives so both prompt sections
+        // reflect the current appraisal state within the same tick cycle.
+        if (config.moodEnabled() && config.appraisalEnabled()) {
+            safeRun(() -> tickMood(agentId, tenantId));
+        }
+        if (config.drivesEnabled() && descriptor != null && config.appraisalEnabled()) {
+            safeRun(() -> drives.tick(agentId, tenantId, descriptor));
+        }
+
         if (config.goalsEnabled() && goals != null && descriptor != null) {
             safeRun(() -> goals.tick(agentId, tenantId, descriptor));
         }
