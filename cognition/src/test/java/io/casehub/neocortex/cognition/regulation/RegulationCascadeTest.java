@@ -77,7 +77,7 @@ class RegulationCascadeTest {
         verify(generationPhase).generate(
                 eq(context), any(), any(), anyDouble(), anyDouble(), isNull(),
                 eq(EmotionRegulationStrategy.COGNITIVE_CHANGE),
-                isNull(), eq(EmotionType.ANGER), isNull(), isNull());
+                isNull(), eq(EmotionType.ANGER), isNull(), isNull(), isNull(), isNull());
     }
 
     @Test
@@ -95,7 +95,7 @@ class RegulationCascadeTest {
         verify(generationPhase).generate(
                 eq(context), any(), any(), anyDouble(), anyDouble(), isNull(),
                 isNull(),
-                isNull(), eq(EmotionType.ANGER), isNull(), isNull());
+                isNull(), eq(EmotionType.ANGER), isNull(), isNull(), isNull(), isNull());
     }
 
     @Test
@@ -111,7 +111,7 @@ class RegulationCascadeTest {
         verify(generationPhase).generate(
                 eq(context), any(), any(), anyDouble(), anyDouble(), isNull(),
                 eq(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT),
-                isNull(), eq(EmotionType.ANGER), isNull(), isNull());
+                isNull(), eq(EmotionType.ANGER), isNull(), isNull(), isNull(), isNull());
     }
 
     @Test
@@ -126,7 +126,7 @@ class RegulationCascadeTest {
                 "reappraised the situation", null, null);
         when(generationPhase.generate(
                 any(CognitionTickContext.class), any(AppraisalResult.class), any(),
-                anyDouble(), anyDouble(), any(), any(), any(), any(), any(), any()))
+                anyDouble(), anyDouble(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(regulationResult);
         when(capsEngine.updateWeights(any(), any(), anyDouble(), anyDouble(), anyDouble(), any()))
                 .thenReturn(new AgentCapsState("a1", "t1", 2, Map.of(), Map.of()));
