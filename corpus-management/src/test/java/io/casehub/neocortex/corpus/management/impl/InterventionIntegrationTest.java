@@ -99,6 +99,26 @@ class InterventionIntegrationTest {
     }
 
     @Test
+    void requestInterventionThrowsWhenWebPlatformNotConfigured() {
+        var noWebBean = new CorpusApiBean(store, CORPUS, (WebPlatform) null);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                                                                   noWebBean.requestIntervention("test-corpus", "https://example.com", "test", null)
+                                                          ).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void screenshotRefRoundTrips() {
+        var intervention = bean.requestIntervention("test-corpus",
+                                                    "https://example.com", "CAPTCHA", "/tmp/screenshot.png");
+        assertThat(intervention.screenshotRef()).isEqualTo("/tmp/screenshot.png");
+
+        var pending = bean.pendingInterventions("test-corpus");
+        assertThat(pending).hasSize(1);
+        assertThat(pending.get(0).screenshotRef()).isEqualTo("/tmp/screenshot.png");
+    }
+
+
+    @Test
     void resolveInterventionProcessesImagesWhenProcessorPresent() {
         var testImages = List.of(
             new CapturedImage("https://example.com/img.png", "Diagram",

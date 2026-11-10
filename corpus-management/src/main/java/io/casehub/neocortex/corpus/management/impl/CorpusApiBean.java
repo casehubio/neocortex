@@ -560,9 +560,12 @@ public class CorpusApiBean implements CorpusApi {
             httpStatus  = 200;
         } else if (webPlatform != null && webPlatform.supports(WebPlatform.Fetch.class)) {
             FetchResult fetchResult = webPlatform.fetch().fetch(url);
-            content     = fetchResult.html();
+            content     = fetchResult.html() != null ? fetchResult.html() : "";
             contentType = fetchResult.contentType();
             httpStatus  = fetchResult.statusCode();
+            if (httpStatus == 0 || httpStatus >= 400) {
+                throw new RuntimeException("Failed to fetch URL: " + url + " (status " + httpStatus + ")");
+            }
         } else {
             throw new UnsupportedOperationException(
                     "WebPlatform Fetch capability required — no html provided and no fetch provider configured");
@@ -578,9 +581,14 @@ public class CorpusApiBean implements CorpusApi {
         int                   imageCount  = 0;
         ImageProcessingResult imageResult = ImageProcessingResult.EMPTY;
         if (webPlatform != null && webPlatform.supports(WebPlatform.ImageCapture.class)) {
-            imageResult = webPlatform.imageCapture().extractImages(content, url);
-            if (!imageResult.images().isEmpty()) {
-                markdown = webPlatform.imageCapture().enrichMarkdown(markdown, imageResult);
+            try {
+                imageResult = webPlatform.imageCapture().extractImages(content, url);
+                if (!imageResult.images().isEmpty()) {
+                    markdown = webPlatform.imageCapture().enrichMarkdown(markdown, imageResult);
+                }
+            } catch (Exception e) {
+                java.util.logging.Logger.getLogger(CorpusApiBean.class.getName())
+                                        .log(java.util.logging.Level.WARNING, "Image capture failed for " + url, e);
             }
         }
 

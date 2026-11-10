@@ -72,6 +72,36 @@ class WebCapturePipelineSmokeTest {
     }
 
     @Test
+    void webCaptureThrowsWhenNoHtmlAndNoFetchCapability() {
+        var noWebBean = new CorpusApiBean(store, CORPUS, (WebPlatform) null);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                                                                   noWebBean.webCapture("smoke-test", "https://example.com/page", null, 30, null)
+                                                          ).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void webCaptureWorksWithNullWebPlatformWhenHtmlProvided() {
+        var    noWebBean = new CorpusApiBean(store, CORPUS, (WebPlatform) null);
+        String html      = "<html><body><p>Direct HTML</p></body></html>";
+        var    result    = noWebBean.webCapture("smoke-test", "https://example.com/page", html, 30, null);
+
+        assertThat(result.entryId()).isNotNull();
+        assertThat(result.cached()).isFalse();
+        assertThat(result.body()).contains("Direct HTML");
+    }
+
+    @Test
+    void fetchPathStoresContentFromWebPlatform() {
+        webBackend.registerUrl("https://example.com/remote", "<html><body>Fetched content</body></html>");
+        var result = bean.webCapture("smoke-test", "https://example.com/remote", null, 30, null);
+
+        assertThat(result.entryId()).isNotNull();
+        assertThat(result.cached()).isFalse();
+        assertThat(result.body()).contains("Fetched content");
+    }
+
+
+    @Test
     void imageCaptureCreatesRelatedEntries() {
         var testImages = List.of(
             new CapturedImage("https://example.com/diagram.png", "Screenshot",
