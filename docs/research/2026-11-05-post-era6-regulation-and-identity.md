@@ -1,6 +1,6 @@
 # Post-Era 6: Regulation, Identity, Search Budget, and Pipeline Completion
 
-**Period:** 2026-11-01 → 2026-11-08
+**Period:** 2026-11-01 → 2026-11-10
 **Status:** Standalone gap document — to be incorporated into era 7 when that era is defined
 **Predecessor:** Era 6 — Cognitive Memory Architecture (Phase 3 completed 2026-11-01)
 
@@ -474,7 +474,29 @@ Root cause: `cognitive-index` depends on `cognitive-observability-api`, blocking
 ### Other near-term
 - **#894 Pipeline coherence eval**: LLM-classified trace chain validation using CognitionTestHarness. Shame→suppression, curiosity→exploration, cross-tick trajectory, appraisal→channel weight coherence. Two-tier Haiku→Opus classification, gate ≥ 4.0.
 
-- **CAPS integration** (#806): Encode stable regulation patterns as CAPS nodes for personality-consistent regulation without per-tick LLM calls
+- **CAPS regulation integration** (#806) ✅ (9 tasks, 7 batches): Full integration of regulation strategies as CAPS output nodes. 14 new nodes (10 regulation outputs + 4 social-context inputs), 35 new connections. Three-layer cascade (safety gate → CAPS → predictor → LLM). Rescorla-Wagner weight update with regulation effectiveness. 15 commits across 2 sessions.
+
+  **Topology extension (Tasks 1-4):** Renamed BehavioralAttractor → CapsAttractor. Added 10 regulation output nodes (Gross 1998 + Zaki & Williams 2013) and 4 social-context input nodes (perceived_responsiveness, target_distress, social_isolation, power_asymmetry). 34 new connections with literature-derived weights (Baranczuk 2019 meta-analysis, Gross & John 2003). All regulation outputs UNIPOLAR [0,1]. Social-context inputs route through existing mediating nodes for personality-sensitive processing, with two justified direct connections (target_distress → co_regulation, power_asymmetry → deliberate_provocation).
+
+  **Cascade integration (Task 8):** Three-layer cascade in EmotionRegulationTickParticipant. Safety hard gate (fatigue > 0.7 OR intensity > 0.75 → force AD) fires unconditionally before CAPS and predictor. CAPS settling extracts regulation attractors with confidence threshold (0.3) and dominance margin (0.15). Predictor fallback when CAPS is ambivalent. LLM free choice as final layer. Rescorla-Wagner weight update after regulation: outcomeIntensity = |peak - regulated|, outcomeValence = effectiveness > 0.5 → +1.0 else -1.0, salienceMultiplier = peakOriginalIntensity, schedule = variable_ratio.
+
+  **Paired comparison eval (Task 9):** CapsRegulationComparisonEvalTest — 5 per-strategy scenarios, each run with cascade + LLM-only. Baseline results: CAPS settled to ATTENTIONAL_DEPLOYMENT in ALL 5 scenarios regardless of disposition. Margin 0.052, never reaching 0.15 dominanceMargin. Root cause: AD had NET incoming weight +1.10 (3 excitatory connections, 0 inhibitory) vs cognitive_change at +0.50.
+
+  **Weight rebalancing (#906):** Four literature-justified topology changes after first-principles review:
+  1. Added self_efficacy → AD at -0.25 (Sheppes & Gross 2011: cognitive resources enable reappraisal over distraction; competitive exclusion requires direct inhibition since CAPS outputs don't compete)
+  2. Reduced arousal_level → AD from +0.45 to +0.35 (original exceeded cited meta-analysis range r=.30-.40)
+  3. Reduced self_worth → RM from -0.25 to -0.15 (O→suppression r≈-.10 to -.15; over-inhibition made RM NET negative)
+  4. Reduced self_efficacy → RM from -0.25 to -0.15 (same source)
+  Plus 50% increase in disposition resting activation differentials.
+  Rebalanced eval: 3/5 correct CAPS predictions (was 0/5). SS for avoidant, SM for bold, RM for competitive.
+
+  **Adversarial weight review (self_worth → AD debate):** Four-agent adversarial review of whether to add self_worth → AD at -0.20. FOR agents cited Shafir et al. (2017) showing direct self-esteem → distraction choice relationship. AGAINST agents cited Matthews et al. (2021) systematic review showing average r ≈ 0.12 for self-esteem → regulation choice, and Judge et al. (2002) showing self-esteem/self-efficacy share 35% variance. Verdict: don't add — the indirect path (self_worth → self_efficacy → AD = -0.09) already captures ~75% of the empirical effect (r ≈ 0.12). Adding -0.20 direct would overshoot by 2.4x.
+
+  **Key methodological finding:** Converting published meta-analysis effect sizes (correlations) to CAPS connection weights introduces structural biases the literature did not measure. Total incoming weight per output node creates advantages that individual weight magnitudes don't reveal. The eval exposed this — the first run produced correct individual weights but incorrect network-level behavior. Weight audit by total NET per node, not individual connection review, is the correct calibration methodology.
+
+  **DISTRESS intensity gating (#907):** RegulationStrategyPredictor mapped DISTRESS to UNCONTROLLABLE_NEGATIVE regardless of intensity. Fixed: below 0.40, DISTRESS treated as CONTROLLABLE_NEGATIVE, allowing personality-driven strategy selection for mild distress.
+
+  **Remaining gaps:** #912 (accommodating conflictMode has no CC boost in DispositionWeightMapper — fixes reappraisal eval scenario), #913 (protective conflictMode has no regulation mapping).
 
 ### Deferred
 - **Era 6 Phase 4**: Condensation chains, persistent entity index, ACT-R decay (not blocked)
