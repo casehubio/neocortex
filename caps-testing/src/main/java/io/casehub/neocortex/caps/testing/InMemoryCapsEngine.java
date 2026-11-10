@@ -54,15 +54,8 @@ public class InMemoryCapsEngine implements CapsEngine {
     }
 
     @Override
-    public AgentCapsState updateWeights(AgentCapsState state,
-                                         Map<String, Double> inputActivations,
-                                         double outcomeIntensity,
-                                         double outcomeValence,
-                                         double salienceMultiplier,
-                                         String reinforcementSchedule) {
-        return weightUpdater.update(state, inputActivations,
-            outcomeIntensity, outcomeValence, salienceMultiplier,
-            reinforcementSchedule);
+    public AgentCapsState updateWeights(AgentCapsState state, WeightUpdateContext context) {
+        return weightUpdater.update(state, context);
     }
 
     public void clear() { states.clear(); }

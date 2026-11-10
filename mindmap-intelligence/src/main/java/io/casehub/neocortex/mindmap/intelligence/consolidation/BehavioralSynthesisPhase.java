@@ -9,6 +9,7 @@ import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.DriveCompetitionDetector;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
+import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
@@ -228,19 +229,20 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
                         if (!emotionActivations.isEmpty()) {
                             updated = capsEngine.updateWeights(updated,
-                                emotionActivations, intensity,
-                                signal.lambdaSign(), salienceMultiplier,
-                                "continuous");
+                                new WeightUpdateContext(emotionActivations, intensity,
+                                    signal.lambdaSign(), salienceMultiplier, "continuous",
+                                    resolveAssociativeReach(agentId)));
                         }
                     }
                 }
 
                 if (!regularNodes.isEmpty()) {
                     updated = capsEngine.updateWeights(updated,
-                        combinedActivations,
-                        averageIntensity(regularNodes),
-                        averageValence(regularNodes),
-                        1.0, "continuous");
+                        new WeightUpdateContext(combinedActivations,
+                            averageIntensity(regularNodes),
+                            averageValence(regularNodes),
+                            1.0, "continuous",
+                            resolveAssociativeReach(agentId)));
                 }
 
                 capsEngine.saveState(updated);
@@ -248,9 +250,10 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 if (cbrRecordStore != null && !classificationCaseIds.isEmpty()) {
                     CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(
                         result, java.time.Instant.now());
+                    Double effectiveLR = resolveEffectiveCbrLearningRate(agentId);
                     for (String caseId : classificationCaseIds.keySet()) {
                         try {
-                            cbrRecordStore.recordOutcome(caseId, outcome, tenantId);
+                            cbrRecordStore.recordOutcome(caseId, outcome, tenantId, effectiveLR);
                         } catch (Exception e) {
                             LOG.log(Level.FINE,
                                 "Failed to record outcome for case " + caseId, e);
@@ -456,6 +459,28 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
     public Map<String, Double> lastInputActivations(String agentId) {
         return lastInputActivations.getOrDefault(agentId, Map.of());
+    }
+
+    /**
+     * Cattell (1971): associativeReach (Mednick 1962) modulates CAPS base alpha.
+     */
+    private double resolveAssociativeReach(String agentId) {
+        if (defaultsRegistry == null) {return 1.0;}
+        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+        return cap != null ? cap.associativeReachOrDefault() : 1.0;
+    }
+
+    /**
+     * Cattell (1971): workingMemorySpan (Engle &amp; Kane 2004) modulates CBR EMA learning rate.
+     * Returns null when no modulation is needed (no registry or full capacity).
+     */
+    private Double resolveEffectiveCbrLearningRate(String agentId) {
+        if (defaultsRegistry == null) {return null;}
+        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+        if (cap == null) {return null;}
+        double wmSpan = cap.workingMemorySpanOrDefault();
+        if (wmSpan >= 1.0) {return null;}
+        return io.casehub.neocortex.memory.cbr.CbrOutcome.DEFAULT_LEARNING_RATE * wmSpan;
     }
 
 }

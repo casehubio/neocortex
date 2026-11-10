@@ -30,12 +30,13 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     private final DriveAdaptationConfig config;
     private final Map<String, Set<NeedTier>> tierMapping;
     private final NeedSatisfactionConfigProvider needConfigProvider;
+    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
 
     public DriveAdaptationPhase(
             MindMapStore mindMapStore,
             Map<String, Map<String, List<DriveReinforcementEntry>>> reinforcementMap,
             DriveAdaptationConfig config) {
-        this(mindMapStore, reinforcementMap, config, null, null);
+        this(mindMapStore, reinforcementMap, config, null, null, null);
     }
 
     public DriveAdaptationPhase(
@@ -44,11 +45,22 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             DriveAdaptationConfig config,
             NeedTierMappingProvider tierMappingProvider,
             NeedSatisfactionConfigProvider needConfigProvider) {
+        this(mindMapStore, reinforcementMap, config, tierMappingProvider, needConfigProvider, null);
+    }
+
+    public DriveAdaptationPhase(
+            MindMapStore mindMapStore,
+            Map<String, Map<String, List<DriveReinforcementEntry>>> reinforcementMap,
+            DriveAdaptationConfig config,
+            NeedTierMappingProvider tierMappingProvider,
+            NeedSatisfactionConfigProvider needConfigProvider,
+            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
         this.mindMapStore       = mindMapStore;
         this.reinforcementMap   = reinforcementMap;
         this.config             = config;
         this.tierMapping        = (tierMappingProvider != null ? tierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();
         this.needConfigProvider = needConfigProvider;
+        this.defaultsRegistry   = defaultsRegistry;
     }
 
     @Override
@@ -136,7 +148,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
 
         var currentSatisfaction = loadCurrentSatisfaction(needSatisfactionNodes);
         accumulateTierSatisfaction(currentSatisfaction, newExperiences, agentReinforcement, needConfig);
-        applyUpdates(driveNodes, rewardAccumulator, currentSatisfaction, tenantId);
+        applyUpdates(driveNodes, rewardAccumulator, currentSatisfaction, tenantId, agentId);
         applyDecay(currentSatisfaction, needConfig);
         saveSatisfaction(needSatisfactionNodes, currentSatisfaction, tenantId);
 
@@ -219,7 +231,10 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             Map<String, MindMapNode> driveNodes,
             Map<String, DriveReward> rewardAccumulator,
             Map<NeedTier, Double> currentSatisfaction,
-            String tenantId) {
+            String tenantId, String agentId) {
+        // Cattell (1971): associativeReach (Mednick 1962) scales drive adaptation rate
+        double capacityFactor = resolveAssociativeReach(agentId);
+
         for (var entry : rewardAccumulator.entrySet()) {
             var driveNode = driveNodes.get(entry.getKey());
             if (driveNode == null) continue;
@@ -235,6 +250,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
                     .average().orElse(0.5);
                 effectiveLR = config.learningRate() * (1 - avgSatisfaction);
             }
+            effectiveLR *= capacityFactor;
 
             double delta = entry.getValue().effectiveReward() * effectiveLR;
             double newIntensity = currentIntensity * (1 + delta);
@@ -343,5 +359,16 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
                         "last-processed-node-id", lastId)),
                 tenantId);
         }
+    }
+
+    /**
+     * Cattell (1971) Investment Theory: associativeReach (Mednick 1962) scales the
+     * drive adaptation rate — broader associative networks enable faster drive-outcome
+     * learning. Returns 1.0 (uncapped) when registry is unavailable or agentId is null.
+     */
+    private double resolveAssociativeReach(String agentId) {
+        if (agentId == null || defaultsRegistry == null) {return 1.0;}
+        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+        return cap != null ? cap.associativeReachOrDefault() : 1.0;
     }
 }

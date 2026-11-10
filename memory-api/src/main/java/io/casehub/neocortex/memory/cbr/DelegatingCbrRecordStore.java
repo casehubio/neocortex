@@ -25,6 +25,7 @@ public abstract class DelegatingCbrRecordStore implements CbrRecordStore {
     @Override public int eraseSubject(Subject subject, String tenantId) { return delegate.eraseSubject(subject, tenantId); }
     @Override public int eraseByScope(Path scope, String tenantId)                          { return delegate.eraseByScope(scope, tenantId); }
     @Override public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) { delegate.recordOutcome(caseId, outcome, tenantId); }
+    @Override public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId, Double learningRateOverride) { delegate.recordOutcome(caseId, outcome, tenantId, learningRateOverride); }
     @Override public int purge(CbrRetentionPolicy policy)                                   { return delegate.purge(policy); }
     @Override public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) { return delegate.supersede(caseId, supersedingCaseId, reason, tenantId); }
     @Override public boolean reinstate(String caseId, String tenantId)                                          { return delegate.reinstate(caseId, tenantId); }

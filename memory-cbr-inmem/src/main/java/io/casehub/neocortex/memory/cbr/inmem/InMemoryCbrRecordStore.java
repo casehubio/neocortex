@@ -211,6 +211,11 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
 
     @Override
     public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
+        recordOutcome(caseId, outcome, tenantId, null);
+    }
+
+    @Override
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId, Double learningRateOverride) {
         for (int i = 0; i < cases.size(); i++) {
             StoredCase stored = cases.get(i);
             if (caseId.equals(stored.caseId()) && tenantId.equals(stored.tenantId())) {
@@ -218,9 +223,14 @@ public class InMemoryCbrRecordStore implements CbrRecordStore {
                     && !outcome.observedAt().isAfter(stored.lastOutcomeAt())) {
                     return;
                 }
-                CbrRecordSchema schema = schemas.get(stored.caseType());
-                double lr = (schema != null && schema.learningRate() != null)
-                            ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
+                double lr;
+                if (learningRateOverride != null) {
+                    lr = learningRateOverride;
+                } else {
+                    CbrRecordSchema schema = schemas.get(stored.caseType());
+                    lr = (schema != null && schema.learningRate() != null)
+                                ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
+                }
                 io.casehub.neocortex.cognitive.Confidence newConfidence = CbrOutcome.adjustConfidence(
                         stored.cbrRecord().confidence(), outcome.successRate(), lr);
                 CbrRecord updated = stored.cbrRecord().withOutcome(
