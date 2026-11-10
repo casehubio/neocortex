@@ -7,6 +7,7 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
+import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.RegulationDefaults;
@@ -17,6 +18,7 @@ import io.casehub.neocortex.mindmap.SubgraphTypes;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +41,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable CognitiveLoadEstimator           loadEstimator;
     private final @Nullable CapsEngine                       capsEngine;
     private final @Nullable RegulationCascadeConfig          cascadeConfig;
+    private final @Nullable RegulationTracker                regulationTracker;
 
 
     private final ConcurrentHashMap<String, StrategyFailureSignal> failureSignals = new ConcurrentHashMap<>();
@@ -98,6 +101,20 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable CognitiveLoadEstimator loadEstimator,
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig) {
+        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
+             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, null);
+    }
+
+    public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
+                                            CognitionConfig config,
+                                            @Nullable EmotionRegulationGenerationPhase generationPhase,
+                                            @Nullable MindMapStore mindMapStore,
+                                            @Nullable String cognitiveSubgraphId,
+                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable CognitiveLoadEstimator loadEstimator,
+                                            @Nullable CapsEngine capsEngine,
+                                            @Nullable RegulationCascadeConfig cascadeConfig,
+                                            @Nullable RegulationTracker regulationTracker) {
         this.appraisalParticipant = appraisalParticipant;
         this.config               = config;
         this.generationPhase      = generationPhase;
@@ -111,6 +128,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.capsEngine           = capsEngine;
         this.cascadeConfig        = capsEngine != null && cascadeConfig == null
                                     ? RegulationCascadeConfig.defaults() : cascadeConfig;
+        this.regulationTracker    = regulationTracker;
     }
 
 
@@ -229,9 +247,11 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             }
         }
 
+        Map<String, RegulationTracker.TrajectoryResult> distressTrajectories = assembleDistressTrajectories(context);
+
         var result = generationPhase.generate(context, appraisal.get(), history,
                                               regulationEffort, currentFatigue, pendingSignal, pinnedStrategy,
-                                              axes, dominantType, rd, shameContext);
+                                              axes, dominantType, rd, shameContext, null, distressTrajectories);
         if (result != null && result.isSocialStrategy() && result.targetAgentId() != null) {
             var regCtx = context.regulationContext();
             if (regCtx == null || regCtx.interactingAgents() == null
@@ -331,6 +351,19 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
 
         return SocialContextInputComputer.computeFromRawInputs(
                 regCtx, maxTrust, null, 0.0, 0.0, 0.0, 0.0, 0.0);
+    }
+
+    private @Nullable Map<String, RegulationTracker.TrajectoryResult> assembleDistressTrajectories(
+            CognitionTickContext context) {
+        if (regulationTracker == null || context.regulationContext() == null
+                || context.regulationContext().interactingAgents() == null) {
+            return null;
+        }
+        var trajectories = new HashMap<String, RegulationTracker.TrajectoryResult>();
+        for (var targetId : context.regulationContext().interactingAgents()) {
+            regulationTracker.computeTrajectory(targetId).ifPresent(t -> trajectories.put(targetId, t));
+        }
+        return trajectories.isEmpty() ? null : trajectories;
     }
 
     private @Nullable ShameContext assembleShameContext(

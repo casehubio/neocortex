@@ -193,7 +193,7 @@ class EmotionRegulationTickParticipantTest {
         // Verify generate was called with axes and dominant emotion type
         verify(generationPhase).generate(
                 eq(context), any(), any(), anyDouble(), anyDouble(), isNull(), isNull(),
-                eq(axes), eq(EmotionType.ANGER), isNull(), isNull());
+                eq(axes), eq(EmotionType.ANGER), isNull(), isNull(), isNull(), isNull());
     }
 
 }

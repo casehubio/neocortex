@@ -3,6 +3,7 @@ package io.casehub.neocortex.cognition.regulation;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
+import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -492,6 +494,60 @@ class EmotionRegulationGenerationPhaseTest {
         assertThat(result).isNotNull();
         assertThat(result.targetAgentId()).isNull();
         assertThat(result.isSocialStrategy()).isFalse();
+    }
+
+    @Test
+    void userMessageIncludesDistressTrajectoryWhenAgentsAndTrajectoriesPresent() {
+        var regCtx = new RegulationContext("library", List.of("penelope-pitstop", "dick-dastardly"), "treasure");
+        var ctxWithAgents = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of(),
+                                                     null, null, null, regCtx);
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.7, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var trajectories = Map.of(
+                "penelope-pitstop", new RegulationTracker.TrajectoryResult(RegulationTracker.Trajectory.WORSENING, 0.15),
+                "dick-dastardly", new RegulationTracker.TrajectoryResult(RegulationTracker.Trajectory.IMPROVING, -0.10)
+                                 );
+
+        var msg = EmotionRegulationGenerationPhase.buildUserMessage(
+                ctxWithAgents, appraisal, List.of(), 0.5, null, 0.0, null,
+                null, null, null, null, null, null, trajectories);
+
+        assertThat(msg).contains("Distress trajectories");
+        assertThat(msg).contains("penelope-pitstop: WORSENING");
+        assertThat(msg).contains("dick-dastardly: IMPROVING");
+    }
+
+    @Test
+    void userMessageOmitsDistressTrajectoryWhenNull() {
+        var regCtx = new RegulationContext("library", List.of("penelope-pitstop"), "treasure");
+        var ctxWithAgents = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of(),
+                                                     null, null, null, regCtx);
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.7, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+
+        var msg = EmotionRegulationGenerationPhase.buildUserMessage(
+                ctxWithAgents, appraisal, List.of(), 0.5, null, 0.0, null,
+                null, null, null, null, null, null, null);
+
+        assertThat(msg).doesNotContain("Distress trajectories");
+    }
+
+    @Test
+    void userMessageOmitsDistressTrajectoryWhenNoAgents() {
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.7, "subject1",
+                                           Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        var trajectories = Map.of(
+                "penelope-pitstop", new RegulationTracker.TrajectoryResult(RegulationTracker.Trajectory.WORSENING, 0.15)
+                                 );
+
+        var msg = EmotionRegulationGenerationPhase.buildUserMessage(
+                context, appraisal, List.of(), 0.5, null, 0.0, null,
+                null, null, null, null, null, null, trajectories);
+
+        assertThat(msg).doesNotContain("Distress trajectories");
     }
 
 

@@ -13,8 +13,11 @@ import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
 
+import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -221,6 +224,36 @@ public class EmotionRegulationGenerationPhase {
         }
     }
 
+    public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
+                                                      AppraisalResult appraisal,
+                                                      List<EmotionRegulationResult> history,
+                                                      double regulationEffort,
+                                                      double regulationFatigue,
+                                                      @Nullable StrategyFailureSignal failureSignal,
+                                                      @Nullable EmotionRegulationStrategy pinnedStrategy,
+                                                      @Nullable DispositionAxes axes,
+                                                      @Nullable EmotionType dominantEmotionType,
+                                                      @Nullable RegulationDefaults regulationDefaults,
+                                                      @Nullable ShameContext shameContext,
+                                                      @Nullable String situationContext,
+                                                      @Nullable Map<String, RegulationTracker.TrajectoryResult> distressTrajectories) {
+        if (sessionPipeline == null) return null;
+        var effectiveStrategy = pinnedStrategy;
+        if (shameContext != null && shameContext.isSurfaceLevel()) {
+            effectiveStrategy = EmotionRegulationStrategy.RESPONSE_MODULATION;
+        }
+        try {
+            String response = invokeLlm(context, appraisal, history, regulationEffort,
+                    regulationFatigue, failureSignal, effectiveStrategy, axes, dominantEmotionType,
+                    regulationDefaults, shameContext, situationContext, distressTrajectories);
+            if (response == null) return null;
+            return parseResponse(response);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Emotion regulation generation failed", e);
+            return null;
+        }
+    }
+
 
     private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
                               List<EmotionRegulationResult> history, double regulationEffort,
@@ -312,6 +345,33 @@ public class EmotionRegulationGenerationPhase {
         return responseText.isEmpty() ? null : responseText.toString();
     }
 
+    private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
+                             List<EmotionRegulationResult> history, double regulationEffort,
+                             double regulationFatigue,
+                             @Nullable StrategyFailureSignal failureSignal,
+                             @Nullable EmotionRegulationStrategy pinnedStrategy,
+                             @Nullable DispositionAxes axes,
+                             @Nullable EmotionType dominantEmotionType,
+                             @Nullable RegulationDefaults regulationDefaults,
+                             @Nullable ShameContext shameContext,
+                             @Nullable String situationContext,
+                             @Nullable Map<String, RegulationTracker.TrajectoryResult> distressTrajectories) {
+        var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var loadEstimate = (loadEstimator != null)
+                           ? loadEstimator.estimate(context.agentId(), context.tenantId())
+                           : null;
+        var userMessage = buildUserMessage(context, appraisal, history, regulationEffort, loadEstimate,
+                                           regulationFatigue, failureSignal, pinnedStrategy, axes,
+                                           dominantEmotionType, regulationDefaults, shameContext,
+                                           situationContext, distressTrajectories);
+        var responseText = new StringBuilder();
+        session.query(userMessage).subscribe().asStream()
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
+        return responseText.isEmpty() ? null : responseText.toString();
+    }
+
 
     static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
                                      List<EmotionRegulationResult> history, double regulationEffort,
@@ -352,6 +412,23 @@ public class EmotionRegulationGenerationPhase {
                                    @Nullable RegulationDefaults regulationDefaults,
                                    @Nullable ShameContext shameContext,
                                    @Nullable String situationContext) {
+        return buildUserMessage(context, appraisal, history, regulationEffort, loadEstimate,
+                                regulationFatigue, failureSignal, pinnedStrategy, axes, dominantEmotionType,
+                                regulationDefaults, shameContext, situationContext, null);
+    }
+
+    static String buildUserMessage(CognitionTickContext context, AppraisalResult appraisal,
+                                   List<EmotionRegulationResult> history, double regulationEffort,
+                                   @Nullable CognitiveLoadEstimate loadEstimate,
+                                   double regulationFatigue,
+                                   @Nullable StrategyFailureSignal failureSignal,
+                                   @Nullable EmotionRegulationStrategy pinnedStrategy,
+                                   @Nullable DispositionAxes axes,
+                                   @Nullable EmotionType dominantEmotionType,
+                                   @Nullable RegulationDefaults regulationDefaults,
+                                   @Nullable ShameContext shameContext,
+                                   @Nullable String situationContext,
+                                   @Nullable Map<String, RegulationTracker.TrajectoryResult> distressTrajectories) {
         var sb = new StringBuilder();
 
         if (pinnedStrategy != null) {
@@ -395,7 +472,6 @@ public class EmotionRegulationGenerationPhase {
             }
         }
 
-        // Personality disposition on predictor fall-through (Petter et al. 2025)
         if (pinnedStrategy == null && axes != null) {
             sb.append("Personality disposition (predictor did not pin a strategy — use these to ")
               .append("select a personality-congruent regulation):\n")
@@ -406,7 +482,6 @@ public class EmotionRegulationGenerationPhase {
               .append("  rule-following: ").append(axes.ruleFollowing()).append("\n\n");
         }
 
-        // Barańczuk 2019: continuous regulation capacity summary on fall-through
         if (pinnedStrategy == null && regulationDefaults != null) {
             sb.append("Regulation capacities (personality-derived, Barańczuk 2019):\n")
               .append("  reappraisal: ").append(capacityLabel(regulationDefaults.reappraisalCapacity()))
@@ -417,7 +492,6 @@ public class EmotionRegulationGenerationPhase {
               .append(" (").append(String.format("%.2f", regulationDefaults.redirectTendency())).append(")\n\n");
         }
 
-        // Social regulation context (Zaki & Williams 2013)
         if (pinnedStrategy == null && context.regulationContext() != null
                 && context.regulationContext().interactingAgents() != null
                 && !context.regulationContext().interactingAgents().isEmpty()) {
@@ -429,6 +503,16 @@ public class EmotionRegulationGenerationPhase {
                   .append(capacityLabel(regulationDefaults.socialRegulationTendency()))
                   .append(" (").append(String.format("%.2f", regulationDefaults.socialRegulationTendency()))
                   .append(")\n");
+            }
+            if (distressTrajectories != null && !distressTrajectories.isEmpty()) {
+                sb.append("Distress trajectories (for extrinsic regulation — co-regulation or provocation):\n");
+                for (var agentId : context.regulationContext().interactingAgents()) {
+                    var trajectory = distressTrajectories.get(agentId);
+                    if (trajectory != null) {
+                        sb.append("  ").append(agentId).append(": ").append(trajectory.trajectory().name())
+                          .append(" (Δ").append(String.format("%+.2f", trajectory.delta())).append(")\n");
+                    }
+                }
             }
             sb.append("\n");
         }
@@ -457,7 +541,6 @@ public class EmotionRegulationGenerationPhase {
               .append("to reflect the endpoint of this progression.\n\n");
         }
 
-        // ShameContext sections — rendered for ALL self-conscious emotions
         if (isSelfConscious && shameContext != null) {
             if (shameContext.isSurfaceLevel()) {
                 sb.append("Surface-level shame processing: This personality has high grandiosity (")
@@ -489,8 +572,6 @@ public class EmotionRegulationGenerationPhase {
             }
         }
 
-        // Webb et al. 2012, Nathanson 1992, Yang et al. 2025 — self-conscious emotion regulation guidance
-        // Surface-level gating supersedes temporal containment
         if (pinnedStrategy == null && isSelfConscious
                 && (shameContext == null || !shameContext.isSurfaceLevel())) {
             boolean isAvoidant = axes != null && "avoidant".equals(axes.conflictMode());
