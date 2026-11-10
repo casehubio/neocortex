@@ -42,6 +42,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final ConcurrentHashMap<String, HabituationState> habituationStates = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Map<String, Double>> concernSaliences = new ConcurrentHashMap<>();
     private final @Nullable SituationClassifier                  situationClassifier;
+    private volatile java.util.function.@Nullable BiFunction<String, String, Optional<io.casehub.neocortex.cognition.search.SearchBudget>> searchBudgetAccessor;
+
     private final ConcurrentHashMap<String, ChannelWeightProfile> channelWeights  = new ConcurrentHashMap<>();
 
 
@@ -188,6 +190,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         }
 
         bridgeToMood(result, context);
+        generateCapacityFrustration(context);
     }
 
     public Optional<ChannelWeightProfile> currentChannelWeights(String agentId, String tenantId) {
@@ -201,6 +204,10 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     public @Nullable HabituationState currentHabituation(String agentId, String tenantId) {
         var state = habituationStates.get(agentId + ":" + tenantId);
         return state != null && !state.observationCounts().isEmpty() ? state : null;
+    }
+
+    public void setSearchBudgetAccessor(java.util.function.BiFunction<String, String, Optional<io.casehub.neocortex.cognition.search.SearchBudget>> accessor) {
+        this.searchBudgetAccessor = accessor;
     }
 
 
@@ -281,6 +288,51 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         catch (NumberFormatException e) { return fallback; }
     }
 
+
+    private void generateCapacityFrustration(CognitionTickContext context) {
+        var accessor = this.searchBudgetAccessor;
+        if (accessor == null) {return;}
+        var budgetOpt = accessor.apply(context.agentId(), context.tenantId());
+        if (budgetOpt.isEmpty() || !budgetOpt.get().capacityConstrained()) {return;}
+
+        var budget       = budgetOpt.get();
+        var frustrations = new ArrayList<CognitiveEmotion>();
+        var now          = java.time.Instant.now();
+
+        if (budget.depthGap() > 0.05) {
+            double intensity = Math.min(1.0, budget.depthGap());
+            frustrations.add(new CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.DISAPPOINTMENT,
+                    intensity, "capacity-depth", now,
+                    io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(
+                            io.casehub.neocortex.cognitive.EmotionType.DISAPPOINTMENT, intensity)));
+        }
+        if (budget.breadthGap() > 0.05) {
+            double intensity = Math.min(1.0, budget.breadthGap());
+            frustrations.add(new CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.DISAPPOINTMENT,
+                    intensity, "capacity-breadth", now,
+                    io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(
+                            io.casehub.neocortex.cognitive.EmotionType.DISAPPOINTMENT, intensity)));
+        }
+        if (budget.lateralityGap() > 0.05) {
+            double intensity = Math.min(1.0, budget.lateralityGap());
+            frustrations.add(new CognitiveEmotion(
+                    io.casehub.neocortex.cognitive.EmotionType.ANGER,
+                    intensity, "capacity-laterality", now,
+                    io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                    io.casehub.neocortex.cognitive.AlmaPadTable.project(
+                            io.casehub.neocortex.cognitive.EmotionType.ANGER, intensity)));
+        }
+
+        if (!frustrations.isEmpty()) {
+            var combined = new AppraisalResult(
+                    frustrations, List.of(), HabituationState.empty(), null);
+            bridgeToMood(combined, context);
+        }
+    }
 
     private void bridgeToMood(AppraisalResult result, CognitionTickContext context) {
         if (result.emotions().isEmpty()) return;
