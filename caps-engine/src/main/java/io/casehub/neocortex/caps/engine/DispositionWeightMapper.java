@@ -217,6 +217,9 @@ public class DispositionWeightMapper {
         } else if ("accommodating".equals(disposition.conflictMode())) {
             addResting(nodeStates, "cognitive_change", 0.25);
             addResting(nodeStates, "social_sharing", 0.15);
+        } else if ("protective".equals(disposition.conflictMode())) {
+            addResting(nodeStates, "co_regulation", 0.25);
+            addResting(nodeStates, "situation_modification", 0.15);
         }
         if ("conservative".equals(disposition.riskAppetite())) {
             addResting(nodeStates, "situation_selection", 0.2);
