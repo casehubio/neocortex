@@ -218,7 +218,8 @@ public final class CognitiveDerivationEngine {
                                 .withRegulationDefaults(regulation)
                                 .withSearchBudgetConfig(searchBudget)
                                 .withRecurringThoughtConfig(recurringThought)
-                                .withCapacityConfig(capacity);
+                                .withCapacityConfig(capacity)
+                                .withDescriptor(descriptor);
     }
 
     public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
