@@ -1,0 +1,24 @@
+{
+  "moderate-anger-CC" : {
+    "trace" : "=== PIPELINE TRACE ===\n\nAPPRAISAL:\n  emotion: ANGER intensity=0.5 arousal=0.5\n  narrative: moderate frustration at an obstacle\n\nREGULATION:\n  strategy: COGNITIVE_CHANGE\n  targetEmotions: [ANGER]\n  peakIntensity: 0.5\n  regulatedIntensity: 0.35\n  effectiveness: 0.3\n  narrative: regulated via COGNITIVE_CHANGE\n\nPROMPT SECTIONS:\n  [MoodPromptSection]: Current emotional state:\nYou're feeling tense and agitated, with a sense of confidence.\nThis colors your responses — you're more guarded and short-tempered, quicker to react and more impulsive, more a...\n  [DrivePromptSection]: == Motivational State ==\n- Competence: 0.5 — flexible rule-follower, moderate risk appetite — mastery orientation\n- Affiliation: 0.4 — cooperative social orientation, analytical in conflict — social c...\n  [AppraisalPromptSection]: moderate frustration at an obstacle\n  [SEARCH_BUDGET]: This matters to someone you're connected to. A quick scan for the socially relevant signal, then move.\n",
+    "score" : 4
+  },
+  "cross-tick-drives" : {
+    "score" : 5,
+    "trajectory" : {
+      "1" : [ ],
+      "2" : [ ],
+      "3" : [ ],
+      "4" : [ ],
+      "5" : [ ]
+    }
+  },
+  "fear-to-AD" : {
+    "trace" : "=== PIPELINE TRACE ===\n\nAPPRAISAL:\n  emotion: FEAR intensity=0.9 arousal=0.9\n  narrative: acute fear response to perceived threat\n\nREGULATION:\n  strategy: ATTENTIONAL_DEPLOYMENT\n  targetEmotions: [FEAR]\n  peakIntensity: 0.9\n  regulatedIntensity: 0.63\n  effectiveness: 0.3\n  narrative: regulated via ATTENTIONAL_DEPLOYMENT\n\nACTIVE DRIVES: [autonomy]\n\nPROMPT SECTIONS:\n  [MoodPromptSection]: Current emotional state:\nYou're feeling tense and agitated, with an undercurrent of uncertainty.\nThis colors your responses — you're more guarded and short-tempered, quicker to react and more impulsiv...\n  [DrivePromptSection]: == Motivational State ==\n- Curiosity: 0.1 — no knowledge gaps\n- Competence: 0.3 — flexible rule-follower, moderate risk appetite — mastery orientation\n- Affiliation: 0.5 — cooperative social orientati...\n  [AppraisalPromptSection]: acute fear response to perceived threat\n  [SEARCH_BUDGET]: This matters to someone you're connected to. A quick scan for the socially relevant signal, then move.\n",
+    "score" : 4
+  },
+  "distress-to-AD" : {
+    "trace" : "=== PIPELINE TRACE ===\n\nAPPRAISAL:\n  emotion: DISTRESS intensity=0.85 arousal=0.85\n  narrative: overwhelming distress from devastating news\n\nREGULATION:\n  strategy: ATTENTIONAL_DEPLOYMENT\n  targetEmotions: [DISTRESS]\n  peakIntensity: 0.85\n  regulatedIntensity: 0.595\n  effectiveness: 0.3\n  narrative: regulated via ATTENTIONAL_DEPLOYMENT\n\nACTIVE DRIVES: [autonomy]\n\nPROMPT SECTIONS:\n  [MoodPromptSection]: Current emotional state:\nYou're feeling tense and agitated, with an undercurrent of uncertainty.\nThis colors your responses — you're more guarded and short-tempered, quicker to react and more impulsiv...\n  [DrivePromptSection]: == Motivational State ==\n- Curiosity: 0.1 — no knowledge gaps\n- Competence: 0.3 — flexible rule-follower, moderate risk appetite — mastery orientation\n- Affiliation: 0.5 — cooperative social orientati...\n  [AppraisalPromptSection]: overwhelming distress from devastating news\n  [SEARCH_BUDGET]: This matters to someone you're connected to. A quick scan for the socially relevant signal, then move.\n",
+    "score" : 4
+  }
+}
