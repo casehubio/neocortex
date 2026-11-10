@@ -1,5 +1,6 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.connectors.web.model.InterventionRequest;
 import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
@@ -177,14 +178,14 @@ public interface CorpusApi {
                                 String html, Integer ttlDays, String artifactRef);
 
     @PlatformMutation("Request human intervention for a URL that requires manual action "
-                      + "(CAPTCHA, login, paywall, cookie wall). Returns an intervention ID. "
+                      + "(CAPTCHA, login, paywall, cookie wall). Returns an intervention request. "
                       + "The agent should present the URL and reason to the human, wait for resolution, "
                       + "then call resolveIntervention with the post-resolution HTML.")
-    InterventionResult requestIntervention(@ContextParam("corpusId") String corpusId,
-                                           String url, String reason, String screenshotRef);
+    InterventionRequest requestIntervention(@ContextParam("corpusId") String corpusId,
+                                            String url, String reason, String screenshotRef);
 
     @PlatformQuery("List pending interventions that are waiting for human resolution.")
-    java.util.List<InterventionResult> pendingInterventions(@ContextParam("corpusId") String corpusId);
+    java.util.List<InterventionRequest> pendingInterventions(@ContextParam("corpusId") String corpusId);
 
     @PlatformMutation("Resolve a pending intervention with post-resolution HTML. "
                       + "Processes the HTML through the normal web capture pipeline "

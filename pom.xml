@@ -104,7 +104,6 @@
     <module>corpus-management</module>
     <module>corpus-management-spring</module>
     <module>corpus-git</module>
-    <module>corpus-management-parsers</module>
 
     <module>examples/example-text-analysis</module>
     <module>examples/example-rag-pipeline</module>
@@ -205,6 +204,16 @@
       </dependency>
 
       <!-- casehub-platform and casehub-connectors versions inherited from casehub-parent -->
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-connectors-web-spi</artifactId>
+        <version>${casehub-connectors.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-connectors-web-ref</artifactId>
+        <version>${casehub-connectors.version}</version>
+      </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
@@ -549,11 +558,6 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-corpus-management-spring</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.casehub</groupId>
-        <artifactId>casehub-neocortex-corpus-management-parsers</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -1,4 +1,4 @@
-package io.casehub.neocortex.corpus.management.parsers;
+package io.casehub.neocortex.corpus.management.impl;
 
 import io.casehub.neocortex.corpus.management.BlockAnnotation;
 import io.casehub.neocortex.corpus.management.BlockAnnotationParser;
