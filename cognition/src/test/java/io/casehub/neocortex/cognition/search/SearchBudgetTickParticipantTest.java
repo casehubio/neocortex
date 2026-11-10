@@ -11,6 +11,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
+import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.memory.mood.MoodState;
@@ -21,10 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -74,7 +73,7 @@ class SearchBudgetTickParticipantTest {
         var driveOrch = mock(DriveOrchestrator.class);
         when(driveOrch.currentDrives(AGENT, TENANT)).thenReturn(Optional.empty());
         var participant = new SearchBudgetTickParticipant(
-                driveOrch, null, null, null, registry(), null, null);
+                driveOrch, null, null, null, registry(), null, null, null);
         participant.tick(context());
         assertTrue(participant.currentBudget(AGENT, TENANT).isEmpty());
     }
@@ -98,13 +97,13 @@ class SearchBudgetTickParticipantTest {
                 Optional.of(new MoodState(AGENT, TENANT, Instant.now(), 0.6, 0.3, 0.2, "test", null, null, Map.of())));
 
         var participant = new SearchBudgetTickParticipant(
-                driveOrch, null, null, moodOrch, registry(), null, null);
+                driveOrch, null, null, moodOrch, registry(), null, null, null);
         participant.tick(context());
 
         var withMood = participant.currentBudget(AGENT, TENANT);
 
         var participantNoMood = new SearchBudgetTickParticipant(
-                driveOrch, null, null, null, registry(), null, null);
+                driveOrch, null, null, null, registry(), null, null, null);
         participantNoMood.tick(context());
         var withoutMood = participantNoMood.currentBudget(AGENT, TENANT);
 
@@ -148,7 +147,7 @@ class SearchBudgetTickParticipantTest {
                 Optional.of(new AppraisalResult(List.of(), List.of(avoidance), null)));
 
         var participant = new SearchBudgetTickParticipant(
-                driveOrch, appraisal, null, null, registry(), null, null);
+                driveOrch, appraisal, null, null, registry(), null, null, null);
         participant.tick(context());
 
         var budget = participant.currentBudget(AGENT, TENANT);
@@ -391,8 +390,8 @@ class SearchBudgetTickParticipantTest {
     void fatigue_accumulates_and_degrades_breadth() {
         var config = SearchBudgetConfig.defaults()
                                        .withExtremePeak(0.6)
-                                       .withFatigue(io.casehub.neocortex.cognitive.FatigueConfig.defaults());
-        var participant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.8, config);
+                                       .withFatigueEffects(SearchFatigueEffects.defaults());
+        var participant = withDriveConfigAndPool(DriveAxis.CURIOSITY, 0.8, config);
 
         participant.tick(context());
         var budget1 = participant.currentBudget(AGENT, TENANT).orElseThrow();
@@ -408,8 +407,8 @@ class SearchBudgetTickParticipantTest {
     void fatigue_does_not_accumulate_below_peak() {
         var config = SearchBudgetConfig.defaults()
                                        .withExtremePeak(0.9)
-                                       .withFatigue(io.casehub.neocortex.cognitive.FatigueConfig.defaults());
-        var participant = withDriveAndConfig(DriveAxis.CURIOSITY, 0.5, config);
+                                       .withFatigueEffects(SearchFatigueEffects.defaults());
+        var participant = withDriveConfigAndPool(DriveAxis.CURIOSITY, 0.5, config);
 
         participant.tick(context());
         var budget1 = participant.currentBudget(AGENT, TENANT).orElseThrow();
@@ -426,7 +425,7 @@ class SearchBudgetTickParticipantTest {
 
     private SearchBudgetTickParticipant withDrive(DriveAxis axis, double intensity) {
         return new SearchBudgetTickParticipant(
-                mockDriveOrch(axis, intensity), null, null, null, registry(), null, null);
+                mockDriveOrch(axis, intensity), null, null, null, registry(), null, null, null);
     }
 
     private SearchBudgetTickParticipant withThreat(double threatIntensity) {
@@ -442,7 +441,7 @@ class SearchBudgetTickParticipantTest {
                 Optional.of(new AppraisalResult(List.of(), List.of(avoidance), null)));
 
         return new SearchBudgetTickParticipant(
-                driveOrch, appraisal, null, null, registry(), null, null);
+                driveOrch, appraisal, null, null, registry(), null, null, null);
     }
 
     private DriveOrchestrator mockDriveOrch(DriveAxis axis, double intensity) {
@@ -481,12 +480,12 @@ class SearchBudgetTickParticipantTest {
         when(reg.forAgentOrDefaults(anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(config));
         return new SearchBudgetTickParticipant(
-                mockDriveOrch(axis, intensity), null, null, null, reg, null, curiosityDrive);
+                mockDriveOrch(axis, intensity), null, null, null, reg, null, curiosityDrive, null);
     }
 
     private SearchBudget baselineBudget(DriveAxis axis, double intensity) {
         var participant = new SearchBudgetTickParticipant(
-                mockDriveOrch(axis, intensity), null, null, null, registry(), null, null);
+                mockDriveOrch(axis, intensity), null, null, null, registry(), null, null, null);
         participant.tick(context());
         return participant.currentBudget(AGENT, TENANT).orElseThrow();
     }
@@ -496,8 +495,19 @@ class SearchBudgetTickParticipantTest {
         when(reg.forAgentOrDefaults(anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(config));
         return new SearchBudgetTickParticipant(
-                mockDriveOrch(axis, intensity), null, null, null, reg, null, null);
+                mockDriveOrch(axis, intensity), null, null, null, reg, null, null, null);
     }
+
+    private SearchBudgetTickParticipant withDriveConfigAndPool(DriveAxis axis, double intensity, SearchBudgetConfig config) {
+        var poolConfig = io.casehub.neocortex.cognitive.CognitiveResourcePoolConfig.defaults();
+        var reg        = mock(CognitiveDefaultsRegistry.class);
+        when(reg.forAgentOrDefaults(anyString())).thenReturn(
+                CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(config).withCognitiveResourcePoolConfig(poolConfig));
+        var pool = new io.casehub.neocortex.cognition.core.DefaultCognitiveResourcePool(reg);
+        return new SearchBudgetTickParticipant(
+                mockDriveOrch(axis, intensity), null, null, null, reg, null, null, pool);
+    }
+
 // --- capacity ceiling tests ---
 
     @Test
@@ -582,7 +592,7 @@ class SearchBudgetTickParticipantTest {
                                  .withSearchBudgetConfig(SearchBudgetConfig.defaults())
                                  .withCapacityConfig(capacity));
         return new SearchBudgetTickParticipant(
-                mockDriveOrch(axis, intensity), null, null, null, reg, null, null);
+                mockDriveOrch(axis, intensity), null, null, null, reg, null, null, null);
     }
 
 

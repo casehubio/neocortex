@@ -7,7 +7,8 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
-import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
+import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
+import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker; (fix(#880): fix remaining fatigue() → fatigueEffects() in SearchBudgetDescriptionGenerationPhase)
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.RegulationDefaults;
@@ -34,7 +35,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable EmotionRegulationGenerationPhase generationPhase;
     private final @Nullable MindMapStore                     mindMapStore;
     private final @Nullable String                           cognitiveSubgraphId;
-    private final           RegulationFatigueTracker         fatigueTracker;
+    private final @Nullable CognitiveResourcePool            cognitiveResourcePool;
     private final           RegulationMonitor                regulationMonitor;
     private final @Nullable RegulationStrategyPredictor      strategyPredictor;
     private final @Nullable CognitiveDefaultsRegistry        defaultsRegistry;
@@ -57,20 +58,21 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     static final double SAFETY_FATIGUE_THRESHOLD = 0.7;
     // Petter 2025 — cognitive resources for reappraisal exhausted above this intensity
     static final double SAFETY_INTENSITY_THRESHOLD = 0.75;
-
+    static final double REGULATION_CONTRIBUTION_RATE = 0.15;
+ (fix(#880): fix remaining fatigue() → fatigueEffects() in SearchBudgetDescriptionGenerationPhase)
     private static final int HISTORY_LIMIT = 5;
 
     private final ConcurrentHashMap<String, EmotionRegulationResult> results = new ConcurrentHashMap<>();
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
                                             CognitionConfig config) {
-        this(appraisalParticipant, config, null, null, null, null, null, null, null);
+        this(appraisalParticipant, config, null, null, null, null, null, null, null, null); (fix(#880): fix remaining fatigue() → fatigueEffects() in SearchBudgetDescriptionGenerationPhase)
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
                                             CognitionConfig config,
                                             @Nullable EmotionRegulationGenerationPhase generationPhase) {
-        this(appraisalParticipant, config, generationPhase, null, null, null, null, null, null);
+        this(appraisalParticipant, config, generationPhase, null, null, null, null, null, null, null); (fix(#880): fix remaining fatigue() → fatigueEffects() in SearchBudgetDescriptionGenerationPhase)
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -78,7 +80,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId) {
-        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId, null, null, null, null);
+        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId, null, null, null, null, null); (fix(#880): fix remaining fatigue() → fatigueEffects() in SearchBudgetDescriptionGenerationPhase)
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -89,7 +91,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable CognitiveDefaultsRegistry defaultsRegistry,
                                             @Nullable CognitiveLoadEstimator loadEstimator) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
-             defaultsRegistry, loadEstimator, null, null);
+             defaultsRegistry, loadEstimator, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -115,20 +117,20 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig,
                                             @Nullable RegulationTracker regulationTracker) {
-        this.appraisalParticipant = appraisalParticipant;
-        this.config               = config;
-        this.generationPhase      = generationPhase;
-        this.mindMapStore         = mindMapStore;
-        this.cognitiveSubgraphId  = cognitiveSubgraphId;
-        this.fatigueTracker       = new RegulationFatigueTracker();
-        this.regulationMonitor    = new RegulationMonitor();
-        this.defaultsRegistry     = defaultsRegistry;
-        this.loadEstimator        = loadEstimator;
-        this.strategyPredictor    = (defaultsRegistry != null) ? new RegulationStrategyPredictor() : null;
-        this.capsEngine           = capsEngine;
-        this.cascadeConfig        = capsEngine != null && cascadeConfig == null
-                                    ? RegulationCascadeConfig.defaults() : cascadeConfig;
-        this.regulationTracker    = regulationTracker;
+        this.appraisalParticipant  = appraisalParticipant;
+        this.config                = config;
+        this.generationPhase       = generationPhase;
+        this.mindMapStore          = mindMapStore;
+        this.cognitiveSubgraphId   = cognitiveSubgraphId;
+        this.cognitiveResourcePool = null;
+        this.regulationMonitor     = new RegulationMonitor();
+        this.defaultsRegistry      = defaultsRegistry;
+        this.loadEstimator         = loadEstimator;
+        this.strategyPredictor     = (defaultsRegistry != null) ? new RegulationStrategyPredictor() : null;
+        this.capsEngine            = capsEngine;
+        this.cascadeConfig         = capsEngine != null && cascadeConfig == null
+                                     ? RegulationCascadeConfig.defaults() : cascadeConfig;
+        this.regulationTracker     = regulationTracker; (fix(#880): fix remaining fatigue() → fatigueEffects() in SearchBudgetDescriptionGenerationPhase)
     }
 
 
@@ -147,16 +149,20 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                          .max().orElse(0.0);
 
         // Bosse et al. 2010: regulation effort v_n = α_n × d / d_max (proportional to discrepancy)
-        double alpha = fatigueTracker.effectiveAlpha(
-                context.agentId(), context.tenantId(), DEFAULT_ALPHA);
+        double depletion = cognitiveResourcePool != null
+                ? cognitiveResourcePool.currentDepletion(context.agentId(), context.tenantId()) : 0.0;
+        double alpha = DEFAULT_ALPHA * (1.0 - depletion);
         double regulationEffort = alpha * maxDiscrepancy / D_MAX;
 
         if (regulationEffort < EFFORT_NOISE_FLOOR) {
-            fatigueTracker.recordRecovery(context.agentId(), context.tenantId());
+            if (cognitiveResourcePool != null && defaultsRegistry != null) {
+                var poolConfig = defaultsRegistry.forAgentOrDefaults(context.agentId()).cognitiveResourcePoolConfig();
+                if (poolConfig != null) cognitiveResourcePool.recordRecovery(context.agentId(), context.tenantId(), poolConfig.recoveryRate());
+            }
             return;
         }
 
-        double currentFatigue = fatigueTracker.currentFatigue(context.agentId(), context.tenantId());
+        double currentFatigue = depletion;
         var    pendingSignal  = failureSignals.remove(context.agentId() + ":" + context.tenantId());
 
         if (generationPhase == null) {return;}
@@ -265,7 +271,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         if (result != null) {
             String key = context.agentId() + ":" + context.tenantId();
             results.put(key, result);
-            fatigueTracker.recordRegulation(context.agentId(), context.tenantId(), regulationEffort);
+            if (cognitiveResourcePool != null) {
+                cognitiveResourcePool.recordEffort(context.agentId(), context.tenantId(),
+                        regulationEffort * REGULATION_CONTRIBUTION_RATE);
+            }
             var signal = regulationMonitor.record(context.agentId(), context.tenantId(), result);
             if (signal != null) {
                 failureSignals.put(key, signal);
@@ -287,7 +296,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                          outcomeIntensity, outcomeValence, salienceMultiplier, "variable_ratio");
             }
         } else {
-            fatigueTracker.recordRecovery(context.agentId(), context.tenantId());
+            if (cognitiveResourcePool != null && defaultsRegistry != null) {
+                var poolConfig = defaultsRegistry.forAgentOrDefaults(context.agentId()).cognitiveResourcePoolConfig();
+                if (poolConfig != null) cognitiveResourcePool.recordRecovery(context.agentId(), context.tenantId(), poolConfig.recoveryRate());
+            }
         }
     }
 

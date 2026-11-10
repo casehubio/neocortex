@@ -803,7 +803,7 @@ public @Nullable String lastTargetAgentId() {
 
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
                 appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
-                defaultsRegistry, loadEstimator);
+                defaultsRegistry, loadEstimator, null);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
 
@@ -899,7 +899,8 @@ public @Nullable String lastTargetAgentId() {
             @Nullable MoodOrchestrator moodOrchestrator,
             io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
             io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
-            io.casehub.neocortex.cognition.drive.@Nullable CuriosityDrive curiosityDrive) {
+            io.casehub.neocortex.cognition.drive.@Nullable CuriosityDrive curiosityDrive,
+            @Nullable CognitiveResourcePool cognitiveResourcePool) {
         var participant = new io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant(
                 driveOrchestrator,
                 this.appraisalParticipant,
@@ -907,7 +908,8 @@ public @Nullable String lastTargetAgentId() {
                 moodOrchestrator,
                 defaultsRegistry,
                 config,
-                curiosityDrive);
+                curiosityDrive,
+                cognitiveResourcePool);
         addParticipant(CognitionPhase.DERIVED, participant);
         chainSectionCustomizer(sections -> {
             var result = new java.util.ArrayList<>(sections);

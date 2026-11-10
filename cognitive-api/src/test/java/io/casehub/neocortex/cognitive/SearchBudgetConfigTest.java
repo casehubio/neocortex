@@ -27,7 +27,7 @@ class SearchBudgetConfigTest {
         var config = SearchBudgetConfig.defaults();
         assertEquals(0.85, config.extremePeak());
         assertNull(config.extremeInteraction());
-        assertNull(config.fatigue());
+        assertNull(config.fatigueEffects());
     }
 
     @Test
@@ -53,8 +53,8 @@ class SearchBudgetConfigTest {
     @Test
     void withFatigue_returns_copy() {
         var config = SearchBudgetConfig.defaults()
-                                       .withFatigue(FatigueConfig.defaults());
-        assertNotNull(config.fatigue());
+                                       .withFatigueEffects(SearchFatigueEffects.defaults());
+        assertNotNull(config.fatigueEffects());
         assertEquals(0.85, config.extremePeak());
     }
 

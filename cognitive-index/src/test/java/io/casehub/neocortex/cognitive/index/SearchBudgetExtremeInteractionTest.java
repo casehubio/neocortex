@@ -32,29 +32,29 @@ class SearchBudgetExtremeInteractionTest {
         assertTrue(anxious.extremeInteraction().depthAmplification() < 0,
                 "Anxious depth amplification should be negative: " + anxious.extremeInteraction().depthAmplification());
 
-        assertTrue(bold.fatigue().depthEffect() < 0, "Bold fatigue depth should be negative (low-C): " + bold.fatigue().depthEffect());
-        assertTrue(anxious.fatigue().depthEffect() < 0, "Anxious fatigue depth should be negative (low-C): " + anxious.fatigue().depthEffect());
+        assertTrue(bold.fatigueEffects().depthEffect() < 0, "Bold fatigue depth should be negative (low-C): " + bold.fatigueEffects().depthEffect());
+        assertTrue(anxious.fatigueEffects().depthEffect() < 0, "Anxious fatigue depth should be negative (low-C): " + anxious.fatigueEffects().depthEffect());
 
-        assertTrue(bold.fatigue().convergenceEffect() > 0,
-                "Bold convergence effect should be positive (satisficing): " + bold.fatigue().convergenceEffect());
-        assertTrue(anxious.fatigue().convergenceEffect() < 0,
-                "Anxious convergence effect should be negative (blocked): " + anxious.fatigue().convergenceEffect());
+        assertTrue(bold.fatigueEffects().convergenceEffect() > 0,
+                "Bold convergence effect should be positive (satisficing): " + bold.fatigueEffects().convergenceEffect());
+        assertTrue(anxious.fatigueEffects().convergenceEffect() < 0,
+                "Anxious convergence effect should be negative (blocked): " + anxious.fatigueEffects().convergenceEffect());
     }
 
     @Test
     void conscientiousness_protects_depth_in_extreme_config() {
         var disciplined = CognitiveDerivationEngine.deriveSearchBudgetDefaults(disciplinedFacets(), disciplinedAxes(), 0.3);
         assertNotNull(disciplined.extremeInteraction());
-        assertNotNull(disciplined.fatigue());
+        assertNotNull(disciplined.fatigueEffects());
 
         assertEquals(0.0, disciplined.extremeInteraction().depthDecay(),
                 "High-C should protect depth (decay=0)");
 
-        assertTrue(disciplined.fatigue().depthEffect() > -0.02,
-                "High-C fatigue depth effect should be near 0 (protected): " + disciplined.fatigue().depthEffect());
+        assertTrue(disciplined.fatigueEffects().depthEffect() > -0.02,
+                "High-C fatigue depth effect should be near 0 (protected): " + disciplined.fatigueEffects().depthEffect());
 
-        assertTrue(disciplined.fatigue().convergenceEffect() > 0,
-                "High-C convergence effect should be positive (satisficing): " + disciplined.fatigue().convergenceEffect());
+        assertTrue(disciplined.fatigueEffects().convergenceEffect() > 0,
+                "High-C convergence effect should be positive (satisficing): " + disciplined.fatigueEffects().convergenceEffect());
     }
 
     @Test
@@ -73,14 +73,13 @@ class SearchBudgetExtremeInteractionTest {
 
     @Test
     void fatigue_recovery_differentiates_by_personality() {
-        var bold = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
+        var bold        = CognitiveDerivationEngine.deriveSearchBudgetDefaults(boldFacets(), boldAxes(), 0.8);
         var disciplined = CognitiveDerivationEngine.deriveSearchBudgetDefaults(disciplinedFacets(), disciplinedAxes(), 0.3);
 
-        assertTrue(disciplined.fatigue().recoveryRate() > bold.fatigue().recoveryRate(),
-                "High-C should recover faster: disciplined=" + disciplined.fatigue().recoveryRate() + " bold=" + bold.fatigue().recoveryRate());
-
-        assertTrue(disciplined.fatigue().maxTicks() > bold.fatigue().maxTicks(),
-                "High-C should sustain longer: disciplined=" + disciplined.fatigue().maxTicks() + " bold=" + bold.fatigue().maxTicks());
+        assertNotNull(bold.fatigueEffects(), "Bold should have fatigue effects");
+        assertNotNull(disciplined.fatigueEffects(), "Disciplined should have fatigue effects");
+        assertTrue(disciplined.fatigueEffects().convergenceEffect() > bold.fatigueEffects().convergenceEffect(),
+                   "High-C should have higher convergence effect: disciplined=" + disciplined.fatigueEffects().convergenceEffect() + " bold=" + bold.fatigueEffects().convergenceEffect());
     }
 
     @Test

@@ -15,10 +15,11 @@ import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.neocortex.cognition.gut.GutFeelingParticipant;
 import io.casehub.neocortex.cognition.gut.GutValence;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
+import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
 import io.casehub.neocortex.cognitive.ExtremeInteractionConfig;
-import io.casehub.neocortex.cognitive.FatigueConfig;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
+import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -48,9 +49,10 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
     private final CognitiveDefaultsRegistry defaultsRegistry;
     private final @Nullable CognitionConfig cognitionConfig;
     private final @Nullable CuriosityDrive curiosityDrive;
+    private final @Nullable CognitiveResourcePool cognitiveResourcePool;
+    private final           ConcurrentHashMap<String, SearchBudget> results = new ConcurrentHashMap<>();
 
-    private final ConcurrentHashMap<String, SearchBudget> results = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, FatigueState> fatigueStates = new ConcurrentHashMap<>();
+
 
     public SearchBudgetTickParticipant(
             DriveOrchestrator driveOrchestrator,
@@ -59,7 +61,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
             @Nullable MoodOrchestrator moodOrchestrator,
             CognitiveDefaultsRegistry defaultsRegistry,
             @Nullable CognitionConfig cognitionConfig,
-            @Nullable CuriosityDrive curiosityDrive) {
+            @Nullable CuriosityDrive curiosityDrive,
+            @Nullable CognitiveResourcePool cognitiveResourcePool) {
         this.driveOrchestrator = driveOrchestrator;
         this.appraisalParticipant = appraisalParticipant;
         this.gutFeelingParticipant = gutFeelingParticipant;
@@ -67,6 +70,7 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         this.defaultsRegistry = defaultsRegistry;
         this.cognitionConfig = cognitionConfig;
         this.curiosityDrive = curiosityDrive;
+        this.cognitiveResourcePool = cognitiveResourcePool;
     }
 
     @Override
@@ -127,27 +131,20 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         }
 
         // Fatigue reallocation — per-parameter signed effects (Hockey 1997)
-        FatigueConfig fatigueConfig = config.fatigue();
-        if (fatigueConfig != null) {
-            fatigueStates.compute(key, (k, v) -> {
-                if (v == null) v = new FatigueState(0.0);
-                if (compositeIntensity > config.extremePeak()) {
-                    v.setAccumulator(v.accumulator() + 1.0);
-                } else {
-                    v.setAccumulator(Math.max(0.0, v.accumulator() - fatigueConfig.recoveryRate()));
-                }
-                return v;
-            });
-            FatigueState fs = fatigueStates.get(key);
-            if (fs != null && fs.accumulator() > 0.0) {
-                double fatigueLevel = Math.min(1.0, Math.log(1 + fs.accumulator()) / Math.log(1 + fatigueConfig.maxTicks()));
-                depth += fatigueLevel * fatigueConfig.depthEffect();
-                breadth += fatigueLevel * fatigueConfig.breadthEffect();
-                laterality += fatigueLevel * fatigueConfig.lateralityEffect();
-                convergence += fatigueLevel * fatigueConfig.convergenceEffect();
+        SearchFatigueEffects fatigueEffects = config.fatigueEffects();
+        if (fatigueEffects != null && cognitiveResourcePool != null) {
+            var poolConfig = defaults.cognitiveResourcePoolConfig();
+            if (compositeIntensity > config.extremePeak()) {
+                cognitiveResourcePool.recordEffort(agentId, tenantId, 1.0);
+            } else if (poolConfig != null) {
+                cognitiveResourcePool.recordRecovery(agentId, tenantId, poolConfig.recoveryRate());
             }
-            if (fs != null && fs.accumulator() == 0.0) {
-                fatigueStates.remove(key);
+            double depletion = cognitiveResourcePool.currentDepletion(agentId, tenantId);
+            if (depletion > 0.0) {
+                depth += depletion * fatigueEffects.depthEffect();
+                breadth += depletion * fatigueEffects.breadthEffect();
+                laterality += depletion * fatigueEffects.lateralityEffect();
+                convergence += depletion * fatigueEffects.convergenceEffect();
             }
         }
 
@@ -172,7 +169,7 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
             capacityConstrained = maxGap > 0.05;
         }
 
-        boolean extremeActivation = (config.extremeInteraction() != null || config.fatigue() != null)
+        boolean extremeActivation = (config.extremeInteraction() != null || config.fatigueEffects() != null)
                 && compositeIntensity > config.extremePeak();
 
         SearchMotivation source = determineSource(profile, threatIntensity);
