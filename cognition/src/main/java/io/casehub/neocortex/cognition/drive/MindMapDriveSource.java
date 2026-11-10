@@ -40,10 +40,20 @@ public class MindMapDriveSource implements DriveSource {
             var axes = defaults.get().descriptor().disposition();
             if (axes != null) {
                 double baseline = computeBaseline(axes);
-                return new DriveIntensity(axis, baseline, axis.name().toLowerCase());
+                String trigger = describeTrigger(axes);
+                return new DriveIntensity(axis, baseline, trigger);
             }
         }
         return new DriveIntensity(axis, 0.4, axis.name().toLowerCase());
+    }
+
+    private String describeTrigger(DispositionAxes axes) {
+        return switch (axis) {
+            case COMPETENCE -> axes.ruleFollowing() + " rule-follower, " + axes.riskAppetite() + " risk appetite — mastery orientation";
+            case AFFILIATION -> axes.socialOrient() + " social orientation, " + axes.conflictMode() + " in conflict — social connection";
+            case AUTONOMY -> axes.autonomy() + " autonomy — self-determination";
+            case CURIOSITY -> "baseline curiosity";
+        };
     }
 
     private double computeBaseline(DispositionAxes axes) {

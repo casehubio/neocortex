@@ -82,11 +82,15 @@ class PipelineCoherenceEvalTest {
 
         var traceText = formatTrace(trace.get());
         int score = judgeCoherence(traceText,
-            "The appraisal stage produced high-intensity DISTRESS (0.85 on a 0-1 scale). " +
-            "The regulation stage selected ATTENTIONAL_DEPLOYMENT (redirect attention away from distressing stimulus). " +
-            "In the Gross (1998) process model, high-intensity negative emotions trigger a safety gate " +
-            "that automatically deploys attentional distraction to prevent emotional flooding. " +
-            "Score whether the regulation strategy is the psychologically expected response to this appraisal.",
+            "Evaluate FULL PIPELINE coherence across appraisal, mood, drives, and regulation. " +
+            "The appraisal produced high-intensity DISTRESS (0.85). A coherent pipeline shows: " +
+            "(1) Mood shifts strongly negative — low pleasure, high arousal. " +
+            "(2) Drives respond — AUTONOMY should be elevated (seeking safety/control under distress), " +
+            "and drive descriptions should reflect personality, not show generic labels or 'stub'. " +
+            "(3) Regulation selects ATTENTIONAL_DEPLOYMENT — the safety gate fires for high-intensity " +
+            "negative emotions (Gross 1998). " +
+            "Score 5 if all three layers are coherent. Score 4 if mood+regulation coherent but drives flat. " +
+            "Score 3 if only regulation coherent. Score 1-2 if contradictions.",
             "distress-to-AD");
 
         results.put("distress-to-AD", Map.of("score", score, "trace", traceText));
@@ -108,13 +112,15 @@ class PipelineCoherenceEvalTest {
 
         var traceText = formatTrace(trace.get());
         int score = judgeCoherence(traceText,
-            "Focus ONLY on the APPRAISAL and REGULATION stages. Ignore other sections. " +
-            "The appraisal produced high-intensity FEAR (0.9). " +
-            "The regulation selected ATTENTIONAL_DEPLOYMENT (redirect attention away from threat). " +
-            "High-intensity fear overwhelms cognitive resources, so the safety gate " +
-            "automatically deploys attentional redirection before deliberate strategies can engage. " +
-            "Score whether ATTENTIONAL_DEPLOYMENT is the psychologically expected regulation " +
-            "response to a high-intensity fear appraisal.",
+            "Evaluate FULL PIPELINE coherence across appraisal, mood, drives, and regulation. " +
+            "The appraisal produced high-intensity FEAR (0.9). A coherent pipeline shows: " +
+            "(1) Mood shifts strongly negative — high arousal, low pleasure, low dominance. " +
+            "(2) Drives respond — AUTONOMY should be elevated (escape/control under threat), " +
+            "and drive descriptions should reflect personality. " +
+            "(3) Regulation selects ATTENTIONAL_DEPLOYMENT — the safety gate fires for " +
+            "high-intensity fear (Gross 1998). " +
+            "Score 5 if all three layers are coherent. Score 4 if mood+regulation coherent but drives flat. " +
+            "Score 3 if only regulation coherent. Score 1-2 if contradictions.",
             "fear-to-AD");
 
         results.put("fear-to-AD", Map.of("score", score, "trace", traceText));
@@ -136,12 +142,16 @@ class PipelineCoherenceEvalTest {
 
         var traceText = formatTrace(trace.get());
         int score = judgeCoherence(traceText,
-            "The appraisal stage produced moderate-intensity ANGER (0.5). " +
-            "Below the safety threshold, the regulation system should select a deliberate strategy " +
-            "rather than an automatic safety response. COGNITIVE_CHANGE (reappraisal) is the " +
-            "default deliberate strategy for moderate emotions without personality-based pinning. " +
-            "Score whether the regulation outcome is coherent with a moderate-intensity appraisal " +
-            "that permits deliberate rather than automatic regulation.",
+            "Evaluate FULL PIPELINE coherence across appraisal, mood, drives, and regulation. " +
+            "The appraisal produced moderate ANGER (0.5). A coherent pipeline shows: " +
+            "(1) Mood shifts to negative valence and high arousal (tense/agitated), not 'emotionally even'. " +
+            "(2) Drives respond to the emotion — COMPETENCE should be elevated (mastery drive to overcome " +
+            "the obstacle causing frustration), and drive descriptions should reflect personality. " +
+            "(3) Regulation selects a deliberate strategy (COGNITIVE_CHANGE) since intensity is below " +
+            "the safety threshold. " +
+            "Score 5 if all three layers are coherent with the anger appraisal. " +
+            "Score 4 if mood and regulation are coherent but drives are flat or generic. " +
+            "Score 3 if only regulation is coherent. Score 1-2 if sections contradict each other.",
             "moderate-anger-CC");
 
         results.put("moderate-anger-CC", Map.of("score", score, "trace", traceText));
