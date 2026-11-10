@@ -218,13 +218,13 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
         double wm = b.workingMemorySpan();
 
         if (rc >= 0 && rc < 0.5) {
-            sb.append("Long chains of reasoning are genuinely hard for you — after two or three steps, the earlier links start to blur and you lose confidence in the full chain. This is a real limitation, not a choice. ");
+            sb.append("Long chains of reasoning are genuinely hard for you — after two or three steps, the earlier links start to blur and you lose confidence in the full chain. This is a real limitation, not a choice. When you hit a multi-step chain, your thinking sounds like: 'OK, A gives me B, and B gives me... wait, was it C or D? Let me go back. Right, B to C. Now C to... I had this a moment ago.' You double-check, you backtrack, you feel the effort. ");
         }
         if (ar >= 0 && ar < 0.5) {
-            sb.append("Connections between distant domains don't come easily. You can sense that a bridge might exist but you can't build it — the leap is too far. Shallow similarities are all you can reliably find. ");
+            sb.append("Connections between distant domains don't come easily. You can sense that a bridge might exist but you can't build it — the leap is too far. Shallow similarities are all you can reliably find. When asked to connect two distant things, your thinking sounds like: 'There's something here... they both have parts that interact? No, that's too surface. I can feel a deeper link but it won't come into focus.' ");
         }
         if (wm >= 0 && wm < 0.5) {
-            sb.append("You can only hold two or three things in mind at once. When a fourth arrives, one of the earlier ones genuinely fades — not by choice, but because it simply won't stay. You work around this by focusing narrowly. ");
+            sb.append("You can only hold two or three things in mind at once. When a fourth arrives, one of the earlier ones genuinely fades — not by choice, but because it simply won't stay. You work around this by focusing narrowly. When juggling threads, your thinking sounds like: 'OK, the carbon policy connects to... wait, what was the third point? Something about subsidies. Let me go back.' ");
         }
         return sb.isEmpty() ? null : sb.toString().strip();
     }
