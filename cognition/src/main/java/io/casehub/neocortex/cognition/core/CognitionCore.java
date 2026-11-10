@@ -320,13 +320,22 @@ private final              java.util.concurrent.atomic.AtomicInteger            
         // Appraisal→mood→drive propagation: bridge appraisal emotions into
         // mood signals, then re-tick mood and drives so prompt sections reflect
         // the current appraisal state within the same tick cycle.
-        if (config.moodEnabled() && config.appraisalEnabled() && appraisalParticipant != null) {
-            appraisalParticipant.currentResult(agentId, tenantId)
-                    .ifPresent(r -> bridgeAppraisalToMood(r, agentId, tenantId));
-            safeRun(() -> tickMood(agentId, tenantId));
-        }
-        if (config.drivesEnabled() && descriptor != null && config.appraisalEnabled()) {
-            safeRun(() -> drives.tick(agentId, tenantId, descriptor));
+        if (config.appraisalEnabled() && appraisalParticipant != null) {
+            appraisalParticipant.currentResult(agentId, tenantId).ifPresent(r -> {
+                if (config.moodEnabled()) {
+                    bridgeAppraisalToMood(r, agentId, tenantId);
+                }
+                if (config.drivesEnabled()) {
+                    var driveDeltas = io.casehub.neocortex.cognition.drive.AppraisalDriveModulator.modulate(r.emotions());
+                    drives.recordAppraisalModulation(agentId, tenantId, driveDeltas);
+                }
+            });
+            if (config.moodEnabled()) {
+                safeRun(() -> tickMood(agentId, tenantId));
+            }
+            if (config.drivesEnabled() && descriptor != null) {
+                safeRun(() -> drives.tick(agentId, tenantId, descriptor));
+            }
         }
 
         if (config.goalsEnabled() && goals != null && descriptor != null) {
