@@ -1,7 +1,11 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.connectors.web.model.CapturedImage;
+import io.casehub.connectors.web.model.ImageProcessingResult;
+import io.casehub.connectors.web.ref.InMemoryWebBackend;
+import io.casehub.connectors.web.ref.RefWebPlatform;
+import io.casehub.connectors.web.spi.WebPlatform;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
-import io.casehub.neocortex.corpus.management.HtmlToMarkdownParser;
 import io.casehub.neocortex.corpus.management.WebCaptureMetadata;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.FeedbackContext;
@@ -14,10 +18,10 @@ import io.casehub.neocortex.rag.RetrievedChunk;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,30 +32,16 @@ class WebCapturePipelineSmokeTest {
     private static final CorpusRef CORPUS = new CorpusRef("tenant", "smoke-test");
 
     private InMemoryEntryStoreStub store;
-    private HtmlToMarkdownParser htmlParser;
-    private WebImageProcessor imageProcessor;
-    private InterventionQueue interventionQueue;
+    private InMemoryWebBackend webBackend;
+    private WebPlatform webPlatform;
     private CorpusApiBean bean;
 
     @BeforeEach
     void setUp() {
         store = new InMemoryEntryStoreStub();
-        htmlParser = (html, url) -> {
-            String md = "#@ page: 1\n#@ panel: main\n";
-            if (html.contains("<img")) {
-                md += "#@ figure: caption=\"Screenshot\"\n[Screenshot]\n";
-            }
-            md += "Parsed: " + html.substring(0, Math.min(html.length(), 50)) + "\n";
-            return md;
-        };
-        imageProcessor = new WebImageProcessor((bytes, mime) -> "Stub image description") {
-            @Override
-            byte[] fetchImageBytes(String url) {
-                return new byte[]{1, 2, 3};
-            }
-        };
-        interventionQueue = new InterventionQueue(Duration.ofMinutes(10));
-        bean = new CorpusApiBean(store, CORPUS, htmlParser, imageProcessor, interventionQueue);
+        webBackend = new InMemoryWebBackend();
+        webPlatform = new RefWebPlatform(webBackend);
+        bean = new CorpusApiBean(store, CORPUS, webPlatform);
     }
 
     @Test
@@ -61,7 +51,7 @@ class WebCapturePipelineSmokeTest {
 
         assertThat(result.entryId()).isNotNull();
         assertThat(result.cached()).isFalse();
-        assertThat(result.body()).contains("Parsed:");
+        assertThat(result.body()).contains("Fresh article content");
         assertThat(store.entries).hasSize(1);
 
         var entry = store.entries.get(result.entryId());
@@ -83,11 +73,29 @@ class WebCapturePipelineSmokeTest {
 
     @Test
     void imageCaptureCreatesRelatedEntries() {
-        String html = "<html><body>"
-            + "<img src=\"https://example.com/diagram.png\" alt=\"Screenshot\">"
-            + "<p>Article with image</p></body></html>";
+        var testImages = List.of(
+            new CapturedImage("https://example.com/diagram.png", "Screenshot",
+                new byte[]{1, 2, 3}, "image/png", "Stub image description")
+        );
+        var imagePlatform = new RefWebPlatform(webBackend) {
+            @Override
+            public ImageCapture imageCapture() {
+                return new ImageCapture() {
+                    @Override
+                    public ImageProcessingResult extractImages(String html, String sourceUrl) {
+                        return new ImageProcessingResult(testImages);
+                    }
+                    @Override
+                    public String enrichMarkdown(String markdown, ImageProcessingResult result) {
+                        return markdown;
+                    }
+                };
+            }
+        };
+        var imageBean = new CorpusApiBean(store, CORPUS, imagePlatform);
 
-        var result = bean.webCapture("smoke-test", "https://example.com/with-image", html, 30, null);
+        String html = "<html><body><p>Article with image</p></body></html>";
+        var result = imageBean.webCapture("smoke-test", "https://example.com/with-image", html, 30, null);
 
         assertThat(result.imageCount()).isEqualTo(1);
         assertThat(store.entries).hasSize(2);
@@ -119,7 +127,7 @@ class WebCapturePipelineSmokeTest {
 
         var stored = store.entries.get(result.entryId());
         assertThat(stored).isNotNull();
-        assertThat(stored.body()).contains("Parsed:");
+        assertThat(stored.body()).contains("Unlocked content");
     }
 
     @Test

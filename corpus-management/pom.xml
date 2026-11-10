@@ -89,6 +89,11 @@
 
     <dependency>
       <groupId>io.casehub</groupId>
+      <artifactId>casehub-connectors-web-ref</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-mindmap-inmem</artifactId>
       <scope>test</scope>
     </dependency>
