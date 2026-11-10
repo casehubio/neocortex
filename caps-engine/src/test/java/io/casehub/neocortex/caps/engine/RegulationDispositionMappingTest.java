@@ -35,6 +35,18 @@ class RegulationDispositionMappingTest {
     }
 
     @Test
+    void accommodatingConflictModeBoostsCognitiveChange() {
+        var axes = new DispositionAxes("cooperative", "moderate", "calculated",
+                                       "moderate", "accommodating");
+        var mapper          = new DispositionWeightMapper(topology);
+        var state           = mapper.initializeWeights("t1", "a1", axes);
+        var cognitiveChange = state.nodeStates().get("cognitive_change");
+        assertThat(cognitiveChange).isNotNull();
+        assertThat(cognitiveChange.restingActivation()).isCloseTo(0.25, within(0.01));
+    }
+
+
+    @Test
     void cooperativeSocialOrientBoostsSocialSupportSeeking() {
         var axes = new DispositionAxes("cooperative", "moderate", "calculated",
             "moderate", "cooperative");
