@@ -4,37 +4,37 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
-import io.casehub.neocortex.inference.DenseEmbedder;
-import io.casehub.neocortex.inference.Embeddings;
 import io.casehub.neocortex.fusion.CamelCaseExpander;
 import io.casehub.neocortex.fusion.FusionStrategy;
 import io.casehub.neocortex.fusion.ScoreFusion;
+import io.casehub.neocortex.inference.DenseEmbedder;
+import io.casehub.neocortex.inference.Embeddings;
 import io.casehub.neocortex.inference.splade.SparseEmbedder;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.cbr.CaseTypeScope;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.CbrFilter;
+import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
+import io.casehub.neocortex.memory.cbr.CbrOutcome;
+import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
+import io.casehub.neocortex.memory.cbr.CbrPlanStep;
+import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrRecordSummary;
 import io.casehub.neocortex.memory.cbr.CbrRecordValidator;
-import io.casehub.neocortex.memory.cbr.CbrOutcome;
-import io.casehub.neocortex.memory.cbr.CbrQuery;
-import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrRetentionPolicy;
 import io.casehub.neocortex.memory.cbr.CbrSimilarityScorer;
 import io.casehub.neocortex.memory.cbr.FeatureField;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.LocalSimilarityFunction;
-import io.casehub.neocortex.memory.cbr.CbrPlanRecord;
-import io.casehub.neocortex.memory.cbr.CbrPlanStep;
 import io.casehub.neocortex.memory.cbr.RetrievalMode;
 import io.casehub.neocortex.memory.cbr.SupersessionStatus;
-import io.casehub.neocortex.memory.cbr.CbrGuidanceRecord;
 import io.casehub.neocortex.memory.cbr.embedding.EmbeddingTextSimilarity;
 import io.qdrant.client.ConditionFactory;
 import io.qdrant.client.PointIdFactory;
@@ -680,35 +680,43 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
     }
 
     @Override
-    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {recordOutcome(caseId, outcome, tenantId, null);}
+
+    @Override
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId, Double learningRateOverride) {
         for (String caseType : schemas.keySet()) {
             String collection = collectionManager.collectionName(caseType);
             boolean exists = awaitFuture(
-                collectionManager.client().collectionExistsAsync(collection), "collectionExists");
-            if (!exists) continue;
+                    collectionManager.client().collectionExistsAsync(collection), "collectionExists");
+            if (!exists) {continue;}
 
             UUID pointUuid = CbrPointBuilder.pointId(tenantId, caseType, caseId);
-            var pointId = PointIdFactory.id(pointUuid);
+            var  pointId   = PointIdFactory.id(pointUuid);
             var points = awaitFuture(
-                collectionManager.client().retrieveAsync(collection, List.of(pointId), true, false, null),
-                "retrieveForOutcome");
-            if (points.isEmpty()) continue;
+                    collectionManager.client().retrieveAsync(collection, List.of(pointId), true, false, null),
+                    "retrieveForOutcome");
+            if (points.isEmpty()) {continue;}
 
             var payload = points.getFirst().getPayloadMap();
 
             String existingLastOutcome = extractString(payload, "last_outcome_at");
             if (existingLastOutcome != null) {
                 Instant existingInstant = Instant.parse(existingLastOutcome);
-                if (!outcome.observedAt().isAfter(existingInstant)) continue;
+                if (!outcome.observedAt().isAfter(existingInstant)) {continue;}
             }
 
-            Double          oldConfidenceVal = extractDouble(payload, "confidence");
-            CbrRecordSchema schema           = schemas.get(caseType);
-            double lr = (schema != null && schema.learningRate() != null)
-                        ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
+            Double oldConfidenceVal = extractDouble(payload, "confidence");
+            double lr;
+            if (learningRateOverride != null) {
+                lr = learningRateOverride;
+            } else {
+                CbrRecordSchema schema = schemas.get(caseType);
+                lr = (schema != null && schema.learningRate() != null)
+                     ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
+            }
             io.casehub.neocortex.cognitive.Confidence newConf = CbrOutcome.adjustConfidence(
-                oldConfidenceVal != null ? io.casehub.neocortex.cognitive.Confidence.unknown(oldConfidenceVal) : null,
-                outcome.successRate(), lr);
+                    oldConfidenceVal != null ? io.casehub.neocortex.cognitive.Confidence.unknown(oldConfidenceVal) : null,
+                    outcome.successRate(), lr);
 
             Map<String, Value> updates = new HashMap<>();
             updates.put("outcome", ValueFactory.value(outcome.result().name()));
@@ -719,9 +727,10 @@ public class QdrantCbrRecordStore implements CbrRecordStore {
             }
 
             awaitFuture(collectionManager.client().setPayloadAsync(
-                collection, updates, (PointId) pointId, null, null, null), "setPayload");
+                    collection, updates, (PointId) pointId, null, null, null), "setPayload");
         }
     }
+
 
     @Override
     public boolean supersede(String caseId, String supersedingCaseId, String reason, String tenantId) {
