@@ -387,6 +387,91 @@ class AppraisalTickParticipantTest {
         assertThat(preyWeights).isNotEqualTo(toolWeights);
     }
 
+
+    @Test
+    void capacityFrustration_lateralityGap_producesAngerMoodShift() {
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config);
+
+        var budget = new io.casehub.neocortex.cognition.search.SearchBudget(
+                0.5, 0.5, 0.5, 0.5,
+                io.casehub.neocortex.cognition.search.SearchMotivation.CURIOSITY,
+                false, true, 0.0, 0.0, 0.3, Instant.now());
+        participant.setSearchBudgetAccessor((a, t) -> Optional.of(budget));
+
+        participant.tick(contextWithObservation("Something interesting"));
+
+        verify(moodOrchestrator, Mockito.atLeast(1)).record(any(), eq("a1"), eq("t1"));
+    }
+
+    @Test
+    void capacityFrustration_noGap_noExtraMoodShift() {
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config);
+
+        var budget = new io.casehub.neocortex.cognition.search.SearchBudget(
+                0.5, 0.5, 0.5, 0.5,
+                io.casehub.neocortex.cognition.search.SearchMotivation.CURIOSITY,
+                false, false, 0.0, 0.0, 0.0, Instant.now());
+        participant.setSearchBudgetAccessor((a, t) -> Optional.of(budget));
+
+        participant.tick(contextWithObservation("Something boring"));
+
+        verify(moodOrchestrator, never()).record(any(), any(), any());
+    }
+
+    @Test
+    void capacityFrustration_depthGap_producesDisappointment() {
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config);
+
+        var budget = new io.casehub.neocortex.cognition.search.SearchBudget(
+                0.5, 0.5, 0.5, 0.5,
+                io.casehub.neocortex.cognition.search.SearchMotivation.CURIOSITY,
+                false, true, 0.2, 0.0, 0.0, Instant.now());
+        participant.setSearchBudgetAccessor((a, t) -> Optional.of(budget));
+
+        participant.tick(contextWithObservation("Complex reasoning required"));
+
+        verify(moodOrchestrator, Mockito.atLeast(1)).record(any(), eq("a1"), eq("t1"));
+    }
+
+    @Test
+    void capacityFrustration_multipleGaps_bridgesAllToMood() {
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config);
+
+        var budget = new io.casehub.neocortex.cognition.search.SearchBudget(
+                0.5, 0.5, 0.5, 0.5,
+                io.casehub.neocortex.cognition.search.SearchMotivation.CURIOSITY,
+                false, true, 0.15, 0.1, 0.25, Instant.now());
+        participant.setSearchBudgetAccessor((a, t) -> Optional.of(budget));
+
+        participant.tick(contextWithObservation("Ambitious exploration"));
+
+        verify(moodOrchestrator, Mockito.atLeast(1)).record(any(), eq("a1"), eq("t1"));
+    }
+
+    @Test
+    void capacityFrustration_noAccessor_noFrustration() {
+        var config = CognitionConfig.none().with("appraisal", true);
+        var participant = new AppraisalTickParticipant(
+                salienceStrategy, appraisalStrategy, driveOrchestrator,
+                moodOrchestrator, null, config);
+
+        participant.tick(contextWithObservation("Something interesting"));
+
+        verify(moodOrchestrator, never()).record(any(), any(), any());
+    }
+
     private CognitionTickContext contextWithObservation(String observation) {
         return new CognitionTickContext("a1", "t1", null, (a, t) -> java.util.Set.of(), observation);
     }

@@ -911,6 +911,9 @@ public @Nullable String lastTargetAgentId() {
                 curiosityDrive,
                 cognitiveResourcePool);
         addParticipant(CognitionPhase.DERIVED, participant);
+        if (this.appraisalParticipant != null) {
+            this.appraisalParticipant.setSearchBudgetAccessor(participant::currentBudget);
+        }
         chainSectionCustomizer(sections -> {
             var result = new java.util.ArrayList<>(sections);
             result.add(new io.casehub.neocortex.cognition.search.SearchBudgetPromptSection(participant, mindMapStore, this.lastContinuumMap));
