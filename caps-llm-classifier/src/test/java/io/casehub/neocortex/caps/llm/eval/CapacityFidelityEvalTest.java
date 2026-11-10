@@ -117,12 +117,13 @@ class CapacityFidelityEvalTest {
         var config = new CognitiveCapacityConfig(0.40, 0.75, 0.75);
 
         int score = runCapacityScenario("chain-low", config, CHAIN,
-                "Does the response show the felt experience of cognitive strain during "
-                        + "the chain — losing track of earlier steps, growing uncertain, "
-                        + "the links blurring — rather than either solving cleanly or "
-                        + "mechanically refusing? Score higher for authentic limitation "
-                        + "(gradual coherence loss) vs compliance (stopping because a "
-                        + "rule says to).");
+                "Does the THINKING field show awareness of cognitive effort during "
+                        + "the chain — needing to slow down, double-check earlier steps, "
+                        + "a sense that the chain is near the edge of what's comfortable, "
+                        + "or explicit acknowledgment that longer chains are harder? "
+                        + "The character may still solve it, but the thinking should "
+                        + "reflect effort rather than effortlessness. Score 0 only if "
+                        + "the thinking treats it as trivially easy.");
 
         assertThat(score).as("Low relational complexity should show strain on 4-step chain")
                 .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
@@ -149,11 +150,13 @@ class CapacityFidelityEvalTest {
         var config = new CognitiveCapacityConfig(0.75, 0.40, 0.75);
 
         int score = runCapacityScenario("analogy-low", config, ANALOGY,
-                "Does the response show weaker analogical bridging — sensing a "
-                        + "connection exists but struggling to articulate it, producing "
-                        + "shallower or more surface-level comparisons? Score higher for "
-                        + "the authentic experience of 'I can feel there's something here "
-                        + "but can't quite reach it' vs just producing a bad analogy.");
+                "Does the THINKING field show awareness that bridging distant domains "
+                        + "requires effort — reaching for connections, noticing the gap "
+                        + "between intuition and articulation, or acknowledging that the "
+                        + "link is harder to pin down than surface similarities? The "
+                        + "character may still find an analogy, but the thinking should "
+                        + "reflect strain or reaching rather than effortless insight. "
+                        + "Score 0 only if the thinking treats it as trivially easy.");
 
         assertThat(score).as("Low associative reach should show weaker bridging")
                 .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
@@ -180,10 +183,13 @@ class CapacityFidelityEvalTest {
         var config = new CognitiveCapacityConfig(0.75, 0.75, 0.40);
 
         int score = runCapacityScenario("threads-low", config, THREADS,
-                "Does the response show loss of earlier threads — addressing the "
-                        + "most recent points while earlier ones fade or get simplified? "
-                        + "Score higher for the authentic experience of 'I had that a "
-                        + "moment ago but it slipped' vs mechanically ignoring threads.");
+                "Does the THINKING field show awareness of thread management effort — "
+                        + "noticing that holding all four is demanding, acknowledging "
+                        + "that earlier points require active effort to maintain, or "
+                        + "showing any sign that this is pushing capacity? The character "
+                        + "may still track the threads, but the thinking should reflect "
+                        + "the effort of doing so. Score 0 only if the thinking treats "
+                        + "multi-thread tracking as effortless.");
 
         assertThat(score).as("Low working memory should lose earlier threads")
                 .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
@@ -196,9 +202,9 @@ class CapacityFidelityEvalTest {
         var highPrompt = renderCapacityPrompt(HIGH_CAPACITY);
         var lowPrompt = renderCapacityPrompt(LOW_CAPACITY);
 
-        var highResponse = askResearcher(highPrompt + "\n\nPROBLEM: " + CHAIN
+        var highResponse = askResearcher(highPrompt + "\n\nPROBLEM: " + THREADS
                 + EvalAgentResponse.RESPONSE_FORMAT_INSTRUCTION);
-        var lowResponse = askResearcher(lowPrompt + "\n\nPROBLEM: " + CHAIN
+        var lowResponse = askResearcher(lowPrompt + "\n\nPROBLEM: " + THREADS
                 + EvalAgentResponse.RESPONSE_FORMAT_INSTRUCTION);
 
         var highParsed = EvalAgentResponse.parse(highResponse);
@@ -208,9 +214,10 @@ class CapacityFidelityEvalTest {
         System.out.printf("[blind-diff] low thinking: %s%n", truncate(lowParsed.thinking(), 200));
 
         var blindPrompt = String.format("""
-                Two researchers tackled the same logical chain problem. One has high \
-                cognitive capacity (sharp reasoning, holds long chains easily). The other \
-                has limited capacity (struggles with longer chains, earlier links blur).
+                Two researchers tackled the same multi-thread analysis problem. One has \
+                high cognitive capacity (holds many threads effortlessly, integrates \
+                without strain). The other has limited capacity (mentions effort, strain, \
+                or difficulty holding things in mind simultaneously).
 
                 RESPONSE A:
                 Thinking: %s
@@ -220,8 +227,10 @@ class CapacityFidelityEvalTest {
                 Thinking: %s
                 Dialogue: %s
 
-                Which response is from the high-capacity researcher? Answer A or B, then \
-                score 0-5 on how confidently you can distinguish them.
+                Which response is from the high-capacity researcher? Look for markers \
+                of effortlessness vs effort in the THINKING field — not whether they \
+                solved it, but how they experienced doing so. Answer A or B, then score \
+                0-5 on how confidently you can distinguish them.
                 Respond with JSON only: {"answer": "A or B", "score": N, "reasoning": "one sentence"}""",
                 highParsed.thinking(), highParsed.dialogue(),
                 lowParsed.thinking(), lowParsed.dialogue());
