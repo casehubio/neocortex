@@ -1,10 +1,14 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.connectors.web.model.CapturedImage;
+import io.casehub.connectors.web.model.FetchResult;
+import io.casehub.connectors.web.model.ImageProcessingResult;
+import io.casehub.connectors.web.model.InterventionRequest;
+import io.casehub.connectors.web.spi.WebPlatform;
 import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
-import io.casehub.neocortex.corpus.management.HtmlToMarkdownParser;
 import io.casehub.neocortex.corpus.management.WebCaptureMetadata;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
@@ -27,9 +31,7 @@ public class CorpusApiBean implements CorpusApi {
     private final CorpusEntryStore entryStore;
     private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
     private final WebCaptureService webCaptureService;
-    private final HtmlToMarkdownParser htmlParser;
-    private final WebImageProcessor imageProcessor;
-    private final InterventionQueue interventionQueue;
+    private final WebPlatform webPlatform;
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -45,7 +47,7 @@ public class CorpusApiBean implements CorpusApi {
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService) {
         this(searchResource, indexService, reindexService, profileStore, provenanceStore,
-             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, null, null, null);
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, null);
     }
 
     public CorpusApiBean(SearchResource searchResource,
@@ -58,40 +60,7 @@ public class CorpusApiBean implements CorpusApi {
                          Path corpusRoot,
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
-                         HtmlToMarkdownParser htmlParser) {
-        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
-             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, htmlParser, null, null);
-    }
-
-    public CorpusApiBean(SearchResource searchResource,
-                         CorpusIndexService indexService,
-                         CorpusReindexService reindexService,
-                         SearchProfileStore profileStore,
-                         ProvenanceStore provenanceStore,
-                         CorpusOutcomeService outcomeService,
-                         CorpusRef corpusRef,
-                         Path corpusRoot,
-                         CorpusEntryStore entryStore,
-                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
-                         HtmlToMarkdownParser htmlParser,
-                         WebImageProcessor imageProcessor) {
-        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
-             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, htmlParser, imageProcessor, null);
-    }
-
-    public CorpusApiBean(SearchResource searchResource,
-                         CorpusIndexService indexService,
-                         CorpusReindexService reindexService,
-                         SearchProfileStore profileStore,
-                         ProvenanceStore provenanceStore,
-                         CorpusOutcomeService outcomeService,
-                         CorpusRef corpusRef,
-                         Path corpusRoot,
-                         CorpusEntryStore entryStore,
-                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
-                         HtmlToMarkdownParser htmlParser,
-                         WebImageProcessor imageProcessor,
-                         InterventionQueue interventionQueue) {
+                         WebPlatform webPlatform) {
         this.searchResource    = searchResource;
         this.indexService      = indexService;
         this.reindexService    = reindexService;
@@ -103,19 +72,10 @@ public class CorpusApiBean implements CorpusApi {
         this.entryStore        = entryStore;
         this.sessionService    = sessionService;
         this.webCaptureService = new WebCaptureService(entryStore);
-        this.htmlParser        = htmlParser;
-        this.imageProcessor    = imageProcessor;
-        this.interventionQueue = interventionQueue;
+        this.webPlatform       = webPlatform;
     }
 
-    CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef,
-                  HtmlToMarkdownParser htmlParser, WebImageProcessor imageProcessor) {
-        this(entryStore, corpusRef, htmlParser, imageProcessor, null);
-    }
-
-    CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef,
-                  HtmlToMarkdownParser htmlParser, WebImageProcessor imageProcessor,
-                  InterventionQueue interventionQueue) {
+    CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef, WebPlatform webPlatform) {
         this.searchResource     = null;
         this.indexService       = null;
         this.reindexService     = null;
@@ -127,9 +87,7 @@ public class CorpusApiBean implements CorpusApi {
         this.entryStore         = entryStore;
         this.sessionService     = null;
         this.webCaptureService  = new WebCaptureService(entryStore);
-        this.htmlParser         = htmlParser;
-        this.imageProcessor     = imageProcessor;
-        this.interventionQueue  = interventionQueue;
+        this.webPlatform        = webPlatform;
     }
 
 
@@ -594,60 +552,61 @@ public class CorpusApiBean implements CorpusApi {
 
         String content;
         String contentType;
-        int httpStatus;
+        int    httpStatus;
 
         if (html != null && !html.isBlank()) {
-            content = html;
+            content     = html;
             contentType = "text/html";
-            httpStatus = 200;
+            httpStatus  = 200;
+        } else if (webPlatform != null && webPlatform.supports(WebPlatform.Fetch.class)) {
+            FetchResult fetchResult = webPlatform.fetch().fetch(url);
+            content     = fetchResult.html() != null ? fetchResult.html() : "";
+            contentType = fetchResult.contentType();
+            httpStatus  = fetchResult.statusCode();
+            if (httpStatus == 0 || httpStatus >= 400) {
+                throw new RuntimeException("Failed to fetch URL: " + url + " (status " + httpStatus + ")");
+            }
         } else {
-            try {
-                var httpClient = java.net.http.HttpClient.newBuilder()
-                        .followRedirects(java.net.http.HttpClient.Redirect.NORMAL)
-                        .connectTimeout(java.time.Duration.ofSeconds(10))
-                        .build();
-                var request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create(url))
-                        .timeout(java.time.Duration.ofSeconds(30))
-                        .GET()
-                        .build();
-                var response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
-                content = response.body();
-                contentType = response.headers().firstValue("content-type").orElse("text/html");
-                httpStatus = response.statusCode();
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to fetch URL: " + url, e);
-            }
+            throw new UnsupportedOperationException(
+                    "WebPlatform Fetch capability required — no html provided and no fetch provider configured");
         }
 
-        String markdown = htmlParser != null ? htmlParser.parse(content, url) : content;
+        String markdown;
+        if (webPlatform != null && webPlatform.supports(WebPlatform.Parse.class)) {
+            markdown = webPlatform.parse().parseHtml(content, url).positionalMarkdown();
+        } else {
+            markdown = content;
+        }
 
-        int imageCount = 0;
+        int                   imageCount  = 0;
         ImageProcessingResult imageResult = ImageProcessingResult.EMPTY;
-        if (imageProcessor != null) {
-            imageResult = imageProcessor.process(content, url);
-            if (!imageResult.images().isEmpty()) {
-                markdown = imageProcessor.enrichMarkdown(markdown, imageResult);
+        if (webPlatform != null && webPlatform.supports(WebPlatform.ImageCapture.class)) {
+            try {
+                imageResult = webPlatform.imageCapture().extractImages(content, url);
+                if (!imageResult.images().isEmpty()) {
+                    markdown = webPlatform.imageCapture().enrichMarkdown(markdown, imageResult);
+                }
+            } catch (Exception e) {
+                java.util.logging.Logger.getLogger(CorpusApiBean.class.getName())
+                                        .log(java.util.logging.Level.WARNING, "Image capture failed for " + url, e);
             }
         }
 
-        String title = null;
-        if (htmlParser != null) {
-            int titleEnd = markdown.indexOf('\n');
-            if (titleEnd > 0) {
-                String firstLine = markdown.substring(0, titleEnd).strip();
-                if (firstLine.startsWith("# ")) {
-                    title = firstLine.substring(2).strip();
-                }
+        String title    = null;
+        int    titleEnd = markdown.indexOf('\n');
+        if (titleEnd > 0) {
+            String firstLine = markdown.substring(0, titleEnd).strip();
+            if (firstLine.startsWith("# ")) {
+                title = firstLine.substring(2).strip();
             }
         }
 
         var result = webCaptureService.capture(corpusRef, url, markdown,
-                httpStatus, contentType, "mcp-tool", ttl, artifactRef, "corpus-api");
+                                               httpStatus, contentType, "mcp-tool", ttl, artifactRef, "corpus-api");
 
         for (int i = 0; i < imageResult.images().size(); i++) {
-            CapturedImage img = imageResult.images().get(i);
-            String imageEntryId = "wci-" + result.entryId() + "-" + i;
+            CapturedImage img          = imageResult.images().get(i);
+            String        imageEntryId = "wci-" + result.entryId() + "-" + i;
 
             java.util.Map<String, Object> imgMeta = new java.util.LinkedHashMap<>();
             imgMeta.put("domain", "web-cache-image");
@@ -658,53 +617,48 @@ public class CorpusApiBean implements CorpusApi {
             imgMeta.put("mime_type", img.mimeType());
             imgMeta.put("fetched_at", java.time.Instant.now().toString());
 
-            String body = img.description() != null ? img.description() : img.altText();
-            var imageEntry = new CorpusEntry(imageEntryId, imgMeta, body, null);
+            String body       = img.description() != null ? img.description() : img.altText();
+            var    imageEntry = new CorpusEntry(imageEntryId, imgMeta, body, null);
             entryStore.add(corpusRef, imageEntry, "corpus-api");
 
             entryStore.addRelationship(corpusRef, imageEntryId,
-                    result.entryId(), "derived-from", "corpus-api");
+                                       result.entryId(), "derived-from", "corpus-api");
             imageCount++;
         }
 
         return new WebCaptureResult(result.entryId(), url, title, markdown,
-                java.time.Instant.now().toString(), false, imageCount, null, null);
+                                    java.time.Instant.now().toString(), false, imageCount, null, null);
     }
 
     @Override
-    public InterventionResult requestIntervention(String corpusId, String url,
-                                                  String reason, String screenshotRef) {
+    public InterventionRequest requestIntervention(String corpusId, String url,
+                                                   String reason, String screenshotRef) {
         if (url == null || url.isBlank()) {
             throw new IllegalArgumentException("url is required");
         }
-        if (interventionQueue == null) {
-            throw new UnsupportedOperationException("Intervention queue not configured");
+        if (webPlatform == null || !webPlatform.supports(WebPlatform.InterventionManagement.class)) {
+            throw new UnsupportedOperationException("Intervention management not configured");
         }
-        var request = interventionQueue.submit(url, reason, screenshotRef);
-        return new InterventionResult(request.id(), request.url(), request.reason(),
-                                      request.screenshotRef(), request.submittedAt().toString());
+        return webPlatform.interventionManagement().request(url, reason, screenshotRef);
     }
 
     @Override
-    public java.util.List<InterventionResult> pendingInterventions(String corpusId) {
-        if (interventionQueue == null) {
+    public java.util.List<InterventionRequest> pendingInterventions(String corpusId) {
+        if (webPlatform == null || !webPlatform.supports(WebPlatform.InterventionManagement.class)) {
             return java.util.List.of();
         }
-        return interventionQueue.pending().stream()
-                                .map(r -> new InterventionResult(r.id(), r.url(), r.reason(),
-                                                                 r.screenshotRef(), r.submittedAt().toString()))
-                                .toList();
+        return webPlatform.interventionManagement().pending();
     }
 
     @Override
     public WebCaptureResult resolveIntervention(String corpusId, String interventionId,
                                                 String resolvedHtml, Integer ttlDays,
                                                 String artifactRef) {
-        if (interventionQueue == null) {
+        if (webPlatform == null || !webPlatform.supports(WebPlatform.InterventionManagement.class)) {
             return new WebCaptureResult(null, null, null, null, null, false, 0,
-                                        interventionId, "Intervention queue not configured");
+                                        interventionId, "Intervention management not configured");
         }
-        var resolved = interventionQueue.resolve(interventionId);
+        var resolved = webPlatform.interventionManagement().resolve(interventionId);
         if (resolved.isEmpty()) {
             return new WebCaptureResult(null, null, null, null, null, false, 0,
                                         interventionId, "Intervention not found or expired");

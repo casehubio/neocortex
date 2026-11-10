@@ -1,4 +1,4 @@
-package io.casehub.neocortex.corpus.management.parsers;
+package io.casehub.neocortex.corpus.management.impl;
 
 import io.casehub.neocortex.corpus.management.StructuredChunk;
 import org.junit.jupiter.api.Test;

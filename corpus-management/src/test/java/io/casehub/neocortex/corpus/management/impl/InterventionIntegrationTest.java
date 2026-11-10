@@ -1,13 +1,16 @@
 package io.casehub.neocortex.corpus.management.impl;
 
-import io.casehub.neocortex.corpus.management.HtmlToMarkdownParser;
+import io.casehub.connectors.web.model.CapturedImage;
+import io.casehub.connectors.web.model.ImageProcessingResult;
+import io.casehub.connectors.web.ref.InMemoryWebBackend;
+import io.casehub.connectors.web.ref.RefWebPlatform;
+import io.casehub.connectors.web.spi.WebPlatform;
 import io.casehub.neocortex.rag.CorpusRef;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-
-
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,34 +19,32 @@ class InterventionIntegrationTest {
     private static final CorpusRef CORPUS = new CorpusRef("tenant", "test-corpus");
 
     private InMemoryEntryStoreStub store;
-    private HtmlToMarkdownParser htmlParser;
-    private InterventionQueue interventionQueue;
+    private InMemoryWebBackend webBackend;
+    private WebPlatform webPlatform;
     private CorpusApiBean bean;
 
     @BeforeEach
     void setUp() {
         store = new InMemoryEntryStoreStub();
-        htmlParser = (html, url) -> "# Title\nParsed content\n";
-        interventionQueue = new InterventionQueue(Duration.ofMinutes(10));
-        bean = new CorpusApiBean(store, CORPUS, htmlParser, null, interventionQueue);
+        webBackend = new InMemoryWebBackend();
+        webPlatform = new RefWebPlatform(webBackend);
+        bean = new CorpusApiBean(store, CORPUS, webPlatform);
     }
 
     @Test
     void requestInterventionQueuesAndReturnsResult() {
         var result = bean.requestIntervention("test-corpus",
-            "https://example.com", "Login required", "/tmp/screenshot.png");
+            "https://captcha.example.com", "CAPTCHA detected", null);
 
-        assertThat(result.id()).startsWith("intv-");
-        assertThat(result.url()).isEqualTo("https://example.com");
-        assertThat(result.reason()).isEqualTo("Login required");
-        assertThat(result.screenshotRef()).isEqualTo("/tmp/screenshot.png");
-        assertThat(result.submittedAt()).isNotNull();
+        assertThat(result.id()).isNotNull();
+        assertThat(result.url()).isEqualTo("https://captcha.example.com");
+        assertThat(result.reason()).isEqualTo("CAPTCHA detected");
     }
 
     @Test
     void pendingInterventionsReturnsList() {
-        bean.requestIntervention("test-corpus", "https://a.com", "CAPTCHA", null);
-        bean.requestIntervention("test-corpus", "https://b.com", "Paywall", null);
+        bean.requestIntervention("test-corpus", "https://a.com", "Login", null);
+        bean.requestIntervention("test-corpus", "https://b.com", "CAPTCHA", null);
 
         var pending = bean.pendingInterventions("test-corpus");
         assertThat(pending).hasSize(2);
@@ -52,25 +53,22 @@ class InterventionIntegrationTest {
     @Test
     void resolveInterventionProcessesHtmlAndStores() {
         var intervention = bean.requestIntervention("test-corpus",
-            "https://example.com", "Login required", null);
+            "https://example.com/locked", "Login required", null);
 
-        String resolvedHtml = "<html><body><p>Authenticated content</p></body></html>";
         var result = bean.resolveIntervention("test-corpus",
-            intervention.id(), resolvedHtml, null, null);
+            intervention.id(), "<html><body>Unlocked</body></html>", 30, null);
 
-        assertThat(result.entryId()).isNotNull();
-        assertThat(result.url()).isEqualTo("https://example.com");
-        assertThat(result.interventionId()).isEqualTo(intervention.id());
         assertThat(result.error()).isNull();
-        assertThat(result.cached()).isFalse();
-
+        assertThat(result.entryId()).isNotNull();
+        assertThat(result.url()).isEqualTo("https://example.com/locked");
         assertThat(store.entries).hasSize(1);
     }
 
     @Test
     void resolveExpiredInterventionReturnsError() {
-        var shortQueue = new InterventionQueue(Duration.ofMillis(1));
-        var shortBean = new CorpusApiBean(store, CORPUS, htmlParser, null, shortQueue);
+        var shortBackend = new InMemoryWebBackend(Duration.ofMillis(1));
+        var shortPlatform = new RefWebPlatform(shortBackend);
+        var shortBean = new CorpusApiBean(store, CORPUS, shortPlatform);
 
         var intervention = shortBean.requestIntervention("test-corpus",
             "https://example.com", "CAPTCHA", null);
@@ -78,61 +76,78 @@ class InterventionIntegrationTest {
         try { Thread.sleep(10); } catch (InterruptedException ignored) {}
 
         var result = shortBean.resolveIntervention("test-corpus",
-            intervention.id(), "<html>content</html>", null, null);
-
-        assertThat(result.error()).isNotNull();
-        assertThat(result.error()).contains("not found");
+            intervention.id(), "<html>Resolved</html>", 30, null);
+        assertThat(result.error()).contains("not found or expired");
     }
 
     @Test
     void resolveUnknownInterventionReturnsError() {
         var result = bean.resolveIntervention("test-corpus",
-            "intv-nonexistent", "<html>content</html>", null, null);
-
-        assertThat(result.error()).isNotNull();
-        assertThat(result.error()).contains("not found");
+            "intv-nonexistent", "<html>Resolved</html>", 30, null);
+        assertThat(result.error()).contains("not found or expired");
     }
 
     @Test
     void resolvedInterventionRemovedFromPending() {
         var intervention = bean.requestIntervention("test-corpus",
-            "https://example.com", "Login", null);
+            "https://example.com/locked", "Login", null);
+        assertThat(bean.pendingInterventions("test-corpus")).hasSize(1);
 
         bean.resolveIntervention("test-corpus",
-            intervention.id(), "<html>content</html>", null, null);
-
+            intervention.id(), "<html>Resolved</html>", 30, null);
         assertThat(bean.pendingInterventions("test-corpus")).isEmpty();
     }
 
     @Test
-    void resolveInterventionProcessesImagesWhenProcessorPresent() {
-        var imageProcessor = new WebImageProcessor((bytes, mime) -> "Image from intervention") {
-            @Override
-            byte[] fetchImageBytes(String url) {
-                return new byte[]{1, 2, 3};
-            }
-        };
-        var beanWithImages = new CorpusApiBean(store, CORPUS,
-                                               (html, url) -> "#@ page: 1\n#@ panel: main\n#@ figure: caption=\"Logo\"\n[Logo]\nContent\n",
-                                               imageProcessor, interventionQueue);
+    void requestInterventionThrowsWhenWebPlatformNotConfigured() {
+        var noWebBean = new CorpusApiBean(store, CORPUS, (WebPlatform) null);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                                                                   noWebBean.requestIntervention("test-corpus", "https://example.com", "test", null)
+                                                          ).isInstanceOf(UnsupportedOperationException.class);
+    }
 
-        var intervention = beanWithImages.requestIntervention("test-corpus",
-                                                              "https://example.com", "Login required", null);
+    @Test
+    void screenshotRefRoundTrips() {
+        var intervention = bean.requestIntervention("test-corpus",
+                                                    "https://example.com", "CAPTCHA", "/tmp/screenshot.png");
+        assertThat(intervention.screenshotRef()).isEqualTo("/tmp/screenshot.png");
 
-        String html = "<html><body><img src=\"https://example.com/logo.png\" alt=\"Logo\"><p>Content</p></body></html>";
-        var result = beanWithImages.resolveIntervention("test-corpus",
-                                                        intervention.id(), html, null, null);
-
-        assertThat(result.imageCount()).isEqualTo(1);
-        assertThat(result.interventionId()).isEqualTo(intervention.id());
-        assertThat(result.body()).contains("describe=\"Image from intervention\"");
-
-        var imageEntry = store.entries.values().stream()
-                                      .filter(e -> "web-cache-image".equals(e.stringField("domain")))
-                                      .findFirst()
-                                      .orElseThrow();
-        assertThat(imageEntry.body()).isEqualTo("Image from intervention");
+        var pending = bean.pendingInterventions("test-corpus");
+        assertThat(pending).hasSize(1);
+        assertThat(pending.get(0).screenshotRef()).isEqualTo("/tmp/screenshot.png");
     }
 
 
+    @Test
+    void resolveInterventionProcessesImagesWhenProcessorPresent() {
+        var testImages = List.of(
+            new CapturedImage("https://example.com/img.png", "Diagram",
+                new byte[]{1, 2, 3}, "image/png", "Test description")
+        );
+        var imagePlatform = new RefWebPlatform(webBackend) {
+            @Override
+            public ImageCapture imageCapture() {
+                return new ImageCapture() {
+                    @Override
+                    public ImageProcessingResult extractImages(String html, String sourceUrl) {
+                        return new ImageProcessingResult(testImages);
+                    }
+                    @Override
+                    public String enrichMarkdown(String markdown, ImageProcessingResult result) {
+                        return markdown;
+                    }
+                };
+            }
+        };
+        var imageBean = new CorpusApiBean(store, CORPUS, imagePlatform);
+
+        var intervention = imageBean.requestIntervention("test-corpus",
+            "https://example.com/locked", "Login", null);
+
+        var result = imageBean.resolveIntervention("test-corpus",
+            intervention.id(), "<html><body>Content</body></html>", 30, null);
+
+        assertThat(result.error()).isNull();
+        assertThat(result.imageCount()).isEqualTo(1);
+    }
 }

@@ -1,12 +1,15 @@
 package io.casehub.neocortex.corpus.management.impl;
 
-import io.casehub.neocortex.corpus.management.HtmlToMarkdownParser;
+import io.casehub.connectors.web.model.CapturedImage;
+import io.casehub.connectors.web.model.ImageProcessingResult;
+import io.casehub.connectors.web.ref.InMemoryWebBackend;
+import io.casehub.connectors.web.ref.RefWebPlatform;
+import io.casehub.connectors.web.spi.WebPlatform;
 import io.casehub.neocortex.rag.CorpusRef;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
-
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,106 +18,94 @@ class WebCaptureImageIntegrationTest {
     private static final CorpusRef CORPUS = new CorpusRef("tenant", "test-corpus");
 
     private InMemoryEntryStoreStub store;
-    private HtmlToMarkdownParser htmlParser;
-    private WebImageProcessor imageProcessor;
+    private InMemoryWebBackend webBackend;
 
     @BeforeEach
     void setUp() {
         store = new InMemoryEntryStoreStub();
-        htmlParser = (html, url) -> {
-            String md = "#@ page: 1\n#@ panel: main\n";
-            if (html.contains("alt=\"Diagram\"")) {
-                md += "#@ figure: caption=\"Diagram\"\n[Diagram]\n";
-            }
-            md += "Article text\n";
-            return md;
-        };
-        imageProcessor = new WebImageProcessor((bytes, mime) -> "LLM description of image") {
+        webBackend = new InMemoryWebBackend();
+    }
+
+    private WebPlatform platformWithImages(List<CapturedImage> images) {
+        return new RefWebPlatform(webBackend) {
             @Override
-            byte[] fetchImageBytes(String url) {
-                return new byte[]{1, 2, 3, 4};
+            public ImageCapture imageCapture() {
+                return new ImageCapture() {
+                    @Override
+                    public ImageProcessingResult extractImages(String html, String sourceUrl) {
+                        return new ImageProcessingResult(images);
+                    }
+                    @Override
+                    public String enrichMarkdown(String markdown, ImageProcessingResult result) {
+                        return markdown;
+                    }
+                };
             }
         };
     }
 
     @Test
     void webCaptureStoresImagesAsSeparateEntries() {
-        var bean = new CorpusApiBean(store, CORPUS, htmlParser, imageProcessor);
+        var images = List.of(
+            new CapturedImage("https://example.com/diagram.png", "Diagram",
+                new byte[]{1, 2, 3, 4}, "image/png", "LLM description of image")
+        );
+        var bean = new CorpusApiBean(store, CORPUS, platformWithImages(images));
 
-        String html = "<html><body>"
-            + "<img src=\"https://example.com/diagram.png\" alt=\"Diagram\">"
-            + "<p>Article text</p></body></html>";
-
-        var result = bean.webCapture("test-corpus", "https://example.com/page", html, null, null);
+        String html = "<html><body><p>Article text</p></body></html>";
+        var result = bean.webCapture("test-corpus", "https://example.com/page", html, 30, null);
 
         assertThat(result.imageCount()).isEqualTo(1);
-        assertThat(result.cached()).isFalse();
-
         assertThat(store.entries).hasSize(2);
 
         var imageEntry = store.entries.values().stream()
             .filter(e -> "web-cache-image".equals(e.stringField("domain")))
-            .findFirst()
-            .orElseThrow();
-
-        assertThat(imageEntry.body()).isEqualTo("LLM description of image");
+            .findFirst().orElseThrow();
         assertThat(imageEntry.stringField("source_url")).isEqualTo("https://example.com/diagram.png");
-        assertThat(imageEntry.stringField("parent_url")).isEqualTo("https://example.com/page");
+        assertThat(imageEntry.stringField("alt_text")).isEqualTo("Diagram");
         assertThat(imageEntry.stringField("mime_type")).isEqualTo("image/png");
+        assertThat(imageEntry.body()).isEqualTo("LLM description of image");
     }
 
     @Test
     void webCaptureCreatesRelationship() {
-        var bean = new CorpusApiBean(store, CORPUS, htmlParser, imageProcessor);
+        var images = List.of(
+            new CapturedImage("https://example.com/img.png", "Image",
+                new byte[]{1}, "image/png", "Description")
+        );
+        var bean = new CorpusApiBean(store, CORPUS, platformWithImages(images));
 
-        String html = "<html><body>"
-            + "<img src=\"https://example.com/img.png\" alt=\"Diagram\">"
-            + "</body></html>";
-
-        bean.webCapture("test-corpus", "https://example.com/page", html, null, null);
+        var result = bean.webCapture("test-corpus", "https://example.com/page", "<html></html>", 30, null);
 
         assertThat(store.relationships).hasSize(1);
         var rel = store.relationships.get(0);
         assertThat(rel.relationshipType()).isEqualTo("derived-from");
-    }
-
-    @Test
-    void webCaptureEnrichesMarkdownWithDescriptions() {
-        var bean = new CorpusApiBean(store, CORPUS, htmlParser, imageProcessor);
-
-        String html = "<html><body>"
-            + "<img src=\"https://example.com/img.png\" alt=\"Diagram\">"
-            + "</body></html>";
-
-        var result = bean.webCapture("test-corpus", "https://example.com/page", html, null, null);
-
-        assertThat(result.body()).contains("describe=\"LLM description of image\"");
+        assertThat(rel.toEntryId()).isEqualTo(result.entryId());
     }
 
     @Test
     void webCaptureCachedReturnsZeroImageCount() {
-        var bean = new CorpusApiBean(store, CORPUS, htmlParser, imageProcessor);
+        var images = List.of(
+            new CapturedImage("https://example.com/img.png", "Image",
+                new byte[]{1}, "image/png", "Description")
+        );
+        var bean = new CorpusApiBean(store, CORPUS, platformWithImages(images));
 
-        String html = "<html><body><p>Just text</p></body></html>";
-        bean.webCapture("test-corpus", "https://example.com/page", html, null, null);
+        bean.webCapture("test-corpus", "https://example.com/page", "<html></html>", 30, null);
+        var cached = bean.webCapture("test-corpus", "https://example.com/page", "<html></html>", 30, null);
 
-        var cached = bean.webCapture("test-corpus", "https://example.com/page", html, null, null);
         assertThat(cached.cached()).isTrue();
         assertThat(cached.imageCount()).isEqualTo(0);
     }
 
     @Test
     void webCaptureWorksWithoutImageProcessor() {
-        var bean = new CorpusApiBean(store, CORPUS, htmlParser, null);
+        var bean = new CorpusApiBean(store, CORPUS, new RefWebPlatform(webBackend));
 
-        String html = "<html><body>"
-            + "<img src=\"https://example.com/img.png\" alt=\"Diagram\">"
-            + "</body></html>";
-
-        var result = bean.webCapture("test-corpus", "https://example.com/page", html, null, null);
+        String html = "<html><body><p>No images</p></body></html>";
+        var result = bean.webCapture("test-corpus", "https://example.com/page", html, 30, null);
 
         assertThat(result.imageCount()).isEqualTo(0);
         assertThat(store.entries).hasSize(1);
     }
-
 }

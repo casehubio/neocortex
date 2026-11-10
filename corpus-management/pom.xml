@@ -29,11 +29,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.jsoup</groupId>
-      <artifactId>jsoup</artifactId>
-      <version>1.23.2</version>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
@@ -82,11 +77,21 @@
     </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
+      <artifactId>casehub-connectors-web-spi</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-knowledge-pipeline-api</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
     </dependency>
 
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-connectors-web-ref</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>io.casehub</groupId>
       <artifactId>casehub-neocortex-mindmap-inmem</artifactId>
