@@ -108,11 +108,13 @@ class PipelineCoherenceEvalTest {
 
         var traceText = formatTrace(trace.get());
         int score = judgeCoherence(traceText,
-            "The appraisal stage produced high-intensity FEAR (0.9 on a 0-1 scale). " +
-            "The regulation stage selected ATTENTIONAL_DEPLOYMENT. " +
-            "Intense fear triggers automatic attentional narrowing (Easterbrook 1959) — " +
-            "the regulation system redirects attention to reduce overwhelming arousal. " +
-            "Score whether the regulation strategy is coherent with a high-arousal fear appraisal.",
+            "Focus ONLY on the APPRAISAL and REGULATION stages. Ignore other sections. " +
+            "The appraisal produced high-intensity FEAR (0.9). " +
+            "The regulation selected ATTENTIONAL_DEPLOYMENT (redirect attention away from threat). " +
+            "High-intensity fear overwhelms cognitive resources, so the safety gate " +
+            "automatically deploys attentional redirection before deliberate strategies can engage. " +
+            "Score whether ATTENTIONAL_DEPLOYMENT is the psychologically expected regulation " +
+            "response to a high-intensity fear appraisal.",
             "fear-to-AD");
 
         results.put("fear-to-AD", Map.of("score", score, "trace", traceText));
