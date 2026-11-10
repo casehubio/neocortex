@@ -559,12 +559,19 @@ public class CorpusApiBean implements CorpusApi {
             contentType = "text/html";
             httpStatus  = 200;
         } else if (webPlatform != null && webPlatform.supports(WebPlatform.Fetch.class)) {
-            FetchResult fetchResult = webPlatform.fetch().fetch(url);
+            FetchResult fetchResult;
+            try {
+                fetchResult = webPlatform.fetch().fetch(url);
+            } catch (Exception e) {
+                return new WebCaptureResult(null, url, null, null, null, false, 0, null,
+                        "Fetch failed: " + e.getMessage());
+            }
             content     = fetchResult.html() != null ? fetchResult.html() : "";
             contentType = fetchResult.contentType();
             httpStatus  = fetchResult.statusCode();
             if (httpStatus == 0 || httpStatus >= 400) {
-                throw new RuntimeException("Failed to fetch URL: " + url + " (status " + httpStatus + ")");
+                return new WebCaptureResult(null, url, null, null, null, false, 0, null,
+                        "Fetch failed: HTTP " + httpStatus);
             }
         } else {
             throw new UnsupportedOperationException(

@@ -100,6 +100,45 @@ class WebCapturePipelineSmokeTest {
         assertThat(result.body()).contains("Fetched content");
     }
 
+    @Test
+    void fetchFailureReturnsErrorResultInsteadOfThrowing() {
+        var throwingPlatform = new RefWebPlatform(webBackend) {
+            @Override
+            public Fetch fetch() {
+                return new Fetch() {
+                    @Override
+                    public io.casehub.connectors.web.model.FetchResult fetch(String url) {
+                        throw new RuntimeException("Connection refused");
+                    }
+
+                    @Override
+                    public io.casehub.connectors.web.model.FetchResult fetch(String url, io.casehub.connectors.web.model.FetchOptions options) {
+                        throw new RuntimeException("Connection refused");
+                    }
+                };
+            }
+        };
+        var throwingBean = new CorpusApiBean(store, CORPUS, throwingPlatform);
+        var result       = throwingBean.webCapture("smoke-test", "https://unreachable.example.com", null, 30, null);
+
+        assertThat(result.error()).isNotNull();
+        assertThat(result.error()).contains("Connection refused");
+        assertThat(result.entryId()).isNull();
+        assertThat(result.url()).isEqualTo("https://unreachable.example.com");
+        assertThat(store.entries).isEmpty();
+    }
+
+    @Test
+    void fetchBadStatusReturnsErrorResult() {
+        var result = bean.webCapture("smoke-test", "https://example.com/nonexistent", null, 30, null);
+
+        assertThat(result.error()).isNotNull();
+        assertThat(result.error()).contains("HTTP 404");
+        assertThat(result.entryId()).isNull();
+        assertThat(result.url()).isEqualTo("https://example.com/nonexistent");
+        assertThat(store.entries).isEmpty();
+    }
+
 
     @Test
     void imageCaptureCreatesRelatedEntries() {
