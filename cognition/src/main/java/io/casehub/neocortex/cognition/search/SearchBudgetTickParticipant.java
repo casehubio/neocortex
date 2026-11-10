@@ -150,12 +150,13 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
 
         // Capacity ceiling — bounds parameters by cognitive capacity (Halford/Mednick/Engle)
         double depthGap = 0.0, breadthGap = 0.0, lateralityGap = 0.0;
+        double rc = -1.0, ar = -1.0, wm = -1.0;
         boolean capacityConstrained = false;
         var capacity = defaults.capacityConfig();
         if (capacity != null) {
-            double rc = capacity.relationalComplexityOrDefault();
-            double wm = capacity.workingMemorySpanOrDefault();
-            double ar = capacity.associativeReachOrDefault();
+            rc = capacity.relationalComplexityOrDefault();
+            wm = capacity.workingMemorySpanOrDefault();
+            ar = capacity.associativeReachOrDefault();
 
             depthGap = Math.max(0.0, depth - rc);
             breadthGap = Math.max(0.0, breadth - wm);
@@ -176,7 +177,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
 
         results.put(key, new SearchBudget(
                 clamp01(breadth), clamp01(laterality), clamp01(depth), clamp01(convergence),
-                source, extremeActivation, capacityConstrained, depthGap, breadthGap, lateralityGap, Instant.now()));
+                source, extremeActivation, capacityConstrained, depthGap, breadthGap, lateralityGap,
+                rc, ar, wm, Instant.now()));
     }
 
     public Optional<SearchBudget> currentBudget(String agentId, String tenantId) {

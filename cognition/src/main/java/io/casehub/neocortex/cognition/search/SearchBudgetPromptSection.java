@@ -125,6 +125,11 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
             base = base + " " + renderCapacityConstraint(budget);
         }
 
+        String capacity = renderCapacityTrait(budget);
+        if (capacity != null) {
+            base = base + " " + capacity;
+        }
+
         return base;
     }
 
@@ -203,6 +208,25 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
             return "The chain of reasoning starts to fog after a few steps. You can feel there's more underneath, but the links blur.";
         }
         return "Something about this is just slightly out of reach.";
+    }
+
+    private @Nullable String renderCapacityTrait(SearchBudget b) {
+        if (!b.hasCapacityConfig()) {return null;}
+        var sb = new StringBuilder();
+        double rc = b.relationalComplexity();
+        double ar = b.associativeReach();
+        double wm = b.workingMemorySpan();
+
+        if (rc >= 0 && rc < 0.5) {
+            sb.append("Long chains of reasoning are genuinely hard for you — after two or three steps, the earlier links start to blur and you lose confidence in the full chain. This is a real limitation, not a choice. ");
+        }
+        if (ar >= 0 && ar < 0.5) {
+            sb.append("Connections between distant domains don't come easily. You can sense that a bridge might exist but you can't build it — the leap is too far. Shallow similarities are all you can reliably find. ");
+        }
+        if (wm >= 0 && wm < 0.5) {
+            sb.append("You can only hold two or three things in mind at once. When a fourth arrives, one of the earlier ones genuinely fades — not by choice, but because it simply won't stay. You work around this by focusing narrowly. ");
+        }
+        return sb.isEmpty() ? null : sb.toString().strip();
     }
 
     private String modulateByContinuum(String base) {
