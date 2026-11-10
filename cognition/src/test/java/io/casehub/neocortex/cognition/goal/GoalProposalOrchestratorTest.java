@@ -517,5 +517,52 @@ class GoalProposalOrchestratorTest {
         assertThat(registered.getFirst().goalName()).isEqualTo("replaced");
     }
 
+    @Test
+    void registerParticipantGoalsDoesNotClobberOtherNamespace() {
+        var proactiveGoal = new DriveGoalProposal(
+                DriveAxis.AFFILIATION, "proactive-avoidance-library", "desc", "reason", 0.8);
+        var regulationGoal = new DriveGoalProposal(
+                DriveAxis.AUTONOMY, "regulation-reappraise", "desc", "reason", 0.6);
+
+        orchestrator.registerParticipantGoals("proactive", "a1", "t1",
+                                              List.of(proactiveGoal));
+        orchestrator.registerParticipantGoals("regulation", "a1", "t1",
+                                              List.of(regulationGoal));
+
+        var proposals = orchestrator.currentProposals("a1", "t1");
+        assertThat(proposals).isPresent();
+        assertThat(proposals.get()).hasSize(2);
+        assertThat(proposals.get()).extracting(DriveGoalProposal::goalName)
+                                   .containsExactlyInAnyOrder("proactive-avoidance-library", "regulation-reappraise");
+    }
+
+    @Test
+    void registerParticipantGoalsReplacesOnlySameNamespace() {
+        var goal1 = new DriveGoalProposal(DriveAxis.AFFILIATION, "goal-1", "desc", "reason", 0.8);
+        var goal2 = new DriveGoalProposal(DriveAxis.AUTONOMY, "goal-2", "desc", "reason", 0.6);
+        var goal3 = new DriveGoalProposal(DriveAxis.AFFILIATION, "goal-3", "desc", "reason", 0.9);
+
+        orchestrator.registerParticipantGoals("ns-a", "a1", "t1", List.of(goal1));
+        orchestrator.registerParticipantGoals("ns-b", "a1", "t1", List.of(goal2));
+        orchestrator.registerParticipantGoals("ns-a", "a1", "t1", List.of(goal3));
+
+        var proposals = orchestrator.currentProposals("a1", "t1");
+        assertThat(proposals).isPresent();
+        assertThat(proposals.get()).hasSize(2);
+        assertThat(proposals.get()).extracting(DriveGoalProposal::goalName)
+                                   .containsExactlyInAnyOrder("goal-3", "goal-2");
+    }
+
+    @Test
+    void registerParticipantGoalsEmptyListClearsNamespace() {
+        var goal1 = new DriveGoalProposal(DriveAxis.AFFILIATION, "goal-1", "desc", "reason", 0.8);
+
+        orchestrator.registerParticipantGoals("ns-a", "a1", "t1", List.of(goal1));
+        orchestrator.registerParticipantGoals("ns-a", "a1", "t1", List.of());
+
+        var proposals = orchestrator.currentProposals("a1", "t1");
+        assertThat(proposals).isEmpty();
+    }
+
 
 }

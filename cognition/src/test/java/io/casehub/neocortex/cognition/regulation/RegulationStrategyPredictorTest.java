@@ -233,4 +233,46 @@ class RegulationStrategyPredictorTest {
     }
 
 
+    @Test
+    void mildDistress_treatedAsControllable_allowsReappraisal() {
+        // #907: DISTRESS at low intensity should be reappraised, not forced to AD
+        var result = predictor.predict(REAPPRAISER_RD, REAPPRAISER, EmotionType.DISTRESS, 0.18, 0.0, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy())
+                .as("mild DISTRESS with high reappraisal capacity should not force AD")
+                .isNotEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+    }
+
+    @Test
+    void intenseDistress_remainsUncontrollable_forcesAD() {
+        // DISTRESS at high intensity is genuinely uncontrollable — AD is correct
+        var result = predictor.predict(REAPPRAISER_RD, REAPPRAISER, EmotionType.DISTRESS, 0.65, 0.0, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+    }
+
+    // --- Dynamic capacity: modulator → predictor integration ---
+
+    @Test
+    void compoundingShame_modulatedCapacity_fallsThrough() {
+        // #855: after 4 recent SS failures, modulated redirect drops below VIABLE_ALTERNATIVE
+        var now = java.time.Instant.now();
+        var failures = java.util.List.of(
+                new RegulationOutcome(EmotionRegulationStrategy.SITUATION_SELECTION, 0.15, now.minusSeconds(300)),
+                new RegulationOutcome(EmotionRegulationStrategy.SITUATION_SELECTION, 0.20, now.minusSeconds(600)),
+                new RegulationOutcome(EmotionRegulationStrategy.SITUATION_SELECTION, 0.10, now.minusSeconds(900)),
+                new RegulationOutcome(EmotionRegulationStrategy.SITUATION_SELECTION, 0.25, now.minusSeconds(1200)));
+        var modulated = RegulationCapacityModulator.modulate(SUPPRESSOR_RD, failures, now);
+        var result = predictor.predict(modulated, SUPPRESSOR, EmotionType.SHAME, 0.55, 0.0, null);
+        assertThat(result).as("modulated avoidant shame should fall through to LLM").isEmpty();
+    }
+
+    @Test
+    void singleShame_noModulation_pinsSS() {
+        // No regression: single episode without modulation still pins to SS
+        var now = java.time.Instant.now();
+        var result = predictor.predict(SUPPRESSOR_RD, SUPPRESSOR, EmotionType.SHAME, 0.55, 0.0, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().strategy()).isEqualTo(EmotionRegulationStrategy.SITUATION_SELECTION);
+    }
 }

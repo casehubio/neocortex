@@ -1,5 +1,8 @@
 package io.casehub.neocortex.cognition.regulation;
 
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.CapsAttractor;
+import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
@@ -13,7 +16,9 @@ import io.casehub.neocortex.mindmap.OverlayRef;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -32,6 +37,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable RegulationStrategyPredictor      strategyPredictor;
     private final @Nullable CognitiveDefaultsRegistry        defaultsRegistry;
     private final @Nullable CognitiveLoadEstimator           loadEstimator;
+    private final @Nullable CapsEngine                       capsEngine;
+    private final @Nullable RegulationCascadeConfig          cascadeConfig;
+
+
     private final ConcurrentHashMap<String, StrategyFailureSignal> failureSignals = new ConcurrentHashMap<>();
 
     // Bosse et al. 2010 — homeostatic baseline intensity (ERL_norm = 0.25 on [0,2], normalized to 0.3 on [0,1])
@@ -42,19 +51,23 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     static final double DEFAULT_ALPHA = 0.5;
     // Noise floor: skip regulation when effort is negligible (cost optimization, not a theoretical gate)
     static final double EFFORT_NOISE_FLOOR = 0.01;
+    static final double SAFETY_FATIGUE_THRESHOLD = 0.7;
+    // Petter 2025 — cognitive resources for reappraisal exhausted above this intensity
+    static final double SAFETY_INTENSITY_THRESHOLD = 0.75;
+
     private static final int HISTORY_LIMIT = 5;
 
     private final ConcurrentHashMap<String, EmotionRegulationResult> results = new ConcurrentHashMap<>();
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
                                             CognitionConfig config) {
-        this(appraisalParticipant, config, null, null, null, null, null);
+        this(appraisalParticipant, config, null, null, null, null, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
                                             CognitionConfig config,
                                             @Nullable EmotionRegulationGenerationPhase generationPhase) {
-        this(appraisalParticipant, config, generationPhase, null, null, null, null);
+        this(appraisalParticipant, config, generationPhase, null, null, null, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -62,7 +75,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId) {
-        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId, null, null);
+        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId, null, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -72,6 +85,19 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable String cognitiveSubgraphId,
                                             @Nullable CognitiveDefaultsRegistry defaultsRegistry,
                                             @Nullable CognitiveLoadEstimator loadEstimator) {
+        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
+             defaultsRegistry, loadEstimator, null, null);
+    }
+
+    public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
+                                            CognitionConfig config,
+                                            @Nullable EmotionRegulationGenerationPhase generationPhase,
+                                            @Nullable MindMapStore mindMapStore,
+                                            @Nullable String cognitiveSubgraphId,
+                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable CognitiveLoadEstimator loadEstimator,
+                                            @Nullable CapsEngine capsEngine,
+                                            @Nullable RegulationCascadeConfig cascadeConfig) {
         this.appraisalParticipant = appraisalParticipant;
         this.config               = config;
         this.generationPhase      = generationPhase;
@@ -82,7 +108,11 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.defaultsRegistry     = defaultsRegistry;
         this.loadEstimator        = loadEstimator;
         this.strategyPredictor    = (defaultsRegistry != null) ? new RegulationStrategyPredictor() : null;
+        this.capsEngine           = capsEngine;
+        this.cascadeConfig        = capsEngine != null && cascadeConfig == null
+                                    ? RegulationCascadeConfig.defaults() : cascadeConfig;
     }
+
 
     @Override
     public void tick(CognitionTickContext context) {
@@ -117,19 +147,59 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                    .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
                                    .orElse(null);
 
-        // Petter 2025: try personality-driven strategy prediction before LLM
-        EmotionRegulationStrategy                            pinnedStrategy = null;
-        io.casehub.neocortex.cognitive.index.DispositionAxes axes           = null;
-        if (strategyPredictor != null && defaultsRegistry != null && pendingSignal == null) {
+        EmotionRegulationStrategy                            pinnedStrategy       = null;
+        String                                               strategySource       = "LLM";
+        io.casehub.neocortex.cognitive.index.DispositionAxes axes                 = null;
+        Map<String, Double>                                  capsInputActivations = null;
+        AgentCapsState                                       capsState            = null;
+
+        // Layer 1: Safety hard gate — resource-based override, fires unconditionally
+        if (peakEmotion != null && (currentFatigue > SAFETY_FATIGUE_THRESHOLD
+                                    || peakEmotion.intensity() > SAFETY_INTENSITY_THRESHOLD)) {
+            pinnedStrategy = EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT;
+            strategySource = "SAFETY_GATE";
+            var intensity = peakEmotion.intensity();
+            LOG.fine(() -> String.format("safety hard gate: agent=%s → AD (fatigue=%.2f intensity=%.2f)",
+                                         context.agentId(), currentFatigue, intensity));
+        }
+
+        // Layer 2: CAPS settling — connectionist regulation attractor resolution
+        if (pinnedStrategy == null && capsEngine != null && cascadeConfig != null) {
+            capsState            = capsEngine.loadState(context.tenantId(), context.agentId());
+            capsInputActivations = assembleSocialContextInputs(context);
+            var settlingResult = capsEngine.settle(capsState, capsInputActivations);
+            var regulationAttractors = settlingResult.attractors().stream()
+                                                     .filter(a -> "regulation".equals(a.category()))
+                                                     .sorted(Comparator.comparingDouble(CapsAttractor::strength).reversed())
+                                                     .toList();
+            if (!regulationAttractors.isEmpty()) {
+                var top = regulationAttractors.get(0);
+                if (top.strength() >= cascadeConfig.regulationConfidenceThreshold()) {
+                    boolean dominant = regulationAttractors.size() < 2
+                                       || (top.strength() - regulationAttractors.get(1).strength())
+                                          >= cascadeConfig.regulationDominanceMargin();
+                    if (dominant) {
+                        pinnedStrategy = EmotionRegulationStrategy.valueOf(top.nodeId().toUpperCase());
+                        strategySource = "CAPS";
+                        var pinned = pinnedStrategy;
+                        LOG.fine(() -> String.format("CAPS cascade: agent=%s → %s (strength=%.3f)",
+                                                     context.agentId(), pinned, top.strength()));
+                    }
+                }
+            }
+        }
+
+        // Layer 3: Predictor fallback
+        if (pinnedStrategy == null && strategyPredictor != null && defaultsRegistry != null && pendingSignal == null) {
             pinnedStrategy = tryPredictStrategy(context, appraisal.get(), currentFatigue);
             if (pinnedStrategy != null) {
+                strategySource = "PREDICTOR";
                 var pinned = pinnedStrategy;
                 LOG.fine(() -> String.format("regulation predictor: agent=%s strategy=%s (pinned)",
                                              context.agentId(), pinned));
             } else {
                 LOG.fine(() -> String.format("regulation predictor: agent=%s fell-through → LLM",
                                              context.agentId()));
-                // Pass personality context to LLM on fall-through
                 var defaults = defaultsRegistry.forAgent(context.agentId());
                 if (defaults.isPresent() && defaults.get().descriptor() != null) {
                     axes = defaults.get().descriptor().disposition();
@@ -142,8 +212,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                       ? EmotionRegulationMindMapAdapter.loadHistory(
                 mindMapStore, context.agentId(), context.tenantId(), HISTORY_LIMIT)
                       : List.<EmotionRegulationResult>of();
-        RegulationDefaults rd = null;
-        ShameContext shameContext = null;
+        RegulationDefaults rd           = null;
+        ShameContext       shameContext = null;
         if (defaultsRegistry != null) {
             var defs = defaultsRegistry.forAgent(context.agentId());
             if (defs.isPresent()) {
@@ -151,10 +221,11 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             }
         }
         if (dominantType != null && RegulationStrategyPredictor.emotionCategory(dominantType)
-                == RegulationStrategyPredictor.EmotionCategory.SELF_CONSCIOUS) {
+                                    == RegulationStrategyPredictor.EmotionCategory.SELF_CONSCIOUS) {
             shameContext = assembleShameContext(context, history);
             if (shameContext != null && shameContext.isSurfaceLevel()) {
                 pinnedStrategy = EmotionRegulationStrategy.RESPONSE_MODULATION;
+                strategySource = "SHAME_CONTEXT";
             }
         }
 
@@ -164,10 +235,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         if (result != null && result.isSocialStrategy() && result.targetAgentId() != null) {
             var regCtx = context.regulationContext();
             if (regCtx == null || regCtx.interactingAgents() == null
-                    || !regCtx.interactingAgents().contains(result.targetAgentId())) {
+                || !regCtx.interactingAgents().contains(result.targetAgentId())) {
                 var discarded = result;
                 LOG.fine(() -> "Discarding social regulation result — targetAgentId '"
-                        + discarded.targetAgentId() + "' not in interactingAgents");
+                               + discarded.targetAgentId() + "' not in interactingAgents");
                 result = null;
             }
         }
@@ -184,7 +255,16 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                         mindMapStore, context.agentId(), context.tenantId(),
                         cognitiveSubgraphId, result,
                         dominantType != null ? dominantType.name() : null,
-                        context.regulationContext());
+                        context.regulationContext(), strategySource);
+            }
+
+            // CAPS weight update with regulation effectiveness (Rescorla-Wagner)
+            if (capsEngine != null && capsState != null && capsInputActivations != null) {
+                double outcomeIntensity   = Math.abs(result.peakOriginalIntensity() - result.regulatedIntensity());
+                double outcomeValence     = result.effectiveness() > 0.5 ? 1.0 : -1.0;
+                double salienceMultiplier = result.peakOriginalIntensity();
+                capsEngine.updateWeights(capsState, capsInputActivations,
+                                         outcomeIntensity, outcomeValence, salienceMultiplier, "variable_ratio");
             }
         } else {
             fatigueTracker.recordRecovery(context.agentId(), context.tenantId());
@@ -205,6 +285,12 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                    .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
                                    .orElse(null);
         if (peakEmotion == null) {return null;}
+
+        if (rd != null && mindMapStore != null) {
+            var emotionOutcomes = EmotionRegulationMindMapAdapter.loadOutcomes(
+                    mindMapStore, context.agentId(), context.tenantId(), peakEmotion.type(), HISTORY_LIMIT);
+            rd = RegulationCapacityModulator.modulate(rd, emotionOutcomes);
+        }
 
         CognitiveLoadLevel loadLevel = (loadEstimator != null)
                                        ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
@@ -227,6 +313,24 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
 
         return prediction.map(RegulationPrediction::strategy).orElse(null);
+    }
+
+
+    private Map<String, Double> assembleSocialContextInputs(CognitionTickContext context) {
+        var    regCtx   = context.regulationContext();
+        double maxTrust = 0.0;
+
+        if (mindMapStore != null && regCtx != null && regCtx.interactingAgents() != null) {
+            for (var targetId : regCtx.interactingAgents()) {
+                var schema = resolveRelationalSchema(context.agentId(), targetId, context.tenantId());
+                if (schema != null) {
+                    maxTrust = Math.max(maxTrust, (schema.trust() + 1.0) / 2.0);
+                }
+            }
+        }
+
+        return SocialContextInputComputer.computeFromRawInputs(
+                regCtx, maxTrust, null, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
 
     private @Nullable ShameContext assembleShameContext(

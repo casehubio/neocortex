@@ -33,7 +33,7 @@ public class EmotionRegulationGoalParticipant implements CognitionTickParticipan
                     reg.environmentalDirective(),
                     "Emotion regulation: " + reg.narrative(),
                     reg.regulatedIntensity());
-            goalOrchestrator.registerGoals(context.agentId(), context.tenantId(), List.of(proposal));
+            goalOrchestrator.registerParticipantGoals("emotion-regulation", context.agentId(), context.tenantId(), List.of(proposal));
         } else if (reg.isSocialStrategy()) {
             var    axis        = reg.regulationAxis() != null ? reg.regulationAxis() : DriveAxis.AFFILIATION;
             String goalName    = "social-regulation-" + reg.strategy().name().toLowerCase().replace('_', '-');
@@ -45,7 +45,7 @@ public class EmotionRegulationGoalParticipant implements CognitionTickParticipan
                     axis, goalName, description,
                     "Social regulation: " + reg.strategy().name(),
                     reg.regulatedIntensity());
-            goalOrchestrator.appendGoals(context.agentId(), context.tenantId(), List.of(proposal));
+            goalOrchestrator.registerParticipantGoals("emotion-regulation", context.agentId(), context.tenantId(), List.of(proposal));
         }
     }
 }

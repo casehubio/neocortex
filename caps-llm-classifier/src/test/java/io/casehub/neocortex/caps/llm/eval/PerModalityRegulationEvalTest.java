@@ -46,7 +46,7 @@ class PerModalityRegulationEvalTest {
     @Test
     void fatigue_sustainedRegulation_overridesToAttentionalDeployment() {
         var axes = new DispositionAxes(
-                "cooperative", "flexible", "cautious", "high", "accommodating");
+                "cooperative", "flexible", "conservative", "high", "accommodating");
         var rd = new RegulationDefaults(0.80, 0.40, 0.30);
         var registry = CognitiveDefaultsRegistry.forTesting(
                 buildDefaults("eval-fatigue", axes, rd));
@@ -55,7 +55,7 @@ class PerModalityRegulationEvalTest {
                 .agentId("eval-fatigue").name("Eval Fatigue")
                 .slot("manor-character").tenancyId(TENANT)
                 .disposition(disposition(
-                        "cooperative", "flexible", "cautious", "high", "accommodating"))
+                        "cooperative", "flexible", "conservative", "high", "accommodating"))
                 .build();
 
         var observations = List.of(
@@ -115,14 +115,14 @@ class PerModalityRegulationEvalTest {
     @Test
     void automatic_predictorMatchesLlmFreeChoice() {
         var axes = new DispositionAxes(
-                "competitive", "strict", "cautious", "high", "competitive");
+                "competitive", "strict", "conservative", "high", "competitive");
         var rd = new RegulationDefaults(0.35, 0.80, 0.40);
 
         var descriptor = AgentDescriptor.builder()
                 .agentId("eval-automatic").name("Eval Automatic")
                 .slot("manor-character").tenancyId(TENANT)
                 .disposition(disposition(
-                        "competitive", "strict", "cautious", "high", "competitive"))
+                        "competitive", "strict", "conservative", "high", "competitive"))
                 .build();
 
         String observation = """
@@ -177,7 +177,7 @@ class PerModalityRegulationEvalTest {
     @Test
     void monitoring_decliningEffectiveness_triggersStrategySwitch() {
         var axes = new DispositionAxes(
-                "competitive", "strict", "cautious", "high", "competitive");
+                "competitive", "strict", "conservative", "high", "competitive");
         var rd = new RegulationDefaults(0.35, 0.80, 0.40);
         var registry = CognitiveDefaultsRegistry.forTesting(
                 buildDefaults("eval-monitor", axes, rd));
@@ -186,7 +186,7 @@ class PerModalityRegulationEvalTest {
                 .agentId("eval-monitor").name("Eval Monitor")
                 .slot("manor-character").tenancyId(TENANT)
                 .disposition(disposition(
-                        "competitive", "strict", "cautious", "high", "competitive"))
+                        "competitive", "strict", "conservative", "high", "competitive"))
                 .build();
 
         var observations = List.of(
@@ -230,7 +230,7 @@ class PerModalityRegulationEvalTest {
     @Test
     void proactive_memoryBasedAvoidance_producesAvoidanceGoal() {
         var axes = new DispositionAxes(
-                "cooperative", "flexible", "cautious", "low", "avoidant");
+                "cooperative", "flexible", "conservative", "low", "avoidant");
         var rd = new RegulationDefaults(0.40, 0.50, 0.80);
         var registry = CognitiveDefaultsRegistry.forTesting(
                 buildDefaults("eval-proactive", axes, rd));
@@ -239,7 +239,7 @@ class PerModalityRegulationEvalTest {
                 .agentId("eval-proactive").name("Eval Proactive")
                 .slot("manor-character").tenancyId(TENANT)
                 .disposition(disposition(
-                        "cooperative", "flexible", "cautious", "low", "avoidant"))
+                        "cooperative", "flexible", "conservative", "low", "avoidant"))
                 .build();
 
         int runsWithAvoidance = 0;

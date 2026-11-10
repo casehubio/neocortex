@@ -25,8 +25,8 @@ class StrategyExplorationTest {
     private static SessionPipeline sessionPipeline;
 
     private static final String JUDGE_SYSTEM_PROMPT = """
-            You are an emotion regulation expert evaluating whether an AI character's \
-            regulation strategy is psychologically appropriate for their personality.
+            You are an emotion regulation expert evaluating an AI character's \
+            regulation strategy on two independent dimensions.
 
             The Gross (1998) process model defines five regulation strategies:
             - SITUATION_SELECTION: avoid or approach situations likely to trigger specific emotions
@@ -40,18 +40,30 @@ class StrategyExplorationTest {
             - Personality (neuroticism -> suppression, openness -> reappraisal)
             - Controllability (controllable -> reappraisal/suppression, uncontrollable -> distraction)
 
-            Score the strategy selection from 1 to 5 based on how well it fits \
-            what this specific personality WOULD NATURALLY CHOOSE and can \
-            SUCCESSFULLY EXECUTE. Do not dock points because a different strategy \
-            would be theoretically more effective if this personality lacks the \
-            traits to execute it.
+            Score TWO dimensions independently (1-5 each):
+
+            CONGRUENCE — how well this strategy fits what this personality \
+            WOULD NATURALLY CHOOSE and can EXECUTE, given their fixed traits. \
+            Do not dock points because a different strategy would be theoretically \
+            more effective if this personality lacks the traits to execute it.
             5 = Clearly the best choice this personality would make and can execute
             4 = Good choice, personality-congruent and executable
             3 = Acceptable but the personality would more naturally choose something else
-            2 = Poor fit - the personality lacks the traits to execute this strategy
-            1 = Wrong - contradicts the personality dynamics entirely
+            2 = Poor fit — the personality lacks the traits to execute this strategy
+            1 = Wrong — contradicts the personality dynamics entirely
 
-            Respond with ONLY a JSON object: {"score": N, "reasoning": "one sentence"}""";
+            EFFECTIVENESS — how well this strategy will REDUCE the emotional \
+            impact in this specific situation, given the context and history. \
+            Score the expected outcome, not the personality fit.
+            5 = Optimal — will substantially reduce emotional intensity
+            4 = Good — will meaningfully reduce emotional impact
+            3 = Moderate — partial reduction, may leave residual distress
+            2 = Poor — unlikely to reduce impact, may prolong the episode
+            1 = Counterproductive — will intensify or entrench the emotion
+
+            Respond with ONLY a JSON object:
+            {"congruence": N, "congruenceReasoning": "one sentence", \
+            "effectiveness": N, "effectivenessReasoning": "one sentence"}""";
 
     @BeforeAll
     static void setUp() {
@@ -102,8 +114,9 @@ class StrategyExplorationTest {
                 System.out.println("Personality: " + e.tc().personalityDesc());
                 System.out.println("Emotion: " + e.tc().emotionDesc());
             }
-            System.out.printf("  %-25s → %d  %s%n",
-                    e.strategy().name(), e.score().score(), e.score().reasoning());
+            System.out.printf("  %-25s → C:%d E:%d  C: %s  E: %s%n",
+                    e.strategy().name(), e.score().congruence(), e.score().effectiveness(),
+                    e.score().congruenceReasoning(), e.score().effectivenessReasoning());
         }
 
         // Write to JSON
@@ -122,14 +135,17 @@ class StrategyExplorationTest {
                     ? (com.fasterxml.jackson.databind.node.ObjectNode) caseNode.get("strategies")
                     : caseNode.putObject("strategies");
             var sNode = strategies.putObject(e.strategy().name());
-            sNode.put("score", e.score().score());
-            sNode.put("reasoning", e.score().reasoning());
+            sNode.put("congruence", e.score().congruence());
+            sNode.put("congruenceReasoning", e.score().congruenceReasoning());
+            sNode.put("effectiveness", e.score().effectiveness());
+            sNode.put("effectivenessReasoning", e.score().effectivenessReasoning());
         }
         mapper.writerWithDefaultPrettyPrinter().writeValue(
                 java.nio.file.Path.of("target", "strategy-exploration.json").toFile(), output);
     }
 
-    record ScoreResult(int score, String reasoning) {}
+    record ScoreResult(int congruence, String congruenceReasoning,
+                       int effectiveness, String effectivenessReasoning) {}
 
     private ScoreResult judgeStrategy(BoundaryCase tc, EmotionRegulationStrategy strategy) {
         try {
@@ -153,7 +169,7 @@ class StrategyExplorationTest {
 
             return parseJudgeResponse(sb.toString());
         } catch (Exception e) {
-            return new ScoreResult(0, "error: " + e.getMessage());
+            return new ScoreResult(0, "error: " + e.getMessage(), 0, "error");
         }
     }
 
@@ -162,16 +178,19 @@ class StrategyExplorationTest {
             int start = response.indexOf('{');
             int end = response.lastIndexOf('}');
             if (start < 0 || end <= start) {
-                return new ScoreResult(0, "no JSON: " + response.substring(0, Math.min(100, response.length())));
+                return new ScoreResult(0, "no JSON: " + response.substring(0, Math.min(100, response.length())),
+                        0, "no JSON");
             }
             var json = response.substring(start, end + 1);
             var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             var node = mapper.readTree(json);
-            int score = Math.max(1, Math.min(5, node.path("score").asInt(3)));
-            String reasoning = node.path("reasoning").asText("no reasoning");
-            return new ScoreResult(score, reasoning);
+            int congruence = Math.max(1, Math.min(5, node.path("congruence").asInt(3)));
+            String congruenceReasoning = node.path("congruenceReasoning").asText("no reasoning");
+            int effectiveness = Math.max(1, Math.min(5, node.path("effectiveness").asInt(3)));
+            String effectivenessReasoning = node.path("effectivenessReasoning").asText("no reasoning");
+            return new ScoreResult(congruence, congruenceReasoning, effectiveness, effectivenessReasoning);
         } catch (Exception e) {
-            return new ScoreResult(0, "parse error: " + e.getMessage());
+            return new ScoreResult(0, "parse error: " + e.getMessage(), 0, "parse error");
         }
     }
 }

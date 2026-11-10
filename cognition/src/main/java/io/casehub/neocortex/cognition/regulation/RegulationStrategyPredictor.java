@@ -23,6 +23,7 @@ public class RegulationStrategyPredictor {
     static final double VIABLE_REAPPRAISAL       = 0.40;
     static final double VIABLE_ALTERNATIVE       = 0.45;
     static final double OVERWHELMING_DOMINANCE   = 0.30;
+    static final double MILD_DISTRESS_THRESHOLD  = 0.40;
 
 
     public RegulationStrategyPredictor() {}
@@ -47,6 +48,10 @@ public class RegulationStrategyPredictor {
         }
         if (rd == null) {
             return Optional.empty();
+        }
+        if (emotionCategory(dominantEmotion) == EmotionCategory.UNCONTROLLABLE_NEGATIVE
+                && peakIntensity < MILD_DISTRESS_THRESHOLD) {
+            return predictControllableFromCapacities(rd, axes);
         }
         return predictFromCapacities(rd, axes, dominantEmotion);
     }
@@ -90,7 +95,9 @@ public class RegulationStrategyPredictor {
                     EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, ALIGNED_EFFECTIVENESS));
         }
         // Nathanson 1992 compass of shame: avoidant personalities withdraw from shame
-        if (axes != null && "avoidant".equals(axes.conflictMode())) {
+        // Bonanno & Burton 2013: fall through if redirect capacity degraded by prior failures
+        if (axes != null && "avoidant".equals(axes.conflictMode())
+                && rd.redirectTendency() >= VIABLE_ALTERNATIVE) {
             return Optional.of(new RegulationPrediction(
                     EmotionRegulationStrategy.SITUATION_SELECTION, 0.75, ALIGNED_EFFECTIVENESS));
         }

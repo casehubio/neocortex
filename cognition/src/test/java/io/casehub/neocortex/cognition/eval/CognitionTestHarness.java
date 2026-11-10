@@ -102,6 +102,13 @@ public class CognitionTestHarness {
     public MindMapStore mindMapStore() { return mindMapStore; }
     public CaseMemoryStore memoryStore() { return memoryStore; }
 
+    public CognitionCore core()          {return core;}
+
+    public java.util.Optional<io.casehub.neocortex.cognition.trace.PipelineTrace> currentTrace(String agentId, String tenantId) {
+        return core.currentTrace(agentId, tenantId);
+    }
+
+
     // --- Observation + experience ---
 
     public void observe(String agentId, String tenantId, String observation) {
@@ -328,6 +335,15 @@ public class CognitionTestHarness {
                                org.mockito.Mockito.eq(entry.getKey()), org.mockito.Mockito.anyString()))
                                        .thenReturn(java.util.Optional.of(entry.getValue()));
                 }
+                org.mockito.Mockito.when(appraisalStub.thresholds())
+                                   .thenReturn(io.casehub.neocortex.cognition.appraisal.AppraisalThresholds.defaults());
+                org.mockito.Mockito.when(appraisalStub.currentConcernSalience(
+                           org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString()))
+                                   .thenReturn(java.util.Map.of());
+                org.mockito.Mockito.when(appraisalStub.currentChannelWeights(
+                           org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString()))
+                                   .thenReturn(java.util.Optional.empty());
+                CognitionTestAccess.setAppraisalParticipant(core, appraisalStub);
             }
 
             var budgetParticipant = new SearchBudgetTickParticipant(
