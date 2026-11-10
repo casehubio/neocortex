@@ -317,11 +317,12 @@ private final              java.util.concurrent.atomic.AtomicInteger            
         }
         runCustomParticipants(CognitionPhase.DERIVED, context);
 
-        // Appraisal→mood→drive propagation: appraisal (DERIVED phase) records
-        // MoodSignals from appraised emotions via bridgeToMood. Re-tick mood to
-        // process those signals, then re-tick drives so both prompt sections
-        // reflect the current appraisal state within the same tick cycle.
-        if (config.moodEnabled() && config.appraisalEnabled()) {
+        // Appraisal→mood→drive propagation: bridge appraisal emotions into
+        // mood signals, then re-tick mood and drives so prompt sections reflect
+        // the current appraisal state within the same tick cycle.
+        if (config.moodEnabled() && config.appraisalEnabled() && appraisalParticipant != null) {
+            appraisalParticipant.currentResult(agentId, tenantId)
+                    .ifPresent(r -> bridgeAppraisalToMood(r, agentId, tenantId));
             safeRun(() -> tickMood(agentId, tenantId));
         }
         if (config.drivesEnabled() && descriptor != null && config.appraisalEnabled()) {
@@ -1153,6 +1154,25 @@ public @Nullable String lastTargetAgentId() {
         for (var participant : participants) {
             safeRun(() -> participant.tick(context));
         }
+    }
+
+    private void bridgeAppraisalToMood(io.casehub.neocortex.cognition.appraisal.AppraisalResult result,
+                                       String agentId, String tenantId) {
+        if (result.emotions().isEmpty()) return;
+        double totalIntensity = result.emotions().stream()
+                .mapToDouble(io.casehub.neocortex.cognitive.CognitiveEmotion::intensity).sum();
+        if (totalIntensity <= 0) return;
+        double p = result.emotions().stream()
+                .mapToDouble(e -> e.intensity() * e.pad().pleasure()).sum() / totalIntensity;
+        double a = result.emotions().stream()
+                .mapToDouble(e -> e.intensity() * e.pad().arousal()).sum() / totalIntensity;
+        double d = result.emotions().stream()
+                .mapToDouble(e -> e.intensity() * e.pad().dominance()).sum() / totalIntensity;
+        mood.record(new MoodSignal.DirectShift(
+                Math.max(-2.0, Math.min(2.0, p)),
+                Math.max(-2.0, Math.min(2.0, a)),
+                Math.max(-2.0, Math.min(2.0, d)),
+                "appraisal-emotions"), agentId, tenantId);
     }
 
     private void tickMood(String agentId, String tenantId) {

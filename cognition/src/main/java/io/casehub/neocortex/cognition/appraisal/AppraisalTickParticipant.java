@@ -187,7 +187,6 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             }
         }
 
-        bridgeToMood(result, context);
     }
 
     public Optional<ChannelWeightProfile> currentChannelWeights(String agentId, String tenantId) {
@@ -282,26 +281,4 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     }
 
 
-    private void bridgeToMood(AppraisalResult result, CognitionTickContext context) {
-        if (result.emotions().isEmpty()) return;
-
-        double totalIntensity = result.emotions().stream()
-                .mapToDouble(CognitiveEmotion::intensity).sum();
-        if (totalIntensity <= 0) return;
-
-        double p = result.emotions().stream()
-                .mapToDouble(e -> e.intensity() * e.pad().pleasure()).sum() / totalIntensity;
-        double a = result.emotions().stream()
-                .mapToDouble(e -> e.intensity() * e.pad().arousal()).sum() / totalIntensity;
-        double d = result.emotions().stream()
-                .mapToDouble(e -> e.intensity() * e.pad().dominance()).sum() / totalIntensity;
-
-        moodOrchestrator.record(
-                new MoodSignal.DirectShift(clamp(p), clamp(a), clamp(d), "appraisal-emotions"),
-                context.agentId(), context.tenantId());
-    }
-
-    private static double clamp(double value) {
-        return Math.max(-2.0, Math.min(2.0, value));
-    }
 }
