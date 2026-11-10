@@ -20,7 +20,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var situationSelection = state.nodeStates().get("situation_selection");
         assertThat(situationSelection).isNotNull();
-        assertThat(situationSelection.restingActivation()).isCloseTo(0.2, within(0.01));
+        assertThat(situationSelection.restingActivation()).isCloseTo(0.3, within(0.01));
     }
 
     @Test
@@ -31,7 +31,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var cognitiveChange = state.nodeStates().get("cognitive_change");
         assertThat(cognitiveChange).isNotNull();
-        assertThat(cognitiveChange.restingActivation()).isCloseTo(0.2, within(0.01));
+        assertThat(cognitiveChange.restingActivation()).isCloseTo(0.3, within(0.01));
     }
 
     @Test
@@ -42,7 +42,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var supportSeeking = state.nodeStates().get("social_support_seeking");
         assertThat(supportSeeking).isNotNull();
-        assertThat(supportSeeking.restingActivation()).isCloseTo(0.15, within(0.01));
+        assertThat(supportSeeking.restingActivation()).isCloseTo(0.25, within(0.01));
     }
 
     @Test
@@ -53,7 +53,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var responseModulation = state.nodeStates().get("response_modulation");
         assertThat(responseModulation).isNotNull();
-        assertThat(responseModulation.restingActivation()).isCloseTo(0.15, within(0.01));
+        assertThat(responseModulation.restingActivation()).isCloseTo(0.25, within(0.01));
     }
 
     @Test
@@ -64,7 +64,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var situationSelection = state.nodeStates().get("situation_selection");
         assertThat(situationSelection).isNotNull();
-        assertThat(situationSelection.restingActivation()).isCloseTo(0.15, within(0.01));
+        assertThat(situationSelection.restingActivation()).isCloseTo(0.2, within(0.01));
     }
 
     @Test
@@ -75,7 +75,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var situationModification = state.nodeStates().get("situation_modification");
         assertThat(situationModification).isNotNull();
-        assertThat(situationModification.restingActivation()).isCloseTo(0.2, within(0.01));
+        assertThat(situationModification.restingActivation()).isCloseTo(0.3, within(0.01));
     }
 
     @Test
@@ -86,7 +86,7 @@ class RegulationDispositionMappingTest {
         var state = mapper.initializeWeights("t1", "a1", axes);
         var responseModulation = state.nodeStates().get("response_modulation");
         assertThat(responseModulation).isNotNull();
-        assertThat(responseModulation.restingActivation()).isCloseTo(0.15, within(0.01));
+        assertThat(responseModulation.restingActivation()).isCloseTo(0.2, within(0.01));
     }
 
     @Test

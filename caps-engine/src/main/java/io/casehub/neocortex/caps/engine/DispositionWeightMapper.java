@@ -200,32 +200,32 @@ public class DispositionWeightMapper {
             addResting(nodeStates, "comply", 0.1);
         }
 
-        // OUTPUT nodes — regulation attractor baselines (#806, Gross 1998, Zaki & Williams 2013)
+        // OUTPUT nodes — regulation attractor baselines (#806, #906, Gross 1998, Zaki & Williams 2013)
         if ("avoidant".equals(disposition.conflictMode())) {
-            addResting(nodeStates, "situation_selection", 0.2);
-            addResting(nodeStates, "social_withdrawal", 0.15);
+            addResting(nodeStates, "situation_selection", 0.3);
+            addResting(nodeStates, "social_withdrawal", 0.2);
         } else if ("analytical".equals(disposition.conflictMode())) {
-            addResting(nodeStates, "cognitive_change", 0.2);
+            addResting(nodeStates, "cognitive_change", 0.3);
         } else if ("cooperative".equals(disposition.conflictMode())) {
-            addResting(nodeStates, "co_regulation", 0.15);
-            addResting(nodeStates, "social_sharing", 0.1);
+            addResting(nodeStates, "co_regulation", 0.25);
+            addResting(nodeStates, "social_sharing", 0.15);
         } else if ("competitive".equals(disposition.conflictMode())) {
-            addResting(nodeStates, "response_modulation", 0.15);
-            addResting(nodeStates, "deliberate_provocation", 0.1);
+            addResting(nodeStates, "response_modulation", 0.25);
+            addResting(nodeStates, "deliberate_provocation", 0.15);
         }
         if ("conservative".equals(disposition.riskAppetite())) {
-            addResting(nodeStates, "situation_selection", 0.15);
-            addResting(nodeStates, "attentional_deployment", 0.1);
+            addResting(nodeStates, "situation_selection", 0.2);
+            addResting(nodeStates, "attentional_deployment", 0.15);
         } else if ("bold".equals(disposition.riskAppetite())) {
-            addResting(nodeStates, "situation_modification", 0.2);
-            addResting(nodeStates, "cognitive_change", 0.1);
+            addResting(nodeStates, "situation_modification", 0.3);
+            addResting(nodeStates, "cognitive_change", 0.15);
         }
         if ("cooperative".equals(disposition.socialOrient())) {
-            addResting(nodeStates, "social_support_seeking", 0.15);
-            addResting(nodeStates, "co_regulation", 0.1);
+            addResting(nodeStates, "social_support_seeking", 0.25);
+            addResting(nodeStates, "co_regulation", 0.15);
         } else if ("independent".equals(disposition.socialOrient())) {
-            addResting(nodeStates, "response_modulation", 0.15);
-            addResting(nodeStates, "attentional_deployment", 0.1);
+            addResting(nodeStates, "response_modulation", 0.2);
+            addResting(nodeStates, "attentional_deployment", 0.15);
         }
     }
 

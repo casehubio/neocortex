@@ -1152,9 +1152,9 @@ connections:
   # Source: Gross 1998, Baranczuk 2019, Gross & John 2003, Bandura 1977
   - from: arousal_level
     to: attentional_deployment
-    weight: 0.45
+    weight: 0.35
     provenance: consensus
-    source: "Baranczuk 2019: N→AD r≈.30-.40, arousal overwhelms cognitive resources"
+    source: "Baranczuk 2019: N→AD r≈.30-.40, midpoint of meta-analysis range"
     tags: []
   - from: threat_sensitivity
     to: attentional_deployment
@@ -1168,6 +1168,12 @@ connections:
     provenance: consensus
     source: "behavioral inhibition promotes disengagement"
     tags: [bis]
+  - from: self_efficacy
+    to: attentional_deployment
+    weight: -0.25
+    provenance: consensus
+    source: "Sheppes & Gross 2011: cognitive resources enable reappraisal over distraction"
+    tags: []
   - from: self_efficacy
     to: cognitive_change
     weight: 0.45
@@ -1194,15 +1200,15 @@ connections:
     tags: [bis]
   - from: self_worth
     to: response_modulation
-    weight: -0.25
+    weight: -0.15
     provenance: consensus
-    source: "low self-worth drives suppression"
+    source: "Baranczuk 2019: O→suppression r≈-.10 to -.15"
     tags: []
   - from: self_efficacy
     to: response_modulation
-    weight: -0.25
+    weight: -0.15
     provenance: consensus
-    source: "low efficacy → can't reappraise → suppress"
+    source: "Baranczuk 2019: O→suppression r≈-.10 to -.15"
     tags: []
   - from: threat_sensitivity
     to: situation_selection
