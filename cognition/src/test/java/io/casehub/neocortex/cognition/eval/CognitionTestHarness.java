@@ -15,6 +15,7 @@ import io.casehub.neocortex.cognition.drive.DriveConfig;
 import io.casehub.neocortex.cognition.drive.DriveIntensity;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.DriveSource;
+import io.casehub.neocortex.cognition.drive.MindMapDriveSource;
 import io.casehub.neocortex.cognition.mood.MoodConfig;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
@@ -301,13 +302,13 @@ public class CognitionTestHarness {
             var channelComputer = new CuriosityChannelComputer();
             var curiosityDrive  = new CuriosityDrive(gapDetector, channelComputer, 0.5, goalNodeIds);
 
-            DriveSource competenceStub  = (a, t) -> new DriveIntensity(DriveAxis.COMPETENCE, 0.1, "stub");
-            DriveSource affiliationStub = (a, t) -> new DriveIntensity(DriveAxis.AFFILIATION, 0.1, "stub");
-            DriveSource autonomyStub    = (a, t) -> new DriveIntensity(DriveAxis.AUTONOMY, 0.1, "stub");
+            DriveSource competenceSource  = new MindMapDriveSource(DriveAxis.COMPETENCE, store, registry);
+            DriveSource affiliationSource = new MindMapDriveSource(DriveAxis.AFFILIATION, store, registry);
+            DriveSource autonomySource    = new MindMapDriveSource(DriveAxis.AUTONOMY, store, registry);
 
             var moodOrchestrator = new MoodOrchestrator(MoodConfig.defaults());
             var driveOrchestrator = new DriveOrchestrator(
-                    curiosityDrive, competenceStub, affiliationStub, autonomyStub,
+                    curiosityDrive, competenceSource, affiliationSource, autonomySource,
                     moodOrchestrator, new DriveComposer(), DriveConfig.defaults());
 
             var mediator = new ConsolidationMediator();
