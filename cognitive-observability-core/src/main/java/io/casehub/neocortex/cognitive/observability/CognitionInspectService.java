@@ -63,6 +63,12 @@ public final class CognitionInspectService {
         return new CognitionInspectResult(stats, histogram);
     }
 
+    public static CapacityModulationReport inspectCapacity(
+            io.casehub.neocortex.cognitive.index.CognitiveDefaults defaults) {
+        return CapacityModulationReport.from(defaults);
+    }
+
+
     private static void bucketConfidence(Map<String, Integer> histogram, double value) {
         String bucket;
         if (value < 0.2) bucket = "0.0-0.2";
