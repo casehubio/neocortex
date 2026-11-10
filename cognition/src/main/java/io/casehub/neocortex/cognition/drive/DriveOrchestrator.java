@@ -33,6 +33,7 @@ public class DriveOrchestrator {
 
     private final ConcurrentHashMap<String, DriveProfile> profiles = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Map<DriveAxis, Double>> pendingAppraisalModulations = new ConcurrentHashMap<>();
 
     public DriveOrchestrator(DriveSource curiosity, DriveSource competence,
                              DriveSource affiliation, DriveSource autonomy,
@@ -93,6 +94,10 @@ public class DriveOrchestrator {
                             config.subThoughtModulationStrength(), "sub-thought"));
                 }
             }
+            var appraisalMod = pendingAppraisalModulations.remove(key);
+            if (appraisalMod != null) {
+                modulations.add(new ModulationLayer(appraisalMod, 1.0, "appraisal"));
+            }
 
             var newProfile = composer.compose(raw, disposition, mood, modulations, config,
                     agentId, tenantId, now);
@@ -121,6 +126,10 @@ public class DriveOrchestrator {
             }
             return new DriveTick.Updated(previous, newProfile, changed);
         });
+    }
+
+    public void recordAppraisalModulation(String agentId, String tenantId, Map<DriveAxis, Double> modulation) {
+        pendingAppraisalModulations.put(agentId + ":" + tenantId, modulation);
     }
 
     public void setSubThoughtParticipant(io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant participant) {

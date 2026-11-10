@@ -15,6 +15,17 @@ import io.casehub.neocortex.cognition.prompt.MoodPromptSection;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
+import io.casehub.neocortex.cognition.appraisal.HabituationState;
+import io.casehub.neocortex.cognition.eval.CognitionTestHarness;
+import io.casehub.neocortex.cognitive.CognitiveEmotion;
+import io.casehub.neocortex.cognitive.EmotionSource;
+import io.casehub.neocortex.cognitive.EmotionType;
+import io.casehub.neocortex.cognitive.PadProjection;
+
+import java.time.Instant;
+import java.util.List;
+
 import static org.assertj.core.data.Offset.offset;
 import static org.mockito.Mockito.mock;
 
@@ -60,6 +71,39 @@ class AppraisalStatePropagationTest {
     }
 
     @Test
+    void appraisalDriveModulationAppliedOnReTick() {
+        var mood = new MoodOrchestrator(MoodConfig.defaults());
+        mood.record(new MoodSignal.InteractionAppraisal(0, 0, 0, "init"), "a1", "t1");
+        mood.tick("a1", "t1");
+
+        DriveSource compStub = (a, t) -> new DriveIntensity(DriveAxis.COMPETENCE, 0.1, "stub");
+        DriveSource affStub  = (a, t) -> new DriveIntensity(DriveAxis.AFFILIATION, 0.1, "stub");
+        DriveSource autStub  = (a, t) -> new DriveIntensity(DriveAxis.AUTONOMY, 0.1, "stub");
+        DriveSource curStub  = (a, t) -> new DriveIntensity(DriveAxis.CURIOSITY, 0.1, "stub");
+        var drives = new DriveOrchestrator(curStub, compStub, affStub, autStub, mood,
+                new DriveComposer(), DriveConfig.defaults());
+
+        var descriptor = mock(AgentDescriptor.class);
+        drives.tick("a1", "t1", descriptor);
+        var baseline = drives.currentDrives("a1", "t1").orElseThrow()
+                .drives().get(DriveAxis.COMPETENCE).intensity();
+
+        var modulation = java.util.Map.of(
+                DriveAxis.COMPETENCE, 0.15,
+                DriveAxis.CURIOSITY, 0.0,
+                DriveAxis.AFFILIATION, 0.0,
+                DriveAxis.AUTONOMY, 0.0);
+        drives.recordAppraisalModulation("a1", "t1", modulation);
+        drives.tick("a1", "t1", descriptor);
+
+        var updated = drives.currentDrives("a1", "t1").orElseThrow()
+                .drives().get(DriveAxis.COMPETENCE).intensity();
+
+        assertThat(updated).isGreaterThan(baseline);
+        assertThat(updated).isCloseTo(baseline + 0.15, offset(0.05));
+    }
+
+    @Test
     void drivesShiftWhenMoodUpdatedFromAppraisal() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
         mood.record(new MoodSignal.InteractionAppraisal(0, 0, 0, "init"), "a1", "t1");
@@ -82,5 +126,31 @@ class AppraisalStatePropagationTest {
                 .drives().get(DriveAxis.CURIOSITY).intensity();
 
         assertThat(updated).isNotEqualTo(baseline);
+    }
+
+    @Test
+    void harnessTickPropagatesAppraisalToDrives() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.5, "obstacle",
+                Instant.now(), EmotionSource.INTRINSIC, new PadProjection(-0.5, 0.5, 0.3));
+        var appraisal = new AppraisalResult(
+                List.of(emotion), List.of(), HabituationState.empty(), "moderate frustration");
+
+        var config = CognitionConfig.all().with("regulation", true).with("appraisal", true);
+        var harness = CognitionTestHarness.builder()
+                .withCognitionConfig(config)
+                .agentFromAxes("a1", "cooperative", "flexible", "moderate", "collaborative", "analytical")
+                .withAppraisalResult("a1", appraisal)
+                .build();
+
+        harness.observe("a1", "test-tenant", "An obstacle is blocking progress");
+        harness.tick("a1", "test-tenant");
+
+        var trace = harness.currentTrace("a1", "test-tenant");
+        assertThat(trace).isPresent();
+        var sections = trace.get().promptSections();
+        var driveSection = sections.get("DrivePromptSection");
+        assertThat(driveSection).as("DrivePromptSection should be present").isNotNull();
+        assertThat(driveSection).as("ANGER should boost competence above stub baseline")
+                .doesNotContain("Competence: 0.1");
     }
 }
