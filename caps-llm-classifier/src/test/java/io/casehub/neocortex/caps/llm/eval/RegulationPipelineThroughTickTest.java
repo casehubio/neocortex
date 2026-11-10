@@ -149,7 +149,9 @@ class RegulationPipelineThroughTickTest {
                                                      DispositionAxes axes,
                                                      EmotionType dominantEmotionType,
                                                      RegulationDefaults regulationDefaults,
-                                                     ShameContext shameContext) {
+                                                     ShameContext shameContext,
+                                                     String situationContext,
+                                                     java.util.@org.jspecify.annotations.Nullable Map<String, io.casehub.neocortex.cognition.prompt.observation.RegulationTracker.TrajectoryResult> distressTrajectories) {
                 return expected;
             }
         };
