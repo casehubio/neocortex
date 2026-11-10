@@ -39,9 +39,11 @@ class CapacityFidelityEvalTest {
             "All mammals are warm-blooded. Whales are mammals. "
                     + "What can you conclude about whales? Show your reasoning.";
     private static final String CHAIN =
-            "If A implies B, B implies C, C implies D, and D implies E — and A is true — "
-                    + "trace the full chain and explain what you can conclude about E. "
-                    + "Show your reasoning at each step.";
+            "If A implies B, B implies C, C implies (D or E), D implies F, "
+                    + "E implies (G and not F), F implies H, and G implies H — "
+                    + "given A is true and C is true but E is false — "
+                    + "what can you conclude about D, F, G, and H? "
+                    + "Trace every step of your reasoning carefully.";
     private static final String ANALOGY =
             "How is the immune system like a jazz ensemble? Find the deepest structural "
                     + "analogy you can — not surface similarities, but how they work in "
@@ -104,9 +106,10 @@ class CapacityFidelityEvalTest {
         var config = new CognitiveCapacityConfig(0.90, 0.75, 0.75);
 
         int score = runCapacityScenario("chain-high", config, CHAIN,
-                "Does the response trace the full A→B→C→D→E chain correctly, "
-                        + "maintaining coherence at each step? Score on clean, "
-                        + "confident multi-step reasoning.");
+                "Does the response correctly navigate the branching chain — "
+                        + "identifying that E is false so D must be true (from C), "
+                        + "then tracing D→F→H? Score on clean, confident handling "
+                        + "of the branch and multiple simultaneous implications.");
 
         assertThat(score).as("High relational complexity should handle 4-step chain")
                 .isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
