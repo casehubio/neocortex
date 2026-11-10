@@ -152,6 +152,42 @@ class WebCapturePipelineSmokeTest {
         assertThat(entry.intField(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS)).isEqualTo(7);
     }
 
+    @Test
+    void purgeExpiredWebCacheRemovesStaleEntries() {
+        java.util.Map<String, Object> expiredMeta = new java.util.LinkedHashMap<>();
+        expiredMeta.put("domain", io.casehub.neocortex.corpus.management.WebCaptureMetadata.DOMAIN);
+        expiredMeta.put(io.casehub.neocortex.corpus.management.WebCaptureMetadata.URL, "https://example.com/old");
+        expiredMeta.put(io.casehub.neocortex.corpus.management.WebCaptureMetadata.FETCHED_AT,
+                        java.time.Instant.now().minus(60, java.time.temporal.ChronoUnit.DAYS).toString());
+        expiredMeta.put(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS, 30);
+        store.add(CORPUS, new io.casehub.neocortex.corpus.management.CorpusEntry("expired-1", expiredMeta, "Old", null));
+
+        var result = bean.purgeExpiredWebCache("smoke-test");
+        assertThat(result.purged()).isEqualTo(1);
+        assertThat(store.entries).isEmpty();
+    }
+
+    @Test
+    void webCacheStatusReportsCorrectCounts() {
+        String html = "<html><body><p>Status test</p></body></html>";
+        bean.webCapture("smoke-test", "https://example.com/status-test", html, 30, null);
+
+        var status = bean.webCacheStatus("smoke-test");
+        assertThat(status.cachedUrlCount()).isEqualTo(1);
+        assertThat(status.oldestEntry()).isNotNull();
+        assertThat(status.newestEntry()).isNotNull();
+        assertThat(status.expiredCount()).isZero();
+    }
+
+    @Test
+    void webCacheStatusEmptyCorpus() {
+        var status = bean.webCacheStatus("smoke-test");
+        assertThat(status.cachedUrlCount()).isZero();
+        assertThat(status.oldestEntry()).isNull();
+        assertThat(status.newestEntry()).isNull();
+        assertThat(status.expiredCount()).isZero();
+    }
+
 
     @Test
     void imageCaptureCreatesRelatedEntries() {

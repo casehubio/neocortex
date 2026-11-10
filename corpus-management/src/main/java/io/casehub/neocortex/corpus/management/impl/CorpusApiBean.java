@@ -698,6 +698,53 @@ public class CorpusApiBean implements CorpusApi {
                                     interventionId, null);
     }
 
+    @Override
+    public WebCacheCurationService.PurgeResult purgeExpiredWebCache(String corpusId) {
+        var curationService = new WebCacheCurationService(entryStore, null);
+        return curationService.purgeExpired(corpusRef);
+    }
+
+    @Override
+    public WebCacheStatusResult webCacheStatus(String corpusId) {
+        java.util.List<io.casehub.neocortex.corpus.management.CorpusEntry> entries =
+                entryStore.findByMetadataField(corpusRef, "domain", io.casehub.neocortex.corpus.management.WebCaptureMetadata.DOMAIN);
+
+        if (entries.isEmpty()) {
+            return new WebCacheStatusResult(0, null, null, 0);
+        }
+
+        java.time.Instant now          = java.time.Instant.now();
+        String            oldest       = null;
+        String            newest       = null;
+        java.time.Instant oldestTime   = null;
+        java.time.Instant newestTime   = null;
+        int               expiredCount = 0;
+
+        for (var entry : entries) {
+            String fetchedAt = entry.stringField(io.casehub.neocortex.corpus.management.WebCaptureMetadata.FETCHED_AT);
+            if (fetchedAt == null) {
+                expiredCount++;
+                continue;
+            }
+            java.time.Instant fetchTime = java.time.Instant.parse(fetchedAt);
+            if (oldestTime == null || fetchTime.isBefore(oldestTime)) {
+                oldestTime = fetchTime;
+                oldest     = fetchedAt;
+            }
+            if (newestTime == null || fetchTime.isAfter(newestTime)) {
+                newestTime = fetchTime;
+                newest     = fetchedAt;
+            }
+            Object ttlObj = entry.metadata().get(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS);
+            int    ttl    = ttlObj instanceof Number n ? n.intValue() : webCaptureConfig.defaultTtlDays();
+            if (fetchTime.isBefore(now.minus(java.time.Duration.ofDays(ttl)))) {
+                expiredCount++;
+            }
+        }
+
+        return new WebCacheStatusResult(entries.size(), oldest, newest, expiredCount);
+    }
+
 
     private static String[] parseIssueRef(String issueRef) {
         int hashIndex = issueRef.lastIndexOf('#');
