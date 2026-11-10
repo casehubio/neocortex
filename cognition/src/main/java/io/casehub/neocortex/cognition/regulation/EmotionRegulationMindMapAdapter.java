@@ -126,6 +126,29 @@ public final class EmotionRegulationMindMapAdapter {
     }
 
 
+    public static List<RegulationOutcome> loadOutcomes(MindMapStore store,
+                                                       String agentId, String tenantId,
+                                                       io.casehub.neocortex.cognitive.EmotionType emotionType,
+                                                       int limit) {
+        String emotionName = emotionType.name();
+        return store.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+                    .stream()
+                    .filter(n -> COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
+                    .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                    .filter(n -> emotionName.equals(n.properties().get("dominantEmotionType")))
+                    .sorted(Comparator.comparing(
+                                              (MindMapNode n) -> n.properties().getOrDefault("timestamp", ""))
+                                      .reversed())
+                    .limit(limit)
+                    .map(n -> {
+                        var result = fromNode(n);
+                        var ts = n.properties().get("timestamp");
+                        var instant = ts != null ? java.time.Instant.parse(ts) : java.time.Instant.now();
+                        return RegulationOutcome.of(result, instant);
+                    })
+                    .toList();
+    }
+
     public static List<EmotionRegulationResult> loadHistory(MindMapStore store,
                                                             String agentId, String tenantId,
                                                             io.casehub.neocortex.cognitive.EmotionType emotionType,

@@ -287,7 +287,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         if (peakEmotion == null) {return null;}
 
         if (rd != null && mindMapStore != null) {
-            var emotionOutcomes = EmotionRegulationMindMapAdapter.loadHistory(
+            var emotionOutcomes = EmotionRegulationMindMapAdapter.loadOutcomes(
                     mindMapStore, context.agentId(), context.tenantId(), peakEmotion.type(), HISTORY_LIMIT);
             rd = RegulationCapacityModulator.modulate(rd, emotionOutcomes);
         }
