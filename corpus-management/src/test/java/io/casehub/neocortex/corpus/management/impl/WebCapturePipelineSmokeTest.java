@@ -100,6 +100,94 @@ class WebCapturePipelineSmokeTest {
         assertThat(result.body()).contains("Fetched content");
     }
 
+    @Test
+    void fetchFailureReturnsErrorResultInsteadOfThrowing() {
+        var throwingPlatform = new RefWebPlatform(webBackend) {
+            @Override
+            public Fetch fetch() {
+                return new Fetch() {
+                    @Override
+                    public io.casehub.connectors.web.model.FetchResult fetch(String url) {
+                        throw new RuntimeException("Connection refused");
+                    }
+
+                    @Override
+                    public io.casehub.connectors.web.model.FetchResult fetch(String url, io.casehub.connectors.web.model.FetchOptions options) {
+                        throw new RuntimeException("Connection refused");
+                    }
+                };
+            }
+        };
+        var throwingBean = new CorpusApiBean(store, CORPUS, throwingPlatform);
+        var result       = throwingBean.webCapture("smoke-test", "https://unreachable.example.com", null, 30, null);
+
+        assertThat(result.error()).isNotNull();
+        assertThat(result.error()).contains("Connection refused");
+        assertThat(result.entryId()).isNull();
+        assertThat(result.url()).isEqualTo("https://unreachable.example.com");
+        assertThat(store.entries).isEmpty();
+    }
+
+    @Test
+    void fetchBadStatusReturnsErrorResult() {
+        var result = bean.webCapture("smoke-test", "https://example.com/nonexistent", null, 30, null);
+
+        assertThat(result.error()).isNotNull();
+        assertThat(result.error()).contains("HTTP 404");
+        assertThat(result.entryId()).isNull();
+        assertThat(result.url()).isEqualTo("https://example.com/nonexistent");
+        assertThat(store.entries).isEmpty();
+    }
+
+    @Test
+    void configTtlDefaultIsUsedWhenTtlDaysNull() {
+        var customConfig = new io.casehub.neocortex.corpus.management.WebCaptureConfig(7, 5);
+        var configBean = new CorpusApiBean(null, null, null, null, null, null,
+                                           CORPUS, null, store, null, webPlatform, customConfig);
+        String html   = "<html><body><p>TTL test</p></body></html>";
+        var    result = configBean.webCapture("smoke-test", "https://example.com/ttl-test", html, null, null);
+
+        assertThat(result.entryId()).isNotNull();
+        var entry = store.entries.get(result.entryId());
+        assertThat(entry.intField(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS)).isEqualTo(7);
+    }
+
+    @Test
+    void purgeExpiredWebCacheRemovesStaleEntries() {
+        java.util.Map<String, Object> expiredMeta = new java.util.LinkedHashMap<>();
+        expiredMeta.put("domain", io.casehub.neocortex.corpus.management.WebCaptureMetadata.DOMAIN);
+        expiredMeta.put(io.casehub.neocortex.corpus.management.WebCaptureMetadata.URL, "https://example.com/old");
+        expiredMeta.put(io.casehub.neocortex.corpus.management.WebCaptureMetadata.FETCHED_AT,
+                        java.time.Instant.now().minus(60, java.time.temporal.ChronoUnit.DAYS).toString());
+        expiredMeta.put(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS, 30);
+        store.add(CORPUS, new io.casehub.neocortex.corpus.management.CorpusEntry("expired-1", expiredMeta, "Old", null));
+
+        var result = bean.purgeExpiredWebCache("smoke-test");
+        assertThat(result.purged()).isEqualTo(1);
+        assertThat(store.entries).isEmpty();
+    }
+
+    @Test
+    void webCacheStatusReportsCorrectCounts() {
+        String html = "<html><body><p>Status test</p></body></html>";
+        bean.webCapture("smoke-test", "https://example.com/status-test", html, 30, null);
+
+        var status = bean.webCacheStatus("smoke-test");
+        assertThat(status.cachedUrlCount()).isEqualTo(1);
+        assertThat(status.oldestEntry()).isNotNull();
+        assertThat(status.newestEntry()).isNotNull();
+        assertThat(status.expiredCount()).isZero();
+    }
+
+    @Test
+    void webCacheStatusEmptyCorpus() {
+        var status = bean.webCacheStatus("smoke-test");
+        assertThat(status.cachedUrlCount()).isZero();
+        assertThat(status.oldestEntry()).isNull();
+        assertThat(status.newestEntry()).isNull();
+        assertThat(status.expiredCount()).isZero();
+    }
+
 
     @Test
     void imageCaptureCreatesRelatedEntries() {

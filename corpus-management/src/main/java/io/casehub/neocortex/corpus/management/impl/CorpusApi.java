@@ -194,4 +194,13 @@ public interface CorpusApi {
     WebCaptureResult resolveIntervention(@ContextParam("corpusId") String corpusId,
                                          String interventionId, String resolvedHtml,
                                          Integer ttlDays, String artifactRef);
+
+    @PlatformMutation("Purge expired web cache entries — removes entries past their TTL "
+                      + "that have not been recently retrieved. Returns examined, purged, and renewed counts.")
+    WebCacheCurationService.PurgeResult purgeExpiredWebCache(@ContextParam("corpusId") String corpusId);
+
+    @PlatformQuery("Web cache status — cached URL count, oldest and newest entry timestamps, "
+                   + "and count of entries past their TTL.")
+    WebCacheStatusResult webCacheStatus(@ContextParam("corpusId") String corpusId);
+
 }

@@ -9,6 +9,7 @@ import io.casehub.neocortex.corpus.VersionInfo;
 import io.casehub.neocortex.corpus.management.ChangeResult;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
 import io.casehub.neocortex.corpus.management.CorpusEntryStore;
+import io.casehub.neocortex.corpus.management.WebCaptureConfig;
 import io.casehub.neocortex.corpus.management.WebCaptureMetadata;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
@@ -32,6 +33,7 @@ public class CorpusApiBean implements CorpusApi {
     private final io.casehub.neocortex.knowledge.ResearchSessionService sessionService;
     private final WebCaptureService webCaptureService;
     private final WebPlatform webPlatform;
+    private final WebCaptureConfig webCaptureConfig;
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -61,6 +63,22 @@ public class CorpusApiBean implements CorpusApi {
                          CorpusEntryStore entryStore,
                          io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
                          WebPlatform webPlatform) {
+        this(searchResource, indexService, reindexService, profileStore, provenanceStore,
+             outcomeService, corpusRef, corpusRoot, entryStore, sessionService, webPlatform, null);
+    }
+
+    public CorpusApiBean(SearchResource searchResource,
+                         CorpusIndexService indexService,
+                         CorpusReindexService reindexService,
+                         SearchProfileStore profileStore,
+                         ProvenanceStore provenanceStore,
+                         CorpusOutcomeService outcomeService,
+                         CorpusRef corpusRef,
+                         Path corpusRoot,
+                         CorpusEntryStore entryStore,
+                         io.casehub.neocortex.knowledge.ResearchSessionService sessionService,
+                         WebPlatform webPlatform,
+                         WebCaptureConfig webCaptureConfig) {
         this.searchResource    = searchResource;
         this.indexService      = indexService;
         this.reindexService    = reindexService;
@@ -73,6 +91,7 @@ public class CorpusApiBean implements CorpusApi {
         this.sessionService    = sessionService;
         this.webCaptureService = new WebCaptureService(entryStore);
         this.webPlatform       = webPlatform;
+        this.webCaptureConfig  = webCaptureConfig != null ? webCaptureConfig : WebCaptureConfig.DEFAULT;
     }
 
     CorpusApiBean(CorpusEntryStore entryStore, CorpusRef corpusRef, WebPlatform webPlatform) {
@@ -88,6 +107,7 @@ public class CorpusApiBean implements CorpusApi {
         this.sessionService     = null;
         this.webCaptureService  = new WebCaptureService(entryStore);
         this.webPlatform        = webPlatform;
+        this.webCaptureConfig   = WebCaptureConfig.DEFAULT;
     }
 
 
@@ -535,7 +555,7 @@ public class CorpusApiBean implements CorpusApi {
             throw new IllegalArgumentException("url is required");
         }
 
-        int ttl = ttlDays != null ? ttlDays : WebCaptureMetadata.DEFAULT_TTL_DAYS;
+        int ttl = ttlDays != null ? ttlDays : webCaptureConfig.defaultTtlDays();
 
         java.util.Optional<io.casehub.neocortex.corpus.management.CorpusEntry> cached =
                 webCaptureService.findFreshByUrl(corpusRef, url, ttl);
@@ -559,12 +579,19 @@ public class CorpusApiBean implements CorpusApi {
             contentType = "text/html";
             httpStatus  = 200;
         } else if (webPlatform != null && webPlatform.supports(WebPlatform.Fetch.class)) {
-            FetchResult fetchResult = webPlatform.fetch().fetch(url);
+            FetchResult fetchResult;
+            try {
+                fetchResult = webPlatform.fetch().fetch(url);
+            } catch (Exception e) {
+                return new WebCaptureResult(null, url, null, null, null, false, 0, null,
+                        "Fetch failed: " + e.getMessage());
+            }
             content     = fetchResult.html() != null ? fetchResult.html() : "";
             contentType = fetchResult.contentType();
             httpStatus  = fetchResult.statusCode();
             if (httpStatus == 0 || httpStatus >= 400) {
-                throw new RuntimeException("Failed to fetch URL: " + url + " (status " + httpStatus + ")");
+                return new WebCaptureResult(null, url, null, null, null, false, 0, null,
+                        "Fetch failed: HTTP " + httpStatus);
             }
         } else {
             throw new UnsupportedOperationException(
@@ -669,6 +696,53 @@ public class CorpusApiBean implements CorpusApi {
                                     captureResult.title(), captureResult.body(), captureResult.fetchedAt(),
                                     captureResult.cached(), captureResult.imageCount(),
                                     interventionId, null);
+    }
+
+    @Override
+    public WebCacheCurationService.PurgeResult purgeExpiredWebCache(String corpusId) {
+        var curationService = new WebCacheCurationService(entryStore, null);
+        return curationService.purgeExpired(corpusRef);
+    }
+
+    @Override
+    public WebCacheStatusResult webCacheStatus(String corpusId) {
+        java.util.List<io.casehub.neocortex.corpus.management.CorpusEntry> entries =
+                entryStore.findByMetadataField(corpusRef, "domain", io.casehub.neocortex.corpus.management.WebCaptureMetadata.DOMAIN);
+
+        if (entries.isEmpty()) {
+            return new WebCacheStatusResult(0, null, null, 0);
+        }
+
+        java.time.Instant now          = java.time.Instant.now();
+        String            oldest       = null;
+        String            newest       = null;
+        java.time.Instant oldestTime   = null;
+        java.time.Instant newestTime   = null;
+        int               expiredCount = 0;
+
+        for (var entry : entries) {
+            String fetchedAt = entry.stringField(io.casehub.neocortex.corpus.management.WebCaptureMetadata.FETCHED_AT);
+            if (fetchedAt == null) {
+                expiredCount++;
+                continue;
+            }
+            java.time.Instant fetchTime = java.time.Instant.parse(fetchedAt);
+            if (oldestTime == null || fetchTime.isBefore(oldestTime)) {
+                oldestTime = fetchTime;
+                oldest     = fetchedAt;
+            }
+            if (newestTime == null || fetchTime.isAfter(newestTime)) {
+                newestTime = fetchTime;
+                newest     = fetchedAt;
+            }
+            Object ttlObj = entry.metadata().get(io.casehub.neocortex.corpus.management.WebCaptureMetadata.TTL_DAYS);
+            int    ttl    = ttlObj instanceof Number n ? n.intValue() : webCaptureConfig.defaultTtlDays();
+            if (fetchTime.isBefore(now.minus(java.time.Duration.ofDays(ttl)))) {
+                expiredCount++;
+            }
+        }
+
+        return new WebCacheStatusResult(entries.size(), oldest, newest, expiredCount);
     }
 
 
