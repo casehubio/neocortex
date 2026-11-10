@@ -95,6 +95,6 @@ class RegulationTopologyTest {
 
     @Test
     void topologyConnectionCountIsCorrect() {
-        assertThat(topology.connections()).hasSize(110);
+        assertThat(topology.connections()).hasSize(111);
     }
 }
