@@ -39,7 +39,7 @@ class PerStrategyRegulationEvalTest {
         sessionPipeline = EvalTestSupport.sessionPipeline();
         defaultsRegistry = CognitiveDefaultsRegistry.forTesting(
                 buildDefaults("eval-sit-select",
-                        new DispositionAxes("cooperative", "flexible", "cautious", "low", "avoidant"),
+                        new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
                         new RegulationDefaults(0.40, 0.50, 0.60)),
                 buildDefaults("eval-sit-modify",
                         new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
@@ -48,10 +48,10 @@ class PerStrategyRegulationEvalTest {
                         new DispositionAxes("cooperative", "flexible", "bold", "low", "protective"),
                         new RegulationDefaults(0.50, 0.50, 0.60)),
                 buildDefaults("eval-cog-change",
-                        new DispositionAxes("cooperative", "flexible", "cautious", "high", "accommodating"),
+                        new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating"),
                         new RegulationDefaults(0.80, 0.40, 0.30)),
                 buildDefaults("eval-resp-mod",
-                        new DispositionAxes("competitive", "strict", "cautious", "high", "competitive"),
+                        new DispositionAxes("competitive", "strict", "conservative", "high", "competitive"),
                         new RegulationDefaults(0.35, 0.80, 0.40))
         );
     }
@@ -68,7 +68,7 @@ class PerStrategyRegulationEvalTest {
 
         var descriptor = AgentDescriptor.builder()
                                         .agentId("eval-sit-select").name("Eval SitSelect").slot("manor-character").tenancyId(TENANT)
-                                        .disposition(disposition("cooperative", "flexible", "cautious", "low", "avoidant"))
+                                        .disposition(disposition("cooperative", "flexible", "conservative", "low", "avoidant"))
                                         .build();
 
         var results = runScenario("eval-sit-select", descriptor, observation, N);
@@ -149,7 +149,7 @@ class PerStrategyRegulationEvalTest {
 
         var descriptor = AgentDescriptor.builder()
                                         .agentId("eval-cog-change").name("Eval CogChange").slot("manor-character").tenancyId(TENANT)
-                                        .disposition(disposition("cooperative", "flexible", "cautious", "high", "accommodating"))
+                                        .disposition(disposition("cooperative", "flexible", "conservative", "high", "accommodating"))
                                         .build();
 
         var results = runScenario("eval-cog-change", descriptor, observation, N);
@@ -172,7 +172,7 @@ class PerStrategyRegulationEvalTest {
 
         var descriptor = AgentDescriptor.builder()
                                         .agentId("eval-resp-mod").name("Eval RespMod").slot("manor-character").tenancyId(TENANT)
-                                        .disposition(disposition("competitive", "strict", "cautious", "high", "competitive"))
+                                        .disposition(disposition("competitive", "strict", "conservative", "high", "competitive"))
                                         .build();
 
         var results = runScenario("eval-resp-mod", descriptor, observation, N);

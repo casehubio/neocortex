@@ -66,7 +66,7 @@ class CapsRegulationComparisonEvalTest {
         sessionPipeline = EvalTestSupport.sessionPipeline();
         defaultsRegistry = CognitiveDefaultsRegistry.forTesting(
                 buildDefaults("eval-sit-select",
-                        new DispositionAxes("cooperative", "flexible", "cautious", "low", "avoidant"),
+                        new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
                         new RegulationDefaults(0.40, 0.50, 0.60)),
                 buildDefaults("eval-sit-modify",
                         new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
@@ -75,10 +75,10 @@ class CapsRegulationComparisonEvalTest {
                         new DispositionAxes("cooperative", "flexible", "bold", "low", "protective"),
                         new RegulationDefaults(0.50, 0.50, 0.60)),
                 buildDefaults("eval-cog-change",
-                        new DispositionAxes("cooperative", "flexible", "cautious", "high", "accommodating"),
+                        new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating"),
                         new RegulationDefaults(0.80, 0.40, 0.30)),
                 buildDefaults("eval-resp-mod",
-                        new DispositionAxes("competitive", "strict", "cautious", "high", "competitive"),
+                        new DispositionAxes("competitive", "strict", "conservative", "high", "competitive"),
                         new RegulationDefaults(0.35, 0.80, 0.40))
         );
     }
@@ -165,7 +165,7 @@ class CapsRegulationComparisonEvalTest {
     private List<Scenario> defineScenarios() {
         return List.of(
                 new Scenario("eval-sit-select", "Situation Selection (avoidant shame)",
-                        new DispositionAxes("cooperative", "flexible", "cautious", "low", "avoidant"),
+                        new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
                         new RegulationDefaults(0.40, 0.50, 0.60),
                         """
                         You misremembered Clara's birthday and gave her a gift \
@@ -174,7 +174,7 @@ class CapsRegulationComparisonEvalTest {
                         Now you are about to walk into the drawing room where Clara \
                         and James are having tea. You know she will mention it kindly \
                         and the embarrassment will start again.""",
-                        "cooperative", "flexible", "cautious", "low", "avoidant"),
+                        "cooperative", "flexible", "conservative", "low", "avoidant"),
                 new Scenario("eval-sit-modify", "Situation Modification (bold competition)",
                         new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
                         new RegulationDefaults(0.40, 0.40, 0.30),
@@ -196,7 +196,7 @@ class CapsRegulationComparisonEvalTest {
                         decides where.""",
                         "cooperative", "flexible", "bold", "low", "protective"),
                 new Scenario("eval-cog-change", "Cognitive Change (reappraisal)",
-                        new DispositionAxes("cooperative", "flexible", "cautious", "high", "accommodating"),
+                        new DispositionAxes("cooperative", "flexible", "conservative", "high", "accommodating"),
                         new RegulationDefaults(0.80, 0.40, 0.30),
                         """
                         The breakfast tea has run out again. James took the last cup \
@@ -205,9 +205,9 @@ class CapsRegulationComparisonEvalTest {
                         keeps taking more than his share. It is a small thing but \
                         the daily repetition of the unfairness is getting under your \
                         skin.""",
-                        "cooperative", "flexible", "cautious", "high", "accommodating"),
+                        "cooperative", "flexible", "conservative", "high", "accommodating"),
                 new Scenario("eval-resp-mod", "Response Modulation (suppression)",
-                        new DispositionAxes("competitive", "strict", "cautious", "high", "competitive"),
+                        new DispositionAxes("competitive", "strict", "conservative", "high", "competitive"),
                         new RegulationDefaults(0.35, 0.80, 0.40),
                         """
                         Clara suggested at breakfast that perhaps you should let James \
@@ -216,7 +216,7 @@ class CapsRegulationComparisonEvalTest {
                         you had not been pulling your weight. You disagree — you found \
                         the hidden passage — but correcting her publicly would seem \
                         defensive. Everyone is watching for your reaction.""",
-                        "competitive", "strict", "cautious", "high", "competitive")
+                        "competitive", "strict", "conservative", "high", "competitive")
         );
     }
 
