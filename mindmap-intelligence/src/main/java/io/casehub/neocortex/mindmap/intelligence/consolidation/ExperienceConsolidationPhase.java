@@ -165,9 +165,10 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         for (Memory memory : experiences) {
             try {
                 String observed = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
+                String memoryAgentId = memory.subject() != null ? memory.subject().id() : null;
                 GraduationContext context = observed != null
-                                            ? corroborationMap.getOrDefault(observed, new GraduationContext(0, tenantId))
-                                            : new GraduationContext(Integer.MAX_VALUE, tenantId);
+                                            ? withAgent(corroborationMap.getOrDefault(observed, new GraduationContext(0, tenantId)), memoryAgentId)
+                                            : new GraduationContext(Integer.MAX_VALUE, 0, tenantId, memoryAgentId);
                 double score = scorer.score(memory, context);
                 if (score < threshold) {
                     boolean corroborationBlocked = observed != null
@@ -301,5 +302,9 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
 
     private String findOrCreateTypeSystemSubgraph(String tenantId) {
         return SubgraphUtils.ensureSubgraph(mindMapStore, "Type System", SubgraphTypes.TYPE_SYSTEM, tenantId);
+    }
+
+    private static GraduationContext withAgent(GraduationContext ctx, String agentId) {
+        return new GraduationContext(ctx.corroboratingCount(), ctx.textSimilarityCount(), ctx.tenantId(), agentId);
     }
 }

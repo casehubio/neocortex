@@ -1,6 +1,7 @@
 package io.casehub.neocortex.memory.seeding.biography;
 
 import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryInput;
@@ -265,8 +266,9 @@ public class EntityEnrichmentHandler implements BiographyHandler {
                 if (pattern.inputActivations() == null || pattern.inputActivations().isEmpty()) {continue;}
                 double intensity = pattern.frequency() != null ? pattern.frequency() / 5.0 : 0.5;
                 double salience  = pattern.confidence() != null ? pattern.confidence() : 1.0;
-                state = capsEngine.updateWeights(state, pattern.inputActivations(),
-                                                 intensity, 1.0, salience, "variable_ratio");
+                state = capsEngine.updateWeights(state,
+                    new WeightUpdateContext(pattern.inputActivations(),
+                                            intensity, 1.0, salience, "variable_ratio"));
             }
         }
 

@@ -14,10 +14,5 @@ public interface CapsEngine {
     SettlingResult settle(AgentCapsState state,
                           Map<String, Double> inputActivations);
 
-    AgentCapsState updateWeights(AgentCapsState state,
-                                 Map<String, Double> inputActivations,
-                                 double outcomeIntensity,
-                                 double outcomeValence,
-                                 double salienceMultiplier,
-                                 String reinforcementSchedule);
+    AgentCapsState updateWeights(AgentCapsState state, WeightUpdateContext context);
 }
