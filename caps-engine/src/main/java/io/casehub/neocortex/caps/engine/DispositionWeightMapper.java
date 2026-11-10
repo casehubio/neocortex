@@ -212,6 +212,7 @@ public class DispositionWeightMapper {
         } else if ("competitive".equals(disposition.conflictMode())) {
             addResting(nodeStates, "response_modulation", 0.25);
             addResting(nodeStates, "deliberate_provocation", 0.15);
+            addResting(nodeStates, "situation_modification", 0.10);
         } else if ("accommodating".equals(disposition.conflictMode())) {
             addResting(nodeStates, "cognitive_change", 0.25);
             addResting(nodeStates, "social_sharing", 0.15);
@@ -229,6 +230,9 @@ public class DispositionWeightMapper {
         } else if ("independent".equals(disposition.socialOrient())) {
             addResting(nodeStates, "response_modulation", 0.2);
             addResting(nodeStates, "attentional_deployment", 0.15);
+        }
+        if ("strict".equals(disposition.ruleFollowing())) {
+            addResting(nodeStates, "response_modulation", 0.10);
         }
     }
 
