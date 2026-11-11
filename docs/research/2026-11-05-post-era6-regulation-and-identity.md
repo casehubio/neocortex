@@ -498,6 +498,105 @@ Root cause: `cognitive-index` depends on `cognitive-observability-api`, blocking
 
   **Remaining gaps:** #912 (accommodating conflictMode has no CC boost in DispositionWeightMapper — fixes reappraisal eval scenario), #913 (protective conflictMode has no regulation mapping).
 
+- **#902 Distress trajectory prompt enrichment** ✅: Added RegulationTracker distress trajectories to the LLM generation phase prompt for extrinsic strategies (CO_REGULATION, DELIBERATE_PROVOCATION). Renders IMPROVING/STABLE/WORSENING + delta per interacting agent in the social regulation context section.
+- **#919 Appraisal→mood→drive propagation** ✅ (2 commits): Timing fix — appraisal runs in DERIVED phase after mood/drive ticks, so bridgeToMood signals weren't processed until the next tick cycle. Fix: added post-DERIVED mood/drive re-tick in CognitionCore.tick(). Second commit: relocated bridgeToMood from AppraisalTickParticipant to CognitionCore so it works with both real and mocked participants (eval test harness uses mocked appraisal).
+- **#922 Appraisal→drive modulation** ✅: AppraisalDriveModulator maps OCC emotions to SDT drive axes via Frijda (1986) action tendencies: antagonism→COMPETENCE, avoidance→AUTONOMY, approach→CURIOSITY, being-with→AFFILIATION. Added recordAppraisalModulation to DriveOrchestrator consumed as a ModulationLayer.
+- **#923 MindMapDriveSource** ✅: Replaced 0.1 stub DriveSource implementations with MindMapDriveSource — reads drive-intensity nodes from COGNITIVE subgraph (written by consolidation), falls back to personality baselines derived from DispositionAxes. Fixed CDE.derive() to preserve descriptor view. Wired into CognitionTestHarness.
+- **#927 Drive trigger descriptions** ✅: MindMapDriveSource generates personality-derived trigger descriptions at cold start ("cooperative social orientation, analytical in conflict — social connection") instead of bare axis names.
+- **#928 Eval judge criteria** ✅: Updated pipeline coherence eval judge prompts to evaluate full pipeline coherence (mood + drives + regulation) with explicit scoring rubric. Fixed stub override signature mismatch from #902.
+- **#931 Generate override audit** ✅: Audited all EmotionRegulationGenerationPhase.generate() overrides. Found 2 sites (both in caps-llm-classifier eval tests) with silent signature mismatches from #902's 13-param overload. Fixed both.
+- **#204 Wacky-manor API alignment** ✅ (examples repo): CuriosityDrive constructor and CorpusStore.append→write alignment.
+
+## Stream 10: Pipeline Coherence — Appraisal State Propagation
+
+**Issues:** #919, #922, #923, #927, #928, #931
+**Dates:** 2026-11-10
+**Literature:** Frijda 1986 (action tendencies), Lazarus 1991 (appraisal→coping), Deci & Ryan 2000 (SDT drives)
+**Eval improvement:** Pipeline coherence eval (#894) from 2/5 → 4+/5 (all 4 scenarios)
+
+### The problem
+
+The pipeline coherence eval (#894) scored 2/5. After injecting high-intensity DISTRESS (0.85), the mood section rendered "You're feeling emotionally even" and drives showed "0.1 — stub". Three independent failures compounded:
+
+1. **Timing:** Appraisal runs in DERIVED phase — after both mood tick and drive tick. The existing `bridgeToMood` recorded signals that weren't processed until the next tick cycle.
+2. **Mocking:** The eval test harness used a mocked AppraisalTickParticipant. The mock's `tick()` was a no-op, so `bridgeToMood` (which lived inside the real participant's tick) never fired.
+3. **Stubs:** Drive sources returned static 0.1 with trigger "stub" — no personality influence, no memory influence.
+
+### What was built
+
+| Component | Issue | What it does |
+|-----------|-------|-------------|
+| Post-DERIVED re-tick | #919 | CognitionCore.tick() re-ticks mood and drives after DERIVED phase so appraisal signals are processed within the same tick cycle |
+| bridgeAppraisalToMood relocation | #919 | Moved from AppraisalTickParticipant to CognitionCore — reads from currentResult(), works with both real and mocked participants |
+| AppraisalDriveModulator | #922 | Maps OCC emotions to SDT drive modulations via Frijda (1986) action tendencies. 22 emotion-type mappings, intensity-scaled |
+| DriveOrchestrator.recordAppraisalModulation | #922 | Pending modulation queue consumed as a ModulationLayer during tick |
+| MindMapDriveSource | #923 | Generic DriveSource parameterised by DriveAxis. Reads drive-intensity nodes from COGNITIVE subgraph, falls back to CDE-derived personality baselines |
+| Personality-derived triggers | #927 | Descriptive trigger text from DispositionAxes at cold start |
+
+### Architecture: three propagation pathways
+
+```
+Appraisal (DERIVED phase)
+    ├─→ bridgeAppraisalToMood (CognitionCore)
+    │       → MoodSignal.DirectShift from intensity-weighted PAD averages
+    │       → mood re-tick processes signal immediately
+    │       → MoodPromptSection renders updated mood state
+    │
+    ├─→ AppraisalDriveModulator
+    │       → Frijda (1986): ANGER→antagonism→COMPETENCE, FEAR→avoidance→AUTONOMY
+    │       → DriveOrchestrator.recordAppraisalModulation
+    │       → drive re-tick processes modulation as ModulationLayer
+    │       → DrivePromptSection renders modulated drives
+    │
+    └─→ Regulation (existing)
+            → EmotionRegulationTickParticipant
+            → strategy selection → LLM narrative generation
+```
+
+### Key finding: silent override failures
+
+The #902 change (13-param generate overload with distressTrajectories) silently broke ALL eval test stubs. The stubs overrode the 12-param or 11-param generate(), but the tick participant called the 13-param version. The parent class's 13-param version returned null (sessionPipeline is null for stubs). Regulation was silently null in every eval scenario since #902 landed.
+
+This was invisible because: (a) the tests had `assertThat(score).isGreaterThanOrEqualTo(4)` which failed for other reasons (stubs, timing), masking the regulation absence; (b) the trace formatting code didn't show the regulation section when it was null. The fix required both signature updates AND checking the trace output carefully.
+
+### Frijda action tendencies → SDT drive mapping
+
+| Action tendency | OCC emotions | Drive axis |
+|----------------|-------------|------------|
+| Antagonism (overcome, assert) | ANGER, REPROACH, RESENTMENT, HATE | COMPETENCE |
+| Avoidance (escape, control) | FEAR, DISTRESS, SHAME, FEARS_CONFIRMED, REMORSE | AUTONOMY |
+| Approach (explore, engage) | HOPE, SATISFACTION, RELIEF, JOY | CURIOSITY |
+| Being-with (connect, bond) | LOVE, GRATITUDE, HAPPY_FOR, PITY, ADMIRATION | AFFILIATION |
+| Dominance (mastery, control) | PRIDE, GRATIFICATION, GLOATING | COMPETENCE |
+
+Boost = 0.5 × intensity, secondary boost = 0.25 × intensity, reduce = -0.2 × intensity. Multiple emotions stack additively.
+
+### MindMapDriveSource — two-layer pattern
+
+Follows the CuriosityDrive template. Layer 1 (consolidation, background): writes drive-intensity nodes to COGNITIVE subgraph with personality baseline + memory-modulated intensity + description. Layer 2 (tick, per-interaction): MindMapDriveSource reads these nodes. Falls back to personality baselines derived from DispositionAxes when no node exists.
+
+| Disposition axis | Drive axis | Mapping |
+|---|---|---|
+| socialOrient + conflictMode | AFFILIATION | cooperative/confronting→0.6, moderate/analytical→0.4, independent/avoidant→0.3 |
+| ruleFollowing + riskAppetite | COMPETENCE | strict/aggressive→0.6, moderate→0.4, flexible/conservative→0.3 |
+| autonomy | AUTONOMY | high→0.6, moderate→0.4, low→0.3 |
+
+### Eval progression
+
+| Change | moderate-anger | distress-AD | fear-AD | cross-tick | Gate |
+|--------|---------------|-------------|---------|------------|------|
+| Before (#894 baseline) | 2 | — | — | — | 4 |
+| +mood bridge (#919) | 3 | — | — | — | 4 |
+| +drive modulator (#922) | 3 | — | — | — | 4 |
+| +MindMapDriveSource (#923) | 3 | — | — | — | 4 |
+| +triggers + judge + stub fix (#927-931) | **4** | **4** | **4** | **5** | 4 |
+
+### Remaining validation
+
+**#930 (filed):** 300-tick scenario validation. The post-DERIVED re-tick doubles mood and drive ticks per cycle. Unit-tested and eval-tested but not validated at scale. Could cause mood overshoot or drive drift at 300 ticks × 17 characters.
+
+**#932 (filed):** Smoke scenario — real pipeline integration test with 20-30 ticks, 2-3 agents, real LLM calls, real eval judge. Fills the gap between unit tests (mocked) and the 300-tick run (hours).
+
 ### Deferred
 - **Era 6 Phase 4**: Condensation chains, persistent entity index, ACT-R decay (not blocked)
 - **Era 7 definition**: The post-era 6 work — regulation, identity, search budget, exploration pipeline — is era-scale in aggregate. Whether it constitutes era 7 or folds into era 6 Phase 4+ is a naming decision, not a technical one.
