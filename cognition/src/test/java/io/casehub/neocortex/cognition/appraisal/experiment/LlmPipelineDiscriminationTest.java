@@ -96,7 +96,7 @@ class LlmPipelineDiscriminationTest {
         System.out.println("-".repeat(100));
 
         for (var scenario : ScenarioCorpus.scenarios()) {
-            var ctx = new AppraisalContext(
+            var ctx = new AppraisalContext("test-agent", 
                     PerceivedSituation.passThrough(scenario.observation()),
                     scenario.drives(), AppraisalWeights.NEUTRAL,
                     HabituationConfig.defaults(), HabituationState.empty(), null);
@@ -140,7 +140,7 @@ class LlmPipelineDiscriminationTest {
 
         int scenariosWithEmotions = 0;
         for (var scenario : ScenarioCorpus.scenarios()) {
-            var ctx = new AppraisalContext(
+            var ctx = new AppraisalContext("test-agent", 
                     PerceivedSituation.passThrough(scenario.observation()),
                     scenario.drives(), AppraisalWeights.NEUTRAL,
                     HabituationConfig.defaults(), HabituationState.empty(), null);

@@ -39,7 +39,7 @@ class LlmCrossAxisGoalEnricherTest {
                 Map.of(DriveAxis.CURIOSITY, 0.7, DriveAxis.COMPETENCE, 0.5));
         var narrative = narrative(theme);
 
-        var result = enricher.enrich(proposal, narrative, theme);
+        var result = enricher.enrich("test-agent", proposal, narrative, theme);
 
         assertThat(result).isNotNull();
         assertThat(result.goalDescription()).isEqualTo("Explore and master new knowledge domains");
@@ -63,7 +63,7 @@ class LlmCrossAxisGoalEnricherTest {
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
 
-        var result = enricher.enrich(proposal, narrative(theme), theme);
+        var result = enricher.enrich("test-agent", proposal, narrative(theme), theme);
 
         assertThat(result).isNull();
     }
@@ -75,7 +75,7 @@ class LlmCrossAxisGoalEnricherTest {
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
 
-        var result = enricher.enrich(proposal, narrative(theme), theme);
+        var result = enricher.enrich("test-agent", proposal, narrative(theme), theme);
 
         assertThat(result).isNull();
     }
@@ -93,7 +93,7 @@ class LlmCrossAxisGoalEnricherTest {
         var proposal = proposal(DriveAxis.CURIOSITY, 0.8);
         var theme = theme("test", 0.8, Map.of(DriveAxis.CURIOSITY, 0.7));
 
-        var result = enricher.enrich(proposal, narrative(theme), theme);
+        var result = enricher.enrich("test-agent", proposal, narrative(theme), theme);
 
         assertThat(result).isNull();
     }
@@ -116,7 +116,7 @@ class LlmCrossAxisGoalEnricherTest {
         var narrative = new NarrativeState("s1", "t1", NarrativeScope.INDIVIDUAL,
                 List.of(episode, theme), Instant.now(), 0);
 
-        enricher.enrich(proposal(DriveAxis.CURIOSITY, 0.8), narrative, theme);
+        enricher.enrich("test-agent", proposal(DriveAxis.CURIOSITY, 0.8), narrative, theme);
 
         assertThat(capturedPrompt[0]).contains("breakthrough in research");
     }

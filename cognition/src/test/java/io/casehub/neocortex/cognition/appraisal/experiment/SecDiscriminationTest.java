@@ -34,7 +34,7 @@ class SecDiscriminationTest {
     private final NormativeCheck normativeCheck = new NormativeCheck();
 
     private AppraisalContext context(ScenarioCorpus.Scenario s) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(s.observation()),
                 s.drives(), AppraisalWeights.NEUTRAL,
                 HabituationConfig.defaults(),

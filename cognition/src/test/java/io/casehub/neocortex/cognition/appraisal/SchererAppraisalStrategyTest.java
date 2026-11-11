@@ -129,7 +129,7 @@ class SchererAppraisalStrategyTest {
     }
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(observation),
                 drives, null, HabituationConfig.defaults(),
                 HabituationState.empty(), null);

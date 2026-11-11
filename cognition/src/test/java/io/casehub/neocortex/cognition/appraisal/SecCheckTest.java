@@ -57,7 +57,7 @@ class SecCheckTest {
         @Test
         void urgencyModulatedByWeights() {
             var drives = List.of(new Drive("curiosity", DriveCategory.BASELINE, 0.8, "research"));
-            var ctx = new AppraisalContext(
+            var ctx = new AppraisalContext("test-agent", 
                     PerceivedSituation.passThrough("curiosity research topic"),
                     drives, new io.casehub.neocortex.mindmap.AppraisalWeights(2.0, 1.0, 1.0, 1.0, 1.0),
                     HabituationConfig.defaults(), HabituationState.empty(), null);
@@ -155,7 +155,7 @@ class SecCheckTest {
     }
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(observation),
                 drives, null, HabituationConfig.defaults(),
                 HabituationState.empty(), null);
@@ -163,7 +163,7 @@ class SecCheckTest {
 
     private static AppraisalContext contextWithHabituation(String observation,
             List<Drive> drives, HabituationState habituation) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(observation),
                 drives, null, HabituationConfig.defaults(),
                 habituation, null);

@@ -122,7 +122,7 @@ class LlmAppraisalStrategyTest {
         var strategy = stubStrategy(json);
         var mood = new MoodState("a1", "t1", Instant.now(), -0.3, 0.2, 0.1,
                 "prior", null, null, Map.of());
-        var ctx = new AppraisalContext(
+        var ctx = new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough("a tense moment"),
                 List.of(new Drive("protection", DriveCategory.CHARACTER, 0.7, "")),
                 null, HabituationConfig.defaults(), HabituationState.empty(), mood);
@@ -150,7 +150,7 @@ class LlmAppraisalStrategyTest {
         }));
         var disposition = new DispositionAxes(
                 "assertive", "low", "high", "high", "confrontational");
-        var ctx = new AppraisalContext(
+        var ctx = new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough("a rival challenges authority"),
                 List.of(new Drive("dominance", DriveCategory.CHARACTER, 0.8, "")),
                 null, HabituationConfig.defaults(), HabituationState.empty(), null, disposition);
@@ -209,7 +209,7 @@ class LlmAppraisalStrategyTest {
         }));
         var schema = new RelationalSchema("penelope", "prey", 0.1, 0.0, 0.9,
                                           "She inherited everything you built.");
-        var ctx = new AppraisalContext(
+        var ctx = new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough("Penelope escapes the trap"),
                 List.of(new Drive("dominance", DriveCategory.CHARACTER, 0.8, "")),
                 null, HabituationConfig.defaults(), HabituationState.empty(), null,
@@ -248,7 +248,7 @@ class LlmAppraisalStrategyTest {
                 new PersonalityFacet("Callousness", 0.9, "numbness where sympathy should be"),
                 new PersonalityFacet("Grandiosity", 0.85, null),
                 new PersonalityFacet("Anxiousness", 0.2, null));
-        var ctx = new AppraisalContext(
+        var ctx = new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough("someone asks for help"),
                 List.of(new Drive("autonomy", DriveCategory.CHARACTER, 0.6, "")),
                 null, HabituationConfig.defaults(), HabituationState.empty(), null,
@@ -293,7 +293,7 @@ class LlmAppraisalStrategyTest {
 
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(observation),
                 drives, null, HabituationConfig.defaults(),
                 HabituationState.empty(), null);

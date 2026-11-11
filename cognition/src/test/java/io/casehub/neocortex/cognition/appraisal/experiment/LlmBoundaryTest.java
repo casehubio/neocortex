@@ -106,7 +106,7 @@ class LlmBoundaryTest {
         System.out.println("-".repeat(105));
 
         for (var scenario : ScenarioCorpus.scenarios()) {
-            var ctx = new AppraisalContext(
+            var ctx = new AppraisalContext("test-agent", 
                     PerceivedSituation.passThrough(scenario.observation()),
                     scenario.drives(), AppraisalWeights.NEUTRAL,
                     HabituationConfig.defaults(), HabituationState.empty(), null);
@@ -157,7 +157,7 @@ class LlmBoundaryTest {
     }
 
     private AppraisalContext contextFor(String observation) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(observation),
                 List.of(), AppraisalWeights.NEUTRAL,
                 HabituationConfig.defaults(),
