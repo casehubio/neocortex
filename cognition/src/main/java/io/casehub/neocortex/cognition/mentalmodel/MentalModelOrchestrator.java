@@ -331,7 +331,7 @@ public class MentalModelOrchestrator {
                 }
             }
 
-            var textResult = invokeText(SYSTEM_PROMPT, userPrompt);
+            var textResult = invokeText(SYSTEM_PROMPT, userPrompt, state.agentId);
             if (textResult == null) return;
             applyInferenceResult(state, textResult);
         } catch (Exception e) {
@@ -339,11 +339,11 @@ public class MentalModelOrchestrator {
         }
     }
 
-    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt, String agentId) {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
-            var session = pipeline.openSession("mental-model", AgentSessionInit.of(systemPrompt));
+            var session = pipeline.openSession("mental-model-" + agentId, AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
