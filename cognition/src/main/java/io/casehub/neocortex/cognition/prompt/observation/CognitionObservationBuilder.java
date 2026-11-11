@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.prompt.observation;
 
+import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.SituationContext;
 import io.casehub.neocortex.cognition.core.CognitionCore;
@@ -505,8 +506,11 @@ public class CognitionObservationBuilder {
             return SituationContext.EMPTY;
         }
         try {
-            var activations = situationClassifier.classify(situationText, metadata);
-            return SituationContext.from(activations);
+            var ctx = tenantId != null
+                    ? ClassificationContext.of(tenantId, agentId)
+                    : ClassificationContext.NONE;
+            var result = situationClassifier.classify(situationText, metadata, ctx);
+            return SituationContext.from(result.activations());
         } catch (Exception e) {
             return SituationContext.EMPTY;
         }
