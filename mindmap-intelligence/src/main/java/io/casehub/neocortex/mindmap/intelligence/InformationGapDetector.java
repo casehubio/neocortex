@@ -6,6 +6,7 @@ import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
+import jakarta.enterprise.context.Dependent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.Set;
  * Gap intensity follows Golman &amp; Loewenstein (2016): entropy × attention weight,
  * where attention weight derives from edge connectivity to the broader graph.
  */
+@Dependent
 public class InformationGapDetector {
 
     static final double LOW_CONFIDENCE_FLOOR = 0.1;
