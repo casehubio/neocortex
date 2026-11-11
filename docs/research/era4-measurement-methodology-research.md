@@ -499,6 +499,21 @@ This connects WHO the character sees → WHAT they feel → WHICH drives activat
 
 **Transcript:** `wacky-manor/docs/eval/smoke-scenario-2026-11-11/transcript.json` (classify_emotions.py compatible)
 
+### LLM session reuse audit — cross-agent contamination (2026-11-11)
+
+**Discovery:** The smoke test's 44-minute runtime triggered an audit of all 16 LLM interaction points in the cognitive pipeline. The audit found two distinct problems that look the same from the outside:
+
+1. **Session waste (perf):** `LlmSituationClassifier` creates ~150 fresh sessions via `UUID.randomUUID()` per 25-tick run. Each pays full system prompt cost.
+2. **Cross-agent contamination (correctness):** 14 components use static session IDs (`"emotion-regulation"`, `"inner-life"`, `"mood-appraisal"`, etc.). `SessionPipeline.openSession` uses `computeIfAbsent` — same ID = same session. Agent A's cognitive LLM responses (appraisal text, regulation narratives, mental model inferences) accumulate in the session context and are visible to Agent B when it calls the same component.
+
+**Impact on prior eval results:** All multi-agent scenario runs to date have had cross-agent cognitive contamination. The 4.93 smoke test score may be partly inflated by characters "seeing" each other's cognitive processing. Alternatively, the contamination may have been degrading scores by introducing noise. A clean run with per-agent sessions is needed to establish a true baseline.
+
+**Fix (10 of 16 components, commit `35b4d025`):** Append `agentId` to session IDs. `ClassificationContext` extended with `agentId` field. Remaining 6 components need `AppraisalContext` API change.
+
+**Components by category:**
+- **Fixed (agentId available):** EmotionRegulationGenerationPhase, InnerLifeOrchestrator, MentalModelOrchestrator, UserModelOrchestrator, StrategyLearningOrchestrator, NarrativeContentSummariser, CognitionCore (mood-appraisal, bdi-extraction), LlmSituationClassifier, CognitionObservationBuilder
+- **Remaining (need API change):** LlmAppraisalStrategy, LlmCopingCheck, LlmImplicationCheck, LlmNormativeCheck, LlmCrossAxisGoalEnricher, LlmDeductiveGoalFormationStrategy
+
 ### Era 4 status: CEILING REACHED
 
 The computed-mode pipeline exceeds V2 on all aggregate dimensions. The remaining gap is reactive drive quality under realistic conditions — a gap that requires relational context (WHO the character is interacting with) rather than prompt engineering. This is the #477 relational schemas work, which opens Era 5.
