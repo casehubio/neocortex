@@ -25,30 +25,31 @@ public class LlmCrossAxisGoalEnricher implements CrossAxisGoalEnricher {
     }
 
     @Override
-    public @Nullable DriveGoalProposal enrich(DriveGoalProposal heuristic,
-                                               NarrativeState narrative,
-                                               DerivedTheme sourceTheme) {
+    public @Nullable DriveGoalProposal enrich(String agentId,
+                                              DriveGoalProposal heuristic,
+                                              NarrativeState narrative,
+                                              DerivedTheme sourceTheme) {
         String prompt = buildPrompt(heuristic, narrative, sourceTheme);
-        String text = invokeText(prompt);
-        if (text == null) return null;
+        String text   = invokeText(prompt, agentId);
+        if (text == null) {return null;}
 
         return new DriveGoalProposal(heuristic.axis(), heuristic.goalName(),
-                text.trim(),
-                "LLM-enriched cross-axis: " + sourceTheme.label(),
-                heuristic.driveIntensity(), heuristic.suggestedPriority(),
-                heuristic.proposalAttributes());
+                                     text.trim(),
+                                     "LLM-enriched cross-axis: " + sourceTheme.label(),
+                                     heuristic.driveIntensity(), heuristic.suggestedPriority(),
+                                     heuristic.proposalAttributes());
     }
 
-    private @Nullable String invokeText(String userPrompt) {
+    private @Nullable String invokeText(String userPrompt, String agentId) {
         var pipeline = this.sessionPipeline;
-        if (pipeline == null) return null;
+        if (pipeline == null) {return null;}
         try {
-            var session = pipeline.openSession("cross-axis-enrichment", AgentSessionInit.of(SYSTEM_PROMPT));
+            var session      = pipeline.openSession("cross-axis-enrichment-" + agentId, AgentSessionInit.of(SYSTEM_PROMPT));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
-                .filter(e -> e instanceof AgentEvent.TextDelta)
-                .map(e -> ((AgentEvent.TextDelta) e).text())
-                .forEach(responseText::append);
+                   .filter(e -> e instanceof AgentEvent.TextDelta)
+                   .map(e -> ((AgentEvent.TextDelta) e).text())
+                   .forEach(responseText::append);
             var text = responseText.toString();
             return text.isBlank() ? null : text;
         } catch (Exception e) {

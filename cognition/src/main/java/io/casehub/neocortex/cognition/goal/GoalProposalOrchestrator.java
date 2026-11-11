@@ -547,7 +547,7 @@ public class GoalProposalOrchestrator {
                     dominantIntensity.intensity(), null, attrs);
 
             if (crossAxisEnricher != null) {
-                var enriched = crossAxisEnricher.enrich(proposal, narrative, theme);
+                var enriched = crossAxisEnricher.enrich(agentId, proposal, narrative, theme);
                 if (enriched != null) proposal = enriched;
             }
 

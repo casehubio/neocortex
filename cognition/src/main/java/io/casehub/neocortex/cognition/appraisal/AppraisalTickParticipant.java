@@ -167,7 +167,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         }
 
         var result = appraisalStrategy.appraise(
-                new AppraisalContext(situation, drives, weights, habConfig, habituation, mood,
+                new AppraisalContext(context.agentId(), situation, drives, weights, habConfig, habituation, mood,
                         disposition, targetSchema, personalityFacets));
 
         results.put(agentKey, result);
