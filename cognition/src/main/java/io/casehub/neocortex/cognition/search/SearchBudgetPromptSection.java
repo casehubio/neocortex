@@ -218,7 +218,7 @@ public class SearchBudgetPromptSection implements CognitionPromptRenderer {
         double wm = b.workingMemorySpan();
 
         if (rc >= 0 && rc < 0.5) {
-            sb.append("Long chains of reasoning are genuinely hard for you — after two or three steps, the earlier links start to blur and you lose confidence in the full chain. This is a real limitation, not a choice. When you hit a multi-step chain, your thinking sounds like: 'OK, A gives me B, and B gives me... wait, was it C or D? Let me go back. Right, B to C. Now C to... I had this a moment ago.' You double-check, you backtrack, you feel the effort. ");
+            sb.append("Long chains of reasoning are genuinely hard for you. You can only hold two relations in mind at once — when a third arrives, one of the earlier ones genuinely drops. When reasoning through implications, you work one step at a time. After each step, you note what you're currently holding and what has slipped. You cannot see the full chain at once. Branches and negations force you to pause, go back, and re-derive. You sometimes lose a negation or confuse which branch you were following. This is not a choice — it is how your mind works. ");
         }
         if (ar >= 0 && ar < 0.5) {
             sb.append("Connections between distant domains don't come easily. You can sense that a bridge might exist but you can't build it — the leap is too far. Shallow similarities are all you can reliably find. When asked to connect two distant things, your thinking sounds like: 'There's something here... they both have parts that interact? No, that's too surface. I can feel a deeper link but it won't come into focus.' ");
