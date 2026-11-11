@@ -293,7 +293,7 @@ public class StrategyLearningOrchestrator {
             var          perSubjectSummary = summarizePerSubject(cases);
             var          userPrompt        = buildReflectionPrompt(profile, trends, List.of(), perSubjectSummary, agentId, tenantId);
 
-            String llmResponse = invokeText(systemPrompt(agentId), userPrompt);
+            String llmResponse = invokeText(systemPrompt(agentId), userPrompt, agentId);
             if (llmResponse == null) {
                 LOG.log(Level.WARNING, "Async reflect LLM failed for " + agentId);
                 return;
@@ -455,7 +455,7 @@ public class StrategyLearningOrchestrator {
         var perSubjectSummary = summarizePerSubject(cases);
         var userPrompt        = buildReflectionPrompt(profile, trends, reflections, perSubjectSummary, agentId, tenantId);
 
-        String llmResponse = invokeText(systemPrompt(agentId), userPrompt);
+            String llmResponse = invokeText(systemPrompt(agentId), userPrompt, agentId);
         if (llmResponse == null) {
             return new StrategyReflection.NoChange("LLM synthesis failed");
         }
@@ -684,11 +684,11 @@ public class StrategyLearningOrchestrator {
         return new StrategyProfile(agentId, tenantId, dims, List.of(), clock.instant(), 0);
     }
 
-    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt, String agentId) {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
-            var session = pipeline.openSession("strategy-learning", AgentSessionInit.of(systemPrompt));
+            var session = pipeline.openSession("strategy-learning-" + agentId, AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
