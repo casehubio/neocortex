@@ -1,6 +1,6 @@
 # Post-Era 6: Regulation, Identity, Search Budget, and Pipeline Completion
 
-**Period:** 2026-11-01 → 2026-11-10
+**Period:** 2026-11-01 → 2026-11-11
 **Status:** Standalone gap document — to be incorporated into era 7 when that era is defined
 **Predecessor:** Era 6 — Cognitive Memory Architecture (Phase 3 completed 2026-11-01)
 
@@ -595,7 +595,32 @@ Follows the CuriosityDrive template. Layer 1 (consolidation, background): writes
 
 **#930 (filed):** 300-tick scenario validation. The post-DERIVED re-tick doubles mood and drive ticks per cycle. Unit-tested and eval-tested but not validated at scale. Could cause mood overshoot or drive drift at 300 ticks × 17 characters.
 
-**#932 (filed):** Smoke scenario — real pipeline integration test with 20-30 ticks, 2-3 agents, real LLM calls, real eval judge. Fills the gap between unit tests (mocked) and the 300-tick run (hours).
+**#932 (CLOSED — landed `2fa64e87` on 2026-11-11):** `SmokeScenarioEvalTest` — 25-tick, 3-agent real pipeline integration test. Full `ManorCognitivePipelineBuilder` with real `CognitionCore.tick()`, appraisal, regulation, MindMap evolution. Six scripted events (arrival, discovery, suspicion, confrontation, threat, resolution). LLM judge scores 15 sampled events. **First run: mean 4.93, min 4.0.**
+
+## Stream 9: LLM Session Reuse Audit (#935) — Cross-Agent Contamination
+
+**Issue:** #935 (open), #942 (remaining API changes)
+**Date:** 2026-11-11
+**Blog:** "The Test That Was Missing" (revised 2026-11-11)
+
+### Discovery
+
+The smoke test's 44-minute runtime triggered an audit of all 16 LLM interaction points. The audit found two distinct problems:
+
+1. **Session waste (perf):** `LlmSituationClassifier` creates ~150 fresh sessions via `UUID.randomUUID()` per 25-tick run. Each pays full system prompt cost.
+2. **Cross-agent contamination (correctness):** 14 components use static session IDs (`"emotion-regulation"`, `"inner-life"`, `"mood-appraisal"`, etc.). `SessionPipeline.openSession` uses `computeIfAbsent` — same ID = same session. Agent A's cognitive LLM responses accumulate in the session and are visible to Agent B.
+
+### Impact on prior eval results
+
+All multi-agent scenario runs to date have had cross-agent cognitive contamination. The 4.93 smoke test score may be partly inflated or degraded. A clean run with per-agent sessions is needed to establish a true baseline.
+
+### Fix progress
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Fixed (agentId in scope) | 10 | `35b4d025`, `2206744b` |
+| Remaining (need AppraisalContext API change) | 6 | #942 filed |
+| Already correct (PlaybookOrchestrator) | 3 | No change needed |
 
 ### Deferred
 - **Era 6 Phase 4**: Condensation chains, persistent entity index, ACT-R decay (not blocked)
