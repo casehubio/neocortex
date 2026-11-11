@@ -69,7 +69,7 @@ class AppraisalResultTest {
 
     @Test
     void appraisalContextRequiresSituation() {
-        assertThatThrownBy(() -> new AppraisalContext(null, List.of(), null, null, HabituationState.empty(), null))
+        assertThatThrownBy(() -> new AppraisalContext("test-agent", null, List.of(), null, null, HabituationState.empty(), null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -102,7 +102,7 @@ class AppraisalResultTest {
     void appraisalStrategyFunctionalInterface() {
         AppraisalStrategy strategy = ctx -> AppraisalResult.empty();
         var situation = PerceivedSituation.passThrough("test");
-        var result = strategy.appraise(new AppraisalContext(situation, List.of(), null, null, HabituationState.empty(), null));
+        var result = strategy.appraise(new AppraisalContext("test-agent", situation, List.of(), null, null, HabituationState.empty(), null));
         assertThat(result.emotions()).isEmpty();
     }
 }

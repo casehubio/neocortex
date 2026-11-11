@@ -23,7 +23,7 @@ class TendencyCardinalityTest {
             SchererAppraisalConfig.allEnabled());
 
     private AppraisalContext contextFor(ScenarioCorpus.Scenario s) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(s.observation()),
                 s.drives(), AppraisalWeights.NEUTRAL,
                 HabituationConfig.defaults(), HabituationState.empty(), null);

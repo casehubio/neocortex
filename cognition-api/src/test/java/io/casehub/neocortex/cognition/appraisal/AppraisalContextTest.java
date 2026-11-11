@@ -18,7 +18,7 @@ class AppraisalContextTest {
     void nineArgConstructor_acceptsRelationalFields() {
         var schema = new RelationalSchema("target-1", "prey", 0.1, 0.0, 0.9, null);
         var facets = List.of(new PersonalityFacet("Callousness", 0.9, null));
-        var ctx = new AppraisalContext(SITUATION, List.of(), null, null,
+        var ctx = new AppraisalContext("test-agent", SITUATION, List.of(), null, null,
                 HabituationState.empty(), null, null, schema, facets);
         assertThat(ctx.targetSchema()).isEqualTo(schema);
         assertThat(ctx.personalityFacets()).hasSize(1);
@@ -26,7 +26,7 @@ class AppraisalContextTest {
 
     @Test
     void sevenArgConstructor_relationalFieldsAreNull() {
-        var ctx = new AppraisalContext(SITUATION, List.of(), null, null,
+        var ctx = new AppraisalContext("test-agent", SITUATION, List.of(), null, null,
                 HabituationState.empty(), null, null);
         assertThat(ctx.targetSchema()).isNull();
         assertThat(ctx.personalityFacets()).isNull();
@@ -34,7 +34,7 @@ class AppraisalContextTest {
 
     @Test
     void sixArgConstructor_relationalFieldsAreNull() {
-        var ctx = new AppraisalContext(SITUATION, List.of(), null, null,
+        var ctx = new AppraisalContext("test-agent", SITUATION, List.of(), null, null,
                 HabituationState.empty(), null);
         assertThat(ctx.targetSchema()).isNull();
         assertThat(ctx.personalityFacets()).isNull();

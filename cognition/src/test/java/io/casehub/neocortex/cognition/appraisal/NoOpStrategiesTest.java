@@ -20,7 +20,7 @@ class NoOpStrategiesTest {
     void noOpAppraisalReturnsEmpty() {
         var strategy = new NoOpAppraisalStrategy();
         var situation = PerceivedSituation.passThrough("observation");
-        var context = new AppraisalContext(situation, List.of(), null, null, HabituationState.empty(), null);
+        var context = new AppraisalContext("test-agent", situation, List.of(), null, null, HabituationState.empty(), null);
         var result = strategy.appraise(context);
         assertThat(result.emotions()).isEmpty();
         assertThat(result.actionTendencies()).isEmpty();
