@@ -55,7 +55,9 @@ public class LlmSituationClassifier implements SituationClassifier {
             return new ClassificationResult(List.of());
         }
 
-        var sessionId = "classifier-" + java.util.UUID.randomUUID();
+        var sessionId = context.agentId() != null
+                ? "classifier-" + context.agentId()
+                : "classifier-" + java.util.UUID.randomUUID();
         var init = AgentSessionInit.of(systemPrompt).withModel(model);
         var session = pipeline.openSession(sessionId, init);
         try {
@@ -75,8 +77,6 @@ public class LlmSituationClassifier implements SituationClassifier {
             throw new ClassificationException(
                 "LLM situation classification failed for: " +
                 description.substring(0, Math.min(80, description.length())), e);
-        } finally {
-            pipeline.releaseSession(sessionId);
         }
     }
 
