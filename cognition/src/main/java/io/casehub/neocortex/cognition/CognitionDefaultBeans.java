@@ -200,7 +200,7 @@ public class CognitionDefaultBeans {
     @io.quarkus.arc.DefaultBean
     @jakarta.inject.Singleton
     io.casehub.neocortex.cognition.goal.CrossAxisGoalEnricher crossAxisGoalEnricher() {
-        return (heuristicProposal, narrative, sourceTheme) -> heuristicProposal;
+        return (agentId, heuristicProposal, narrative, sourceTheme) -> heuristicProposal;
     }
 
     @jakarta.enterprise.inject.Produces
