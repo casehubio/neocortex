@@ -34,7 +34,7 @@ class LlmNormativeCheckTest {
     }
 
     private AppraisalContext contextFor(String observation) {
-        return new AppraisalContext(
+        return new AppraisalContext("test-agent", 
                 PerceivedSituation.passThrough(observation),
                 List.of(), AppraisalWeights.NEUTRAL,
                 HabituationConfig.defaults(), HabituationState.empty(), null);
