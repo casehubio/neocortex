@@ -130,7 +130,7 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         String userMessage = buildUserMessage(context);
-        var session = pipeline.openSession("llm-appraisal", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = pipeline.openSession("llm-appraisal-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
         session.query(userMessage).subscribe().asStream()
             .filter(e -> e instanceof AgentEvent.TextDelta)

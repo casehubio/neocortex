@@ -104,7 +104,7 @@ public class LlmDeductiveGoalFormationStrategy implements DeductiveGoalFormation
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         String userMessage = buildUserMessage(context);
-        var session = pipeline.openSession("deductive-goal-formation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = pipeline.openSession("deductive-goal-formation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
         session.query(userMessage).subscribe().asStream()
             .filter(e -> e instanceof AgentEvent.TextDelta)

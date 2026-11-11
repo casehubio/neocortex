@@ -49,11 +49,12 @@ public class LlmNormativeCheck implements SecCheck {
     @Override
     public SecResult evaluate(AppraisalContext context) {
         String observation = context.situation().narrative();
+        String agentId     = context.agentId();
         try {
-            String response = invokeLlm(observation);
-            if (response == null) return COMPLIANT;
+            String response = invokeLlm(observation, agentId);
+            if (response == null) {return COMPLIANT;}
 
-            var root = MAPPER.readTree(response);
+            var    root     = MAPPER.readTree(response);
             double internal = clamp(root.path("internal_standards").asDouble(1.0));
             double external = clamp(root.path("external_standards").asDouble(1.0));
 
@@ -66,15 +67,15 @@ public class LlmNormativeCheck implements SecCheck {
         }
     }
 
-    private String invokeLlm(String observation) {
+    private String invokeLlm(String observation, String agentId) {
         var pipeline = this.sessionPipeline;
-        if (pipeline == null) return null;
-        var session = pipeline.openSession("llm-normative", AgentSessionInit.of(SYSTEM_PROMPT));
+        if (pipeline == null) {return null;}
+        var session      = pipeline.openSession("llm-normative-" + agentId, AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
         session.query("Situation: " + observation).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
         return responseText.isEmpty() ? null : responseText.toString();
     }
 

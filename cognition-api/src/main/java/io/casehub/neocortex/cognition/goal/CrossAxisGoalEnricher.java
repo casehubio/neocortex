@@ -6,7 +6,8 @@ import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface
 public interface CrossAxisGoalEnricher {
-    @Nullable DriveGoalProposal enrich(DriveGoalProposal heuristicProposal,
-                                        NarrativeState narrative,
-                                        DerivedTheme sourceTheme);
+    @Nullable DriveGoalProposal enrich(String agentId,
+                                       DriveGoalProposal heuristicProposal,
+                                       NarrativeState narrative,
+                                       DerivedTheme sourceTheme);
 }
