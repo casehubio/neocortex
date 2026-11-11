@@ -450,7 +450,7 @@ private final              java.util.concurrent.atomic.AtomicInteger            
                                 ? response.substring(0, 200) + "..." : response;
             var userPrompt = "Other person said:\n" + truncatedMsg
                              + "\n\nAgent responded:\n" + truncatedResp;
-            var session = sessionPipeline.openSession("mood-appraisal", AgentSessionInit.of(MOOD_APPRAISAL_PROMPT));
+            var session = sessionPipeline.openSession("mood-appraisal-" + agentId, AgentSessionInit.of(MOOD_APPRAISAL_PROMPT));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -538,7 +538,7 @@ private final              java.util.concurrent.atomic.AtomicInteger            
                 var truncated = utterance.length() > 500
                                 ? utterance.substring(0, 500) + "..." : utterance;
                 var userPrompt = "What " + subjectId + " said:\n" + truncated;
-                var session = sessionPipeline.openSession("bdi-extraction", AgentSessionInit.of(BDI_EXTRACTION_PROMPT));
+                var session = sessionPipeline.openSession("bdi-extraction-" + agentId, AgentSessionInit.of(BDI_EXTRACTION_PROMPT));
                 var responseText = new StringBuilder();
                 session.query(userPrompt).subscribe().asStream()
                     .filter(e -> e instanceof AgentEvent.TextDelta)

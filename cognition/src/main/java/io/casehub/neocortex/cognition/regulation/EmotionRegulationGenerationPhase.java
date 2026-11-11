@@ -260,7 +260,7 @@ public class EmotionRegulationGenerationPhase {
                               double regulationFatigue,
                               @Nullable StrategyFailureSignal failureSignal,
                               @Nullable EmotionRegulationStrategy pinnedStrategy) {
-        var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                 ? loadEstimator.estimate(context.agentId(), context.tenantId())
                 : null;
@@ -281,7 +281,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable EmotionRegulationStrategy pinnedStrategy,
                              @Nullable DispositionAxes axes,
                              @Nullable EmotionType dominantEmotionType) {
-        var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -304,7 +304,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable EmotionType dominantEmotionType,
                              @Nullable RegulationDefaults regulationDefaults,
                              @Nullable ShameContext shameContext) {
-        var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -329,7 +329,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable RegulationDefaults regulationDefaults,
                              @Nullable ShameContext shameContext,
                              @Nullable String situationContext) {
-        var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -356,7 +356,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable ShameContext shameContext,
                              @Nullable String situationContext,
                              @Nullable Map<String, RegulationTracker.TrajectoryResult> distressTrajectories) {
-        var session = sessionPipeline.openSession("emotion-regulation", AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;

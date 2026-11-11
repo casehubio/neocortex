@@ -326,7 +326,7 @@ public class UserModelOrchestrator {
                 }
             }
 
-            var responseText = invokeText(SYSTEM_PROMPT, userPrompt);
+            var responseText = invokeText(SYSTEM_PROMPT, userPrompt, state.agentId);
             if (responseText == null) return null;
             return parseResult(responseText);
         } catch (Exception e) {
@@ -335,11 +335,11 @@ public class UserModelOrchestrator {
         }
     }
 
-    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt, String agentId) {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
-            var session = pipeline.openSession("user-model", AgentSessionInit.of(systemPrompt));
+            var session = pipeline.openSession("user-model-" + agentId, AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)

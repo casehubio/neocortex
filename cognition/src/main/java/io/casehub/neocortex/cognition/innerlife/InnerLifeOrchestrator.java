@@ -161,7 +161,7 @@ public class InnerLifeOrchestrator {
 
         MotivationAssessment assessment;
         try {
-            var responseText = invokeText(SYSTEM_PROMPT, userPrompt);
+            var responseText = invokeText(SYSTEM_PROMPT, userPrompt, descriptor.agentId());
             if (responseText == null) {
                 throw new RuntimeException("LLM invocation returned empty");
             }
@@ -254,11 +254,11 @@ public class InnerLifeOrchestrator {
         return sb.toString();
     }
 
-    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt, String agentId) {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
-            var session = pipeline.openSession("inner-life", AgentSessionInit.of(systemPrompt));
+            var session = pipeline.openSession("inner-life-" + agentId, AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)

@@ -85,7 +85,8 @@ public class NarrativeContentSummariser
 
         var userPrompt = assembleUserPrompt(previous, reflections);
 
-        String responseText = invokeText(SYSTEM_PROMPT, userPrompt);
+        var narrativeAgentId = previous != null ? previous.scopeId() : reflections.getFirst().agentId();
+        String responseText = invokeText(SYSTEM_PROMPT, userPrompt, narrativeAgentId);
         if (responseText == null) {
             return CompletableFuture.completedFuture(previous);
         }
@@ -145,11 +146,11 @@ public class NarrativeContentSummariser
         return CompletableFuture.completedFuture(state);
     }
 
-    private @Nullable String invokeText(String systemPrompt, String userPrompt) {
+    private @Nullable String invokeText(String systemPrompt, String userPrompt, String agentId) {
         var pipeline = this.sessionPipeline;
         if (pipeline == null) return null;
         try {
-            var session = pipeline.openSession("narrative-summariser", AgentSessionInit.of(systemPrompt));
+            var session = pipeline.openSession("narrative-summariser-" + agentId, AgentSessionInit.of(systemPrompt));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
