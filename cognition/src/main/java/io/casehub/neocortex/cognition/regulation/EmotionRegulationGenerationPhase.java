@@ -439,13 +439,22 @@ public class EmotionRegulationGenerationPhase {
         sb.append("Regulation effort: ").append(String.format("%.2f", regulationEffort))
           .append(" (0=negligible, 1=maximum urgency)\n\n");
 
-        if (regulationFatigue > 0.01) {
+        if (regulationFatigue > 0.7) {
+            sb.append("Your reappraisal capacity is depleted. Trying to reframe the situation ")
+              .append("no longer works — the cognitive effort required for COGNITIVE_CHANGE has ")
+              .append("run dry. SITUATION_SELECTION requires environmental assessment you can't ")
+              .append("sustain. Only ATTENTIONAL_DEPLOYMENT remains as a regulation tool — ")
+              .append("shifting your focus is reflexive and doesn't require the cognitive ")
+              .append("resources you've exhausted. You MUST choose ATTENTIONAL_DEPLOYMENT.\n\n");
+        } else if (regulationFatigue > 0.5) {
+            sb.append("Your reappraisal capacity is running low. COGNITIVE_CHANGE requires ")
+              .append("deliberate effort to find alternative interpretations — each attempt is ")
+              .append("slower and less convincing than the last. You can still try, but the ")
+              .append("cognitive work feels heavy. ATTENTIONAL_DEPLOYMENT and ")
+              .append("RESPONSE_MODULATION require less effort.\n\n");
+        } else if (regulationFatigue > 0.01) {
             sb.append("Regulation fatigue: ").append(String.format("%.0f%%", regulationFatigue * 100))
-              .append(" — repeated regulation is depleting capacity");
-            if (regulationFatigue > 0.7) {
-                sb.append("; approaching breakdown, suppression may fail entirely");
-            }
-            sb.append("\n\n");
+              .append(" — repeated regulation is depleting capacity\n\n");
         }
 
         if (loadEstimate != null) {
@@ -454,6 +463,15 @@ public class EmotionRegulationGenerationPhase {
               .append(", goals=").append(loadEstimate.activeGoals())
               .append(", ToM targets=").append(loadEstimate.mentalModelTargets())
               .append(")\n\n");
+            if (loadEstimate.level() == CognitiveLoadLevel.HIGH) {
+                sb.append("Under HIGH cognitive load, you cannot hold the multi-step reasoning ")
+                  .append("chain needed for COGNITIVE_CHANGE or the environmental assessment ")
+                  .append("needed for SITUATION_SELECTION/MODIFICATION. These strategies require ")
+                  .append("deliberation you don't have capacity for right now. Only ")
+                  .append("ATTENTIONAL_DEPLOYMENT (automatic attention shift) and ")
+                  .append("RESPONSE_MODULATION (expression control) are executable — they're ")
+                  .append("reflexive, not deliberative. You MUST choose one of these two.\n\n");
+            }
         }
 
         if (failureSignal != null) {
@@ -490,6 +508,38 @@ public class EmotionRegulationGenerationPhase {
               .append(" (").append(String.format("%.2f", regulationDefaults.suppressionCapacity())).append(")\n")
               .append("  redirect tendency: ").append(capacityLabel(regulationDefaults.redirectTendency()))
               .append(" (").append(String.format("%.2f", regulationDefaults.redirectTendency())).append(")\n\n");
+        }
+
+        if (pinnedStrategy == null && regulationDefaults != null) {
+            double reap = regulationDefaults.reappraisalCapacity();
+            double supp = regulationDefaults.suppressionCapacity();
+            double redir = regulationDefaults.redirectTendency();
+            boolean isControllableNegLocal = dominantEmotionType != null
+                    && RegulationStrategyPredictor.emotionCategory(dominantEmotionType)
+                            == RegulationStrategyPredictor.EmotionCategory.CONTROLLABLE_NEGATIVE;
+            boolean temporalStagingApplies = isControllableNegLocal && reap >= 0.40;
+            if (!temporalStagingApplies) {
+                double max = Math.max(reap, Math.max(supp, redir));
+                boolean tied = (max == reap && max == supp)
+                            || (max == reap && max == redir)
+                            || (max == supp && max == redir);
+                if (!tied && max >= 0.6) {
+                    if (max == supp) {
+                        sb.append("Your instinct is to control the outward expression. You feel the ")
+                          .append("emotion fully inside but your face stays steady, your voice stays ")
+                          .append("level. You manage the display, not the feeling. Choose ")
+                          .append("RESPONSE_MODULATION.\n\n");
+                    } else if (max == reap) {
+                        sb.append("Your instinct is to step back and reframe. You search for an ")
+                          .append("alternative interpretation — why might this not mean what it first ")
+                          .append("seemed? The reappraisal comes naturally. Choose COGNITIVE_CHANGE.\n\n");
+                    } else {
+                        sb.append("Your instinct is to shift what you're focusing on. Not to leave, ")
+                          .append("not to suppress — but to redirect attention away from the triggering ")
+                          .append("stimulus. Choose ATTENTIONAL_DEPLOYMENT.\n\n");
+                    }
+                }
+            }
         }
 
         if (pinnedStrategy == null && context.regulationContext() != null
