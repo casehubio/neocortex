@@ -46,13 +46,14 @@ public class LlmCopingCheck implements SecCheck {
     @Override
     public SecResult evaluate(AppraisalContext context) {
         String observation = context.situation().narrative();
+        String agentId     = context.agentId();
         try {
-            String response = invokeLlm(observation);
-            if (response == null) return NEUTRAL;
+            String response = invokeLlm(observation, agentId);
+            if (response == null) {return NEUTRAL;}
 
-            var root = MAPPER.readTree(response);
+            var    root            = MAPPER.readTree(response);
             double controllability = clamp(root.path("controllability").asDouble(0.5));
-            double adjustability = clamp(root.path("adjustability").asDouble(0.5));
+            double adjustability   = clamp(root.path("adjustability").asDouble(0.5));
 
             return new SecResult("llm-coping", Map.of(
                     SecDimensions.CONTROLLABILITY, controllability,
@@ -63,15 +64,15 @@ public class LlmCopingCheck implements SecCheck {
         }
     }
 
-    private String invokeLlm(String observation) {
+    private String invokeLlm(String observation, String agentId) {
         var pipeline = this.sessionPipeline;
-        if (pipeline == null) return null;
-        var session = pipeline.openSession("llm-coping", AgentSessionInit.of(SYSTEM_PROMPT));
+        if (pipeline == null) {return null;}
+        var session      = pipeline.openSession("llm-coping-" + agentId, AgentSessionInit.of(SYSTEM_PROMPT));
         var responseText = new StringBuilder();
         session.query("Situation: " + observation).subscribe().asStream()
-            .filter(e -> e instanceof AgentEvent.TextDelta)
-            .map(e -> ((AgentEvent.TextDelta) e).text())
-            .forEach(responseText::append);
+               .filter(e -> e instanceof AgentEvent.TextDelta)
+               .map(e -> ((AgentEvent.TextDelta) e).text())
+               .forEach(responseText::append);
         return responseText.isEmpty() ? null : responseText.toString();
     }
 
