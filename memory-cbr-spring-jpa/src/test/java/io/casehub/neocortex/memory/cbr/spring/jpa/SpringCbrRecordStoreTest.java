@@ -7,12 +7,19 @@ import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.CbrOutcome;
+import io.casehub.neocortex.memory.cbr.CbrRecordSchema;
+import io.casehub.neocortex.memory.cbr.FeatureField;
+import io.casehub.neocortex.memory.cbr.RetrievalMode;
+import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.jpa.CbrRecordEntity;
 import io.casehub.platform.api.path.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -23,6 +30,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import java.util.Map;
+import java.util.List;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,6 +61,23 @@ class SpringCbrRecordStoreTest {
 
     @BeforeEach
     void setup() {
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"0.0,0.5", "0.8,0.9", "1.0,1.0", "null,0.675"}, nullValues = "null")
+    void outcomeLearningRateOverrideTakesPrecedenceOverSchema(Double learningRate, double expectedConfidence) {
+        store.registerSchema(new CbrRecordSchema("diagnosis", List.of(FeatureField.categorical("severity")), 0.35));
+        Map<String, FeatureValue> features = Map.of("severity", FeatureValue.string("HIGH"));
+        var domain = new MemoryDomain("clinical");
+        store.store(new CbrFeatureRecord("problem", "solution", null, Confidence.unknown(0.5), features, null, null),
+                "diagnosis", "patient", domain, "t1", "case-outcome", Path.root());
+
+        store.recordOutcome("case-outcome", CbrOutcome.of(1.0, "success", Instant.now()), "t1", learningRate);
+
+        var result = store.retrieveSimilar(CbrQuery.of("t1", domain, Path.root(), "diagnosis", features, 1)
+                .withRetrievalMode(RetrievalMode.FEATURE_ONLY), CbrFeatureRecord.class);
+        assertEquals(1, result.size());
+        assertEquals(expectedConfidence, result.getFirst().cbrRecord().confidence().value(), 0.000001);
     }
 
     @Test
