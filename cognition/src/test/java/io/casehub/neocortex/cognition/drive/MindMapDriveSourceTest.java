@@ -52,7 +52,7 @@ class MindMapDriveSourceTest {
 
         assertThat(result.axis()).isEqualTo(DriveAxis.COMPETENCE);
         assertThat(result.intensity()).isGreaterThan(0.3);
-        assertThat(result.trigger()).contains("competence");
+        assertThat(result.trigger()).contains("mastery");
     }
 
     @Test
