@@ -12,6 +12,7 @@ import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentSessionInit;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.jspecify.annotations.Nullable;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
 
@@ -26,23 +27,7 @@ public class EmotionRegulationGenerationPhase {
     private static final Logger LOG = Logger.getLogger(EmotionRegulationGenerationPhase.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static final String SYSTEM_PROMPT = """
-                                        You are a character's emotion regulation system — the part that decides \
-                                        whether and how to regulate emotional responses after appraisal.
-                                        
-                                        The five regulation strategies (Gross 1998 process model):
-                                        
-                                        1. SITUATION_SELECTION — Avoid or approach situations likely to trigger \
-                                        specific emotions. Environmental strategy: produces a goal directive.
-                                        2. SITUATION_MODIFICATION — Change an existing situation to alter its \
-                                        emotional impact. Environmental strategy: produces a goal directive.
-                                        3. ATTENTIONAL_DEPLOYMENT — Redirect attention away from (distraction) \
-                                        or toward (concentration) emotional aspects. Internal strategy.
-                                        4. COGNITIVE_CHANGE — Reappraise the meaning of the situation to change \
-                                        its emotional impact. Internal strategy.
-                                        5. RESPONSE_MODULATION — Suppress or amplify the emotional expression \
-                                        after it has been generated. Internal strategy.
-                                        
+    private static final String SOCIAL_STRATEGIES_PROMPT = """
                                         Social regulation strategies (Zaki & Williams 2013):
                                         
                                         6. SOCIAL_SUPPORT_SEEKING — Seek comfort, reassurance, or advice from \
@@ -61,6 +46,26 @@ public class EmotionRegulationGenerationPhase {
                                         agents listed in the context. For non-social strategies (1-5), set \
                                         targetAgentId to null.
                                         
+                                        """;
+
+    static final String SYSTEM_PROMPT = """
+                                        You are a character's emotion regulation system — the part that decides \
+                                        whether and how to regulate emotional responses after appraisal.
+
+                                        The five regulation strategies (Gross 1998 process model):
+
+                                        1. SITUATION_SELECTION — Avoid or approach situations likely to trigger \
+                                        specific emotions. Environmental strategy: produces a goal directive.
+                                        2. SITUATION_MODIFICATION — Change an existing situation to alter its \
+                                        emotional impact. Environmental strategy: produces a goal directive.
+                                        3. ATTENTIONAL_DEPLOYMENT — Redirect attention away from (distraction) \
+                                        or toward (concentration) emotional aspects. Internal strategy.
+                                        4. COGNITIVE_CHANGE — Reappraise the meaning of the situation to change \
+                                        its emotional impact. Internal strategy.
+                                        5. RESPONSE_MODULATION — Suppress or amplify the emotional expression \
+                                        after it has been generated. Internal strategy.
+
+                                        """ + SOCIAL_STRATEGIES_PROMPT + """
                                         Strategy selection factors (Petter et al. 2025):
                                         - High intensity emotions favor ATTENTIONAL_DEPLOYMENT (distraction) \
                                         because cognitive resources are overwhelmed
@@ -97,6 +102,7 @@ public class EmotionRegulationGenerationPhase {
 
     private final @Nullable SessionPipeline sessionPipeline;
     private final @Nullable CognitiveLoadEstimator loadEstimator;
+    private final boolean socialRegulationEnabled;
 
     public EmotionRegulationGenerationPhase(@Nullable SessionPipeline sessionPipeline) {
         this(sessionPipeline, null);
@@ -106,6 +112,8 @@ public class EmotionRegulationGenerationPhase {
                                              @Nullable CognitiveLoadEstimator loadEstimator) {
         this.sessionPipeline = sessionPipeline;
         this.loadEstimator = loadEstimator;
+        this.socialRegulationEnabled = ConfigProvider.getConfig()
+                .getOptionalValue("manor.regulation.social.enabled", Boolean.class).orElse(true);
     }
 
     public @Nullable EmotionRegulationResult generate(CognitionTickContext context,
@@ -255,12 +263,19 @@ public class EmotionRegulationGenerationPhase {
     }
 
 
+    private String systemPrompt() {
+        if (socialRegulationEnabled) return SYSTEM_PROMPT;
+        return SYSTEM_PROMPT.replace(SOCIAL_STRATEGIES_PROMPT, "")
+                .replace("- targetAgentId is REQUIRED for social strategies (6-10), null for intrapersonal (1-5)",
+                        "- Social regulation is disabled; choose only strategies 1-5 and set targetAgentId to null");
+    }
+
     private String invokeLlm(CognitionTickContext context, AppraisalResult appraisal,
                               List<EmotionRegulationResult> history, double regulationEffort,
                               double regulationFatigue,
                               @Nullable StrategyFailureSignal failureSignal,
                               @Nullable EmotionRegulationStrategy pinnedStrategy) {
-        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(systemPrompt()));
         var loadEstimate = (loadEstimator != null)
                 ? loadEstimator.estimate(context.agentId(), context.tenantId())
                 : null;
@@ -281,7 +296,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable EmotionRegulationStrategy pinnedStrategy,
                              @Nullable DispositionAxes axes,
                              @Nullable EmotionType dominantEmotionType) {
-        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(systemPrompt()));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -304,7 +319,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable EmotionType dominantEmotionType,
                              @Nullable RegulationDefaults regulationDefaults,
                              @Nullable ShameContext shameContext) {
-        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(systemPrompt()));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -329,7 +344,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable RegulationDefaults regulationDefaults,
                              @Nullable ShameContext shameContext,
                              @Nullable String situationContext) {
-        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(systemPrompt()));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -356,7 +371,7 @@ public class EmotionRegulationGenerationPhase {
                              @Nullable ShameContext shameContext,
                              @Nullable String situationContext,
                              @Nullable Map<String, RegulationTracker.TrajectoryResult> distressTrajectories) {
-        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(SYSTEM_PROMPT));
+        var session = sessionPipeline.openSession("emotion-regulation-" + context.agentId(), AgentSessionInit.of(systemPrompt()));
         var loadEstimate = (loadEstimator != null)
                            ? loadEstimator.estimate(context.agentId(), context.tenantId())
                            : null;
@@ -686,7 +701,7 @@ public class EmotionRegulationGenerationPhase {
         return "minimal";
     }
 
-    private static @Nullable EmotionRegulationResult parseResponse(String response) throws Exception {
+    private @Nullable EmotionRegulationResult parseResponse(String response) throws Exception {
         var jsonStart = response.indexOf('{');
         var jsonEnd = response.lastIndexOf('}');
         if (jsonStart < 0 || jsonEnd <= jsonStart) return null;
@@ -725,10 +740,11 @@ public class EmotionRegulationGenerationPhase {
         String targetAgentId = root.path("targetAgentId").asText(null);
         if ("null".equals(targetAgentId)) targetAgentId = null;
 
-        return new EmotionRegulationResult(
+        var result = new EmotionRegulationResult(
                 strategy, targetEmotions, targetDrives,
                 peakOriginalIntensity, regulatedIntensity, effectiveness,
                 narrative, regulationAxis, environmentalDirective, targetAgentId);
+        return !socialRegulationEnabled && result.isSocialStrategy() ? null : result;
     }
 
     private static List<String> extractStringList(JsonNode root, String field) {
