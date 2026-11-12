@@ -1,5 +1,7 @@
 package io.casehub.neocortex.corpus.management.impl;
 
+import io.casehub.neocortex.corpus.management.ChangeResult;
+import io.casehub.neocortex.corpus.management.CorpusEntryStore;
 import io.casehub.neocortex.rag.CorpusRef;
 import io.casehub.neocortex.rag.ProvenanceRecord;
 import io.casehub.neocortex.rag.ProvenanceStats;
@@ -18,15 +20,17 @@ public class CorpusApiBean implements CorpusApi {
     private final CorpusOutcomeService outcomeService;
     private final CorpusRef corpusRef;
     private final Path      corpusRoot;
+    private final CorpusEntryStore entryStore;
 
     public CorpusApiBean(SearchResource searchResource,
-                          CorpusIndexService indexService,
-                          GardenReindexService reindexService,
-                          SearchProfileStore profileStore,
-                          ProvenanceStore provenanceStore,
-                          CorpusOutcomeService outcomeService,
-                          CorpusRef corpusRef,
-                          Path corpusRoot) {
+                         CorpusIndexService indexService,
+                         GardenReindexService reindexService,
+                         SearchProfileStore profileStore,
+                         ProvenanceStore provenanceStore,
+                         CorpusOutcomeService outcomeService,
+                         CorpusRef corpusRef,
+                         Path corpusRoot,
+                         CorpusEntryStore entryStore) {
         this.searchResource  = searchResource;
         this.indexService    = indexService;
         this.reindexService  = reindexService;
@@ -35,6 +39,7 @@ public class CorpusApiBean implements CorpusApi {
         this.outcomeService  = outcomeService;
         this.corpusRef       = corpusRef;
         this.corpusRoot      = corpusRoot;
+        this.entryStore      = entryStore;
     }
 
     @Override
@@ -63,6 +68,13 @@ public class CorpusApiBean implements CorpusApi {
         if (corpusRoot == null) return null;
         return indexService.entry(corpusRoot, entryId);
     }
+
+    @Override
+    public ChangeResult changes(String corpusId, java.time.Instant since) {
+        var records = entryStore.recentChanges(corpusRef, since);
+        return new ChangeResult(records);
+    }
+
 
     @Override
     public CorpusStatus status(String corpusId) {

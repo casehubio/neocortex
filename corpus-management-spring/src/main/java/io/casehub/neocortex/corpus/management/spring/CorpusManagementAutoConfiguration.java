@@ -1,6 +1,9 @@
 package io.casehub.neocortex.corpus.management.spring;
 
 import com.zaxxer.hikari.HikariDataSource;
+import io.casehub.neocortex.corpus.CorpusReader;
+import io.casehub.neocortex.corpus.CorpusStore;
+import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.corpus.management.CorpusCatalogue;
 import io.casehub.neocortex.corpus.management.CorpusDescriptor;
 import io.casehub.neocortex.corpus.management.CorpusEntry;
@@ -16,11 +19,8 @@ import io.casehub.neocortex.corpus.management.impl.ChainWalkerFederatedSearch;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusCatalogue;
 import io.casehub.neocortex.corpus.management.impl.SqliteCorpusEntryStore;
 import io.casehub.neocortex.rag.CorpusRef;
-import io.casehub.neocortex.corpus.CorpusStore;
-import io.casehub.neocortex.corpus.management.ContentSerializer;
 import io.casehub.neocortex.rag.runtime.IngestionContext;
 import io.casehub.neocortex.rag.runtime.IngestionPipeline;
-import org.springframework.lang.Nullable;
 import io.casehub.neocortex.sqlite.SqliteDataSourceFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,9 +58,10 @@ public class CorpusManagementAutoConfiguration {
                                           IngestionPipeline pipeline,
                                           IngestionContext defaultContext,
                                           @Nullable CorpusStore backendStore,
-                                          @Nullable ContentSerializer serializer) {
+                                          @Nullable ContentSerializer serializer,
+                                          @Nullable CorpusReader corpusReader) {
             return new SqliteCorpusEntryStore(corpusManagementDataSource, pipeline, defaultContext,
-                    backendStore, serializer);
+                                              backendStore, serializer, corpusReader);
         }
 
         @Bean

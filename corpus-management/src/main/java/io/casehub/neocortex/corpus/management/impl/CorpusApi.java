@@ -9,6 +9,9 @@ import io.casehub.platform.api.mcp.McpParamFormat;
 import io.casehub.platform.api.mcp.PlatformMutation;
 import io.casehub.platform.api.mcp.PlatformQuery;
 
+import io.casehub.neocortex.corpus.management.ChangeResult;
+
+import java.time.Instant;
 import java.util.List;
 
 // corpusId parameters are accepted for forward-compatibility with multi-corpus routing.
@@ -33,6 +36,11 @@ public interface CorpusApi {
 
     @PlatformQuery("Fetch a single corpus entry by ID — same shape as search results for consistent agent experience")
     SearchResult entry(@ContextParam("corpusId") String corpusId, String entryId);
+
+    @PlatformQuery("List changes to a corpus since a given timestamp — shows added and modified entries with content previews. "
+                   + "Agent provides a timestamp, system handles cursor management internally.")
+    ChangeResult changes(@ContextParam("corpusId") String corpusId, Instant since);
+
 
     @PlatformQuery("Index status: entry count, corpus path, collection state")
     CorpusStatus status(@ContextParam("corpusId") String corpusId);

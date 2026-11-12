@@ -43,7 +43,7 @@ class SqliteCorpusEntryStoreBackendTest {
         reader = (CorpusReader) backendStore;
         ContentSerializer serializer = new MarkdownContentSerializer();
 
-        store = new SqliteCorpusEntryStore(ds, pipeline, context, backendStore, serializer);
+        store = new SqliteCorpusEntryStore(ds, pipeline, context, backendStore, serializer, null);
     }
 
     @Test
@@ -95,7 +95,7 @@ class SqliteCorpusEntryStoreBackendTest {
         var ds = SqliteDataSourceFactory.create(":memory:", 1, 3000);
         var pipeline = new IngestionPipeline(ingestor);
         var context = new IngestionContext(CORPUS, null, null);
-        var storeNoBackend = new SqliteCorpusEntryStore(ds, pipeline, context, null, null);
+        var storeNoBackend = new SqliteCorpusEntryStore(ds, pipeline, context, null, null, null);
 
         var entry = new CorpusEntry("doc.md", Map.of("title", "Test"), "Body", null);
         storeNoBackend.add(CORPUS, entry);

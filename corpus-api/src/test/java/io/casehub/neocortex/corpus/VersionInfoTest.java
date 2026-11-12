@@ -41,4 +41,18 @@ class VersionInfoTest {
         var info = new VersionInfo(1, Instant.now(), null);
         assertThat(info.source()).isNull();
     }
+
+    @Test
+    void shouldCarryAuthor() {
+        var info = new VersionInfo(1, Instant.now(), "abc123", "Alice");
+        assertThat(info.author()).isEqualTo("Alice");
+    }
+
+    @Test
+    void shouldDefaultAuthorToNull() {
+        var info = new VersionInfo(1, Instant.now(), "abc123");
+        assertThat(info.author()).isNull();
+    }
+
+
 }
