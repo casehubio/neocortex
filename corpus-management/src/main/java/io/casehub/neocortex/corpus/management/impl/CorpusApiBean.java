@@ -34,6 +34,8 @@ public class CorpusApiBean implements CorpusApi {
     private final WebCaptureService webCaptureService;
     private final WebPlatform webPlatform;
     private final WebCaptureConfig webCaptureConfig;
+    // shortcut: screenshot refs live with this facade until WebPlatform accepts them in its queue.
+    private final java.util.Map<String, String> interventionScreenshots = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, java.util.List<ResearchSessionView.FindingSummary>> sessionFindings = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.List<ContributionRecord>                                                                 contributionLog = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -658,7 +660,7 @@ public class CorpusApiBean implements CorpusApi {
     }
 
     @Override
-    public InterventionRequest requestIntervention(String corpusId, String url,
+    public synchronized InterventionRequest requestIntervention(String corpusId, String url,
                                                    String reason, String screenshotRef) {
         if (url == null || url.isBlank()) {
             throw new IllegalArgumentException("url is required");
@@ -666,36 +668,55 @@ public class CorpusApiBean implements CorpusApi {
         if (webPlatform == null || !webPlatform.supports(WebPlatform.InterventionManagement.class)) {
             throw new UnsupportedOperationException("Intervention management not configured");
         }
-        return webPlatform.interventionManagement().request(url, reason, screenshotRef);
+        if (!interventionScreenshots.isEmpty()) { pendingInterventions(corpusId); }
+        String id = webPlatform.interventionManagement().request(url, reason);
+        if (screenshotRef != null) { interventionScreenshots.put(id, screenshotRef); }
+        return new InterventionRequest(id, url, reason, screenshotRef, java.time.Instant.now());
     }
 
     @Override
-    public java.util.List<InterventionRequest> pendingInterventions(String corpusId) {
+    public synchronized java.util.List<InterventionRequest> pendingInterventions(String corpusId) {
         if (webPlatform == null || !webPlatform.supports(WebPlatform.InterventionManagement.class)) {
             return java.util.List.of();
         }
-        return webPlatform.interventionManagement().pending();
+        var pending = webPlatform.interventionManagement().pending();
+        interventionScreenshots.keySet().retainAll(pending.stream()
+                .map(InterventionRequest::id).collect(java.util.stream.Collectors.toSet()));
+        return pending.stream().map(request -> {
+            String screenshot = interventionScreenshots.get(request.id());
+            return screenshot == null ? request : new InterventionRequest(request.id(), request.url(),
+                    request.reason(), screenshot, request.submittedAt());
+        }).toList();
     }
 
     @Override
-    public WebCaptureResult resolveIntervention(String corpusId, String interventionId,
+    public synchronized WebCaptureResult resolveIntervention(String corpusId, String interventionId,
                                                 String resolvedHtml, Integer ttlDays,
                                                 String artifactRef) {
         if (webPlatform == null || !webPlatform.supports(WebPlatform.InterventionManagement.class)) {
             return new WebCaptureResult(null, null, null, null, null, false, 0,
                                         interventionId, "Intervention management not configured");
         }
-        var resolved = webPlatform.interventionManagement().resolve(interventionId);
+        var resolved = pendingInterventions(corpusId).stream()
+                .filter(request -> request.id().equals(interventionId)).findFirst();
         if (resolved.isEmpty()) {
             return new WebCaptureResult(null, null, null, null, null, false, 0,
                                         interventionId, "Intervention not found or expired");
         }
         var request       = resolved.get();
+        if (resolvedHtml == null || resolvedHtml.isBlank()) {
+            return new WebCaptureResult(null, request.url(), null, null, null, false, 0,
+                    interventionId, "Resolved HTML is required");
+        }
         var captureResult = webCapture(corpusId, request.url(), resolvedHtml, ttlDays, artifactRef);
+        if (captureResult.error() == null) {
+            webPlatform.interventionManagement().resolve(interventionId, resolvedHtml);
+            interventionScreenshots.remove(interventionId);
+        }
         return new WebCaptureResult(captureResult.entryId(), captureResult.url(),
                                     captureResult.title(), captureResult.body(), captureResult.fetchedAt(),
                                     captureResult.cached(), captureResult.imageCount(),
-                                    interventionId, null);
+                                    interventionId, captureResult.error());
     }
 
     @Override

@@ -6,13 +6,16 @@ import io.casehub.connectors.web.ref.InMemoryWebBackend;
 import io.casehub.connectors.web.ref.RefWebPlatform;
 import io.casehub.connectors.web.spi.WebPlatform;
 import io.casehub.neocortex.rag.CorpusRef;
+import io.casehub.neocortex.corpus.management.CorpusEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class InterventionIntegrationTest {
 
@@ -62,6 +65,59 @@ class InterventionIntegrationTest {
         assertThat(result.entryId()).isNotNull();
         assertThat(result.url()).isEqualTo("https://example.com/locked");
         assertThat(store.entries).hasSize(1);
+        assertThat(webBackend.fetchHtml("https://example.com/locked")).isEqualTo("<html><body>Unlocked</body></html>");
+    }
+
+    @Test
+    void failedCaptureKeepsInterventionPendingForRetry() {
+        var fail = new AtomicBoolean(true);
+        var retryStore = new InMemoryEntryStoreStub() {
+            @Override public String add(CorpusRef corpus, CorpusEntry entry) {
+                if (fail.get()) { throw new IllegalStateException("storage unavailable"); }
+                return super.add(corpus, entry);
+            }
+        };
+        var retryBean = new CorpusApiBean(retryStore, CORPUS, webPlatform);
+        var intervention = retryBean.requestIntervention("test-corpus", "https://example.com/retry", "Login", "shot.png");
+        String html = "<html><body>Resolved</body></html>";
+
+        assertThatThrownBy(() -> retryBean.resolveIntervention("test-corpus", intervention.id(), html, 30, null))
+                .isInstanceOf(IllegalStateException.class).hasMessage("storage unavailable");
+        assertThat(retryBean.pendingInterventions("test-corpus")).singleElement()
+                .satisfies(request -> assertThat(request.screenshotRef()).isEqualTo("shot.png"));
+        assertThat(webBackend.hasUrl("https://example.com/retry")).isFalse();
+
+        fail.set(false);
+        assertThat(retryBean.resolveIntervention("test-corpus", intervention.id(), html, 30, null).error()).isNull();
+        assertThat(retryBean.pendingInterventions("test-corpus")).isEmpty();
+        assertThat(webBackend.fetchHtml("https://example.com/retry")).isEqualTo(html);
+        assertThat(retryStore.entries).hasSize(1);
+    }
+
+    @Test
+    void blankResolvedHtmlKeepsInterventionPending() {
+        var request = bean.requestIntervention("test-corpus", "https://example.com/locked", "Login", null);
+        assertThat(bean.resolveIntervention("test-corpus", request.id(), " ", 30, null).error())
+                .isEqualTo("Resolved HTML is required");
+        assertThat(bean.pendingInterventions("test-corpus")).hasSize(1);
+        assertThat(store.entries).isEmpty();
+    }
+
+    @Test
+    void captureErrorIsReturnedWithoutConsumingIntervention() {
+        var failedBean = new CorpusApiBean(store, CORPUS, webPlatform) {
+            @Override
+            public WebCaptureResult webCapture(String corpusId, String url, String html, Integer ttl, String artifact) {
+                return new WebCaptureResult(null, url, null, null, null, false, 0, null, "capture failed");
+            }
+        };
+        var request = failedBean.requestIntervention("test-corpus", "https://example.com/locked", "Login", null);
+        var result = failedBean.resolveIntervention("test-corpus", request.id(), "<html>Unlocked</html>", 30, null);
+
+        assertThat(result.error()).isEqualTo("capture failed");
+        assertThat(result.interventionId()).isEqualTo(request.id());
+        assertThat(failedBean.pendingInterventions("test-corpus")).hasSize(1);
+        assertThat(webBackend.hasUrl("https://example.com/locked")).isFalse();
     }
 
     @Test
@@ -96,6 +152,9 @@ class InterventionIntegrationTest {
         bean.resolveIntervention("test-corpus",
             intervention.id(), "<html>Resolved</html>", 30, null);
         assertThat(bean.pendingInterventions("test-corpus")).isEmpty();
+        assertThat(bean.resolveIntervention("test-corpus", intervention.id(), "replacement", 30, null).error())
+                .contains("not found or expired");
+        assertThat(webBackend.fetchHtml("https://example.com/locked")).isEqualTo("<html>Resolved</html>");
     }
 
     @Test

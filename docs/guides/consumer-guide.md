@@ -286,6 +286,8 @@ Provide pre-rendered HTML (from Playwright `page.content()`) for JavaScript-heav
 
 Interventions expire after a configurable timeout (default 10 minutes). Expired or unknown IDs return an error result with a non-null `error` field.
 
+Resolution requires nonblank post-resolution HTML. Capture failures leave the request pending for retry; successful capture forwards the HTML to `WebPlatform` and removes the request. Screenshot references are retained by the `CorpusApiBean` instance while pending, so reuse the same facade throughout the intervention lifecycle.
+
 **TTL curation** — `WebCacheCurationService.purgeExpired()` removes entries past their TTL. Entries recently accessed via retrieval are renewed (not purged). Default TTL is 30 days; override per-capture via `ttlDays`.
 
 ### Inline Entity Tokenisation (entity-token)
