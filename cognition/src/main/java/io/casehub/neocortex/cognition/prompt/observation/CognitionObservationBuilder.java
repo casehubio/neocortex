@@ -23,9 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class CognitionObservationBuilder {
+
+    private static final Logger LOG = Logger.getLogger(CognitionObservationBuilder.class.getName());
 
     // CAPS resting activation weight (Mischel & Shoda 1995, Higgins 1996 chronic accessibility)
     private static final double OVERLAP_THRESHOLD = 0.15;
@@ -365,7 +368,11 @@ public class CognitionObservationBuilder {
             Collection<String> nearbyAgentIds) {
         if (mindMapStore == null || tenantId == null) { return eligible; }
         if (situationContext.isEmpty()) {
-            if (situationClassifier != null) { lastClassifierActive = false; }
+            if (situationClassifier != null) {
+                lastClassifierActive = false;
+                LOG.warning(() -> "[appraisal-filter] " + agentId
+                        + " | empty classification; fallback=unfiltered | drives=" + eligible.size());
+            }
             return eligible;
         }
         lastClassifierActive = true;
