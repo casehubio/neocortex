@@ -37,6 +37,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      # shortcut: bootstrap unpublished WebPlatform modules; remove once their snapshots are published.
+      - name: Check out WebPlatform dependencies
+        uses: actions/checkout@v4
+        with:
+          repository: casehubio/connectors
+          ref: 4dc0f52fe370c8e567012dec66f071960fc9c2d2
+          path: .upstream/connectors
+          persist-credentials: false
+
+      - name: Install WebPlatform dependencies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn --batch-mode -f .upstream/connectors/pom.xml -pl web-ref -am install -DskipTests
+
       - name: Build
         if: github.event_name == 'pull_request'
         env:
