@@ -1988,7 +1988,7 @@ public abstract class CbrRecordStoreContractTest {
 
     @Test
     void recordOutcomeWithLearningRateOverride_usesOverride() {
-        registerDefaultSchema();
+        store().registerSchema(CbrRecordSchema.of("diagnosis", FeatureField.categorical("severity")));
         store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.5),
                                             Map.of("severity", FeatureValue.string("HIGH")), null, null),
                       "diagnosis", ENTITY, CBR, TENANT, "case-lr-ovr", Path.root());
@@ -2008,7 +2008,7 @@ public abstract class CbrRecordStoreContractTest {
 
     @Test
     void recordOutcomeWithNullOverride_fallsBackToSchemaRate() {
-        registerDefaultSchema();
+        store().registerSchema(new CbrRecordSchema("diagnosis", List.of(FeatureField.categorical("severity")), 0.35));
         store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.5),
                                             Map.of("severity", FeatureValue.string("HIGH")), null, null),
                       "diagnosis", ENTITY, CBR, TENANT, "case-lr-null", Path.root());
@@ -2022,8 +2022,8 @@ public abstract class CbrRecordStoreContractTest {
                     .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
             CbrFeatureRecord.class);
         double confidence = results.getFirst().cbrRecord().confidence().value();
-        // EMA with default LR=0.2: 0.8 * 0.5 + 0.2 * 1.0 = 0.6
-        assertThat(confidence).isCloseTo(0.6, within(0.01));
+        // EMA with schema LR=0.35: 0.65 * 0.5 + 0.35 * 1.0 = 0.675
+        assertThat(confidence).isCloseTo(0.675, within(0.01));
     }
 
     @Test
