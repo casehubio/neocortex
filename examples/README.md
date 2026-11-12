@@ -1,15 +1,17 @@
 # casehub-neocortex Examples
 
-Two example modules demonstrating all casehub-neocortex capabilities across tech, news, and legal domains.
+Eleven example modules demonstrate neural inference, RAG, CBR, knowledge modeling, cognition and corpus management. The [capability-to-test index](../docs/guides/examples-index.md) maps APIs to named tests and lists example coverage gaps.
 
 ## Quick Start
 
+Use Java 21 or a compatible JDK.
+
 ```bash
 # Smoke tests — no models, no Docker, seconds
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn clean test -Pexamples-smoke
+mvn clean test -Pexamples-smoke
 
 # Full tests — downloads real ONNX models, runs Testcontainers Qdrant
-JAVA_HOME=$(/usr/libexec/java_home -v 26) mvn clean test -Pexamples
+mvn clean test -Pexamples
 ```
 
 ## Modules
@@ -36,46 +38,29 @@ Quarkus + Testcontainers Qdrant — end-to-end corpus ingestion and hybrid searc
 | `ZipCorpusIngestDemo` | ZIP storage → tombstones → rollover → `TOMBSTONES_ONLY` compaction |
 | `HybridSearchDemo` | Dense + SPLADE sparse → RRF fusion → cross-encoder rerank → top-5 results |
 
+### example-cbr
+
+Six domain examples: AML investigations, clinical safety, PR reviews, IoT situations, contractor work and battle plans. Smoke tests use in-memory CBR; integration tests exercise Qdrant retrieval and plan persistence.
+
+### example-knowledge-model
+
+An ordered [knowledge-model walkthrough](example-knowledge-model/README.md) covers the Thing lifecycle, typed entities, trait emergence, `is()` / `as()`, dynamic types, TypeRegistry schemas and graph queries.
+
+### Additional walkthroughs
+
+| Module | Consumer workflow |
+|---|---|
+| [`example-cognitive-index`](example-cognitive-index) | Per-agent overlays, perspectival resolution and social comparison |
+| [`example-agent-memory`](example-agent-memory) | Experiences, mood, engagement and personality-weighted memory |
+| [`example-cbr-advanced`](example-cbr-advanced) | Temporal similarity, decay, hierarchical scope, outcomes and supersession |
+| [`example-rag-analytics`](example-rag-analytics) | Retrieval statistics, query clusters, fusion and calibration |
+| [`example-mindmap-intelligence`](example-mindmap-intelligence) | Graph analysis, communities, staleness and recurring thoughts |
+| [`example-goal-cognition`](example-goal-cognition) | Goal graphs, expansion, pruning, affect and prioritization |
+| [`example-corpus-management`](example-corpus-management) | Domain corpus lifecycles and federated search; enabled by `examples-smoke` |
+
 ## Capability Coverage
 
-| Capability | Text Analysis | RAG Pipeline |
-|---|:---:|:---:|
-| **Inference Engine** | | |
-| `OnnxInferenceModel` — load and run | x | x |
-| `InferenceInput.of()` — single text | | x |
-| `InferenceInput.pair()` — text pairs | | x |
-| `InMemoryInferenceModel` (smoke tests) | x | x |
-| **Task Wrappers** | | |
-| `NliClassifier` | x | |
-| NLI-based zero-shot classification | x | |
-| `TextClassifier` | x | |
-| `ScalarRegressor` | smoke only | |
-| `CrossEncoderReranker` | x | x |
-| `SparseEmbedder` | x | x |
-| **Quarkus Integration** | | |
-| `@Inference` CDI qualifier | | x |
-| `InferenceModelProducer` (config-driven) | | x |
-| **RAG Retrieval** | | |
-| Dense embedding (LangChain4j) | | x |
-| Sparse embedding (SPLADE) | | x |
-| Hybrid dense+sparse search | | x |
-| RRF fusion (Qdrant server-side) | | x |
-| Two-stage retrieval (retrieve then rerank) | | x |
-| `EmbeddingIngestor` | | x |
-| `CorpusIngestionService.processBinding()` | | x |
-| `CorpusIngestionBinding` (wiring record) | | x |
-| `MetadataExtractor` / `YamlFrontmatterExtractor` | | x |
-| `CursorStore` (incremental ingestion) | | x |
-| Reconciliation | | x |
-| **Corpus Storage** | | |
-| `FlatCorpusStore` | | x |
-| `ZipCorpusStore` | | x |
-| `ChangeSource` (change detection) | | x |
-| Compaction (`TOMBSTONES_ONLY`) | | x |
-| **Cross-cutting** | | |
-| Multi-domain data (tech, news, legal) | x | x |
-| Real ONNX model inference (full profile) | x | x |
-| Testcontainers Qdrant | | x |
+The [capability-to-test index](../docs/guides/examples-index.md) is the cross-module coverage matrix. Each row links an API or consumer workflow to a named test method. Demo-only coverage and capabilities without an example are listed separately there.
 
 ## Testing Strategy
 
