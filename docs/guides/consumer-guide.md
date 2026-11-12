@@ -728,3 +728,4 @@ Properties marked with `†` are **build-time** (`@IfBuildProperty`) — they ga
 |----------|---------|-------------|
 | `casehub.cognitive.profiles-dir` | — | Directory to watch for cognitive profile YAML files |
 | `casehub.cognitive.rules-dir` | — | Directory to watch for rule YAML files |
+| `manor.regulation.social.enabled` | `true` | Allow interpersonal emotion regulation. Set `false` before constructing the regulation generation phase to offer only the five intrapersonal strategies; social results returned by the model are rejected. Other emotion regulation remains enabled. |
