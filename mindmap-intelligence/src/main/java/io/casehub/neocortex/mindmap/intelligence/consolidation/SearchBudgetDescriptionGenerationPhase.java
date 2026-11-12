@@ -111,7 +111,7 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
 
             String agentId = defaults.agentId();
             SearchBudgetConfig config = defaults.searchBudgetConfig();
-            boolean hasExtremeFeatures = config.extremeInteraction() != null || config.fatigue() != null;
+            boolean hasExtremeFeatures = config.extremeInteraction() != null || config.fatigueEffects() != null;
 
             if (sessionPipeline != null) {
                 agentConfigs.add(Map.entry(agentId, defaults));
@@ -151,7 +151,7 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
                 LOG.log(Level.WARNING, "LLM search budget description generation failed", e);
                 for (var entry : agentConfigs) {
                     var config = entry.getValue().searchBudgetConfig();
-                    boolean extreme = config.extremeInteraction() != null || config.fatigue() != null;
+                    boolean extreme = config.extremeInteraction() != null || config.fatigueEffects() != null;
                     crystallise(entry.getKey(), tenantId, generateFallback(config),
                             extreme ? generateExtremeFallback(config) : null, null);
                 }
@@ -220,14 +220,14 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
                     mod.lowComprehensionLateralityBoost(),
                     mod.highComprehensionConvergenceBoost()));
         }
-        if (config.extremeInteraction() != null || config.fatigue() != null) {
+        if (config.extremeInteraction() != null || config.fatigueEffects() != null) {
             sb.append(String.format("\nExtreme peak tolerance: %.2f", config.extremePeak()));
         }
-        if (config.fatigue() != null) {
-            var f = config.fatigue();
+        if (config.fatigueEffects() != null) {
+            var f = config.fatigueEffects();
             sb.append(String.format(
-                    "\nFatigue effects: depth=%.2f, breadth=%.2f, laterality=%.2f, convergence=%.2f, maxTicks=%d",
-                    f.depthEffect(), f.breadthEffect(), f.lateralityEffect(), f.convergenceEffect(), f.maxTicks()));
+                    "\nFatigue effects: depth=%.2f, breadth=%.2f, laterality=%.2f, convergence=%.2f",
+                    f.depthEffect(), f.breadthEffect(), f.lateralityEffect(), f.convergenceEffect()));
         }
         if (capacityConfig != null) {
             sb.append(String.format(
@@ -250,8 +250,8 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
 
     static String generateExtremeFallback(SearchBudgetConfig config) {
         var sb = new StringBuilder();
-        if (config.fatigue() != null) {
-            var f = config.fatigue();
+        if (config.fatigueEffects() != null) {
+            var f = config.fatigueEffects();
             if (f.depthEffect() > -0.05) {
                 sb.append("Pressure sharpens you. Your focus narrows to essential threads and holds there. ");
             } else {

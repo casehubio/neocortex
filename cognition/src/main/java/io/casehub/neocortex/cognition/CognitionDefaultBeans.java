@@ -1,6 +1,8 @@
 package io.casehub.neocortex.cognition;
 
 import io.casehub.neocortex.cognition.belief.BeliefRevisionConfig;
+import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
+import io.casehub.neocortex.cognition.core.DefaultCognitiveResourcePool;
 import io.casehub.neocortex.cognition.core.CognitiveImpact;
 import io.casehub.neocortex.cognition.core.InteractionMapper;
 import io.casehub.neocortex.cognition.core.SubjectResolver;
@@ -20,6 +22,7 @@ import io.casehub.neocortex.cognition.personality.PersonalityEvolutionConfig;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.platform.agent.session.SessionPipeline;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,6 +44,13 @@ public class CognitionDefaultBeans {
     @Singleton
     java.time.Clock clock() {
         return java.time.Clock.systemUTC();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    CognitiveResourcePool cognitiveResourcePool(CognitiveDefaultsRegistry registry) {
+        return new DefaultCognitiveResourcePool(registry);
     }
 
 

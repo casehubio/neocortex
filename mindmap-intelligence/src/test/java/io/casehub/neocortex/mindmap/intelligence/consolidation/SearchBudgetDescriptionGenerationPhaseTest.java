@@ -1,6 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
+import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -138,7 +139,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
         var store = newStore();
         var config = SearchBudgetConfig.defaults()
                                        .withExtremeInteraction(io.casehub.neocortex.cognitive.ExtremeInteractionConfig.defaults())
-                                       .withFatigue(io.casehub.neocortex.cognitive.FatigueConfig.defaults());
+                                       .withFatigueEffects(SearchFatigueEffects.defaults());
         var defaults = CognitiveDefaults.empty("agent1")
                                         .withTenantId("tenant1")
                                         .withSearchBudgetConfig(config);
@@ -181,7 +182,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
     @Test
     void extreme_fallback_generates_coherent_prose() {
         var config = SearchBudgetConfig.defaults()
-                                       .withFatigue(io.casehub.neocortex.cognitive.FatigueConfig.defaults());
+                                       .withFatigueEffects(SearchFatigueEffects.defaults());
         String fallback = SearchBudgetDescriptionGenerationPhase.generateExtremeFallback(config);
         assertNotNull(fallback);
         assertFalse(fallback.isBlank());
