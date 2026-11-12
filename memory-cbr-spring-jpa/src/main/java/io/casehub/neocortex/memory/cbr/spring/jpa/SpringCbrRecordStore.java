@@ -224,6 +224,12 @@ public class SpringCbrRecordStore implements CbrRecordStore {
     @Override
     @Transactional
     public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
+        recordOutcome(caseId, outcome, tenantId, null);
+    }
+
+    @Override
+    @Transactional
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId, Double learningRateOverride) {
         var results = repo.findByCaseIdAndTenantId(caseId, tenantId);
         if (results.isEmpty()) { return; }
         CbrRecordEntity entity = results.getFirst();
@@ -231,7 +237,8 @@ public class SpringCbrRecordStore implements CbrRecordStore {
             return;
         }
         CbrRecordSchema schema = schemas.get(entity.caseType);
-        double lr = (schema != null && schema.learningRate() != null)
+        double lr = learningRateOverride != null ? learningRateOverride
+                : (schema != null && schema.learningRate() != null)
                     ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
         io.casehub.neocortex.cognitive.Confidence newConf = CbrOutcome.adjustConfidence(
                 entity.confidence != null ? io.casehub.neocortex.cognitive.Confidence.unknown(entity.confidence) : null,

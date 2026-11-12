@@ -229,6 +229,12 @@ public class JpaCbrRecordStore implements CbrRecordStore {
     @Override
     @Transactional
     public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
+        recordOutcome(caseId, outcome, tenantId, null);
+    }
+
+    @Override
+    @Transactional
+    public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId, Double learningRateOverride) {
         var results = em.createQuery(
                                 "SELECT c FROM CbrRecordEntity c WHERE c.caseId = :caseId AND c.tenantId = :tenantId",
                                 CbrRecordEntity.class)
@@ -242,7 +248,8 @@ public class JpaCbrRecordStore implements CbrRecordStore {
             return;
         }
         CbrRecordSchema schema = schemas.get(entity.caseType);
-        double lr = (schema != null && schema.learningRate() != null)
+        double lr = learningRateOverride != null ? learningRateOverride
+                : (schema != null && schema.learningRate() != null)
                     ? schema.learningRate() : CbrOutcome.DEFAULT_LEARNING_RATE;
         io.casehub.neocortex.cognitive.Confidence newConf = CbrOutcome.adjustConfidence(
                 entity.confidence != null ? io.casehub.neocortex.cognitive.Confidence.unknown(entity.confidence) : null,
