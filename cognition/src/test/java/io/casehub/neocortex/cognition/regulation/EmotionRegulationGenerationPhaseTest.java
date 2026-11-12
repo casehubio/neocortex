@@ -38,7 +38,7 @@ class EmotionRegulationGenerationPhaseTest {
     void setUp() {
         sessionPipeline = mock(SessionPipeline.class);
         managedSession = mock(ManagedSession.class);
-        when(sessionPipeline.openSession(eq("emotion-regulation"), any(AgentSessionInit.class)))
+        when(sessionPipeline.openSession(eq("emotion-regulation-a1"), any(AgentSessionInit.class)))
                 .thenReturn(managedSession);
         context = new CognitionTickContext("a1", "t1", null, (a, t) -> Set.of());
     }
