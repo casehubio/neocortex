@@ -5,60 +5,75 @@ date: 2026-11-09
 entry_type: article
 subtype: diary
 projects: [casehubio/neocortex]
-tags: [architecture, corpus, llm-agents, knowledge-management, provenance, web-capture]
+tags: [architecture, corpus, llm-agents, knowledge-management, web-capture, library-reuse]
 series: issue-763-cognitive-knowledge-management
 ---
 
 # The Corpus That Grows Itself
 
-The write surface is complete. Annotations landed, relationships landed, and the corpus now tracks who wrote every entry and when they last touched it. That last piece — audit fields — sounds like housekeeping, but it changes something fundamental about how a multi-agent corpus works.
+Every research session involves web searches. An agent fetches a documentation page, reads an API reference, follows a link to a paper. That knowledge informs the session's work and then evaporates. The next agent investigating the same topic re-fetches the same pages, re-processes the same content, re-discovers the same things.
 
-## Who wrote this, and should I trust it?
+The waste compounds in a multi-agent system. Five agents researching overlapping topics each make independent HTTP requests to the same URLs, each parse the same HTML, each produce ephemeral results that die with the session. The knowledge exists — it just never persists.
 
-In a single-agent system, provenance is trivial. One agent writes, one agent reads. But the moment multiple agents share a corpus, every entry carries an implicit question: who wrote this?
+## Corpus-first fetch
 
-An entry deposited during a deep research session, reviewed and annotated by two subsequent agents, carries different weight than one written as a quick observation that nothing ever corroborated. Without audit fields, those two entries look identical. The corpus stores the knowledge but not the chain of custody.
+The fix is a single tool: `webCapture(url)`. An agent calls it instead of raw web fetch. The tool checks the corpus first — if a previous agent already captured this URL and the content is still fresh, return the cached version. No network, no parsing, no compute. Cache miss triggers the full pipeline: fetch, parse, store, index.
 
-The fix is structural. Every `add()` and `update()` call now accepts an actor identity. The store records who created the entry, when, who last modified it, and when. This flows through to the entry response — when an agent retrieves a finding, the audit trail is right there in the metadata.
+The key insight is where the cache lives. A browser cache is per-user, per-machine. A corpus cache is shared across every agent, every session, every runtime. A page that one agent fetched last Tuesday is instantly available to a different agent running today. The corpus is the cache.
 
-![Provenance chain](svg/corpus-provenance-chain.svg)
+![Web capture pipeline — library reuse architecture](svg/web-knowledge-cache-flow.svg)
 
-This matters for a specific practical reason: trust calibration. An agent deciding whether to rely on a corpus entry can now weigh the source. An entry written by a research agent and subsequently updated by a domain expert carries more authority than an unattributed entry with no modification history. The audit trail doesn't make the decision — the agent does — but it provides the evidence to decide on.
+URL dedup is the gatekeeper. Every web-cache entry carries a `fetched_at` timestamp and a `ttl_days` value. Before storing anything, the service queries the corpus by URL using SQLite's `json_extract` on the metadata blob. If a fresh entry exists, the caller gets back the cached content immediately. If the entry exists but has expired, a new version is created and linked to the old one via an `updates` relationship — the versioned chain preserves history without polluting search results.
 
-## The metadata problem
+## The parser that didn't need writing
 
-Audit fields exposed a deeper issue. The corpus stores metadata as an untyped `Map<String, Object>` — a bag of key-value pairs with no schema enforcement. That works when one type of document goes in. It fails when the corpus holds research papers alongside web captures alongside technical specs.
+The first implementation of the HTML parser was hand-rolled. Jsoup for DOM parsing, a content-density scoring algorithm inspired by Mozilla's Readability.js for article extraction, and a tree walker that converted HTML elements to positional markdown one tag at a time. Headings, lists, tables, blockquotes, code blocks, images, links, inline formatting — all implemented from scratch. It worked. It was 314 lines.
 
-An academic paper needs `authors` (a list), `published_date` (a date), `journal`, `doi`. A web capture needs `url`, `fetched_at`, `http_status`, `content_type`. A technical spec needs `version`, `stakeholders`. These are all "metadata" but they have nothing in common beyond a few shared fields like `title` and `tags`.
+It was also reinventing two well-solved problems.
 
-The consequence is practical: you can't reliably filter search results by metadata fields when those fields might be a string in one entry and a list in another, or named `author` in one and `authors` in the next. Schema enforcement at write time is the only way to make metadata queryable at read time. Different document types register different schemas. Shared base fields are inherited. Validation catches mismatches before they pollute the index.
+Readability4J is a JVM port of Mozilla's Readability.js — the same algorithm that powers Firefox Reader View. It handles the messy reality of web pages: navigation bars, ad blocks, cookie banners, sidebars, footers. It has been tested against millions of web pages over years. My content-density scorer was a naive approximation of what that project refined through sustained, real-world iteration.
 
-This isn't a hypothetical problem. The moment the corpus starts ingesting web captures at scale — different content types, different metadata shapes, different quality levels — untyped metadata becomes unsearchable metadata. The schema system has to be in place before that happens.
+Flexmark's HTML-to-markdown converter handles the structural conversion: headings, nested lists, table alignment, inline formatting, code blocks. It handles edge cases I hadn't thought about yet and wouldn't have found until production traffic hit them.
 
-## The corpus that captures everything
+The rewrite replaced 314 lines with 131. But the line count isn't the point. The custom code that remained is the integration layer — the part that is genuinely specific to this system. Setext-to-ATX heading conversion (flexmark defaults to `===` underlines; the structural chunker needs `#` prefixes). Positional markdown annotations (`#@ page:`, `#@ table:`, `#@ figure:`) injected by scanning the converted output. Metadata extraction combining Readability4J's article metadata with Jsoup fallbacks for meta tags. Boilerplate cleanup as a safety net after Readability4J's extraction.
 
-The deeper question is where the corpus entries come from. So far, every entry has been explicitly written — an agent calls `recordFinding` or `storeFinding` with deliberate intent. The corpus grows because someone decided to put something in it.
+That's the correct distribution of effort. Established libraries handle the general problem. Custom code handles the system-specific integration. The ratio should be heavily weighted toward the former.
 
-What if it grew from the agents' natural behaviour instead?
+## SPI decoupling
 
-Every research session involves web searches. An agent fetches a paper, reads a documentation page, follows a reference link. That knowledge informs the session's work and then evaporates. The next agent investigating the same topic re-fetches the same pages, re-processes the same content, re-discovers the same things.
+The parser module carries heavy dependencies — Tika, PDFBox, POI for PDF and DOCX parsing, plus Readability4J, Flexmark, and Jsoup for HTML. The corpus management module — where the MCP tool lives — should not transitively depend on any of them.
 
-The web knowledge cache inverts this. Every web page an agent visits becomes a corpus entry automatically. The fetch goes through a `webCapture` tool that checks the corpus first — if someone already fetched this page and it's still fresh, return the cached version. No network, no re-processing. If it's a cache miss, Playwright renders the page in a headless browser (real browser, not a bot that gets blocked), the HTML parser extracts clean article content via Readability.js, and the result goes into the corpus as a searchable entry.
+The solution is a one-method SPI:
 
-![Web knowledge cache flow](svg/web-knowledge-cache-flow.svg)
+```java
+@FunctionalInterface
+public interface HtmlToMarkdownParser {
+    String parse(String html, String sourceUrl);
+}
+```
 
-Three representations are stored for each capture. A PDF snapshot preserves exactly what the page looked like — visual fidelity for future reference. A reader-view extraction preserves the semantic structure. And a positional markdown version goes into the RAG pipeline for search and retrieval. Different representations serve different needs. The markdown is for finding; the PDF is for verifying.
+The SPI lives in `corpus-management-api`. The implementation lives in `corpus-management-parsers`. When the parsers module is on the classpath, it provides the implementation. When it isn't, the MCP tool stores HTML as-is. No compile-time coupling, no transitive dependency chains, no classpath pollution.
 
-## Access patterns as curation
+This is the same CDI `Instance<T>` pattern used throughout the platform — optional capabilities that activate by classpath presence rather than configuration. The corpus management module never imports a class from the parsers module. It asks the CDI container for an `HtmlToMarkdownParser` and gracefully handles absence.
 
-The interesting design decision is curation. A static corpus is curated by humans — someone reviews entries before they go in. An agent-fed corpus uses lifecycle states as a quality mechanism. But a web cache that captures every page an agent visits will accumulate noise fast. Most fetched pages are glanced at once and never consulted again.
+## Access as curation
 
-The answer is TTL-based curation with access-renewal. Every cached entry has a time-to-live — thirty days by default. The retrieval tracker, which already records every agent's access to every document, serves as the curation signal. If any agent retrieves the entry within its TTL, the clock resets. Useful content stays alive because agents keep finding it useful. Content that nothing ever retrieves again ages out silently.
+A web cache that captures every page an agent visits accumulates noise. Most fetched pages are glanced at once and never consulted again. Without curation, the cache degrades search quality — more entries means more irrelevant results competing for attention.
 
-This works specifically because the platform is multi-agent. A page that five independent agents in separate sessions all find useful is clearly worth keeping. The access pattern across agents is a stronger quality signal than any single agent's curation judgment. The corpus self-curates through aggregate use.
+The curation signal is already being collected. The retrieval tracker — built for RAG quality measurement — records every time any agent retrieves any document from the corpus. That access data is exactly the curation signal a cache needs.
 
-No scheduled curation task. No manual review. No LLM cooperation required. The cache works like a browser cache — the difference being that access from any agent, in any session, on any runtime, counts toward keeping the entry alive.
+![TTL curation — access renewal](svg/web-cache-ttl-curation.svg)
 
-The practical architecture is seven issues deep: an HTML parser, a web capture store with URL dedup, an MCP integration point, PDF archiving, TTL curation, image handling, and a captcha inbox for sites that fight back. The first consumer is Claude Code — agents call `webCapture(url)` instead of raw web fetch, and the corpus silently accumulates everything they've ever looked at.
+Every web-cache entry has a TTL — thirty days by default. The curation service scans web-cache entries and checks whether any agent retrieved them within their TTL window. If so, the entry is renewed — the access proves its continued usefulness. If no agent has touched it since capture, and the TTL has passed, the entry is evicted.
 
-A knowledge system that grows from use, curates through access patterns, and makes every agent's research available to every future agent. The corpus that couldn't grow now grows itself.
+The multi-agent property is what makes this work. A page that five independent agents in separate sessions all find useful is clearly worth keeping. One agent's search patterns might be idiosyncratic; five agents' overlapping retrievals are a strong quality signal. Archived entries are exempt — explicit curation decisions override automatic eviction.
+
+No scheduled curation review. No LLM judgment calls. The cache works like a browser cache scaled across agents — content that earns its place stays; content that doesn't, doesn't.
+
+## What grows from this
+
+A knowledge system that accumulates from use changes what's possible for multi-agent research. Each session's web research becomes available to every future session. Topics that multiple agents investigate build rich, deduplicated coverage over time. The corpus doesn't just store what someone put in it — it grows from the collective activity of every agent that uses it.
+
+The practical architecture is five components: an HTML parser built on established extraction libraries, a store with URL dedup and TTL-aware versioning, an MCP tool that makes the cache invisible to the agent, optional PDF archiving for visual fidelity, and access-renewal curation that keeps the useful and evicts the noise.
+
+An agent that calls `webCapture(url)` doesn't know or care whether the content comes from the network or the corpus. That's the point. The cache is an implementation detail. The knowledge persistence is the feature.

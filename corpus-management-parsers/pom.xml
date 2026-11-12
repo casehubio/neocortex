@@ -12,7 +12,7 @@
 
   <artifactId>casehub-neocortex-corpus-management-parsers</artifactId>
   <name>CaseHub Neocortex - Corpus Management Parsers</name>
-  <description>Document parsing pipeline — PDF, DOCX, image to positional markdown with structural annotations.</description>
+  <description>Document parsing pipeline — HTML, PDF, DOCX, image to positional markdown with structural annotations.</description>
 
   <dependencies>
     <dependency>
@@ -36,6 +36,27 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- Readability4J — article extraction from noisy HTML (JVM port of Mozilla Readability.js) -->
+    <dependency>
+      <groupId>net.dankito.readability4j</groupId>
+      <artifactId>readability4j</artifactId>
+      <version>1.0.8</version>
+    </dependency>
+
+    <!-- Flexmark — HTML to markdown conversion -->
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-html2md-converter</artifactId>
+      <version>0.64.8</version>
+    </dependency>
+
+    <!-- Jsoup — fallback HTML parsing when Readability4J can't extract article -->
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.23.2</version>
     </dependency>
 
     <!-- POI comes transitively from Tika 2.9.2 (poi-ooxml 5.2.5) — used for DOCX parsing -->

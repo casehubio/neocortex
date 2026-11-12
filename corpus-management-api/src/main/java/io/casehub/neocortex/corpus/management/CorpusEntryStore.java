@@ -67,5 +67,7 @@ public interface CorpusEntryStore {
         return java.util.Map.of();
     }
 
-
+    default List<CorpusEntry> findByMetadataField(CorpusRef corpus, String key, String value) {
+        return List.of();
+    }
 }
