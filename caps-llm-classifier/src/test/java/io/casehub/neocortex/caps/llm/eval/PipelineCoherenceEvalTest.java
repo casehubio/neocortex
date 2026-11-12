@@ -4,7 +4,7 @@ import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentDisposition;
 import io.casehub.eidos.api.DispositionValue;
 import io.casehub.neocortex.caps.llm.eval.CoherenceJudge.CoherenceScore;
-import io.casehub.neocortex.caps.llm.eval.CoherenceJudge.SingleTierCoherenceJudge;
+import io.casehub.neocortex.caps.llm.eval.CoherenceJudge.TwoTierCoherenceJudge;
 import io.casehub.neocortex.caps.llm.eval.CoherenceJudge.StageTransition;
 import io.casehub.neocortex.cognition.appraisal.LlmAppraisalStrategy;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
@@ -56,7 +56,7 @@ class PipelineCoherenceEvalTest {
     void setUp() {
         agentProvider = EvalTestSupport.agentProvider();
         sessionPipeline = EvalTestSupport.sessionPipeline();
-        judge = new SingleTierCoherenceJudge(agentProvider);
+        judge = new TwoTierCoherenceJudge(agentProvider);
     }
 
     @Test

@@ -18,6 +18,23 @@ interface CoherenceJudge {
 
     record CoherenceScore(double score, String reasoning) {}
 
+    class TwoTierCoherenceJudge implements CoherenceJudge {
+
+        private final SingleTierCoherenceJudge haiku;
+        private final SingleTierCoherenceJudge opus;
+
+        TwoTierCoherenceJudge(AgentProvider agentProvider) {
+            haiku = new SingleTierCoherenceJudge(agentProvider, "haiku");
+            opus = new SingleTierCoherenceJudge(agentProvider, "opus");
+        }
+
+        @Override
+        public CoherenceScore judge(StageTransition transition) {
+            var score = haiku.judge(transition);
+            return score.score() >= 1.5 && score.score() <= 3.5 ? opus.judge(transition) : score;
+        }
+    }
+
     class SingleTierCoherenceJudge implements CoherenceJudge {
 
         private static final String SYSTEM_PROMPT = """
@@ -35,9 +52,15 @@ interface CoherenceJudge {
         private static final int MAX_RETRIES = 3;
 
         private final AgentProvider agentProvider;
+        private final String model;
 
         SingleTierCoherenceJudge(AgentProvider agentProvider) {
+            this(agentProvider, null);
+        }
+
+        SingleTierCoherenceJudge(AgentProvider agentProvider, String model) {
             this.agentProvider = agentProvider;
+            this.model = model;
         }
 
         @Override
@@ -77,7 +100,9 @@ interface CoherenceJudge {
         }
 
         private String invoke(String systemPrompt, String userPrompt) {
-            return agentProvider.invoke(AgentSessionConfig.of(systemPrompt, userPrompt))
+            var config = AgentSessionConfig.of(systemPrompt, userPrompt);
+            if (model != null) config = config.withModel(model);
+            return agentProvider.invoke(config)
                     .filter(e -> e instanceof AgentEvent.TextDelta)
                     .map(e -> ((AgentEvent.TextDelta) e).text())
                     .collect().with(Collectors.joining())
