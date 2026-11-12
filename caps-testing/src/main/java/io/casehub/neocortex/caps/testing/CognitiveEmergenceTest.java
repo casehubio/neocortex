@@ -63,8 +63,8 @@ public abstract class CognitiveEmergenceTest {
 
         public Scenario withDirectActivation(Map<String, Double> activations,
                                               double intensity, double valence) {
-            state = weightUpdater.update(state, activations,
-                intensity, valence, 1.0, "continuous");
+            state = weightUpdater.update(state,
+                new WeightUpdateContext(activations, intensity, valence, 1.0, "continuous"));
             return this;
         }
 
@@ -79,8 +79,8 @@ public abstract class CognitiveEmergenceTest {
                     inputMap.put(sa.nodeId(), sa.confidence());
                 }
 
-                state = weightUpdater.update(state, inputMap,
-                    exp.intensity(), exp.valence(), 1.0, "continuous");
+                state = weightUpdater.update(state,
+                    new WeightUpdateContext(inputMap, exp.intensity(), exp.valence(), 1.0, "continuous"));
             }
             experiences.clear();
             return this;

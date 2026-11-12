@@ -32,6 +32,7 @@ public class PersonalityEvolutionOrchestrator {
     private final CbrRecordStore cbrStore;
     private final List<TraitPressureSource<?>> pressureSources;
     private final PersonalityEvolutionConfig config;
+    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
 
     private final ConcurrentHashMap<String, AtomicBoolean> haltFlags = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -44,6 +45,18 @@ public class PersonalityEvolutionOrchestrator {
             final CbrRecordStore cbrStore,
             final List<TraitPressureSource<?>> pressureSources,
             final PersonalityEvolutionConfig config) {
+        this(signalStore, health, evolution, profileStore, cbrStore, pressureSources, config, null);
+    }
+
+    public PersonalityEvolutionOrchestrator(
+            final DispositionSignalStore signalStore,
+            final DispositionHealth health,
+            final DispositionEvolution evolution,
+            final DispositionProfileStore profileStore,
+            final CbrRecordStore cbrStore,
+            final List<TraitPressureSource<?>> pressureSources,
+            final PersonalityEvolutionConfig config,
+            final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
         this.signalStore = signalStore;
         this.health = health;
         this.evolution = evolution;
@@ -51,6 +64,7 @@ public class PersonalityEvolutionOrchestrator {
         this.cbrStore = cbrStore;
         this.pressureSources = pressureSources;
         this.config = config;
+        this.defaultsRegistry = defaultsRegistry;
     }
 
     @SuppressWarnings("unchecked")
@@ -101,7 +115,12 @@ public class PersonalityEvolutionOrchestrator {
                 yield new EvolutionTick.Stable();
             }
             case DispositionStatus.Drifted d -> {
-                if (d.driftMagnitude() >= config.l2Ceiling()) {
+                // Cattell (1971): relationalComplexity (Halford 1998) scales personality
+                // drift ceiling — higher relational complexity supports more complex
+                // self-models, tolerating larger personality adjustments before halting
+                double effectiveCeiling = config.l2Ceiling()
+                    * resolveRelationalComplexity(descriptor.agentId());
+                if (d.driftMagnitude() >= effectiveCeiling) {
                     haltFlags.computeIfAbsent(agentKey, k -> new AtomicBoolean()).set(true);
                     yield new EvolutionTick.Halted(d.driftMagnitude());
                 } else {
@@ -165,5 +184,11 @@ public class PersonalityEvolutionOrchestrator {
         } finally {
             lock.unlock();
         }
+    }
+
+    private double resolveRelationalComplexity(String agentId) {
+        if (agentId == null || defaultsRegistry == null) {return 1.0;}
+        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+        return cap != null ? cap.relationalComplexityOrDefault() : 1.0;
     }
 }

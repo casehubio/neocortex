@@ -1987,6 +1987,46 @@ public abstract class CbrRecordStoreContractTest {
     }
 
     @Test
+    void recordOutcomeWithLearningRateOverride_usesOverride() {
+        registerDefaultSchema();
+        store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.5),
+                                            Map.of("severity", FeatureValue.string("HIGH")), null, null),
+                      "diagnosis", ENTITY, CBR, TENANT, "case-lr-ovr", Path.root());
+        CbrOutcome outcome = CbrOutcome.of(1.0, "success", Instant.now());
+
+        store().recordOutcome("case-lr-ovr", outcome, TENANT, 0.8);
+
+        var results = store().retrieveSimilar(
+            CbrQuery.of(TENANT, CBR, Path.root(), "diagnosis",
+                         Map.of("severity", FeatureValue.string("HIGH")), 10)
+                    .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
+            CbrFeatureRecord.class);
+        double confidence = results.getFirst().cbrRecord().confidence().value();
+        // EMA: 0.2 * 0.5 + 0.8 * 1.0 = 0.9 (with LR=0.8)
+        assertThat(confidence).isCloseTo(0.9, within(0.01));
+    }
+
+    @Test
+    void recordOutcomeWithNullOverride_fallsBackToSchemaRate() {
+        registerDefaultSchema();
+        store().store(new CbrFeatureRecord("prob", "sol", null, Confidence.unknown(0.5),
+                                            Map.of("severity", FeatureValue.string("HIGH")), null, null),
+                      "diagnosis", ENTITY, CBR, TENANT, "case-lr-null", Path.root());
+        CbrOutcome outcome = CbrOutcome.of(1.0, "success", Instant.now());
+
+        store().recordOutcome("case-lr-null", outcome, TENANT, null);
+
+        var results = store().retrieveSimilar(
+            CbrQuery.of(TENANT, CBR, Path.root(), "diagnosis",
+                         Map.of("severity", FeatureValue.string("HIGH")), 10)
+                    .withRetrievalMode(RetrievalMode.FEATURE_ONLY),
+            CbrFeatureRecord.class);
+        double confidence = results.getFirst().cbrRecord().confidence().value();
+        // EMA with default LR=0.2: 0.8 * 0.5 + 0.2 * 1.0 = 0.6
+        assertThat(confidence).isCloseTo(0.6, within(0.01));
+    }
+
+    @Test
     void purge_countBased_keepsNewestCases() {
         registerDefaultSchema();
         for (int i = 0; i < 5; i++) {

@@ -109,7 +109,7 @@ public abstract class CapsEngineContractTest {
             .excitatory();
 
         AgentCapsState updated = engine.updateWeights(
-            state, inputs, 0.3, 1.0, 1.0, "continuous");
+            state, new WeightUpdateContext(inputs, 0.3, 1.0, 1.0, "continuous"));
 
         double newWeight = updated.weights()
             .get("reward__BAS_activation").excitatory();
@@ -125,7 +125,7 @@ public abstract class CapsEngineContractTest {
         var inputs = Map.of("reward", 0.8);
 
         AgentCapsState updated = engine.updateWeights(
-            state, inputs, 0.3, 1.0, 1.0, "continuous");
+            state, new WeightUpdateContext(inputs, 0.3, 1.0, 1.0, "continuous"));
 
         var empiricalConn = engine.topology().connections().stream()
             .filter(c -> c.provenance() == WeightProvenance.EMPIRICAL)

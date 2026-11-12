@@ -55,9 +55,23 @@ public class StrategyLearningOrchestrator {
 
     static final List<String> DEFAULT_DIMENSIONS = List.of(
             "verbosity", "formality", "initiative", "directness", "questionRate");
-    private String systemPrompt() {
-        double d = config.maxDimensionDelta();
+    /**
+     * Cattell (1971): workingMemorySpan (Engle &amp; Kane 2004) scales the strategy
+     * adaptation ceiling — the LLM prompt range matches the effective clamp value.
+     */
+    private String systemPrompt(String agentId) {
+        double d = effectiveMaxDelta(agentId);
         return String.format(SYSTEM_PROMPT_TEMPLATE, d, d);
+    }
+
+    private double effectiveMaxDelta(String agentId) {
+        return config.maxDimensionDelta() * resolveWorkingMemorySpan(agentId);
+    }
+
+    private double resolveWorkingMemorySpan(String agentId) {
+        if (agentId == null || defaultsRegistry == null) {return 1.0;}
+        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+        return cap != null ? cap.workingMemorySpanOrDefault() : 1.0;
     }
 
 
@@ -67,6 +81,7 @@ public class StrategyLearningOrchestrator {
     private final Clock clock;
     private final @Nullable SessionPipeline sessionPipeline;
     private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever;
+    private final io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
 
     private final ConcurrentHashMap<String, AgentLearningState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -77,12 +92,23 @@ public class StrategyLearningOrchestrator {
                                  Clock clock,
                                  @Nullable SessionPipeline sessionPipeline,
                                  io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever) {
+        this(strategyMemory, reflectionOrchestrator, config, clock, sessionPipeline, memoryRetriever, null);
+    }
+
+    public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
+                                 ReflectionOrchestrator reflectionOrchestrator,
+                                 StrategyLearningConfig config,
+                                 Clock clock,
+                                 @Nullable SessionPipeline sessionPipeline,
+                                 io.casehub.neocortex.cognitive.index.@Nullable CognitiveMemoryRetriever memoryRetriever,
+                                 io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
         this.strategyMemory         = strategyMemory;
         this.reflectionOrchestrator = reflectionOrchestrator;
         this.config                 = config;
         this.clock                  = clock;
         this.sessionPipeline        = sessionPipeline;
         this.memoryRetriever        = memoryRetriever;
+        this.defaultsRegistry       = defaultsRegistry;
     }
 
     public StrategyLearningOrchestrator(StrategyMemory strategyMemory,
@@ -90,7 +116,7 @@ public class StrategyLearningOrchestrator {
                                  StrategyLearningConfig config,
                                  Clock clock,
                                  @Nullable SessionPipeline sessionPipeline) {
-        this(strategyMemory, reflectionOrchestrator, config, clock, sessionPipeline, null);
+        this(strategyMemory, reflectionOrchestrator, config, clock, sessionPipeline, null, null);
     }
 
     public void record(EngagementSignal signal, String agentId,
@@ -267,7 +293,7 @@ public class StrategyLearningOrchestrator {
             var          perSubjectSummary = summarizePerSubject(cases);
             var          userPrompt        = buildReflectionPrompt(profile, trends, List.of(), perSubjectSummary, agentId, tenantId);
 
-            String llmResponse = invokeText(systemPrompt(), userPrompt);
+            String llmResponse = invokeText(systemPrompt(agentId), userPrompt);
             if (llmResponse == null) {
                 LOG.log(Level.WARNING, "Async reflect LLM failed for " + agentId);
                 return;
@@ -429,7 +455,7 @@ public class StrategyLearningOrchestrator {
         var perSubjectSummary = summarizePerSubject(cases);
         var userPrompt        = buildReflectionPrompt(profile, trends, reflections, perSubjectSummary, agentId, tenantId);
 
-        String llmResponse = invokeText(systemPrompt(), userPrompt);
+        String llmResponse = invokeText(systemPrompt(agentId), userPrompt);
         if (llmResponse == null) {
             return new StrategyReflection.NoChange("LLM synthesis failed");
         }
@@ -581,7 +607,8 @@ public class StrategyLearningOrchestrator {
                     LOG.fine("Ignoring unknown dimension: " + delta.getKey());
                     continue;
                 }
-                double clamped = Math.max(-config.maxDimensionDelta(), Math.min(config.maxDimensionDelta(), delta.getValue()));
+                double maxDelta = effectiveMaxDelta(agentId);
+                double clamped = Math.max(-maxDelta, Math.min(maxDelta, delta.getValue()));
                 double current = newDimensions.getOrDefault(delta.getKey(),
                                                             config.defaultDimensionValue());
                 newDimensions.put(delta.getKey(), Math.max(0.0, Math.min(1.0, current + clamped)));

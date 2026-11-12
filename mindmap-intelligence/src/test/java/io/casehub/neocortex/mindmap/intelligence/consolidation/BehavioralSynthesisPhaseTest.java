@@ -12,6 +12,7 @@ import io.casehub.neocortex.caps.ClassificationResult;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightProvenance;
+import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -519,6 +520,11 @@ class BehavioralSynthesisPhaseTest {
         public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId) {
             recordedOutcomes.add(new RecordedOutcome(caseId, outcome, tenantId));
         }
+
+        @Override
+        public void recordOutcome(String caseId, CbrOutcome outcome, String tenantId, Double learningRateOverride) {
+            recordedOutcomes.add(new RecordedOutcome(caseId, outcome, tenantId));
+        }
     }
 
     static class StubCapsEngine implements CapsEngine {
@@ -560,12 +566,7 @@ class BehavioralSynthesisPhaseTest {
         }
 
         @Override
-        public AgentCapsState updateWeights(AgentCapsState state,
-                                             Map<String, Double> inputActivations,
-                                             double outcomeIntensity,
-                                             double outcomeValence,
-                                             double salienceMultiplier,
-                                             String reinforcementSchedule) {
+        public AgentCapsState updateWeights(AgentCapsState state, WeightUpdateContext context) {
             return new AgentCapsState(state.agentId(), state.tenantId(),
                 state.generation() + 1, state.weights(), state.nodeStates());
         }
@@ -596,19 +597,15 @@ class BehavioralSynthesisPhaseTest {
         }
 
         @Override
-        public AgentCapsState updateWeights(AgentCapsState state,
-                                            Map<String, Double> inputActivations,
-                                            double outcomeIntensity,
-                                            double outcomeValence,
-                                            double salienceMultiplier,
-                                            String reinforcementSchedule) {
-            var update = new WeightUpdate(inputActivations, outcomeIntensity, outcomeValence, salienceMultiplier);
-            if (salienceMultiplier != 1.0) {
+        public AgentCapsState updateWeights(AgentCapsState state, WeightUpdateContext context) {
+            var update = new WeightUpdate(context.inputActivations(), context.outcomeIntensity(),
+                                          context.outcomeValence(), context.salienceMultiplier());
+            if (context.salienceMultiplier() != 1.0) {
                 lastEmotionUpdate = update;
             } else {
                 lastRegularUpdate = update;
             }
-            return super.updateWeights(state, inputActivations, outcomeIntensity, outcomeValence, salienceMultiplier, reinforcementSchedule);
+            return super.updateWeights(state, context);
         }
     }
 
