@@ -19,11 +19,11 @@ public interface DerivationObserver {
     record DataFlow(String sourceMethod, String sourceField,
                     String targetMethod, String targetField, double value) {}
 
-    default void onPipelineStart(String agentId, PipelineInput input)       {}
+    default void onPipelineStart(String agentId, String eventRef, PipelineInput input)       {}
 
-    default void onStageComputation(String agentId, StageComputation stage) {}
+    default void onStageComputation(String agentId, String eventRef, StageComputation stage) {}
 
-    default void onDataFlow(String agentId, DataFlow flow)                  {}
+    default void onDataFlow(String agentId, String eventRef, DataFlow flow)                  {}
 
-    default void onPipelineComplete(String agentId)                         {}
+    default void onPipelineComplete(String agentId, String eventRef)                         {}
 }

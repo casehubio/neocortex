@@ -189,16 +189,18 @@ public final class CognitiveDerivationEngine {
 
 
     static final class Ctx {
-        static final  Ctx                                                 NOOP         = new Ctx("", DerivationObserver.NOOP);
+        static final  Ctx                                                 NOOP         = new Ctx("", "", DerivationObserver.NOOP);
         final         String                                              agentId;
+        final         String                                              eventRef;
         final         DerivationObserver                                  observer;
         private       String                                              currentMethod;
         private final java.util.LinkedHashMap<String, Double>             baseValues   = new java.util.LinkedHashMap<>();
         private final java.util.ArrayList<DerivationObserver.FacetEffect> facetEffects = new java.util.ArrayList<>();
         private final java.util.LinkedHashMap<String, Double>             finalValues  = new java.util.LinkedHashMap<>();
 
-        Ctx(String agentId, DerivationObserver observer) {
+        Ctx(String agentId, String eventRef, DerivationObserver observer) {
             this.agentId  = agentId;
+            this.eventRef = eventRef;
             this.observer = observer;
         }
 
@@ -220,7 +222,7 @@ public final class CognitiveDerivationEngine {
         void output(String field, double value) {finalValues.put(field, value);}
 
         void stageEnd() {
-            observer.onStageComputation(agentId,
+            observer.onStageComputation(agentId, eventRef,
                                         new DerivationObserver.StageComputation(currentMethod,
                                                                                 java.util.Map.copyOf(baseValues),
                                                                                 java.util.List.copyOf(facetEffects),
@@ -228,7 +230,7 @@ public final class CognitiveDerivationEngine {
         }
 
         void flow(String sourceMethod, String sourceField, String targetMethod, String targetField, double value) {
-            observer.onDataFlow(agentId,
+            observer.onDataFlow(agentId, eventRef,
                                 new DerivationObserver.DataFlow(sourceMethod, sourceField, targetMethod, targetField, value));
         }
     }
@@ -238,10 +240,14 @@ public final class CognitiveDerivationEngine {
     }
 
     public static CognitiveDefaults derive(DescriptorView descriptor, DerivationObserver observer) {
-        var ctx    = new Ctx(descriptor.agentId(), observer);
+        return derive(descriptor, "init", observer);
+    }
+
+    public static CognitiveDefaults derive(DescriptorView descriptor, String eventRef, DerivationObserver observer) {
+        var ctx    = new Ctx(descriptor.agentId(), eventRef, observer);
         var facets = descriptor.personalityFacets();
 
-        observer.onPipelineStart(descriptor.agentId(), new DerivationObserver.PipelineInput(
+        observer.onPipelineStart(descriptor.agentId(), eventRef, new DerivationObserver.PipelineInput(
                 descriptor.disposition() != null ? descriptor.disposition().toString() : null,
                 descriptor.dispositionProfile().stream().map(t -> t.term() + "=" + t.weight()).toList(),
                 facets.stream().map(f -> f.facet() + "=" + f.score()).toList(),
@@ -270,7 +276,7 @@ public final class CognitiveDerivationEngine {
         ExpressionStyleDefaults     expressionStyles = deriveExpressionStyles(facets);
         PersonalityProfile          personalityProf  = new PersonalityProfile(personality, personalityDom, expressionStyles, null, facets);
 
-        observer.onPipelineComplete(descriptor.agentId());
+        observer.onPipelineComplete(descriptor.agentId(), eventRef);
 
         return CognitiveDefaults.empty(descriptor.agentId())
                                 .withPersonalityProfile(personalityProf)

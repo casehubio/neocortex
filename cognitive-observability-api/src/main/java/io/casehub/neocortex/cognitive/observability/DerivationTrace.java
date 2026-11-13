@@ -4,13 +4,13 @@ public class DerivationTrace implements DerivationObserver {
 
     public sealed interface Entry permits PipelineStarted, StageRecorded, FlowRecorded, PipelineCompleted {}
 
-    public record PipelineStarted(String agentId, PipelineInput input) implements Entry {}
+    public record PipelineStarted(String agentId, String eventRef, PipelineInput input) implements Entry {}
 
-    public record StageRecorded(String agentId, StageComputation computation) implements Entry {}
+    public record StageRecorded(String agentId, String eventRef, StageComputation computation) implements Entry {}
 
-    public record FlowRecorded(String agentId, DataFlow flow) implements Entry {}
+    public record FlowRecorded(String agentId, String eventRef, DataFlow flow) implements Entry {}
 
-    public record PipelineCompleted(String agentId) implements Entry {}
+    public record PipelineCompleted(String agentId, String eventRef) implements Entry {}
 
     private final java.util.List<Entry>                entries = new java.util.ArrayList<>();
     private final java.util.function.Predicate<String> stageFilter;
@@ -22,25 +22,25 @@ public class DerivationTrace implements DerivationObserver {
     }
 
     @Override
-    public void onPipelineStart(String agentId, PipelineInput input) {
-        entries.add(new PipelineStarted(agentId, input));
+    public void onPipelineStart(String agentId, String eventRef, PipelineInput input) {
+        entries.add(new PipelineStarted(agentId, eventRef, input));
     }
 
     @Override
-    public void onStageComputation(String agentId, StageComputation stage) {
+    public void onStageComputation(String agentId, String eventRef, StageComputation stage) {
         if (stageFilter.test(stage.method())) {
-            entries.add(new StageRecorded(agentId, stage));
+            entries.add(new StageRecorded(agentId, eventRef, stage));
         }
     }
 
     @Override
-    public void onDataFlow(String agentId, DataFlow flow) {
-        entries.add(new FlowRecorded(agentId, flow));
+    public void onDataFlow(String agentId, String eventRef, DataFlow flow) {
+        entries.add(new FlowRecorded(agentId, eventRef, flow));
     }
 
     @Override
-    public void onPipelineComplete(String agentId) {
-        entries.add(new PipelineCompleted(agentId));
+    public void onPipelineComplete(String agentId, String eventRef) {
+        entries.add(new PipelineCompleted(agentId, eventRef));
     }
 
     public java.util.List<Entry> entries() {return java.util.Collections.unmodifiableList(entries);}
@@ -72,6 +72,17 @@ public class DerivationTrace implements DerivationObserver {
         return entries.stream()
                       .filter(e -> e instanceof FlowRecorded)
                       .map(e -> ((FlowRecorded) e).flow())
+                      .toList();
+    }
+
+    public java.util.List<Entry> entriesForEvent(String eventRef) {
+        return entries.stream()
+                      .filter(e -> switch (e) {
+                          case PipelineStarted p -> eventRef.equals(p.eventRef());
+                          case StageRecorded s -> eventRef.equals(s.eventRef());
+                          case FlowRecorded f -> eventRef.equals(f.eventRef());
+                          case PipelineCompleted p -> eventRef.equals(p.eventRef());
+                      })
                       .toList();
     }
 
