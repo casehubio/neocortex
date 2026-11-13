@@ -24,6 +24,10 @@ CognitionCore composes seven orchestrators into a single cognitive graph. Each o
 | **StrategyLearningOrchestrator** | Learned interaction patterns — what engagement approaches work | Conversation cases stored in CBR; periodic LLM reflection produces guidelines |
 | **GoalProposalOrchestrator** | Autonomous goal proposals from drive signals | Per-axis mappers evaluate drive intensity; proposals above threshold are surfaced |
 
+### Pipeline Observability (#961)
+
+CognitionCore now records structured journal entries at each pipeline stage via `CognitiveJournal.record(CognitiveEntry)`. Sixteen sealed record types cover attention, mood, drives, appraisal, regulation, goals, memory, and consolidation — replacing five fragmented observability mechanisms (DerivationObserver, PipelineTrace, MemoryRecallObserver, GraphMutationRecorded, PipelineSnapshotStore) with a single typed entry model. Every entry carries `tenantId`, `agentId`, `EventRef`, and `timestamp`, enabling causal tracing from any character behaviour backward through the full pipeline to the personality facet score that shaped it.
+
 ### Interconnections
 
 The orchestrators are not independent — they form a dependency graph:

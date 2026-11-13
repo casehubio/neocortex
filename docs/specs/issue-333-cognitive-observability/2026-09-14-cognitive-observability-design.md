@@ -33,6 +33,8 @@ The system builds on existing foundations:
 | `mindmap-api` | New `MutationContext` ThreadLocal holder (source tagging for mutations) |
 | `mindmap-intelligence` | ConsolidationScheduler sets `MutationContext` before each phase, fires `ConsolidationCompleted` CDI event |
 
+**Update (#961 — Runtime Cognitive Journal):** `CompactionObserver` and `ObservationCacheObserver` from `cognitive-observability-api` have been deleted (zero references — dead code). `DerivationObserver` is bridged via `DerivationJournalBridge` at L25 (cognition module) — the interface is preserved for `CognitiveDerivationEngine` (L21) but its observability role is subsumed by `CognitiveEntry` records. `MemoryRecallObserver` is similarly bridged via `MemoryRecallJournalBridge`. A unified `CognitiveEntry` sealed interface (16 record types), `CognitiveJournal` interface, and `CognitiveTrace` accumulator now live in `cognition-api` (L25), with `CognitiveJournalStore` in `cognitive-observability-core` (L23). `PipelineTrace` and `PipelineSnapshotStore` coexist — they capture pipeline OUTPUT (rendered prompts, final state) while the journal captures pipeline PROCESS (causal chain of state changes).
+
 `ConsolidationPhase.run()` remains `void` — no SPI change. The decorator
 (in cognitive-observability, classpath-activated) captures all mutations
 automatically (D1). `MutationContext` lives in mindmap-api so both the
