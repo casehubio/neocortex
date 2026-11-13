@@ -1,69 +1,81 @@
 package io.casehub.neocortex.cognitive.observability;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public class DerivationTrace implements DerivationObserver {
 
-    public sealed interface Event permits FacetMapped, FacetModulation, StageCompleted {}
+    public sealed interface Entry permits PipelineStarted, StageRecorded, FlowRecorded, PipelineCompleted {}
 
-    public record FacetMapped(String agentId, String facet, int rawScore, double normalized) implements Event {}
+    public record PipelineStarted(String agentId, PipelineInput input) implements Entry {}
 
-    public record FacetModulation(String agentId, String method, String facet,
-                                   String field, double before, double after) implements Event {
-        public double delta() { return after - before; }
-    }
+    public record StageRecorded(String agentId, StageComputation computation) implements Entry {}
 
-    public record StageCompleted(String agentId, String method) implements Event {}
+    public record FlowRecorded(String agentId, DataFlow flow) implements Entry {}
 
-    private final List<Event> events = new ArrayList<>();
+    public record PipelineCompleted(String agentId) implements Entry {}
 
-    @Override
-    public void onFacetMapped(String agentId, String facet, int rawScore, double normalized) {
-        events.add(new FacetMapped(agentId, facet, rawScore, normalized));
-    }
+    private final java.util.List<Entry>                entries = new java.util.ArrayList<>();
+    private final java.util.function.Predicate<String> stageFilter;
 
-    @Override
-    public void onFacetModulation(String agentId, String method, String facet,
-                                   String field, double before, double after) {
-        events.add(new FacetModulation(agentId, method, facet, field, before, after));
+    public DerivationTrace() {this(s -> true);}
+
+    public DerivationTrace(java.util.function.Predicate<String> stageFilter) {
+        this.stageFilter = stageFilter;
     }
 
     @Override
-    public void onStageComplete(String agentId, String method) {
-        events.add(new StageCompleted(agentId, method));
+    public void onPipelineStart(String agentId, PipelineInput input) {
+        entries.add(new PipelineStarted(agentId, input));
     }
 
-    public List<Event> events() { return Collections.unmodifiableList(events); }
-
-    public List<FacetModulation> modulations() {
-        return events.stream()
-                .filter(e -> e instanceof FacetModulation)
-                .map(e -> (FacetModulation) e)
-                .toList();
+    @Override
+    public void onStageComputation(String agentId, StageComputation stage) {
+        if (stageFilter.test(stage.method())) {
+            entries.add(new StageRecorded(agentId, stage));
+        }
     }
 
-    public List<FacetModulation> modulationsFor(String facet) {
-        return modulations().stream()
-                .filter(m -> facet.equals(m.facet()))
-                .toList();
+    @Override
+    public void onDataFlow(String agentId, DataFlow flow) {
+        entries.add(new FlowRecorded(agentId, flow));
     }
 
-    public List<FacetModulation> modulationsIn(String method) {
-        return modulations().stream()
-                .filter(m -> method.equals(m.method()))
-                .toList();
+    @Override
+    public void onPipelineComplete(String agentId) {
+        entries.add(new PipelineCompleted(agentId));
     }
 
-    public List<FacetMapped> mappings() {
-        return events.stream()
-                .filter(e -> e instanceof FacetMapped)
-                .map(e -> (FacetMapped) e)
-                .toList();
+    public java.util.List<Entry> entries() {return java.util.Collections.unmodifiableList(entries);}
+
+    public java.util.List<StageComputation> stages() {
+        return entries.stream()
+                      .filter(e -> e instanceof StageRecorded)
+                      .map(e -> ((StageRecorded) e).computation())
+                      .toList();
     }
 
-    public boolean isEmpty() { return events.isEmpty(); }
+    public java.util.List<StageComputation> stagesFor(String method) {
+        return stages().stream().filter(s -> method.equals(s.method())).toList();
+    }
 
-    public int size() { return events.size(); }
+    public java.util.List<FacetEffect> allFacetEffects() {
+        return stages().stream().flatMap(s -> s.facetEffects().stream()).toList();
+    }
+
+    public java.util.List<FacetEffect> effectsOf(String facet) {
+        return allFacetEffects().stream().filter(e -> facet.equals(e.facet())).toList();
+    }
+
+    public java.util.List<FacetEffect> effectsIn(String method) {
+        return stagesFor(method).stream().flatMap(s -> s.facetEffects().stream()).toList();
+    }
+
+    public java.util.List<DataFlow> flows() {
+        return entries.stream()
+                      .filter(e -> e instanceof FlowRecorded)
+                      .map(e -> ((FlowRecorded) e).flow())
+                      .toList();
+    }
+
+    public boolean isEmpty() {return entries.isEmpty();}
+
+    public int size()        {return entries.size();}
 }

@@ -4,10 +4,26 @@ public interface DerivationObserver {
 
     DerivationObserver NOOP = new DerivationObserver() {};
 
-    default void onFacetMapped(String agentId, String facet, int rawScore, double normalized) {}
+    record PipelineInput(String axes, java.util.List<String> profileTerms,
+                         java.util.List<String> facetNames, java.util.List<String> goals) {}
 
-    default void onFacetModulation(String agentId, String method, String facet,
-                                    String field, double before, double after) {}
+    record StageComputation(String method,
+                            java.util.Map<String, Double> baseValues,
+                            java.util.List<FacetEffect> facetEffects,
+                            java.util.Map<String, Double> finalValues) {}
 
-    default void onStageComplete(String agentId, String method) {}
+    record FacetEffect(String facet, double facetScore, String field, double before, double after) {
+        public double delta() {return after - before;}
+    }
+
+    record DataFlow(String sourceMethod, String sourceField,
+                    String targetMethod, String targetField, double value) {}
+
+    default void onPipelineStart(String agentId, PipelineInput input)       {}
+
+    default void onStageComputation(String agentId, StageComputation stage) {}
+
+    default void onDataFlow(String agentId, DataFlow flow)                  {}
+
+    default void onPipelineComplete(String agentId)                         {}
 }
