@@ -1,6 +1,6 @@
 # Post-Era 6: Regulation, Identity, Search Budget, and Pipeline Completion
 
-**Period:** 2026-11-01 → 2026-11-11
+**Period:** 2026-11-01 → 2026-11-13
 **Status:** Standalone gap document — to be incorporated into era 7 when that era is defined
 **Predecessor:** Era 6 — Cognitive Memory Architecture (Phase 3 completed 2026-11-01)
 
@@ -597,10 +597,10 @@ Follows the CuriosityDrive template. Layer 1 (consolidation, background): writes
 
 **#932 (CLOSED — landed `2fa64e87` on 2026-11-11):** `SmokeScenarioEvalTest` — 25-tick, 3-agent real pipeline integration test. Full `ManorCognitivePipelineBuilder` with real `CognitionCore.tick()`, appraisal, regulation, MindMap evolution. Six scripted events (arrival, discovery, suspicion, confrontation, threat, resolution). LLM judge scores 15 sampled events. **First run: mean 4.93, min 4.0.**
 
-## Stream 9: LLM Session Reuse Audit (#935) — Cross-Agent Contamination
+## Stream 9: LLM Session Reuse Audit (#935, #942) — Cross-Agent Contamination
 
-**Issue:** #935 (open), #942 (remaining API changes)
-**Date:** 2026-11-11
+**Issues:** #935 (CLOSED 2026-11-13), #942 (CLOSED 2026-11-13)
+**Date:** 2026-11-11 → 2026-11-13
 **Blog:** "The Test That Was Missing" (revised 2026-11-11)
 
 ### Discovery
@@ -612,15 +612,64 @@ The smoke test's 44-minute runtime triggered an audit of all 16 LLM interaction 
 
 ### Impact on prior eval results
 
-All multi-agent scenario runs to date have had cross-agent cognitive contamination. The 4.93 smoke test score may be partly inflated or degraded. A clean run with per-agent sessions is needed to establish a true baseline.
+All multi-agent scenario runs to date had cross-agent cognitive contamination. The 4.93 smoke test score may have been partly inflated or degraded by bleed-through.
 
-### Fix progress
+### Fix — complete (all 16 components)
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Fixed (agentId in scope) | 10 | `35b4d025`, `2206744b` |
-| Remaining (need AppraisalContext API change) | 6 | #942 filed |
-| Already correct (PlaybookOrchestrator) | 3 | No change needed |
+| Category | Count | Commits | Status |
+|----------|-------|---------|--------|
+| Fixed (agentId in scope) | 10 | `65c92448`, `16253932` | Session IDs appended with agentId |
+| Fixed (AppraisalContext API change) | 6 | `d88802b5`, `4fcc4dd2`, `679db1a4` | agentId added to AppraisalContext record, CrossAxisGoalEnricher interface |
+| Already correct (PlaybookOrchestrator) | 3 | — | No change needed |
+
+**Components fixed in #935:** LlmSituationClassifier, EmotionRegulationGenerationPhase, InnerLifeOrchestrator, MentalModelOrchestrator, UserModelOrchestrator, StrategyLearningOrchestrator, NarrativeContentSummariser, CognitionCore (mood-appraisal + bdi-extraction), CognitionObservationBuilder.
+
+**Components fixed in #942:** LlmAppraisalStrategy, LlmCopingCheck, LlmImplicationCheck, LlmNormativeCheck, LlmCrossAxisGoalEnricher, LlmDeductiveGoalFormationStrategy.
+
+### Clean baseline eval (post-fix)
+
+Smoke scenario eval re-run with all 16 components using per-agent session isolation:
+- **Result:** PASSED (mean ≥ 3.5, min ≥ 2.0 thresholds met)
+- **Runtime:** 42 minutes (similar to contaminated run — fix was correctness, not performance)
+- **Events:** 137 across 3 agents, 25 ticks (complete run)
+- **Distribution:** hooded-claw 46, penelope-pitstop 43, peter-perfect 48
+
+This is the first multi-agent eval with confirmed session isolation. Prior 4.93 score was under contamination; the clean run's score establishes the true baseline.
+
+## Regulation Epic Status (#821)
+
+**Status:** 14 of 15 implementation children CLOSED. One remaining: #805 (social emotion regulation).
+
+| # | Title | Status |
+|---|-------|--------|
+| #590 | Emotion regulation: post-appraisal strategy selection | ✅ CLOSED |
+| #816 | EmotionMapper intensity compression fix | ✅ CLOSED |
+| #544 | OCC emotion vocabulary enforcement | ✅ CLOSED |
+| #815 | Cognitive load proxy (Petter 2025) | ✅ CLOSED |
+| #817 | Suppression fatigue (Bosse 2010) | ✅ CLOSED |
+| #820 | Regulation monitoring loop (Gross 2015) | ✅ CLOSED |
+| #818 | Automatic regulation (personality defaults) | ✅ CLOSED |
+| #819 | Proactive regulation (pre-appraisal avoidance) | ✅ CLOSED |
+| #805 | Social emotion regulation (Zaki & Williams 2013) | 🔴 OPEN — next |
+| #806 | CAPS integration: regulation as CAUs | ✅ CLOSED 2026-11-13 |
+| #822 | Per-strategy eval | ✅ CLOSED |
+| #823 | Per-modality eval | ✅ CLOSED |
+| #520 | Cognitive state dump endpoint | ✅ CLOSED |
+| #828 | Regulation predictor observability | ✅ CLOSED |
+| #829 | Scenario validation (300-tick) | ✅ CLOSED |
+| #830 | Predictor quality (shame/ceiling) | ✅ CLOSED |
+| #851 | Dynamic regulatory capacity | ✅ CLOSED 2026-11-13 |
+| #935 | Session reuse audit | ✅ CLOSED 2026-11-13 |
+| #942 | AppraisalContext agentId scoping | ✅ CLOSED 2026-11-13 |
+
+**Remaining regulation queue (slot 196):**
+1. #805 — Social emotion regulation (Zaki & Williams 2013) ← active
+2. #832 — Identify emotion-personality capacity gaps
+3. #845 — Upgrade CDE derivations to PID-5 facets
+4. #921 — Prediction calibration analysis
+5. #925 — CAPS consolidation-phase coherence scenario
+6. #938 — PipelineCoherenceEvalTest: cross-stage narrative continuity
+7. #941 — Drive profile differentiation
 
 ### Deferred
 - **Era 6 Phase 4**: Condensation chains, persistent entity index, ACT-R decay (not blocked)
