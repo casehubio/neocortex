@@ -50,6 +50,7 @@ public class ConsolidationScheduler {
     private final java.util.Set<String> knownTenants = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private volatile ScheduledExecutorService executor;
     private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
+    private volatile io.casehub.neocortex.cognition.journal.CognitiveJournal cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
 
     @Inject
     ConsolidationScheduler(Instance<ConsolidationPhase> phases,
@@ -170,6 +171,10 @@ public class ConsolidationScheduler {
 
     public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
         this.sessionPipeline = pipeline;
+    }
+
+    public void setCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal journal) {
+        this.cognitiveJournal = journal;
     }
 
     public boolean hasSessionPipeline() {

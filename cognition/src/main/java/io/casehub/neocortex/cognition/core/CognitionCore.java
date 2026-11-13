@@ -138,6 +138,7 @@ private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.an
 private volatile           io.casehub.neocortex.mindmap.intelligence.consolidation.@org.jspecify.annotations.Nullable BehavioralSynthesisPhase behavioralSynthesis;
 private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
 private final              java.util.concurrent.atomic.AtomicInteger                                                                           tickCounter = new java.util.concurrent.atomic.AtomicInteger();
+private volatile           io.casehub.neocortex.cognition.journal.CognitiveJournal                                                             cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -240,6 +241,10 @@ private final              java.util.concurrent.atomic.AtomicInteger            
                      @Nullable String observation,
                      @Nullable String targetAgentId,
                      io.casehub.neocortex.cognition.regulation.@Nullable RegulationContext regulationContext) {
+        int tickNumber = tickCounter.incrementAndGet();
+        var tickEventRef = io.casehub.neocortex.cognition.journal.EventRef.tick(tickNumber);
+        if (cognitiveJournal instanceof ScopedCognitiveJournal scoped) scoped.beginScope(e -> true);
+
         this.lastDescriptor    = descriptor;
         this.lastAgentId       = agentId;
         this.lastTenantId      = tenantId;
@@ -343,10 +348,11 @@ private final              java.util.concurrent.atomic.AtomicInteger            
         }
         runCustomParticipants(CognitionPhase.TERMINAL, context);
 
+        if (cognitiveJournal instanceof ScopedCognitiveJournal scoped) scoped.endScope();
+
         if (pipelineSnapshotStore != null) {
-            int tick = tickCounter.incrementAndGet();
             currentTrace(agentId, tenantId).ifPresent(trace ->
-                    pipelineSnapshotStore.store(tenantId, agentId, tick, java.time.Instant.now(), trace));
+                    pipelineSnapshotStore.store(tenantId, agentId, tickNumber, java.time.Instant.now(), trace));
         }
     }
 
@@ -1002,6 +1008,14 @@ public @Nullable String lastTargetAgentId() {
 
     public void configureCognitiveMemoryRetriever(io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever retriever) {
         this.cognitiveMemoryRetriever = retriever;
+    }
+
+    public void configureCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal journal) {
+        this.cognitiveJournal = journal;
+    }
+
+    public io.casehub.neocortex.cognition.journal.CognitiveJournal cognitiveJournal() {
+        return cognitiveJournal;
     }
 
     public io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever() {
