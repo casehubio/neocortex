@@ -3,7 +3,6 @@ package io.casehub.neocortex.cognition.core;
 import io.casehub.neocortex.cognition.journal.CognitiveEntry;
 import io.casehub.neocortex.cognition.journal.CognitiveJournal;
 import io.casehub.neocortex.cognition.journal.EventRef;
-import io.casehub.neocortex.cognition.journal.FacetEffect;
 import io.casehub.neocortex.cognitive.observability.DerivationObserver;
 
 import java.time.Instant;

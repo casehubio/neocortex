@@ -244,6 +244,7 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
         int tickNumber = tickCounter.incrementAndGet();
         var tickEventRef = io.casehub.neocortex.cognition.journal.EventRef.tick(tickNumber);
         if (cognitiveJournal instanceof ScopedCognitiveJournal scoped) scoped.beginScope(e -> true);
+        try {
 
         this.lastDescriptor    = descriptor;
         this.lastAgentId       = agentId;
@@ -373,13 +374,12 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
 
         if (config.goalsEnabled() && goals != null && descriptor != null) {
             safeRun(() -> goals.tick(agentId, tenantId, descriptor));
-            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.GoalDecided(
-                    tenantId, agentId, tickEventRef, java.time.Instant.now(),
-                    java.util.List.of(), java.util.List.of()));
         }
         runCustomParticipants(CognitionPhase.TERMINAL, context);
 
-        if (cognitiveJournal instanceof ScopedCognitiveJournal scoped) scoped.endScope();
+        } finally {
+            if (cognitiveJournal instanceof ScopedCognitiveJournal scoped) scoped.endScope();
+        }
 
         if (pipelineSnapshotStore != null) {
             currentTrace(agentId, tenantId).ifPresent(trace ->
