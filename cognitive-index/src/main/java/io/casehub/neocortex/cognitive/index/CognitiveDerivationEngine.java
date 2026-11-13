@@ -193,6 +193,7 @@ public final class CognitiveDerivationEngine {
         final         String                                              agentId;
         final         String                                              eventRef;
         final         DerivationObserver                                  observer;
+        private final boolean                                             active;
         private       String                                              currentMethod;
         private final java.util.LinkedHashMap<String, Double>             baseValues   = new java.util.LinkedHashMap<>();
         private final java.util.ArrayList<DerivationObserver.FacetEffect> facetEffects = new java.util.ArrayList<>();
@@ -202,26 +203,29 @@ public final class CognitiveDerivationEngine {
             this.agentId  = agentId;
             this.eventRef = eventRef;
             this.observer = observer;
+            this.active   = observer != DerivationObserver.NOOP;
         }
 
         void stageStart(String method) {
+            if (!active) {return;}
             currentMethod = method;
             baseValues.clear();
             facetEffects.clear();
             finalValues.clear();
         }
 
-        void base(String field, double value) {baseValues.put(field, value);}
+        void base(String field, double value) {if (active) {baseValues.put(field, value);}}
 
         void mod(String facet, double facetScore, String field, double before, double after) {
-            if (before != after) {
+            if (active && before != after) {
                 facetEffects.add(new DerivationObserver.FacetEffect(facet, facetScore, field, before, after));
             }
         }
 
-        void output(String field, double value) {finalValues.put(field, value);}
+        void output(String field, double value) {if (active) {finalValues.put(field, value);}}
 
         void stageEnd() {
+            if (!active) {return;}
             observer.onStageComputation(agentId, eventRef,
                                         new DerivationObserver.StageComputation(currentMethod,
                                                                                 java.util.Map.copyOf(baseValues),
@@ -230,6 +234,7 @@ public final class CognitiveDerivationEngine {
         }
 
         void flow(String sourceMethod, String sourceField, String targetMethod, String targetField, double value) {
+            if (!active) {return;}
             observer.onDataFlow(agentId, eventRef,
                                 new DerivationObserver.DataFlow(sourceMethod, sourceField, targetMethod, targetField, value));
         }
