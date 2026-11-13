@@ -128,7 +128,6 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - examples#207: Add ampdFacets to wacky-manor character engrams
 - neocortex#964: YAML round-trip test for ampdFacets deserialization
 - neocortex#980: ConsolidationScheduler does not journal during consolidation phases
-
 ## Open Questions
 
 1. **Should `derivePersonality` (the foundation derivation) get PID-5 modulation?** Currently excluded to avoid cascading effects. May revisit after eval validation of downstream modulations.
