@@ -254,6 +254,9 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
             var briefing = attentionMediator.drainAttention(agentId);
             if (config.attentionEnabled()) {
                 this.lastBriefing = briefing.orElse(null);
+                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.AttentionBriefed(
+                        tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                        this.lastBriefing != null ? this.lastBriefing.toString() : null));
             }
         }
         this.lastConsolidationArtifacts = null;
@@ -281,6 +284,11 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
 
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
+            mood.currentMood(agentId, tenantId).ifPresent(m -> cognitiveJournal.record(
+                    new io.casehub.neocortex.cognition.journal.CognitiveEntry.MoodShifted(
+                            tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                            null, new io.casehub.neocortex.memory.mood.MoodBaseline(m.pleasure(), m.arousal(), m.dominance()),
+                            "pre-appraisal")));
         }
         if (config.memoryHygieneEnabled() && memoryHygiene != null) {
             safeRun(() -> memoryHygiene.tick(agentId, tenantId));
@@ -319,12 +327,24 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
 
         if (config.drivesEnabled() && descriptor != null) {
             safeRun(() -> drives.tick(agentId, tenantId, descriptor));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.DriveActivated(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                    activatedDriveCategories(), java.util.Map.of()));
         }
         runCustomParticipants(CognitionPhase.DERIVED, context);
 
-        // Appraisal→mood→drive propagation: bridge appraisal emotions into
-        // mood signals, then re-tick mood and drives so prompt sections reflect
-        // the current appraisal state within the same tick cycle.
+        if (config.appraisalEnabled() && appraisalParticipant != null) {
+            appraisalParticipant.currentResult(agentId, tenantId).ifPresent(appraisalResult ->
+                    cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.AppraisalRecorded(
+                            tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                            appraisalResult, appraisalParticipant.currentConcernSalience(agentId, tenantId))));
+        }
+        if (regulationParticipant != null) {
+            regulationParticipant.currentResult(agentId, tenantId).ifPresent(regResult ->
+                    cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.RegulationDecided(
+                            tenantId, agentId, tickEventRef, java.time.Instant.now(), regResult)));
+        }
+
         if (config.appraisalEnabled() && appraisalParticipant != null) {
             appraisalParticipant.currentResult(agentId, tenantId).ifPresent(r -> {
                 if (config.moodEnabled()) {
@@ -337,14 +357,25 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
             });
             if (config.moodEnabled()) {
                 safeRun(() -> tickMood(agentId, tenantId));
+                mood.currentMood(agentId, tenantId).ifPresent(m -> cognitiveJournal.record(
+                        new io.casehub.neocortex.cognition.journal.CognitiveEntry.MoodShifted(
+                                tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                                null, new io.casehub.neocortex.memory.mood.MoodBaseline(m.pleasure(), m.arousal(), m.dominance()),
+                                "post-appraisal")));
             }
             if (config.drivesEnabled() && descriptor != null) {
                 safeRun(() -> drives.tick(agentId, tenantId, descriptor));
+                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.DriveActivated(
+                        tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                        activatedDriveCategories(), java.util.Map.of()));
             }
         }
 
         if (config.goalsEnabled() && goals != null && descriptor != null) {
             safeRun(() -> goals.tick(agentId, tenantId, descriptor));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.GoalDecided(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now(),
+                    java.util.List.of(), java.util.List.of()));
         }
         runCustomParticipants(CognitionPhase.TERMINAL, context);
 
