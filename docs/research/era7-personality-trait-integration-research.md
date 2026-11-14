@@ -118,12 +118,16 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - 7 derivation trace tests (journal capture, query, filtering, cross-stage flow)
 - 512 eidos API tests, 447 cognitive-index tests, 7 bridge tests, 712 wacky-manor fast tests — all pass with 0 regressions.
 
+### Completed (observability)
+- neocortex#961: Runtime cognitive pipeline journal ✅ — CognitiveEntry sealed hierarchy (13 entry types), CognitiveJournal interface, ScopedCognitiveJournal with ThreadLocal scoping, CognitiveJournalStore persistence, DerivationJournalBridge, MemoryRecallJournalBridge, 7 runtime instrumentation points in CognitionCore.tick(), dead observer cleanup (CompactionObserver, ObservationCacheObserver removed).
+- neocortex#969: CDI wiring activation ✅ — CognitionCoreFactory injects CognitiveJournal, ConsolidationScheduler CDI constructor accepts it, InMemoryCognitiveJournalStore made @ApplicationScoped (activates the entire pipeline). Follow-up: neocortex#980 (consolidation phase instrumentation), examples#209 (PlaybookOrchestrator wiring).
+
 ### Remaining work
 - neocortex#962: Instrument remaining 4 CDE methods with journal (searchBudget, pool, recurringThought, expressionStyles)
 - neocortex#963: Bridge should fire onFacetMapped events
 - examples#207: Add ampdFacets to wacky-manor character engrams
 - neocortex#964: YAML round-trip test for ampdFacets deserialization
-- neocortex#961: Runtime cognitive pipeline journal (CAPS, regulation, consolidation)
+- neocortex#980: ConsolidationScheduler does not journal during consolidation phases
 
 ## Open Questions
 
