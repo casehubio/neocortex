@@ -60,23 +60,27 @@ public class ConsolidationScheduler {
                            Instance<SignificanceAccumulator> significanceAccumulator,
                            Instance<CognitiveAttentionAccumulator> attentionAccumulator,
                            Event<ConsolidationCompleted> completionEvent,
+                           Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal> cognitiveJournal,
                            @ConfigProperty(name = "casehub.mindmap.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
         this(phases.stream()
-                .sorted(Comparator.comparingInt(p -> {
-                    for (Class<?> c = p.getClass(); c != null; c = c.getSuperclass()) {
-                        var ann = c.getAnnotation(jakarta.annotation.Priority.class);
-                        if (ann != null) return ann.value();
-                    }
-                    return Integer.MAX_VALUE;
-                }))
-                .toList(),
-            idleTracker, memoryStore,
-            curiosityGenerator.isResolvable() ? curiosityGenerator.get() : null,
-            completionEvent::fire,
-            intervalMinutes,
-            significanceAccumulator.isResolvable() ? significanceAccumulator.get() : null,
-            attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null);
+                   .sorted(Comparator.comparingInt(p -> {
+                       for (Class<?> c = p.getClass(); c != null; c = c.getSuperclass()) {
+                           var ann = c.getAnnotation(jakarta.annotation.Priority.class);
+                           if (ann != null) {return ann.value();}
+                       }
+                       return Integer.MAX_VALUE;
+                   }))
+                   .toList(),
+             idleTracker, memoryStore,
+             curiosityGenerator.isResolvable() ? curiosityGenerator.get() : null,
+             completionEvent::fire,
+             intervalMinutes,
+             significanceAccumulator.isResolvable() ? significanceAccumulator.get() : null,
+             attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null);
+        if (cognitiveJournal.isResolvable()) {
+            this.cognitiveJournal = cognitiveJournal.get();
+        }
     }
 
     ConsolidationScheduler(List<ConsolidationPhase> phases,
