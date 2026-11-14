@@ -76,6 +76,8 @@ public class CognitionCoreFactory {
     Instance<io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever> cognitiveMemoryRetriever;
     @Inject
     Instance<io.casehub.neocortex.entity.token.cdi.EntityIdentityCache>     entityIdentityCache;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal>       cognitiveJournal;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -135,6 +137,9 @@ public class CognitionCoreFactory {
             builder.entityRendering((entityId, tenantId) -> cache.getIdentity(entityId, tenantId));
         } else {
             builder.entityRendering(null);
+        }
+        if (cognitiveJournal.isResolvable()) {
+            builder.cognitiveJournal(cognitiveJournal.get());
         }
 
         return builder.build();
