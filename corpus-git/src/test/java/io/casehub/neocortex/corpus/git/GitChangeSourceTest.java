@@ -22,6 +22,8 @@ class GitChangeSourceTest {
     @BeforeEach
     void setUp() throws Exception {
         try (Git git = Git.init().setDirectory(repoDir.toFile()).call()) {
+            git.getRepository().getConfig().setBoolean("commit", null, "gpgsign", false);
+            git.getRepository().getConfig().save();
             Files.writeString(repoDir.resolve("initial.md"), "hello");
             git.add().addFilepattern("initial.md").call();
             git.commit().setMessage("initial").call();

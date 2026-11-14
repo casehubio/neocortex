@@ -22,6 +22,8 @@ class GitCorpusStoreContractTest extends CorpusStoreContractTest {
     @BeforeEach
     void setUp() throws Exception {
         try (Git git = Git.init().setDirectory(repoDir.toFile()).call()) {
+            git.getRepository().getConfig().setBoolean("commit", null, "gpgsign", false);
+            git.getRepository().getConfig().save();
             Files.writeString(repoDir.resolve(".gitkeep"), "");
             git.add().addFilepattern(".gitkeep").call();
             git.commit().setMessage("init").call();
