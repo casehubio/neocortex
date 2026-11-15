@@ -100,7 +100,7 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - Pipeline path: Engram YAML → Eidos `AgentDisposition.ampdFacets` → Bridge → `DescriptorView.personalityFacets` → CDE.
 
 ### CDE modulations implemented
-- **Category A (6 methods):** deriveMoodBaseline, deriveCuriosity, deriveCbrStrategy, deriveSocialCognition, deriveHabituationConfig, deriveRegulationDefaults — all upgraded to accept and apply PID-5 facet modulations on top of axes-derived values.
+- **Category A (6 methods):** deriveMoodBaseline, deriveCuriosity, deriveCbrStrategy, deriveSocialCognition, deriveHabituationConfig, deriveRegulationDefaults — all upgraded to accept and apply PID-5 facet modulations on top of axes-derived values. **Planned (7th):** deriveCopingDefaults (#595) — Connor-Smith & Flachsbart (2007) Big Five→coping correlations (conscientiousness→planful r=.21, neuroticism→avoidance r=.25, openness→reinterpretation r=.11).
 - **Tier 1 (3 modulations):** Impulsivity→WM (deriveCapacity), Callousness→relationship bias (deriveExtractionBias), Anxiousness→fear (deriveAppraisalWeights).
 - **Tier 2 (5 modulations):** Emotional Lability→affect sensitivity, Risk Taking→fear (inverse), Impulsivity→urgency, Anxiousness→associative reach, Withdrawal→connective bias.
 - All modulations use `(facetScore - 0.5) * weight` delta pattern with weight=0.2 (modest initial effect).
