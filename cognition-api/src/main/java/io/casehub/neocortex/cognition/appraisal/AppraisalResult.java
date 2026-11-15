@@ -13,9 +13,9 @@ public record AppraisalResult(
         Map<String, Double> secDimensions) {
 
     public AppraisalResult {
-        emotions         = emotions != null ? List.copyOf(emotions) : List.of();
+        emotions = emotions != null ? List.copyOf(emotions) : List.of();
         actionTendencies = actionTendencies != null ? List.copyOf(actionTendencies) : List.of();
-        if (updatedHabituation == null) {updatedHabituation = HabituationState.empty();}
+        if (updatedHabituation == null) updatedHabituation = HabituationState.empty();
         secDimensions = secDimensions != null ? Map.copyOf(secDimensions) : Map.of();
     }
 

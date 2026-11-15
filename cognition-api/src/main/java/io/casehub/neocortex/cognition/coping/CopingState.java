@@ -18,6 +18,15 @@ public record CopingState(
     List<CopingStrategyAttempt> strategiesAttempted
 ) {
 
+    public CopingState {
+        secDimensions = secDimensions != null ? Map.copyOf(secDimensions) : Map.of();
+        workingEmotions = workingEmotions != null ? List.copyOf(workingEmotions) : List.of();
+        goalOperations = goalOperations != null ? List.copyOf(goalOperations) : List.of();
+        driveModulations = driveModulations != null ? List.copyOf(driveModulations) : List.of();
+        attentionDirectives = attentionDirectives != null ? List.copyOf(attentionDirectives) : List.of();
+        strategiesAttempted = strategiesAttempted != null ? List.copyOf(strategiesAttempted) : List.of();
+    }
+
     public static CopingState initial(String narrative, Map<String, Double> secDimensions,
                                       List<CognitiveEmotion> emotions) {
         return new CopingState(narrative, Map.copyOf(secDimensions), List.copyOf(emotions),
