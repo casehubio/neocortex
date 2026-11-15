@@ -2,7 +2,7 @@
 layout: post
 title: "The Journal That Sees Everything"
 date: 2026-11-13
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [observability, cognitive-architecture, explainability, sealed-types]

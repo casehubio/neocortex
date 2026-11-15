@@ -2,7 +2,7 @@
 layout: post
 title: "The Gap Between Wanting to Think and Being Able To"
 date: 2026-11-09
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, intelligence, personality, search-budget, literature-grounded, capacity, deyoung, halford]

@@ -3,7 +3,7 @@ layout: post
 title: "The Move That Wasn't"
 date: 2026-11-10
 author: mdp
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [refactoring, migration, cross-repo, architecture, duplication, ide-tooling]

@@ -2,7 +2,7 @@
 layout: post
 title: "The Pipeline That Only Runs When You're Not Looking"
 date: 2026-11-13
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, eval, consolidation, caps, pipeline-engineering, coherence-testing, behavioural-attractors]

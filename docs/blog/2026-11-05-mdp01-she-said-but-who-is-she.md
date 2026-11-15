@@ -2,7 +2,7 @@
 layout: post
 title: "She Said — But Who Is She?"
 date: 2026-11-05
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [entity-references, tokenisation, cognitive-architecture, personas, consolidation]

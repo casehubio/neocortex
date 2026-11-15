@@ -2,7 +2,7 @@
 layout: post
 title: "The Dimension That Wasn't (And What We Built Instead)"
 date: 2026-11-10
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, executive-functions, miyake, inhibitory-control, appraisal, frustration, literature-grounded]

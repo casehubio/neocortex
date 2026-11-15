@@ -2,7 +2,7 @@
 layout: post
 title: "The Trace That Lied"
 date: 2026-11-10
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, pipeline-trace, observability, eval, CAPS, appraisal, design-review, echo-approach]

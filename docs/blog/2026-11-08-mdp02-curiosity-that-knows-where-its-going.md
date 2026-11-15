@@ -2,7 +2,7 @@
 layout: post
 title: "Curiosity That Knows Where It's Going"
 date: 2026-11-08
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [curiosity, goals, cognitive-architecture, information-gap, bfs, exploration, knowledge-graph]

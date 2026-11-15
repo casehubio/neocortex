@@ -2,7 +2,7 @@
 layout: post
 title: "The Anonymous Other — Why Our Cognitive Pipeline Couldn't Tell Friend from Prey"
 date: 2026-10-28
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, attachment-theory, appraisal, caps, relationships, personality]

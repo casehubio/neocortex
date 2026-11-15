@@ -2,7 +2,7 @@
 layout: post
 title: "Why Your AI Agent Isn't Curious"
 date: 2026-11-07
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [curiosity, cognitive-architecture, information-gap, loewenstein, personality, drives]

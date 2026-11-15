@@ -2,7 +2,7 @@
 layout: post
 title: "Three Systems, One Exploration"
 date: 2026-11-08
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [curiosity, search-budget, cognitive-architecture, integration, exploration, personality, modulation]

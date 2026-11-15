@@ -2,7 +2,7 @@
 layout: post
 title: "Names Are Not Identity"
 date: 2026-11-03
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [entity-references, tokenisation, cognitive-architecture, knowledge-representation]

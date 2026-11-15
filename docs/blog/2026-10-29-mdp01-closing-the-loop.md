@@ -2,7 +2,7 @@
 layout: post
 title: "Closing the Loop — When Mental Models Reach the Prompt, Relationships Learn, and Trust Shapes What the Agent Notices"
 date: 2026-10-29
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, prompt-rendering, mental-models, appraisal, relationships, trust, attachment-theory, caps, situation-classification]

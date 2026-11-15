@@ -2,7 +2,7 @@
 layout: post
 title: "The Model Gap — Why Java Can't Read Documents Like Python Can"
 date: 2026-11-04
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, onnx, document-layout, ml, java, python, inference, platform-design]

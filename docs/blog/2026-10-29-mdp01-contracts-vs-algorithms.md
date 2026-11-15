@@ -2,7 +2,7 @@
 layout: post
 title: "Contracts vs. Algorithms: When Your API Module Stops Being One"
 date: 2026-10-29
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, module-design, cbr, refactoring]

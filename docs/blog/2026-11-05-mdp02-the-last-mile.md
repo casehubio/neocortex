@@ -2,7 +2,7 @@
 layout: post
 title: "The Last Mile — Why SPIs Without Wiring Are Just Wishful Thinking"
 date: 2026-11-05
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, cdi, spring, corpus-management, dependency-injection, platform]

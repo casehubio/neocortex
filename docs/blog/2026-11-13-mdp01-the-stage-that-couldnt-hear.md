@@ -2,7 +2,7 @@
 layout: post
 title: "The Stage That Couldn't Hear the Last One"
 date: 2026-11-13
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, eval, cross-stage-coherence, pipeline-engineering, functional-emotions, prompt-engineering, session-management]

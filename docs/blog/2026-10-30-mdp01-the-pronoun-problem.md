@@ -2,7 +2,7 @@
 layout: post
 title: "The Pronoun Problem — Why Cognitive Architectures Need Standoff Annotation"
 date: 2026-10-30
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [entity-linking, coreference, knowledge-graph, cognitive-architecture, nlp, standoff-annotation]

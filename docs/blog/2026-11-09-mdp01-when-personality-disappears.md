@@ -2,7 +2,7 @@
 layout: post
 title: "When Personality Disappears Under Pressure"
 date: 2026-11-09
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, personality, search-budget, literature-grounded, situational-strength, fatigue, yerkes-dodson]

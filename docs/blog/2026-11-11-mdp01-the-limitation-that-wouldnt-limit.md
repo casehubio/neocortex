@@ -2,7 +2,7 @@
 layout: post
 title: "The Limitation That Wouldn't Limit"
 date: 2026-11-11
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, capacity, eval, prompt-engineering, functional-emotions, process-constraints, emotion-regulation, personality-differentiation, literature-grounded]

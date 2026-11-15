@@ -2,7 +2,7 @@
 layout: post
 title: "Teaching the Generator What Agents Need"
 date: 2026-11-07
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/platform, casehubio/neocortex, casehubio/engine]
 tags: [architecture, mcp, llm-agents, api-design, code-generation, annotations]

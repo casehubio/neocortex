@@ -2,7 +2,7 @@
 layout: post
 title: "When Curiosity Won't Let Go"
 date: 2026-11-07
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [curiosity, fixation, rumination, cognitive-architecture, caps, personality, recurring-thought]

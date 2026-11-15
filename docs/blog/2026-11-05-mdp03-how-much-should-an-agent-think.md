@@ -2,7 +2,7 @@
 layout: post
 title: "How Much Should an Agent Think?"
 date: 2026-11-05
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 series: issue-765-cognitive-richness

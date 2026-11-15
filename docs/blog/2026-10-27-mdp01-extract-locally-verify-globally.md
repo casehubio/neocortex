@@ -2,7 +2,7 @@
 layout: post
 title: "Extract Locally, Verify Globally"
 date: 2026-10-27
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [extraction-pipeline, graph-quality, llm-verification, cognitive-engrams]

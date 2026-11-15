@@ -2,7 +2,7 @@
 layout: post
 title: "When Keywords Lie — Teaching a Cognitive Agent to Classify Situations Through Understanding, Not Vocabulary"
 date: 2026-10-29
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, caps, situation-classification, cbr, llm, decorator-pattern, vocabulary-gap]

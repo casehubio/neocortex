@@ -2,7 +2,7 @@
 layout: post
 title: "Runtime Surgery on a Junction Tree"
 date: 2026-10-26
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [bayesian-inference, junction-tree, dynamic-structure, jvm, cognitive-agents]

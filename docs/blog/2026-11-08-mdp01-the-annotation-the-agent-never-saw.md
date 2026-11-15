@@ -2,7 +2,7 @@
 layout: post
 title: "The Annotation the Agent Never Saw"
 date: 2026-11-08
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/engine, casehubio/platform]
 tags: [architecture, mcp, llm-agents, api-design, annotations, quality-gates]

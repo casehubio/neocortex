@@ -2,7 +2,7 @@
 layout: post
 title: "You Can't Unit-Test Emergence"
 date: 2026-11-09
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, evaluation, llm-judged, search-budget, curiosity, capacity, emergence, echo-approach]

@@ -3,7 +3,7 @@ layout: post
 title: "The Interface That Replaced Seven Files"
 date: 2026-11-03
 author: mdp
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 series: issue-763-cognitive-knowledge-management

@@ -2,7 +2,7 @@
 layout: post
 title: "The Corpus That Grows Itself"
 date: 2026-11-09
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, corpus, llm-agents, knowledge-management, web-capture, library-reuse, image-processing, human-in-the-loop]

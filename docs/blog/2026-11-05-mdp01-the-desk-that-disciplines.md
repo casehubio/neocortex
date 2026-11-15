@@ -2,7 +2,7 @@
 layout: post
 title: "The Desk That Disciplines"
 date: 2026-11-05
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 series: issue-763-cognitive-knowledge-management

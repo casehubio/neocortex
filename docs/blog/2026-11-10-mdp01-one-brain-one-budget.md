@@ -2,7 +2,7 @@
 layout: post
 title: "One Brain, One Budget"
 date: 2026-11-10
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, fatigue, resource-sharing, hockey, ego-depletion, emotion-regulation, search-budget]

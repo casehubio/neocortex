@@ -2,7 +2,7 @@
 layout: post
 title: "When the Model Invents Feelings"
 date: 2026-11-05
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [occ-emotions, vocabulary-enforcement, consolidation, cache-drift, cognitive-architecture]

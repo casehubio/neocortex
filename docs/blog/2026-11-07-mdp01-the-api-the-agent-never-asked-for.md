@@ -2,7 +2,7 @@
 layout: post
 title: "The API the Agent Never Asked For"
 date: 2026-11-08
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, corpus, llm-agents, api-design, git, first-principles]

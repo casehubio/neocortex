@@ -2,7 +2,7 @@
 layout: post
 title: "The Library That Learns — Building a Corpus LLMs Actually Want to Use"
 date: 2026-11-08
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, corpus, llm-research, agent-ux, platform-design, cross-session]

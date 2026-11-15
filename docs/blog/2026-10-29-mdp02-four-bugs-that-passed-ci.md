@@ -2,7 +2,7 @@
 layout: post
 title: "Four Bugs That Passed CI"
 date: 2026-10-29
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cdi-priority, consolidation-pipeline, cbr, cognitive-architecture, testing, maintenance]

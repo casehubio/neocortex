@@ -2,7 +2,7 @@
 layout: post
 title: "The Library and the Desk — Why LLM Platforms Need Both"
 date: 2026-11-04
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, corpus, workspace, llm-research, platform-design]

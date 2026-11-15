@@ -2,7 +2,7 @@
 layout: post
 title: "Four Schemas, One API — Proving Corpus Management Is Domain-Neutral"
 date: 2026-11-04
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [architecture, corpus-management, domain-neutrality, examples, federation, mcp]

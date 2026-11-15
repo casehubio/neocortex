@@ -2,7 +2,7 @@
 layout: post
 title: "Smarter Agents Learn Faster (And That's the Point)"
 date: 2026-11-10
-entry_type: article
+entry_type: note
 subtype: diary
 projects: [casehubio/neocortex]
 tags: [cognitive-architecture, intelligence, capacity, learning-rate, cattell, investment-theory, rescorla-wagner, literature-grounded]
