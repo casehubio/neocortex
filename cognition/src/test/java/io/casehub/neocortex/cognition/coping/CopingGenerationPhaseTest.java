@@ -314,6 +314,67 @@ class CopingGenerationPhaseTest {
 
     // --- buildUserMessage tests ---
 
+
+    @Test
+    void parseResponse_extremeNegativeDelta_clampedToMinusHalf() throws Exception {
+        var json = """
+                   {
+                     "strategy": "MENTAL_DISENGAGEMENT",
+                     "narrative": "I don't care about this anymore.",
+                     "goalOperations": [],
+                     "driveModulations": [
+                       {"axis": "COMPETENCE", "intensityDelta": -0.9, "reason": "extreme disengagement"}
+                     ],
+                     "attentionDirectives": []
+                   }
+                   """;
+        var result = CopingGenerationPhase.parseResponse(json);
+
+        assertThat(result).isNotNull();
+        assertThat(result.driveModulations()).hasSize(1);
+        assertThat(result.driveModulations().getFirst().intensityDelta()).isEqualTo(-0.5);
+    }
+
+    @Test
+    void parseResponse_positiveHallucinatedDelta_clampedToHalf() throws Exception {
+        var json = """
+                   {
+                     "strategy": "ACCEPTANCE",
+                     "narrative": "I accept it fully.",
+                     "goalOperations": [],
+                     "driveModulations": [
+                       {"axis": "AUTONOMY", "intensityDelta": 0.8, "reason": "hallucinated boost"}
+                     ],
+                     "attentionDirectives": []
+                   }
+                   """;
+        var result = CopingGenerationPhase.parseResponse(json);
+
+        assertThat(result).isNotNull();
+        assertThat(result.driveModulations()).hasSize(1);
+        assertThat(result.driveModulations().getFirst().intensityDelta()).isEqualTo(0.5);
+    }
+
+    @Test
+    void parseResponse_deltaWithinRange_notClamped() throws Exception {
+        var json = """
+                   {
+                     "strategy": "MENTAL_DISENGAGEMENT",
+                     "narrative": "Pulling back a bit.",
+                     "goalOperations": [],
+                     "driveModulations": [
+                       {"axis": "CURIOSITY", "intensityDelta": -0.25, "reason": "mild disengagement"}
+                     ],
+                     "attentionDirectives": []
+                   }
+                   """;
+        var result = CopingGenerationPhase.parseResponse(json);
+
+        assertThat(result).isNotNull();
+        assertThat(result.driveModulations()).hasSize(1);
+        assertThat(result.driveModulations().getFirst().intensityDelta()).isEqualTo(-0.25);
+    }
+
     @Test
     void buildUserMessage_includesPinnedStrategy() {
         var msg = CopingGenerationPhase.buildUserMessage(

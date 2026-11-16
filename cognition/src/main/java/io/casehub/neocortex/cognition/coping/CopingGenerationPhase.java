@@ -271,15 +271,15 @@ public class CopingGenerationPhase {
     }
 
     private static List<DriveModulation> parseDriveModulations(JsonNode node) {
-        if (!node.isArray()) return List.of();
+        if (!node.isArray()) {return List.of();}
         var mods = new ArrayList<DriveModulation>();
         for (JsonNode item : node) {
             var axisName = item.path("axis").asText(null);
-            if (axisName == null) continue;
+            if (axisName == null) {continue;}
             try {
-                var axis = DriveAxis.valueOf(axisName);
-                double delta = item.path("intensityDelta").asDouble(0.0);
-                var reason = item.path("reason").asText("");
+                var    axis   = DriveAxis.valueOf(axisName);
+                double delta  = Math.clamp(item.path("intensityDelta").asDouble(0.0), -0.5, 0.5);
+                var    reason = item.path("reason").asText("");
                 mods.add(new DriveModulation(axis, delta, reason));
             } catch (IllegalArgumentException ignored) {}
         }
