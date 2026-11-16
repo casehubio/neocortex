@@ -6,6 +6,7 @@ import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
+import io.casehub.neocortex.cognition.coping.CopingMicroLoop;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
 import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
@@ -43,6 +44,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable CapsEngine                       capsEngine;
     private final @Nullable RegulationCascadeConfig          cascadeConfig;
     private final @Nullable RegulationTracker                regulationTracker;
+    private final @Nullable CopingMicroLoop copingMicroLoop;
 
 
     private final ConcurrentHashMap<String, StrategyFailureSignal> failureSignals = new ConcurrentHashMap<>();
@@ -117,6 +119,21 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig,
                                             @Nullable RegulationTracker regulationTracker) {
+        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
+             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, regulationTracker, null);
+    }
+
+    public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
+                                            CognitionConfig config,
+                                            @Nullable EmotionRegulationGenerationPhase generationPhase,
+                                            @Nullable MindMapStore mindMapStore,
+                                            @Nullable String cognitiveSubgraphId,
+                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable CognitiveLoadEstimator loadEstimator,
+                                            @Nullable CapsEngine capsEngine,
+                                            @Nullable RegulationCascadeConfig cascadeConfig,
+                                            @Nullable RegulationTracker regulationTracker,
+                                            @Nullable CopingMicroLoop copingMicroLoop) {
         this.appraisalParticipant  = appraisalParticipant;
         this.config                = config;
         this.generationPhase       = generationPhase;
@@ -131,6 +148,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.cascadeConfig         = capsEngine != null && cascadeConfig == null
                                      ? RegulationCascadeConfig.defaults() : cascadeConfig;
         this.regulationTracker     = regulationTracker;
+        this.copingMicroLoop       = copingMicroLoop;
     }
 
 
