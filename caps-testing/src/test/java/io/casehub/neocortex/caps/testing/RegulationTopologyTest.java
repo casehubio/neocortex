@@ -90,7 +90,7 @@ class RegulationTopologyTest {
 
     @Test
     void topologyNodeCountIsCorrect() {
-        assertThat(topology.nodes()).hasSize(91);
+        assertThat(topology.nodes()).hasSize(107);
     }
 
     @Test
