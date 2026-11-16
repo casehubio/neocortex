@@ -1,5 +1,7 @@
 package io.casehub.neocortex.cognition.coping;
 
+import io.casehub.neocortex.caps.CapsAttractor;
+import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.cognition.appraisal.AppraisalContext;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.EmotionMapper;
@@ -7,12 +9,10 @@ import io.casehub.neocortex.cognition.appraisal.PerceivedSituation;
 import io.casehub.neocortex.cognition.appraisal.SecCheck;
 import io.casehub.neocortex.cognition.appraisal.SecResult;
 import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
+import io.casehub.neocortex.cognition.regulation.RegulationCascadeConfig;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
-import io.casehub.neocortex.caps.CapsAttractor;
-import io.casehub.neocortex.caps.CapsEngine;
-import io.casehub.neocortex.cognition.regulation.RegulationCascadeConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -65,7 +65,8 @@ public class CopingMicroLoop {
                                          @Nullable CopingDefaults copingDefaults,
                                          @Nullable DispositionAxes axes,
                                          @Nullable CognitiveLoadLevel cognitiveLoad) {
-        return execute(appraisalContext, appraisalResult, copingDefaults, axes, cognitiveLoad, null);
+        return execute(appraisalContext, appraisalResult, copingDefaults, axes, cognitiveLoad,
+                       null, java.util.Map.of());
     }
 
     public @Nullable CopingState execute(AppraisalContext appraisalContext,
@@ -74,21 +75,34 @@ public class CopingMicroLoop {
                                          @Nullable DispositionAxes axes,
                                          @Nullable CognitiveLoadLevel cognitiveLoad,
                                          @Nullable String tenantId) {
+        return execute(appraisalContext, appraisalResult, copingDefaults, axes, cognitiveLoad,
+                       tenantId, java.util.Map.of());
+    }
+
+    public @Nullable CopingState execute(AppraisalContext appraisalContext,
+                                         AppraisalResult appraisalResult,
+                                         @Nullable CopingDefaults copingDefaults,
+                                         @Nullable DispositionAxes axes,
+                                         @Nullable CognitiveLoadLevel cognitiveLoad,
+                                         @Nullable String tenantId,
+                                         java.util.Map<String, Double> capsInputActivations) {
         var state = CopingState.initial(
                 appraisalContext.situation().narrative(),
                 appraisalResult.secDimensions(),
                 appraisalResult.emotions());
+
+        // Layer 2: CAPS coping attractor resolution (once, before loop — state is stable across iterations)
+        CopingStrategy capsPinnedStrategy = null;
+        if (capsEngine != null && cascadeConfig != null && tenantId != null) {
+            capsPinnedStrategy = resolveCapsAttractor(tenantId, appraisalContext.agentId(), capsInputActivations);
+        }
 
         while (state.iteration() < config.copingMaxIterations()) {
             if (!hasCopingOpportunity(state.workingEmotions())) {
                 break;
             }
 
-            // Layer 2: CAPS coping attractor resolution
-            CopingStrategy pinnedStrategy = null;
-            if (capsEngine != null && cascadeConfig != null && tenantId != null) {
-                pinnedStrategy = resolveCapsAttractor(tenantId, appraisalContext.agentId());
-            }
+            CopingStrategy pinnedStrategy = capsPinnedStrategy;
 
             // Layer 3: mechanical predictor fallback
             if (pinnedStrategy == null) {
@@ -106,32 +120,33 @@ public class CopingMicroLoop {
                 break;
             }
 
-            // Apply effects and record strategy attempt
             state = state.withInterpretation(copingResult.narrative())
                          .withAccumulatedEffects(copingResult)
                          .withStrategy(new CopingStrategyAttempt(
                                  copingResult.strategy(), state.iteration(),
                                  copingResult.narrative()));
 
-            // Oscillation detection — strategy already attempted in a prior iteration
             if (state.strategiesAttempted().stream()
                      .filter(a -> a.strategy() == copingResult.strategy())
                      .count() > 1) {
                 break;
             }
 
-            // Keyword SEC re-evaluation on the reinterpreted narrative
             state = reEvaluate(appraisalContext, state);
-
             state = state.withIteration(state.iteration() + 1);
+
+            // Clear CAPS pin after first iteration — subsequent iterations should use predictor/LLM
+            capsPinnedStrategy = null;
         }
 
         return state;
     }
 
-    private @Nullable CopingStrategy resolveCapsAttractor(String tenantId, String agentId) {
+
+    private @Nullable CopingStrategy resolveCapsAttractor(String tenantId, String agentId,
+                                                          java.util.Map<String, Double> inputActivations) {
         var capsState      = capsEngine.loadState(tenantId, agentId);
-        var settlingResult = capsEngine.settle(capsState, java.util.Map.of());
+        var settlingResult = capsEngine.settle(capsState, inputActivations);
         var copingAttractors = settlingResult.attractors().stream()
                                              .filter(a -> COPING_ATTRACTOR_CATEGORY.equals(a.category()))
                                              .sorted(java.util.Comparator.comparingDouble(CapsAttractor::strength).reversed())

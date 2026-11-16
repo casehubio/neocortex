@@ -4,7 +4,6 @@ import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
-import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.coping.CopingMicroLoop;
 import io.casehub.neocortex.cognition.coping.CopingState;
@@ -13,6 +12,7 @@ import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
+import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
 import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionType;
@@ -401,8 +401,11 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                        ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
                                        : null;
 
+        Map<String, Double> capsInputActivations = assembleSocialContextInputs(context);
+
         var copingState = copingMicroLoop.execute(
-                appraisalContext.get(), appraisal, copingDefaults, axes, loadLevel, context.tenantId());
+                appraisalContext.get(), appraisal, copingDefaults, axes, loadLevel,
+                context.tenantId(), capsInputActivations);
 
         if (copingState == null || copingState.strategiesAttempted().isEmpty()) {
             LOG.fine(() -> "Coping micro-loop produced no strategies for agent=" + context.agentId());
@@ -440,12 +443,13 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             double outcomeValence     = result.effectiveness() > 0.5 ? 1.0 : -1.0;
             double salienceMultiplier = result.peakOriginalIntensity();
             capsEngine.updateWeights(capsState, new io.casehub.neocortex.caps.WeightUpdateContext(
-                    Map.of(copingStrategy.name().toLowerCase(), 1.0),
-                    outcomeIntensity, outcomeValence, salienceMultiplier, "variable_ratio"));
+                    capsInputActivations, outcomeIntensity, outcomeValence,
+                    salienceMultiplier, "variable_ratio"));
         }
 
         // Dispatch accumulated effects from CopingState
-        dispatchCopingEffects(context, copingState);
+        double peakIntensity = peakEmotion != null ? peakEmotion.intensity() : 0.5;
+        dispatchCopingEffects(context, copingState, peakIntensity);
     }
 
     private void handleRegulationResult(CognitionTickContext context,
@@ -496,14 +500,15 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
     }
 
-    private void dispatchCopingEffects(CognitionTickContext context, CopingState copingState) {
+    private void dispatchCopingEffects(CognitionTickContext context, CopingState copingState,
+                                       double peakIntensity) {
         if (goalOrchestrator != null) {
             for (var op : copingState.goalOperations()) {
                 switch (op.type()) {
                     case CREATE -> {
                         var proposal = new io.casehub.neocortex.cognition.goal.DriveGoalProposal(
                                 op.axis(), op.goalName(), op.goalDescription(),
-                                op.formationReason(), 0.5, null,
+                                op.formationReason(), peakIntensity, null,
                                 Map.of("source", "coping", "copingStrategy",
                                        copingState.strategiesAttempted().get(
                                                           copingState.strategiesAttempted().size() - 1)
