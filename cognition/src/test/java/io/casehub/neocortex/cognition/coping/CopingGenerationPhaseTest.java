@@ -375,6 +375,21 @@ class CopingGenerationPhaseTest {
         assertThat(result.driveModulations().getFirst().intensityDelta()).isEqualTo(-0.25);
     }
 
+
+    @Test
+    void systemPrompt_seekEmotionalSupport_hasRegulationRoutedGuidance() {
+        assertThat(CopingGenerationPhase.SYSTEM_PROMPT)
+                .contains("SEEK_EMOTIONAL_SUPPORT")
+                .contains("Narrative transformation only");
+    }
+
+    @Test
+    void systemPrompt_suppression_hasRegulationRoutedGuidance() {
+        assertThat(CopingGenerationPhase.SYSTEM_PROMPT)
+                .contains("SUPPRESSION: Control emotional expression")
+                .contains("regulation handles");
+    }
+
     @Test
     void buildUserMessage_includesPinnedStrategy() {
         var msg = CopingGenerationPhase.buildUserMessage(
