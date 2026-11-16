@@ -159,7 +159,9 @@ public class CopingMicroLoop {
                               >= cascadeConfig.regulationDominanceMargin();
         if (!dominant) {return null;}
         try {
-            var strategy = CopingStrategy.valueOf(top.nodeId().toUpperCase());
+            // Social acceptance is an input node; coping acceptance has a distinct output ID.
+            var strategy = "coping_acceptance".equals(top.nodeId())
+                           ? CopingStrategy.ACCEPTANCE : CopingStrategy.valueOf(top.nodeId().toUpperCase());
             LOG.fine(() -> String.format("CAPS coping attractor: agent=%s → %s (strength=%.3f)",
                                          agentId, strategy, top.strength()));
             return strategy;
