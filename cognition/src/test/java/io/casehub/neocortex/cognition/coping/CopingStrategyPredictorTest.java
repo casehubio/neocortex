@@ -1,12 +1,12 @@
 package io.casehub.neocortex.cognition.coping;
 
+import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
-import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -178,6 +178,25 @@ class CopingStrategyPredictorTest {
     }
 
     // --- Edge cases ---
+
+
+    @Test
+    void avoidanceFamilyHint_isAvoidance_notEnumOrdinal() {
+        var result = predictor.predict(AVOIDANT, dims(0.45),
+                                       List.of(emotion(EmotionType.ANGER, 0.6)), null, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().familyLabel()).isEqualTo("avoidance");
+        assertThat(result.get().strategy()).isEqualTo(CopingStrategy.AVOIDANCE);
+    }
+
+    @Test
+    void reinterpretationFamilyHint_isPositiveReinterpretation_notEnumOrdinal() {
+        var result = predictor.predict(REINTERPRETER, dims(0.45),
+                                       List.of(emotion(EmotionType.ANGER, 0.6)), null, null);
+        assertThat(result).isPresent();
+        assertThat(result.get().familyLabel()).isEqualTo("reinterpretation");
+        assertThat(result.get().strategy()).isEqualTo(CopingStrategy.POSITIVE_REINTERPRETATION);
+    }
 
     @Test
     void nullDefaults_returnsEmpty() {
