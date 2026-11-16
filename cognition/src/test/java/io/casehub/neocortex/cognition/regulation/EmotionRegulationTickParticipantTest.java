@@ -242,7 +242,7 @@ class EmotionRegulationTickParticipantTest {
                                                                                    0, "reinterpreted narrative"));
 
         var copingMicroLoop = mock(io.casehub.neocortex.cognition.coping.CopingMicroLoop.class);
-        when(copingMicroLoop.execute(any(), any(), any(), any(), any())).thenReturn(copingState);
+        when(copingMicroLoop.execute(any(), any(), any(), any(), any(), any(), any())).thenReturn(copingState);
 
         var generationPhase = mock(EmotionRegulationGenerationPhase.class);
 
@@ -280,7 +280,7 @@ class EmotionRegulationTickParticipantTest {
                                                                                    0, "I'll make a plan"));
 
         var copingMicroLoop = mock(io.casehub.neocortex.cognition.coping.CopingMicroLoop.class);
-        when(copingMicroLoop.execute(any(), any(), any(), any(), any())).thenReturn(copingState);
+        when(copingMicroLoop.execute(any(), any(), any(), any(), any(), any(), any())).thenReturn(copingState);
 
         var generationPhase = mock(EmotionRegulationGenerationPhase.class);
 

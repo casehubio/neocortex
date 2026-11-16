@@ -602,8 +602,8 @@ public class GoalProposalOrchestrator {
         Instant                        lastSeenSynthesisAt;
         Map<String, EscalationTracker> escalationTrackers           = new HashMap<>();
         Map<String, Integer>           demotionMisalignedCycles     = new HashMap<>();
-        List<RequestedAbandonment>     requestedAbandonments        = new ArrayList<>();
-        List<PriorityAdjustment>       requestedDemotions           = new ArrayList<>();
+        List<RequestedAbandonment>     requestedAbandonments        = new java.util.concurrent.CopyOnWriteArrayList<>();
+        List<PriorityAdjustment>       requestedDemotions           = new java.util.concurrent.CopyOnWriteArrayList<>();
     }
 
     static final class EscalationTracker {
