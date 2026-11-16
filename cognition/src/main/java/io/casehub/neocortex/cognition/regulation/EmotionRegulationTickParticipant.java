@@ -3,10 +3,16 @@ package io.casehub.neocortex.cognition.regulation;
 import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
+import io.casehub.neocortex.cognition.coping.CopingMicroLoop;
+import io.casehub.neocortex.cognition.coping.PreCopingSafetyGate;
+import io.casehub.neocortex.cognitive.CognitiveEmotion;
+import io.casehub.neocortex.cognitive.EmotionType;
+import io.casehub.neocortex.cognitive.index.CopingDefaults;
+import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
-import io.casehub.neocortex.cognition.coping.CopingMicroLoop;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
 import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
@@ -189,6 +195,11 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                    .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
                                    .orElse(null);
 
+        if (config.copingEnabled() && copingMicroLoop != null) {
+            tickCopingPath(context, appraisal.get(), regulationEffort, currentFatigue, peakEmotion, pendingSignal);
+            return;
+        }
+
         EmotionRegulationStrategy                            pinnedStrategy       = null;
         String                                               strategySource       = "LLM";
         io.casehub.neocortex.cognitive.index.DispositionAxes axes                 = null;
@@ -326,9 +337,133 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
     }
 
+    private void tickCopingPath(CognitionTickContext context,
+                                AppraisalResult appraisal,
+                                double regulationEffort, double currentFatigue,
+                                @Nullable CognitiveEmotion peakEmotion,
+                                @Nullable StrategyFailureSignal pendingSignal) {
+        var safetyGate = new PreCopingSafetyGate();
+        if (safetyGate.shouldSkipCoping(currentFatigue, appraisal.emotions())) {
+            LOG.fine(() -> String.format("pre-coping safety gate: agent=%s → AD (fatigue=%.2f)",
+                                         context.agentId(), currentFatigue));
+            var history = (mindMapStore != null)
+                          ? EmotionRegulationMindMapAdapter.loadHistory(
+                    mindMapStore, context.agentId(), context.tenantId(), HISTORY_LIMIT)
+                          : List.<EmotionRegulationResult>of();
+            var result = generationPhase.generate(context, appraisal, history,
+                                                  regulationEffort, currentFatigue, pendingSignal,
+                                                  EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT);
+            handleRegulationResult(context, appraisal, result, regulationEffort,
+                                   peakEmotion != null ? peakEmotion.type() : null, "SAFETY_GATE");
+            return;
+        }
+
+        var appraisalContext = appraisalParticipant.currentContext(context.agentId(), context.tenantId());
+        if (appraisalContext.isEmpty()) {
+            LOG.fine(() -> "Coping path: no AppraisalContext available for agent=" + context.agentId());
+            return;
+        }
+
+        CopingDefaults  copingDefaults = null;
+        DispositionAxes axes           = null;
+        if (defaultsRegistry != null) {
+            var defs = defaultsRegistry.forAgent(context.agentId());
+            if (defs.isPresent()) {
+                copingDefaults = defs.get().copingDefaults();
+                if (defs.get().descriptor() != null) {
+                    axes = defs.get().descriptor().disposition();
+                }
+            }
+        }
+
+        CognitiveLoadLevel loadLevel = (loadEstimator != null)
+                                       ? loadEstimator.estimate(context.agentId(), context.tenantId()).level()
+                                       : null;
+
+        var copingState = copingMicroLoop.execute(
+                appraisalContext.get(), appraisal, copingDefaults, axes, loadLevel);
+
+        if (copingState == null || copingState.strategiesAttempted().isEmpty()) {
+            LOG.fine(() -> "Coping micro-loop produced no strategies for agent=" + context.agentId());
+            return;
+        }
+
+        var lastAttempt    = copingState.strategiesAttempted().get(copingState.strategiesAttempted().size() - 1);
+        var copingStrategy = lastAttempt.strategy();
+
+        if (copingStrategy.isRegulationRouted()) {
+            var regulationTarget = copingStrategy.regulationStrategy().orElseThrow();
+            LOG.fine(() -> String.format("coping → regulation: agent=%s coping=%s → %s",
+                                         context.agentId(), copingStrategy, regulationTarget));
+
+            var history = (mindMapStore != null)
+                          ? EmotionRegulationMindMapAdapter.loadHistory(
+                    mindMapStore, context.agentId(), context.tenantId(), HISTORY_LIMIT)
+                          : List.<EmotionRegulationResult>of();
+            var result = generationPhase.generateForCoping(context, appraisal, history,
+                                                           regulationEffort, currentFatigue, copingStrategy, regulationTarget,
+                                                           copingState.interpretationNarrative());
+            handleRegulationResult(context, appraisal, result, regulationEffort,
+                                   peakEmotion != null ? peakEmotion.type() : null,
+                                   "COPING:" + copingStrategy.name());
+        } else {
+            LOG.fine(() -> String.format("coping → direct effect: agent=%s coping=%s (no regulation)",
+                                         context.agentId(), copingStrategy));
+        }
+    }
+
+    private void handleRegulationResult(CognitionTickContext context,
+                                        AppraisalResult appraisal,
+                                        @Nullable EmotionRegulationResult result,
+                                        double regulationEffort,
+                                        @Nullable EmotionType dominantType,
+                                        String strategySource) {
+        if (result != null && result.isSocialStrategy() && result.targetAgentId() != null) {
+            var regCtx = context.regulationContext();
+            if (regCtx == null || regCtx.interactingAgents() == null
+                || !regCtx.interactingAgents().contains(result.targetAgentId())) {
+                var discarded = result;
+                LOG.fine(() -> "Discarding social regulation result — targetAgentId '"
+                               + discarded.targetAgentId() + "' not in interactingAgents");
+                result = null;
+            }
+        }
+        if (result != null) {
+            String key = context.agentId() + ":" + context.tenantId();
+            results.put(key, result);
+            if (result.narrative() != null && !result.narrative().isBlank()) {
+                appraisalParticipant.setRegulatedNarrative(
+                        context.agentId(), context.tenantId(), result.narrative());
+            }
+            if (cognitiveResourcePool != null) {
+                cognitiveResourcePool.recordEffort(context.agentId(), context.tenantId(),
+                                                   regulationEffort * REGULATION_CONTRIBUTION_RATE);
+            }
+            var signal = regulationMonitor.record(context.agentId(), context.tenantId(), result);
+            if (signal != null) {
+                failureSignals.put(key, signal);
+            }
+            if (mindMapStore != null && cognitiveSubgraphId != null) {
+                EmotionRegulationMindMapAdapter.write(
+                        mindMapStore, context.agentId(), context.tenantId(),
+                        cognitiveSubgraphId, result,
+                        dominantType != null ? dominantType.name() : null,
+                        context.regulationContext(), strategySource);
+            }
+        } else {
+            if (cognitiveResourcePool != null && defaultsRegistry != null) {
+                var poolConfig = defaultsRegistry.forAgentOrDefaults(context.agentId()).cognitiveResourcePoolConfig();
+                if (poolConfig != null) {
+                    cognitiveResourcePool.recordRecovery(context.agentId(), context.tenantId(), poolConfig.recoveryRate());
+                }
+            }
+        }
+    }
+
+
     private @Nullable EmotionRegulationStrategy tryPredictStrategy(
             CognitionTickContext context,
-            io.casehub.neocortex.cognition.appraisal.AppraisalResult appraisal,
+            AppraisalResult appraisal,
             double currentFatigue) {
         var defaults = defaultsRegistry.forAgent(context.agentId());
         if (defaults.isEmpty() || defaults.get().descriptor() == null) {return null;}
