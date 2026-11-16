@@ -7,12 +7,42 @@ import io.casehub.neocortex.caps.DistortionEffect;
 import io.casehub.neocortex.caps.NodeRange;
 import io.casehub.neocortex.caps.NodeType;
 import io.casehub.neocortex.caps.WeightProvenance;
+import io.casehub.yaml.jackson.YamlMappers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 
 class CapsTopologyLoaderTest {
+
+    @Test
+    void socialAndCopingAcceptanceRemainDistinct() {
+        var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
+
+        assertThat(topology.nodes().get("acceptance").type()).isEqualTo(NodeType.INPUT);
+        var coping = topology.nodes().get("coping_acceptance");
+        assertThat(coping.type()).isEqualTo(NodeType.OUTPUT);
+        assertThat(coping.category()).isEqualTo("coping");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"acceptance", "{id: acceptance}", "{name: acceptance}"})
+    void duplicateNodeIdsAreRejected(String duplicate) throws Exception {
+        var root = YamlMappers.create().readTree("""
+                nodes:
+                  input:
+                    social: [{id: acceptance}]
+                  output:
+                    coping: [%s]
+                """.formatted(duplicate));
+
+        assertThatThrownBy(() -> new CapsTopologyLoader().parse(root))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Duplicate CAPS node id: acceptance");
+    }
 
     @Test
     void loadsTopologyFromClasspath() {

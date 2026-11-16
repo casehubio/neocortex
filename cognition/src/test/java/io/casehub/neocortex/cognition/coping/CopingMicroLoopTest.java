@@ -18,6 +18,11 @@ import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.CapsAttractor;
+import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.ConvergenceType;
+import io.casehub.neocortex.caps.SettlingResult;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -26,8 +31,32 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CopingMicroLoopTest {
+
+    @Test
+    void copingAcceptanceAttractorPinsAcceptanceStrategy() {
+        var engine = mock(CapsEngine.class);
+        var capsState = mock(AgentCapsState.class);
+        var generation = mock(CopingGenerationPhase.class);
+        when(engine.loadState("tenant-1", "agent-1")).thenReturn(capsState);
+        when(engine.settle(capsState, Map.of())).thenReturn(new SettlingResult(
+                Map.of(), 1, ConvergenceType.CONVERGED, 0,
+                List.of(new CapsAttractor("coping", "coping_acceptance", 0.9, false, 0))));
+        var loop = new CopingMicroLoop(new CopingStrategyPredictor(), generation,
+                KEYWORD_CHECKS, CopingConfig.defaults(), engine, null);
+
+        loop.execute(context("blocked and frustrated"),
+                result(List.of(emotion(EmotionType.ANGER, 0.7)), HIGH_CTRL_DIMS),
+                PLANFUL, null, null, "tenant-1");
+
+        verify(generation).generate(any(), any(), eq(CopingStrategy.ACCEPTANCE), eq(PLANFUL));
+    }
 
     private static final List<SecCheck> KEYWORD_CHECKS = List.of(
             new RelevanceCheck(), new ImplicationCheck(),

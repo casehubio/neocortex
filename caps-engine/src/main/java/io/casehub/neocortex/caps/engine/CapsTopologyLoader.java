@@ -62,15 +62,17 @@ public class CapsTopologyLoader {
             JsonNode categoryNodes = entry.getValue();
             if (categoryNodes.isArray()) {
                 for (JsonNode nodeEntry : categoryNodes) {
+                    String id = nodeEntry.isTextual() ? nodeEntry.asText()
+                            : nodeEntry.path("id").asText(nodeEntry.path("name").asText());
+                    if (result.containsKey(id)) {
+                        throw new IllegalArgumentException("Duplicate CAPS node id: " + id);
+                    }
                     if (nodeEntry.isTextual()) {
-                        result.put(nodeEntry.asText(), new CapsNode(
-                                nodeEntry.asText(), type,
+                        result.put(id, new CapsNode(
+                                id, type,
                                 defaultRange(type), category,
                                 List.of(), Map.of()));
                     } else if (nodeEntry.isObject()) {
-                        String id = nodeEntry.has("id")
-                                    ? nodeEntry.path("id").asText()
-                                    : nodeEntry.path("name").asText();
                         NodeRange           range        = parseRange(nodeEntry, type);
                         List<String>        sourceModels = parseStringList(nodeEntry.path("source_models"));
                         Map<String, Double> vocabulary   = parseVocabulary(nodeEntry);
