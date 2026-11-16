@@ -133,6 +133,39 @@ class CopingMicroLoopTest {
                 .allMatch(a -> a.strategy() == CopingStrategy.DENIAL)).isTrue();
     }
 
+    @Test
+    void oscillation_ABA_pattern_breaksLoop() {
+        var callCount = new AtomicInteger(0);
+        var sequence = new CopingStrategy[]{
+                CopingStrategy.DENIAL, CopingStrategy.AVOIDANCE, CopingStrategy.DENIAL};
+        var stubPhase = new CopingGenerationPhase(null) {
+            @Override
+            public CopingResult generate(AppraisalContext ctx, CopingState state,
+                                          CopingStrategy pinned, CopingDefaults defaults) {
+                int idx = callCount.getAndIncrement();
+                var strategy = sequence[Math.min(idx, sequence.length - 1)];
+                return new CopingResult(strategy,
+                        "The safety threat has failed and lost. This is stuck and impossible.",
+                        List.of(), List.of(), List.of());
+            }
+        };
+        var config = new CopingConfig(0.3, 5);
+        var loop = new CopingMicroLoop(new CopingStrategyPredictor(), stubPhase, KEYWORD_CHECKS, config);
+
+        var state = loop.execute(
+                contextWithDrives("safety threat has failed"),
+                result(List.of(emotion(EmotionType.FEAR, 0.8)),
+                        Map.of("controllability", 0.1, "adjustability", 0.2)),
+                PLANFUL, null, null);
+
+        assertThat(state).isNotNull();
+        assertThat(callCount.get()).isEqualTo(3);
+        assertThat(state.strategiesAttempted()).hasSize(3);
+        assertThat(state.strategiesAttempted().get(0).strategy()).isEqualTo(CopingStrategy.DENIAL);
+        assertThat(state.strategiesAttempted().get(1).strategy()).isEqualTo(CopingStrategy.AVOIDANCE);
+        assertThat(state.strategiesAttempted().get(2).strategy()).isEqualTo(CopingStrategy.DENIAL);
+    }
+
     // --- Iteration cap: max iterations reached ---
 
     @Test
