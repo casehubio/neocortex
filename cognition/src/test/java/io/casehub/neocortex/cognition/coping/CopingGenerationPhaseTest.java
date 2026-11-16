@@ -228,6 +228,90 @@ class CopingGenerationPhaseTest {
         assertThat(result.goalOperations().getFirst().goalName()).isEqualTo("valid-goal");
     }
 
+    @Test
+    void parseResponse_procrastinationWithDeferGoal() throws Exception {
+        var json = """
+                {
+                  "strategy": "PROCRASTINATION",
+                  "narrative": "I'll deal with this later when I have more energy.",
+                  "goalOperations": [
+                    {"type": "DEFER", "goalName": "resolve-conflict",
+                     "goalDescription": "Address the doorway situation",
+                     "axis": "AUTONOMY", "formationReason": "Insufficient energy to confront now"}
+                  ],
+                  "driveModulations": [],
+                  "attentionDirectives": []
+                }
+                """;
+        var result = CopingGenerationPhase.parseResponse(json);
+        assertThat(result).isNotNull();
+        assertThat(result.strategy()).isEqualTo(CopingStrategy.PROCRASTINATION);
+        assertThat(result.goalOperations()).hasSize(1);
+        assertThat(result.goalOperations().getFirst().type()).isEqualTo(GoalOperationType.DEFER);
+    }
+
+    @Test
+    void parseResponse_goalOpMissingAxis_skipsEntry() throws Exception {
+        var json = """
+                {
+                  "strategy": "PLANNING",
+                  "narrative": "I have a plan.",
+                  "goalOperations": [
+                    {"type": "CREATE", "goalName": "no-axis-goal", "goalDescription": "missing axis"},
+                    {"type": "CREATE", "goalName": "valid-goal", "goalDescription": "ok", "axis": "AFFILIATION", "formationReason": "yes"}
+                  ],
+                  "driveModulations": [],
+                  "attentionDirectives": []
+                }
+                """;
+        var result = CopingGenerationPhase.parseResponse(json);
+        assertThat(result).isNotNull();
+        assertThat(result.goalOperations()).hasSize(1);
+        assertThat(result.goalOperations().getFirst().goalName()).isEqualTo("valid-goal");
+        assertThat(result.goalOperations().getFirst().axis()).isEqualTo(DriveAxis.AFFILIATION);
+    }
+
+    @Test
+    void parseResponse_invalidDriveAxis_skipsModulation() throws Exception {
+        var json = """
+                {
+                  "strategy": "ACCEPTANCE",
+                  "narrative": "I accept this.",
+                  "goalOperations": [],
+                  "driveModulations": [
+                    {"axis": "BOGUS", "intensityDelta": -0.1, "reason": "bad axis"},
+                    {"axis": "AFFILIATION", "intensityDelta": -0.15, "reason": "valid"}
+                  ],
+                  "attentionDirectives": []
+                }
+                """;
+        var result = CopingGenerationPhase.parseResponse(json);
+        assertThat(result).isNotNull();
+        assertThat(result.driveModulations()).hasSize(1);
+        assertThat(result.driveModulations().getFirst().axis()).isEqualTo(DriveAxis.AFFILIATION);
+    }
+
+    @Test
+    void parseResponse_multipleGoalOperations() throws Exception {
+        var json = """
+                {
+                  "strategy": "PLANNING",
+                  "narrative": "I have several steps to take.",
+                  "goalOperations": [
+                    {"type": "CREATE", "goalName": "step-one", "goalDescription": "First step", "axis": "COMPETENCE", "formationReason": "start"},
+                    {"type": "DEFER", "goalName": "low-priority", "goalDescription": "Later", "axis": "CURIOSITY", "formationReason": "not now"}
+                  ],
+                  "driveModulations": [],
+                  "attentionDirectives": []
+                }
+                """;
+        var result = CopingGenerationPhase.parseResponse(json);
+        assertThat(result).isNotNull();
+        assertThat(result.goalOperations()).hasSize(2);
+        assertThat(result.goalOperations().get(0).type()).isEqualTo(GoalOperationType.CREATE);
+        assertThat(result.goalOperations().get(1).type()).isEqualTo(GoalOperationType.DEFER);
+    }
+
     // --- buildUserMessage tests ---
 
     @Test

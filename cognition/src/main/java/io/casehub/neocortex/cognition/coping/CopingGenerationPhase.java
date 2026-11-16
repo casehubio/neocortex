@@ -153,13 +153,12 @@ public class CopingGenerationPhase {
         else if (controllability < 0.3) sb.append(" (low — situation is fixed)");
         sb.append("\n");
         sb.append("  adjustability: ").append(String.format("%.2f", adjustability)).append("\n");
-        for (var entry : state.secDimensions().entrySet()) {
-            if (!SecDimensions.CONTROLLABILITY.equals(entry.getKey())
-                    && !SecDimensions.ADJUSTABILITY.equals(entry.getKey())) {
-                sb.append("  ").append(entry.getKey()).append(": ")
-                  .append(String.format("%.2f", entry.getValue())).append("\n");
-            }
-        }
+        state.secDimensions().entrySet().stream()
+                .filter(e -> !SecDimensions.CONTROLLABILITY.equals(e.getKey())
+                        && !SecDimensions.ADJUSTABILITY.equals(e.getKey()))
+                .sorted(java.util.Map.Entry.comparingByKey())
+                .forEach(e -> sb.append("  ").append(e.getKey()).append(": ")
+                        .append(String.format("%.2f", e.getValue())).append("\n"));
         sb.append("\n");
 
         sb.append("Current emotions:\n");
@@ -261,10 +260,10 @@ public class CopingGenerationPhase {
             var goalDescription = item.path("goalDescription").asText("");
             var axisName = item.path("axis").asText(null);
             var reason = item.path("formationReason").asText("");
-            if (typeName == null || goalName == null) continue;
+            if (typeName == null || goalName == null || axisName == null) continue;
             try {
                 var type = GoalOperationType.valueOf(typeName);
-                var axis = axisName != null ? DriveAxis.valueOf(axisName) : DriveAxis.COMPETENCE;
+                var axis = DriveAxis.valueOf(axisName);
                 ops.add(new GoalOperation(type, goalName, goalDescription, axis, reason));
             } catch (IllegalArgumentException ignored) {}
         }
