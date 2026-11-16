@@ -15,16 +15,15 @@
  */
 package io.casehub.neocortex.cognition.coping;
 
+import io.casehub.neocortex.cognition.appraisal.SecDimensions;
+import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
-import io.casehub.neocortex.cognition.appraisal.SecDimensions;
-import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -60,34 +59,16 @@ public class CopingStrategyPredictor {
     private static final Set<EmotionType> UNCONTROLLABLE_EMOTIONS = EnumSet.of(
             EmotionType.FEAR, EmotionType.DISTRESS, EmotionType.FEARS_CONFIRMED);
 
-    private static final Map<CopingStrategy, String> STRATEGY_TO_DIMENSION;
-    private static final Map<String, List<CopingStrategy>> DIMENSION_STRATEGIES;
-
-    static {
-        STRATEGY_TO_DIMENSION = new EnumMap<>(CopingStrategy.class);
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.PLANNING, "planful");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.ACTIVE_CONFRONTATION, "planful");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SEEK_INFORMATION, "reinterpretation");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.POSITIVE_REINTERPRETATION, "reinterpretation");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.AVOIDANCE, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.MENTAL_DISENGAGEMENT, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.DENIAL, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.WISHFUL_THINKING, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SUPPRESS_INFORMATION, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SUPPRESSION, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.PROCRASTINATION, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.RESIGNATION, "avoidance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SEEK_INSTRUMENTAL_SUPPORT, "support");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SEEK_EMOTIONAL_SUPPORT, "support");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.ACCEPTANCE, "acceptance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SHIFT_RESPONSIBILITY, "avoidance");
-
-        var mutable = new java.util.LinkedHashMap<String, List<CopingStrategy>>();
-        STRATEGY_TO_DIMENSION.forEach((s, d) ->
-                mutable.computeIfAbsent(d, k -> new ArrayList<>()).add(s));
-        mutable.replaceAll((k, v) -> List.copyOf(v));
-        DIMENSION_STRATEGIES = Map.copyOf(mutable);
-    }
+    private static final Map<String, List<CopingStrategy>> DIMENSION_STRATEGIES = Map.of(
+            "planful", List.of(CopingStrategy.PLANNING, CopingStrategy.ACTIVE_CONFRONTATION),
+            "reinterpretation", List.of(CopingStrategy.POSITIVE_REINTERPRETATION, CopingStrategy.SEEK_INFORMATION),
+            "avoidance", List.of(CopingStrategy.AVOIDANCE, CopingStrategy.MENTAL_DISENGAGEMENT,
+                                 CopingStrategy.DENIAL, CopingStrategy.WISHFUL_THINKING,
+                                 CopingStrategy.SUPPRESS_INFORMATION, CopingStrategy.SUPPRESSION,
+                                 CopingStrategy.PROCRASTINATION, CopingStrategy.RESIGNATION,
+                                 CopingStrategy.SHIFT_RESPONSIBILITY),
+            "support", List.of(CopingStrategy.SEEK_INSTRUMENTAL_SUPPORT, CopingStrategy.SEEK_EMOTIONAL_SUPPORT),
+            "acceptance", List.of(CopingStrategy.ACCEPTANCE));
 
     public CopingStrategyPredictor() {}
 
