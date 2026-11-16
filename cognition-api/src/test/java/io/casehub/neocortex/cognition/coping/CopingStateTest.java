@@ -95,6 +95,32 @@ class CopingStateTest {
     }
 
     @Test
+    void withAccumulatedEffects_appliesAllEffectsFromCopingResult() {
+        var state = CopingState.initial("raw", Map.of(), List.of());
+        var result = new CopingResult(CopingStrategy.PLANNING, "reinterpreted",
+                List.of(new GoalOperation(GoalOperationType.CREATE, "plan", "desc",
+                        DriveAxis.COMPETENCE, "reason")),
+                List.of(new DriveModulation(DriveAxis.AFFILIATION, -0.2, "disengage")),
+                List.of(new AttentionDirective(AttentionDirectiveType.FOCUS, "threat", "monitor")));
+        var next = state.withAccumulatedEffects(result);
+        assertEquals(1, next.goalOperations().size());
+        assertEquals(1, next.driveModulations().size());
+        assertEquals(1, next.attentionDirectives().size());
+        assertTrue(state.goalOperations().isEmpty());
+    }
+
+    @Test
+    void withAccumulatedEffects_emptyResult_noChange() {
+        var state = CopingState.initial("raw", Map.of(), List.of());
+        var result = new CopingResult(CopingStrategy.DENIAL, "nothing changed",
+                List.of(), List.of(), List.of());
+        var next = state.withAccumulatedEffects(result);
+        assertTrue(next.goalOperations().isEmpty());
+        assertTrue(next.driveModulations().isEmpty());
+        assertTrue(next.attentionDirectives().isEmpty());
+    }
+
+    @Test
     void multipleAccumulationsShouldStack() {
         var state = CopingState.initial("raw", Map.of(), List.of());
         var op1 = new GoalOperation(GoalOperationType.CREATE, "a", "a", DriveAxis.COMPETENCE, "r");
