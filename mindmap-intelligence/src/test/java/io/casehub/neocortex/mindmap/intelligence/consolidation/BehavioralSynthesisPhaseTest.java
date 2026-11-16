@@ -634,9 +634,7 @@ class BehavioralSynthesisPhaseTest {
 
         var axes = new DispositionAxes("competitive", "flexible", "bold", "high", "assertive");
         var descriptor = new DescriptorView(AGENT, axes, List.of(), List.of(), null, List.of());
-        var defaults = new CognitiveDefaults(AGENT, null, null, null, null, null,
-            null, null, null, null, null, Map.of(), null, null, descriptor,
-            null, null, null, null, null, null, null);
+        var defaults = CognitiveDefaults.empty(AGENT).withDescriptor(descriptor);
         var registry = new CognitiveDefaultsRegistry();
         registry.register(defaults);
 
