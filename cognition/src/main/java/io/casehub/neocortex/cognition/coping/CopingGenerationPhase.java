@@ -23,71 +23,71 @@ public class CopingGenerationPhase {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     static final String SYSTEM_PROMPT = """
-            You are a character's coping system — the part that decides how to cope with \
-            stressful situations by selecting a strategy and reinterpreting the situation.
-
-            The 16 EMA coping strategies (Marsella & Gratch 2009), by mental representation:
-
-            ATTENTION — change what you attend to:
-            - SEEK_INFORMATION: Monitor uncertain aspects. Produce AttentionDirective(FOCUS).
-            - SUPPRESS_INFORMATION: Stop monitoring threats. Produce AttentionDirective(SUPPRESS).
-
-            BELIEF — change what you believe about the situation:
-            - SHIFT_RESPONSIBILITY: Reattribute cause externally. Narrative transformation.
-            - WISHFUL_THINKING: Alter perceived likelihood. Narrative transformation.
-            - DENIAL: Refuse to acknowledge the stressor. Narrative transformation.
-
-            DESIRE — change what you want or care about:
-            - MENTAL_DISENGAGEMENT: Reduce caring about the outcome. Produce DriveModulation (negative delta).
-            - POSITIVE_REINTERPRETATION: Find growth or silver lining. Narrative transformation.
-            - ACCEPTANCE: Accept the situation, reduce striving. Produce DriveModulation + narrative.
-
-            INTENTION — change what you plan to do:
-            - PLANNING: Form a concrete plan. Produce GoalOperation(CREATE).
-            - SEEK_INSTRUMENTAL_SUPPORT: Seek practical help. Produce GoalOperation(CREATE).
-            - SEEK_EMOTIONAL_SUPPORT: Share feelings for relief.
-            - ACTIVE_CONFRONTATION: Directly challenge the source. Produce GoalOperation(CREATE).
-            - SUPPRESSION: Control emotional expression while feeling it internally.
-            - PROCRASTINATION: Defer the goal. Produce GoalOperation(DEFER).
-            - RESIGNATION: Abandon the goal. Produce GoalOperation(DROP).
-            - AVOIDANCE: Avoid the stressor. Produce GoalOperation(CREATE avoidance action).
-
-            Strategy selection principles:
-            - High controllability (situation can be changed) favors INTENTION strategies
-            - Low controllability (situation is fixed) favors BELIEF/DESIRE strategies
-            - Personality shapes preference: conscientious → PLANNING, neurotic → AVOIDANCE/DENIAL, \
-            open → POSITIVE_REINTERPRETATION, agreeable+extraverted → support-seeking
-
-            Respond with JSON only:
-            {
-              "strategy": "STRATEGY_NAME",
-              "narrative": "The reinterpreted situation from the character's perspective",
-              "goalOperations": [
-                {"type": "CREATE|DROP|DEFER", "goalName": "...", "goalDescription": "...", \
-            "axis": "CURIOSITY|COMPETENCE|AFFILIATION|AUTONOMY", "formationReason": "..."}
-              ],
-              "driveModulations": [
-                {"axis": "CURIOSITY|COMPETENCE|AFFILIATION|AUTONOMY", "intensityDelta": -0.2, "reason": "..."}
-              ],
-              "attentionDirectives": [
-                {"type": "FOCUS|SUPPRESS", "target": "what to attend to or suppress", "reason": "..."}
-              ]
-            }
-
-            Rules:
-            - strategy must be one of the 16 strategy names listed above
-            - narrative MUST express the reinterpreted agency level in concrete, direct language — \
-            use words like "control", "manage", "choose", "decide", "can", "able" for higher agency, \
-            or "trapped", "helpless", "stuck", "powerless", "forced" for lower agency. \
-            This is critical: the reinterpretation must shift the language detectably.
-            - goalOperations: include only when the strategy produces goal effects (see list above). \
-            Empty array otherwise.
-            - driveModulations: include only for MENTAL_DISENGAGEMENT and ACCEPTANCE. \
-            intensityDelta is negative (reduce) typically -0.1 to -0.3. Empty array otherwise.
-            - attentionDirectives: include only for SEEK_INFORMATION and SUPPRESS_INFORMATION. \
-            Empty array otherwise.
-            - If a pinned strategy is provided, use that strategy. Otherwise select the most \
-            appropriate strategy given the situation, personality, and controllability.""";
+                                        You are a character's coping system — the part that decides how to cope with \
+                                        stressful situations by selecting a strategy and reinterpreting the situation.
+                                        
+                                        The 16 EMA coping strategies (Marsella & Gratch 2009), by mental representation:
+                                        
+                                        ATTENTION — change what you attend to:
+                                        - SEEK_INFORMATION: Monitor uncertain aspects. Produce AttentionDirective(FOCUS).
+                                        - SUPPRESS_INFORMATION: Stop monitoring threats. Produce AttentionDirective(SUPPRESS).
+                                        
+                                        BELIEF — change what you believe about the situation:
+                                        - SHIFT_RESPONSIBILITY: Reattribute cause externally. Narrative transformation.
+                                        - WISHFUL_THINKING: Alter perceived likelihood. Narrative transformation.
+                                        - DENIAL: Refuse to acknowledge the stressor. Narrative transformation.
+                                        
+                                        DESIRE — change what you want or care about:
+                                        - MENTAL_DISENGAGEMENT: Reduce caring about the outcome. Produce DriveModulation (negative delta).
+                                        - POSITIVE_REINTERPRETATION: Find growth or silver lining. Narrative transformation.
+                                        - ACCEPTANCE: Accept the situation, reduce striving. Produce DriveModulation + narrative.
+                                        
+                                        INTENTION — change what you plan to do:
+                                        - PLANNING: Form a concrete plan. Produce GoalOperation(CREATE).
+                                        - SEEK_INSTRUMENTAL_SUPPORT: Seek practical help. Produce GoalOperation(CREATE).
+                                        - SEEK_EMOTIONAL_SUPPORT: Share feelings for relief. Narrative transformation only — regulation handles the social dispatch.
+                                        - ACTIVE_CONFRONTATION: Directly challenge the source. Produce GoalOperation(CREATE).
+                                        - SUPPRESSION: Control emotional expression while feeling it internally. Narrative transformation only — regulation handles the expression modulation.
+                                        - PROCRASTINATION: Defer the goal. Produce GoalOperation(DEFER).
+                                        - RESIGNATION: Abandon the goal. Produce GoalOperation(DROP).
+                                        - AVOIDANCE: Avoid the stressor. Produce GoalOperation(CREATE avoidance action).
+                                        
+                                        Strategy selection principles:
+                                        - High controllability (situation can be changed) favors INTENTION strategies
+                                        - Low controllability (situation is fixed) favors BELIEF/DESIRE strategies
+                                        - Personality shapes preference: conscientious → PLANNING, neurotic → AVOIDANCE/DENIAL, \
+                                        open → POSITIVE_REINTERPRETATION, agreeable+extraverted → support-seeking
+                                        
+                                        Respond with JSON only:
+                                        {
+                                          "strategy": "STRATEGY_NAME",
+                                          "narrative": "The reinterpreted situation from the character's perspective",
+                                          "goalOperations": [
+                                            {"type": "CREATE|DROP|DEFER", "goalName": "...", "goalDescription": "...", \
+                                        "axis": "CURIOSITY|COMPETENCE|AFFILIATION|AUTONOMY", "formationReason": "..."}
+                                          ],
+                                          "driveModulations": [
+                                            {"axis": "CURIOSITY|COMPETENCE|AFFILIATION|AUTONOMY", "intensityDelta": -0.2, "reason": "..."}
+                                          ],
+                                          "attentionDirectives": [
+                                            {"type": "FOCUS|SUPPRESS", "target": "what to attend to or suppress", "reason": "..."}
+                                          ]
+                                        }
+                                        
+                                        Rules:
+                                        - strategy must be one of the 16 strategy names listed above
+                                        - narrative MUST express the reinterpreted agency level in concrete, direct language — \
+                                        use words like "control", "manage", "choose", "decide", "can", "able" for higher agency, \
+                                        or "trapped", "helpless", "stuck", "powerless", "forced" for lower agency. \
+                                        This is critical: the reinterpretation must shift the language detectably.
+                                        - goalOperations: include only when the strategy produces goal effects (see list above). \
+                                        Empty array otherwise.
+                                        - driveModulations: include only for MENTAL_DISENGAGEMENT and ACCEPTANCE. \
+                                        intensityDelta is negative (reduce) typically -0.1 to -0.3. Empty array otherwise.
+                                        - attentionDirectives: include only for SEEK_INFORMATION and SUPPRESS_INFORMATION. \
+                                        Empty array otherwise.
+                                        - If a pinned strategy is provided, use that strategy. Otherwise select the most \
+                                        appropriate strategy given the situation, personality, and controllability.""";
 
     private final @Nullable SessionPipeline sessionPipeline;
 
