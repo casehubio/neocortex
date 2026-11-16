@@ -10,6 +10,9 @@ import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.caps.CapsAttractor;
+import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.cognition.regulation.RegulationCascadeConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -19,34 +22,58 @@ import java.util.logging.Logger;
 
 public class CopingMicroLoop {
 
-    private static final Logger LOG = Logger.getLogger(CopingMicroLoop.class.getName());
+    private static final Logger LOG                       = Logger.getLogger(CopingMicroLoop.class.getName());
+    private static final String COPING_ATTRACTOR_CATEGORY = "coping";
 
-    private final CopingStrategyPredictor predictor;
-    private final CopingGenerationPhase generationPhase;
-    private final List<SecCheck> keywordChecks;
-    private final CopingConfig config;
+    private final           CopingStrategyPredictor                                           predictor;
+    private final           CopingGenerationPhase                                             generationPhase;
+    private final           List<SecCheck>                                                    keywordChecks;
+    private final           CopingConfig                                                      config;
+    private final @Nullable CapsEngine                              capsEngine;
+    private final @Nullable RegulationCascadeConfig cascadeConfig;
 
     public CopingMicroLoop(CopingStrategyPredictor predictor,
                            CopingGenerationPhase generationPhase,
                            List<SecCheck> keywordChecks) {
-        this(predictor, generationPhase, keywordChecks, CopingConfig.defaults());
+        this(predictor, generationPhase, keywordChecks, CopingConfig.defaults(), null, null);
     }
 
     public CopingMicroLoop(CopingStrategyPredictor predictor,
                            CopingGenerationPhase generationPhase,
                            List<SecCheck> keywordChecks,
                            CopingConfig config) {
-        this.predictor = predictor;
+        this(predictor, generationPhase, keywordChecks, config, null, null);
+    }
+
+    public CopingMicroLoop(CopingStrategyPredictor predictor,
+                           CopingGenerationPhase generationPhase,
+                           List<SecCheck> keywordChecks,
+                           CopingConfig config,
+                           @Nullable CapsEngine capsEngine,
+                           @Nullable RegulationCascadeConfig cascadeConfig) {
+        this.predictor       = predictor;
         this.generationPhase = generationPhase;
-        this.keywordChecks = List.copyOf(keywordChecks);
-        this.config = config;
+        this.keywordChecks   = List.copyOf(keywordChecks);
+        this.config          = config;
+        this.capsEngine      = capsEngine;
+        this.cascadeConfig   = capsEngine != null && cascadeConfig == null
+                               ? RegulationCascadeConfig.defaults() : cascadeConfig;
     }
 
     public @Nullable CopingState execute(AppraisalContext appraisalContext,
-                                          AppraisalResult appraisalResult,
-                                          @Nullable CopingDefaults copingDefaults,
-                                          @Nullable DispositionAxes axes,
-                                          @Nullable CognitiveLoadLevel cognitiveLoad) {
+                                         AppraisalResult appraisalResult,
+                                         @Nullable CopingDefaults copingDefaults,
+                                         @Nullable DispositionAxes axes,
+                                         @Nullable CognitiveLoadLevel cognitiveLoad) {
+        return execute(appraisalContext, appraisalResult, copingDefaults, axes, cognitiveLoad, null);
+    }
+
+    public @Nullable CopingState execute(AppraisalContext appraisalContext,
+                                         AppraisalResult appraisalResult,
+                                         @Nullable CopingDefaults copingDefaults,
+                                         @Nullable DispositionAxes axes,
+                                         @Nullable CognitiveLoadLevel cognitiveLoad,
+                                         @Nullable String tenantId) {
         var state = CopingState.initial(
                 appraisalContext.situation().narrative(),
                 appraisalResult.secDimensions(),
@@ -57,8 +84,11 @@ public class CopingMicroLoop {
                 break;
             }
 
-            // Layer 2: CAPS coping attractor resolution — deferred to #997
+            // Layer 2: CAPS coping attractor resolution
             CopingStrategy pinnedStrategy = null;
+            if (capsEngine != null && cascadeConfig != null && tenantId != null) {
+                pinnedStrategy = resolveCapsAttractor(tenantId, appraisalContext.agentId());
+            }
 
             // Layer 3: mechanical predictor fallback
             if (pinnedStrategy == null) {
@@ -85,8 +115,8 @@ public class CopingMicroLoop {
 
             // Oscillation detection — strategy already attempted in a prior iteration
             if (state.strategiesAttempted().stream()
-                    .filter(a -> a.strategy() == copingResult.strategy())
-                    .count() > 1) {
+                     .filter(a -> a.strategy() == copingResult.strategy())
+                     .count() > 1) {
                 break;
             }
 
@@ -99,9 +129,33 @@ public class CopingMicroLoop {
         return state;
     }
 
+    private @Nullable CopingStrategy resolveCapsAttractor(String tenantId, String agentId) {
+        var capsState      = capsEngine.loadState(tenantId, agentId);
+        var settlingResult = capsEngine.settle(capsState, java.util.Map.of());
+        var copingAttractors = settlingResult.attractors().stream()
+                                             .filter(a -> COPING_ATTRACTOR_CATEGORY.equals(a.category()))
+                                             .sorted(java.util.Comparator.comparingDouble(CapsAttractor::strength).reversed())
+                                             .toList();
+        if (copingAttractors.isEmpty()) {return null;}
+        var top = copingAttractors.get(0);
+        if (top.strength() < cascadeConfig.regulationConfidenceThreshold()) {return null;}
+        boolean dominant = copingAttractors.size() < 2
+                           || (top.strength() - copingAttractors.get(1).strength())
+                              >= cascadeConfig.regulationDominanceMargin();
+        if (!dominant) {return null;}
+        try {
+            var strategy = CopingStrategy.valueOf(top.nodeId().toUpperCase());
+            LOG.fine(() -> String.format("CAPS coping attractor: agent=%s → %s (strength=%.3f)",
+                                         agentId, strategy, top.strength()));
+            return strategy;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     boolean hasCopingOpportunity(List<CognitiveEmotion> emotions) {
         return emotions.stream()
-                .anyMatch(e -> e.intensity() > config.copingOpportunityThreshold());
+                       .anyMatch(e -> e.intensity() > config.copingOpportunityThreshold());
     }
 
     CopingState reEvaluate(AppraisalContext originalContext, CopingState state) {
@@ -121,7 +175,7 @@ public class CopingMicroLoop {
         }
 
         var newDimensions = EmotionMapper.mergeDimensions(secResults);
-        var newEmotions = EmotionMapper.mapEmotions(secResults, originalContext.agentId());
+        var newEmotions   = EmotionMapper.mapEmotions(secResults, originalContext.agentId());
 
         return state.withDimensions(newDimensions).withEmotions(newEmotions);
     }
