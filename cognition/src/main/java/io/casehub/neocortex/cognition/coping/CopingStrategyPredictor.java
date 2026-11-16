@@ -1,9 +1,25 @@
+/*
+ * Copyright 2026-Present The Case Hub Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.casehub.neocortex.cognition.coping;
 
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognition.appraisal.SecDimensions;
 import io.casehub.neocortex.cognition.regulation.CognitiveLoadLevel;
 import org.jspecify.annotations.Nullable;
 
@@ -64,11 +80,13 @@ public class CopingStrategyPredictor {
         STRATEGY_TO_DIMENSION.put(CopingStrategy.SEEK_INSTRUMENTAL_SUPPORT, "support");
         STRATEGY_TO_DIMENSION.put(CopingStrategy.SEEK_EMOTIONAL_SUPPORT, "support");
         STRATEGY_TO_DIMENSION.put(CopingStrategy.ACCEPTANCE, "acceptance");
-        STRATEGY_TO_DIMENSION.put(CopingStrategy.SHIFT_RESPONSIBILITY, "acceptance");
+        STRATEGY_TO_DIMENSION.put(CopingStrategy.SHIFT_RESPONSIBILITY, "avoidance");
 
-        DIMENSION_STRATEGIES = new java.util.LinkedHashMap<>();
+        var mutable = new java.util.LinkedHashMap<String, List<CopingStrategy>>();
         STRATEGY_TO_DIMENSION.forEach((s, d) ->
-                DIMENSION_STRATEGIES.computeIfAbsent(d, k -> new ArrayList<>()).add(s));
+                mutable.computeIfAbsent(d, k -> new ArrayList<>()).add(s));
+        mutable.replaceAll((k, v) -> List.copyOf(v));
+        DIMENSION_STRATEGIES = Map.copyOf(mutable);
     }
 
     public CopingStrategyPredictor() {}
@@ -85,7 +103,7 @@ public class CopingStrategyPredictor {
         }
 
         CognitiveEmotion dominant = dominantEmotion(emotions);
-        double controllability = secDimensions.getOrDefault("controllability", 0.5);
+        double controllability = secDimensions.getOrDefault(SecDimensions.CONTROLLABILITY, 0.5);
 
         var viable = EnumSet.allOf(CopingStrategy.class);
 
