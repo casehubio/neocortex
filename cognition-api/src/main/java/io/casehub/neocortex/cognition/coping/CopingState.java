@@ -81,6 +81,20 @@ public record CopingState(
             goalOperations, driveModulations, attentionDirectives, Collections.unmodifiableList(attempts));
     }
 
+    public CopingState withAccumulatedEffects(CopingResult result) {
+        var state = this;
+        for (var op : result.goalOperations()) {
+            state = state.withAccumulatedGoalOp(op);
+        }
+        for (var mod : result.driveModulations()) {
+            state = state.withAccumulatedDriveMod(mod);
+        }
+        for (var dir : result.attentionDirectives()) {
+            state = state.withAccumulatedAttentionDirective(dir);
+        }
+        return state;
+    }
+
     public boolean hasAttempted(CopingStrategy strategy) {
         return strategiesAttempted.stream().anyMatch(a -> a.strategy() == strategy);
     }
