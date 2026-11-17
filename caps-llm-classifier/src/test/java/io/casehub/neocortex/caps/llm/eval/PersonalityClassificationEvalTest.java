@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,35 +27,69 @@ class PersonalityClassificationEvalTest {
     record Profile(String name, Map<String, String> disposition, double expectedTension, String expectedPath) {}
 
     private static final List<Profile> PROFILES = List.of(
-        new Profile("competitive-assertive", Map.of(
-            "disposition.socialOrient", "competitive",
-            "disposition.ruleFollowing", "flexible",
-            "disposition.riskAppetite", "bold",
-            "disposition.autonomy", "high",
-            "disposition.conflictMode", "assertive"),
-            0.0, "A"),
-        new Profile("cooperative-avoidant", Map.of(
-            "disposition.socialOrient", "cooperative",
-            "disposition.ruleFollowing", "strict",
-            "disposition.riskAppetite", "conservative",
-            "disposition.autonomy", "low",
-            "disposition.conflictMode", "avoidant"),
-            0.0, "A"),
-        new Profile("bold-strict", Map.of(
-            "disposition.socialOrient", "competitive",
-            "disposition.ruleFollowing", "strict",
-            "disposition.riskAppetite", "bold",
-            "disposition.autonomy", "moderate",
-            "disposition.conflictMode", "collaborative"),
-            1.0, "C"),
-        new Profile("moderate-baseline", Map.of(
-            "disposition.socialOrient", "cooperative",
-            "disposition.ruleFollowing", "moderate",
-            "disposition.riskAppetite", "calculated",
-            "disposition.autonomy", "moderate",
-            "disposition.conflictMode", "collaborative"),
-            0.0, "A")
-    );
+            new Profile("competitive-assertive", Map.of(
+                    "disposition.socialOrient", "competitive",
+                    "disposition.ruleFollowing", "flexible",
+                    "disposition.riskAppetite", "bold",
+                    "disposition.autonomy", "high",
+                    "disposition.conflictMode", "assertive"),
+                        0.0, "A"),
+            new Profile("cooperative-avoidant", Map.of(
+                    "disposition.socialOrient", "cooperative",
+                    "disposition.ruleFollowing", "strict",
+                    "disposition.riskAppetite", "conservative",
+                    "disposition.autonomy", "low",
+                    "disposition.conflictMode", "avoidant"),
+                        0.0, "A"),
+            new Profile("bold-strict", Map.of(
+                    "disposition.socialOrient", "competitive",
+                    "disposition.ruleFollowing", "strict",
+                    "disposition.riskAppetite", "bold",
+                    "disposition.autonomy", "moderate",
+                    "disposition.conflictMode", "collaborative"),
+                        1.0, "C"),
+            new Profile("moderate-baseline", Map.of(
+                    "disposition.socialOrient", "cooperative",
+                    "disposition.ruleFollowing", "moderate",
+                    "disposition.riskAppetite", "calculated",
+                    "disposition.autonomy", "moderate",
+                    "disposition.conflictMode", "collaborative"),
+                        0.0, "A"),
+            new Profile("anxious-cooperative", Map.ofEntries(
+                    Map.entry("disposition.socialOrient", "cooperative"),
+                    Map.entry("disposition.ruleFollowing", "strict"),
+                    Map.entry("disposition.riskAppetite", "conservative"),
+                    Map.entry("disposition.autonomy", "low"),
+                    Map.entry("disposition.conflictMode", "avoidant"),
+                    Map.entry("pid5.Anxiousness", "0.85"),
+                    Map.entry("pid5.Suspiciousness", "0.75"),
+                    Map.entry("pid5.Emotional Lability", "0.70"),
+                    Map.entry("pid5.Withdrawal", "0.60"),
+                    Map.entry("pid5.Impulsivity", "0.30"),
+                    Map.entry("pid5.Risk Taking", "0.20"),
+                    Map.entry("pid5.Intimacy Avoidance", "0.65"),
+                    Map.entry("appraisal.urgencyWeight", "1.45"),
+                    Map.entry("appraisal.fearOnsetThreshold", "1.60"),
+                    Map.entry("appraisal.selfStandardsStrictness", "1.60")),
+                        0.0, "A"),
+            new Profile("calm-cooperative", Map.ofEntries(
+                    Map.entry("disposition.socialOrient", "cooperative"),
+                    Map.entry("disposition.ruleFollowing", "strict"),
+                    Map.entry("disposition.riskAppetite", "conservative"),
+                    Map.entry("disposition.autonomy", "low"),
+                    Map.entry("disposition.conflictMode", "avoidant"),
+                    Map.entry("pid5.Anxiousness", "0.20"),
+                    Map.entry("pid5.Suspiciousness", "0.25"),
+                    Map.entry("pid5.Emotional Lability", "0.30"),
+                    Map.entry("pid5.Withdrawal", "0.35"),
+                    Map.entry("pid5.Impulsivity", "0.55"),
+                    Map.entry("pid5.Risk Taking", "0.60"),
+                    Map.entry("pid5.Intimacy Avoidance", "0.30"),
+                    Map.entry("appraisal.urgencyWeight", "0.85"),
+                    Map.entry("appraisal.fearOnsetThreshold", "0.70"),
+                    Map.entry("appraisal.selfStandardsStrictness", "0.90")),
+                        0.0, "A")
+                                                         );
 
     private static final List<String> OBSERVATIONS = List.of(
         "A colleague publicly takes credit for work you contributed to significantly",
@@ -169,6 +202,55 @@ class PersonalityClassificationEvalTest {
         }
     }
 
+    @Test
+    void pid5Divergence_sameAxes_differentFacets_exceedsBaseline() {
+        var anxiousActivations = activationsByProfile.get("anxious-cooperative");
+        var calmActivations    = activationsByProfile.get("calm-cooperative");
+        assertThat(anxiousActivations).as("anxious-cooperative activations").isNotNull();
+        assertThat(calmActivations).as("calm-cooperative activations").isNotNull();
+
+        double totalDistance = 0;
+        int    count         = 0;
+        for (String obsKey : anxiousActivations.keySet()) {
+            double[] anxious = anxiousActivations.get(obsKey);
+            double[] calm    = calmActivations.get(obsKey);
+            if (anxious != null && calm != null) {
+                totalDistance += cosineDistance(anxious, calm);
+                count++;
+            }
+        }
+        double avgDistance = totalDistance / count;
+        assertThat(avgDistance)
+                .as("PID-5 divergence between anxious and calm cooperative profiles")
+                .isGreaterThan(0.05);
+    }
+
+    @Test
+    void anxiousProfile_higherThreatActivation() {
+        Set<String> threatNodes = Set.of("social_threat", "punishment",
+                                         "powerlessness", "norm_violation");
+
+        int anxiousHigherCount = 0;
+        int total              = 0;
+        for (String obsKey : activationsByProfile.get("anxious-cooperative").keySet()) {
+            double[] anxious = activationsByProfile.get("anxious-cooperative").get(obsKey);
+            double[] calm    = activationsByProfile.get("calm-cooperative").get(obsKey);
+            if (anxious != null && calm != null &&
+                hasActivationInGroup(anxious, threatNodes, topology)) {
+                total++;
+                double anxiousThreat = threatNodeSum(anxious, threatNodes, topology);
+                double calmThreat    = threatNodeSum(calm, threatNodes, topology);
+                if (anxiousThreat > calmThreat) {anxiousHigherCount++;}
+            }
+        }
+        if (total > 0) {
+            assertThat((double) anxiousHigherCount / total)
+                    .as("Anxious profile should have higher threat activation in majority of observations")
+                    .isGreaterThanOrEqualTo(0.5);
+        }
+    }
+
+
     private static double[] toActivationVector(ClassificationResult result, CapsTopology topology) {
         List<String> nodeIds = topology.nodes().entrySet().stream()
             .filter(e -> e.getValue().type() == io.casehub.neocortex.caps.NodeType.INPUT)
@@ -231,4 +313,20 @@ class PersonalityClassificationEvalTest {
         if (maxNode == null) return null;
         return topology.nodes().get(maxNode).category();
     }
+
+    private static double threatNodeSum(double[] vector, Set<String> nodeGroup,
+                                        CapsTopology topology) {
+        double sum = 0;
+        var inputNodes = topology.nodes().entrySet().stream()
+                                 .filter(e -> e.getValue().type() == io.casehub.neocortex.caps.NodeType.INPUT)
+                                 .sorted(Map.Entry.comparingByKey())
+                                 .toList();
+        for (int i = 0; i < inputNodes.size() && i < vector.length; i++) {
+            if (nodeGroup.contains(inputNodes.get(i).getKey())) {
+                sum += vector[i];
+            }
+        }
+        return sum;
+    }
+
 }
