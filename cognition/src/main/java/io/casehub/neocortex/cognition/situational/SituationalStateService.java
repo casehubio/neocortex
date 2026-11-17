@@ -7,6 +7,7 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Logger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -19,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class SituationalStateService {
+
+    private static final Logger LOG = Logger.getLogger(SituationalStateService.class.getName());
 
     private final MindMapStore store;
     private final Set<String> facetNames;
@@ -169,7 +172,7 @@ public class SituationalStateService {
             var winnerStr = props.get("winner." + group.name());
             if (winnerStr != null) {
                 try { winners.put(group, SituationalMode.valueOf(winnerStr)); }
-                catch (IllegalArgumentException ignored) {}
+                catch (IllegalArgumentException e) { LOG.fine(() -> "Unrecognised situational mode '" + winnerStr + "' in persisted state, skipping"); }
             }
         }
         var cursorTime = parseInstant(props.get("cursorTime"), fallbackNow);
