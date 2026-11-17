@@ -54,6 +54,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final int reinforcementScale;
     private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
     private final CbrRecordStore cbrRecordStore;
+    private final java.util.Set<String> pid5FacetSet;
+
     private final java.util.concurrent.ConcurrentHashMap<String, io.casehub.neocortex.caps.SettlingResult> lastSettlingResults = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>                      lastInputActivations = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -64,7 +66,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                     Instance<SituationClassifier> classifier,
                                     Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry,
                                     Instance<BehavioralSynthesisConfig> config,
-                                    Instance<CbrRecordStore> cbrRecordStore) {
+                                    Instance<CbrRecordStore> cbrRecordStore,
+                                    Instance<Pid5FacetsConfig> pid5Config) {
         this.store            = store;
         this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
         this.classifier       = classifier.isResolvable() ? classifier.get() : null;
@@ -75,6 +78,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         this.reinforcementBoostCap = c != null ? c.reinforcementBoostCap() : 0.5;
         this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
         this.cbrRecordStore        = cbrRecordStore.isResolvable() ? cbrRecordStore.get() : null;
+        this.pid5FacetSet          = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
     }
 
     public BehavioralSynthesisPhase(MindMapStore store,
@@ -93,11 +97,11 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
     public BehavioralSynthesisPhase(MindMapStore store,
-                             CapsEngine capsEngine,
-                             SituationClassifier classifier,
-                             int maxPerPass,
-                             CbrRecordStore cbrRecordStore,
-                             io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
+                                    CapsEngine capsEngine,
+                                    SituationClassifier classifier,
+                                    int maxPerPass,
+                                    CbrRecordStore cbrRecordStore,
+                                    io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
         this.store                 = store;
         this.capsEngine            = capsEngine;
         this.classifier            = classifier;
@@ -107,6 +111,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         this.reinforcementBoostCap = 0.5;
         this.reinforcementScale    = 20;
         this.cbrRecordStore        = cbrRecordStore;
+        this.pid5FacetSet          = null;
     }
 
     @Override
@@ -392,7 +397,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
     private Map<String, String> addPersonalityMetadata(Map<String, String> metadata, String agentId) {
-        return io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher.enrich(metadata, agentId, defaultsRegistry);
+        return io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher.enrich(metadata, agentId, defaultsRegistry, pid5FacetSet);
     }
 
     private double averageIntensity(List<MindMapNode> nodes) {

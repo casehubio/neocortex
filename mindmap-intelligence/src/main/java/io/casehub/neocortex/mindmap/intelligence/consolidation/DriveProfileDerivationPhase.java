@@ -50,25 +50,30 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     private final SituationClassifier classifier;
     private final CapsTopology topology;
     private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+    private final java.util.Set<String>                                          pid5FacetSet;
+
 
     @Inject
     public DriveProfileDerivationPhase(MindMapStore store,
                                        Instance<SituationClassifier> classifier,
                                        Instance<CapsTopology> topology,
-                                       Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry) {
-        this.store = store;
-        this.classifier = classifier.isResolvable() ? classifier.get() : null;
-        this.topology = topology.isResolvable() ? topology.get() : null;
+                                       Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry,
+                                       Instance<Pid5FacetsConfig> pid5Config) {
+        this.store            = store;
+        this.classifier       = classifier.isResolvable() ? classifier.get() : null;
+        this.topology         = topology.isResolvable() ? topology.get() : null;
         this.defaultsRegistry = defaultsRegistry.isResolvable() ? defaultsRegistry.get() : null;
+        this.pid5FacetSet     = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
     }
 
     public DriveProfileDerivationPhase(MindMapStore store,
                                        SituationClassifier classifier,
                                        CapsTopology topology) {
-        this.store = store;
-        this.classifier = classifier;
-        this.topology = topology;
+        this.store            = store;
+        this.classifier       = classifier;
+        this.topology         = topology;
         this.defaultsRegistry = null;
+        this.pid5FacetSet     = null;
     }
 
     public DriveProfileDerivationPhase(MindMapStore store,
@@ -79,6 +84,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
         this.classifier       = classifier;
         this.topology         = topology;
         this.defaultsRegistry = defaultsRegistry;
+        this.pid5FacetSet     = null;
     }
 
 
@@ -287,7 +293,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     }
 
     private Map<String, String> addPersonalityMetadata(Map<String, String> metadata, String agentId) {
-        return io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher.enrich(metadata, agentId, defaultsRegistry);
+        return io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher.enrich(metadata, agentId, defaultsRegistry, pid5FacetSet);
     }
 
 
