@@ -1133,8 +1133,8 @@ public @Nullable String lastTargetAgentId() {
         io.casehub.neocortex.cognition.trace.PipelineTrace.CapsSettlingSnapshot capsSnapshot = null;
         Map<String, Double>                                                     capsInputs   = Map.of();
         if (behavioralSynthesis != null) {
-            capsInputs = behavioralSynthesis.lastInputActivations(agentId);
-            var settling = behavioralSynthesis.lastSettlingResult(agentId);
+            capsInputs = behavioralSynthesis.lastInputActivations(tenantId, agentId);
+            var settling = behavioralSynthesis.lastSettlingResult(tenantId, agentId);
             if (settling.isPresent()) {
                 var sr = settling.get();
                 var attractorSnapshots = sr.attractors().stream()

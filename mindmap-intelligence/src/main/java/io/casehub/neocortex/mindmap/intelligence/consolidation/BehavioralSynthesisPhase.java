@@ -184,8 +184,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             try {
                 var result = capsEngine.settle(state, combinedActivations);
-                lastSettlingResults.put(agentId, result);
-                lastInputActivations.put(agentId, Map.copyOf(combinedActivations));
+                String cacheKey = tenantId + ":" + agentId;
+                lastSettlingResults.put(cacheKey, result);
+                lastInputActivations.put(cacheKey, Map.copyOf(combinedActivations));
 
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
@@ -504,12 +505,12 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
 
-    public java.util.Optional<io.casehub.neocortex.caps.SettlingResult> lastSettlingResult(String agentId) {
-        return java.util.Optional.ofNullable(lastSettlingResults.get(agentId));
+    public java.util.Optional<io.casehub.neocortex.caps.SettlingResult> lastSettlingResult(String tenantId, String agentId) {
+        return java.util.Optional.ofNullable(lastSettlingResults.get(tenantId + ":" + agentId));
     }
 
-    public Map<String, Double> lastInputActivations(String agentId) {
-        return lastInputActivations.getOrDefault(agentId, Map.of());
+    public Map<String, Double> lastInputActivations(String tenantId, String agentId) {
+        return lastInputActivations.getOrDefault(tenantId + ":" + agentId, Map.of());
     }
 
     /**
