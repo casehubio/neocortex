@@ -97,7 +97,7 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 ### Downstream consumer: situation classifier PID-5 integration (#977)
 - PID-5 facets and derived AppraisalWeights now flow through the CAPS situation classifier pipeline. `addPersonalityMetadata()` populates `pid5.<Facet>=<2dp>` and `appraisal.<field>=<2dp>` metadata keys alongside disposition axes. `PersonalityPromptBuilder` formats them as natural-language annotations (high/low/moderate labels, directional appraisal labels). CBR cache key includes PID-5 and appraisal in SHA-256 hash — different personality magnitudes produce different cache entries. Model version `haiku-pid5` invalidates pre-PID-5 cache.
 - This completes the full pipeline: Engram YAML → Eidos → Bridge → DescriptorView → CDE derivation → metadata enrichment → classifier prompt + CBR cache.
-- Follow-up: #1070 (wire pid5Facets config filter), #1071 (extract shared utility), #1072 (cleanup).
+- Follow-up complete: #1071 extracted `PersonalityMetadataEnricher` shared utility in cognitive-index. #1070 wired `Pid5FacetsConfig` to filter facets at enrichment time. #1072 removed dead `hasPid5()` and hardened eval assertions.
 
 ### Pipeline unification
 - `AmpdFacet` record added to `AgentDisposition` (eidos-api). Backward-compatible 10-arg constructor preserved.
@@ -133,9 +133,12 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - examples#207: Add ampdFacets to wacky-manor character engrams
 - neocortex#964: YAML round-trip test for ampdFacets deserialization
 - ~~neocortex#980: ConsolidationScheduler does not journal during consolidation phases~~ ✅ Landed 2026-11-17 (setCognitiveJournal() on ConsolidationPhase SPI)
-- neocortex#1070: Wire pid5Facets config to metadata enrichment and cache key
-- neocortex#1071: Extract addPersonalityMetadata to shared utility (DRY — duplicated in BehavioralSynthesisPhase + DriveProfileDerivationPhase)
-- neocortex#1072: Remove dead hasPid5(), strengthen eval test assertions
+- ~~neocortex#1070: Wire pid5Facets config to metadata enrichment and cache key~~ ✅ Landed 2026-11-17 (Pid5FacetsConfig in mindmap-intelligence, PersonalityMetadataEnricher filters)
+- ~~neocortex#1071: Extract addPersonalityMetadata to shared utility~~ ✅ Landed 2026-11-17 (PersonalityMetadataEnricher in cognitive-index)
+- ~~neocortex#1072: Remove dead hasPid5(), strengthen eval test assertions~~ ✅ Landed 2026-11-17
+
+### Epic #1050 — CAPS pipeline wiring completeness (resolved 2026-11-17)
+84 issues across the full CAPS pipeline — topology structure, coping→regulation connections, orphaned output nodes, personality-aware classification (PID-5 + AppraisalWeights), search budget, drive composition, CAPS settling, and observability. All verified end-to-end. Pre-existing test failures filed as #1077 (AttentionSignalTest) and #1078 (CopingStrategyPredictorTest).
 ## Open Questions
 
 1. **Should `derivePersonality` (the foundation derivation) get PID-5 modulation?** Currently excluded to avoid cascading effects. May revisit after eval validation of downstream modulations.
