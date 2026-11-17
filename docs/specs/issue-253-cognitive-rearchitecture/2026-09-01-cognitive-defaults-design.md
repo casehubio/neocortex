@@ -333,3 +333,16 @@ Jackson YAML is needed at runtime (the registry parses YAML at startup):
 - AgentDescriptor.java — eidos-api, 22-field record with agentId
 - eidos/eval/src/test/resources/profiles/technical-writer.yaml — eidos YAML profile format
 - GE-20260602-a4d290 — ObjectMapper(YAMLFactory) requires findAndRegisterModules()
+
+---
+
+## Addendum: Structural Decomposition (#999, 2026-11-17)
+
+The original 8-field record grew to 23 fields as regulation, coping, cognitive resources, and graph defaults were added. In #999, the flat record was decomposed into 4 nested config groups based on runtime co-access analysis:
+
+- **EmotionDefaults** — moodBaseline, appraisalWeights, regulationDefaults, copingDefaults
+- **CognitiveResourceDefaults** — capacityConfig, cognitiveResourcePoolConfig, searchBudgetConfig, recurringThoughtConfig, habituationConfig
+- **GraphDefaults** — vocabulary, services, traitRules, derivedEdgeRules, graphStructure, extractionBias
+- **BehavioralDefaults** — curiosity, temporalFocus, socialCognition, cbrStrategy
+
+All leaf-level accessors and `withX()` methods are preserved as delegates. YAML profiles nest fields under group keys. The `§2 CognitiveDefaults Record` and `§3 YAML Schema` sections above describe the original structure; the decomposed structure is the current implementation.
