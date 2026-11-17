@@ -32,7 +32,9 @@ public class DispositionWeightMapper {
     }
 
     public AgentCapsState initializeWeights(String tenantId, String agentId,
-                                            DispositionAxes disposition) {return initializeWeights(tenantId, agentId, disposition, null);}
+                                            DispositionAxes disposition) {
+        return initializeWeights(tenantId, agentId, disposition, null);
+    }
 
     public AgentCapsState initializeWeights(String tenantId, String agentId,
                                             DispositionAxes disposition,
@@ -82,7 +84,6 @@ public class DispositionWeightMapper {
         return new AgentCapsState(agentId, tenantId, 0,
                                   Map.copyOf(weights), Map.copyOf(nodeStates));
     }
-
 
     private void applyModifier(String name, double multiplier,
                                 Map<String, ConnectionWeight> weights,
@@ -291,9 +292,7 @@ public class DispositionWeightMapper {
     }
 
     // Coping attractor seeding — Connor-Smith & Flachsbart (2007) personality-coping meta-analysis.
-// Centers at 0.5 (population mean): above-mean tendency → positive resting activation,
-// below-mean → negative. Scale factor 0.5 keeps values in [-0.25, 0.25], consistent
-// with other output node activations.
+// Centers at 0.5 (population mean), scale factor 0.5 keeps values in [-0.25, 0.25].
     private void setCopingRestingActivations(CopingDefaults coping,
                                              Map<String, NodeState> nodeStates) {
         addResting(nodeStates, "planning", copingBias(coping.planfulTendency()));
@@ -307,7 +306,6 @@ public class DispositionWeightMapper {
     private static double copingBias(double tendency) {
         return (tendency - 0.5) * 0.5;
     }
-
 
     private void addResting(Map<String, NodeState> nodeStates,
                              String nodeId, double delta) {

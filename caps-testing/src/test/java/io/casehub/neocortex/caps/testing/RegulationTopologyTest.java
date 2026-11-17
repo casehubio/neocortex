@@ -78,6 +78,64 @@ class RegulationTopologyTest {
     }
 
     @Test
+    void copingProblemFocusedConnectionsExist() {
+        var connections = topology.connections();
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("self_efficacy") && c.to().equals("planning"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BAS_activation") && c.to().equals("planning"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("self_efficacy") && c.to().equals("active_confrontation"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BAS_activation") && c.to().equals("active_confrontation"));
+    }
+
+    @Test
+    void copingAvoidantConnectionsExist() {
+        var connections = topology.connections();
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BIS_activation") && c.to().equals("avoidance"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("threat_sensitivity") && c.to().equals("avoidance"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BIS_activation") && c.to().equals("mental_disengagement"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("threat_sensitivity") && c.to().equals("mental_disengagement"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BIS_activation") && c.to().equals("suppression"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("self_efficacy") && c.to().equals("avoidance")
+                     && c.defaultWeight() < 0);
+    }
+
+    @Test
+    void copingSupportSeekingConnectionsExist() {
+        var connections = topology.connections();
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("other_safety") && c.to().equals("seek_emotional_support"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("other_reliability") && c.to().equals("seek_instrumental_support"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BAS_activation") && c.to().equals("seek_instrumental_support"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("other_safety") && c.to().equals("seek_instrumental_support"));
+    }
+
+    @Test
+    void copingCognitiveConnectionsExist() {
+        var connections = topology.connections();
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("self_efficacy") && c.to().equals("positive_reinterpretation"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("self_worth") && c.to().equals("positive_reinterpretation"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("self_worth") && c.to().equals("coping_acceptance"));
+        assertThat(connections).anyMatch(
+                c -> c.from().equals("BIS_activation") && c.to().equals("coping_acceptance")
+                     && c.defaultWeight() < 0);
+    }
+
+    @Test
     void socialContextToMediatingConnectionsExist() {
         var connections = topology.connections();
         assertThat(connections).anyMatch(
@@ -97,7 +155,5 @@ class RegulationTopologyTest {
     }
 
     @Test
-    void topologyConnectionCountIsCorrect() {
-        assertThat(topology.connections()).hasSize(111);
-    }
+    void topologyConnectionCountIsCorrect() {assertThat(topology.connections()).hasSize(129);}
 }

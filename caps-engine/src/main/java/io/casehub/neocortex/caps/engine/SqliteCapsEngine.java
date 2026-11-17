@@ -89,7 +89,6 @@ public class SqliteCapsEngine implements CapsEngine, AutoCloseable {
         return state;
     }
 
-
     @Override
     public SettlingResult settle(AgentCapsState state,
                                  Map<String, Double> inputActivations) {

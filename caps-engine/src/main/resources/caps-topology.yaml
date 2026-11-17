@@ -1340,6 +1340,122 @@ connections:
     source: "Anderson & Bushman 2002: dominance drives provocation"
     tags: []
 
+  # Coping strategy connections (#1019)
+  # Source: Connor-Smith & Flachsbart 2007 Big Five → coping meta-analysis,
+  # mapped through CAPS mediating layer
+  # Problem-focused coping
+  - from: self_efficacy
+    to: planning
+    weight: 0.40
+    provenance: consensus
+    source: "Connor-Smith & Flachsbart 2007: C→planful r=.26, agency enables planful coping"
+    tags: []
+  - from: BAS_activation
+    to: planning
+    weight: 0.25
+    provenance: consensus
+    source: "approach motivation supports problem-solving"
+    tags: [bas]
+  - from: self_efficacy
+    to: active_confrontation
+    weight: 0.35
+    provenance: consensus
+    source: "agency enables active engagement with stressors"
+    tags: []
+  - from: BAS_activation
+    to: active_confrontation
+    weight: 0.35
+    provenance: consensus
+    source: "Connor-Smith & Flachsbart 2007: E→engagement r=.15, approach motivation"
+    tags: [bas]
+  # Avoidant coping
+  - from: BIS_activation
+    to: avoidance
+    weight: 0.40
+    provenance: consensus
+    source: "Connor-Smith & Flachsbart 2007: N→disengagement r=.26, inhibition drives avoidance"
+    tags: [bis]
+  - from: threat_sensitivity
+    to: avoidance
+    weight: 0.35
+    provenance: consensus
+    source: "threat anticipation drives avoidance"
+    tags: [threat]
+  - from: BIS_activation
+    to: mental_disengagement
+    weight: 0.35
+    provenance: consensus
+    source: "behavioral inhibition promotes disengagement"
+    tags: [bis]
+  - from: threat_sensitivity
+    to: mental_disengagement
+    weight: 0.30
+    provenance: consensus
+    source: "threat drives cognitive disengagement"
+    tags: [threat]
+  - from: BIS_activation
+    to: suppression
+    weight: 0.30
+    provenance: consensus
+    source: "inhibition drives thought suppression"
+    tags: [bis]
+  - from: self_efficacy
+    to: avoidance
+    weight: -0.25
+    provenance: consensus
+    source: "high agency reduces avoidant coping"
+    tags: []
+  # Support-seeking coping
+  - from: other_safety
+    to: seek_emotional_support
+    weight: 0.35
+    provenance: consensus
+    source: "safety with other enables emotional disclosure"
+    tags: [social_input]
+  - from: other_reliability
+    to: seek_instrumental_support
+    weight: 0.35
+    provenance: consensus
+    source: "trust in other enables practical help-seeking"
+    tags: []
+  - from: BAS_activation
+    to: seek_instrumental_support
+    weight: 0.25
+    provenance: consensus
+    source: "approach motivation for active help-seeking"
+    tags: [bas]
+  - from: other_safety
+    to: seek_instrumental_support
+    weight: 0.25
+    provenance: consensus
+    source: "safety enables support seeking"
+    tags: [social_input]
+  # Cognitive coping
+  - from: self_efficacy
+    to: positive_reinterpretation
+    weight: 0.40
+    provenance: consensus
+    source: "Connor-Smith & Flachsbart 2007: O→reinterpretation, cognitive resources enable reappraisal"
+    tags: []
+  - from: self_worth
+    to: positive_reinterpretation
+    weight: 0.25
+    provenance: consensus
+    source: "positive self-model supports cognitive flexibility"
+    tags: []
+  - from: self_worth
+    to: coping_acceptance
+    weight: 0.30
+    provenance: consensus
+    source: "Connor-Smith & Flachsbart 2007: low N→acceptance, positive self-model enables acceptance"
+    tags: []
+  - from: BIS_activation
+    to: coping_acceptance
+    weight: -0.25
+    provenance: consensus
+    source: "anxiety impairs acceptance"
+    tags: [bis]
+
 # Disposition modulation — how DispositionAxes scale connection weights
 disposition_modifiers:
   socialOrient:

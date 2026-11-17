@@ -62,7 +62,6 @@ public class InMemoryCapsEngine implements CapsEngine {
         return state;
     }
 
-
     @Override
     public SettlingResult settle(AgentCapsState state,
                                  Map<String, Double> inputActivations) {

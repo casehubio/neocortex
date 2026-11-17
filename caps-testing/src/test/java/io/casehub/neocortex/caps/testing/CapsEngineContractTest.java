@@ -4,10 +4,10 @@ import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.CapsEngine;
 import io.casehub.neocortex.caps.ConnectionWeight;
 import io.casehub.neocortex.caps.ConvergenceType;
+import io.casehub.neocortex.caps.NodeState;
 import io.casehub.neocortex.caps.SettlingResult;
 import io.casehub.neocortex.caps.WeightProvenance;
 import io.casehub.neocortex.caps.WeightUpdateContext;
-import io.casehub.neocortex.caps.NodeState;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,6 +89,22 @@ public abstract class CapsEngineContractTest {
         }
     }
 
+    @Test
+    void highBISInputActivatesAvoidantCopingAttractors() {
+        var disposition = new DispositionAxes(
+                "cooperative", "moderate", "conservative", "moderate", "avoidant");
+        var coping = new CopingDefaults(0.3, 0.3, 0.8, 0.3, 0.3);
+
+        AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
+
+        var            inputs = Map.of("physical_threat", 0.9, "unpredictable_danger", 0.7);
+        SettlingResult result = engine.settle(state, inputs);
+
+        double avoidance = result.activations().getOrDefault("avoidance", 0.0);
+        double planning  = result.activations().getOrDefault("planning", 0.0);
+        assertThat(avoidance).as("high BIS + high avoidance tendency should activate avoidance")
+                             .isGreaterThan(planning);
+    }
 
     @Test
     void loadStateReturnsInitializedState() {
