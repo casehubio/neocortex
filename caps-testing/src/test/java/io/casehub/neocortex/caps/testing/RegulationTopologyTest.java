@@ -146,6 +146,29 @@ class RegulationTopologyTest {
             c -> c.from().equals("power_asymmetry") && c.to().equals("social_comparison"));
     }
 
+
+    @Test
+    void copingToRegulationBridgeConnectionsExist() {
+        var bridges = java.util.Map.of(
+                "positive_reinterpretation", "cognitive_change",
+                "avoidance", "situation_selection",
+                "seek_instrumental_support", "social_support_seeking",
+                "seek_emotional_support", "social_sharing",
+                "mental_disengagement", "attentional_deployment",
+                "active_confrontation", "situation_modification",
+                "suppression", "response_modulation"
+                                      );
+        for (var entry : bridges.entrySet()) {
+            boolean found = topology.connections().stream()
+                                    .anyMatch(c -> entry.getKey().equals(c.from())
+                                                   && entry.getValue().equals(c.to()));
+            assertThat(found)
+                    .as("Missing coping→regulation bridge: %s → %s",
+                        entry.getKey(), entry.getValue())
+                    .isTrue();
+        }
+    }
+
     @Test
     void topologyNodeCountIsCorrect() {
         assertThat(topology.nodes()).hasSize(107);
@@ -155,5 +178,5 @@ class RegulationTopologyTest {
     }
 
     @Test
-    void topologyConnectionCountIsCorrect() {assertThat(topology.connections()).hasSize(131);}
+    void topologyConnectionCountIsCorrect() {assertThat(topology.connections()).hasSize(163);}
 }

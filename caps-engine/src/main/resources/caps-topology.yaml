@@ -1643,6 +1643,53 @@ connections:
     source: "schema persistence supports knowledge consolidation"
     tags: [schema]
 
+  # Coping → regulation bridging connections (#1041)
+  # Source: CopingStrategy.regulationStrategy() mapping (Marsella & Gratch 2009
+  # + Gross 1998 process model). Coping strategy activation promotes its
+  # regulation implementation mechanism.
+  - from: positive_reinterpretation
+    to: cognitive_change
+    weight: 0.45
+    provenance: consensus
+    source: "Gross 1998: reinterpretation IS cognitive change applied to stressor"
+    tags: []
+  - from: avoidance
+    to: situation_selection
+    weight: 0.45
+    provenance: consensus
+    source: "Gross 1998: avoidance IS situation selection (avoiding stressor contexts)"
+    tags: []
+  - from: seek_instrumental_support
+    to: social_support_seeking
+    weight: 0.40
+    provenance: consensus
+    source: "instrumental help-seeking activates social support regulation"
+    tags: [social_input]
+  - from: seek_emotional_support
+    to: social_sharing
+    weight: 0.40
+    provenance: consensus
+    source: "emotional support-seeking activates social sharing regulation"
+    tags: [social_input]
+  - from: mental_disengagement
+    to: attentional_deployment
+    weight: 0.45
+    provenance: consensus
+    source: "Gross 1998: disengagement IS attentional deployment (distraction)"
+    tags: []
+  - from: active_confrontation
+    to: situation_modification
+    weight: 0.45
+    provenance: consensus
+    source: "Gross 1998: confrontation IS situation modification (changing the stressor)"
+    tags: []
+  - from: suppression
+    to: response_modulation
+    weight: 0.45
+    provenance: consensus
+    source: "Gross 1998: suppression IS response modulation"
+    tags: []
+
 # Disposition modulation — how DispositionAxes scale connection weights
 disposition_modifiers:
   socialOrient:
