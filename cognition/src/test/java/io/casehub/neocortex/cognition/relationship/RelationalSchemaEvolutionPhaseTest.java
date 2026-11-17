@@ -2,8 +2,8 @@ package io.casehub.neocortex.cognition.relationship;
 
 import io.casehub.neocortex.cognitive.index.AttachmentProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.ConflictInterpretation;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.PersonalityProfile;
 import io.casehub.neocortex.cognitive.index.RelationalSchema;
@@ -13,7 +13,6 @@ import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
 import io.casehub.neocortex.memory.relationship.RelationshipEvents;
 import io.casehub.neocortex.mindmap.MindMapNode;
-import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.OverlayRef;
@@ -63,6 +62,16 @@ class RelationalSchemaEvolutionPhaseTest {
             EffectiveCognitiveDefaults.forTesting(profiles),
             "person");
     }
+
+    private RelationalSchemaEvolutionPhase createPhaseWithMentalModel(
+            io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup lookup,
+            io.casehub.neocortex.cognitive.index.CognitiveDefaults... profiles) {
+        return new RelationalSchemaEvolutionPhase(
+                store, memoryStore,
+                EffectiveCognitiveDefaults.forTesting(profiles),
+                lookup, "person");
+    }
+
 
     private String setupOverlayPair(String observerId, String targetId) {
         var sharedId = store.addNode(NodeInput.of(targetId, sgId)
@@ -315,9 +324,112 @@ void obstacleRecoversToStrangerAtHighTrust() {
     assertThat(schema.role()).isEqualTo("stranger");
 }
 
+    @Test
+    void hostileIntentBiasesTrustNegative() {
+        setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "stranger");
+        storePositiveMemories("alice", "bob", 5);
 
+        var hostileSnapshot = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT,
+                List.of(),
+                List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "plans-to-deceive", "Plans to deceive and manipulate others",
+                        0.8, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.INTENTION)),
+                java.time.Instant.now(), null, java.time.Instant.now());
 
+        phase = createPhaseWithMentalModel(
+                (a, s, t) -> "alice".equals(a) && "bob".equals(s) ? java.util.Optional.of(hostileSnapshot) : java.util.Optional.empty(),
+                CognitiveDefaults.empty("default").withSocialCognition(SocialCognitionDefaults.defaults()));
+        phase.run(TENANT, List.of());
+        var schemaHostile = readSchema("alice");
 
+        resetOverlay("alice", "bob", 0.0, 0.0, "stranger");
+        phase = createPhase(CognitiveDefaults.empty("default").withSocialCognition(SocialCognitionDefaults.defaults()));
+        phase.run(TENANT, List.of());
+        var schemaBaseline = readSchema("alice");
+
+        assertThat(schemaHostile.trust()).isLessThan(schemaBaseline.trust());
+    }
+
+    @Test
+    void cooperativeIntentBiasesTrustPositive() {
+        setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "stranger");
+        storePositiveMemories("alice", "bob", 5);
+
+        var cooperativeSnapshot = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT,
+                List.of(),
+                List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "wants-to-cooperate", "Wants to cooperate and help others",
+                        0.8, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.INTENTION)),
+                java.time.Instant.now(), null, java.time.Instant.now());
+
+        phase = createPhaseWithMentalModel(
+                (a, s, t) -> "alice".equals(a) && "bob".equals(s) ? java.util.Optional.of(cooperativeSnapshot) : java.util.Optional.empty(),
+                CognitiveDefaults.empty("default").withSocialCognition(SocialCognitionDefaults.defaults()));
+        phase.run(TENANT, List.of());
+        var schemaCooperative = readSchema("alice");
+
+        resetOverlay("alice", "bob", 0.0, 0.0, "stranger");
+        phase = createPhase(CognitiveDefaults.empty("default").withSocialCognition(SocialCognitionDefaults.defaults()));
+        phase.run(TENANT, List.of());
+        var schemaBaseline = readSchema("alice");
+
+        assertThat(schemaCooperative.trust()).isGreaterThan(schemaBaseline.trust());
+    }
+
+    @Test
+    void lowConfidenceIntentDoesNotAffectTrust() {
+        setupOverlayWithSchema("alice", "bob", 0.0, 0.0, "stranger");
+        storePositiveMemories("alice", "bob", 5);
+
+        var lowConfSnapshot = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT,
+                List.of(),
+                List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "plans-to-deceive", "Plans to deceive",
+                        0.3, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.INTENTION)),
+                java.time.Instant.now(), null, java.time.Instant.now());
+
+        phase = createPhaseWithMentalModel(
+                (a, s, t) -> "alice".equals(a) && "bob".equals(s) ? java.util.Optional.of(lowConfSnapshot) : java.util.Optional.empty(),
+                CognitiveDefaults.empty("default").withSocialCognition(SocialCognitionDefaults.defaults()));
+        phase.run(TENANT, List.of());
+        var schemaLowConf = readSchema("alice");
+
+        resetOverlay("alice", "bob", 0.0, 0.0, "stranger");
+        phase = createPhase(CognitiveDefaults.empty("default").withSocialCognition(SocialCognitionDefaults.defaults()));
+        phase.run(TENANT, List.of());
+        var schemaBaseline = readSchema("alice");
+
+        assertThat(schemaLowConf.trust()).isEqualTo(schemaBaseline.trust(), org.assertj.core.api.Assertions.within(0.001));
+    }
+
+    @Test
+    void hostileBiasIsAsymmetricallyStrongerThanCooperative() {
+        var hostileSnapshot = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT, List.of(), List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "deception", "Intends deception", 0.8, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.INTENTION)),
+                java.time.Instant.now(), null, java.time.Instant.now());
+        var cooperativeSnapshot = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT, List.of(), List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "cooperation", "Intends cooperation", 0.8, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.INTENTION)),
+                java.time.Instant.now(), null, java.time.Instant.now());
+
+        double hostileBias     = Math.abs(RelationalSchemaEvolutionPhase.classifyIntentBias(hostileSnapshot));
+        double cooperativeBias = Math.abs(RelationalSchemaEvolutionPhase.classifyIntentBias(cooperativeSnapshot));
+        assertThat(hostileBias).isGreaterThan(cooperativeBias);
+    }
 
 
 }

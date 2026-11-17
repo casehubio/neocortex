@@ -1,8 +1,9 @@
 package io.casehub.neocortex.cognition.relationship;
 
-import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.LearningProfile;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
+import io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot;
 import io.casehub.neocortex.cognitive.index.ConflictInterpretation;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.memory.CaseMemoryStore;
@@ -21,7 +22,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 @ApplicationScoped
@@ -32,9 +32,14 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
     private static final double POSITIVE_THRESHOLD = 0.1;
     private static final double NEGATIVE_THRESHOLD = -0.1;
 
+    private static final double INTENT_CONFIDENCE_THRESHOLD = 0.5;
+    private static final double HOSTILE_BIAS_FACTOR = -0.15;
+    private static final double COOPERATIVE_BIAS_FACTOR = 0.05;
+
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;
     private final @Nullable EffectiveCognitiveDefaults effectiveDefaults;
+    private final @Nullable MentalModelLookup mentalModelLookup;
     private final String peopleSubgraphName;
 
     @Inject
@@ -46,7 +51,7 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
                             defaultValue = "person") String peopleSubgraphName) {
         this(mindMapStore, memoryStore,
              effectiveDefaultsInstance.isResolvable() ? effectiveDefaultsInstance.get() : null,
-             peopleSubgraphName);
+             null, peopleSubgraphName);
     }
 
     RelationalSchemaEvolutionPhase(
@@ -54,9 +59,19 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
             CaseMemoryStore memoryStore,
             @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             String peopleSubgraphName) {
+        this(mindMapStore, memoryStore, effectiveDefaults, null, peopleSubgraphName);
+    }
+
+    RelationalSchemaEvolutionPhase(
+            MindMapStore mindMapStore,
+            CaseMemoryStore memoryStore,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
+            @Nullable MentalModelLookup mentalModelLookup,
+            String peopleSubgraphName) {
         this.mindMapStore = mindMapStore;
         this.memoryStore = memoryStore;
         this.effectiveDefaults = effectiveDefaults;
+        this.mentalModelLookup = mentalModelLookup;
         this.peopleSubgraphName = peopleSubgraphName;
     }
 
@@ -161,6 +176,8 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
             trustDelta = trustFormationRate * valence * conflictMultiplier;
         }
 
+        trustDelta += computeIntentBias(observerId, targetAgentId, tenantId);
+
         double trustCeiling = 1.0 - avoidance;
         double newTrust = clamp(currentTrust + trustDelta, -1.0, trustCeiling);
 
@@ -179,7 +196,64 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
         mindMapStore.updateNode(overlay.id(),
             NodeUpdate.empty().withPropertiesToSet(newSchema.toProperties()), tenantId);
     }
-static String resolveRole(String currentRole, double newTrust,
+
+    private double computeIntentBias(String observerId, String targetAgentId, String tenantId) {
+        if (mentalModelLookup == null) {return 0.0;}
+        var snapshot = mentalModelLookup.lookup(observerId, targetAgentId, tenantId).orElse(null);
+        if (snapshot == null) {return 0.0;}
+        return classifyIntentBias(snapshot);
+    }
+
+    static double classifyIntentBias(MentalModelSnapshot snapshot) {
+        double hostileWeight     = 0.0;
+        double cooperativeWeight = 0.0;
+
+        for (var intention : snapshot.intentions()) {
+            if (intention.confidence() < INTENT_CONFIDENCE_THRESHOLD) {continue;}
+            var key  = intention.key().toLowerCase();
+            var desc = intention.description().toLowerCase();
+            if (isHostile(key, desc)) {
+                hostileWeight += intention.confidence();
+            } else if (isCooperative(key, desc)) {
+                cooperativeWeight += intention.confidence();
+            }
+        }
+        for (var desire : snapshot.desires()) {
+            if (desire.confidence() < INTENT_CONFIDENCE_THRESHOLD) {continue;}
+            var key  = desire.key().toLowerCase();
+            var desc = desire.description().toLowerCase();
+            if (isHostile(key, desc)) {
+                hostileWeight += desire.confidence() * 0.5;
+            } else if (isCooperative(key, desc)) {
+                cooperativeWeight += desire.confidence() * 0.5;
+            }
+        }
+
+        if (hostileWeight <= 0 && cooperativeWeight <= 0) {return 0.0;}
+        return hostileWeight * HOSTILE_BIAS_FACTOR + cooperativeWeight * COOPERATIVE_BIAS_FACTOR;
+    }
+
+    private static boolean isHostile(String key, String description) {
+        return containsAny(key, description,
+                           "deceiv", "decept", "manipulat", "betray", "harm", "exploit",
+                           "undermin", "sabot", "revenge", "hostile", "aggress", "attack",
+                           "destroy", "steal", "cheat", "trick", "threaten", "intimidat");
+    }
+
+    private static boolean isCooperative(String key, String description) {
+        return containsAny(key, description,
+                           "cooperat", "help", "support", "protect", "assist", "share",
+                           "trust", "ally", "friend", "collaborat", "peace", "reconcil");
+    }
+
+    private static boolean containsAny(String key, String description, String... patterns) {
+        for (var pattern : patterns) {
+            if (key.contains(pattern) || description.contains(pattern)) {return true;}
+        }
+        return false;
+    }
+
+    static String resolveRole(String currentRole, double newTrust,
                               List<PersonalityFacet> facets, double utility) {
     boolean highTrust = newTrust >= 0.5;
     boolean lowTrust = newTrust <= -0.3;
