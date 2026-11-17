@@ -377,15 +377,14 @@ public class CognitionTestHarness {
             var mediator = new ConsolidationMediator();
             var config   = cognitionConfig != null ? cognitionConfig : CognitionConfig.all();
 
-            var core = new CognitionCore(
-                    moodOrchestrator, driveOrchestrator,
-                    userModel, mentalModel, strategy,
-                    narrativeOrch, goals, hygiene,
-                    innerLife, config,
-                    store, null, null, null, null, null,
-                    mediator, sessionPipeline);
-
-            core.setEffectiveDefaults(registry);
+            var core = io.casehub.neocortex.cognition.core.CognitivePipelineBuilder
+                    .create(moodOrchestrator, driveOrchestrator)
+                    .userModel(userModel).mentalModel(mentalModel).strategy(strategy)
+                    .narrative(narrativeOrch).goals(goals).memoryHygiene(hygiene)
+                    .innerLife(innerLife).config(config).mindMapStore(store)
+                    .consolidationMediator(mediator).sessionPipeline(sessionPipeline)
+                    .effectiveDefaults(registry)
+                    .build();
 
             io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant appraisalStub = null;
             if (!habituationStates.isEmpty() || !appraisalResults.isEmpty()) {

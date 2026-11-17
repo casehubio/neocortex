@@ -151,34 +151,34 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
     private static final double MOOD_FALLBACK_DECAY = 0.5;
     private final java.util.concurrent.ConcurrentHashMap<String, double[]> lastMoodDelta = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public CognitionCore(MoodOrchestrator mood,
-                         DriveOrchestrator drives,
-                         @Nullable UserModelOrchestrator userModel,
-                         @Nullable MentalModelOrchestrator mentalModel,
-                         @Nullable StrategyLearningOrchestrator strategy,
-                         @Nullable NarrativeOrchestrator narrative,
-                         @Nullable GoalProposalOrchestrator goals,
-                         @Nullable MemoryHygieneOrchestrator memoryHygiene) {
+    CognitionCore(MoodOrchestrator mood,
+                  DriveOrchestrator drives,
+                  @Nullable UserModelOrchestrator userModel,
+                  @Nullable MentalModelOrchestrator mentalModel,
+                  @Nullable StrategyLearningOrchestrator strategy,
+                  @Nullable NarrativeOrchestrator narrative,
+                  @Nullable GoalProposalOrchestrator goals,
+                  @Nullable MemoryHygieneOrchestrator memoryHygiene) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
              goals, memoryHygiene, null, CognitionConfig.all(), null);
     }
 
-    public CognitionCore(MoodOrchestrator mood,
-                         DriveOrchestrator drives,
-                         @Nullable UserModelOrchestrator userModel,
-                         @Nullable MentalModelOrchestrator mentalModel,
-                         @Nullable StrategyLearningOrchestrator strategy,
-                         @Nullable NarrativeOrchestrator narrative,
-                         @Nullable GoalProposalOrchestrator goals,
-                         @Nullable MemoryHygieneOrchestrator memoryHygiene,
-                         @Nullable InnerLifeOrchestrator innerLife,
-                         CognitionConfig config,
-                         @Nullable SessionPipeline sessionPipeline) {
+    CognitionCore(MoodOrchestrator mood,
+                  DriveOrchestrator drives,
+                  @Nullable UserModelOrchestrator userModel,
+                  @Nullable MentalModelOrchestrator mentalModel,
+                  @Nullable StrategyLearningOrchestrator strategy,
+                  @Nullable NarrativeOrchestrator narrative,
+                  @Nullable GoalProposalOrchestrator goals,
+                  @Nullable MemoryHygieneOrchestrator memoryHygiene,
+                  @Nullable InnerLifeOrchestrator innerLife,
+                  CognitionConfig config,
+                  @Nullable SessionPipeline sessionPipeline) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
              goals, memoryHygiene, innerLife, config, null, null, null, null, null, null, null, sessionPipeline);
     }
 
-    public CognitionCore(MoodOrchestrator mood,
+    CognitionCore(MoodOrchestrator mood,
                          DriveOrchestrator drives,
                          @Nullable UserModelOrchestrator userModel,
                          @Nullable MentalModelOrchestrator mentalModel,

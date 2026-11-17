@@ -4,7 +4,7 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.appraisal.NoOpAppraisalStrategy;
 import io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
-import io.casehub.neocortex.cognition.core.CognitionCore;
+import io.casehub.neocortex.cognition.core.CognitivePipelineBuilder;
 import io.casehub.neocortex.cognition.core.CognitionPhase;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
@@ -24,8 +24,7 @@ class EmotionRegulationOrderingTest {
         var mood = mock(MoodOrchestrator.class);
         var drives = mock(DriveOrchestrator.class);
 
-        var core = new CognitionCore(mood, drives, null, null, null, null, null, null,
-                null, config, null);
+        var core = CognitivePipelineBuilder.create(mood, drives).config(config).build();
 
         core.configureAppraisal(new NoOpAppraisalStrategy(), new NoOpSalienceStrategy());
         core.configureRegulation();
@@ -39,8 +38,7 @@ class EmotionRegulationOrderingTest {
         var mood = mock(MoodOrchestrator.class);
         var drives = mock(DriveOrchestrator.class);
 
-        var core = new CognitionCore(mood, drives, null, null, null, null, null, null,
-                null, config, null);
+        var core = CognitivePipelineBuilder.create(mood, drives).config(config).build();
 
         core.configureAppraisal(new NoOpAppraisalStrategy(), new NoOpSalienceStrategy());
         core.configureRegulation();
@@ -54,8 +52,7 @@ class EmotionRegulationOrderingTest {
         var mood = mock(MoodOrchestrator.class);
         var drives = mock(DriveOrchestrator.class);
 
-        var core = new CognitionCore(mood, drives, null, null, null, null, null, null,
-                null, config, null);
+        var core = CognitivePipelineBuilder.create(mood, drives).config(config).build();
 
         // Don't configure appraisal
         core.configureRegulation();
