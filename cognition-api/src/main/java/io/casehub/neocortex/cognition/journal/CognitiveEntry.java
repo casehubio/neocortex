@@ -107,4 +107,19 @@ public sealed interface CognitiveEntry {
                                      Instant timestamp,
                                      int condensedNodes, int recentNodes,
                                      int tokenBudget, int actualTokens) implements CognitiveEntry {}
+
+    record SituationalModulation(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                                 Map<String, Double> modeIntensities,
+                                 @Nullable String affectiveWinner,
+                                 @Nullable String socialWinner,
+                                 Map<String, Double> compositeDelta,
+                                 int publishedFacetCount,
+                                 String profileProvenance) implements CognitiveEntry {}
+
+    record SituationalDeformationConsolidated(String tenantId, String agentId, EventRef eventRef,
+                                              Instant timestamp,
+                                              int hoursAdvanced,
+                                              int facetsWithDrift) implements CognitiveEntry {}
+
+
 }

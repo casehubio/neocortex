@@ -59,6 +59,12 @@ public record PersonalityState(
         return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, eu);
     }
 
+    public PersonalityState withDetection(DetectionResult detection) {
+        return new PersonalityState(facets, detection.intensities(), detection.engaged(),
+                                    detection.winners(), cursorTime, hourCursor, exposedUntil);
+    }
+
+
     static Instant truncateToHour(Instant t) {
         long epochSeconds = t.getEpochSecond();
         long hourSeconds = epochSeconds - (epochSeconds % 3600);
