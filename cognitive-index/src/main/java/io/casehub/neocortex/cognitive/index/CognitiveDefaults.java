@@ -36,37 +36,25 @@ public record CognitiveDefaults(
         String agentId,
         String tenantId,
         PersonalityProfile personalityProfile,
-        MoodBaseline moodBaseline,
-        CuriosityConfig curiosity,
-        TemporalFocusConfig temporalFocus,
-        CbrStrategyDefaults cbrStrategy,
-        SocialCognitionDefaults socialCognition,
-        GraphStructureDefaults graphStructure,
-        ExtractionBiasDefaults extractionBias,
-        MindMapVocabulary vocabulary,
-        Map<String, String> services,
-        List<DeclarativeTraitRule> traitRules,
-        List<DeclarativeDerivedEdgeRule> derivedEdgeRules,
         DescriptorView descriptor,
-        AppraisalWeights appraisalWeights,
-        HabituationConfig habituationConfig,
-        RegulationDefaults regulationDefaults,
-        SearchBudgetConfig searchBudgetConfig,
-        RecurringThoughtConfig recurringThoughtConfig,
-        CognitiveCapacityConfig capacityConfig,
-        CognitiveResourcePoolConfig cognitiveResourcePoolConfig,
-        CopingDefaults copingDefaults
+        EmotionDefaults emotionDefaults,
+        CognitiveResourceDefaults cognitiveResourceDefaults,
+        GraphDefaults graphDefaults,
+        BehavioralDefaults behavioralDefaults
 ) {
     public CognitiveDefaults {
         Objects.requireNonNull(agentId, "agentId required");
-        services         = services != null ? Map.copyOf(services) : Map.of();
-        traitRules       = traitRules != null ? List.copyOf(traitRules) : null;
-        derivedEdgeRules = derivedEdgeRules != null ? List.copyOf(derivedEdgeRules) : null;
+        if (emotionDefaults == null) emotionDefaults = EmotionDefaults.empty();
+        if (cognitiveResourceDefaults == null) cognitiveResourceDefaults = CognitiveResourceDefaults.empty();
+        if (graphDefaults == null) graphDefaults = GraphDefaults.empty();
+        if (behavioralDefaults == null) behavioralDefaults = BehavioralDefaults.empty();
     }
 
     public static CognitiveDefaults empty(String agentId) {
-        return new CognitiveDefaults(agentId, null, null, null, null, null, null, null, null, null, null, Map.of(), null, null, null, null, null, null, null, null, null, null, null);
+        return new CognitiveDefaults(agentId, null, null, null, null, null, null, null);
     }
+
+    // --- Leaf accessors (delegates) ---
 
     public PersonalityWeights personality() {
         return personalityProfile != null ? personalityProfile.personality() : null;
@@ -80,13 +68,60 @@ public record CognitiveDefaults(
         return personalityProfile != null ? personalityProfile.expressionStyles() : null;
     }
 
+    public MoodBaseline moodBaseline() { return emotionDefaults.moodBaseline(); }
+    public AppraisalWeights appraisalWeights() { return emotionDefaults.appraisalWeights(); }
+    public RegulationDefaults regulationDefaults() { return emotionDefaults.regulationDefaults(); }
+    public CopingDefaults copingDefaults() { return emotionDefaults.copingDefaults(); }
+
+    public CognitiveCapacityConfig capacityConfig() { return cognitiveResourceDefaults.capacityConfig(); }
+    public CognitiveResourcePoolConfig cognitiveResourcePoolConfig() { return cognitiveResourceDefaults.cognitiveResourcePoolConfig(); }
+    public SearchBudgetConfig searchBudgetConfig() { return cognitiveResourceDefaults.searchBudgetConfig(); }
+    public RecurringThoughtConfig recurringThoughtConfig() { return cognitiveResourceDefaults.recurringThoughtConfig(); }
+    public HabituationConfig habituationConfig() { return cognitiveResourceDefaults.habituationConfig(); }
+
+    public MindMapVocabulary vocabulary() { return graphDefaults.vocabulary(); }
+    public Map<String, String> services() { return graphDefaults.services(); }
+    public List<DeclarativeTraitRule> traitRules() { return graphDefaults.traitRules(); }
+    public List<DeclarativeDerivedEdgeRule> derivedEdgeRules() { return graphDefaults.derivedEdgeRules(); }
+    public GraphStructureDefaults graphStructure() { return graphDefaults.graphStructure(); }
+    public ExtractionBiasDefaults extractionBias() { return graphDefaults.extractionBias(); }
+
+    public CuriosityConfig curiosity() { return behavioralDefaults.curiosity(); }
+    public TemporalFocusConfig temporalFocus() { return behavioralDefaults.temporalFocus(); }
+    public SocialCognitionDefaults socialCognition() { return behavioralDefaults.socialCognition(); }
+    public CbrStrategyDefaults cbrStrategy() { return behavioralDefaults.cbrStrategy(); }
+
+    // --- Group-level withX() methods ---
+
     public CognitiveDefaults withTenantId(String tenantId) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
     }
 
     public CognitiveDefaults withPersonalityProfile(PersonalityProfile personalityProfile) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
     }
+
+    public CognitiveDefaults withDescriptor(DescriptorView descriptor) {
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+    }
+
+    public CognitiveDefaults withEmotionDefaults(EmotionDefaults emotionDefaults) {
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+    }
+
+    public CognitiveDefaults withCognitiveResourceDefaults(CognitiveResourceDefaults cognitiveResourceDefaults) {
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+    }
+
+    public CognitiveDefaults withGraphDefaults(GraphDefaults graphDefaults) {
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+    }
+
+    public CognitiveDefaults withBehavioralDefaults(BehavioralDefaults behavioralDefaults) {
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+    }
+
+    // --- Leaf-level withX() methods (delegates through groups) ---
 
     public CognitiveDefaults withPersonality(PersonalityWeights personality) {
         var pp = personalityProfile != null ? personalityProfile : new PersonalityProfile(null, null, null, null, List.of());
@@ -104,84 +139,97 @@ public record CognitiveDefaults(
     }
 
     public CognitiveDefaults withMoodBaseline(MoodBaseline moodBaseline) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withCuriosity(CuriosityConfig curiosity) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withTemporalFocus(TemporalFocusConfig temporalFocus) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withCbrStrategy(CbrStrategyDefaults cbrStrategy) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withSocialCognition(SocialCognitionDefaults socialCognition) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withGraphStructure(GraphStructureDefaults graphStructure) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withExtractionBias(ExtractionBiasDefaults extractionBias) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withVocabulary(MindMapVocabulary vocabulary) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withServices(Map<String, String> services) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withTraitRules(List<DeclarativeTraitRule> traitRules) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withDerivedEdgeRules(List<DeclarativeDerivedEdgeRule> derivedEdgeRules) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withDescriptor(DescriptorView descriptor) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
+        var e = emotionDefaults;
+        return withEmotionDefaults(new EmotionDefaults(moodBaseline, e.appraisalWeights(), e.regulationDefaults(), e.copingDefaults()));
     }
 
     public CognitiveDefaults withAppraisalWeights(AppraisalWeights appraisalWeights) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withHabituationConfig(HabituationConfig habituationConfig) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
+        var e = emotionDefaults;
+        return withEmotionDefaults(new EmotionDefaults(e.moodBaseline(), appraisalWeights, e.regulationDefaults(), e.copingDefaults()));
     }
 
     public CognitiveDefaults withRegulationDefaults(RegulationDefaults regulationDefaults) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withSearchBudgetConfig(SearchBudgetConfig searchBudgetConfig) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withRecurringThoughtConfig(RecurringThoughtConfig recurringThoughtConfig) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-    public CognitiveDefaults withCapacityConfig(CognitiveCapacityConfig capacityConfig) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
-    }
-
-
-    public CognitiveDefaults withCognitiveResourcePoolConfig(CognitiveResourcePoolConfig cognitiveResourcePoolConfig) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
+        var e = emotionDefaults;
+        return withEmotionDefaults(new EmotionDefaults(e.moodBaseline(), e.appraisalWeights(), regulationDefaults, e.copingDefaults()));
     }
 
     public CognitiveDefaults withCopingDefaults(CopingDefaults copingDefaults) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, moodBaseline, curiosity, temporalFocus, cbrStrategy, socialCognition, graphStructure, extractionBias, vocabulary, services, traitRules, derivedEdgeRules, descriptor, appraisalWeights, habituationConfig, regulationDefaults, searchBudgetConfig, recurringThoughtConfig, capacityConfig, cognitiveResourcePoolConfig, copingDefaults);
+        var e = emotionDefaults;
+        return withEmotionDefaults(new EmotionDefaults(e.moodBaseline(), e.appraisalWeights(), e.regulationDefaults(), copingDefaults));
     }
 
+    public CognitiveDefaults withCapacityConfig(CognitiveCapacityConfig capacityConfig) {
+        var r = cognitiveResourceDefaults;
+        return withCognitiveResourceDefaults(new CognitiveResourceDefaults(capacityConfig, r.cognitiveResourcePoolConfig(), r.searchBudgetConfig(), r.recurringThoughtConfig(), r.habituationConfig()));
+    }
+
+    public CognitiveDefaults withCognitiveResourcePoolConfig(CognitiveResourcePoolConfig cognitiveResourcePoolConfig) {
+        var r = cognitiveResourceDefaults;
+        return withCognitiveResourceDefaults(new CognitiveResourceDefaults(r.capacityConfig(), cognitiveResourcePoolConfig, r.searchBudgetConfig(), r.recurringThoughtConfig(), r.habituationConfig()));
+    }
+
+    public CognitiveDefaults withSearchBudgetConfig(SearchBudgetConfig searchBudgetConfig) {
+        var r = cognitiveResourceDefaults;
+        return withCognitiveResourceDefaults(new CognitiveResourceDefaults(r.capacityConfig(), r.cognitiveResourcePoolConfig(), searchBudgetConfig, r.recurringThoughtConfig(), r.habituationConfig()));
+    }
+
+    public CognitiveDefaults withRecurringThoughtConfig(RecurringThoughtConfig recurringThoughtConfig) {
+        var r = cognitiveResourceDefaults;
+        return withCognitiveResourceDefaults(new CognitiveResourceDefaults(r.capacityConfig(), r.cognitiveResourcePoolConfig(), r.searchBudgetConfig(), recurringThoughtConfig, r.habituationConfig()));
+    }
+
+    public CognitiveDefaults withHabituationConfig(HabituationConfig habituationConfig) {
+        var r = cognitiveResourceDefaults;
+        return withCognitiveResourceDefaults(new CognitiveResourceDefaults(r.capacityConfig(), r.cognitiveResourcePoolConfig(), r.searchBudgetConfig(), r.recurringThoughtConfig(), habituationConfig));
+    }
+
+    public CognitiveDefaults withVocabulary(MindMapVocabulary vocabulary) {
+        var g = graphDefaults;
+        return withGraphDefaults(new GraphDefaults(vocabulary, g.services(), g.traitRules(), g.derivedEdgeRules(), g.graphStructure(), g.extractionBias()));
+    }
+
+    public CognitiveDefaults withServices(Map<String, String> services) {
+        var g = graphDefaults;
+        return withGraphDefaults(new GraphDefaults(g.vocabulary(), services, g.traitRules(), g.derivedEdgeRules(), g.graphStructure(), g.extractionBias()));
+    }
+
+    public CognitiveDefaults withTraitRules(List<DeclarativeTraitRule> traitRules) {
+        var g = graphDefaults;
+        return withGraphDefaults(new GraphDefaults(g.vocabulary(), g.services(), traitRules, g.derivedEdgeRules(), g.graphStructure(), g.extractionBias()));
+    }
+
+    public CognitiveDefaults withDerivedEdgeRules(List<DeclarativeDerivedEdgeRule> derivedEdgeRules) {
+        var g = graphDefaults;
+        return withGraphDefaults(new GraphDefaults(g.vocabulary(), g.services(), g.traitRules(), derivedEdgeRules, g.graphStructure(), g.extractionBias()));
+    }
+
+    public CognitiveDefaults withGraphStructure(GraphStructureDefaults graphStructure) {
+        var g = graphDefaults;
+        return withGraphDefaults(new GraphDefaults(g.vocabulary(), g.services(), g.traitRules(), g.derivedEdgeRules(), graphStructure, g.extractionBias()));
+    }
+
+    public CognitiveDefaults withExtractionBias(ExtractionBiasDefaults extractionBias) {
+        var g = graphDefaults;
+        return withGraphDefaults(new GraphDefaults(g.vocabulary(), g.services(), g.traitRules(), g.derivedEdgeRules(), g.graphStructure(), extractionBias));
+    }
+
+    public CognitiveDefaults withCuriosity(CuriosityConfig curiosity) {
+        var b = behavioralDefaults;
+        return withBehavioralDefaults(new BehavioralDefaults(curiosity, b.temporalFocus(), b.socialCognition(), b.cbrStrategy()));
+    }
+
+    public CognitiveDefaults withTemporalFocus(TemporalFocusConfig temporalFocus) {
+        var b = behavioralDefaults;
+        return withBehavioralDefaults(new BehavioralDefaults(b.curiosity(), temporalFocus, b.socialCognition(), b.cbrStrategy()));
+    }
+
+    public CognitiveDefaults withSocialCognition(SocialCognitionDefaults socialCognition) {
+        var b = behavioralDefaults;
+        return withBehavioralDefaults(new BehavioralDefaults(b.curiosity(), b.temporalFocus(), socialCognition, b.cbrStrategy()));
+    }
+
+    public CognitiveDefaults withCbrStrategy(CbrStrategyDefaults cbrStrategy) {
+        var b = behavioralDefaults;
+        return withBehavioralDefaults(new BehavioralDefaults(b.curiosity(), b.temporalFocus(), b.socialCognition(), cbrStrategy));
+    }
 }

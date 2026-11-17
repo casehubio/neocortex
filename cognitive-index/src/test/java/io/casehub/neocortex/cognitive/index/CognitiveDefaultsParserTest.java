@@ -90,4 +90,18 @@ class CognitiveDefaultsParserTest {
         assertThatThrownBy(() -> defaults.services().put("new", "value"))
             .isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @Test
+    void fullProfile_parsesGroupStructure() throws IOException {
+        var defaults = parse("cognitive-profiles/alice.yaml");
+
+        assertThat(defaults.emotionDefaults()).isNotNull();
+        assertThat(defaults.emotionDefaults().moodBaseline()).isNotNull();
+        assertThat(defaults.behavioralDefaults()).isNotNull();
+        assertThat(defaults.behavioralDefaults().curiosity()).isNotNull();
+        assertThat(defaults.behavioralDefaults().temporalFocus()).isNotNull();
+        assertThat(defaults.graphDefaults()).isNotNull();
+        assertThat(defaults.graphDefaults().vocabulary()).isNotNull();
+        assertThat(defaults.graphDefaults().services()).containsEntry("reflectionSynthesizer", "llm");
+    }
 }

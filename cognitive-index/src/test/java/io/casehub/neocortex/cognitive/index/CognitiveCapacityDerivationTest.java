@@ -76,7 +76,7 @@ class CognitiveCapacityDerivationTest {
     void merge_explicit_wins_over_derived() {
         var explicit = new CognitiveCapacityConfig(0.9, null, null);
         var derived = new CognitiveCapacityConfig(0.7, 0.73, 0.79);
-        var merged = CognitiveDerivationEngine.mergeCapacity(explicit, derived);
+        var merged = explicit.mergeWith(derived);
         assertEquals(0.9, merged.relationalComplexity());
         assertEquals(0.73, merged.associativeReach());
         assertEquals(0.79, merged.workingMemorySpan());
@@ -85,15 +85,19 @@ class CognitiveCapacityDerivationTest {
     @Test
     void merge_null_explicit_returns_derived() {
         var derived = new CognitiveCapacityConfig(0.7, 0.73, 0.79);
-        var merged = CognitiveDerivationEngine.mergeCapacity(null, derived);
-        assertSame(derived, merged);
+        var resources = new CognitiveResourceDefaults(null, null, null, null, null);
+        var derivedResources = new CognitiveResourceDefaults(derived, null, null, null, null);
+        var merged = resources.mergeWith(derivedResources);
+        assertSame(derived, merged.capacityConfig());
     }
 
     @Test
     void merge_null_derived_returns_explicit() {
         var explicit = new CognitiveCapacityConfig(0.9, null, null);
-        var merged = CognitiveDerivationEngine.mergeCapacity(explicit, null);
-        assertSame(explicit, merged);
+        var resources = new CognitiveResourceDefaults(explicit, null, null, null, null);
+        var derivedResources = new CognitiveResourceDefaults(null, null, null, null, null);
+        var merged = resources.mergeWith(derivedResources);
+        assertSame(explicit, merged.capacityConfig());
     }
 
     private static List<WeightedTerm> buildProfile(
