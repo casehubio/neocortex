@@ -1,10 +1,15 @@
 package io.casehub.neocortex.caps.testing;
 
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.CapsTopology;
+import io.casehub.neocortex.caps.SettlingResult;
+import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.caps.engine.CapsSettler;
 import io.casehub.neocortex.caps.engine.CapsTopologyLoader;
 import io.casehub.neocortex.caps.engine.CapsWeightUpdater;
 import io.casehub.neocortex.caps.engine.DispositionWeightMapper;
+import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 
 import java.util.Map;
@@ -46,6 +51,17 @@ public class InMemoryCapsEngine implements CapsEngine {
         saveState(state);
         return state;
     }
+
+    @Override
+    public AgentCapsState initializeAgent(String tenantId, String agentId,
+                                          DispositionAxes disposition,
+                                          CopingDefaults copingDefaults) {
+        AgentCapsState state = dispositionMapper.initializeWeights(
+                tenantId, agentId, disposition, copingDefaults);
+        saveState(state);
+        return state;
+    }
+
 
     @Override
     public SettlingResult settle(AgentCapsState state,

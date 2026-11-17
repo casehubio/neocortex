@@ -8,6 +8,7 @@ import io.casehub.neocortex.caps.ConnectionWeight;
 import io.casehub.neocortex.caps.DispositionModifier;
 import io.casehub.neocortex.caps.NodeState;
 import io.casehub.neocortex.caps.NodeType;
+import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 
 import java.util.Collections;
@@ -31,48 +32,57 @@ public class DispositionWeightMapper {
     }
 
     public AgentCapsState initializeWeights(String tenantId, String agentId,
-                                             DispositionAxes disposition) {
-        Map<String, ConnectionWeight> weights = new HashMap<>();
-        Map<String, NodeState> nodeStates = new HashMap<>();
+                                            DispositionAxes disposition) {return initializeWeights(tenantId, agentId, disposition, null);}
+
+    public AgentCapsState initializeWeights(String tenantId, String agentId,
+                                            DispositionAxes disposition,
+                                            CopingDefaults copingDefaults) {
+        Map<String, ConnectionWeight> weights    = new HashMap<>();
+        Map<String, NodeState>        nodeStates = new HashMap<>();
 
         for (CapsConnection conn : topology.connections()) {
             weights.put(conn.id(), new ConnectionWeight(
-                conn.defaultWeight(), 0.0, 1.0,
-                CapsWeightUpdateConfig.defaults().provenancePrecision(conn.provenance())));
+                    conn.defaultWeight(), 0.0, 1.0,
+                    CapsWeightUpdateConfig.defaults().provenancePrecision(conn.provenance())));
         }
 
         Map<String, String> axes = Map.of(
-            "socialOrient", disposition.socialOrient(),
-            "ruleFollowing", disposition.ruleFollowing(),
-            "riskAppetite", disposition.riskAppetite(),
-            "autonomy", disposition.autonomy(),
-            "conflictMode", disposition.conflictMode());
+                "socialOrient", disposition.socialOrient(),
+                "ruleFollowing", disposition.ruleFollowing(),
+                "riskAppetite", disposition.riskAppetite(),
+                "autonomy", disposition.autonomy(),
+                "conflictMode", disposition.conflictMode());
 
         for (var axisEntry : axes.entrySet()) {
             DispositionModifier mod = topology.dispositionModifiers()
-                .get(axisEntry.getKey());
-            if (mod == null) continue;
+                                              .get(axisEntry.getKey());
+            if (mod == null) {continue;}
 
             Map<String, Double> modifiers = mod.valueModifiers()
-                .getOrDefault(axisEntry.getValue(), Map.of());
+                                               .getOrDefault(axisEntry.getValue(), Map.of());
 
             for (var modEntry : modifiers.entrySet()) {
                 applyModifier(modEntry.getKey(), modEntry.getValue(),
-                    weights, nodeStates);
+                              weights, nodeStates);
             }
         }
 
         var conflicting = detectApproachAvoidanceConflict(disposition);
         if (!conflicting.isEmpty()) {
             LOG.info(() -> "Disposition coherence conflict for " + agentId
-                + ": approach-avoidance tension in " + conflicting
-                + " — skipping output resting activations for conflicting axes");
+                           + ": approach-avoidance tension in " + conflicting
+                           + " — skipping output resting activations for conflicting axes");
         }
         setRestingActivations(disposition, nodeStates, conflicting);
 
+        if (copingDefaults != null) {
+            setCopingRestingActivations(copingDefaults, nodeStates);
+        }
+
         return new AgentCapsState(agentId, tenantId, 0,
-            Map.copyOf(weights), Map.copyOf(nodeStates));
+                                  Map.copyOf(weights), Map.copyOf(nodeStates));
     }
+
 
     private void applyModifier(String name, double multiplier,
                                 Map<String, ConnectionWeight> weights,
@@ -279,6 +289,25 @@ public class DispositionWeightMapper {
             addResting(nodeStates, "response_modulation", 0.15);
         }
     }
+
+    // Coping attractor seeding — Connor-Smith & Flachsbart (2007) personality-coping meta-analysis.
+// Centers at 0.5 (population mean): above-mean tendency → positive resting activation,
+// below-mean → negative. Scale factor 0.5 keeps values in [-0.25, 0.25], consistent
+// with other output node activations.
+    private void setCopingRestingActivations(CopingDefaults coping,
+                                             Map<String, NodeState> nodeStates) {
+        addResting(nodeStates, "planning", copingBias(coping.planfulTendency()));
+        addResting(nodeStates, "positive_reinterpretation", copingBias(coping.reinterpretationTendency()));
+        addResting(nodeStates, "avoidance", copingBias(coping.avoidanceTendency()));
+        addResting(nodeStates, "seek_instrumental_support", copingBias(coping.supportSeekingTendency()));
+        addResting(nodeStates, "seek_emotional_support", copingBias(coping.supportSeekingTendency()));
+        addResting(nodeStates, "coping_acceptance", copingBias(coping.acceptanceTendency()));
+    }
+
+    private static double copingBias(double tendency) {
+        return (tendency - 0.5) * 0.5;
+    }
+
 
     private void addResting(Map<String, NodeState> nodeStates,
                              String nodeId, double delta) {
