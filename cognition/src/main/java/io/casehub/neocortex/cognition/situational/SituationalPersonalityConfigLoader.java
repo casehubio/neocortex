@@ -62,7 +62,12 @@ public class SituationalPersonalityConfigLoader {
         Iterator<Map.Entry<String, JsonNode>> fields = modesNode.fields();
         while (fields.hasNext()) {
             var entry = fields.next();
-            SituationalMode mode = SituationalMode.valueOf(entry.getKey().toUpperCase());
+            SituationalMode mode;
+            try {
+                mode = SituationalMode.valueOf(entry.getKey().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Unknown situational mode '%s' in YAML config".formatted(entry.getKey()), e);
+            }
             modes.put(mode, parseModeConfig(mode, entry.getValue()));
         }
         return modes;

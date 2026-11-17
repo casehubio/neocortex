@@ -46,11 +46,6 @@ public sealed interface SignalConfig {
         }
     }
 
-    record ChallengeSkillFactor(
-            String challengeDim,
-            String skillDim
-    ) {}
-
     record RelationalConfig(
             String field,
             SignalTransform transform

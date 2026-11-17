@@ -51,11 +51,6 @@ public record PersonalityState(
         return new PersonalityState(f, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil);
     }
 
-    public PersonalityState withDetection(Map<SituationalMode, Double> i, Map<SituationalMode, Boolean> e,
-                                          Map<SituationalMode.Group, SituationalMode> w) {
-        return new PersonalityState(facets, i, e, w, cursorTime, hourCursor, exposedUntil);
-    }
-
     public PersonalityState withHourCursor(Instant hc) {
         return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hc, exposedUntil);
     }

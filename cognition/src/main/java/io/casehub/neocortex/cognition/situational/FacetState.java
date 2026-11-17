@@ -15,22 +15,6 @@ public record FacetState(
         return new FacetState(d, homeOffset, resilience, exposure, load);
     }
 
-    public FacetState withHomeOffset(double o) {
-        return new FacetState(displacement, o, resilience, exposure, load);
-    }
-
-    public FacetState withResilience(double r) {
-        return new FacetState(displacement, homeOffset, r, exposure, load);
-    }
-
-    public FacetState withExposure(double e) {
-        return new FacetState(displacement, homeOffset, resilience, e, load);
-    }
-
-    public FacetState withLoad(double l) {
-        return new FacetState(displacement, homeOffset, resilience, exposure, l);
-    }
-
     public FacetState withExposureAndLoad(double e, double l) {
         return new FacetState(displacement, homeOffset, resilience, e, l);
     }

@@ -146,3 +146,43 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 2. **Are 13 facets sufficient?** The full PID-5 has 25 facets. The biography pipeline scores 13. Missing facets include Anhedonia, Depressivity, Restricted Affectivity, Separation Insecurity, Submissiveness, and the Psychoticism facets. Some of these (Anhedonia, Depressivity) could add richness.
 
 3. **Should Tier 2 modulations be promoted to Tier 1?** If eval results show significant coherence improvement from a Tier 2 modulation, and subsequent literature search finds supporting evidence, the modulation can be reclassified.
+
+## Era 7b — Situational Personality Modulation (#712)
+
+**Status (2026-11-17):** Design spec complete (rev 4, 3 adversarial review rounds). Batch 1 implementation complete (config loader, integrator, detector — 44 tests). Prerequisites identified (#1055, eidos#234, agency#484). Blog: "The Elastic Band: Personality That Bends Under Pressure."
+
+### Concept
+
+Era 7 made personality static — PID-5 facets derived once at character creation drive all cognitive defaults. Era 7b makes personality *situational*: facets shift continuously in response to detected stress, flow, and social context, then partially return when the situation resolves. The mechanism: an elastic band model where each facet has displacement (current pull), home offset (lasting drift), and resilience (recoverability).
+
+### Theoretical grounding
+
+- **Whole Trait Theory** (Fleeson & Jayawickreme 2015): a trait is a density distribution of personality states, not a fixed point.
+- **Transactional stress** (Lazarus & Folkman 1984): stress = relevance × goal obstruction × low coping potential.
+- **TESSERA** (Wrzus & Roberts 2017): lasting personality change accrues from repeated states through slow processes.
+- **Mood-congruent appraisal** (Bower 1981; Forgas 1995 AIM): endogenous signals amplify situational evidence, never substitute for it. Gain-form: `E = X · (1 + β·N)` guarantees `X=0 ⇒ E=0`.
+- **Archetype shadow forms** (Pearson 1991; Mark & Pearson 2001): 12 families with characteristic degradation patterns.
+
+### Architecture
+
+The modulation sits between the personality store and the CDE. The CDE is unmodified — it receives effective facet scores and derives cognitive defaults through all existing pathways.
+
+| Component | Role |
+|---|---|
+| `SituationalPersonalityConfig` + YAML | Detection thresholds, signal weights, dynamics parameters |
+| `SituationalDetector` | Gain-form evidence → mode intensities and group winners |
+| `PersonalityStateIntegrator` | Elastic band — advance (hourly grid) + pull (per-tick) |
+| `SituationalStateService` | Per-agent state cache, MindMap persistence |
+| `SituationalPersonalityParticipant` | TERMINAL tick participant |
+| `EffectiveCognitiveDefaults` (#1055) | Resting vs effective split |
+
+### Key design decisions
+
+1. **One model, not overlay.** Single continuously-evolving state vector. No discrete overlay/snapshot mechanism.
+2. **Implicit modulation only.** No prompt rendering of shadow context. Change flows through CDE parameter modulation.
+3. **Resting vs effective defaults.** Learning rules read resting; behaviour reads effective.
+4. **Wall-clock grid.** Slow dynamics at hour boundaries with exact integrals. Tick-rate independent.
+
+### Pre-existing defects surfaced during design review
+
+#1060 (PEO never ticked), #1061 (agentId-keyed caches), #1062 (duplicated CAPS settlements), #1063 (ConsolidationScheduler starvation), #1064 (bounded search filter), #1065 (no hierarchy roles).
