@@ -284,7 +284,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     }
 
     private List<MindMapNode> loadDriveIntensityNodes(String agentId, String tenantId) {
-        return mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+        return mindMapStore.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
                            .stream()
                            .filter(n -> DRIVE_INTENSITY_KIND.equals(n.properties().get("cognitiveKind")))
                            .filter(n -> agentId.equals(n.properties().get("agent-id")))
@@ -308,7 +308,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
                     null, null, null, null, null));
         }
 
-        var goalNodes = mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.GOAL));
+        var goalNodes = mindMapStore.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.GOAL));
         for (var node : goalNodes) {
             if (!"active".equals(node.properties().get("status"))) continue;
             if (!agentId.equals(node.properties().get("agent-id"))) continue;

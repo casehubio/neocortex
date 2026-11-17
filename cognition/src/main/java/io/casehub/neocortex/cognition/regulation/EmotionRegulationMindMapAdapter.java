@@ -87,7 +87,7 @@ public final class EmotionRegulationMindMapAdapter {
     public static List<EmotionRegulationResult> loadHistory(MindMapStore store,
                                                              String agentId, String tenantId,
                                                              int limit) {
-        return store.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+        return store.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
                 .stream()
                 .filter(n -> COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
                 .filter(n -> agentId.equals(n.properties().get("agent-id")))
@@ -131,7 +131,7 @@ public final class EmotionRegulationMindMapAdapter {
                                                        io.casehub.neocortex.cognitive.EmotionType emotionType,
                                                        int limit) {
         String emotionName = emotionType.name();
-        return store.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+        return store.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
                     .stream()
                     .filter(n -> COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
                     .filter(n -> agentId.equals(n.properties().get("agent-id")))
@@ -154,7 +154,7 @@ public final class EmotionRegulationMindMapAdapter {
                                                             io.casehub.neocortex.cognitive.EmotionType emotionType,
                                                             int limit) {
         String emotionName = emotionType.name();
-        return store.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+        return store.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
                     .stream()
                     .filter(n -> COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
                     .filter(n -> agentId.equals(n.properties().get("agent-id")))

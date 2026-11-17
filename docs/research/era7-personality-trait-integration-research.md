@@ -140,6 +140,18 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 
 ### Epic #1050 — CAPS pipeline wiring completeness (resolved 2026-11-17)
 84 issues across the full CAPS pipeline — topology structure, coping→regulation connections, orphaned output nodes, personality-aware classification (PID-5 + AppraisalWeights), search budget, drive composition, CAPS settling, and observability. All verified end-to-end. Pre-existing test failures filed as #1077 (AttentionSignalTest) and #1078 (CopingStrategyPredictorTest).
+
+### Epic #1090 — Cognition bug fix sweep (2026-11-17)
+8-issue queue addressing pre-existing failures and correctness bugs across the cognitive pipeline. 3 issues already resolved by prior sessions (#1078, #1049, #1038). 1 issue referenced a removed class (#1088 — SituationalStateService no longer exists). 3 fixes landed:
+
+| Issue | Fix | Impact |
+|---|---|---|
+| #1077 | AttentionSignalTest enum count 12→14 (COPING_FOCUS, COPING_SUPPRESS) | Test correctness |
+| #1061 | BehavioralSynthesisPhase cache key agentId → tenantId:agentId | Multi-tenant isolation — prevents cross-tenant settling result leakage |
+| #1064 | 9 MindMapQuery search limits raised 200→2000 | Prevents silent data loss from search-then-filter pattern on active tenants |
+
+#1060 (PersonalityEvolutionOrchestrator never ticked) deferred — requires design decision on evolution cadence and propagation path. Filed: #1091 (MindMapQuery property filters), #1092 (AppraisalStatePropagationTest failure), #1093 (EmotionRegulationTickParticipantTest failures).
+
 ## Open Questions
 
 1. **Should `derivePersonality` (the foundation derivation) get PID-5 modulation?** Currently excluded to avoid cascading effects. May revisit after eval validation of downstream modulations.

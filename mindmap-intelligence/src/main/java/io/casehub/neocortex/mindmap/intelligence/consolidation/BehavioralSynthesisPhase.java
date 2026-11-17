@@ -462,7 +462,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private void mergeDriveIntensities(Map<String, Double> combinedActivations,
                                        String agentId, String tenantId) {
         var cognitiveNodes = store.search(
-                MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
         for (var node : cognitiveNodes) {
             if (!"drive-intensity".equals(node.properties().get("cognitiveKind"))) {continue;}
             if (!agentId.equals(node.properties().get("agent-id"))) {continue;}

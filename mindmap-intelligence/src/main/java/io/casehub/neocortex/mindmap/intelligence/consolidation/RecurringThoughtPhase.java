@@ -113,7 +113,7 @@ public class RecurringThoughtPhase implements ConsolidationPhase {
 
     private Map<String, List<MindMapNode>> discoverAgents(MindMapStore store, String tenantId) {
         var cognitiveNodes = store.search(
-                io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 200));
+                io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 2000));
 
         return cognitiveNodes.stream()
                 .filter(n -> n.property("agent-id").isPresent())

@@ -21,7 +21,7 @@ public class MindMapDriveSource implements DriveSource {
 
     @Override
     public DriveIntensity evaluate(String agentId, String tenantId) {
-        var nodes = mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE));
+        var nodes = mindMapStore.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
         for (var node : nodes) {
             if (!DRIVE_INTENSITY_KIND.equals(node.properties().get("cognitiveKind"))) {continue;}
             if (!agentId.equals(node.properties().get("agent-id"))) {continue;}
