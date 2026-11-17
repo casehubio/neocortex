@@ -527,8 +527,12 @@ public class MentalModelOrchestrator {
         var timeout = config.evictionTimeout();
         states.entrySet().removeIf(entry -> {
             var st = entry.getValue();
-            return st.lastActivityTimestamp != null
+            boolean stale = st.lastActivityTimestamp != null
                     && Duration.between(st.lastActivityTimestamp, now).compareTo(timeout) > 0;
+            if (stale) {
+                tomPosteriors.remove(entry.getKey());
+            }
+            return stale;
         });
     }
 

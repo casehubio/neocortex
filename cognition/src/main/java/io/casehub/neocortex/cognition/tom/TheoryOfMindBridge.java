@@ -36,14 +36,10 @@ public class TheoryOfMindBridge {
     private static final Set<ActionReadiness> AVOIDANT_LIKE =
             EnumSet.of(ActionReadiness.AVOIDANCE, ActionReadiness.REJECTION, ActionReadiness.SUBMISSION);
 
-    private final TheoryOfMindEngine engine;
-
-    public TheoryOfMindBridge() {
-        this.engine = new TheoryOfMindEngine();
-    }
+    public TheoryOfMindBridge() {}
 
     public TheoryOfMindPosterior infer(AppraisalResult appraisal) {
-        engine.reset();
+        var engine = new TheoryOfMindEngine();
         engine.observeThreat(threatDistribution(appraisal.secDimensions()));
         engine.observeBehavior(behaviorDistribution(appraisal.actionTendencies()));
         double[] posterior = engine.inferEmotionalState();

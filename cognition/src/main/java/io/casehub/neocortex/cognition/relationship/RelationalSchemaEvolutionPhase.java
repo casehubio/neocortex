@@ -241,6 +241,7 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
     }
 
     private static boolean isCooperative(String key, String description) {
+        if (containsAny(key, description, "helpless", "distrust", "mistrust", "overshare")) return false;
         return containsAny(key, description,
                            "cooperat", "help", "support", "protect", "assist", "share",
                            "trust", "ally", "friend", "collaborat", "peace", "reconcil");

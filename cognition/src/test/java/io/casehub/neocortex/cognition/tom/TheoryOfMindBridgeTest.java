@@ -4,14 +4,15 @@ import io.casehub.neocortex.cognition.appraisal.ActionReadiness;
 import io.casehub.neocortex.cognition.appraisal.ActionTendency;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.HabituationState;
-import io.casehub.neocortex.cognition.mentalmodel.TheoryOfMindPosterior;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TheoryOfMindBridgeTest {
 
@@ -112,6 +113,19 @@ class TheoryOfMindBridgeTest {
         assertTrue(positive.positive() > distressed.positive(),
                 "safe appraisal should produce more positive than threatening one");
     }
+
+    @Test
+    void posteriorRejectsNegativeProbabilities() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> new io.casehub.neocortex.cognition.mentalmodel.TheoryOfMindPosterior(-0.1, 0.6, 0.5));
+    }
+
+    @Test
+    void posteriorRejectsSumNotOne() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> new io.casehub.neocortex.cognition.mentalmodel.TheoryOfMindPosterior(0.5, 0.5, 0.5));
+    }
+
 
     private static AppraisalResult appraisalWith(Map<String, Double> secDimensions,
                                                   List<ActionTendency> tendencies) {

@@ -431,5 +431,29 @@ void obstacleRecoversToStrangerAtHighTrust() {
         assertThat(hostileBias).isGreaterThan(cooperativeBias);
     }
 
+    @Test
+    void hostileDesireBiasesTrustNegativeAtHalfWeight() {
+        var desireOnly = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT, List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "wants-to-exploit", "Wants to exploit and manipulate",
+                        0.8, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.DESIRE)),
+                List.of(),
+                java.time.Instant.now(), null, java.time.Instant.now());
+        var intentOnly = new io.casehub.neocortex.cognition.mentalmodel.MentalModelSnapshot(
+                "alice", "bob", TENANT, List.of(), List.of(),
+                List.of(new io.casehub.neocortex.cognition.mentalmodel.AttributedState(
+                        "plans-to-exploit", "Plans to exploit and manipulate",
+                        0.8, 1, java.time.Instant.now(),
+                        io.casehub.neocortex.cognition.mentalmodel.BdiDimension.INTENTION)),
+                java.time.Instant.now(), null, java.time.Instant.now());
+
+        double desireBias = Math.abs(RelationalSchemaEvolutionPhase.classifyIntentBias(desireOnly));
+        double intentBias = Math.abs(RelationalSchemaEvolutionPhase.classifyIntentBias(intentOnly));
+        assertThat(desireBias).isGreaterThan(0.0);
+        assertThat(desireBias).isLessThan(intentBias);
+    }
+
 
 }
