@@ -60,7 +60,7 @@ final class EvalLlmJudge {
                         .collect().with(Collectors.joining())
                         .await().atMost(Duration.ofSeconds(60));
 
-                var json = extractJson(judgeResponse);
+                var json = EvalTestSupport.extractJson(judgeResponse);
                 var node = JSON.readTree(json);
                 int score = node.get("score").asInt();
                 String reasoning = node.has("reasoning") ? node.get("reasoning").asText() : "";
@@ -78,12 +78,5 @@ final class EvalLlmJudge {
         return 0;
     }
 
-    private static String extractJson(String text) {
-        text = text.strip();
-        if (text.startsWith("{")) return text.substring(0, text.lastIndexOf('}') + 1);
-        int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
-        if (start >= 0 && end > start) return text.substring(start, end + 1);
-        return text;
-    }
+
 }

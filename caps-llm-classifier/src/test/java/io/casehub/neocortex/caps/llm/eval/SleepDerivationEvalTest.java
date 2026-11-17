@@ -1,7 +1,5 @@
 package io.casehub.neocortex.caps.llm.eval;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
 import io.casehub.platform.agent.AgentSessionConfig;
@@ -9,10 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,10 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Tag("llm-eval")
 class SleepDerivationEvalTest {
 
-    private static final Path OUTPUT_DIR = Path.of("target/experiment-results");
     private static final int JUDGE_THRESHOLD = 3;
-    private static final int MAX_RETRIES = 3;
-    private static final long RETRY_BACKOFF_MS = 5000;
 
     private static AgentProvider agentProvider;
     private static Map<String, EvalCharacterData> characters;
@@ -65,7 +57,7 @@ class SleepDerivationEvalTest {
                 .await().atMost(Duration.ofSeconds(90));
     }
 
-    private int judge(String derivation, String criteria, String testName) throws Exception {
+    private int judge(String derivation, String criteria, String testName) {
         var judgePrompt = String.format("""
                 A sleep/consolidation system processed childhood memories and
                 produced the following derivation:
@@ -87,34 +79,8 @@ class SleepDerivationEvalTest {
                 Respond with JSON only: {"score": N, "reasoning": "one sentence"}""",
                 derivation, criteria);
 
-        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            try {
-                var response = agentProvider.invoke(
-                                AgentSessionConfig.of("You are a precise evaluation judge. Respond only with JSON.", judgePrompt))
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .collect().with(Collectors.joining())
-                        .await().atMost(Duration.ofSeconds(60));
-
-                var json = extractJson(response);
-                var node = new ObjectMapper().readTree(json);
-                int score = node.get("score").asInt();
-                String reasoning = node.has("reasoning") ? node.get("reasoning").asText() : "";
-                System.out.printf("[judge:%s] score=%d reasoning=%s%n", testName, score, reasoning);
-
-                writeResult(testName, Map.of("score", score, "reasoning", reasoning,
-                        "derivation", derivation.substring(0, Math.min(derivation.length(), 2000))));
-                return score;
-            } catch (Exception e) {
-                System.err.printf("[judge:%s] attempt %d/%d failed: %s%n",
-                        testName, attempt, MAX_RETRIES, e.getMessage());
-                if (attempt < MAX_RETRIES) {
-                    try { Thread.sleep(RETRY_BACKOFF_MS * attempt); }
-                    catch (InterruptedException ie) { Thread.currentThread().interrupt(); return 0; }
-                }
-            }
-        }
-        return 0;
+        return EvalTestSupport.judge(agentProvider, judgePrompt, testName,
+                "sleep-derivation-eval.json", derivation);
     }
 
     @Test
@@ -336,31 +302,5 @@ class SleepDerivationEvalTest {
         assertThat(score).isGreaterThanOrEqualTo(JUDGE_THRESHOLD);
     }
 
-    private void writeResult(String testName, Map<String, Object> detail) {
-        try {
-            var outputFile = OUTPUT_DIR.resolve("sleep-derivation-eval.json");
-            Files.createDirectories(outputFile.getParent());
-            LinkedHashMap<String, Object> results;
-            if (Files.exists(outputFile)) {
-                results = new ObjectMapper().readValue(outputFile.toFile(),
-                        new com.fasterxml.jackson.core.type.TypeReference<>() {});
-            } else {
-                results = new LinkedHashMap<>();
-            }
-            results.put(testName, detail);
-            new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
-                    .writeValue(outputFile.toFile(), results);
-        } catch (Exception e) {
-            System.err.printf("[%s] Failed to write result: %s%n", testName, e.getMessage());
-        }
-    }
 
-    private static String extractJson(String text) {
-        text = text.strip();
-        if (text.startsWith("{")) return text.substring(0, text.lastIndexOf('}') + 1);
-        int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
-        if (start >= 0 && end > start) return text.substring(start, end + 1);
-        return text;
-    }
 }

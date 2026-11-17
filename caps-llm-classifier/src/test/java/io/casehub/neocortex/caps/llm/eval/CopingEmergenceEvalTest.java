@@ -1,7 +1,5 @@
 package io.casehub.neocortex.caps.llm.eval;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.casehub.neocortex.cognition.appraisal.AppraisalContext;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.CopingCheck;
@@ -26,21 +24,15 @@ import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
-import io.casehub.platform.agent.AgentEvent;
 import io.casehub.platform.agent.AgentProvider;
-import io.casehub.platform.agent.AgentSessionConfig;
 import io.casehub.platform.agent.session.SessionPipeline;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,10 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Tag("llm-eval")
 class CopingEmergenceEvalTest {
 
-    private static final Path OUTPUT_DIR = Path.of("target/experiment-results");
     private static final int JUDGE_THRESHOLD = 4;
-    private static final int MAX_RETRIES = 3;
-    private static final long RETRY_BACKOFF_MS = 5000;
 
     private static final List<SecCheck> KEYWORD_CHECKS = List.of(
             new RelevanceCheck(), new ImplicationCheck(),
@@ -442,7 +431,7 @@ class CopingEmergenceEvalTest {
         return sb.toString();
     }
 
-    private int judge(String content, String criteria, String testName) throws Exception {
+    private int judge(String content, String criteria, String testName) {
         var judgePrompt = String.format("""
                 A coping system processed a stressful situation and produced the following outcome:
 
@@ -463,63 +452,7 @@ class CopingEmergenceEvalTest {
                 Respond with JSON only: {"score": N, "reasoning": "one sentence"}""",
                 content, criteria);
 
-        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            try {
-                var response = agentProvider.invoke(
-                                AgentSessionConfig.of(
-                                        "You are a precise coping evaluation judge. Respond only with JSON.",
-                                        judgePrompt))
-                        .filter(e -> e instanceof AgentEvent.TextDelta)
-                        .map(e -> ((AgentEvent.TextDelta) e).text())
-                        .collect().with(Collectors.joining())
-                        .await().atMost(Duration.ofSeconds(60));
-
-                var json = extractJson(response);
-                var node = new ObjectMapper().readTree(json);
-                int score = node.get("score").asInt();
-                String reasoning = node.has("reasoning") ? node.get("reasoning").asText() : "";
-                System.out.printf("[judge:%s] score=%d reasoning=%s%n", testName, score, reasoning);
-
-                writeResult(testName, Map.of("score", score, "reasoning", reasoning,
-                        "content", content.substring(0, Math.min(content.length(), 2000))));
-                return score;
-            } catch (Exception e) {
-                System.err.printf("[judge:%s] attempt %d/%d failed: %s%n",
-                        testName, attempt, MAX_RETRIES, e.getMessage());
-                if (attempt < MAX_RETRIES) {
-                    try { Thread.sleep(RETRY_BACKOFF_MS * attempt); }
-                    catch (InterruptedException ie) { Thread.currentThread().interrupt(); return 0; }
-                }
-            }
-        }
-        return 0;
-    }
-
-    private void writeResult(String testName, Map<String, Object> detail) {
-        try {
-            var outputFile = OUTPUT_DIR.resolve("coping-emergence-eval.json");
-            Files.createDirectories(outputFile.getParent());
-            LinkedHashMap<String, Object> results;
-            if (Files.exists(outputFile)) {
-                results = new ObjectMapper().readValue(outputFile.toFile(),
-                        new com.fasterxml.jackson.core.type.TypeReference<>() {});
-            } else {
-                results = new LinkedHashMap<>();
-            }
-            results.put(testName, detail);
-            new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
-                    .writeValue(outputFile.toFile(), results);
-        } catch (Exception e) {
-            System.err.printf("[%s] Failed to write result: %s%n", testName, e.getMessage());
-        }
-    }
-
-    private static String extractJson(String text) {
-        text = text.strip();
-        if (text.startsWith("{")) return text.substring(0, text.lastIndexOf('}') + 1);
-        int start = text.indexOf('{');
-        int end = text.lastIndexOf('}');
-        if (start >= 0 && end > start) return text.substring(start, end + 1);
-        return text;
+        return EvalTestSupport.judge(agentProvider, judgePrompt, testName,
+                "coping-emergence-eval.json", content);
     }
 }
