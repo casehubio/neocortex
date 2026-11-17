@@ -222,6 +222,74 @@ public class CognitionService implements CognitionApi {
         return CognitivePipelineDump.live(tenancyId, agentId, null);
     }
 
+    private static final String REGULATION_COGNITIVE_KIND     = "emotion-regulation-result";
+    private static final double DEFAULT_MISCALIBRATION_MARGIN = 0.15;
+
+    @Override
+    public PredictionCalibrationResult calibration(String tenancyId, String agentId, Integer minEpisodes) {
+        if (store == null || agentId == null) {return null;}
+        int min = minEpisodes != null ? minEpisodes : 5;
+
+        var nodes = store.search(io.casehub.neocortex.mindmap.MindMapQuery.of(tenancyId, 500)
+                                                                          .withType(io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE))
+                         .stream()
+                         .filter(n -> REGULATION_COGNITIVE_KIND.equals(n.properties().get("cognitiveKind")))
+                         .filter(n -> agentId.equals(n.properties().get("agent-id")))
+                         .toList();
+
+        var bySource = new java.util.HashMap<String, java.util.List<Double>>();
+        for (var node : nodes) {
+            String source = node.properties().getOrDefault("strategySource", "UNKNOWN");
+            String effStr = node.properties().get("effectiveness");
+            if (effStr == null) {continue;}
+            try {
+                bySource.computeIfAbsent(source, k -> new java.util.ArrayList<>())
+                        .add(Double.parseDouble(effStr));
+            } catch (NumberFormatException ignored) {}
+        }
+
+        var sourceSummaries = new java.util.ArrayList<PredictionCalibrationResult.SourceSummary>();
+        var summaryByName   = new java.util.HashMap<String, PredictionCalibrationResult.SourceSummary>();
+        for (var entry : bySource.entrySet()) {
+            var    scores  = entry.getValue();
+            double mean    = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            var    summary = new PredictionCalibrationResult.SourceSummary(entry.getKey(), scores.size(), mean);
+            sourceSummaries.add(summary);
+            summaryByName.put(entry.getKey(), summary);
+        }
+
+        var    predictor         = summaryByName.get("PREDICTOR");
+        var    llm               = summaryByName.get("LLM");
+        int    predictorEpisodes = predictor != null ? predictor.episodeCount() : 0;
+        int    llmEpisodes       = llm != null ? llm.episodeCount() : 0;
+        int    totalEpisodes     = sourceSummaries.stream().mapToInt(PredictionCalibrationResult.SourceSummary::episodeCount).sum();
+        double predictorMean     = predictor != null ? predictor.meanEffectiveness() : 0.0;
+        double llmMean           = llm != null ? llm.meanEffectiveness() : 0.0;
+        double delta             = predictorMean - llmMean;
+
+        if (predictorEpisodes < min || llmEpisodes < min) {
+            String reason;
+            if (predictorEpisodes == 0 && llmEpisodes == 0) {
+                reason = "No PREDICTOR or LLM episodes";
+            } else if (predictorEpisodes < min && llmEpisodes < min) {
+                reason = "Insufficient PREDICTOR (%d) and LLM (%d) episodes (min %d)"
+                                 .formatted(predictorEpisodes, llmEpisodes, min);
+            } else if (predictorEpisodes < min) {
+                reason = "Insufficient PREDICTOR episodes (%d, min %d)"
+                                 .formatted(predictorEpisodes, min);
+            } else {
+                reason = "Insufficient LLM episodes (%d, min %d)"
+                                 .formatted(llmEpisodes, min);
+            }
+            return new PredictionCalibrationResult(sourceSummaries, predictorEpisodes, llmEpisodes,
+                                                   totalEpisodes, predictorMean, llmMean, delta, false, true, reason);
+        }
+
+        boolean miscalibrated = delta < -DEFAULT_MISCALIBRATION_MARGIN;
+        return new PredictionCalibrationResult(sourceSummaries, predictorEpisodes, llmEpisodes,
+                                               totalEpisodes, predictorMean, llmMean, delta, miscalibrated, false, null);
+    }
+
 
     @Override
     public java.util.List<ActivitySummary> activities(String tenancyId, String queryType,

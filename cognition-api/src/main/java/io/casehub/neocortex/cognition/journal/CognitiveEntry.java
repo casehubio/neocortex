@@ -63,7 +63,7 @@ public sealed interface CognitiveEntry {
     record CapsSettled(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
                        Map<String, Double> inputActivations,
                        @Nullable CapsSettlingResult settling) implements CognitiveEntry {}
-// --- Stage tick domain ---
+    // --- Stage tick domain ---
 
     record TemporalFocusTicked(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
                                int subjectCount) implements CognitiveEntry {}

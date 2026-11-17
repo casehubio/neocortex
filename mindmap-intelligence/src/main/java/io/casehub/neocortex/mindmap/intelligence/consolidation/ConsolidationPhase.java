@@ -1,5 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
+import io.casehub.neocortex.cognition.journal.CognitiveJournal;
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.ConsolidationArtifact;
 import io.casehub.platform.agent.session.SessionPipeline;
@@ -14,7 +15,7 @@ public interface ConsolidationPhase {
 
     default void setSessionPipeline(SessionPipeline pipeline) {}
 
-    default void setCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal journal) {}
+    default void setCognitiveJournal(CognitiveJournal journal) {}
 
 
     default List<AttentionSignal> signals() {return List.of();}

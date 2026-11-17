@@ -3,17 +3,16 @@ package io.casehub.neocortex.cognitive.observability;
 import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
 import io.casehub.neocortex.mindmap.AttentionSignal;
-import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
+import io.casehub.neocortex.mindmap.intelligence.consolidation.CognitiveAttentionAccumulator;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import io.casehub.neocortex.mindmap.intelligence.consolidation.CognitiveAttentionAccumulator;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -166,5 +165,70 @@ class CognitionServiceNewEndpointsTest {
     @Test
     void activities_noActivityService_returnsEmpty() {
         assertThat(service.activities(TENANT, "withPerson", "Alice", null, 10)).isEmpty();
+    }
+
+    @Test
+    void calibration_returns_null_when_no_agentId() {
+        assertThat(service.calibration(TENANT, null, null)).isNull();
+    }
+
+    @Test
+    void calibration_inconclusive_when_no_data() {
+        var result = service.calibration(TENANT, "agent-1", 5);
+
+        assertThat(result).isNotNull();
+        assertThat(result.inconclusive()).isTrue();
+        assertThat(result.inconclusiveReason()).contains("No PREDICTOR or LLM episodes");
+        assertThat(result.totalEpisodes()).isZero();
+    }
+
+    @Test
+    void calibration_computes_delta_from_regulation_nodes() {
+        String sg = mindMapStore.createSubgraph(new SubgraphInput("cog", SubgraphTypes.COGNITIVE, null), TENANT);
+        for (int i = 0; i < 6; i++) {
+            mindMapStore.addNode(regulationNode("pred-" + i, sg, "agent-1", "PREDICTOR", "0.8"), TENANT);
+        }
+        for (int i = 0; i < 6; i++) {
+            mindMapStore.addNode(regulationNode("llm-" + i, sg, "agent-1", "LLM", "0.6"), TENANT);
+        }
+
+        var result = service.calibration(TENANT, "agent-1", 5);
+
+        assertThat(result).isNotNull();
+        assertThat(result.inconclusive()).isFalse();
+        assertThat(result.predictorEpisodes()).isEqualTo(6);
+        assertThat(result.llmEpisodes()).isEqualTo(6);
+        assertThat(result.totalEpisodes()).isEqualTo(12);
+        assertThat(result.predictorMeanEffectiveness()).isCloseTo(0.8, org.assertj.core.data.Offset.offset(0.01));
+        assertThat(result.llmMeanEffectiveness()).isCloseTo(0.6, org.assertj.core.data.Offset.offset(0.01));
+        assertThat(result.delta()).isCloseTo(0.2, org.assertj.core.data.Offset.offset(0.01));
+        assertThat(result.miscalibrated()).isFalse();
+    }
+
+    @Test
+    void calibration_flags_miscalibrated_when_predictor_worse() {
+        String sg = mindMapStore.createSubgraph(new SubgraphInput("cog", SubgraphTypes.COGNITIVE, null), TENANT);
+        for (int i = 0; i < 5; i++) {
+            mindMapStore.addNode(regulationNode("pred-" + i, sg, "agent-1", "PREDICTOR", "0.3"), TENANT);
+        }
+        for (int i = 0; i < 5; i++) {
+            mindMapStore.addNode(regulationNode("llm-" + i, sg, "agent-1", "LLM", "0.7"), TENANT);
+        }
+
+        var result = service.calibration(TENANT, "agent-1", 5);
+
+        assertThat(result.miscalibrated()).isTrue();
+        assertThat(result.delta()).isCloseTo(-0.4, org.assertj.core.data.Offset.offset(0.01));
+    }
+
+    private static NodeInput regulationNode(String name, String subgraphId,
+                                            String agentId, String source, String effectiveness) {
+        var props = new java.util.HashMap<String, String>();
+        props.put("cognitiveKind", "emotion-regulation-result");
+        props.put("agent-id", agentId);
+        props.put("strategySource", source);
+        props.put("effectiveness", effectiveness);
+        return new NodeInput(name, subgraphId, null, null, null, null,
+                             null, null, null, null, null, props);
     }
 }
