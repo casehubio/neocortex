@@ -217,8 +217,6 @@ public List<MissingCapability> validateCapabilities(String tenantId,
     }
 
 
-
-
     private void runPhases(String tenantId) {
         List<String>                priority     = subgraphPriority(tenantId);
         List<PhaseResult>           phaseResults = new ArrayList<>();
@@ -226,9 +224,11 @@ public List<MissingCapability> validateCapabilities(String tenantId,
         List<ConsolidationArtifact> allArtifacts = new ArrayList<>();
         LOG.info("Consolidation tick: " + phases.size() + " phases for tenant " + tenantId);
         Instant tickStart = Instant.now();
-        var pipeline = this.sessionPipeline;
+        var     pipeline  = this.sessionPipeline;
+        var     journal   = this.cognitiveJournal;
         for (ConsolidationPhase phase : phases) {
             phase.setSessionPipeline(pipeline);
+            phase.setCognitiveJournal(journal);
             Instant phaseStart = Instant.now();
             MutationContext.set("consolidation:" + phase.name());
             try {

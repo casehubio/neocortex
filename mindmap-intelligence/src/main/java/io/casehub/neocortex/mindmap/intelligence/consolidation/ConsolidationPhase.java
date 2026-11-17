@@ -14,6 +14,8 @@ public interface ConsolidationPhase {
 
     default void setSessionPipeline(SessionPipeline pipeline) {}
 
+    default void setCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal journal) {}
+
 
     default List<AttentionSignal> signals() {return List.of();}
 

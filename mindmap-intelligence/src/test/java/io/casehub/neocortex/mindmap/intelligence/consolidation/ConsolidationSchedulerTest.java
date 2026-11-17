@@ -289,4 +289,79 @@ class ConsolidationSchedulerTest {
         assertThat(firedEvents).hasSize(1);
     }
 
+
+    @Test
+    void runPhases_passes_journal_to_phases() {
+        var capturedJournal = new java.util.concurrent.atomic.AtomicReference<io.casehub.neocortex.cognition.journal.CognitiveJournal>();
+        ConsolidationPhase phase = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "journal-phase";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+
+            @Override
+            public void setCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal journal) {
+                capturedJournal.set(journal);
+            }
+        };
+
+        io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entry -> {};
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(phase), idleTracker, memoryStore, null);
+        testScheduler.setCognitiveJournal(journal);
+        testScheduler.consolidateNow("tenant-1");
+
+        assertThat(capturedJournal.get()).isSameAs(journal);
+    }
+
+    @Test
+    void phase_can_record_entries_via_journal() {
+        var                                                     entries = new java.util.ArrayList<io.casehub.neocortex.cognition.journal.CognitiveEntry>();
+        io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entries::add;
+
+        ConsolidationPhase phase = new ConsolidationPhase() {
+            private io.casehub.neocortex.cognition.journal.CognitiveJournal journal =
+                    io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
+
+            @Override
+            public String name() {return "recording-phase";}
+
+            @Override
+            public void setCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal j) {
+                this.journal = j;
+            }
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {
+                journal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated(
+                        tenantId, "_system",
+                        io.casehub.neocortex.cognition.journal.EventRef.consolidation(
+                                io.casehub.neocortex.cognition.journal.EventRef.init()),
+                        java.time.Instant.now(),
+                        5, 2, 100, name()));
+            }
+        };
+
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(phase), idleTracker, memoryStore, null);
+        testScheduler.setCognitiveJournal(journal);
+        testScheduler.consolidateNow("tenant-1");
+
+        assertThat(entries).hasSize(1);
+        assertThat(entries.get(0)).isInstanceOf(io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated.class);
+        var consolidated = (io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated) entries.get(0);
+        assertThat(consolidated.phase()).isEqualTo("recording-phase");
+        assertThat(consolidated.inputNodes()).isEqualTo(5);
+        assertThat(consolidated.tenantId()).isEqualTo("tenant-1");
+    }
+
+    @Test
+    void runPhases_with_journal_does_not_break_phases_that_ignore_it() {
+        io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entry -> {};
+        scheduler.setCognitiveJournal(journal);
+        scheduler.tick();
+        assertThat(executedPhases).containsExactly(
+                "phase-1:tenant-1", "phase-2:tenant-1");
+    }
 }
