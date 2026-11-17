@@ -287,38 +287,7 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     }
 
     private Map<String, String> addPersonalityMetadata(Map<String, String> metadata, String agentId) {
-        if (defaultsRegistry == null) {return metadata;}
-        var defaults = defaultsRegistry.forAgent(agentId);
-        if (defaults.isEmpty() || defaults.get().descriptor() == null) {return metadata;}
-
-        var enriched = new HashMap<>(metadata);
-
-        var axes = defaults.get().descriptor().disposition();
-        if (axes != null) {
-            if (axes.socialOrient() != null) {enriched.put("disposition.socialOrient", axes.socialOrient());}
-            if (axes.ruleFollowing() != null) {enriched.put("disposition.ruleFollowing", axes.ruleFollowing());}
-            if (axes.riskAppetite() != null) {enriched.put("disposition.riskAppetite", axes.riskAppetite());}
-            if (axes.autonomy() != null) {enriched.put("disposition.autonomy", axes.autonomy());}
-            if (axes.conflictMode() != null) {enriched.put("disposition.conflictMode", axes.conflictMode());}
-        }
-
-        var facets = defaults.get().descriptor().personalityFacets();
-        if (facets != null) {
-            for (var facet : facets) {
-                enriched.put("pid5." + facet.facet(), String.format("%.2f", facet.score()));
-            }
-        }
-
-        var aw = defaults.get().appraisalWeights();
-        if (aw != null) {
-            enriched.put("appraisal.urgencyWeight", String.format("%.2f", aw.urgencyWeight()));
-            enriched.put("appraisal.relationshipWeight", String.format("%.2f", aw.relationshipWeight()));
-            enriched.put("appraisal.fearOnsetThreshold", String.format("%.2f", aw.fearOnsetThreshold()));
-            enriched.put("appraisal.selfStandardsStrictness", String.format("%.2f", aw.selfStandardsStrictness()));
-            enriched.put("appraisal.otherStandardsStrictness", String.format("%.2f", aw.otherStandardsStrictness()));
-        }
-
-        return enriched;
+        return io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher.enrich(metadata, agentId, defaultsRegistry);
     }
 
 
