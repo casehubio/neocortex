@@ -127,7 +127,7 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
         double novelty = dims.getOrDefault(SecDimensions.NOVELTY, 1.0);
         var habituation = updateHabituation(context, novelty);
 
-        return new AppraisalResult(emotions, tendencies, habituation, narrative);
+        return new AppraisalResult(emotions, tendencies, habituation, narrative, dims);
     }
 
     private static HabituationState updateHabituation(AppraisalContext context, double novelty) {

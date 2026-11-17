@@ -40,7 +40,7 @@ public final class RelationalBiasing {
             if (scale == null) {
                 result.add(activation);
             } else {
-                double biased = activation.confidence() * (1.0 + trust * scale);
+                double biased = Math.min(1.0, Math.max(0.0, activation.confidence() * (1.0 + trust * scale)));
                 result.add(new SituationActivation(
                         activation.nodeId(), biased, activation.source()));
             }

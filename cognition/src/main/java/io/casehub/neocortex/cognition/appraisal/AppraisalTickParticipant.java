@@ -47,6 +47,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final ConcurrentHashMap<String, ChannelWeightProfile> channelWeights  = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> regulatedNarratives = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AppraisalContext> contexts  = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, io.casehub.neocortex.cognition.journal.EventRef> resultEventRefs = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Map<String, Double>>                             inputActivations = new ConcurrentHashMap<>();
 
 
     public Map<String, Double> currentConcernSalience(String agentId, String tenantId) {
@@ -178,6 +180,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         results.put(agentKey, result);
         contexts.put(agentKey, appraisalContext);
         habituationStates.put(agentKey, result.updatedHabituation());
+        if (context.tickEventRef() != null) {
+            resultEventRefs.put(agentKey, context.tickEventRef());
+        }
 
         if (!situation.salience().isEmpty()) {
             concernSaliences.put(agentKey, situation.salience());
@@ -187,6 +192,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             try {
                 var classCtx = new io.casehub.neocortex.caps.ClassificationContext(context.tenantId(), context.agentId());
                 var activations = situationClassifier.classify(observation, Map.of(), classCtx).activations();
+                var rawMap = new java.util.HashMap<String, Double>();
+                for (var act : activations) { rawMap.put(act.nodeId(), act.confidence()); }
+                inputActivations.put(agentKey, Map.copyOf(rawMap));
                 activations = RelationalBiasing.apply(targetSchema, activations);
                 channelWeights.put(agentKey, TopologyChannelWeighter.weight(activations, result.actionTendencies()));
             } catch (Exception e) {
@@ -204,6 +212,20 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     public Optional<AppraisalResult> currentResult(String agentId, String tenantId) {
         return Optional.ofNullable(results.get(agentId + ":" + tenantId));
     }
+
+    public Optional<AppraisalResult> currentResultAt(String agentId, String tenantId, io.casehub.neocortex.cognition.journal.EventRef tickEventRef) {
+        var agentKey  = agentId + ":" + tenantId;
+        var storedRef = resultEventRefs.get(agentKey);
+        if (storedRef == null || !storedRef.equals(tickEventRef)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(results.get(agentKey));
+    }
+
+    public Map<String, Double> currentInputActivations(String agentId, String tenantId) {
+        return inputActivations.getOrDefault(agentId + ":" + tenantId, Map.of());
+    }
+
 
     public Optional<AppraisalContext> currentContext(String agentId, String tenantId) {
         return Optional.ofNullable(contexts.get(agentId + ":" + tenantId));
