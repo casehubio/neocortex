@@ -59,26 +59,26 @@ class CopingEmergenceEvalTest {
 
     // High-conscientiousness: strong planful, low avoidance
     private static final CopingDefaults CONSCIENTIOUS =
-            new CopingDefaults(0.85, 0.5, 0.15, 0.4, 0.6);
+            new CopingDefaults(0.85, 0.5, 0.15, 0.4, 0.6, 0.7, 0.15, 0.3);
 
     // High-neuroticism: strong avoidance, low planful, low acceptance
     private static final CopingDefaults NEUROTIC =
-            new CopingDefaults(0.2, 0.3, 0.85, 0.3, 0.15);
+            new CopingDefaults(0.2, 0.3, 0.85, 0.3, 0.15, 0.15, 0.8, 0.6);
 
     // Balanced: planful leads slightly — for chaining and convergence tests
     private static final CopingDefaults BALANCED =
-            new CopingDefaults(0.65, 0.5, 0.3, 0.4, 0.55);
+            new CopingDefaults(0.65, 0.5, 0.3, 0.4, 0.55, 0.55, 0.3, 0.4);
 
     // Open personality: strong reinterpretation tendency
     private static final CopingDefaults REINTERPRETER =
-            new CopingDefaults(0.4, 0.85, 0.2, 0.4, 0.6);
+            new CopingDefaults(0.4, 0.85, 0.2, 0.4, 0.6, 0.5, 0.2, 0.2);
 
     // Chaining profile: reinterpretation leads, planful secondary —
     // at medium controllability reinterpretation wins first, then
     // agency-rich reinterpretation narrative shifts controllability up
     // causing the predictor to filter to INTENTION and select planful
     private static final CopingDefaults CHAINING =
-            new CopingDefaults(0.55, 0.7, 0.25, 0.4, 0.5);
+            new CopingDefaults(0.55, 0.7, 0.25, 0.4, 0.5, 0.5, 0.25, 0.3);
 
     private static final DispositionAxes CONSCIENTIOUS_AXES =
             new DispositionAxes("cooperative", "strict", "conservative", "moderate", "analytical");

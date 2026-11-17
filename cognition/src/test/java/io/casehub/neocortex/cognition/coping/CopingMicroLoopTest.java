@@ -63,7 +63,7 @@ class CopingMicroLoopTest {
             new CopingCheck(), new NormativeCheck());
 
     private static final CopingDefaults PLANFUL =
-            new CopingDefaults(0.85, 0.4, 0.2, 0.4, 0.6);
+            new CopingDefaults(0.85, 0.4, 0.2, 0.4, 0.6, 0.7, 0.2, 0.3);
 
     private static final Map<String, Double> HIGH_CTRL_DIMS =
             Map.of("controllability", 0.7, "adjustability", 0.5, "relevance", 0.8);

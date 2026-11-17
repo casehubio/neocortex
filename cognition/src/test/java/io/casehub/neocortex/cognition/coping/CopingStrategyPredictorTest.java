@@ -20,11 +20,11 @@ class CopingStrategyPredictorTest {
 
     private final CopingStrategyPredictor predictor = new CopingStrategyPredictor();
 
-    private static final CopingDefaults PLANFUL = new CopingDefaults(0.85, 0.4, 0.2, 0.4, 0.6);
-    private static final CopingDefaults AVOIDANT = new CopingDefaults(0.2, 0.3, 0.85, 0.3, 0.15);
-    private static final CopingDefaults SUPPORT_SEEKING = new CopingDefaults(0.4, 0.4, 0.3, 0.85, 0.5);
-    private static final CopingDefaults REINTERPRETER = new CopingDefaults(0.4, 0.85, 0.2, 0.4, 0.6);
-    private static final CopingDefaults BALANCED = new CopingDefaults(0.5, 0.5, 0.5, 0.5, 0.5);
+    private static final CopingDefaults PLANFUL = new CopingDefaults(0.85, 0.4, 0.2, 0.4, 0.6, 0.7, 0.2, 0.3);
+    private static final CopingDefaults AVOIDANT = new CopingDefaults(0.2, 0.3, 0.85, 0.3, 0.15, 0.15, 0.8, 0.6);
+    private static final CopingDefaults SUPPORT_SEEKING = new CopingDefaults(0.4, 0.4, 0.3, 0.85, 0.5, 0.4, 0.3, 0.3);
+    private static final CopingDefaults REINTERPRETER = new CopingDefaults(0.4, 0.85, 0.2, 0.4, 0.6, 0.5, 0.2, 0.2);
+    private static final CopingDefaults BALANCED = new CopingDefaults(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
 
     private static final DispositionAxes AVOIDANT_AXES =
             new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
@@ -131,7 +131,7 @@ class CopingStrategyPredictorTest {
 
     @Test
     void shameWithNonAvoidantPersonality_doesNotForceAvoidance() {
-        var defaults = new CopingDefaults(0.8, 0.5, 0.3, 0.4, 0.6);
+        var defaults = new CopingDefaults(0.8, 0.5, 0.3, 0.4, 0.6, 0.6, 0.3, 0.4);
         var result = predictor.predict(defaults, dims(0.4),
                 List.of(emotion(EmotionType.SHAME, 0.6)), ANALYTICAL_AXES, null);
         assertThat(result).isPresent();

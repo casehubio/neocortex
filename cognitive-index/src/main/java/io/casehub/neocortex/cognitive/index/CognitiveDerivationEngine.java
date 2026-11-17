@@ -848,21 +848,30 @@ public final class CognitiveDerivationEngine {
         double avoidance        = neuroticism;
         double supportSeeking   = (agreeableness + extraversion) / 2.0;
         double acceptance       = 1.0 - neuroticism;
+        double confrontation    = (extraversion + conscientiousness) / 2.0;
+        double disengagement    = (neuroticism + (1.0 - conscientiousness)) / 2.0;
+        double suppression      = (neuroticism + ruleFollowingNumeric) / 2.0;
 
         planful          = clamp01(planful);
         reinterpretation = clamp01(reinterpretation);
         avoidance        = clamp01(avoidance);
         supportSeeking   = clamp01(supportSeeking);
         acceptance       = clamp01(acceptance);
+        confrontation    = clamp01(confrontation);
+        disengagement    = clamp01(disengagement);
+        suppression      = clamp01(suppression);
 
         ctx.output("planfulTendency", planful);
         ctx.output("reinterpretationTendency", reinterpretation);
         ctx.output("avoidanceTendency", avoidance);
         ctx.output("supportSeekingTendency", supportSeeking);
         ctx.output("acceptanceTendency", acceptance);
+        ctx.output("confrontationTendency", confrontation);
+        ctx.output("disengagementTendency", disengagement);
+        ctx.output("suppressionTendency", suppression);
         ctx.stageEnd();
 
-        return new CopingDefaults(planful, reinterpretation, avoidance, supportSeeking, acceptance);
+        return new CopingDefaults(planful, reinterpretation, avoidance, supportSeeking, acceptance, confrontation, disengagement, suppression);
     }
 
 

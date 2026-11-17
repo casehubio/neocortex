@@ -52,7 +52,7 @@ public abstract class CapsEngineContractTest {
     void initializeAgentSeedsCopingAttractorsFromCopingDefaults() {
         var disposition = new DispositionAxes(
                 "cooperative", "moderate", "calculated", "moderate", "analytical");
-        var coping = new CopingDefaults(0.8, 0.3, 0.2, 0.7, 0.6);
+        var coping = new CopingDefaults(0.8, 0.3, 0.2, 0.7, 0.6, 0.7, 0.2, 0.3);
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
 
@@ -73,6 +73,15 @@ public abstract class CapsEngineContractTest {
         // Moderate acceptanceTendency (0.6) → slightly positive
         assertThat(state.nodeStates().get("coping_acceptance").restingActivation())
                 .isGreaterThan(0.0);
+        // High confrontationTendency (0.7) → positive active_confrontation resting activation
+        assertThat(state.nodeStates().get("active_confrontation").restingActivation())
+                .isGreaterThan(0.0);
+        // Low disengagementTendency (0.2) → below midpoint → negative
+        assertThat(state.nodeStates().get("mental_disengagement").restingActivation())
+                .isLessThan(0.0);
+        // Low suppressionTendency (0.3) → below midpoint → negative
+        assertThat(state.nodeStates().get("suppression").restingActivation())
+                .isLessThan(0.0);
     }
 
     @Test
@@ -93,7 +102,7 @@ public abstract class CapsEngineContractTest {
     void highBISInputActivatesAvoidantCopingAttractors() {
         var disposition = new DispositionAxes(
                 "cooperative", "moderate", "conservative", "moderate", "avoidant");
-        var coping = new CopingDefaults(0.3, 0.3, 0.8, 0.3, 0.3);
+        var coping = new CopingDefaults(0.3, 0.3, 0.8, 0.3, 0.3, 0.2, 0.7, 0.6);
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
 
