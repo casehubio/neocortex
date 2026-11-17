@@ -1,13 +1,22 @@
 package io.casehub.neocortex.caps.testing;
 
-import io.casehub.neocortex.caps.*;
+import io.casehub.neocortex.caps.AgentCapsState;
+import io.casehub.neocortex.caps.CapsEngine;
+import io.casehub.neocortex.caps.ConnectionWeight;
+import io.casehub.neocortex.caps.ConvergenceType;
+import io.casehub.neocortex.caps.SettlingResult;
+import io.casehub.neocortex.caps.WeightProvenance;
+import io.casehub.neocortex.caps.WeightUpdateContext;
+import io.casehub.neocortex.caps.NodeState;
+import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 public abstract class CapsEngineContractTest {
 
@@ -38,6 +47,48 @@ public abstract class CapsEngineContractTest {
         assertThat(state.generation()).isEqualTo(0);
         assertThat(state.weights()).isNotEmpty();
     }
+
+    @Test
+    void initializeAgentSeedsCopingAttractorsFromCopingDefaults() {
+        var disposition = new DispositionAxes(
+                "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var coping = new CopingDefaults(0.8, 0.3, 0.2, 0.7, 0.6);
+
+        AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
+
+        // High planfulTendency (0.8) → positive planning resting activation
+        assertThat(state.nodeStates().get("planning").restingActivation())
+                .isGreaterThan(0.0);
+        // High reinterpretationTendency would be > 0, but 0.3 is below midpoint → negative
+        assertThat(state.nodeStates().get("positive_reinterpretation").restingActivation())
+                .isLessThan(0.0);
+        // Low avoidanceTendency (0.2) → below midpoint → negative
+        assertThat(state.nodeStates().get("avoidance").restingActivation())
+                .isLessThan(0.0);
+        // High supportSeekingTendency (0.7) → positive for both support nodes
+        assertThat(state.nodeStates().get("seek_instrumental_support").restingActivation())
+                .isGreaterThan(0.0);
+        assertThat(state.nodeStates().get("seek_emotional_support").restingActivation())
+                .isGreaterThan(0.0);
+        // Moderate acceptanceTendency (0.6) → slightly positive
+        assertThat(state.nodeStates().get("coping_acceptance").restingActivation())
+                .isGreaterThan(0.0);
+    }
+
+    @Test
+    void initializeAgentWithoutCopingDefaultsDoesNotSeedCopingAttractors() {
+        var disposition = new DispositionAxes(
+                "cooperative", "moderate", "calculated", "moderate", "analytical");
+
+        AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition);
+
+        // Without CopingDefaults, coping nodes should have default (zero) resting activation
+        NodeState planning = state.nodeStates().get("planning");
+        if (planning != null) {
+            assertThat(planning.restingActivation()).isEqualTo(0.0);
+        }
+    }
+
 
     @Test
     void loadStateReturnsInitializedState() {

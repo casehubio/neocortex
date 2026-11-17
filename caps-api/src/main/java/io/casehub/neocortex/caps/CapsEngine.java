@@ -1,5 +1,6 @@
 package io.casehub.neocortex.caps;
 
+import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import java.util.Map;
 
@@ -10,6 +11,13 @@ public interface CapsEngine {
     void saveState(AgentCapsState state);
     AgentCapsState initializeAgent(String tenantId, String agentId,
                                    DispositionAxes disposition);
+
+    default AgentCapsState initializeAgent(String tenantId, String agentId,
+                                           DispositionAxes disposition,
+                                           CopingDefaults copingDefaults) {
+        return initializeAgent(tenantId, agentId, disposition);
+    }
+
 
     SettlingResult settle(AgentCapsState state,
                           Map<String, Double> inputActivations);
