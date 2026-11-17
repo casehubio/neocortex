@@ -90,9 +90,14 @@ Our use case — cognitive agent characters in a social simulation — falls squ
 | Era 6 | + AMPD/PID-5 facets (expression styles, search budget, recurring thoughts) | Continuous [0,1] for 5 methods, categorical for 6 |
 | **Era 7** | **Bridge fix + full facet integration + Jungian×PID-5 modulation** | **Continuous for all methods, dual-channel interaction** |
 
-## Implementation Status (2026-11-16)
+## Implementation Status (2026-11-17)
 
 All design goals achieved. Implementation complete across three repos (eidos, neocortex, examples). Coping strategies pipeline (epic #595) Batches 1-5 complete — regulation refactoring, CAPS coping attractors, goal operations dispatch all wired.
+
+### Downstream consumer: situation classifier PID-5 integration (#977)
+- PID-5 facets and derived AppraisalWeights now flow through the CAPS situation classifier pipeline. `addPersonalityMetadata()` populates `pid5.<Facet>=<2dp>` and `appraisal.<field>=<2dp>` metadata keys alongside disposition axes. `PersonalityPromptBuilder` formats them as natural-language annotations (high/low/moderate labels, directional appraisal labels). CBR cache key includes PID-5 and appraisal in SHA-256 hash — different personality magnitudes produce different cache entries. Model version `haiku-pid5` invalidates pre-PID-5 cache.
+- This completes the full pipeline: Engram YAML → Eidos → Bridge → DescriptorView → CDE derivation → metadata enrichment → classifier prompt + CBR cache.
+- Follow-up: #1070 (wire pid5Facets config filter), #1071 (extract shared utility), #1072 (cleanup).
 
 ### Pipeline unification
 - `AmpdFacet` record added to `AgentDisposition` (eidos-api). Backward-compatible 10-arg constructor preserved.
@@ -127,7 +132,10 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - neocortex#963: Bridge should fire onFacetMapped events
 - examples#207: Add ampdFacets to wacky-manor character engrams
 - neocortex#964: YAML round-trip test for ampdFacets deserialization
-- neocortex#980: ConsolidationScheduler does not journal during consolidation phases
+- ~~neocortex#980: ConsolidationScheduler does not journal during consolidation phases~~ ✅ Landed 2026-11-17 (setCognitiveJournal() on ConsolidationPhase SPI)
+- neocortex#1070: Wire pid5Facets config to metadata enrichment and cache key
+- neocortex#1071: Extract addPersonalityMetadata to shared utility (DRY — duplicated in BehavioralSynthesisPhase + DriveProfileDerivationPhase)
+- neocortex#1072: Remove dead hasPid5(), strengthen eval test assertions
 ## Open Questions
 
 1. **Should `derivePersonality` (the foundation derivation) get PID-5 modulation?** Currently excluded to avoid cascading effects. May revisit after eval validation of downstream modulations.
