@@ -115,6 +115,29 @@ class PersonalityMetadataEnricherTest {
         assertThat(result).containsEntry("disposition.socialOrient", "cooperative");
     }
 
+    @Test
+    void learningProfileOverload_enrichesAllDimensions() {
+        var axes     = new DispositionAxes("cooperative", "high", null, null, null);
+        var facets   = List.of(new PersonalityFacet("Anxiousness", 0.8, "derived"));
+        var aw       = new AppraisalWeights(0.7, 0.6, 0.4, 0.8, 0.5);
+        var defaults = buildDefaults(axes, facets, aw);
+        var profile  = LearningProfile.from(defaults);
+
+        var result = PersonalityMetadataEnricher.enrich(Map.of(), profile);
+
+        assertThat(result).containsEntry("disposition.socialOrient", "cooperative");
+        assertThat(result).containsEntry("pid5.Anxiousness", "0.80");
+        assertThat(result).containsEntry("appraisal.urgencyWeight", "0.70");
+    }
+
+    @Test
+    void learningProfileOverload_nullProfile_returnsOriginal() {
+        var original = Map.of("key", "val");
+        var result   = PersonalityMetadataEnricher.enrich(original, (LearningProfile) null);
+        assertThat(result).isSameAs(original);
+    }
+
+
     private static CognitiveDefaults buildDefaults(DispositionAxes axes,
                                                    List<PersonalityFacet> facets,
                                                    AppraisalWeights aw) {

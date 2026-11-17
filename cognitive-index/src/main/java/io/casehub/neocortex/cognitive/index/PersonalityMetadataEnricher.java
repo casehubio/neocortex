@@ -15,16 +15,28 @@ public final class PersonalityMetadataEnricher {
     }
 
     public static Map<String, String> enrich(Map<String, String> metadata,
-                                              String agentId,
-                                              CognitiveDefaultsRegistry registry,
-                                              Set<String> allowedFacets) {
+                                             String agentId,
+                                             CognitiveDefaultsRegistry registry,
+                                             Set<String> allowedFacets) {
         if (registry == null) {return metadata;}
         var defaults = registry.forAgent(agentId);
-        if (defaults.isEmpty() || defaults.get().descriptor() == null) {return metadata;}
+        if (defaults.isEmpty()) {return metadata;}
+        return enrich(metadata, LearningProfile.from(defaults.get()), allowedFacets);
+    }
+
+    public static Map<String, String> enrich(Map<String, String> metadata,
+                                             LearningProfile profile) {
+        return enrich(metadata, profile, null);
+    }
+
+    public static Map<String, String> enrich(Map<String, String> metadata,
+                                             LearningProfile profile,
+                                             Set<String> allowedFacets) {
+        if (profile == null) {return metadata;}
 
         var enriched = new HashMap<>(metadata);
 
-        var axes = defaults.get().descriptor().disposition();
+        var axes = profile.dispositionAxes();
         if (axes != null) {
             if (axes.socialOrient() != null) {enriched.put("disposition.socialOrient", axes.socialOrient());}
             if (axes.ruleFollowing() != null) {enriched.put("disposition.ruleFollowing", axes.ruleFollowing());}
@@ -33,7 +45,7 @@ public final class PersonalityMetadataEnricher {
             if (axes.conflictMode() != null) {enriched.put("disposition.conflictMode", axes.conflictMode());}
         }
 
-        var facets = defaults.get().descriptor().personalityFacets();
+        var facets = profile.facets();
         if (facets != null) {
             for (var facet : facets) {
                 if (allowedFacets == null || allowedFacets.contains(facet.facet())) {
@@ -42,7 +54,7 @@ public final class PersonalityMetadataEnricher {
             }
         }
 
-        var aw = defaults.get().appraisalWeights();
+        var aw = profile.appraisalWeights();
         if (aw != null) {
             enriched.put("appraisal.urgencyWeight", String.format("%.2f", aw.urgencyWeight()));
             enriched.put("appraisal.relationshipWeight", String.format("%.2f", aw.relationshipWeight()));

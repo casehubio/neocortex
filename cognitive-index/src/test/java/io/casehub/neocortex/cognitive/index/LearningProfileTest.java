@@ -87,7 +87,6 @@ class LearningProfileTest {
         assertThat(profile.appraisalWeights()).isEqualTo(aw);
     }
 
-
     @Test
     void exposesAgentId() {
         var profile = LearningProfile.from(CognitiveDefaults.empty("my-agent"));
