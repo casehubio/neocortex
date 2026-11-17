@@ -1,8 +1,6 @@
 package io.casehub.neocortex.cognition.situational;
 
-import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
-import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SubgraphInput;
@@ -73,6 +71,18 @@ public class SituationalStateService {
     public PersonalityState currentState(String tenantId, String agentId) {
         return stateCache.get(slotKey(agentId, tenantId));
     }
+
+    public java.util.Set<String> cachedAgentIds(String tenantId) {
+        var suffix = ":" + tenantId;
+        var ids    = new java.util.LinkedHashSet<String>();
+        for (var key : stateCache.keySet()) {
+            if (key.endsWith(suffix)) {
+                ids.add(key.substring(0, key.length() - suffix.length()));
+            }
+        }
+        return Set.copyOf(ids);
+    }
+
 
     private String resolveSubgraph(String tenantId) {
         return subgraphIds.computeIfAbsent(tenantId, t -> {
