@@ -282,26 +282,15 @@ public final class CognitiveDerivationEngine {
         ExpressionStyleDefaults     expressionStyles = deriveExpressionStyles(facets);
         PersonalityProfile          personalityProf  = new PersonalityProfile(personality, personalityDom, expressionStyles, null, facets);
 
+        var emotionDefaults = new EmotionDefaults(mood, appraisal, regulation, coping);
+        var resourceDefaults = new CognitiveResourceDefaults(capacity, poolConfig, searchBudget, recurringThought, habituation);
+        var graphDefs = new GraphDefaults(null, Map.of(), null, null, graphStructure, extractionBias);
+        var behavioralDefaults = new BehavioralDefaults(curiosity, temporalFocus, socialCognition, cbrStrategy);
+
         observer.onPipelineComplete(descriptor.agentId(), eventRef);
 
-        return CognitiveDefaults.empty(descriptor.agentId())
-                                .withPersonalityProfile(personalityProf)
-                                .withMoodBaseline(mood)
-                                .withCuriosity(curiosity)
-                                .withTemporalFocus(temporalFocus)
-                                .withCbrStrategy(cbrStrategy)
-                                .withSocialCognition(socialCognition)
-                                .withGraphStructure(graphStructure)
-                                .withExtractionBias(extractionBias)
-                                .withAppraisalWeights(appraisal)
-                                .withHabituationConfig(habituation)
-                                .withRegulationDefaults(regulation)
-                                .withCopingDefaults(coping)
-                                .withSearchBudgetConfig(searchBudget)
-                                .withRecurringThoughtConfig(recurringThought)
-                                .withCapacityConfig(capacity)
-                                .withCognitiveResourcePoolConfig(poolConfig)
-                                .withDescriptor(descriptor);
+        return new CognitiveDefaults(descriptor.agentId(), null, personalityProf, descriptor,
+                emotionDefaults, resourceDefaults, graphDefs, behavioralDefaults);
     }
 
 
@@ -311,29 +300,13 @@ public final class CognitiveDerivationEngine {
         }
         CognitiveDefaults derived = derive(explicit.descriptor());
         var mergedProfile = mergePersonalityProfile(explicit.personalityProfile(), derived.personalityProfile());
-        return CognitiveDefaults.empty(explicit.agentId())
-                                .withTenantId(explicit.tenantId())
-                                .withPersonalityProfile(mergedProfile)
-                                .withMoodBaseline(explicit.moodBaseline() != null ? explicit.moodBaseline() : derived.moodBaseline())
-                                .withCuriosity(explicit.curiosity() != null ? explicit.curiosity() : derived.curiosity())
-                                .withTemporalFocus(explicit.temporalFocus() != null ? explicit.temporalFocus() : derived.temporalFocus())
-                                .withCbrStrategy(explicit.cbrStrategy() != null ? explicit.cbrStrategy() : derived.cbrStrategy())
-                                .withSocialCognition(explicit.socialCognition() != null ? explicit.socialCognition() : derived.socialCognition())
-                                .withGraphStructure(explicit.graphStructure() != null ? explicit.graphStructure() : derived.graphStructure())
-                                .withExtractionBias(explicit.extractionBias() != null ? explicit.extractionBias() : derived.extractionBias())
-                                .withAppraisalWeights(explicit.appraisalWeights() != null ? explicit.appraisalWeights() : derived.appraisalWeights())
-                                .withHabituationConfig(explicit.habituationConfig() != null ? explicit.habituationConfig() : derived.habituationConfig())
-                                .withRegulationDefaults(explicit.regulationDefaults() != null ? explicit.regulationDefaults() : derived.regulationDefaults())
-                                .withCopingDefaults(explicit.copingDefaults() != null ? explicit.copingDefaults() : derived.copingDefaults())
-                                .withSearchBudgetConfig(explicit.searchBudgetConfig() != null ? explicit.searchBudgetConfig() : derived.searchBudgetConfig())
-                                .withRecurringThoughtConfig(explicit.recurringThoughtConfig() != null ? explicit.recurringThoughtConfig() : derived.recurringThoughtConfig())
-                                .withCapacityConfig(mergeCapacity(explicit.capacityConfig(), derived.capacityConfig()))
-                                .withCognitiveResourcePoolConfig(explicit.cognitiveResourcePoolConfig() != null ? explicit.cognitiveResourcePoolConfig() : derived.cognitiveResourcePoolConfig())
-                                .withVocabulary(explicit.vocabulary())
-                                .withServices(explicit.services())
-                                .withTraitRules(explicit.traitRules())
-                                .withDerivedEdgeRules(explicit.derivedEdgeRules())
-                                .withDescriptor(explicit.descriptor());
+        var mergedEmotion = explicit.emotionDefaults().mergeWith(derived.emotionDefaults());
+        var mergedResources = explicit.cognitiveResourceDefaults().mergeWith(derived.cognitiveResourceDefaults());
+        var mergedGraph = explicit.graphDefaults().mergeWith(derived.graphDefaults());
+        var mergedBehavioral = explicit.behavioralDefaults().mergeWith(derived.behavioralDefaults());
+
+        return new CognitiveDefaults(explicit.agentId(), explicit.tenantId(), mergedProfile,
+                explicit.descriptor(), mergedEmotion, mergedResources, mergedGraph, mergedBehavioral);
     }
 
 
@@ -396,12 +369,6 @@ public final class CognitiveDerivationEngine {
         return new CognitiveCapacityConfig(relational, associative, wmSpan);
     }
 
-
-    static CognitiveCapacityConfig mergeCapacity(CognitiveCapacityConfig explicit, CognitiveCapacityConfig derived) {
-        if (explicit == null) {return derived;}
-        if (derived == null) {return explicit;}
-        return explicit.mergeWith(derived);
-    }
 
     private static double compressCapacity(double raw) {
         return 0.55 + raw * 0.4;
