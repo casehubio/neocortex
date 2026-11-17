@@ -419,6 +419,15 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             }
         }
 
+        var aw = profile.appraisalWeights();
+        if (aw != null) {
+            enriched.put("appraisal.urgencyWeight", String.format("%.2f", aw.urgencyWeight()));
+            enriched.put("appraisal.relationshipWeight", String.format("%.2f", aw.relationshipWeight()));
+            enriched.put("appraisal.fearOnsetThreshold", String.format("%.2f", aw.fearOnsetThreshold()));
+            enriched.put("appraisal.selfStandardsStrictness", String.format("%.2f", aw.selfStandardsStrictness()));
+            enriched.put("appraisal.otherStandardsStrictness", String.format("%.2f", aw.otherStandardsStrictness()));
+        }
+
         return enriched;
     }
 

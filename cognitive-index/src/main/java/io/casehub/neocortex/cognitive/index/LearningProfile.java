@@ -21,6 +21,7 @@ import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.RecurringThoughtConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.memory.personality.PersonalityWeights;
+import io.casehub.neocortex.mindmap.AppraisalWeights;
 import io.casehub.neocortex.mindmap.CuriosityConfig;
 
 import java.util.List;
@@ -82,6 +83,8 @@ public final class LearningProfile {
         var pp = delegate.personalityProfile();
         return pp != null ? pp.attachment() : null;
     }
+
+    public AppraisalWeights appraisalWeights() {return delegate.appraisalWeights();}
 
 
     public CopingDefaults copingDefaults() { return delegate.copingDefaults(); }

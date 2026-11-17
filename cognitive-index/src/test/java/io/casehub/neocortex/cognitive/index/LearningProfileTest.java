@@ -46,9 +46,9 @@ class LearningProfileTest {
 
     @Test
     void extractsCopingDefaults() {
-        var coping = new CopingDefaults(0.6, 0.5, 0.4, 0.3, 0.7);
+        var coping = new CopingDefaults(0.6, 0.5, 0.4, 0.3, 0.7, 0.5, 0.4, 0.3);
         var defaults = CognitiveDefaults.empty("agent-1")
-                .withCopingDefaults(coping);
+                                        .withCopingDefaults(coping);
         var profile = LearningProfile.from(defaults);
         assertThat(profile.copingDefaults()).isEqualTo(coping);
     }
@@ -59,6 +59,7 @@ class LearningProfileTest {
         assertThat(profile.associativeReach()).isNull();
         assertThat(profile.trustFormationRate()).isNull();
         assertThat(profile.dispositionAxes()).isNull();
+        assertThat(profile.appraisalWeights()).isNull();
     }
 
     @Test
@@ -77,6 +78,15 @@ class LearningProfileTest {
         var profile = LearningProfile.from(defaults);
         assertThat(profile.regulationDefaults()).isEqualTo(reg);
     }
+
+    @Test
+    void exposesAppraisalWeights() {
+        var aw       = new io.casehub.neocortex.mindmap.AppraisalWeights(1.2, 0.8, 0.9, 1.1, 0.7);
+        var defaults = CognitiveDefaults.empty("a1").withAppraisalWeights(aw);
+        var profile  = LearningProfile.from(defaults);
+        assertThat(profile.appraisalWeights()).isEqualTo(aw);
+    }
+
 
     @Test
     void exposesAgentId() {
