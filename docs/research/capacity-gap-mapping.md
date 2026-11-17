@@ -41,11 +41,20 @@ When an emotion or cognitive process demands an operation (reappraisal, perspect
 
 | Gap combination | Operation needed | Personality constraint | Current handling | Source |
 |---|---|---|---|---|
-| Callous + empathic modeling | Perspective-taking, emotional resonance | High callousness → reduced empathy capacity | **No handling.** All agents get identical ToM inference (`TheoryOfMindEngine` uses fixed CPTs) and identical empathic sensing content (`OtherModelDerivationPhase` generates for all pairs). | — |
+| Callous + empathic modeling | Perspective-taking, emotional resonance | High callousness → reduced empathy capacity | **Partially addressed.** `TheoryOfMindBridge` maps appraisal SEC→threat and action tendencies→behavior as soft evidence, runs the Bayesian network per-subject, and stores the posterior on `MentalModelOrchestrator`. BDI intent biases trust via `RelationalSchemaEvolutionPhase`. But CPTs are fixed — not personality-modulated. | #1094, #1095, #1096 |
 
-**Detection mechanism:** None. This is the most significant unhandled gap — a callous character currently has the same quality of empathic modeling as a highly empathic one. The `OtherModelPromptSection` renders empathic content unconditionally.
+**Detection mechanism:** None for the personality gap specifically. The Bayesian engine infers emotional state correctly but identically for all observers — a callous character produces the same posterior as an empathic one given the same appraisal inputs.
 
-**Note:** Expression style derivation (CDE) DOES differentiate callousness for behavioral output (e.g., "gallantry" expression varies from "genuine, protective" to "instrumental, helps when it serves a purpose"). But this is downstream of ToM — the observation quality itself is not personality-modulated.
+**What's wired (2026-11-17):**
+- `TheoryOfMindBridge` in `CognitionCore.tick()` — runs per-subject after `mentalModel.tick()`, mapping SEC dimensions (conduciveness→incongruence, controllability→powerlessness) to soft threat evidence and ActionTendencies to soft behavior evidence. Posterior stored on `MentalModelOrchestrator`.
+- `MentalModelPromptSection` renders the Bayesian posterior alongside BDI text when dominant state exceeds 60% confidence.
+- `RelationalSchemaEvolutionPhase` checks `MentalModelLookup` for inferred hostile/cooperative intent and biases trust delta asymmetrically (-0.15 hostile, +0.05 cooperative, gated at confidence ≥0.5).
+
+**What remains:**
+- **Personality-modulated CPTs** — the most significant remaining gap. A callous character should have a weaker Threat→Distress link (reduced empathic resonance) and a stronger Behavior→inference for exploitation signals. This requires parameterising the `TheoryOfMindEngine` CPTs from `EffectiveCognitiveDefaults`.
+- **Personality-gated empathic rendering** — `OtherModelPromptSection` still renders empathic content unconditionally. High callousness should attenuate the felt-sense of another's distress.
+
+**Note:** Expression style derivation (CDE) DOES differentiate callousness for behavioral output (e.g., "gallantry" expression varies from "genuine, protective" to "instrumental, helps when it serves a purpose"). But this is downstream of ToM — the observation quality itself is not yet personality-modulated.
 
 ### Defence Mechanisms
 
@@ -58,7 +67,7 @@ Defence mechanisms do not exist in the codebase. The CAPS topology defines cogni
 | **Explicit + systematic** | Per-parameter gap values, boolean signal, downstream rendering | Intelligence capacity (#840) |
 | **Implicit + ad-hoc** | Returns empty/null, with case-specific downstream handling | Emotion regulation predictor |
 | **Implicit via parameters** | Personality traits adjust thresholds, reducing feature activation | Proactive regulation, social regulation (CAPS) |
-| **Absent** | No gap detection or handling | Theory of mind |
+| **Foundational** | Bayesian engine wired, posterior feeds prompts and trust, but CPTs not personality-modulated | Theory of mind |
 
 ## Development Checklist
 

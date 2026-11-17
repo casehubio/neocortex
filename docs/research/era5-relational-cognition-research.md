@@ -78,6 +78,14 @@ Trust, intimacy, and role evolve during consolidation, personality-conditioned:
 - Avoidance ceiling — dismissive-avoidant agents structurally cannot reach high trust
 - Personality-gated role transitions — prey → tool (not ally) when Manipulativeness > 0.5
 
+#### BDI Intent Biasing (#1095)
+
+Trust evolution originally had a single input channel: observed interaction valence (pleasure-based). The agent inferred "this person intends to deceive me" via MentalModelOrchestrator but that inference never affected trust scores.
+
+`RelationalSchemaEvolutionPhase` now checks `MentalModelLookup` for the subject after computing the observation-based trust delta. If the BDI model infers hostile intent (deception, manipulation, betrayal, exploitation) with confidence ≥0.5, the trust delta is biased negative (-0.15 per confidence-weighted signal). Cooperative intent (cooperation, help, support, protection) biases positive at +0.05 — a 3:1 asymmetry reflecting that trust is lost fast and earned slowly. Intentions carry full confidence weight; desires are attenuated to 0.5× (what someone plans matters more than what they wish for).
+
+This closes the ToM→trust loop: an agent that infers hostile intent about another character will trust them less during the next consolidation, independent of observed interaction quality. A character who acts pleasantly while secretly planning deception will still erode trust — the BDI inference catches what the pleasure signal misses.
+
 ### 5. CAPS Biasing (#720)
 
 Trust modulates CAPS input activations before appraisal runs. Kindness from prey dampens secure_attachment, boosts rejection. Same observation, different perceptual filtering. The biasing is sub-prompt — it shapes emotion, which shapes behaviour, which shapes text.
@@ -1066,3 +1074,48 @@ Each weakness can be reproduced in a targeted 5-10 tick scenario:
 - **P22 arrival spike**: start fresh (no cache), run through first consolidation tick (50), run 10 more ticks, measure analytical narration rate
 - **Mind reading**: set up a multi-character scene, run 3 ticks, check for "she thinks" / "doesn't know"
 - **Drive naming**: run HC under threat with all drives active, check for explicit drive labels
+
+---
+
+## Finding: Bayesian Theory of Mind Integration (#1094, #1096)
+
+### Two-channel cognitive read
+
+The agent's understanding of another character's emotional state now operates through two complementary channels:
+
+| Channel | Source | Nature | Strength |
+|---------|--------|--------|----------|
+| **Qualitative BDI** | LLM-inferred beliefs, desires, intentions via `MentalModelOrchestrator` | Semantic — understands narrative context, social nuance, deceptive intent | Rich but slow (requires LLM inference), confidence varies |
+| **Quantitative Bayesian** | `TheoryOfMindEngine` 3-node network via `TheoryOfMindBridge` | Probabilistic — posterior over POSITIVE/NEUTRAL/DISTRESSED | Fast, deterministic, grounded in appraisal theory (Scherer 2001) |
+
+### How the Bayesian channel works
+
+`TheoryOfMindBridge` maps the current tick's appraisal result into the existing Bayesian network:
+
+1. **SEC dimensions → soft threat evidence.** Conduciveness (inverted to incongruence) and controllability (inverted to powerlessness) are averaged to a threat signal. The signal maps to a smooth probability distribution over NONE/MILD/SEVERE — not a hard threshold. Positive conduciveness + high controllability → P(NONE)≈1. Negative conduciveness + low controllability → P(SEVERE)≈1.
+
+2. **Action tendencies → soft behavior evidence.** APPROACH/DOMINANCE/ANTAGONISM readiness maps to approach weight; AVOIDANCE/REJECTION/SUBMISSION to avoidant weight; ATTENDING/INDIFFERENCE/INTERRUPTION to neutral. Intensity-weighted, normalised to a distribution over APPROACH/NEUTRAL/AVOIDANT.
+
+3. **Bayesian inference.** The 3-variable network (Threat → EmotionalState → Behavior) with CPTs grounded in appraisal theory performs junction-tree exact inference to produce a posterior over POSITIVE/NEUTRAL/DISTRESSED.
+
+The bridge creates a fresh engine per call (no shared mutable state) and runs per-subject in the `CognitionCore.tick()` subject loop, after `mentalModel.tick()`.
+
+### Prompt rendering
+
+`MentalModelPromptSection` renders the Bayesian posterior alongside the BDI text when the dominant state exceeds 60% confidence:
+
+```
+Theory of Mind (reginald):
+What you believe about the user:
+  - values-universal-energy (confidence: 0.8)
+Their likely intentions:
+  - plans-to-deceive (confidence: 0.7)
+Inferred emotional state (Bayesian):
+  - positive: 8%, neutral: 20%, distressed: 72% → likely distressed
+```
+
+The 60% threshold prevents noisy low-confidence signals from cluttering the prompt. When the posterior is diffuse (no dominant state), only the qualitative BDI is shown.
+
+### What remains
+
+The Bayesian CPTs are fixed — all agents use the same prior and conditional probability tables. Personality-modulated CPTs (e.g., an agent high in neuroticism having a stronger threat→distress link) would make the inference personality-aware. This is the gap identified in the capacity-gap-mapping as "Foundational" rather than "Full."
