@@ -86,6 +86,10 @@ public sealed interface CognitiveEntry {
     record MentalModelUpdated(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
                               String subjectId) implements CognitiveEntry {}
 
+    record TheoryOfMindInferred(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                                String subjectId, String dominantValence,
+                                double dominantProbability) implements CognitiveEntry {}
+
 
     // --- Memory and consolidation domain ---
 

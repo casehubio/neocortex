@@ -136,7 +136,9 @@ public class CognitionCore implements io.casehub.neocortex.cognition.trace.Cogni
 private volatile @Nullable String lastTargetAgentId;
 private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
 private volatile           io.casehub.neocortex.mindmap.intelligence.consolidation.@org.jspecify.annotations.Nullable BehavioralSynthesisPhase behavioralSynthesis;
-private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
+private volatile           io.casehub.neocortex.cognition.tom.@org.jspecify.annotations.Nullable TheoryOfMindBridge                            theoryOfMindBridge;
+
+    private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
 private final              java.util.concurrent.atomic.AtomicInteger                                                                           tickCounter = new java.util.concurrent.atomic.AtomicInteger();
 private volatile           io.casehub.neocortex.cognition.journal.CognitiveJournal                                                             cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
 
@@ -342,6 +344,16 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
                 safeRun(() -> mentalModel.tick(agentId, subjectId, tenantId));
                 cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.MentalModelUpdated(
                         tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId));
+            }
+            if (theoryOfMindBridge != null && mentalModel != null && appraisalParticipant != null) {
+                appraisalParticipant.currentResult(agentId, tenantId).ifPresent(appraisalResult ->
+                        safeRun(() -> {
+                            var posterior = theoryOfMindBridge.infer(appraisalResult);
+                            mentalModel.recordTomPosterior(agentId, subjectId, tenantId, posterior);
+                            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.TheoryOfMindInferred(
+                                    tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId,
+                                    posterior.dominantValence(), posterior.dominantProbability()));
+                        }));
             }
         }
 
@@ -1109,6 +1121,11 @@ public @Nullable String lastTargetAgentId() {
     public void configurePipelineSnapshotStore(io.casehub.neocortex.cognitive.observability.PipelineSnapshotStore store) {
         this.pipelineSnapshotStore = store;
     }
+
+    public void configureTheoryOfMind() {
+        this.theoryOfMindBridge = new io.casehub.neocortex.cognition.tom.TheoryOfMindBridge();
+    }
+
 
     @Override
     public java.util.Optional<io.casehub.neocortex.cognition.trace.PipelineTrace> currentTrace(String agentId, String tenantId) {
