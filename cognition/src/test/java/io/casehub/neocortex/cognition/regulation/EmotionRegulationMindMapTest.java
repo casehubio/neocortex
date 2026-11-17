@@ -1,7 +1,6 @@
 package io.casehub.neocortex.cognition.regulation;
 
 import io.casehub.neocortex.cognition.drive.DriveAxis;
-import io.casehub.neocortex.cognition.regulation.RegulationContext;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.SubgraphInput;
@@ -197,6 +196,68 @@ class EmotionRegulationMindMapTest {
         assertThat(regNode.properties().get("regulationTopic")).isEqualTo("treasure");
     }
 
+
+    @Test
+    void loadOutcomeSummaryBySourceGroupsByStrategySource() {
+        writeWithSource("a1", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, "PREDICTOR");
+        writeWithSource("a1", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.60, "PREDICTOR");
+        writeWithSource("a1", EmotionRegulationStrategy.RESPONSE_MODULATION, 0.80, "LLM");
+        writeWithSource("a1", EmotionRegulationStrategy.ATTENTIONAL_DEPLOYMENT, 0.50, "SAFETY_GATE");
+
+        var summaries = EmotionRegulationMindMapAdapter.loadOutcomeSummaryBySource(
+                mindMapStore, "a1", "t1", 200);
+
+        assertThat(summaries).hasSize(3);
+        assertThat(summaries.get("PREDICTOR").episodeCount()).isEqualTo(2);
+        assertThat(summaries.get("PREDICTOR").meanEffectiveness()).isCloseTo(0.65, org.assertj.core.data.Offset.offset(0.001));
+        assertThat(summaries.get("LLM").episodeCount()).isEqualTo(1);
+        assertThat(summaries.get("LLM").meanEffectiveness()).isCloseTo(0.80, org.assertj.core.data.Offset.offset(0.001));
+        assertThat(summaries.get("SAFETY_GATE").episodeCount()).isEqualTo(1);
+    }
+
+
+    @Test
+    void calibrationAnalysisDetectsMiscalibratedAgent() {
+        for (int i = 0; i < 25; i++) {
+            writeWithSource("a1", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.55, "PREDICTOR");
+        }
+        for (int i = 0; i < 25; i++) {
+            writeWithSource("a1", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, "LLM");
+        }
+
+        var summaries = EmotionRegulationMindMapAdapter.loadOutcomeSummaryBySource(
+                mindMapStore, "a1", "t1", 200);
+        var report = PredictionCalibrationAnalyzer.analyze(summaries, 20);
+
+        assertThat(report.miscalibrated()).isTrue();
+        assertThat(report.delta()).isCloseTo(-0.20, org.assertj.core.data.Offset.offset(0.001));
+        assertThat(report.totalEpisodes()).isEqualTo(50);
+    }
+
+
+    @Test
+    void calibrationAnalysisFiltersPerAgent() {
+        for (int i = 0; i < 25; i++) {
+            writeWithSource("a1", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.55, "PREDICTOR");
+            writeWithSource("a2", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.80, "PREDICTOR");
+        }
+        for (int i = 0; i < 25; i++) {
+            writeWithSource("a1", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.75, "LLM");
+            writeWithSource("a2", EmotionRegulationStrategy.COGNITIVE_CHANGE, 0.70, "LLM");
+        }
+
+        var a1Summaries = EmotionRegulationMindMapAdapter.loadOutcomeSummaryBySource(
+                mindMapStore, "a1", "t1", 200);
+        var a2Summaries = EmotionRegulationMindMapAdapter.loadOutcomeSummaryBySource(
+                mindMapStore, "a2", "t1", 200);
+
+        var a1Report = PredictionCalibrationAnalyzer.analyze(a1Summaries, 20);
+        var a2Report = PredictionCalibrationAnalyzer.analyze(a2Summaries, 20);
+
+        assertThat(a1Report.miscalibrated()).isTrue();
+        assertThat(a2Report.miscalibrated()).isFalse();
+    }
+
     @Test
     void writeHandlesNullRegulationContext() {
         var result = new EmotionRegulationResult(
@@ -216,4 +277,13 @@ class EmotionRegulationMindMapTest {
     }
 
 
+    private void writeWithSource(String agentId, EmotionRegulationStrategy strategy,
+                                 double effectiveness, String source) {
+        var result = new EmotionRegulationResult(
+                strategy, List.of("anger"), List.of(),
+                0.8, 0.8 - (0.8 * effectiveness), effectiveness,
+                "regulated", null, null);
+        EmotionRegulationMindMapAdapter.write(mindMapStore, agentId, "t1",
+                                              cognitiveSubgraphId, result, null, null, source);
+    }
 }
