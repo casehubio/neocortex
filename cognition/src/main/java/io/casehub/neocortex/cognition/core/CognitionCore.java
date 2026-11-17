@@ -278,8 +278,10 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
             }
         }
         if (config.temporalFocusEnabled() && temporalFocus != null) {
-            safeRun(() -> temporalFocus.tick(agentId, tenantId,
-                                             resolver.relevantSubjects(agentId, tenantId)));
+            var subjects = resolver.relevantSubjects(agentId, tenantId);
+            safeRun(() -> temporalFocus.tick(agentId, tenantId, subjects));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.TemporalFocusTicked(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now(), subjects.size()));
         }
         var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId, regulationContext);
 
@@ -293,6 +295,8 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
         }
         if (config.memoryHygieneEnabled() && memoryHygiene != null) {
             safeRun(() -> memoryHygiene.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.MemoryHygieneTicked(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         runCustomParticipants(CognitionPhase.FOUNDATION, context);
 
@@ -308,21 +312,31 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
 
         if (config.narrativeEnabled() && narrative != null) {
             safeRun(() -> narrative.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.NarrativeUpdated(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         if (config.strategyEnabled() && strategy != null) {
             safeRun(() -> strategy.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.StrategyUpdated(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         if (config.reflectionEnabled() && reflectionOrchestrator != null) {
             safeRun(() -> reflectionOrchestrator.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.ReflectionRetrieved(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         runCustomParticipants(CognitionPhase.SOURCE, context);
 
         for (String subjectId : resolver.relevantSubjects(agentId, tenantId)) {
             if (config.userModelEnabled() && userModel != null) {
                 safeRun(() -> userModel.tick(agentId, subjectId, tenantId));
+                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.UserModelUpdated(
+                        tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId));
             }
             if (config.mentalModelEnabled() && mentalModel != null) {
                 safeRun(() -> mentalModel.tick(agentId, subjectId, tenantId));
+                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.MentalModelUpdated(
+                        tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId));
             }
         }
 

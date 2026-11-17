@@ -63,6 +63,29 @@ public sealed interface CognitiveEntry {
     record CapsSettled(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
                        Map<String, Double> inputActivations,
                        @Nullable CapsSettlingResult settling) implements CognitiveEntry {}
+// --- Stage tick domain ---
+
+    record TemporalFocusTicked(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                               int subjectCount) implements CognitiveEntry {}
+
+    record MemoryHygieneTicked(String tenantId, String agentId, EventRef eventRef,
+                               Instant timestamp) implements CognitiveEntry {}
+
+    record NarrativeUpdated(String tenantId, String agentId, EventRef eventRef,
+                            Instant timestamp) implements CognitiveEntry {}
+
+    record StrategyUpdated(String tenantId, String agentId, EventRef eventRef,
+                           Instant timestamp) implements CognitiveEntry {}
+
+    record ReflectionRetrieved(String tenantId, String agentId, EventRef eventRef,
+                               Instant timestamp) implements CognitiveEntry {}
+
+    record UserModelUpdated(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                            String subjectId) implements CognitiveEntry {}
+
+    record MentalModelUpdated(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                              String subjectId) implements CognitiveEntry {}
+
 
     // --- Memory and consolidation domain ---
 
