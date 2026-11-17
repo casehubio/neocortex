@@ -334,6 +334,45 @@ class EmotionRegulationTickParticipantTest {
     }
 
     @Test
+    void dispatchCopingEffects_multipleDriveModsSameAxis_summed() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
+                                           java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                                           io.casehub.neocortex.cognitive.PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+        when(appraisalParticipant.currentContext("a1", "t1")).thenReturn(
+                Optional.of(mock(io.casehub.neocortex.cognition.appraisal.AppraisalContext.class)));
+
+        var mod1 = new io.casehub.neocortex.cognition.coping.DriveModulation(
+                io.casehub.neocortex.cognition.drive.DriveAxis.AUTONOMY, 0.2, "first");
+        var mod2 = new io.casehub.neocortex.cognition.coping.DriveModulation(
+                io.casehub.neocortex.cognition.drive.DriveAxis.AUTONOMY, 0.15, "second");
+        var copingState = io.casehub.neocortex.cognition.coping.CopingState.initial(
+                                    "original", java.util.Map.of(), List.of(emotion))
+                .withStrategy(new io.casehub.neocortex.cognition.coping.CopingStrategyAttempt(
+                        io.casehub.neocortex.cognition.coping.CopingStrategy.PLANNING, 0, "plan"))
+                .withAccumulatedDriveMod(mod1)
+                .withAccumulatedDriveMod(mod2);
+
+        var copingMicroLoop = mock(io.casehub.neocortex.cognition.coping.CopingMicroLoop.class);
+        when(copingMicroLoop.execute(any(), any(), any(), any(), any(), any(), any())).thenReturn(copingState);
+
+        var driveOrchestrator = mock(io.casehub.neocortex.cognition.drive.DriveOrchestrator.class);
+
+        var config = CognitionConfig.none().with("regulation", true)
+                                    .with("appraisal", true).with("coping", true);
+        var participant = new EmotionRegulationTickParticipant(
+                appraisalParticipant, config, null, null, null,
+                null, null, null, null, null, copingMicroLoop, null,
+                driveOrchestrator, null);
+        participant.tick(context);
+
+        verify(driveOrchestrator).recordAppraisalModulation(
+                eq("a1"), eq("t1"),
+                eq(java.util.Map.of(io.casehub.neocortex.cognition.drive.DriveAxis.AUTONOMY, 0.35)));
+    }
+
+    @Test
     void dispatchCopingEffects_attentionDirectives_queuedToMediator() {
         var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.70, "subject1",
                                            java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,

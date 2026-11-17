@@ -7,8 +7,13 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.coping.CopingMicroLoop;
 import io.casehub.neocortex.cognition.coping.CopingState;
+import io.casehub.neocortex.cognition.coping.AttentionDirectiveType;
 import io.casehub.neocortex.cognition.core.CognitiveAttentionMediator;
+import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
+import io.casehub.neocortex.mindmap.AttentionBriefing;
+import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.cognition.coping.PreCopingSafetyGate;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
@@ -550,7 +555,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
 
         if (driveOrchestrator != null && !copingState.driveModulations().isEmpty()) {
-            var modMap = new HashMap<io.casehub.neocortex.cognition.drive.DriveAxis, Double>();
+            var modMap = new HashMap<DriveAxis, Double>();
             for (var mod : copingState.driveModulations()) {
                 modMap.merge(mod.axis(), mod.intensityDelta(), Double::sum);
             }
@@ -558,16 +563,16 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
 
         if (attentionMediator != null && !copingState.attentionDirectives().isEmpty()) {
-            var signals = new java.util.ArrayList<io.casehub.neocortex.mindmap.AttentionSignal>();
+            var signals = new java.util.ArrayList<AttentionSignal>();
             for (var dir : copingState.attentionDirectives()) {
-                var category = dir.type() == io.casehub.neocortex.cognition.coping.AttentionDirectiveType.FOCUS
-                               ? io.casehub.neocortex.mindmap.SignalCategory.COPING_FOCUS
-                               : io.casehub.neocortex.mindmap.SignalCategory.COPING_SUPPRESS;
-                signals.add(new io.casehub.neocortex.mindmap.AttentionSignal(
+                var category = dir.type() == AttentionDirectiveType.FOCUS
+                               ? SignalCategory.COPING_FOCUS
+                               : SignalCategory.COPING_SUPPRESS;
+                signals.add(new AttentionSignal(
                         context.agentId(), context.tenantId(), category,
                         dir.target(), dir.target(), 0.8, dir.reason()));
             }
-            var briefing = new io.casehub.neocortex.mindmap.AttentionBriefing(
+            var briefing = new AttentionBriefing(
                     context.agentId(), context.tenantId(), signals, 0.0, java.time.Instant.now());
             attentionMediator.queueBriefing(briefing);
         }
