@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.experience.FormativeScoring;
 import io.casehub.neocortex.memory.experience.GraduationContext;
@@ -15,17 +15,17 @@ import jakarta.inject.Inject;
 public class DefaultGraduationScorer implements GraduationScorer {
 
     private final int minCorroboration;
-    private final Instance<CognitiveDefaultsRegistry> registryInstance;
+    private final Instance<EffectiveCognitiveDefaults> registryInstance;
 
     @Inject
     DefaultGraduationScorer(Instance<ExperienceConsolidationConfig> config,
-                             Instance<CognitiveDefaultsRegistry> registryInstance) {
+                             Instance<EffectiveCognitiveDefaults> registryInstance) {
         var c = config.isResolvable() ? config.get() : null;
         this.minCorroboration = c != null ? c.minCorroboration() : 3;
         this.registryInstance = registryInstance;
     }
 
-    DefaultGraduationScorer(int minCorroboration, Instance<CognitiveDefaultsRegistry> registryInstance) {
+    DefaultGraduationScorer(int minCorroboration, Instance<EffectiveCognitiveDefaults> registryInstance) {
         this.minCorroboration = minCorroboration;
         this.registryInstance = registryInstance;
     }
@@ -60,15 +60,14 @@ public class DefaultGraduationScorer implements GraduationScorer {
         if (effectiveCorroboration < minCorroboration) {return 0.0;}
 
         double rawScore = memory.confidence() != null ? memory.confidence().value() : 0.5;
-        return rawScore * resolveRelationalComplexity(context.agentId());
+        return rawScore * resolveRelationalComplexity(context.tenantId(), context.agentId());
     }
 
-    private double resolveRelationalComplexity(String agentId) {
+    private double resolveRelationalComplexity(String tenantId, String agentId) {
         if (agentId == null || registryInstance == null || !registryInstance.isResolvable()) {
             return 1.0;
         }
-        var defaults = registryInstance.get().forAgentOrDefaults(agentId);
-        var cap = defaults.capacityConfig();
+        var cap = registryInstance.get().restingFor(tenantId, agentId).capacityConfig();
         return cap != null ? cap.relationalComplexityOrDefault() : 1.0;
     }
 }

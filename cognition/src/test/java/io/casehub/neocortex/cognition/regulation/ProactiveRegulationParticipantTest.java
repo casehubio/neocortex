@@ -3,7 +3,7 @@ package io.casehub.neocortex.cognition.regulation;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.RegulationDefaults;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -29,14 +29,14 @@ class ProactiveRegulationParticipantTest {
 
     private MindMapStore mindMapStore;
     private GoalProposalOrchestrator goalOrchestrator;
-    private CognitiveDefaultsRegistry defaultsRegistry;
+    private EffectiveCognitiveDefaults defaultsRegistry;
     private ProactiveRegulationParticipant participant;
 
     @BeforeEach
     void setUp() {
         mindMapStore = mock(MindMapStore.class);
         goalOrchestrator = mock(GoalProposalOrchestrator.class);
-        defaultsRegistry = mock(CognitiveDefaultsRegistry.class);
+        defaultsRegistry = mock(EffectiveCognitiveDefaults.class);
         participant = new ProactiveRegulationParticipant(
                 mindMapStore, goalOrchestrator, defaultsRegistry,
                 "cog-subgraph", ProactiveAvoidanceMode.LOCATION_ONLY, 50, 10.0);
@@ -54,7 +54,7 @@ class ProactiveRegulationParticipantTest {
         var regCtx = new RegulationContext("library", null, null);
         var ctx = new CognitionTickContext("agent1", "tenant1", null, null,
                 null, null, null, regCtx);
-        when(defaultsRegistry.forAgent("agent1")).thenReturn(Optional.empty());
+        when(defaultsRegistry.forAgent("tenant1", "agent1")).thenReturn(null);
         participant.tick(ctx);
         verifyNoInteractions(goalOrchestrator);
     }
@@ -67,7 +67,7 @@ class ProactiveRegulationParticipantTest {
 
         var defaults = CognitiveDefaults.empty("agent1")
                 .withRegulationDefaults(new RegulationDefaults(0.5, 0.5, 0.8));
-        when(defaultsRegistry.forAgent("agent1")).thenReturn(Optional.of(defaults));
+        when(defaultsRegistry.forAgent("tenant1", "agent1")).thenReturn(defaults);
 
         var node = mockRegulationNode("library", "ANGER",
                 0.2, Instant.now().minusSeconds(30));
@@ -91,7 +91,7 @@ class ProactiveRegulationParticipantTest {
 
         var defaults = CognitiveDefaults.empty("agent1")
                 .withRegulationDefaults(new RegulationDefaults(0.5, 0.5, 0.8));
-        when(defaultsRegistry.forAgent("agent1")).thenReturn(Optional.of(defaults));
+        when(defaultsRegistry.forAgent("tenant1", "agent1")).thenReturn(defaults);
 
         var node = mockRegulationNode("library", "ANGER",
                 0.2, Instant.now().minusSeconds(30));
@@ -109,7 +109,7 @@ class ProactiveRegulationParticipantTest {
 
         var defaults = CognitiveDefaults.empty("agent1")
                 .withRegulationDefaults(new RegulationDefaults(0.5, 0.5, 0.8));
-        when(defaultsRegistry.forAgent("agent1")).thenReturn(Optional.of(defaults));
+        when(defaultsRegistry.forAgent("tenant1", "agent1")).thenReturn(defaults);
 
         // 1000 seconds ago / 10s = 100 ticks; exp(-100/50) = 0.135 → score = 0.8*0.135 = 0.108 < threshold 0.2
         var node = mockRegulationNode("library", "ANGER",
@@ -128,7 +128,7 @@ class ProactiveRegulationParticipantTest {
 
         var defaults = CognitiveDefaults.empty("agent1")
                 .withRegulationDefaults(new RegulationDefaults(0.5, 0.5, 0.1));
-        when(defaultsRegistry.forAgent("agent1")).thenReturn(Optional.of(defaults));
+        when(defaultsRegistry.forAgent("tenant1", "agent1")).thenReturn(defaults);
 
         // Moderate effectiveness (0.5) → avoidance score = (1-0.5)*decay ≈ 0.45
         // Threshold = 1.0 - 0.1 = 0.9 → score < threshold → no avoidance
@@ -152,7 +152,7 @@ class ProactiveRegulationParticipantTest {
 
         var defaults = CognitiveDefaults.empty("agent1")
                                         .withRegulationDefaults(new RegulationDefaults(0.5, 0.5, 0.8));
-        when(defaultsRegistry.forAgent("agent1")).thenReturn(Optional.of(defaults));
+        when(defaultsRegistry.forAgent("tenant1", "agent1")).thenReturn(defaults);
 
         // 300 seconds ago / 10s per tick = 30 ticks = 1 time constant
         // Exponential: exp(-30/30) = 0.368 → avoidanceScore = 0.8*0.368 = 0.294 > threshold 0.2

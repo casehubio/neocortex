@@ -22,7 +22,7 @@ import io.casehub.neocortex.cognition.personality.PersonalityEvolutionConfig;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.platform.agent.session.SessionPipeline;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -49,8 +49,8 @@ public class CognitionDefaultBeans {
     @Produces
     @DefaultBean
     @Singleton
-    CognitiveResourcePool cognitiveResourcePool(CognitiveDefaultsRegistry registry) {
-        return new DefaultCognitiveResourcePool(registry);
+    CognitiveResourcePool cognitiveResourcePool(EffectiveCognitiveDefaults effectiveDefaults) {
+        return new DefaultCognitiveResourcePool(effectiveDefaults);
     }
 
 

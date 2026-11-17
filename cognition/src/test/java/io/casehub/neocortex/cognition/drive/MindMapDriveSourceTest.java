@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognition.drive;
 
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
@@ -28,7 +28,7 @@ class MindMapDriveSourceTest {
                         "agent-id", "a1", "intensity", "0.55",
                         "description", "strong mastery orientation")), "t1");
 
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a1"));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty("a1"));
         var source = new MindMapDriveSource(DriveAxis.COMPETENCE, store, registry);
         var result = source.evaluate("a1", "t1");
 
@@ -45,7 +45,7 @@ class MindMapDriveSourceTest {
         var axes = new DispositionAxes("cooperative", "strict", "aggressive", "moderate", "analytical");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var source = new MindMapDriveSource(DriveAxis.COMPETENCE, store, registry);
         var result = source.evaluate("a1", "t1");
@@ -61,7 +61,7 @@ class MindMapDriveSourceTest {
         var axes = new DispositionAxes("cooperative", "moderate", "moderate", "moderate", "accommodating");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var source = new MindMapDriveSource(DriveAxis.AFFILIATION, store, registry);
         var result = source.evaluate("a1", "t1");
@@ -75,7 +75,7 @@ class MindMapDriveSourceTest {
         var axes = new DispositionAxes("independent", "flexible", "conservative", "high", "confronting");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var source = new MindMapDriveSource(DriveAxis.AUTONOMY, store, registry);
         var result = source.evaluate("a1", "t1");
@@ -86,7 +86,7 @@ class MindMapDriveSourceTest {
     @Test
     void returnsDefaultWhenNoCdeEntry() {
         var store = new InMemoryMindMapStore();
-        var registry = CognitiveDefaultsRegistry.forTesting();
+        var registry = EffectiveCognitiveDefaults.forTesting();
         var source = new MindMapDriveSource(DriveAxis.AFFILIATION, store, registry);
         var result = source.evaluate("unknown-agent", "t1");
 
@@ -106,7 +106,7 @@ class MindMapDriveSourceTest {
         var axes = new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
         var view = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDerivationEngine.derive(view);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var source = new MindMapDriveSource(DriveAxis.AFFILIATION, store, registry);
         var result = source.evaluate("a1", "t1");

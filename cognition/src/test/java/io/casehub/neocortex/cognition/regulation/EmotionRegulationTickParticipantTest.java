@@ -9,7 +9,7 @@ import io.casehub.neocortex.cognitive.EmotionSource;
 import io.casehub.neocortex.cognitive.EmotionType;
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,8 +114,9 @@ class EmotionRegulationTickParticipantTest {
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
-        var registry = mock(CognitiveDefaultsRegistry.class);
-        when(registry.forAgent("a1")).thenReturn(Optional.of(defaults));
+        var registry = mock(EffectiveCognitiveDefaults.class);
+        when(registry.forAgentOrDefaults("t1", "a1")).thenReturn(defaults);
+        when(registry.forAgent("t1", "a1")).thenReturn(defaults);
 
         var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
                 Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
@@ -138,8 +139,9 @@ class EmotionRegulationTickParticipantTest {
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
-        var registry = mock(CognitiveDefaultsRegistry.class);
-        when(registry.forAgent("a1")).thenReturn(Optional.of(defaults));
+        var registry = mock(EffectiveCognitiveDefaults.class);
+        when(registry.forAgentOrDefaults("t1", "a1")).thenReturn(defaults);
+        when(registry.forAgent("t1", "a1")).thenReturn(defaults);
 
         var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
                 Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);
@@ -176,8 +178,9 @@ class EmotionRegulationTickParticipantTest {
         var descriptor = DescriptorView.of("a1", axes, List.of(), List.of());
         var defaults   = CognitiveDefaults.empty("a1").withDescriptor(descriptor);
 
-        var registry = mock(CognitiveDefaultsRegistry.class);
-        when(registry.forAgent("a1")).thenReturn(Optional.of(defaults));
+        var registry = mock(EffectiveCognitiveDefaults.class);
+        when(registry.forAgentOrDefaults("t1", "a1")).thenReturn(defaults);
+        when(registry.forAgent("t1", "a1")).thenReturn(defaults);
 
         var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
                                            Instant.now(), EmotionSource.INTRINSIC, PadProjection.NEUTRAL);

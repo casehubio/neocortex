@@ -143,21 +143,27 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 
 1. **Should `derivePersonality` (the foundation derivation) get PID-5 modulation?** Currently excluded to avoid cascading effects. May revisit after eval validation of downstream modulations.
 
-2. **Are 13 facets sufficient?** The full PID-5 has 25 facets. The biography pipeline scores 13. Missing facets include Anhedonia, Depressivity, Restricted Affectivity, Separation Insecurity, Submissiveness, and the Psychoticism facets. Some of these (Anhedonia, Depressivity) could add richness.
+2. **Are 13 facets sufficient?** The full PID-5 has 25 facets. The biography pipeline scores 13. Missing facets include Anhedonia, Depressivity, Restricted Affectivity, Separation Insecurity, Submissiveness, and the Psychoticism facets. Some of these (Anhedonia, Depressivity) could add richness. Note: any additional facets automatically flow through the EffectiveCognitiveDefaults pipeline — `composeFacets` iterates ALL facets in the base DescriptorView. The gap is attractor profile data in `archetype-situational-profiles.yaml`, not code. See #1076.
 
 3. **Should Tier 2 modulations be promoted to Tier 1?** If eval results show significant coherence improvement from a Tier 2 modulation, and subsequent literature search finds supporting evidence, the modulation can be reclassified.
 
 ## Era 7b — Situational Personality Modulation (#712)
 
-**Status (2026-11-17):** Batches 1–3 complete. Batch 4 blocked on #1055 (EffectiveCognitiveDefaults).
+**Status (2026-11-17):** Batches 1–3 complete. #1055 delivered — Batch 4 unblocked.
 
 - **Batch 1:** Config loader, integrator, detector — 44 tests
 - **Batch 2:** Appraisal fixes — SEC dimensions passthrough, tick stamping, relational bias clamp, input activations accessor — 9 tests
 - **Batch 3:** MindMap personality-state persistence (SituationalStateService), eidos profile-to-delta conversion (SituationalDeltaConverter) — 16 tests
 - **eidos#234:** Prerequisite delivered — AmpdFacetShift, SituationalProfile, 60 archetype-family profiles (12 families × 5 modes), SituationalProfileDeriver — 26 tests, 616 total eidos tests green
-- **Remaining:** Batch 4 (TERMINAL wiring, deformation phase — blocked on #1055), Batch 5 (observability, E2E test)
-- **Issues filed:** #1068 (prompt clause, blocked on #1055), #1069 (map cleanup)
-- **Blogs:** "The Elastic Band" (design), "Where Personality Lives" (implementation boundary)
+- **#1055 (Part 0a):** EffectiveCognitiveDefaults with resting/effective split — 65 files changed, ~108 production callsite migration, 2301 tests green (0 regressions). Key deliverables:
+  - `EffectiveCognitiveDefaults` — tenant-scoped `ConcurrentHashMap<(tenantId, agentId), Slot>` with version-based concurrency protocol. Two read paths: `forAgent` (effective) and `restingFor` → `LearningProfile` (resting). Two SPIs for lazy population: `DescriptorViewSource` (Eidos), `PersonalityStateSource` (situational state). Facet composition: `clamp01(base + homeOffset [+ displacement])` per facet. Pure `merge(explicit, derive(fresh inputs))` — never merge with previous result.
+  - `LearningProfile` — type-level enforcement of the TESSERA constraint. Learning rules cannot be fed effective values without a compile error. Every consumer classified per the spec's table: 9 resting, 8 effective, 3 enumerate, 3 explicit-only.
+  - Bridge simplified — `bridgeAll`/`registerFromDescriptor` deleted, `toDescriptorView` public static. `EidosDescriptorViewSource` implements `DescriptorViewSource` SPI.
+  - `CognitionCore.tick` wires `updateBase` before FOUNDATION. New module edge: cognition → cognitive-eidos.
+  - **Deferred:** #1074 (field-classification test), #1075 (AgentRegistryEvents listener, stale refresh, eviction wiring)
+- **Remaining:** Batch 4 (TERMINAL wiring, deformation phase — now unblocked), Batch 5 (observability, E2E test)
+- **Issues filed:** #1068 (prompt clause, blocked on #1055), #1069 (map cleanup), #1073 (attention accumulator tenant grouping), #1074 (field-classification test), #1075 (event listener + eviction), #1076 (#977 facets in situational profiles)
+- **Blogs:** "The Elastic Band" (design), "Where Personality Lives" (implementation boundary), "The Type-Level Split" (#1055 resting/effective enforcement)
 
 ### Concept
 

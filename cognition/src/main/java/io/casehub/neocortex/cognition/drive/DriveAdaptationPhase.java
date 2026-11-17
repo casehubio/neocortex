@@ -30,7 +30,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
     private final DriveAdaptationConfig config;
     private final Map<String, Set<NeedTier>> tierMapping;
     private final NeedSatisfactionConfigProvider needConfigProvider;
-    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+    private final io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults;
 
     public DriveAdaptationPhase(
             MindMapStore mindMapStore,
@@ -54,13 +54,13 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             DriveAdaptationConfig config,
             NeedTierMappingProvider tierMappingProvider,
             NeedSatisfactionConfigProvider needConfigProvider,
-            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
+            io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
         this.mindMapStore       = mindMapStore;
         this.reinforcementMap   = reinforcementMap;
         this.config             = config;
         this.tierMapping        = (tierMappingProvider != null ? tierMappingProvider : NeedTierMappingProvider.empty()).tierMapping();
         this.needConfigProvider = needConfigProvider;
-        this.defaultsRegistry   = defaultsRegistry;
+        this.effectiveDefaults  = effectiveDefaults;
     }
 
     @Override
@@ -233,7 +233,7 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
             Map<NeedTier, Double> currentSatisfaction,
             String tenantId, String agentId) {
         // Cattell (1971): associativeReach (Mednick 1962) scales drive adaptation rate
-        double capacityFactor = resolveAssociativeReach(agentId);
+        double capacityFactor = resolveAssociativeReach(tenantId, agentId);
 
         for (var entry : rewardAccumulator.entrySet()) {
             var driveNode = driveNodes.get(entry.getKey());
@@ -361,14 +361,9 @@ public class DriveAdaptationPhase implements ConsolidationPhase {
         }
     }
 
-    /**
-     * Cattell (1971) Investment Theory: associativeReach (Mednick 1962) scales the
-     * drive adaptation rate — broader associative networks enable faster drive-outcome
-     * learning. Returns 1.0 (uncapped) when registry is unavailable or agentId is null.
-     */
-    private double resolveAssociativeReach(String agentId) {
-        if (agentId == null || defaultsRegistry == null) {return 1.0;}
-        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+    private double resolveAssociativeReach(String tenantId, String agentId) {
+        if (agentId == null || effectiveDefaults == null) {return 1.0;}
+        var cap = effectiveDefaults.restingFor(tenantId, agentId).capacityConfig();
         return cap != null ? cap.associativeReachOrDefault() : 1.0;
     }
 }

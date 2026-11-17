@@ -71,8 +71,18 @@ public final class LearningProfile {
 
     public List<PersonalityFacet> facets() {
         var d = delegate.descriptor();
-        return d != null ? d.personalityFacets() : List.of();
+        if (d != null && !d.personalityFacets().isEmpty()) {
+            return d.personalityFacets();
+        }
+        var pp = delegate.personalityProfile();
+        return pp != null ? pp.facets() : List.of();
     }
+
+    public AttachmentProfile attachment() {
+        var pp = delegate.personalityProfile();
+        return pp != null ? pp.attachment() : null;
+    }
+
 
     public CopingDefaults copingDefaults() { return delegate.copingDefaults(); }
     public RegulationDefaults regulationDefaults() { return delegate.regulationDefaults(); }

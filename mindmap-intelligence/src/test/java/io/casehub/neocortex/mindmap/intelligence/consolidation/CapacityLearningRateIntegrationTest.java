@@ -5,7 +5,7 @@ import io.casehub.neocortex.cognitive.CognitiveCapacityConfig;
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.ConfidenceOrigin;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.Subject;
@@ -37,7 +37,7 @@ class CapacityLearningRateIntegrationTest {
     void fullCapacityIsIdenticalToNoModulation() {
         var fullCapacity = new CognitiveCapacityConfig(1.0, 1.0, 1.0);
         var defaults = CognitiveDefaults.empty(AGENT).withCapacityConfig(fullCapacity);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var scorer = new DefaultGraduationScorer(3, stubInstance(registry));
         var memory = memoryWithConfidence(0.8);
@@ -57,7 +57,7 @@ class CapacityLearningRateIntegrationTest {
     void crossSiteCompoundingUsesIndependentDimensions() {
         var asymmetric = new CognitiveCapacityConfig(0.55, 0.9, 0.75);
         var defaults = CognitiveDefaults.empty(AGENT).withCapacityConfig(asymmetric);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         // Graduation uses relationalComplexity = 0.55
         var scorer = new DefaultGraduationScorer(3, stubInstance(registry));
@@ -125,19 +125,19 @@ class CapacityLearningRateIntegrationTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static Instance<CognitiveDefaultsRegistry> stubInstance(CognitiveDefaultsRegistry registry) {
+    private static Instance<EffectiveCognitiveDefaults> stubInstance(EffectiveCognitiveDefaults registry) {
         return new Instance<>() {
-            @Override public CognitiveDefaultsRegistry get() { return registry; }
+            @Override public EffectiveCognitiveDefaults get() { return registry; }
             @Override public boolean isResolvable() { return true; }
             @Override public boolean isAmbiguous() { return false; }
             @Override public boolean isUnsatisfied() { return false; }
-            @Override public void destroy(CognitiveDefaultsRegistry instance) {}
-            @Override public Handle<CognitiveDefaultsRegistry> getHandle() { return null; }
-            @Override public Iterable<? extends Handle<CognitiveDefaultsRegistry>> handles() { return null; }
-            @Override public Instance<CognitiveDefaultsRegistry> select(Annotation... qualifiers) { return this; }
-            @Override public <U extends CognitiveDefaultsRegistry> Instance<U> select(Class<U> subtype, Annotation... qualifiers) { return null; }
-            @Override public <U extends CognitiveDefaultsRegistry> Instance<U> select(TypeLiteral<U> subtype, Annotation... qualifiers) { return null; }
-            @Override public Iterator<CognitiveDefaultsRegistry> iterator() { return java.util.List.of(registry).iterator(); }
+            @Override public void destroy(EffectiveCognitiveDefaults instance) {}
+            @Override public Handle<EffectiveCognitiveDefaults> getHandle() { return null; }
+            @Override public Iterable<? extends Handle<EffectiveCognitiveDefaults>> handles() { return null; }
+            @Override public Instance<EffectiveCognitiveDefaults> select(Annotation... qualifiers) { return this; }
+            @Override public <U extends EffectiveCognitiveDefaults> Instance<U> select(Class<U> subtype, Annotation... qualifiers) { return null; }
+            @Override public <U extends EffectiveCognitiveDefaults> Instance<U> select(TypeLiteral<U> subtype, Annotation... qualifiers) { return null; }
+            @Override public Iterator<EffectiveCognitiveDefaults> iterator() { return java.util.List.of(registry).iterator(); }
         };
     }
 

@@ -23,7 +23,7 @@ import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
 import io.casehub.neocortex.cognition.prompt.observation.RegulationTracker;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
 import io.casehub.neocortex.cognitive.EmotionType;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CopingDefaults;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
@@ -54,7 +54,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable CognitiveResourcePool            cognitiveResourcePool;
     private final           RegulationMonitor                regulationMonitor;
     private final @Nullable RegulationStrategyPredictor      strategyPredictor;
-    private final @Nullable CognitiveDefaultsRegistry        defaultsRegistry;
+    private final @Nullable EffectiveCognitiveDefaults        effectiveDefaults;
     private final @Nullable CognitiveLoadEstimator           loadEstimator;
     private final @Nullable CapsEngine                       capsEngine;
     private final @Nullable RegulationCascadeConfig          cascadeConfig;
@@ -108,10 +108,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId,
-                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
                                             @Nullable CognitiveLoadEstimator loadEstimator) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
-             defaultsRegistry, loadEstimator, null, null, null);
+             effectiveDefaults, loadEstimator, null, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -119,12 +119,12 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId,
-                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
                                             @Nullable CognitiveLoadEstimator loadEstimator,
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
-             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, null);
+             effectiveDefaults, loadEstimator, capsEngine, cascadeConfig, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -132,13 +132,13 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId,
-                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
                                             @Nullable CognitiveLoadEstimator loadEstimator,
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig,
                                             @Nullable RegulationTracker regulationTracker) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
-             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, regulationTracker, null, null);
+             effectiveDefaults, loadEstimator, capsEngine, cascadeConfig, regulationTracker, null, null);
     }
 
     public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
@@ -146,14 +146,14 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId,
-                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
                                             @Nullable CognitiveLoadEstimator loadEstimator,
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig,
                                             @Nullable RegulationTracker regulationTracker,
                                             @Nullable CopingMicroLoop copingMicroLoop) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
-             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
+             effectiveDefaults, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
              copingMicroLoop, null);
     }
 
@@ -162,7 +162,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId,
-                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
                                             @Nullable CognitiveLoadEstimator loadEstimator,
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig,
@@ -170,7 +170,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable CopingMicroLoop copingMicroLoop,
                                             @Nullable GoalProposalOrchestrator goalOrchestrator) {
         this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
-             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
+             effectiveDefaults, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
              copingMicroLoop, goalOrchestrator, null, null);
     }
 
@@ -179,7 +179,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable EmotionRegulationGenerationPhase generationPhase,
                                             @Nullable MindMapStore mindMapStore,
                                             @Nullable String cognitiveSubgraphId,
-                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
                                             @Nullable CognitiveLoadEstimator loadEstimator,
                                             @Nullable CapsEngine capsEngine,
                                             @Nullable RegulationCascadeConfig cascadeConfig,
@@ -195,9 +195,9 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.cognitiveSubgraphId   = cognitiveSubgraphId;
         this.cognitiveResourcePool = null;
         this.regulationMonitor     = new RegulationMonitor();
-        this.defaultsRegistry      = defaultsRegistry;
+        this.effectiveDefaults      = effectiveDefaults;
         this.loadEstimator         = loadEstimator;
-        this.strategyPredictor     = (defaultsRegistry != null) ? new RegulationStrategyPredictor() : null;
+        this.strategyPredictor     = (effectiveDefaults != null) ? new RegulationStrategyPredictor() : null;
         this.capsEngine            = capsEngine;
         this.cascadeConfig         = capsEngine != null && cascadeConfig == null
                                      ? RegulationCascadeConfig.defaults() : cascadeConfig;
@@ -230,8 +230,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         double regulationEffort = alpha * maxDiscrepancy / D_MAX;
 
         if (regulationEffort < EFFORT_NOISE_FLOOR) {
-            if (cognitiveResourcePool != null && defaultsRegistry != null) {
-                var poolConfig = defaultsRegistry.forAgentOrDefaults(context.agentId()).cognitiveResourcePoolConfig();
+            if (cognitiveResourcePool != null && effectiveDefaults != null) {
+                var poolConfig = effectiveDefaults.forAgentOrDefaults(context.tenantId(), context.agentId()).cognitiveResourcePoolConfig();
                 if (poolConfig != null) cognitiveResourcePool.recordRecovery(context.agentId(), context.tenantId(), poolConfig.recoveryRate());
             }
             return;
@@ -294,7 +294,7 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         }
 
         // Layer 3: Predictor fallback
-        if (pinnedStrategy == null && strategyPredictor != null && defaultsRegistry != null && pendingSignal == null) {
+        if (pinnedStrategy == null && strategyPredictor != null && effectiveDefaults != null && pendingSignal == null) {
             pinnedStrategy = tryPredictStrategy(context, appraisal.get(), currentFatigue);
             if (pinnedStrategy != null) {
                 strategySource = "PREDICTOR";
@@ -304,9 +304,9 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             } else {
                 LOG.fine(() -> String.format("regulation predictor: agent=%s fell-through → LLM",
                                              context.agentId()));
-                var defaults = defaultsRegistry.forAgent(context.agentId());
-                if (defaults.isPresent() && defaults.get().descriptor() != null) {
-                    axes = defaults.get().descriptor().disposition();
+                var defaults = effectiveDefaults.forAgent(context.tenantId(), context.agentId());
+                if (defaults != null && defaults.descriptor() != null) {
+                    axes = defaults.descriptor().disposition();
                 }
             }
         }
@@ -318,10 +318,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                       : List.<EmotionRegulationResult>of();
         RegulationDefaults rd           = null;
         ShameContext       shameContext = null;
-        if (defaultsRegistry != null) {
-            var defs = defaultsRegistry.forAgent(context.agentId());
-            if (defs.isPresent()) {
-                rd = defs.get().regulationDefaults();
+        if (effectiveDefaults != null) {
+            var defs = effectiveDefaults.forAgent(context.tenantId(), context.agentId());
+            if (defs != null) {
+                rd = defs.regulationDefaults();
             }
         }
         if (dominantType != null && RegulationStrategyPredictor.emotionCategory(dominantType)
@@ -381,8 +381,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                          salienceMultiplier, "variable_ratio"));
             }
         } else {
-            if (cognitiveResourcePool != null && defaultsRegistry != null) {
-                var poolConfig = defaultsRegistry.forAgentOrDefaults(context.agentId()).cognitiveResourcePoolConfig();
+            if (cognitiveResourcePool != null && effectiveDefaults != null) {
+                var poolConfig = effectiveDefaults.forAgentOrDefaults(context.tenantId(), context.agentId()).cognitiveResourcePoolConfig();
                 if (poolConfig != null) cognitiveResourcePool.recordRecovery(context.agentId(), context.tenantId(), poolConfig.recoveryRate());
             }
         }
@@ -417,12 +417,12 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
 
         CopingDefaults  copingDefaults = null;
         DispositionAxes axes           = null;
-        if (defaultsRegistry != null) {
-            var defs = defaultsRegistry.forAgent(context.agentId());
-            if (defs.isPresent()) {
-                copingDefaults = defs.get().copingDefaults();
-                if (defs.get().descriptor() != null) {
-                    axes = defs.get().descriptor().disposition();
+        if (effectiveDefaults != null) {
+            var defs = effectiveDefaults.forAgent(context.tenantId(), context.agentId());
+            if (defs != null) {
+                copingDefaults = defs.copingDefaults();
+                if (defs.descriptor() != null) {
+                    axes = defs.descriptor().disposition();
                 }
             }
         }
@@ -521,8 +521,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                         context.regulationContext(), strategySource);
             }
         } else {
-            if (cognitiveResourcePool != null && defaultsRegistry != null) {
-                var poolConfig = defaultsRegistry.forAgentOrDefaults(context.agentId()).cognitiveResourcePoolConfig();
+            if (cognitiveResourcePool != null && effectiveDefaults != null) {
+                var poolConfig = effectiveDefaults.forAgentOrDefaults(context.tenantId(), context.agentId()).cognitiveResourcePoolConfig();
                 if (poolConfig != null) {
                     cognitiveResourcePool.recordRecovery(context.agentId(), context.tenantId(), poolConfig.recoveryRate());
                 }
@@ -583,11 +583,11 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
             CognitionTickContext context,
             AppraisalResult appraisal,
             double currentFatigue) {
-        var defaults = defaultsRegistry.forAgent(context.agentId());
-        if (defaults.isEmpty() || defaults.get().descriptor() == null) {return null;}
-        var axes = defaults.get().descriptor().disposition();
+        var defaults = effectiveDefaults.forAgent(context.tenantId(), context.agentId());
+        if (defaults == null || defaults.descriptor() == null) {return null;}
+        var axes = defaults.descriptor().disposition();
         if (axes == null) {return null;}
-        var rd = defaults.get().regulationDefaults();
+        var rd = defaults.regulationDefaults();
 
         var peakEmotion = appraisal.emotions().stream()
                                    .max(java.util.Comparator.comparingDouble(e -> e.intensity()))
@@ -683,10 +683,10 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
 
         double grandiosity = 0.0;
         double callousness = 0.0;
-        if (defaultsRegistry != null) {
-            var defaults = defaultsRegistry.forAgent(context.agentId());
-            if (defaults.isPresent() && defaults.get().personalityProfile() != null) {
-                var facets = defaults.get().personalityProfile().facets();
+        if (effectiveDefaults != null) {
+            var defaults = effectiveDefaults.forAgent(context.tenantId(), context.agentId());
+            if (defaults != null && defaults.personalityProfile() != null) {
+                var facets = defaults.personalityProfile().facets();
                 if (facets != null) {
                     for (var f : facets) {
                         if (PersonalityFacet.GRANDIOSITY.equals(f.facet())) {

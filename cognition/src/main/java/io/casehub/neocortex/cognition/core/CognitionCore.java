@@ -132,7 +132,7 @@ public class CognitionCore implements io.casehub.neocortex.cognition.trace.Cogni
     private volatile String lastAgentId;
     private volatile String lastTenantId;
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
-    private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private volatile io.casehub.neocortex.cognitive.index.@Nullable EffectiveCognitiveDefaults effectiveDefaults;
 private volatile @Nullable String lastTargetAgentId;
 private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
 private volatile           io.casehub.neocortex.mindmap.intelligence.consolidation.@org.jspecify.annotations.Nullable BehavioralSynthesisPhase behavioralSynthesis;
@@ -285,6 +285,11 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
         }
         var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId, regulationContext);
 
+        if (effectiveDefaults != null && descriptor != null && descriptor.disposition() != null) {
+            var view = io.casehub.neocortex.cognitive.eidos.EidosCognitiveProfileBridge.toDescriptorView(descriptor);
+            effectiveDefaults.updateBase(tenantId, view, tickEventRef.toString());
+        }
+
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
             mood.currentMood(agentId, tenantId).ifPresent(m -> cognitiveJournal.record(
@@ -302,8 +307,8 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
 
         if (cognitiveMemoryRetriever != null) {
             var moodState = mood.currentMood(agentId, tenantId).orElse(null);
-            var personality = defaultsRegistry != null
-                              ? defaultsRegistry.forAgentOrDefaults(agentId).personality()
+            var personality = effectiveDefaults != null
+                              ? effectiveDefaults.forAgentOrDefaults(tenantId, agentId).personality()
                               : null;
             cognitiveMemoryRetriever.setTickContext(
                     new io.casehub.neocortex.cognitive.index.ModulationContext(
@@ -836,17 +841,17 @@ public @Nullable String lastTargetAgentId() {
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
-            io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
-        configureAppraisal(appraisalStrategy, salienceStrategy, defaultsRegistry, null);
+            io.casehub.neocortex.cognitive.index.@Nullable EffectiveCognitiveDefaults effectiveDefaults) {
+        configureAppraisal(appraisalStrategy, salienceStrategy, effectiveDefaults, null);
     }
 
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
-            io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.cognitive.index.@Nullable EffectiveCognitiveDefaults effectiveDefaults,
             io.casehub.neocortex.caps.@Nullable SituationClassifier situationClassifier) {
         this.appraisalParticipant = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config, mindMapStore,
+                salienceStrategy, appraisalStrategy, drives, mood, effectiveDefaults, config, mindMapStore,
                 io.casehub.neocortex.cognition.appraisal.AppraisalThresholds.defaults(), situationClassifier);
         addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
     }
@@ -854,7 +859,7 @@ public @Nullable String lastTargetAgentId() {
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy) {
-        configureAppraisal(appraisalStrategy, salienceStrategy, this.defaultsRegistry);
+        configureAppraisal(appraisalStrategy, salienceStrategy, this.effectiveDefaults);
     }
 
     public void configureRegulation() {
@@ -880,7 +885,7 @@ public @Nullable String lastTargetAgentId() {
 
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
                 appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
-                defaultsRegistry, loadEstimator);
+                effectiveDefaults, loadEstimator);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
 
@@ -915,7 +920,7 @@ public @Nullable String lastTargetAgentId() {
 
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
                 appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
-                defaultsRegistry, loadEstimator, capsEngine, cascadeConfig);
+                effectiveDefaults, loadEstimator, capsEngine, cascadeConfig);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
 
@@ -929,13 +934,13 @@ public @Nullable String lastTargetAgentId() {
     public void configureProactiveRegulation(
             io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator goalOrchestrator,
             io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
-            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults,
             String cognitiveSubgraphId,
             io.casehub.neocortex.cognition.regulation.ProactiveAvoidanceMode mode,
             int decayTimeConstant,
             double tickIntervalSeconds) {
         this.proactiveRegulationParticipant = new io.casehub.neocortex.cognition.regulation.ProactiveRegulationParticipant(
-                mindMapStore, goalOrchestrator, defaultsRegistry,
+                mindMapStore, goalOrchestrator, effectiveDefaults,
                 cognitiveSubgraphId, mode, decayTimeConstant, tickIntervalSeconds);
         addParticipant(CognitionPhase.FOUNDATION, this.proactiveRegulationParticipant);
     }
@@ -974,7 +979,7 @@ public @Nullable String lastTargetAgentId() {
     public void configureSearchBudget(
             DriveOrchestrator driveOrchestrator,
             @Nullable MoodOrchestrator moodOrchestrator,
-            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults,
             io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
             io.casehub.neocortex.cognition.drive.@Nullable CuriosityDrive curiosityDrive,
             @Nullable CognitiveResourcePool cognitiveResourcePool) {
@@ -983,7 +988,7 @@ public @Nullable String lastTargetAgentId() {
                 this.appraisalParticipant,
                 this.gutFeelingParticipant,
                 moodOrchestrator,
-                defaultsRegistry,
+                effectiveDefaults,
                 config,
                 curiosityDrive,
                 cognitiveResourcePool);
@@ -1174,21 +1179,13 @@ public @Nullable String lastTargetAgentId() {
     }
 
 
-    /**
-     * Sets the cognitive defaults registry. When set, CognitionCore auto-configures:
-     * - Tier filtering: reads personalityDominance per-agent from the registry
-     * - Appraisal disposition: populates disposition axes per-agent in appraisal context
-     * <p>
-     * Call this once at setup. The core looks up the active agent's defaults
-     * at render time and tick time — no per-agent configure calls needed.
-     */
-    public void setDefaultsRegistry(io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry registry) {
-        this.defaultsRegistry = registry;
-        configureTierFilterFromRegistry();
+    public void setEffectiveDefaults(io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
+        this.effectiveDefaults = effectiveDefaults;
+        configureTierFilterFromEffectiveDefaults();
     }
 
-    private void configureTierFilterFromRegistry() {
-        if (defaultsRegistry == null) {return;}
+    private void configureTierFilterFromEffectiveDefaults() {
+        if (effectiveDefaults == null) {return;}
         if (tierFilter != null) {return;}
         tierFilter = new io.casehub.neocortex.cognition.prompt.TierFilterCustomizer(
                 () -> {
@@ -1201,10 +1198,12 @@ public @Nullable String lastTargetAgentId() {
                 },
                 () -> {
                     String aid = lastAgentId;
-                    if (aid == null || defaultsRegistry == null) {return 0.5;}
-                    return defaultsRegistry.forAgent(aid)
-                                           .map(io.casehub.neocortex.cognitive.index.CognitiveDefaults::personalityDominance)
-                                           .orElse(0.5);
+                    String tid = lastTenantId;
+                    if (aid == null || tid == null || effectiveDefaults == null) {return 0.5;}
+                    var defaults = effectiveDefaults.forAgent(tid, aid);
+                    if (defaults == null) return 0.5;
+                    var pd = defaults.personalityDominance();
+                    return pd != null ? pd : 0.5;
                 }
         );
         chainSectionCustomizer(tierFilter);

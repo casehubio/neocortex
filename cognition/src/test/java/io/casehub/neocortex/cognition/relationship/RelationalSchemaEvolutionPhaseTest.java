@@ -2,7 +2,7 @@ package io.casehub.neocortex.cognition.relationship;
 
 import io.casehub.neocortex.cognitive.index.AttachmentProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.ConflictInterpretation;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.PersonalityProfile;
@@ -60,7 +60,7 @@ class RelationalSchemaEvolutionPhaseTest {
     private RelationalSchemaEvolutionPhase createPhase(CognitiveDefaults... profiles) {
         return new RelationalSchemaEvolutionPhase(
             store, memoryStore,
-            CognitiveDefaultsRegistry.forTesting(profiles),
+            EffectiveCognitiveDefaults.forTesting(profiles),
             "person");
     }
 

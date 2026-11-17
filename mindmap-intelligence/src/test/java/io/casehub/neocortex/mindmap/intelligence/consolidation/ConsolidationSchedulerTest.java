@@ -159,7 +159,7 @@ class ConsolidationSchedulerTest {
     @Test
     void runPhases_collects_signals_and_feeds_accumulator() {
         var firedEvents = new java.util.ArrayList<io.casehub.neocortex.mindmap.CognitiveAttentionRequired>();
-        var registry = io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry.forTesting(
+        var registry = io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults.forTesting(
                 io.casehub.neocortex.cognitive.index.CognitiveDefaults.empty("agent-a"));
         var accumulator = new CognitiveAttentionAccumulator(
                 registry, null, firedEvents::add, java.time.Clock.systemUTC(), 3.0, 0);
@@ -229,7 +229,7 @@ class ConsolidationSchedulerTest {
     @Test
     void runPhases_updates_urgency_p75_on_accumulator() {
         var firedEvents = new java.util.ArrayList<io.casehub.neocortex.mindmap.CognitiveAttentionRequired>();
-        var registry = io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry.forTesting(
+        var registry = io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults.forTesting(
                 io.casehub.neocortex.cognitive.index.CognitiveDefaults.empty("agent-a"));
         var accumulator = new CognitiveAttentionAccumulator(
                 registry, null, firedEvents::add, java.time.Clock.systemUTC(), 10.0, 0);

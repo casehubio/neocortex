@@ -32,7 +32,7 @@ public class PersonalityEvolutionOrchestrator {
     private final CbrRecordStore cbrStore;
     private final List<TraitPressureSource<?>> pressureSources;
     private final PersonalityEvolutionConfig config;
-    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+    private final io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults;
 
     private final ConcurrentHashMap<String, AtomicBoolean> haltFlags = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
@@ -56,7 +56,7 @@ public class PersonalityEvolutionOrchestrator {
             final CbrRecordStore cbrStore,
             final List<TraitPressureSource<?>> pressureSources,
             final PersonalityEvolutionConfig config,
-            final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
+            final io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
         this.signalStore = signalStore;
         this.health = health;
         this.evolution = evolution;
@@ -64,7 +64,7 @@ public class PersonalityEvolutionOrchestrator {
         this.cbrStore = cbrStore;
         this.pressureSources = pressureSources;
         this.config = config;
-        this.defaultsRegistry = defaultsRegistry;
+        this.effectiveDefaults = effectiveDefaults;
     }
 
     @SuppressWarnings("unchecked")
@@ -119,7 +119,7 @@ public class PersonalityEvolutionOrchestrator {
                 // drift ceiling — higher relational complexity supports more complex
                 // self-models, tolerating larger personality adjustments before halting
                 double effectiveCeiling = config.l2Ceiling()
-                    * resolveRelationalComplexity(descriptor.agentId());
+                    * resolveRelationalComplexity(descriptor.tenancyId(), descriptor.agentId());
                 if (d.driftMagnitude() >= effectiveCeiling) {
                     haltFlags.computeIfAbsent(agentKey, k -> new AtomicBoolean()).set(true);
                     yield new EvolutionTick.Halted(d.driftMagnitude());
@@ -186,9 +186,9 @@ public class PersonalityEvolutionOrchestrator {
         }
     }
 
-    private double resolveRelationalComplexity(String agentId) {
-        if (agentId == null || defaultsRegistry == null) {return 1.0;}
-        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+    private double resolveRelationalComplexity(String tenantId, String agentId) {
+        if (agentId == null || effectiveDefaults == null) {return 1.0;}
+        var cap = effectiveDefaults.restingFor(tenantId, agentId).capacityConfig();
         return cap != null ? cap.relationalComplexityOrDefault() : 1.0;
     }
 }

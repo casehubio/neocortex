@@ -26,7 +26,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.logging.Logger;
 
-@ApplicationScoped
 public class EidosCognitiveProfileBridge {
 
     private static final Logger LOG = Logger.getLogger(EidosCognitiveProfileBridge.class.getName());

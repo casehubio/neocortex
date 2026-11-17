@@ -8,7 +8,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -30,7 +30,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final AppraisalStrategy appraisalStrategy;
     private final DriveOrchestrator driveOrchestrator;
     private final MoodOrchestrator moodOrchestrator;
-    private final @Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private final @Nullable EffectiveCognitiveDefaults effectiveDefaults;
     private final CognitionConfig config;
     private final @Nullable MindMapStore mindMapStore;
 
@@ -65,10 +65,10 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, null, AppraisalThresholds.defaults());
+             moodOrchestrator, effectiveDefaults, config, null, AppraisalThresholds.defaults());
     }
 
     public AppraisalTickParticipant(
@@ -76,11 +76,11 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, mindMapStore, AppraisalThresholds.defaults());
+             moodOrchestrator, effectiveDefaults, config, mindMapStore, AppraisalThresholds.defaults());
     }
 
     public AppraisalTickParticipant(
@@ -88,12 +88,12 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore,
             AppraisalThresholds thresholds) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, mindMapStore, thresholds, null);
+             moodOrchestrator, effectiveDefaults, config, mindMapStore, thresholds, null);
     }
 
     public AppraisalTickParticipant(
@@ -101,7 +101,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore,
             AppraisalThresholds thresholds,
@@ -110,7 +110,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         this.appraisalStrategy    = appraisalStrategy;
         this.driveOrchestrator    = driveOrchestrator;
         this.moodOrchestrator     = moodOrchestrator;
-        this.defaultsRegistry     = defaultsRegistry;
+        this.effectiveDefaults     = effectiveDefaults;
         this.config               = config;
         this.mindMapStore         = mindMapStore;
         this.thresholds           = thresholds;
@@ -145,8 +145,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         var mood = moodOrchestrator.currentMood(context.agentId(), context.tenantId())
                                    .orElse(null);
 
-        var defaults = defaultsRegistry != null
-                       ? defaultsRegistry.forAgentOrDefaults(context.agentId()) : null;
+        var defaults = effectiveDefaults != null
+                       ? effectiveDefaults.forAgentOrDefaults(context.tenantId(), context.agentId()) : null;
         var weights   = defaults != null ? defaults.appraisalWeights() : null;
         var habConfig = defaults != null ? defaults.habituationConfig() : null;
         var disposition = defaults != null && defaults.descriptor() != null

@@ -2,7 +2,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.Confidence;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.platform.agent.session.SessionPipeline;
 import io.casehub.neocortex.mindmap.MindMapQuery;
@@ -32,7 +32,7 @@ class CuriosityDescriptionGenerationPhaseTest {
     void setUp() {
         store = new InMemoryMindMapStore();
         var detector = new InformationGapDetector(store);
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty(AGENT));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty(AGENT));
         phase = new CuriosityDescriptionGenerationPhase(store, detector, registry, (SessionPipeline) null);
     }
 

@@ -1,6 +1,7 @@
 package io.casehub.neocortex.cognition.relationship;
 
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
+import io.casehub.neocortex.cognitive.index.LearningProfile;
 import io.casehub.neocortex.cognitive.index.ConflictInterpretation;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.RelationalSchema;
@@ -33,29 +34,29 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
 
     private final MindMapStore mindMapStore;
     private final CaseMemoryStore memoryStore;
-    private final @Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private final @Nullable EffectiveCognitiveDefaults effectiveDefaults;
     private final String peopleSubgraphName;
 
     @Inject
     public RelationalSchemaEvolutionPhase(
             MindMapStore mindMapStore,
             CaseMemoryStore memoryStore,
-            Instance<CognitiveDefaultsRegistry> defaultsRegistryInstance,
+            Instance<EffectiveCognitiveDefaults> effectiveDefaultsInstance,
             @ConfigProperty(name = "casehub.cognition.relationship.subgraph",
                             defaultValue = "person") String peopleSubgraphName) {
         this(mindMapStore, memoryStore,
-             defaultsRegistryInstance.isResolvable() ? defaultsRegistryInstance.get() : null,
+             effectiveDefaultsInstance.isResolvable() ? effectiveDefaultsInstance.get() : null,
              peopleSubgraphName);
     }
 
     RelationalSchemaEvolutionPhase(
             MindMapStore mindMapStore,
             CaseMemoryStore memoryStore,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             String peopleSubgraphName) {
         this.mindMapStore = mindMapStore;
         this.memoryStore = memoryStore;
-        this.defaultsRegistry = defaultsRegistry;
+        this.effectiveDefaults = effectiveDefaults;
         this.peopleSubgraphName = peopleSubgraphName;
     }
 
@@ -128,20 +129,19 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
         double avoidance = 0.0;
         double anxiety = 0.0;
 
-        if (defaultsRegistry != null) {
-            var defaults = defaultsRegistry.forAgentOrDefaults(observerId);
-            if (defaults.socialCognition() != null) {
-                trustFormationRate = defaults.socialCognition().trustFormationRate();
-                conflictMode = defaults.socialCognition().conflictInterpretation();
+        if (effectiveDefaults != null) {
+            var profile = effectiveDefaults.restingFor(tenantId, observerId);
+            if (profile.trustFormationRate() != null) {
+                trustFormationRate = profile.trustFormationRate();
             }
-            if (defaults.personalityProfile() != null) {
-                if (defaults.personalityProfile().attachment() != null) {
-                    avoidance = defaults.personalityProfile().attachment().avoidance();
-                    anxiety = defaults.personalityProfile().attachment().anxiety();
-                }
-                callousness = facetScore(defaults.personalityProfile().facets(),
-                                          PersonalityFacet.CALLOUSNESS);
+            if (profile.conflictInterpretation() != null) {
+                conflictMode = profile.conflictInterpretation();
             }
+            if (profile.attachment() != null) {
+                avoidance = profile.attachment().avoidance();
+                anxiety = profile.attachment().anxiety();
+            }
+            callousness = facetScore(profile.facets(), PersonalityFacet.CALLOUSNESS);
         }
 
         double valence = (double) (positive - negative) / total;
@@ -168,10 +168,8 @@ public class RelationalSchemaEvolutionPhase implements ConsolidationPhase {
         intimacyDelta *= (1.0 + 0.5 * anxiety);
         double newIntimacy = clamp(currentIntimacy + intimacyDelta, 0.0, 1.0);
 
-        var facets = (defaultsRegistry != null)
-            ? defaultsRegistry.forAgentOrDefaults(observerId).personalityProfile() != null
-                ? defaultsRegistry.forAgentOrDefaults(observerId).personalityProfile().facets()
-                : null
+        var facets = (effectiveDefaults != null)
+            ? effectiveDefaults.restingFor(tenantId, observerId).facets()
             : null;
         String newRole = resolveRole(currentRole, newTrust, facets, currentUtility);
 

@@ -10,7 +10,7 @@ import io.casehub.neocortex.cognition.regulation.EmotionRegulationResult;
 import io.casehub.neocortex.cognition.regulation.EmotionRegulationStrategy;
 import io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.cognitive.index.RegulationDefaults;
@@ -33,12 +33,12 @@ class PerStrategyRegulationEvalTest {
     private static final int N = 3;
 
     private static SessionPipeline sessionPipeline;
-    private static CognitiveDefaultsRegistry defaultsRegistry;
+    private static EffectiveCognitiveDefaults defaultsRegistry;
 
     @BeforeAll
     static void setUp() {
         sessionPipeline = EvalTestSupport.sessionPipeline();
-        defaultsRegistry = CognitiveDefaultsRegistry.forTesting(
+        defaultsRegistry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-sit-select",
                         new DispositionAxes("cooperative", "flexible", "conservative", "low", "avoidant"),
                         new RegulationDefaults(0.40, 0.50, 0.60)),
@@ -220,7 +220,7 @@ class PerStrategyRegulationEvalTest {
 
         var mindMap = new InMemoryMindMapStore();
         var core    = CognitionTestHarness.builder().withCognitionConfig(config).withSessionPipeline(sessionPipeline).withMindMapStore(mindMap).build().core();
-        core.setDefaultsRegistry(defaultsRegistry);
+        core.setEffectiveDefaults(defaultsRegistry);
         core.configureAppraisal(new LlmAppraisalStrategy(sessionPipeline), new ConcernBasedSalienceStrategy());
         core.configureRegulation();
 

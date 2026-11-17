@@ -2,8 +2,8 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.CognitiveCapacityConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
+import io.casehub.neocortex.cognitive.index.LearningProfile;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -72,26 +72,26 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
             - With both: {"normal": "...", "extreme": "...", "constrained": "..."}""";
 
     private final MindMapStore store;
-    private final CognitiveDefaultsRegistry defaultsRegistry;
+    private final EffectiveCognitiveDefaults effectiveDefaults;
     private final @Nullable SessionPipeline sessionPipeline;
 
     @Inject
     public SearchBudgetDescriptionGenerationPhase(
             MindMapStore store,
-            CognitiveDefaultsRegistry defaultsRegistry,
+            EffectiveCognitiveDefaults effectiveDefaults,
             Instance<SessionPipeline> sessionPipelineInstance) {
         this.store = store;
-        this.defaultsRegistry = defaultsRegistry;
+        this.effectiveDefaults = effectiveDefaults;
         this.sessionPipeline = sessionPipelineInstance != null && sessionPipelineInstance.isResolvable()
                 ? sessionPipelineInstance.get() : null;
     }
 
     SearchBudgetDescriptionGenerationPhase(
             MindMapStore store,
-            CognitiveDefaultsRegistry defaultsRegistry,
+            EffectiveCognitiveDefaults effectiveDefaults,
             @Nullable SessionPipeline sessionPipeline) {
         this.store = store;
-        this.defaultsRegistry = defaultsRegistry;
+        this.effectiveDefaults = effectiveDefaults;
         this.sessionPipeline = sessionPipeline;
     }
 
@@ -103,20 +103,19 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
         var tasks = new ArrayList<java.util.function.Consumer<AgentSession>>();
-        var agentConfigs = new ArrayList<Map.Entry<String, CognitiveDefaults>>();
+        var agentConfigs = new ArrayList<Map.Entry<String, LearningProfile>>();
 
-        for (CognitiveDefaults defaults : defaultsRegistry.allProfiles()) {
-            if (defaults.tenantId() != null && !tenantId.equals(defaults.tenantId())) continue;
-            if (defaults.searchBudgetConfig() == null) continue;
+        for (String agentId : effectiveDefaults.agentIds(tenantId)) {
+            var profile = effectiveDefaults.restingFor(tenantId, agentId);
+            if (profile.searchBudgetConfig() == null) continue;
 
-            String agentId = defaults.agentId();
-            SearchBudgetConfig config = defaults.searchBudgetConfig();
+            SearchBudgetConfig config = profile.searchBudgetConfig();
             boolean hasExtremeFeatures = config.extremeInteraction() != null || config.fatigueEffects() != null;
 
             if (sessionPipeline != null) {
-                agentConfigs.add(Map.entry(agentId, defaults));
+                agentConfigs.add(Map.entry(agentId, profile));
                 tasks.add(session -> {
-                    String userPrompt = buildUserPrompt(agentId, config, defaults.capacityConfig());
+                    String userPrompt = buildUserPrompt(agentId, config, profile.capacityConfig());
                     try {
                         var responseText = new StringBuilder();
                         session.query(userPrompt).subscribe().asStream()
@@ -128,7 +127,7 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
                         if (normal == null) normal = generateFallback(config);
                         String extreme = hasExtremeFeatures ? extractField(responseText.toString(), "extreme") : null;
                         if (hasExtremeFeatures && extreme == null) extreme = generateExtremeFallback(config);
-                        String constrained = defaults.capacityConfig() != null
+                        String constrained = profile.capacityConfig() != null
                                 ? extractField(responseText.toString(), "constrained") : null;
                         crystallise(agentId, tenantId, normal, extreme, constrained);
                     } catch (Exception e) {
@@ -150,10 +149,10 @@ public class SearchBudgetDescriptionGenerationPhase implements ConsolidationPhas
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "LLM search budget description generation failed", e);
                 for (var entry : agentConfigs) {
-                    var config = entry.getValue().searchBudgetConfig();
-                    boolean extreme = config.extremeInteraction() != null || config.fatigueEffects() != null;
-                    crystallise(entry.getKey(), tenantId, generateFallback(config),
-                            extreme ? generateExtremeFallback(config) : null, null);
+                    var config2 = entry.getValue().searchBudgetConfig();
+                    boolean extreme = config2.extremeInteraction() != null || config2.fatigueEffects() != null;
+                    crystallise(entry.getKey(), tenantId, generateFallback(config2),
+                            extreme ? generateExtremeFallback(config2) : null, null);
                 }
             }
         }
