@@ -54,11 +54,6 @@ public final class PersonalityPromptBuilder {
         return sb.toString();
     }
 
-    public static boolean hasPid5(Map<String, String> metadata) {
-        if (metadata == null) {return false;}
-        return metadata.keySet().stream().anyMatch(k -> k.startsWith(PID5_PREFIX));
-    }
-
     public static String pid5Suffix(Map<String, String> metadata) {
         if (metadata == null) {return "";}
         var facets = new StringJoiner(", ");

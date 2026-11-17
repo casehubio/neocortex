@@ -219,6 +219,7 @@ class PersonalityClassificationEvalTest {
                 count++;
             }
         }
+        assertThat(count).as("matched observation pairs").isGreaterThan(0);
         double avgDistance = totalDistance / count;
         assertThat(avgDistance)
                 .as("PID-5 divergence between anxious and calm cooperative profiles")
@@ -243,11 +244,10 @@ class PersonalityClassificationEvalTest {
                 if (anxiousThreat > calmThreat) {anxiousHigherCount++;}
             }
         }
-        if (total > 0) {
-            assertThat((double) anxiousHigherCount / total)
-                    .as("Anxious profile should have higher threat activation in majority of observations")
-                    .isGreaterThanOrEqualTo(0.5);
-        }
+        assertThat(total).as("observations with threat activations").isGreaterThan(0);
+        assertThat((double) anxiousHigherCount / total)
+                .as("Anxious profile should have higher threat activation in majority of observations")
+                .isGreaterThanOrEqualTo(0.5);
     }
 
 
