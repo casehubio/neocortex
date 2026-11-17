@@ -398,9 +398,13 @@ New method: `GoalProposalOrchestrator.requestDemotion(agentId, tenantId, goalNam
 
 Drive modulations dispatch to `AppraisalDriveModulator` after convergence. Each DriveModulation specifies an axis and intensity delta, which modulates the drive profile for subsequent processing in the same tick.
 
+**Implemented (#1017):** `EmotionRegulationTickParticipant.dispatchCopingEffects()` converts `List<DriveModulation>` to `Map<DriveAxis, Double>` (summing same-axis deltas) and dispatches via `DriveOrchestrator.recordAppraisalModulation()`. DriveOrchestrator is injected as a nullable constructor parameter, wired by platform code alongside CopingMicroLoop.
+
 ### AttentionDirective Dispatch
 
 Attention directives dispatch to `AttentionPromptSection` as context hints for the next prompt assembly. FOCUS directives increase attention weight for the target topic; SUPPRESS directives add the target to the suppression list. This integrates with the existing prompt-based attention system without requiring a new directive execution mechanism.
+
+**Implemented (#1017):** `dispatchCopingEffects()` creates `AttentionSignal` entries with `COPING_FOCUS` or `COPING_SUPPRESS` signal categories and queues them via `CognitiveAttentionMediator.queueBriefing()`. CognitiveAttentionMediator is injected as a nullable constructor parameter.
 
 ## Scope Boundaries
 
@@ -424,7 +428,7 @@ Attention directives dispatch to `AttentionPromptSection` as context hints for t
 
 **Out of scope:**
 - Extrinsic regulation (CO_REGULATION, DELIBERATE_PROVOCATION) — stays in social cognition
-- CognitiveDefaults structural refactoring (D8 — separate issue)
+- CognitiveDefaults structural refactoring (D8 — **completed** in #999: decomposed into EmotionDefaults, CognitiveResourceDefaults, GraphDefaults, BehavioralDefaults)
 - Quarkmind-specific optimizations (D9 — config-gated)
 - Cross-tick coping effectiveness tracking (future enhancement)
 
