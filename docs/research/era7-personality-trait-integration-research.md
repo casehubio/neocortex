@@ -149,7 +149,15 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 
 ## Era 7b — Situational Personality Modulation (#712)
 
-**Status (2026-11-17):** Design spec complete (rev 4, 3 adversarial review rounds). Batch 1 implementation complete (config loader, integrator, detector — 44 tests). Prerequisites identified (#1055, eidos#234, agency#484). Blog: "The Elastic Band: Personality That Bends Under Pressure."
+**Status (2026-11-17):** Batches 1–3 complete. Batch 4 blocked on #1055 (EffectiveCognitiveDefaults).
+
+- **Batch 1:** Config loader, integrator, detector — 44 tests
+- **Batch 2:** Appraisal fixes — SEC dimensions passthrough, tick stamping, relational bias clamp, input activations accessor — 9 tests
+- **Batch 3:** MindMap personality-state persistence (SituationalStateService), eidos profile-to-delta conversion (SituationalDeltaConverter) — 16 tests
+- **eidos#234:** Prerequisite delivered — AmpdFacetShift, SituationalProfile, 60 archetype-family profiles (12 families × 5 modes), SituationalProfileDeriver — 26 tests, 616 total eidos tests green
+- **Remaining:** Batch 4 (TERMINAL wiring, deformation phase — blocked on #1055), Batch 5 (observability, E2E test)
+- **Issues filed:** #1068 (prompt clause, blocked on #1055), #1069 (map cleanup)
+- **Blogs:** "The Elastic Band" (design), "Where Personality Lives" (implementation boundary)
 
 ### Concept
 

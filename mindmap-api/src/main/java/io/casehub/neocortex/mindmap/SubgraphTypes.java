@@ -13,7 +13,8 @@ public final class SubgraphTypes {
     public static final String ACTIVITY    = "activity";
     public static final String PLACE       = "place";
     public static final String BEHAVIORAL  = "behavioral";
-    public static final String CULTURAL   = "cultural";
+    public static final String CULTURAL           = "cultural";
+    public static final String PERSONALITY_STATE  = "personality-state";
 
     private SubgraphTypes() {}
 }
