@@ -224,7 +224,7 @@ class CognitiveDerivationEngineTest {
                 .withCuriosity(explicitCuriosity)
                 .withDescriptor(DescriptorView.of("agent-c6", axes, List.of(), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.curiosity().categoryWeight("QUALITY")).isCloseTo(2.0, within(0.01));
     }
@@ -236,7 +236,7 @@ class CognitiveDerivationEngineTest {
                 .withTenantId("t1")
                 .withDescriptor(DescriptorView.of("agent-c7", axes, List.of(), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.curiosity()).isNotNull();
         assertThat(result.curiosity().categoryWeight("STRUCTURAL")).isCloseTo(1.3, within(0.01));
@@ -286,7 +286,7 @@ class CognitiveDerivationEngineTest {
                 .withTemporalFocus(explicitFocus)
                 .withDescriptor(DescriptorView.of("agent-t4", axes, List.of(), List.of("advance career")));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.temporalFocus().subgraphProximityWeight("CONCEPT")).isCloseTo(2.0, within(0.01));
     }
@@ -480,12 +480,13 @@ class CognitiveDerivationEngineTest {
     @Test
     void deriveAndMerge_explicitCbrStrategyWins() {
         var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "cooperative");
+        var view = DescriptorView.of("agent-m1", axes, List.of(new WeightedTerm("fe", 0.8)), List.of());
         var explicitCbr = new CbrStrategyDefaults(0.9, 30, RetrievalMode.FEATURE_ONLY);
         var explicit = CognitiveDefaults.empty("agent-m1")
                 .withTenantId("t1")
                 .withCbrStrategy(explicitCbr);
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(view));
 
         assertThat(result.cbrStrategy().minSimilarity()).isCloseTo(0.9, within(0.01));
     }
@@ -499,7 +500,7 @@ class CognitiveDerivationEngineTest {
                 .withSocialCognition(explicitSocial)
                 .withDescriptor(DescriptorView.of("agent-m2", axes, List.of(), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.socialCognition().trustFormationRate()).isCloseTo(0.9, within(0.01));
         assertThat(result.socialCognition().conflictInterpretation()).isEqualTo(ConflictInterpretation.DISENGAGE);
@@ -515,7 +516,7 @@ class CognitiveDerivationEngineTest {
                 .withDescriptor(DescriptorView.of("agent-m3", axes,
                     List.of(new WeightedTerm("ni", 0.8), new WeightedTerm("fe", 0.2)), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.graphStructure().inferenceStyle())
             .isEqualTo(GraphStructureDefaults.InferenceStyle.CATEGORICAL);
@@ -532,7 +533,7 @@ class CognitiveDerivationEngineTest {
                 .withDescriptor(DescriptorView.of("agent-m4", axes,
                     List.of(new WeightedTerm("fe", 0.6), new WeightedTerm("fi", 0.4)), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.extractionBias().relationshipBias()).isCloseTo(2.0, within(0.01));
         assertThat(result.extractionBias().affectSensitivity()).isCloseTo(0.5, within(0.01));
@@ -624,7 +625,7 @@ class CognitiveDerivationEngineTest {
                     List.of(new WeightedTerm("ni", 0.35), new WeightedTerm("fe", 0.25),
                             new WeightedTerm("ti", 0.22), new WeightedTerm("se", 0.18)),
                     List.of()));
-        var merged = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var merged = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(merged.appraisalWeights().urgencyWeight()).isCloseTo(1.2, within(0.001));
         assertThat(merged.appraisalWeights().relationshipWeight()).isCloseTo(0.9, within(0.001));

@@ -294,35 +294,6 @@ public final class CognitiveDerivationEngine {
     }
 
 
-    public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
-        if (explicit.descriptor() == null) {
-            return explicit;
-        }
-        CognitiveDefaults derived = derive(explicit.descriptor());
-        var mergedProfile = mergePersonalityProfile(explicit.personalityProfile(), derived.personalityProfile());
-        var mergedEmotion = explicit.emotionDefaults().mergeWith(derived.emotionDefaults());
-        var mergedResources = explicit.cognitiveResourceDefaults().mergeWith(derived.cognitiveResourceDefaults());
-        var mergedGraph = explicit.graphDefaults().mergeWith(derived.graphDefaults());
-        var mergedBehavioral = explicit.behavioralDefaults().mergeWith(derived.behavioralDefaults());
-
-        return new CognitiveDefaults(explicit.agentId(), explicit.tenantId(), mergedProfile,
-                explicit.descriptor(), mergedEmotion, mergedResources, mergedGraph, mergedBehavioral);
-    }
-
-
-    private static PersonalityProfile mergePersonalityProfile(PersonalityProfile explicit, PersonalityProfile derived) {
-        if (explicit == null) return derived;
-        if (derived == null) return explicit;
-        return new PersonalityProfile(
-                explicit.personality() != null ? explicit.personality() : derived.personality(),
-                explicit.personalityDominance() != null ? explicit.personalityDominance() : derived.personalityDominance(),
-                explicit.expressionStyles() != null ? explicit.expressionStyles() : derived.expressionStyles(),
-                explicit.attachment() != null ? explicit.attachment() : derived.attachment(),
-                !explicit.facets().isEmpty() ? explicit.facets() : derived.facets()
-        );
-    }
-
-
     static CognitiveCapacityConfig deriveCapacity(List<WeightedTerm> profile) {
         return deriveCapacity(profile, List.of());
     }

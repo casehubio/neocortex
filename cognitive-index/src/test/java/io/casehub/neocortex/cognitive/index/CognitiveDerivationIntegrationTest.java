@@ -62,7 +62,7 @@ class CognitiveDerivationIntegrationTest {
         assertThat(defaults.descriptor()).isNotNull();
         assertThat(defaults.descriptor().agentId()).isEqualTo("analyst-01");
 
-        CognitiveDefaults derived = CognitiveDerivationEngine.deriveAndMerge(defaults);
+        CognitiveDefaults derived = EffectiveCognitiveDefaults.merge(defaults, CognitiveDerivationEngine.derive(defaults.descriptor()));
         assertThat(derived.personality()).isNotNull();
         assertThat(derived.personality().getWeight(new MemoryDomain("reflection")))
             .isGreaterThan(1.0);
@@ -87,7 +87,7 @@ class CognitiveDerivationIntegrationTest {
             """;
 
         CognitiveDefaults defaults = mapper.readValue(yaml, CognitiveDefaults.class);
-        CognitiveDefaults derived = CognitiveDerivationEngine.deriveAndMerge(defaults);
+        CognitiveDefaults derived = EffectiveCognitiveDefaults.merge(defaults, CognitiveDerivationEngine.derive(defaults.descriptor()));
 
         assertThat(derived.personality().getWeight(new MemoryDomain("reflection")))
             .isEqualTo(2.0);
@@ -97,7 +97,7 @@ class CognitiveDerivationIntegrationTest {
     void noDescriptor_returnsUnchanged() {
         var defaults = CognitiveDefaults.empty("agent");
 
-        CognitiveDefaults result = CognitiveDerivationEngine.deriveAndMerge(defaults);
+        CognitiveDefaults result = EffectiveCognitiveDefaults.merge(defaults, null);
         assertThat(result).isSameAs(defaults);
     }
 }

@@ -43,4 +43,9 @@ public record DescriptorView(
                                     List<WeightedTerm> dispositionProfile, List<String> goals) {
         return new DescriptorView(agentId, disposition, dispositionProfile, goals, null, List.of());
     }
+
+    public DescriptorView withFacets(List<PersonalityFacet> facets) {
+        return new DescriptorView(agentId, disposition, dispositionProfile, goals, formationPadSummary, facets);
+    }
+
 }
