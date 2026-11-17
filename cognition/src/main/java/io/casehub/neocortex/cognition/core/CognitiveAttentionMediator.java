@@ -21,10 +21,14 @@ public class CognitiveAttentionMediator {
         attentionQueues = new ConcurrentHashMap<>();
 
     void onAttentionRequired(@Observes CognitiveAttentionRequired event) {
+        queueBriefing(event.briefing());
+    }
+
+    public void queueBriefing(AttentionBriefing briefing) {
         attentionQueues
-            .computeIfAbsent(event.briefing().principalId(),
+            .computeIfAbsent(briefing.principalId(),
                 k -> new ConcurrentLinkedQueue<>())
-            .add(event.briefing());
+            .add(briefing);
     }
 
     public Optional<AttentionBriefing> drainAttention(String principalId) {
