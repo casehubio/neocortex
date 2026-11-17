@@ -202,6 +202,54 @@ class CapsTopologyLoaderTest {
 
 
     @Test
+    void outputNodesHaveIncomingConnections_exceptDocumentedPredictorOnly() {
+        var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
+
+        // Predictor-only nodes: activated by subsystems other than CAPS settling.
+        // Coping (7): CopingStrategy enum + CopingGenerationPhase (Marsella & Gratch 2009)
+        // Learning (2): abstract operations, no CAPS consumer references
+        var predictorOnly = java.util.Set.of(
+                "seek_information", "suppress_information", "shift_responsibility",
+                "wishful_thinking", "denial", "procrastination", "resignation",
+                "generalize", "discriminate"
+                                            );
+
+        var outputNodeIds = topology.nodes().values().stream()
+                                    .filter(n -> n.type() == NodeType.OUTPUT)
+                                    .map(CapsNode::id)
+                                    .toList();
+
+        var connectedTargetIds = topology.connections().stream()
+                                         .map(CapsConnection::to)
+                                         .collect(java.util.stream.Collectors.toSet());
+
+        var orphaned = outputNodeIds.stream()
+                                    .filter(id -> !connectedTargetIds.contains(id))
+                                    .toList();
+
+        assertThat(orphaned)
+                .as("Orphaned output nodes should only be documented predictor-only nodes")
+                .allSatisfy(id -> assertThat(predictorOnly)
+                                          .as("Node '%s' has no incoming connections but is not documented as predictor-only", id)
+                                          .contains(id));
+    }
+
+    @Test
+    void newOutputConnectionsExist() {
+        var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
+
+        var connectedTargetIds = topology.connections().stream()
+                                         .map(CapsConnection::to)
+                                         .collect(java.util.stream.Collectors.toSet());
+
+        assertThat(connectedTargetIds)
+                .as("All Category 2 nodes from #1051 audit should have incoming connections")
+                .contains("assert", "submit", "abandon", "perfectionism", "risk_take",
+                          "self_direct", "rebel", "depend", "explore", "consolidate");
+    }
+
+
+    @Test
     void distortionsLoaded() {
         var topology = new CapsTopologyLoader().loadFromClasspath("caps-topology.yaml");
 

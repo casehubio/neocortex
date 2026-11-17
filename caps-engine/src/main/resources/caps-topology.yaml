@@ -575,6 +575,11 @@ nodes:
     learning:
       - explore
       - consolidate
+      # generalize and discriminate are intentionally predictor-only:
+      # abstract learning operations not referenced by any CAPS consumer
+      # (no resting activations, not in DriveCompetitionDetector).
+      # Vocabulary labels for potential learning subsystem integration.
+      # See casehubio/neocortex#1051.
       - generalize
       - discriminate
     regulation:
@@ -588,6 +593,14 @@ nodes:
       - social_withdrawal
       - co_regulation
       - deliberate_provocation
+    # Coping nodes: 9 primary strategies have CAPS connections (below).
+    # 7 secondary strategies (seek_information, suppress_information,
+    # shift_responsibility, wishful_thinking, denial, procrastination,
+    # resignation) are intentionally predictor-only: they are selected
+    # by CopingGenerationPhase via CopingStrategy enum (Marsella &
+    # Gratch 2009 EMA taxonomy), not activated through CAPS settling.
+    # CAPS settles on the broad regulation family; the coping subsystem
+    # refines within it.  See casehubio/neocortex#1051.
     coping:
       - seek_information
       - suppress_information
@@ -1467,6 +1480,168 @@ connections:
     provenance: consensus
     source: "anxiety impairs acceptance"
     tags: [bis]
+
+  # Conflict output connections (#1051)
+  # Source: Bandura 1977 self-efficacy, Gray RST BAS/BIS
+  - from: self_efficacy
+    to: assert
+    weight: 0.35
+    provenance: consensus
+    source: "Bandura 1977: assertion requires perceived capability"
+    tags: [fight_assert]
+  - from: BAS_activation
+    to: assert
+    weight: 0.30
+    provenance: consensus
+    source: "approach motivation drives assertive behavior"
+    tags: [bas, fight_assert]
+  - from: BIS_activation
+    to: submit
+    weight: 0.35
+    provenance: consensus
+    source: "behavioral inhibition drives submission"
+    tags: [bis, compliance]
+  - from: self_efficacy
+    to: submit
+    weight: -0.30
+    provenance: consensus
+    source: "low agency promotes yielding"
+    tags: [compliance]
+  - from: threat_sensitivity
+    to: submit
+    weight: 0.25
+    provenance: consensus
+    source: "threat perception drives appeasement"
+    tags: [threat, compliance]
+
+  # Achievement output connections (#1051)
+  # Source: hopelessness theory (Abramson 1989), Flett & Hewitt 2002
+  - from: future_outlook
+    to: abandon
+    weight: -0.35
+    provenance: consensus
+    source: "Abramson 1989: hopelessness drives task abandonment"
+    tags: []
+  - from: self_efficacy
+    to: abandon
+    weight: -0.30
+    provenance: consensus
+    source: "low perceived capability promotes giving up"
+    tags: []
+  - from: BIS_activation
+    to: abandon
+    weight: 0.25
+    provenance: consensus
+    source: "behavioral inhibition promotes withdrawal from challenge"
+    tags: [bis]
+  - from: BIS_activation
+    to: perfectionism
+    weight: 0.35
+    provenance: consensus
+    source: "Flett & Hewitt 2002: anxiety drives perfectionist standards"
+    tags: [bis]
+  - from: self_efficacy
+    to: perfectionism
+    weight: 0.25
+    provenance: consensus
+    source: "perceived capability to meet high standards"
+    tags: []
+  - from: self_worth
+    to: perfectionism
+    weight: -0.25
+    provenance: consensus
+    source: "Flett & Hewitt 2002: low self-worth drives compensatory perfectionism"
+    tags: []
+  - from: BAS_activation
+    to: risk_take
+    weight: 0.40
+    provenance: consensus
+    source: "approach motivation drives risk engagement"
+    tags: [bas]
+  - from: BIS_activation
+    to: risk_take
+    weight: -0.30
+    provenance: consensus
+    source: "low behavioral inhibition enables risk-taking"
+    tags: [bis]
+  - from: self_efficacy
+    to: risk_take
+    weight: 0.25
+    provenance: consensus
+    source: "perceived capability supports risk engagement"
+    tags: []
+
+  # Autonomy output connections (#1051)
+  # Source: Deci & Ryan 2000 SDT, Brehm 1966 reactance
+  - from: self_efficacy
+    to: self_direct
+    weight: 0.40
+    provenance: consensus
+    source: "Deci & Ryan 2000: perceived competence enables self-direction"
+    tags: [self_direction]
+  - from: BAS_activation
+    to: self_direct
+    weight: 0.30
+    provenance: consensus
+    source: "approach motivation supports autonomous action"
+    tags: [bas, self_direction]
+  - from: BAS_activation
+    to: rebel
+    weight: 0.35
+    provenance: consensus
+    source: "Brehm 1966: reactance requires approach motivation"
+    tags: [bas, self_direction]
+  - from: self_efficacy
+    to: rebel
+    weight: 0.25
+    provenance: consensus
+    source: "perceived capability enables active resistance"
+    tags: [self_direction]
+  - from: self_efficacy
+    to: depend
+    weight: -0.35
+    provenance: consensus
+    source: "low perceived capability promotes reliance on others"
+    tags: [compliance]
+  - from: BIS_activation
+    to: depend
+    weight: 0.30
+    provenance: consensus
+    source: "anxiety drives dependency behavior"
+    tags: [bis, compliance]
+  - from: other_reliability
+    to: depend
+    weight: 0.25
+    provenance: consensus
+    source: "perceived reliability of others enables dependency"
+    tags: [compliance]
+
+  # Learning output connections (#1051)
+  # Source: Berlyne 1960, Piaget 1952
+  - from: BAS_activation
+    to: explore
+    weight: 0.35
+    provenance: consensus
+    source: "Berlyne 1960: approach motivation drives information seeking"
+    tags: [bas]
+  - from: self_efficacy
+    to: explore
+    weight: 0.25
+    provenance: consensus
+    source: "perceived capability supports active exploration"
+    tags: []
+  - from: BIS_activation
+    to: consolidate
+    weight: 0.35
+    provenance: consensus
+    source: "Piaget 1952: behavioral inhibition promotes knowledge consolidation"
+    tags: [bis]
+  - from: behavior_persistence
+    to: consolidate
+    weight: 0.25
+    provenance: consensus
+    source: "schema persistence supports knowledge consolidation"
+    tags: [schema]
 
 # Disposition modulation — how DispositionAxes scale connection weights
 disposition_modifiers:
