@@ -12,6 +12,9 @@ public interface ClassificationCbrConfig {
     @WithDefault("0.85")
     double minSimilarity();
 
-    @WithDefault("haiku")
+    @WithDefault("haiku-pid5")
     String modelVersion();
+
+    @WithDefault("Anxiousness,Emotional Lability,Withdrawal,Impulsivity,Risk Taking,Suspiciousness,Intimacy Avoidance,Callousness,Manipulativeness,Grandiosity,Deceitfulness,Attention Seeking,Hostility")
+    String pid5Facets();
 }
