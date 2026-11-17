@@ -72,6 +72,16 @@ public class SituationalStateService {
         return stateCache.get(slotKey(agentId, tenantId));
     }
 
+    public static io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot toSnapshot(PersonalityState state) {
+        var facets = new java.util.LinkedHashMap<String, io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot.FacetDisplacement>();
+        for (var entry : state.facets().entrySet()) {
+            var fs = entry.getValue();
+            facets.put(entry.getKey(),
+                    new io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement()));
+        }
+        return new io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot(facets, System.nanoTime());
+    }
+
     public java.util.Set<String> cachedAgentIds(String tenantId) {
         var suffix = ":" + tenantId;
         var ids    = new java.util.LinkedHashSet<String>();

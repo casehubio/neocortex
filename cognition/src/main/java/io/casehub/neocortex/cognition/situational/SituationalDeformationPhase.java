@@ -20,7 +20,7 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
     private final SituationalStateService stateService;
     private final PersonalityStateIntegrator integrator;
     private final EffectiveCognitiveDefaults effectiveDefaults;
-    private CognitiveJournal journal;
+    private volatile CognitiveJournal journal;
     private final Clock clock;
 
     public SituationalDeformationPhase(
@@ -75,13 +75,7 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
     }
 
     private PersonalityStateSnapshot toSnapshot(PersonalityState state) {
-        var facets = new LinkedHashMap<String, PersonalityStateSnapshot.FacetDisplacement>();
-        for (var entry : state.facets().entrySet()) {
-            var fs = entry.getValue();
-            facets.put(entry.getKey(),
-                    new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement()));
-        }
-        return new PersonalityStateSnapshot(facets, System.nanoTime());
+        return SituationalStateService.toSnapshot(state);
     }
 
     private int countFacetsWithDrift(PersonalityState state) {

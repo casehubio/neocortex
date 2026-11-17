@@ -9,6 +9,7 @@ import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
     private final CognitiveJournal journal;
     private final Clock clock;
 
-    private volatile DetectionResult lastResult = DetectionResult.initial();
+    private final java.util.concurrent.ConcurrentHashMap<String, DetectionResult> lastResults = new java.util.concurrent.ConcurrentHashMap<>();
 
     public SituationalPersonalityParticipant(
             SituationalStateService stateService,
@@ -63,11 +64,13 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         state = integrator.advance(state, now);
 
         var evidence = buildEvidence(agentId, tenantId, context);
-        double dtSeconds = java.time.Duration.between(state.cursorTime(), now).toMillis() / 1000.0;
+        double dtSeconds = Duration.between(state.cursorTime(), now).toMillis() / 1000.0;
         if (dtSeconds < 0) dtSeconds = 0;
 
-        var detection = detector.detect(evidence, lastResult, dtSeconds);
-        lastResult = detection;
+        var agentKey = agentId + ":" + tenantId;
+        var previousResult = lastResults.getOrDefault(agentKey, DetectionResult.initial());
+        var detection = detector.detect(evidence, previousResult, dtSeconds);
+        lastResults.put(agentKey, detection);
 
         state = state.withDetection(detection);
 
@@ -139,13 +142,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
     }
 
     private PersonalityStateSnapshot toSnapshot(PersonalityState state) {
-        var facets = new LinkedHashMap<String, PersonalityStateSnapshot.FacetDisplacement>();
-        for (var entry : state.facets().entrySet()) {
-            var fs = entry.getValue();
-            facets.put(entry.getKey(),
-                    new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement()));
-        }
-        return new PersonalityStateSnapshot(facets, System.nanoTime());
+        return SituationalStateService.toSnapshot(state);
     }
 
     private boolean isDirty(PersonalityStateSnapshot snapshot) {

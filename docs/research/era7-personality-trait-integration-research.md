@@ -95,9 +95,10 @@ Our use case — cognitive agent characters in a social simulation — falls squ
 All design goals achieved. Implementation complete across three repos (eidos, neocortex, examples). Coping strategies pipeline (epic #595) Batches 1-5 complete — regulation refactoring, CAPS coping attractors, goal operations dispatch all wired.
 
 ### Downstream consumer: situation classifier PID-5 integration (#977)
-- PID-5 facets and derived AppraisalWeights now flow through the CAPS situation classifier pipeline. `addPersonalityMetadata()` populates `pid5.<Facet>=<2dp>` and `appraisal.<field>=<2dp>` metadata keys alongside disposition axes. `PersonalityPromptBuilder` formats them as natural-language annotations (high/low/moderate labels, directional appraisal labels). CBR cache key includes PID-5 and appraisal in SHA-256 hash — different personality magnitudes produce different cache entries. Model version `haiku-pid5` invalidates pre-PID-5 cache.
-- This completes the full pipeline: Engram YAML → Eidos → Bridge → DescriptorView → CDE derivation → metadata enrichment → classifier prompt + CBR cache.
-- Follow-up complete: #1071 extracted `PersonalityMetadataEnricher` shared utility in cognitive-index. #1070 wired `Pid5FacetsConfig` to filter facets at enrichment time. #1072 removed dead `hasPid5()` and hardened eval assertions.
+- PID-5 facets flow through the CAPS situation classifier pipeline. `addPersonalityMetadata()` populates `pid5.<Facet>=<2dp>` metadata keys alongside disposition axes, using the `LearningProfile` API (tenant-scoped, resting values). `PersonalityPromptBuilder` formats them as natural-language annotations (high/low/moderate labels). CBR cache key includes PID-5 in SHA-256 hash — different personality magnitudes produce different cache entries. Model version `haiku-pid5` invalidates pre-PID-5 cache.
+- **Note (post-rebase):** AppraisalWeights enrichment (`appraisal.<field>=<2dp>`) was dropped during the #712 rebase resolution. `LearningProfile` does not expose `appraisalWeights()` — a deliberate type-safety boundary. Follow-up needed to restore appraisal weight metadata via either a `LearningProfile` extension or `EffectiveCognitiveDefaults.forAgentOrDefaults()`.
+- Full pipeline: Engram YAML → Eidos → Bridge → DescriptorView → CDE derivation → metadata enrichment → classifier prompt + CBR cache.
+- Follow-up: #1071 extracted `PersonalityMetadataEnricher` shared utility in cognitive-index (now orphaned — zero production callers after #712 migrated both consumers to inline `addPersonalityMetadata` using `EffectiveCognitiveDefaults`). #1070 wired `Pid5FacetsConfig` to filter facets at enrichment time. #1072 removed dead `hasPid5()` and hardened eval assertions.
 
 ### Pipeline unification
 - `AmpdFacet` record added to `AgentDisposition` (eidos-api). Backward-compatible 10-arg constructor preserved.
@@ -149,7 +150,7 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 
 ## Era 7b — Situational Personality Modulation (#712)
 
-**Status (2026-11-17):** Batches 1–3 complete. #1055 delivered — Batch 4 unblocked.
+**Status (2026-11-17):** All 5 batches complete. Implementation finished — 79 tests (75 cognition + 4 caps-engine). Production CDI wiring deferred to #1082.
 
 - **Batch 1:** Config loader, integrator, detector — 44 tests
 - **Batch 2:** Appraisal fixes — SEC dimensions passthrough, tick stamping, relational bias clamp, input activations accessor — 9 tests
@@ -160,10 +161,11 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
   - `LearningProfile` — type-level enforcement of the TESSERA constraint. Learning rules cannot be fed effective values without a compile error. Every consumer classified per the spec's table: 9 resting, 8 effective, 3 enumerate, 3 explicit-only.
   - Bridge simplified — `bridgeAll`/`registerFromDescriptor` deleted, `toDescriptorView` public static. `EidosDescriptorViewSource` implements `DescriptorViewSource` SPI.
   - `CognitionCore.tick` wires `updateBase` before FOUNDATION. New module edge: cognition → cognitive-eidos.
-  - **Deferred:** #1074 (field-classification test), #1075 (AgentRegistryEvents listener, stale refresh, eviction wiring)
-- **Remaining:** Batch 4 (TERMINAL wiring, deformation phase — now unblocked), Batch 5 (observability, E2E test)
-- **Issues filed:** #1068 (prompt clause, blocked on #1055), #1069 (map cleanup), #1073 (attention accumulator tenant grouping), #1074 (field-classification test), #1075 (event listener + eviction), #1076 (#977 facets in situational profiles)
-- **Blogs:** "The Elastic Band" (design), "Where Personality Lives" (implementation boundary), "The Type-Level Split" (#1055 resting/effective enforcement)
+  - **Deferred:** #1079 (field-classification test), #1080 (AgentRegistryEvents listener), #1081 (stale refresh, eviction wiring)
+- **Batch 4:** SituationalPersonalityParticipant TERMINAL tick wiring (6 tests), SituationalDeformationPhase consolidation (5 tests). Code review finding: per-agent detection isolation bug (shared volatile lastResult → ConcurrentHashMap keyed by agentId:tenantId). DeformationPhase journal field made volatile.
+- **Batch 5:** Journal entry types (SituationalModulation, SituationalDeformationConsolidated), E2E integration test — full stress cycle with recovery, noise-floor idle, state persistence, tenant isolation (4 tests). Noise-floor topology test in caps-engine — threat_sensitivity marginally exceeds per-mode floor (0.3241 vs 0.30) under cumulative activation; cumulative threshold set to 0.35 (4 tests).
+- **Issues filed:** #1068 (prompt clause), #1069 (map cleanup), #1073 (attention accumulator tenant grouping), #1079 (field-classification test), #1080 (AgentRegistryEvents listener), #1081 (stale refresh + eviction), #1082 (CDI wiring for participant), #1083 (RelationalSchemaResolver trust signal), #1084 (PipelineTrace snapshot)
+- **Blogs:** "The Elastic Band" (design), "Where Personality Lives" (implementation boundary), "The Type-Level Split" (#1055 resting/effective enforcement), "Wiring the Elastic Band" (Batch 4-5 implementation, bugs, topology findings)
 
 ### Concept
 
