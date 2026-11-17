@@ -370,6 +370,16 @@ This preserves the existing CAPS learning infrastructure (`capsEngine.updateWeig
 
 Existing CAPS regulation attractors (`"regulation"` category) are retired when coping is enabled. A new `"coping"` attractor category is introduced. Initial coping attractor weights are seeded from CopingDefaults, providing a personality-based starting point for learned adaptation. The existing `RegulationCascadeConfig` thresholds (confidence threshold, dominance margin) apply to coping attractors as well — no new config needed.
 
+### Implementation Status (2026-11-17)
+
+**Weight seeding (#1018):** `CapsEngine.initializeAgent()` accepts an optional `CopingDefaults` parameter. `DispositionWeightMapper.setCopingRestingActivations()` applies centered bias `(tendency − 0.5) × 0.5` to six primary coping output nodes: `planning`, `positive_reinterpretation`, `avoidance`, `seek_instrumental_support`, `seek_emotional_support`, `coping_acceptance`. The centering at 0.5 ensures neutral personality produces zero bias; the 0.5 scale factor keeps values in [−0.25, +0.25], consistent with existing regulation output resting activations.
+
+**Topology connections (#1019):** 18 connections from mediating nodes to coping outputs in `caps-topology.yaml`. Covers problem-focused (self_efficacy/BAS → planning, active_confrontation), avoidant (BIS/threat_sensitivity → avoidance, mental_disengagement, suppression; self_efficacy → avoidance inhibitory), support-seeking (other_safety/other_reliability/BAS → seek_emotional/instrumental_support), and cognitive (self_efficacy/self_worth → positive_reinterpretation; self_worth/BIS(-) → coping_acceptance). Based on Connor-Smith & Flachsbart (2007).
+
+**Coping → regulation bridge (#1041):** Not yet implemented. CopingStrategy.regulationStrategy() defines the mapping (e.g., POSITIVE_REINTERPRETATION → COGNITIVE_CHANGE) but no topology connections exist between coping and regulation output categories.
+
+**Inert secondary nodes (#1042):** 7 coping output nodes (denial, wishful_thinking, procrastination, resignation, seek_information, suppress_information, shift_responsibility) have no CAPS connections or personality seeding. These are intentionally resolved by CopingStrategyPredictor rather than CAPS settling — CAPS activates the strategy family, the predictor selects within it.
+
 ## Goal Operations Dispatch
 
 After micro-loop convergence, accumulated GoalOperations dispatch through the existing goal lifecycle:
