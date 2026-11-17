@@ -171,5 +171,11 @@ Three dimensions make shame qualitatively different from other emotions, and the
 
 **Existing infrastructure that connects:** salience-scored memory (compounding), social cognition model (relational closeness), CDE expression styles (grandiosity × callousness). The building blocks exist in the platform; the regulation system doesn't yet consume them for shame.
 
-### 6. Literature review needed for CDE weight tables
+### 6. Prediction calibration analysis — now available (#921)
+
+`PredictionCalibrationAnalyzer` (landed 2026-11-17) addresses the eval gap described above. It consumes `loadOutcomeSummaryBySource()` data — which groups regulation episode effectiveness by strategy source (PREDICTOR, LLM, CAPS, SAFETY_GATE, SHAME_CONTEXT) — and produces a `CalibrationReport` per agent. The report compares PREDICTOR mean effectiveness against LLM mean effectiveness, flags agents where the LLM consistently outperforms the predictor by more than 0.15, and reports inconclusive when sample sizes are below the minimum threshold (default 20 episodes per source).
+
+This provides the measurement infrastructure that Phase 2 needs. Before adjusting predictor weights or reducing predictor confidence for specific agents, run calibration analysis to identify which agents are actually miscalibrated vs which are working well. Observability surfacing via the `@McpDomain("cognition")` resolvers is tracked in #1045.
+
+### 7. Literature review needed for CDE weight tables
 If Phase 2 adds a `deriveRegulationDefaults()` pathway to CognitiveDerivationEngine, the weight tables (which disposition axis values map to which suppression/reappraisal/redirect capacities) must be grounded in published personality-regulation correlations. Hughes et al. (2020) and Petter et al. (2025) provide the starting point, but the specific axis-to-weight mappings need validation against the empirical literature — not intuitive assignment.
