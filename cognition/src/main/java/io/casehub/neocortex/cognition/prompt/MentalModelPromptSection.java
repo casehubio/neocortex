@@ -40,7 +40,7 @@ public class MentalModelPromptSection implements CognitionPromptRenderer {
         appendDimension(sb, "What you believe about the user", snapshot.beliefs());
         appendDimension(sb, "What you think they want", snapshot.desires());
         appendDimension(sb, "Their likely intentions", snapshot.intentions());
-        if (posterior != null) {
+        if (posterior != null && posterior.dominantProbability() > 0.6) {
             appendPosterior(sb, posterior);
         }
         if (sb.isEmpty()) {
