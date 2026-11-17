@@ -34,7 +34,7 @@ class AttentionSignalTest {
 
     @Test
     void signal_category_covers_all_sources() {
-        assertEquals(12, SignalCategory.values().length);
+        assertEquals(14, SignalCategory.values().length);
     }
 
     @Test
