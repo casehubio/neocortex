@@ -7,6 +7,8 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant;
 import io.casehub.neocortex.cognition.coping.CopingMicroLoop;
 import io.casehub.neocortex.cognition.coping.CopingState;
+import io.casehub.neocortex.cognition.core.CognitiveAttentionMediator;
+import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.coping.PreCopingSafetyGate;
 import io.casehub.neocortex.cognition.core.CognitionConfig;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
@@ -54,6 +56,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
     private final @Nullable RegulationTracker                regulationTracker;
     private final @Nullable CopingMicroLoop copingMicroLoop;
     private final @Nullable GoalProposalOrchestrator goalOrchestrator;
+    private final @Nullable DriveOrchestrator driveOrchestrator;
+    private final @Nullable CognitiveAttentionMediator attentionMediator;
 
 
     private final ConcurrentHashMap<String, StrategyFailureSignal> failureSignals = new ConcurrentHashMap<>();
@@ -160,6 +164,25 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                                             @Nullable RegulationTracker regulationTracker,
                                             @Nullable CopingMicroLoop copingMicroLoop,
                                             @Nullable GoalProposalOrchestrator goalOrchestrator) {
+        this(appraisalParticipant, config, generationPhase, mindMapStore, cognitiveSubgraphId,
+             defaultsRegistry, loadEstimator, capsEngine, cascadeConfig, regulationTracker,
+             copingMicroLoop, goalOrchestrator, null, null);
+    }
+
+    public EmotionRegulationTickParticipant(AppraisalTickParticipant appraisalParticipant,
+                                            CognitionConfig config,
+                                            @Nullable EmotionRegulationGenerationPhase generationPhase,
+                                            @Nullable MindMapStore mindMapStore,
+                                            @Nullable String cognitiveSubgraphId,
+                                            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+                                            @Nullable CognitiveLoadEstimator loadEstimator,
+                                            @Nullable CapsEngine capsEngine,
+                                            @Nullable RegulationCascadeConfig cascadeConfig,
+                                            @Nullable RegulationTracker regulationTracker,
+                                            @Nullable CopingMicroLoop copingMicroLoop,
+                                            @Nullable GoalProposalOrchestrator goalOrchestrator,
+                                            @Nullable DriveOrchestrator driveOrchestrator,
+                                            @Nullable CognitiveAttentionMediator attentionMediator) {
         this.appraisalParticipant  = appraisalParticipant;
         this.config                = config;
         this.generationPhase       = generationPhase;
@@ -176,6 +199,8 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
         this.regulationTracker     = regulationTracker;
         this.copingMicroLoop       = copingMicroLoop;
         this.goalOrchestrator      = goalOrchestrator;
+        this.driveOrchestrator     = driveOrchestrator;
+        this.attentionMediator     = attentionMediator;
     }
 
 
@@ -522,6 +547,29 @@ public class EmotionRegulationTickParticipant implements CognitionTickParticipan
                             io.casehub.eidos.api.GoalPriority.SECONDARY, op.formationReason());
                 }
             }
+        }
+
+        if (driveOrchestrator != null && !copingState.driveModulations().isEmpty()) {
+            var modMap = new HashMap<io.casehub.neocortex.cognition.drive.DriveAxis, Double>();
+            for (var mod : copingState.driveModulations()) {
+                modMap.merge(mod.axis(), mod.intensityDelta(), Double::sum);
+            }
+            driveOrchestrator.recordAppraisalModulation(context.agentId(), context.tenantId(), modMap);
+        }
+
+        if (attentionMediator != null && !copingState.attentionDirectives().isEmpty()) {
+            var signals = new java.util.ArrayList<io.casehub.neocortex.mindmap.AttentionSignal>();
+            for (var dir : copingState.attentionDirectives()) {
+                var category = dir.type() == io.casehub.neocortex.cognition.coping.AttentionDirectiveType.FOCUS
+                               ? io.casehub.neocortex.mindmap.SignalCategory.COPING_FOCUS
+                               : io.casehub.neocortex.mindmap.SignalCategory.COPING_SUPPRESS;
+                signals.add(new io.casehub.neocortex.mindmap.AttentionSignal(
+                        context.agentId(), context.tenantId(), category,
+                        dir.target(), dir.target(), 0.8, dir.reason()));
+            }
+            var briefing = new io.casehub.neocortex.mindmap.AttentionBriefing(
+                    context.agentId(), context.tenantId(), signals, 0.0, java.time.Instant.now());
+            attentionMediator.queueBriefing(briefing);
         }
     }
 

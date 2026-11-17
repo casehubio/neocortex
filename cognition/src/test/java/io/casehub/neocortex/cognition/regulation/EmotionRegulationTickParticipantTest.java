@@ -295,4 +295,86 @@ class EmotionRegulationTickParticipantTest {
         org.mockito.Mockito.verifyNoInteractions(generationPhase);
         assertThat(participant.currentResult("a1", "t1")).isEmpty();
     }
+
+    @Test
+    void dispatchCopingEffects_driveModulations_dispatchedToOrchestrator() {
+        var emotion = new CognitiveEmotion(EmotionType.ANGER, 0.65, "subject1",
+                                           java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                                           io.casehub.neocortex.cognitive.PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var appraisalContext = mock(io.casehub.neocortex.cognition.appraisal.AppraisalContext.class);
+        when(appraisalParticipant.currentContext("a1", "t1")).thenReturn(Optional.of(appraisalContext));
+
+        var driveMod = new io.casehub.neocortex.cognition.coping.DriveModulation(
+                io.casehub.neocortex.cognition.drive.DriveAxis.AUTONOMY, 0.3, "coping boosted autonomy");
+        var copingState = io.casehub.neocortex.cognition.coping.CopingState.initial(
+                                    "original", java.util.Map.of(), List.of(emotion))
+                .withStrategy(new io.casehub.neocortex.cognition.coping.CopingStrategyAttempt(
+                        io.casehub.neocortex.cognition.coping.CopingStrategy.PLANNING, 0, "plan"))
+                .withAccumulatedDriveMod(driveMod);
+
+        var copingMicroLoop = mock(io.casehub.neocortex.cognition.coping.CopingMicroLoop.class);
+        when(copingMicroLoop.execute(any(), any(), any(), any(), any(), any(), any())).thenReturn(copingState);
+
+        var driveOrchestrator = mock(io.casehub.neocortex.cognition.drive.DriveOrchestrator.class);
+
+        var config = CognitionConfig.none().with("regulation", true)
+                                    .with("appraisal", true).with("coping", true);
+        var participant = new EmotionRegulationTickParticipant(
+                appraisalParticipant, config, null, null, null,
+                null, null, null, null, null, copingMicroLoop, null,
+                driveOrchestrator, null);
+        participant.tick(context);
+
+        verify(driveOrchestrator).recordAppraisalModulation(
+                eq("a1"), eq("t1"),
+                eq(java.util.Map.of(io.casehub.neocortex.cognition.drive.DriveAxis.AUTONOMY, 0.3)));
+    }
+
+    @Test
+    void dispatchCopingEffects_attentionDirectives_queuedToMediator() {
+        var emotion = new CognitiveEmotion(EmotionType.FEAR, 0.70, "subject1",
+                                           java.time.Instant.now(), io.casehub.neocortex.cognitive.EmotionSource.INTRINSIC,
+                                           io.casehub.neocortex.cognitive.PadProjection.NEUTRAL);
+        var appraisal = new AppraisalResult(List.of(emotion), List.of(), null);
+        when(appraisalParticipant.currentResult("a1", "t1")).thenReturn(Optional.of(appraisal));
+
+        var appraisalContext = mock(io.casehub.neocortex.cognition.appraisal.AppraisalContext.class);
+        when(appraisalParticipant.currentContext("a1", "t1")).thenReturn(Optional.of(appraisalContext));
+
+        var focusDir = new io.casehub.neocortex.cognition.coping.AttentionDirective(
+                io.casehub.neocortex.cognition.coping.AttentionDirectiveType.FOCUS, "safety-plan", "focus on safety");
+        var suppressDir = new io.casehub.neocortex.cognition.coping.AttentionDirective(
+                io.casehub.neocortex.cognition.coping.AttentionDirectiveType.SUPPRESS, "threat-source", "suppress threat rumination");
+        var copingState = io.casehub.neocortex.cognition.coping.CopingState.initial(
+                                    "original", java.util.Map.of(), List.of(emotion))
+                .withStrategy(new io.casehub.neocortex.cognition.coping.CopingStrategyAttempt(
+                        io.casehub.neocortex.cognition.coping.CopingStrategy.PLANNING, 0, "plan"))
+                .withAccumulatedAttentionDirective(focusDir)
+                .withAccumulatedAttentionDirective(suppressDir);
+
+        var copingMicroLoop = mock(io.casehub.neocortex.cognition.coping.CopingMicroLoop.class);
+        when(copingMicroLoop.execute(any(), any(), any(), any(), any(), any(), any())).thenReturn(copingState);
+
+        var attentionMediator = mock(io.casehub.neocortex.cognition.core.CognitiveAttentionMediator.class);
+
+        var config = CognitionConfig.none().with("regulation", true)
+                                    .with("appraisal", true).with("coping", true);
+        var participant = new EmotionRegulationTickParticipant(
+                appraisalParticipant, config, null, null, null,
+                null, null, null, null, null, copingMicroLoop, null,
+                null, attentionMediator);
+        participant.tick(context);
+
+        var briefingCaptor = org.mockito.ArgumentCaptor.forClass(io.casehub.neocortex.mindmap.AttentionBriefing.class);
+        verify(attentionMediator).queueBriefing(briefingCaptor.capture());
+        var briefing = briefingCaptor.getValue();
+        assertThat(briefing.signals()).hasSize(2);
+        assertThat(briefing.signals().get(0).category()).isEqualTo(io.casehub.neocortex.mindmap.SignalCategory.COPING_FOCUS);
+        assertThat(briefing.signals().get(0).sourceNodeId()).isEqualTo("safety-plan");
+        assertThat(briefing.signals().get(1).category()).isEqualTo(io.casehub.neocortex.mindmap.SignalCategory.COPING_SUPPRESS);
+        assertThat(briefing.signals().get(1).sourceNodeId()).isEqualTo("threat-source");
+    }
 }
