@@ -61,6 +61,7 @@ public class ConsolidationScheduler {
                            Instance<CognitiveAttentionAccumulator> attentionAccumulator,
                            Event<ConsolidationCompleted> completionEvent,
                            Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal> cognitiveJournal,
+                           Instance<io.casehub.platform.agent.session.SessionPipeline> sessionPipelineInstance,
                            @ConfigProperty(name = "casehub.mindmap.consolidation.interval-minutes",
                                            defaultValue = "5") long intervalMinutes) {
         this(phases.stream()
@@ -80,6 +81,9 @@ public class ConsolidationScheduler {
              attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null);
         if (cognitiveJournal.isResolvable()) {
             this.cognitiveJournal = cognitiveJournal.get();
+        }
+        if (sessionPipelineInstance.isResolvable()) {
+            this.sessionPipeline = sessionPipelineInstance.get();
         }
     }
 

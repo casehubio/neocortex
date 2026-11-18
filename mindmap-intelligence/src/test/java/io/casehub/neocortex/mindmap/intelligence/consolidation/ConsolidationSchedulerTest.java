@@ -316,6 +316,31 @@ class ConsolidationSchedulerTest {
     }
 
     @Test
+    void runPhases_passes_sessionPipeline_to_phases() {
+        var capturedPipeline = new java.util.concurrent.atomic.AtomicReference<io.casehub.platform.agent.session.SessionPipeline>();
+        ConsolidationPhase phase = new ConsolidationPhase() {
+            @Override
+            public String name() {return "pipeline-phase";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+
+            @Override
+            public void setSessionPipeline(io.casehub.platform.agent.session.SessionPipeline pipeline) {
+                capturedPipeline.set(pipeline);
+            }
+        };
+
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(phase), idleTracker, memoryStore, null);
+        assertThat(testScheduler.hasSessionPipeline()).isFalse();
+
+        testScheduler.consolidateNow("tenant-1");
+        assertThat(capturedPipeline.get()).as("phase receives null when no pipeline set").isNull();
+    }
+
+
+    @Test
     void phase_can_record_entries_via_journal() {
         var                                                     entries = new java.util.ArrayList<io.casehub.neocortex.cognition.journal.CognitiveEntry>();
         io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entries::add;
