@@ -351,13 +351,6 @@ public class CognitionDefaultBeans {
         return RetentionConfig.DEFAULT;
     }
 
-    @Produces
-    @DefaultBean
-    @Singleton
-    RetentionConfigSupplier retentionConfigSupplier() {
-        return () -> RetentionConfig.DEFAULT;
-    }
-
 
     @Produces
     @DefaultBean
