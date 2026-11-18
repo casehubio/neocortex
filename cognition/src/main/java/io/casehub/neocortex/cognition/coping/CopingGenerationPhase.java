@@ -243,6 +243,7 @@ public class CopingGenerationPhase {
 
         var narrative = root.path("narrative").asText(null);
         if (narrative == null || narrative.isBlank()) return null;
+        narrative = cap(narrative, MAX_DESCRIPTION_LENGTH);
 
         var goalOperations = parseGoalOperations(root.path("goalOperations"));
         var driveModulations = parseDriveModulations(root.path("driveModulations"));
