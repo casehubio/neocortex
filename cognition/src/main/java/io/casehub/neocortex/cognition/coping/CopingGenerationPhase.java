@@ -251,6 +251,13 @@ public class CopingGenerationPhase {
         return new CopingResult(strategy, narrative, goalOperations, driveModulations, attentionDirectives);
     }
 
+    private static final int MAX_NAME_LENGTH = 200;
+    private static final int MAX_DESCRIPTION_LENGTH = 500;
+
+    private static String cap(String s, int max) {
+        return s.length() <= max ? s : s.substring(0, max);
+    }
+
     private static List<GoalOperation> parseGoalOperations(JsonNode node) {
         if (!node.isArray()) return List.of();
         var ops = new ArrayList<GoalOperation>();
@@ -264,7 +271,9 @@ public class CopingGenerationPhase {
             try {
                 var type = GoalOperationType.valueOf(typeName);
                 var axis = DriveAxis.valueOf(axisName);
-                ops.add(new GoalOperation(type, goalName, goalDescription, axis, reason));
+                ops.add(new GoalOperation(type, cap(goalName, MAX_NAME_LENGTH),
+                        cap(goalDescription, MAX_DESCRIPTION_LENGTH), axis,
+                        cap(reason, MAX_DESCRIPTION_LENGTH)));
             } catch (IllegalArgumentException ignored) {}
         }
         return List.copyOf(ops);
@@ -279,7 +288,7 @@ public class CopingGenerationPhase {
             try {
                 var    axis   = DriveAxis.valueOf(axisName);
                 double delta  = Math.clamp(item.path("intensityDelta").asDouble(0.0), -0.5, 0.5);
-                var    reason = item.path("reason").asText("");
+                var    reason = cap(item.path("reason").asText(""), MAX_DESCRIPTION_LENGTH);
                 mods.add(new DriveModulation(axis, delta, reason));
             } catch (IllegalArgumentException ignored) {}
         }
@@ -296,7 +305,8 @@ public class CopingGenerationPhase {
             try {
                 var type = AttentionDirectiveType.valueOf(typeName);
                 var reason = item.path("reason").asText("");
-                dirs.add(new AttentionDirective(type, target, reason));
+                dirs.add(new AttentionDirective(type, cap(target, MAX_NAME_LENGTH),
+                        cap(reason, MAX_DESCRIPTION_LENGTH)));
             } catch (IllegalArgumentException ignored) {}
         }
         return List.copyOf(dirs);
