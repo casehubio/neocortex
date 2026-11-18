@@ -3,7 +3,7 @@
 **Issue:** casehubio/neocortex#1060
 **Refs:** #712 (situational modulation, Era 7b), #1055 (EffectiveCognitiveDefaults), #126 (JPAF orchestrator), #1080 (absorbed)
 **Prerequisites:** #1082, #1063; under option (B) only: casehubio/eidos#235, casehubio/eidos#239 (see §Prerequisites; R1-01)
-**Follow-ups:** #1102, #1104 (single-instance deployment contract), #1089 (eviction; not closed here), #1107 (verify R3 amendments after collapse), casehubio/agency#487, casehubio/eidos#237, casehubio/eidos#242 (swap dead zone)
+**Follow-ups:** #1102, #1104 (single-instance deployment contract), #1089 (eviction; not closed here), #1107 (verify R3 amendments after collapse), casehubio/agency#487, casehubio/eidos#237, casehubio/eidos#242 (swap dead zone), #1132 (LivedDispositionSource — done), #1135 (facet composition in findEffective), #1147 (livedDescriptor field-drop fix)
 **Date:** 2026-11-17 (rev 2, after the round-1 structure review; robustness amendments marked **[R]**, after the round-1 robustness review; structure round-2 amendments marked **[S2]**; cross-cutting round-1 amendments marked **[X1]**; round-2 amendments marked **[X2]**; round-3 amendments marked **[X3]**)
 
 ## Problem
