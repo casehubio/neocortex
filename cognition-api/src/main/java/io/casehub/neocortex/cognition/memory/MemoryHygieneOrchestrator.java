@@ -6,4 +6,9 @@ public interface MemoryHygieneOrchestrator {
     void tick(String agentId, String tenantId);
 
     KnowledgeGapSummary knowledgeGaps(String agentId, String tenantId);
+
+    default KnowledgeGapSummary tenantGapSummary(String tenantId) {
+        return KnowledgeGapSummary.empty();
+    }
+
 }

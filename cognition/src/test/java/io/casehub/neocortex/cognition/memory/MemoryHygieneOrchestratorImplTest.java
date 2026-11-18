@@ -1,23 +1,29 @@
 package io.casehub.neocortex.cognition.memory;
 
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
-import io.casehub.neocortex.memory.cbr.CbrMatch;
-import io.casehub.neocortex.memory.cbr.TemporalDecay;
 import io.casehub.neocortex.memory.cbr.ScopeDecay;
+import io.casehub.neocortex.memory.cbr.TemporalDecay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class MemoryHygieneOrchestratorImplTest {
 
@@ -40,7 +46,7 @@ class MemoryHygieneOrchestratorImplTest {
                 new TemporalDecay.HalfLife(Duration.ofDays(30)),
                 new ScopeDecay.Step(0.5),
                 summariser, DOMAIN, List.of("test-case"),
-                RETENTION, 100, 0.7, eventSink);
+                () -> RETENTION, 100, 0.7, eventSink);
     }
 
     private CbrMatch<CbrRecord> makeMemory(String caseId, String agentId, Instant storedAt) {
@@ -109,4 +115,26 @@ class MemoryHygieneOrchestratorImplTest {
         t2.join(5000);
         verify(store, atLeast(2)).retrieveSimilar(any(), any());
     }
+
+    @Test
+    void tenantGapSummaryAggregatesAcrossAgents() {
+        var m1 = makeMemory("c1", "agent-1", Instant.now().minus(Duration.ofDays(1)));
+        var m2 = makeMemory("c2", "agent-2", Instant.now().minus(Duration.ofDays(1)));
+        when(store.retrieveSimilar(any(), any())).thenReturn(List.of(m1, m2));
+        when(scorer.score(any(), any())).thenReturn(0.1);
+
+        orchestrator.tick("agent-1", "tenant-1");
+        orchestrator.tick("agent-2", "tenant-1");
+
+        var summary = orchestrator.tenantGapSummary("tenant-1");
+        assertThat(summary.totalScored()).isEqualTo(
+                orchestrator.knowledgeGaps("agent-1", "tenant-1").totalScored()
+                + orchestrator.knowledgeGaps("agent-2", "tenant-1").totalScored());
+    }
+
+    @Test
+    void tenantGapSummaryReturnsEmptyForUnknownTenant() {
+        assertThat(orchestrator.tenantGapSummary("unknown").totalScored()).isEqualTo(0);
+    }
+
 }

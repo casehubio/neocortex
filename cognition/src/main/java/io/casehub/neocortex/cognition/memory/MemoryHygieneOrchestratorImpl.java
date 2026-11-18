@@ -4,14 +4,14 @@ import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.KnowledgeGapSummary;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.Subject;
-import io.casehub.neocortex.memory.cbr.CbrRecord;
-import io.casehub.neocortex.memory.cbr.CbrRecordStore;
-import io.casehub.neocortex.memory.cbr.CbrQuery;
-import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.CbrFeatureRecord;
 import io.casehub.neocortex.memory.cbr.CbrMatch;
-import io.casehub.neocortex.memory.cbr.TemporalDecay;
+import io.casehub.neocortex.memory.cbr.CbrQuery;
+import io.casehub.neocortex.memory.cbr.CbrRecord;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
+import io.casehub.neocortex.memory.cbr.FeatureValue;
 import io.casehub.neocortex.memory.cbr.ScopeDecay;
+import io.casehub.neocortex.memory.cbr.TemporalDecay;
 import io.casehub.platform.api.path.Path;
 
 import java.time.Instant;
@@ -37,7 +37,7 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
     private final ConsolidationSummariser summariser;
     private final MemoryDomain domain;
     private final List<String> caseTypes;
-    private final RetentionConfig retentionConfig;
+    private final RetentionConfigSupplier configSupplier;
     private final int consolidationBatchSize;
     private final double crossLinkSimilarityThreshold;
     private final Consumer<HygieneEvent> eventSink;
@@ -58,7 +58,7 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
             ConsolidationSummariser summariser,
             MemoryDomain domain,
             List<String> caseTypes,
-            RetentionConfig retentionConfig,
+            RetentionConfigSupplier configSupplier,
             int consolidationBatchSize,
             double crossLinkSimilarityThreshold,
             Consumer<HygieneEvent> eventSink) {
@@ -69,7 +69,7 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
         this.summariser = summariser;
         this.domain = domain;
         this.caseTypes = List.copyOf(caseTypes);
-        this.retentionConfig = retentionConfig;
+        this.configSupplier = configSupplier;
         this.consolidationBatchSize = consolidationBatchSize;
         this.crossLinkSimilarityThreshold = crossLinkSimilarityThreshold;
         this.eventSink = eventSink;
@@ -86,6 +86,23 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
         return summary != null ? summary : KnowledgeGapSummary.empty();
     }
 
+    @Override
+    public KnowledgeGapSummary tenantGapSummary(String tenantId) {
+        String suffix   = ":" + tenantId;
+        int    totalLow = 0, totalGroups = 0, totalScored = 0;
+        for (var entry : gapStates.entrySet()) {
+            if (entry.getKey().endsWith(suffix)) {
+                var s = entry.getValue();
+                totalLow += s.lowRetentionCount();
+                totalGroups += s.consolidationGroups();
+                totalScored += s.totalScored();
+            }
+        }
+        if (totalScored == 0) {return KnowledgeGapSummary.empty();}
+        return new KnowledgeGapSummary(totalLow, totalGroups, totalScored);
+    }
+
+
     HygieneTick doTick(String agentId, String tenantId) {
         var key = agentId + ":" + tenantId;
         var lock = tickLocks[Math.floorMod(key.hashCode(), LOCK_STRIPES)];
@@ -101,6 +118,7 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
     }
 
     private HygieneTick doTickInternal(String agentId, String tenantId) {
+        var retentionConfig = configSupplier.current();
         var now = Instant.now();
         var allScores = new ArrayList<RetentionScore>();
         int totalEvicted = 0;
