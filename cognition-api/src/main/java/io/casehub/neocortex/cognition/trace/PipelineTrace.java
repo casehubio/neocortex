@@ -21,12 +21,31 @@ public record PipelineTrace(
         List<String> activatedDriveCategories,
         Map<String, Double> driveIntensities,
         List<DriveEvaluation> driveEvaluations,
-        Map<String, String> promptSections
+        Map<String, String> promptSections,
+        @Nullable SituationalPersonalitySnapshot situationalPersonality
 ) {
     public PipelineTrace {
         driveIntensities = driveIntensities != null ? Map.copyOf(driveIntensities) : Map.of();
         driveEvaluations = driveEvaluations != null ? List.copyOf(driveEvaluations) : List.of();
     }
+
+    public PipelineTrace(
+            @Nullable AppraisalResult appraisalResult,
+            Map<String, Double> concernSalience,
+            Map<String, Double> capsInputActivations,
+            @Nullable CapsSettlingSnapshot capsSettling,
+            @Nullable EmotionRegulationResult regulationResult,
+            @Nullable ChannelWeightProfile channelWeights,
+            @Nullable HabituationState habituation,
+            List<String> activatedDriveCategories,
+            Map<String, Double> driveIntensities,
+            List<DriveEvaluation> driveEvaluations,
+            Map<String, String> promptSections) {
+        this(appraisalResult, concernSalience, capsInputActivations, capsSettling,
+             regulationResult, channelWeights, habituation, activatedDriveCategories,
+             driveIntensities, driveEvaluations, promptSections, null);
+    }
+
     public record CapsSettlingSnapshot(
             Map<String, Double> activations,
             int iterations,
@@ -45,4 +64,17 @@ public record PipelineTrace(
     }
 
     public record AttractorSnapshot(String category, String nodeId, double strength) {}
+
+    public record SituationalPersonalitySnapshot(
+            Map<String, Double> modeIntensities,
+            @Nullable String affectiveWinner,
+            @Nullable String socialWinner,
+            Map<String, Double> facetDisplacements,
+            int publishedCount
+    ) {
+        public SituationalPersonalitySnapshot {
+            modeIntensities    = modeIntensities != null ? Map.copyOf(modeIntensities) : Map.of();
+            facetDisplacements = facetDisplacements != null ? Map.copyOf(facetDisplacements) : Map.of();
+        }
+    }
 }

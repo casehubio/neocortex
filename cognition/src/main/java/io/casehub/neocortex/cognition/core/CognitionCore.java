@@ -1294,11 +1294,17 @@ public @Nullable String lastTargetAgentId() {
             }
         }
 
+        io.casehub.neocortex.cognition.trace.PipelineTrace.SituationalPersonalitySnapshot sitSnapshot = null;
+        if (situationalPersonalityParticipant != null) {
+            sitSnapshot = situationalPersonalityParticipant.currentSnapshot(agentId, tenantId).orElse(null);
+        }
+
         var driveEvals = driveEvaluations();
         return java.util.Optional.of(new io.casehub.neocortex.cognition.trace.PipelineTrace(
                 appraisal, concernSalience, capsInputs, capsSnapshot,
                 regulation, channelWeights, habituation,
-                activatedDriveCategories(), driveIntensities(), driveEvals, renderedSections));
+                activatedDriveCategories(), driveIntensities(), driveEvals, renderedSections,
+                sitSnapshot));
     }
 
     @Override

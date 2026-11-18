@@ -170,6 +170,34 @@ class SituationalPersonalityParticipantTest {
         assertThat(stateService.currentState(TENANT, AGENT)).isNull();
     }
 
+    @Test
+    void currentSnapshotReflectsDetectionState() {
+        appraisalAccessor.situationInputs = Map.of("threat-physical", 0.9, "threat-social", 0.8);
+        appraisalAccessor.secDimensions   = Map.of("relevance", 0.9, "conduciveness", 0.1);
+        moodAccessor.pleasure             = -0.5;
+        moodAccessor.arousal              = 0.6;
+        moodAccessor.dominance            = -0.4;
+
+        var context = contextWith(descriptorWithStressProfile());
+        participant.tick(context);
+
+        var snapshot = participant.currentSnapshot(AGENT, TENANT);
+        assertThat(snapshot).isPresent();
+
+        var s = snapshot.get();
+        assertThat(s.modeIntensities()).containsKey("STRESS");
+        assertThat(s.modeIntensities().get("STRESS")).isGreaterThan(0);
+        assertThat(s.affectiveWinner()).isEqualTo("STRESS");
+        assertThat(s.facetDisplacements()).isNotEmpty();
+    }
+
+    @Test
+    void currentSnapshotEmptyBeforeAnyTick() {
+        var snapshot = participant.currentSnapshot(AGENT, TENANT);
+        assertThat(snapshot).isEmpty();
+    }
+
+
     // --- Helpers ---
 
     private CognitionTickContext contextWith(AgentDescriptor descriptor) {

@@ -5,7 +5,6 @@ import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.journal.CognitiveEntry;
 import io.casehub.neocortex.cognition.journal.CognitiveJournal;
 import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -114,6 +113,42 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         }
         return stale.size();
     }
+
+    public java.util.Optional<io.casehub.neocortex.cognition.trace.PipelineTrace.SituationalPersonalitySnapshot> currentSnapshot(String agentId, String tenantId) {
+        var agentKey  = agentId + ":" + tenantId;
+        var detection = lastResults.get(agentKey);
+        if (detection == null) {return java.util.Optional.empty();}
+
+        var modeIntensities = new LinkedHashMap<String, Double>();
+        for (var entry : detection.intensities().entrySet()) {
+            modeIntensities.put(entry.getKey().name(), entry.getValue());
+        }
+
+        var affWinner = detection.winner(SituationalMode.Group.AFFECTIVE);
+        var socWinner = detection.winner(SituationalMode.Group.SOCIAL);
+
+        var facetDisplacements = new LinkedHashMap<String, Double>();
+        int publishedCount     = 0;
+        var state              = stateService.currentState(tenantId, agentId);
+        if (state != null) {
+            for (var entry : state.facets().entrySet()) {
+                var    fs         = entry.getValue();
+                double totalShift = fs.homeOffset() + fs.displacement() + fs.promoted();
+                facetDisplacements.put(entry.getKey(), totalShift);
+                if (Math.abs(totalShift) >= PersonalityStateService.EPSILON_PUBLISH) {
+                    publishedCount++;
+                }
+            }
+        }
+
+        return java.util.Optional.of(new io.casehub.neocortex.cognition.trace.PipelineTrace.SituationalPersonalitySnapshot(
+                Map.copyOf(modeIntensities),
+                affWinner != null ? affWinner.name() : null,
+                socWinner != null ? socWinner.name() : null,
+                Map.copyOf(facetDisplacements),
+                publishedCount));
+    }
+
 
     private SituationalEvidence buildEvidence(String agentId, String tenantId, CognitionTickContext context) {
         var builder = SituationalEvidence.builder();
