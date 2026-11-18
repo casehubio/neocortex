@@ -4,7 +4,6 @@ import io.casehub.neocortex.cognition.journal.CognitiveEntry;
 import io.casehub.neocortex.cognition.journal.CognitiveJournal;
 import io.casehub.neocortex.cognition.journal.EventRef;
 import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationPhase;
 
 import java.time.Clock;
@@ -47,27 +46,29 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
     public void run(String tenantId, List<String> subgraphPriority) {
         var now = clock.instant();
 
-        for (var agentId : stateService.cachedAgentIds(tenantId)) {
-            var state = stateService.currentState(tenantId, agentId);
-            if (state == null) continue;
+        for (var agentId : stateService.agentIds(tenantId)) {
+            try {
+                var before       = stateService.currentState(tenantId, agentId);
+                var beforeCursor = before != null ? before.cursorTime() : now;
 
-            var before = state.cursorTime();
-            state = integrator.advance(state, now);
-            var after = state.cursorTime();
+                var state = stateService.transition(tenantId, agentId, now, st -> {
+                    var advanced   = integrator.advance(st, now);
+                    var baselines  = resolveBaselines(tenantId, agentId);
+                    var candidates = integrator.promotionCandidates(advanced, baselines, now);
+                    return applyPromotions(advanced, candidates);
+                });
 
-            int hoursAdvanced = (int) Duration.between(before, after).toHours();
-            int facetsWithDrift = countFacetsWithDrift(state);
+                int hoursAdvanced   = (int) Duration.between(beforeCursor, state.cursorTime()).toHours();
+                int facetsWithDrift = countFacetsWithDrift(state);
 
-            stateService.persist(tenantId, agentId, state);
-
-            journal.record(new CognitiveEntry.SituationalDeformationConsolidated(
-                    tenantId, agentId, EventRef.consolidation(EventRef.event("situational-deformation")),
-                    now, hoursAdvanced, facetsWithDrift));
+                journal.record(new CognitiveEntry.SituationalDeformationConsolidated(
+                        tenantId, agentId, EventRef.consolidation(EventRef.event("situational-deformation")),
+                        now, hoursAdvanced, facetsWithDrift));
+            } catch (RuntimeException e) {
+                java.util.logging.Logger.getLogger(getClass().getName())
+                                        .log(java.util.logging.Level.WARNING, "Deformation failed for " + agentId + " in " + tenantId, e);
+            }
         }
-    }
-
-    private PersonalityStateSnapshot toSnapshot(PersonalityState state) {
-        return PersonalityStateService.toSnapshot(state);
     }
 
     private int countFacetsWithDrift(PersonalityState state) {
@@ -79,4 +80,33 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
         }
         return count;
     }
+
+    private java.util.Map<String, Double> resolveBaselines(String tenantId, String agentId) {
+        var defaults = effectiveDefaults.forAgent(tenantId, agentId);
+        if (defaults == null || defaults.descriptor() == null) {return java.util.Map.of();}
+        var baselines = new java.util.LinkedHashMap<String, Double>();
+        for (var facet : defaults.descriptor().personalityFacets()) {
+            baselines.put(facet.facet(), facet.score());
+        }
+        return baselines;
+    }
+
+    private PersonalityState applyPromotions(PersonalityState state,
+                                             java.util.Map<String, PersonalityStateIntegrator.PromotionCandidate> candidates) {
+        if (candidates.isEmpty()) {return state;}
+        var facets = new java.util.LinkedHashMap<>(state.facets());
+        for (var candidate : candidates.values()) {
+            var fs = facets.get(candidate.facet());
+            if (fs == null) {continue;}
+            facets.put(candidate.facet(), new FacetState(
+                    fs.displacement(),
+                    fs.homeOffset() - candidate.delta(),
+                    fs.resilience(), fs.exposure(), fs.load(),
+                    fs.promoted() + candidate.delta(),
+                    null,
+                    fs.cappedSince()));
+        }
+        return state.withFacets(facets);
+    }
+
 }

@@ -54,11 +54,12 @@ class SituationalDeformationPhaseTest {
 
     @Test
     void advancesIdleAgentState() {
-        var state = stateService.loadOrCreate(TENANT, AGENT, NOW);
-        var displaced = new LinkedHashMap<>(state.facets());
-        displaced.put("Anxiousness", new FacetState(0.15, 0.02, 0.9, 1.5, 0.3));
-        state = state.withFacets(displaced).withCursorTime(NOW);
-        stateService.persist(TENANT, AGENT, state);
+        stateService.read(TENANT, AGENT, NOW);
+        stateService.transition(TENANT, AGENT, NOW, st -> {
+            var displaced = new LinkedHashMap<>(st.facets());
+            displaced.put("Anxiousness", new FacetState(0.15, 0.02, 0.9, 1.5, 0.3));
+            return st.withFacets(displaced).withCursorTime(NOW);
+        });
 
         double initialDisplacement = stateService.currentState(TENANT, AGENT)
                 .facet("Anxiousness").displacement();
@@ -73,11 +74,12 @@ class SituationalDeformationPhaseTest {
 
     @Test
     void journalsConsolidation() {
-        var state = stateService.loadOrCreate(TENANT, AGENT, NOW);
-        var displaced = new LinkedHashMap<>(state.facets());
-        displaced.put("Anxiousness", new FacetState(0.15, 0.02, 0.9, 1.5, 0.3));
-        state = state.withFacets(displaced).withCursorTime(NOW);
-        stateService.persist(TENANT, AGENT, state);
+        stateService.read(TENANT, AGENT, NOW);
+        stateService.transition(TENANT, AGENT, NOW, st -> {
+            var displaced = new LinkedHashMap<>(st.facets());
+            displaced.put("Anxiousness", new FacetState(0.15, 0.02, 0.9, 1.5, 0.3));
+            return st.withFacets(displaced).withCursorTime(NOW);
+        });
 
         phase.run(TENANT, List.of());
 
@@ -107,8 +109,7 @@ class SituationalDeformationPhaseTest {
                 svc, new PersonalityStateIntegrator(DynamicsConfig.defaults()),
                 effectiveDefaults, journal2::add, advancedClock);
 
-        var state = svc.loadOrCreate(TENANT, AGENT, NOW);
-        svc.persist(TENANT, AGENT, state);
+        svc.read(TENANT, AGENT, NOW);
 
         phase2.run(TENANT, List.of());
 

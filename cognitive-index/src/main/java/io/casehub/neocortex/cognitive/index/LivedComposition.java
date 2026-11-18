@@ -20,7 +20,7 @@ public final class LivedComposition {
         var sb = new StringBuilder();
         for (var wt : sorted) {
             if (!sb.isEmpty()) sb.append(';');
-            sb.append(wt.term()).append('=').append(String.format("%.4f", wt.weight()));
+            sb.append(wt.term()).append('=').append(String.format(java.util.Locale.ROOT, "%.4f", wt.weight()));
         }
         try {
             var digest = MessageDigest.getInstance("SHA-256");

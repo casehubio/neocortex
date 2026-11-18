@@ -201,7 +201,9 @@ public class PersonalityStateService implements PersonalityStateSource {
         var input = NodeInput.of(nodeName, sgId)
                 .withProperties(props)
                 .withTraits(Set.of("situational-personality"));
-        input = input.withProperties(new LinkedHashMap<>(props) {{ put("agentId", key.agentId()); }});
+        var propsWithAgent = new LinkedHashMap<>(props);
+        propsWithAgent.put("agentId", key.agentId());
+        input = input.withProperties(Map.copyOf(propsWithAgent));
         store.addNode(input, key.tenantId());
         stateCache.put(key, state);
         return state;
@@ -225,11 +227,13 @@ public class PersonalityStateService implements PersonalityStateSource {
 
     String computeCompositionKey(PersonalityState state) {
         var sb = new StringBuilder();
-        for (var entry : state.facets().entrySet()) {
-            var fs = entry.getValue();
-            long restingKey = Math.round((fs.promoted() + fs.homeOffset()) / EPSILON_PUBLISH);
-            sb.append(entry.getKey()).append('=').append(restingKey).append(';');
-        }
+        state.facets().entrySet().stream()
+             .sorted(Map.Entry.comparingByKey())
+             .forEach(entry -> {
+                 var  fs         = entry.getValue();
+                 long restingKey = Math.round((fs.promoted() + fs.homeOffset()) / EPSILON_PUBLISH);
+                 sb.append(entry.getKey()).append('=').append(restingKey).append(';');
+             });
         return sb.toString();
     }
 

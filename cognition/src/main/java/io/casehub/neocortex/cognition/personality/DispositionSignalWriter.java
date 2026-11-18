@@ -97,22 +97,24 @@ public final class DispositionSignalWriter {
 
     private void flushPending(TenantAgentKey key) {
         var agentPending = pending.get(key);
-        if (agentPending == null || agentPending.isEmpty()) return;
+        if (agentPending == null || agentPending.isEmpty()) {return;}
+        var taken = new java.util.LinkedHashMap<String, Long>();
+        for (var entry : agentPending.entrySet()) {
+            long count = entry.getValue().getAndSet(0);
+            if (count > 0) {taken.put(entry.getKey(), count);}
+        }
+        if (taken.isEmpty()) {return;}
         try {
             tx.requiresNew(() -> {
-                for (var entry : agentPending.entrySet()) {
-                    long count = entry.getValue().getAndSet(0);
-                    for (long i = 0; i < count; i++) {
+                for (var entry : taken.entrySet()) {
+                    for (long i = 0; i < entry.getValue(); i++) {
                         store.recordActivation(key.agentId(), key.tenantId(), entry.getKey());
                     }
                 }
             });
         } catch (RuntimeException e) {
-            for (var entry : agentPending.entrySet()) {
-                long taken = entry.getValue().get();
-                if (taken == 0) {
-                    entry.getValue().incrementAndGet();
-                }
+            for (var entry : taken.entrySet()) {
+                agentPending.computeIfAbsent(entry.getKey(), k -> new AtomicLong()).addAndGet(entry.getValue());
             }
             throw e;
         }
