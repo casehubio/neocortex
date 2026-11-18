@@ -57,7 +57,7 @@ public final class LivedComposition {
                     ? clamp01(facet.score() + fd.promoted() + fd.homeOffset() + fd.displacement())
                     : resting;
             String origin = Math.abs(effective - facet.score()) >= EPSILON_PUBLISH
-                    ? "situational" : facet.origin();
+                    ? String.format("situational [usual %.2f]", facet.score()) : facet.origin();
             composedFacets.add(new PersonalityFacet(facet.facet(), effective, origin));
         }
 

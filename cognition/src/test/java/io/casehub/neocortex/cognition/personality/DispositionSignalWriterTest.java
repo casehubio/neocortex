@@ -47,7 +47,7 @@ class DispositionSignalWriterTest {
         writer.drain("t1", "agent1");
 
         var counts = signalStore.activationWeights("agent1", "t1");
-        assertThat(counts.getOrDefault("ti", 0.0)).isEqualTo(800);
+        assertThat(counts.getOrDefault("ti", 0.0)).isEqualTo(800.0);
     }
 
     @Test
@@ -76,10 +76,10 @@ class DispositionSignalWriterTest {
     void decayDrainsThenDecays() {
         writer.enqueue("t1", "agent1", List.of("ti", "ti", "ti", "ti", "ti"));
         writer.drain("t1", "agent1");
-        assertThat(signalStore.activationWeights("agent1", "t1").get("ti")).isEqualTo(5);
+        assertThat(signalStore.activationWeights("agent1", "t1").get("ti")).isEqualTo(5.0);
 
         writer.decay("t1", "agent1", 0.5);
-        assertThat(signalStore.activationWeights("agent1", "t1").get("ti")).isEqualTo(2);
+        assertThat(signalStore.activationWeights("agent1", "t1").get("ti")).isEqualTo(2.0);
     }
 
     @Test
@@ -122,9 +122,9 @@ class DispositionSignalWriterTest {
         @Override
         public Map<String, Double> activationWeights(String agentId, String tenancyId) {
             var agent = counts.get(key(agentId, tenancyId));
-            if (agent == null) return Map.of();
+            if (agent == null) {return Map.of();}
             var result = new java.util.LinkedHashMap<String, Double>();
-            agent.forEach((k, v) -> { if (v.get() > 0) result.put(k, (double) v.get()); });
+            agent.forEach((k, v) -> {if (v.get() > 0) {result.put(k, (double) v.get());}});
             return result;
         }
 

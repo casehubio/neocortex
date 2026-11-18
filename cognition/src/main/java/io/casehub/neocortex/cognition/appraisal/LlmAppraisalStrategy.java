@@ -46,6 +46,12 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
             self-referential appraisal. Let these shape the felt quality of the emotion, not just \
             its intensity.
 
+            When a trait is marked "situational" with a usual score (e.g. "Anxiousness (0.77): \
+            situational [usual 0.62]"), the character's current state has temporarily shifted this \
+            trait from its baseline. Treat the current score as how the character feels RIGHT NOW \
+            and the usual score as their typical pattern. The gap between them is the story — recent \
+            experience reshaping the character's disposition in this moment.
+
             For each drive, consider: does this situation touch it? How? What does it \
             make the character want to do? Consider ALL drives, not just the strongest one.
 

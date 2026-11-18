@@ -126,4 +126,31 @@ class LivedCompositionTest {
         assertThat(result.personalityFacets().getFirst().score())
                 .isCloseTo(0.70, within(1e-9));
     }
+
+    @Test
+    void composeSituationalOriginIncludesBaselineScore() {
+        var authored = new DescriptorView("agent1", null, List.of(), List.of(), null,
+                                          List.of(new PersonalityFacet("Anxiousness", 0.50, "authored grounding")));
+        var facets = Map.of("Anxiousness",
+                            new PersonalityStateSnapshot.FacetDisplacement(0.05, 0.02, 0.10));
+        var snapshot = new PersonalityStateSnapshot(facets, 1, 1, null);
+
+        var result = LivedComposition.compose(authored, snapshot, true);
+        assertThat(result.personalityFacets().getFirst().origin())
+                .isEqualTo("situational [usual 0.50]");
+    }
+
+    @Test
+    void composeKeepsOriginalOriginWhenDeltaNegligible() {
+        var authored = new DescriptorView("agent1", null, List.of(), List.of(), null,
+                                          List.of(new PersonalityFacet("Anxiousness", 0.50, "some grounding")));
+        var facets = Map.of("Anxiousness",
+                            new PersonalityStateSnapshot.FacetDisplacement(0.001, 0.0, 0.002));
+        var snapshot = new PersonalityStateSnapshot(facets, 1, 1, null);
+
+        var result = LivedComposition.compose(authored, snapshot, false);
+        assertThat(result.personalityFacets().getFirst().origin())
+                .isEqualTo("some grounding");
+    }
+
 }

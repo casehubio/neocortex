@@ -291,6 +291,45 @@ class LlmAppraisalStrategyTest {
         assertThat(capturedMessage[0]).doesNotContain("Personality traits:");
     }
 
+    @Test
+    void situationalFacetRendersWithBaselineInPrompt() {
+        var capturedMessage = new String[1];
+        var capturedSystem  = new String[1];
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> {
+            capturedSystem[0] = init.systemPrompt();
+            return new AgentSession() {
+                @Override
+                public Multi<AgentEvent> query(String prompt) {
+                    capturedMessage[0] = prompt;
+                    var json = """
+                               {
+                                 "narrative": "Heightened alertness.",
+                                 "dimensions": { "relevance": 0.6, "conduciveness": -0.3 }
+                               }""";
+                    return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+                }
+
+                @Override
+                public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+                @Override
+                public void close(java.time.Duration timeout) {}
+            };
+        }));
+        var facets = List.of(
+                new PersonalityFacet("Anxiousness", 0.77, "situational [usual 0.62]"));
+        var ctx = new AppraisalContext("test-agent",
+                                       PerceivedSituation.passThrough("an unexpected noise"),
+                                       List.of(new Drive("protection", DriveCategory.CHARACTER, 0.6, "")),
+                                       null, HabituationConfig.defaults(), HabituationState.empty(), null,
+                                       null, null, facets);
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).contains("Anxiousness (0.77): situational [usual 0.62]");
+        assertThat(capturedSystem[0]).contains("situational");
+    }
+
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
         return new AppraisalContext("test-agent", 
