@@ -285,6 +285,9 @@ def main():
                     continue
                 ref['domain'] = 'reflection'
                 ref['subject'] = entity_name
+                ref['related_entities'] = [entity_name]
+                ref['source_entity_ref'] = entity_name
+                ref['source_provenance'] = 'entity-synthesis'
                 ref['enrichment_version'] = 'v1.0-phase2b'
                 ref['convergence_pass'] = args.pass_num
                 if args.pass_num > 1:
@@ -304,6 +307,9 @@ def main():
                     mood['text'] = f"Mood during {period}: {context}" if context else f"Mood during {period}"
                 mood['domain'] = 'mood'
                 mood['subject'] = entity_name
+                mood['related_entities'] = [entity_name]
+                mood['source_entity_ref'] = entity_name
+                mood['source_provenance'] = 'entity-synthesis'
                 mood['enrichment_version'] = 'v1.0-phase2b'
                 mood['convergence_pass'] = args.pass_num
                 if args.pass_num > 1:

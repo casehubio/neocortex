@@ -36,12 +36,16 @@ and goal modulation. Full enrichment is essential.
 Synthesized insights from entity-level enrichment (phase 2b). These represent
 higher-order cognitive patterns across experiences. They carry emotional valence
 and drive implications, so PAD, OCC, SEC, and drive_impact are required.
+Provenance fields: `related_entities` (the source entity), `source_entity_ref`
+(entity name that produced the reflection), `source_provenance` = `"entity-synthesis"`.
 
 ### Mood (domain="mood")
 Period-level emotional snapshots from entity-level enrichment (phase 2b).
 PAD is the primary data (it IS the mood measurement). OCC/drive_impact are
 recommended because the mood text contains biographical narrative that can
 inform discrete emotions and drive modulation.
+Provenance fields: `related_entities` (the source entity), `source_entity_ref`
+(entity name that produced the snapshot), `source_provenance` = `"entity-synthesis"`.
 
 ### Relationship (domain="relationship")
 Interaction records with other agents. PAD, OCC, and drive_impact are required
