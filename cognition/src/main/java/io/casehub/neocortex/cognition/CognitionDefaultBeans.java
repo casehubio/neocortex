@@ -23,7 +23,9 @@ import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
 import io.casehub.neocortex.cognition.mood.MoodConfig;
 import io.casehub.neocortex.cognition.mood.MoodCongruenceConfig;
 import io.casehub.neocortex.cognition.narrative.NarrativeConfig;
-import io.casehub.neocortex.cognition.personality.PersonalityEvolutionConfig;
+import io.casehub.neocortex.cognition.personality.DirectIsolatedTransactions;
+import io.casehub.neocortex.cognition.personality.DispositionEvolutionConfig;
+import io.casehub.neocortex.cognition.personality.IsolatedTransactions;
 import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
@@ -75,10 +77,20 @@ public class CognitionDefaultBeans {
         return MoodConfig.defaults();
     }
 
-    @Produces @DefaultBean @Singleton
-    PersonalityEvolutionConfig personalityEvolutionConfig() {
-        return PersonalityEvolutionConfig.defaults();
+    @Produces
+    @DefaultBean
+    @Singleton
+    DispositionEvolutionConfig dispositionEvolutionConfig() {
+        return DispositionEvolutionConfig.defaults();
     }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    IsolatedTransactions isolatedTransactions() {
+        return new DirectIsolatedTransactions();
+    }
+
 
     @Produces @DefaultBean @Singleton
     InnerLifeConfig innerLifeConfig() {

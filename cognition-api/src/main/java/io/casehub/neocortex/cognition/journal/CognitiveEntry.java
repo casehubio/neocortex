@@ -125,5 +125,31 @@ public sealed interface CognitiveEntry {
                                               int hoursAdvanced,
                                               int facetsWithDrift) implements CognitiveEntry {}
 
+    record DispositionReflected(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                                String outcomeType, double driftMagnitude,
+                                @Nullable String previousLabel, @Nullable String newLabel) implements CognitiveEntry {}
+
+    record DispositionEvolutionFailed(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                                      String step, String message) implements CognitiveEntry {}
+
+    record DispositionSignalEpochReset(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                                       String oldFingerprint, String newFingerprint) implements CognitiveEntry {}
+
+    record DispositionEvolutionEnablementChanged(String tenantId, String agentId, EventRef eventRef,
+                                                 Instant timestamp, boolean enabled,
+                                                 double relationalComplexity) implements CognitiveEntry {}
+
+    record DispositionReauthored(String tenantId, String agentId, EventRef eventRef,
+                                 Instant timestamp) implements CognitiveEntry {}
+
+    record DispositionReauthorReverted(String tenantId, String agentId, EventRef eventRef,
+                                       Instant timestamp) implements CognitiveEntry {}
+
+    record ReflectionClockRegressed(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                                    Instant previous, Instant current) implements CognitiveEntry {}
+
+    record DispositionReversal(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
+                               int streak) implements CognitiveEntry {}
+
 
 }
