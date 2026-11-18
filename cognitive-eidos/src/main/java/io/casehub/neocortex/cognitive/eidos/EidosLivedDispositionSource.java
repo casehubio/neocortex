@@ -16,11 +16,8 @@
 package io.casehub.neocortex.cognitive.eidos;
 
 import io.casehub.eidos.api.AgentDisposition;
-import io.casehub.eidos.api.DispositionValue;
 import io.casehub.eidos.api.LivedDispositionSource;
-import io.casehub.neocortex.cognitive.index.LivedComposition;
 import io.casehub.neocortex.cognitive.index.PersonalityStateSource;
-import io.casehub.neocortex.cognitive.index.WeightedTerm;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;

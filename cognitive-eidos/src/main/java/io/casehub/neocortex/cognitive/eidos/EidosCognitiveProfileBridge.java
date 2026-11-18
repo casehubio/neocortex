@@ -20,10 +20,10 @@ import io.casehub.eidos.api.AgentDisposition;
 import io.casehub.eidos.api.AgentGoal;
 import io.casehub.eidos.api.DispositionAxis;
 import io.casehub.eidos.api.DispositionValue;
-import io.casehub.neocortex.cognitive.index.LivedComposition;
-import io.casehub.neocortex.cognitive.index.LivedProfile;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.LivedComposition;
+import io.casehub.neocortex.cognitive.index.LivedProfile;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.WeightedTerm;
 
@@ -79,6 +79,33 @@ public class EidosCognitiveProfileBridge {
                                              .enneagramType(authored.disposition().enneagramType())
                                              .build();
         return authored.toBuilder().disposition(newDisposition).build();
+    }
+
+
+    public static AgentDisposition livedDisposition(AgentDisposition authored, LivedProfile lived) {
+        if (lived == null) {return authored;}
+        var authoredProfile = authored.dispositionProfile().stream()
+                                      .map(dv -> new WeightedTerm(dv.term(), dv.weight()))
+                                      .toList();
+        var effectiveTerms = LivedComposition.profile(authoredProfile, lived);
+        if (effectiveTerms == authoredProfile) {return authored;}
+        var effectiveValues = effectiveTerms.stream()
+                                            .map(wt -> new DispositionValue(wt.term(), wt.weight()))
+                                            .toList();
+        return AgentDisposition.builder()
+                               .socialOrient(authored.socialOrient())
+                               .ruleFollowing(authored.ruleFollowing())
+                               .riskAppetite(authored.riskAppetite())
+                               .autonomy(authored.autonomy())
+                               .conflictMode(authored.conflictMode())
+                               .delegation(authored.delegation())
+                               .dispositionProfile(effectiveValues)
+                               .styleProfile(authored.styleProfile())
+                               .mbtiType(authored.mbtiType())
+                               .enneagramType(authored.enneagramType())
+                               .ampdFacets(authored.ampdFacets())
+                               .situationalProfiles(authored.situationalProfiles())
+                               .build();
     }
 
     public static AgentDisposition composeFacets(AgentDisposition disposition,
