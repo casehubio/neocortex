@@ -131,4 +131,107 @@ class PersonalityStateServiceTest {
         assertThat(loaded.cursorTime()).isEqualTo(NOW);
         assertThat(loaded.exposedUntil()).isEqualTo(NOW.plusSeconds(3600));
     }
+
+    @Test
+    void transitionAppliesOperatorAtomicallyAndIncrementsVersion() {
+        service.read("t1", "agent1", NOW);
+        var result = service.transition("t1", "agent1", NOW, st -> {
+            var facets = new java.util.LinkedHashMap<>(st.facets());
+            facets.put("Anxiousness", st.facets().get("Anxiousness").withHomeOffset(0.05));
+            return st.withFacets(facets);
+        });
+        assertThat(result.version()).isEqualTo(1);
+        assertThat(result.facets().get("Anxiousness").homeOffset()).isCloseTo(0.05, within(1e-9));
+        assertThat(service.currentState("t1", "agent1").version()).isEqualTo(1);
+    }
+
+    @Test
+    void compositionVersionBumpsOnlyWhenComposedViewChanges() {
+        service.read("t1", "agent1", NOW);
+        assertThat(service.compositionVersion("t1", "agent1")).isZero();
+
+        service.transition("t1", "agent1", NOW, st -> {
+            var facets = new java.util.LinkedHashMap<>(st.facets());
+            facets.put("Anxiousness", st.facets().get("Anxiousness").withHomeOffset(0.05));
+            return st.withFacets(facets);
+        });
+        var v1 = service.compositionVersion("t1", "agent1");
+        assertThat(v1).isGreaterThan(0);
+
+        service.transition("t1", "agent1", NOW, st -> st.withCursorTime(NOW.plusSeconds(60)));
+        var v2 = service.compositionVersion("t1", "agent1");
+        assertThat(v2).isEqualTo(v1);
+    }
+
+    @Test
+    void promotionDoesNotBumpCompositionVersion() {
+        service.read("t1", "agent1", NOW);
+        service.transition("t1", "agent1", NOW, st -> {
+            var facets = new java.util.LinkedHashMap<>(st.facets());
+            facets.put("Anxiousness", st.facets().get("Anxiousness").withHomeOffset(0.05));
+            return st.withFacets(facets);
+        });
+        var v1 = service.compositionVersion("t1", "agent1");
+
+        service.transition("t1", "agent1", NOW, st -> {
+            var facets = new java.util.LinkedHashMap<>(st.facets());
+            var anx    = facets.get("Anxiousness");
+            facets.put("Anxiousness", new FacetState(anx.displacement(), anx.homeOffset() - 0.03,
+                                                     anx.resilience(), anx.exposure(), anx.load(), anx.promoted() + 0.03));
+            return st.withFacets(facets);
+        });
+        var v2 = service.compositionVersion("t1", "agent1");
+        assertThat(v2).isEqualTo(v1);
+    }
+
+    @Test
+    void interleavedTransitionsPreserveBothWriterEffects() throws Exception {
+        service.read("t1", "agent1", NOW);
+
+        var t1 = new Thread(() -> {
+            service.transition("t1", "agent1", NOW, st -> {
+                var facets = new java.util.LinkedHashMap<>(st.facets());
+                facets.put("Anxiousness", st.facets().get("Anxiousness").withHomeOffset(0.05));
+                return st.withFacets(facets);
+            });
+        });
+        var t2 = new Thread(() -> {
+            service.transition("t1", "agent1", NOW, st -> {
+                var facets = new java.util.LinkedHashMap<>(st.facets());
+                facets.put("Hostility", st.facets().get("Hostility").withHomeOffset(0.03));
+                return st.withFacets(facets);
+            });
+        });
+        t1.start();
+        t2.start();
+        t1.join(5000);
+        t2.join(5000);
+
+        var state = service.currentState("t1", "agent1");
+        assertThat(state.version()).isEqualTo(2);
+        assertThat(state.facets().get("Anxiousness").homeOffset()).isCloseTo(0.05, within(1e-9));
+        assertThat(state.facets().get("Hostility").homeOffset()).isCloseTo(0.03, within(1e-9));
+    }
+
+
+    @Test
+    void agentIdsIncludesCachedAgents() {
+        service.read("t1", "agent1", NOW);
+        service.read("t1", "agent2", NOW);
+        var ids = service.agentIds("t1");
+        assertThat(ids).containsExactlyInAnyOrder("agent1", "agent2");
+    }
+
+    @Test
+    void readReturnsPersistedStateAfterServiceRecreation() {
+        service.transition("t1", "agent1", NOW, st -> {
+            var facets = new java.util.LinkedHashMap<>(st.facets());
+            facets.put("Anxiousness", st.facets().get("Anxiousness").withHomeOffset(0.07));
+            return st.withFacets(facets);
+        });
+        var service2 = new PersonalityStateService(store, FACETS);
+        var loaded   = service2.read("t1", "agent1", NOW);
+        assertThat(loaded.facets().get("Anxiousness").homeOffset()).isCloseTo(0.07, within(1e-9));
+        assertThat(loaded.version()).isEqualTo(1);
+    }
 }

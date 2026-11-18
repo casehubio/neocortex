@@ -13,8 +13,20 @@ public record PersonalityState(
         Map<SituationalMode.Group, SituationalMode> winners,
         Instant cursorTime,
         Instant hourCursor,
-        Instant exposedUntil
+        Instant exposedUntil,
+        long version
 ) {
+    public PersonalityState(
+            Map<String, FacetState> facets,
+            Map<SituationalMode, Double> intensities,
+            Map<SituationalMode, Boolean> engaged,
+            Map<SituationalMode.Group, SituationalMode> winners,
+            Instant cursorTime,
+            Instant hourCursor,
+            Instant exposedUntil) {
+        this(facets, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, 0L);
+    }
+
     public static PersonalityState initial(Set<String> facetNames, Instant now) {
         var facets = new LinkedHashMap<String, FacetState>();
         for (String name : facetNames) {
@@ -44,24 +56,28 @@ public record PersonalityState(
     }
 
     public PersonalityState withCursorTime(Instant t) {
-        return new PersonalityState(facets, intensities, engaged, winners, t, hourCursor, exposedUntil);
+        return new PersonalityState(facets, intensities, engaged, winners, t, hourCursor, exposedUntil, version);
     }
 
     public PersonalityState withFacets(Map<String, FacetState> f) {
-        return new PersonalityState(f, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil);
+        return new PersonalityState(f, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, version);
     }
 
     public PersonalityState withHourCursor(Instant hc) {
-        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hc, exposedUntil);
+        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hc, exposedUntil, version);
     }
 
     public PersonalityState withExposedUntil(Instant eu) {
-        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, eu);
+        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, eu, version);
     }
 
     public PersonalityState withDetection(DetectionResult detection) {
         return new PersonalityState(facets, detection.intensities(), detection.engaged(),
-                                    detection.winners(), cursorTime, hourCursor, exposedUntil);
+                                    detection.winners(), cursorTime, hourCursor, exposedUntil, version);
+    }
+
+    public PersonalityState withVersion(long v) {
+        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, v);
     }
 
 
