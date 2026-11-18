@@ -90,9 +90,15 @@ Our use case — cognitive agent characters in a social simulation — falls squ
 | Era 6 | + AMPD/PID-5 facets (expression styles, search budget, recurring thoughts) | Continuous [0,1] for 5 methods, categorical for 6 |
 | **Era 7** | **Bridge fix + full facet integration + Jungian×PID-5 modulation** | **Continuous for all methods, dual-channel interaction** |
 
-## Implementation Status (2026-11-16)
+## Implementation Status (2026-11-17)
 
 All design goals achieved. Implementation complete across three repos (eidos, neocortex, examples). Coping strategies pipeline (epic #595) Batches 1-5 complete — regulation refactoring, CAPS coping attractors, goal operations dispatch all wired.
+
+### Downstream consumer: situation classifier PID-5 integration (#977)
+- PID-5 facets flow through the CAPS situation classifier pipeline. `addPersonalityMetadata()` populates `pid5.<Facet>=<2dp>` metadata keys alongside disposition axes, using the `LearningProfile` API (tenant-scoped, resting values). `PersonalityPromptBuilder` formats them as natural-language annotations (high/low/moderate labels). CBR cache key includes PID-5 in SHA-256 hash — different personality magnitudes produce different cache entries. Model version `haiku-pid5` invalidates pre-PID-5 cache.
+- **Resolved (#1085, #1086):** AppraisalWeights enrichment restored. `LearningProfile` now exposes `appraisalWeights()` — the resting-only contract is preserved since appraisal weights are personality-derived, not situationally displaced. Both consolidation phases delegate to `PersonalityMetadataEnricher` via a new `LearningProfile` overload. All three enrichment dimensions (disposition axes, PID-5 facets, appraisal weights) are active in classifier prompts.
+- Full pipeline: Engram YAML → Eidos → Bridge → DescriptorView → CDE derivation → metadata enrichment → classifier prompt + CBR cache.
+- Follow-up: #1071 extracted `PersonalityMetadataEnricher` shared utility in cognitive-index. #1086 revived it with a `LearningProfile` overload — both `BehavioralSynthesisPhase` and `DriveProfileDerivationPhase` now delegate to it, eliminating the duplicate inline enrichment from the #712 rebase. #1070 wired `Pid5FacetsConfig` to filter facets at enrichment time. #1072 removed dead `hasPid5()` and hardened eval assertions.
 
 ### Pipeline unification
 - `AmpdFacet` record added to `AgentDisposition` (eidos-api). Backward-compatible 10-arg constructor preserved.
@@ -127,11 +133,84 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - neocortex#963: Bridge should fire onFacetMapped events
 - examples#207: Add ampdFacets to wacky-manor character engrams
 - neocortex#964: YAML round-trip test for ampdFacets deserialization
-- neocortex#980: ConsolidationScheduler does not journal during consolidation phases
+- ~~neocortex#980: ConsolidationScheduler does not journal during consolidation phases~~ ✅ Landed 2026-11-17 (setCognitiveJournal() on ConsolidationPhase SPI)
+- ~~neocortex#1070: Wire pid5Facets config to metadata enrichment and cache key~~ ✅ Landed 2026-11-17 (Pid5FacetsConfig in mindmap-intelligence, PersonalityMetadataEnricher filters)
+- ~~neocortex#1071: Extract addPersonalityMetadata to shared utility~~ ✅ Landed 2026-11-17 (PersonalityMetadataEnricher in cognitive-index)
+- ~~neocortex#1072: Remove dead hasPid5(), strengthen eval test assertions~~ ✅ Landed 2026-11-17
+
+### Epic #1050 — CAPS pipeline wiring completeness (resolved 2026-11-17)
+84 issues across the full CAPS pipeline — topology structure, coping→regulation connections, orphaned output nodes, personality-aware classification (PID-5 + AppraisalWeights), search budget, drive composition, CAPS settling, and observability. All verified end-to-end. Pre-existing test failures filed as #1077 (AttentionSignalTest) and #1078 (CopingStrategyPredictorTest).
+
+### Epic #1090 — Cognition bug fix sweep (2026-11-17)
+8-issue queue addressing pre-existing failures and correctness bugs across the cognitive pipeline. 3 issues already resolved by prior sessions (#1078, #1049, #1038). 1 issue referenced a removed class (#1088 — SituationalStateService no longer exists). 3 fixes landed:
+
+| Issue | Fix | Impact |
+|---|---|---|
+| #1077 | AttentionSignalTest enum count 12→14 (COPING_FOCUS, COPING_SUPPRESS) | Test correctness |
+| #1061 | BehavioralSynthesisPhase cache key agentId → tenantId:agentId | Multi-tenant isolation — prevents cross-tenant settling result leakage |
+| #1064 | 9 MindMapQuery search limits raised 200→2000 | Prevents silent data loss from search-then-filter pattern on active tenants |
+
+#1060 (PersonalityEvolutionOrchestrator never ticked) deferred — requires design decision on evolution cadence and propagation path. Filed: #1091 (MindMapQuery property filters), #1092 (AppraisalStatePropagationTest failure), #1093 (EmotionRegulationTickParticipantTest failures).
+
 ## Open Questions
 
 1. **Should `derivePersonality` (the foundation derivation) get PID-5 modulation?** Currently excluded to avoid cascading effects. May revisit after eval validation of downstream modulations.
 
-2. **Are 13 facets sufficient?** The full PID-5 has 25 facets. The biography pipeline scores 13. Missing facets include Anhedonia, Depressivity, Restricted Affectivity, Separation Insecurity, Submissiveness, and the Psychoticism facets. Some of these (Anhedonia, Depressivity) could add richness.
+2. **Are 13 facets sufficient?** The full PID-5 has 25 facets. The biography pipeline scores 13. Missing facets include Anhedonia, Depressivity, Restricted Affectivity, Separation Insecurity, Submissiveness, and the Psychoticism facets. Some of these (Anhedonia, Depressivity) could add richness. Note: any additional facets automatically flow through the EffectiveCognitiveDefaults pipeline — `composeFacets` iterates ALL facets in the base DescriptorView. The gap is attractor profile data in `archetype-situational-profiles.yaml`, not code. See #1076.
 
 3. **Should Tier 2 modulations be promoted to Tier 1?** If eval results show significant coherence improvement from a Tier 2 modulation, and subsequent literature search finds supporting evidence, the modulation can be reclassified.
+
+## Era 7b — Situational Personality Modulation (#712)
+
+**Status (2026-11-17):** All 5 batches complete. Implementation finished — 79 tests (75 cognition + 4 caps-engine). Production CDI wiring deferred to #1082.
+
+- **Batch 1:** Config loader, integrator, detector — 44 tests
+- **Batch 2:** Appraisal fixes — SEC dimensions passthrough, tick stamping, relational bias clamp, input activations accessor — 9 tests
+- **Batch 3:** MindMap personality-state persistence (SituationalStateService), eidos profile-to-delta conversion (SituationalDeltaConverter) — 16 tests
+- **eidos#234:** Prerequisite delivered — AmpdFacetShift, SituationalProfile, 60 archetype-family profiles (12 families × 5 modes), SituationalProfileDeriver — 26 tests, 616 total eidos tests green
+- **#1055 (Part 0a):** EffectiveCognitiveDefaults with resting/effective split — 65 files changed, ~108 production callsite migration, 2301 tests green (0 regressions). Key deliverables:
+  - `EffectiveCognitiveDefaults` — tenant-scoped `ConcurrentHashMap<(tenantId, agentId), Slot>` with version-based concurrency protocol. Two read paths: `forAgent` (effective) and `restingFor` → `LearningProfile` (resting). Two SPIs for lazy population: `DescriptorViewSource` (Eidos), `PersonalityStateSource` (situational state). Facet composition: `clamp01(base + homeOffset [+ displacement])` per facet. Pure `merge(explicit, derive(fresh inputs))` — never merge with previous result.
+  - `LearningProfile` — type-level enforcement of the TESSERA constraint. Learning rules cannot be fed effective values without a compile error. Every consumer classified per the spec's table: 9 resting, 8 effective, 3 enumerate, 3 explicit-only.
+  - Bridge simplified — `bridgeAll`/`registerFromDescriptor` deleted, `toDescriptorView` public static. `EidosDescriptorViewSource` implements `DescriptorViewSource` SPI.
+  - `CognitionCore.tick` wires `updateBase` before FOUNDATION. New module edge: cognition → cognitive-eidos.
+  - **Deferred:** #1079 (field-classification test), #1080 (AgentRegistryEvents listener), #1081 (stale refresh, eviction wiring)
+- **Batch 4:** SituationalPersonalityParticipant TERMINAL tick wiring (6 tests), SituationalDeformationPhase consolidation (5 tests). Code review finding: per-agent detection isolation bug (shared volatile lastResult → ConcurrentHashMap keyed by agentId:tenantId). DeformationPhase journal field made volatile.
+- **Batch 5:** Journal entry types (SituationalModulation, SituationalDeformationConsolidated), E2E integration test — full stress cycle with recovery, noise-floor idle, state persistence, tenant isolation (4 tests). Noise-floor topology test in caps-engine — threat_sensitivity marginally exceeds per-mode floor (0.3241 vs 0.30) under cumulative activation; cumulative threshold set to 0.35 (4 tests).
+- **Issues filed:** #1068 (prompt clause), #1069 (map cleanup), #1073 (attention accumulator tenant grouping), #1079 (field-classification test), #1080 (AgentRegistryEvents listener), #1081 (stale refresh + eviction), #1082 (CDI wiring for participant), #1083 (RelationalSchemaResolver trust signal), #1084 (PipelineTrace snapshot)
+- **Blogs:** "The Elastic Band" (design), "Where Personality Lives" (implementation boundary), "The Type-Level Split" (#1055 resting/effective enforcement), "Wiring the Elastic Band" (Batch 4-5 implementation, bugs, topology findings)
+
+### Concept
+
+Era 7 made personality static — PID-5 facets derived once at character creation drive all cognitive defaults. Era 7b makes personality *situational*: facets shift continuously in response to detected stress, flow, and social context, then partially return when the situation resolves. The mechanism: an elastic band model where each facet has displacement (current pull), home offset (lasting drift), and resilience (recoverability).
+
+### Theoretical grounding
+
+- **Whole Trait Theory** (Fleeson & Jayawickreme 2015): a trait is a density distribution of personality states, not a fixed point.
+- **Transactional stress** (Lazarus & Folkman 1984): stress = relevance × goal obstruction × low coping potential.
+- **TESSERA** (Wrzus & Roberts 2017): lasting personality change accrues from repeated states through slow processes.
+- **Mood-congruent appraisal** (Bower 1981; Forgas 1995 AIM): endogenous signals amplify situational evidence, never substitute for it. Gain-form: `E = X · (1 + β·N)` guarantees `X=0 ⇒ E=0`.
+- **Archetype shadow forms** (Pearson 1991; Mark & Pearson 2001): 12 families with characteristic degradation patterns.
+
+### Architecture
+
+The modulation sits between the personality store and the CDE. The CDE is unmodified — it receives effective facet scores and derives cognitive defaults through all existing pathways.
+
+| Component | Role |
+|---|---|
+| `SituationalPersonalityConfig` + YAML | Detection thresholds, signal weights, dynamics parameters |
+| `SituationalDetector` | Gain-form evidence → mode intensities and group winners |
+| `PersonalityStateIntegrator` | Elastic band — advance (hourly grid) + pull (per-tick) |
+| `SituationalStateService` | Per-agent state cache, MindMap persistence |
+| `SituationalPersonalityParticipant` | TERMINAL tick participant |
+| `EffectiveCognitiveDefaults` (#1055) | Resting vs effective split |
+
+### Key design decisions
+
+1. **One model, not overlay.** Single continuously-evolving state vector. No discrete overlay/snapshot mechanism.
+2. **Implicit modulation only.** No prompt rendering of shadow context. Change flows through CDE parameter modulation.
+3. **Resting vs effective defaults.** Learning rules read resting; behaviour reads effective.
+4. **Wall-clock grid.** Slow dynamics at hour boundaries with exact integrals. Tick-rate independent.
+
+### Pre-existing defects surfaced during design review
+
+#1060 (PEO never ticked), #1061 (agentId-keyed caches), #1062 (duplicated CAPS settlements), #1063 (ConsolidationScheduler starvation), #1064 (bounded search filter), #1065 (no hierarchy roles).

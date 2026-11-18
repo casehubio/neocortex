@@ -2,7 +2,7 @@ package io.casehub.neocortex.mindmap.intelligence;
 
 import io.casehub.neocortex.cognitive.PadProjection;
 import io.casehub.neocortex.mindmap.*;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
 import io.casehub.neocortex.memory.experience.ExperienceRecorded;
 import io.casehub.neocortex.memory.experience.Outcome;
@@ -21,19 +21,19 @@ public class ActionAppraisalObserver {
 
     private final MindMapStore store;
     private final ActionAppraisal appraisal;
-    private final CognitiveDefaultsRegistry registry;
+    private final EffectiveCognitiveDefaults registry;
 
     @Inject
     public ActionAppraisalObserver(Instance<MindMapStore> store,
                                     Instance<ActionAppraisal> appraisal,
-                                    Instance<CognitiveDefaultsRegistry> registry) {
+                                    Instance<EffectiveCognitiveDefaults> registry) {
         this.store     = store.isResolvable() ? store.get() : null;
         this.appraisal = appraisal.isResolvable() ? appraisal.get() : null;
         this.registry  = registry.isResolvable() ? registry.get() : null;
     }
 
     ActionAppraisalObserver(MindMapStore store, ActionAppraisal appraisal,
-                             CognitiveDefaultsRegistry registry) {
+                             EffectiveCognitiveDefaults registry) {
         this.store     = store;
         this.appraisal = appraisal;
         this.registry  = registry;
@@ -49,7 +49,7 @@ public class ActionAppraisalObserver {
 
             ActionOutcome actionOutcome = mapOutcome(outcome);
             double goalRelevance = computeGoalRelevance(outcome, tenantId, actionOutcome);
-            AppraisalWeights weights = lookupWeights(agentId);
+            AppraisalWeights weights = lookupWeights(tenantId, agentId);
 
             var selfContext = new ActionContext(
                     agentId, agentId, tenantId, outcome.turnId(),
@@ -137,9 +137,9 @@ public class ActionAppraisalObserver {
         return null;
     }
 
-    private AppraisalWeights lookupWeights(String agentId) {
+    private AppraisalWeights lookupWeights(String tenantId, String agentId) {
         if (registry == null) return AppraisalWeights.NEUTRAL;
-        var defaults = registry.forAgentOrDefaults(agentId);
+        var defaults = registry.forAgentOrDefaults(tenantId, agentId);
         var w = defaults.appraisalWeights();
         return w != null ? w : AppraisalWeights.NEUTRAL;
     }

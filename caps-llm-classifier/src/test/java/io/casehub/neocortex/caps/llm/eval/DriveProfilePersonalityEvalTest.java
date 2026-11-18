@@ -4,7 +4,7 @@ import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.engine.CapsTopologyLoader;
 import io.casehub.neocortex.caps.llm.LlmSituationClassifier;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
@@ -78,7 +78,7 @@ class DriveProfilePersonalityEvalTest {
     private Map<String, Map<String, String>> runDerivation(
             Map<String, EvalCharacterData> characters,
             SituationClassifier classifier, CapsTopology topology,
-            CognitiveDefaultsRegistry registry) {
+            EffectiveCognitiveDefaults registry) {
 
         var store = new InMemoryMindMapStore();
         var testedAgents = Set.of("peter-perfect", "hooded-claw", "penelope-pitstop");
@@ -120,7 +120,7 @@ class DriveProfilePersonalityEvalTest {
         return profiles;
     }
 
-    private static CognitiveDefaultsRegistry buildRegistry() {
+    private static EffectiveCognitiveDefaults buildRegistry() {
         var pp = CognitiveDerivationEngine.derive(DescriptorView.of("peter-perfect",
                 new DispositionAxes("cooperative", "strict", "conservative", "low", "protective"),
                 List.of(), List.of()));
@@ -130,6 +130,6 @@ class DriveProfilePersonalityEvalTest {
         var pen = CognitiveDerivationEngine.derive(DescriptorView.of("penelope-pitstop",
                 new DispositionAxes("cooperative", "flexible", "bold", "collaborative", "protective"),
                 List.of(), List.of()));
-        return CognitiveDefaultsRegistry.forTesting(pp, hc, pen);
+        return EffectiveCognitiveDefaults.forTesting(pp, hc, pen);
     }
 }

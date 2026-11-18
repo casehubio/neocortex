@@ -20,5 +20,8 @@ public record CopingDefaults(
         double reinterpretationTendency,
         double avoidanceTendency,
         double supportSeekingTendency,
-        double acceptanceTendency
+        double acceptanceTendency,
+        double confrontationTendency,
+        double disengagementTendency,
+        double suppressionTendency
 ) {}

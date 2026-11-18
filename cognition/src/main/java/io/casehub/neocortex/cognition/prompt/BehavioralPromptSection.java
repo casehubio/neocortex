@@ -56,7 +56,6 @@ public class BehavioralPromptSection implements CognitionPromptRenderer {
                                                        })
                                                        .thenComparing(Comparator.comparingDouble(
                                                                (MindMapNode n) -> parseDouble(n, "strength")).reversed()))
-                                     .limit(5)
                                      .toList();
 
         var sb = new StringBuilder();
@@ -89,8 +88,9 @@ public class BehavioralPromptSection implements CognitionPromptRenderer {
         String attractorName = node.property("personality-label").orElse(node.name());
 
         if (oscillating) {
-            return String.format("You feel a competing pull toward %s%s — your mind hasn't settled on this.",
-                                 attractorName, sourceContext);
+            return String.format(
+                    "You feel a competing pull toward %s%s — this ambivalence is real, not a problem to resolve. Sit with it.",
+                    attractorName, sourceContext);
         }
 
         String label = strength > deepRootedThreshold() ? "deeply ingrained"

@@ -1,0 +1,250 @@
+package io.casehub.neocortex.cognitive.index;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class EffectiveCognitiveDefaultsTest {
+
+    private CognitiveDefaultsRegistry registry;
+    private StubDescriptorViewSource viewSource;
+    private StubPersonalityStateSource stateSource;
+    private EffectiveCognitiveDefaults effective;
+
+    @BeforeEach
+    void setUp() {
+        registry = new CognitiveDefaultsRegistry();
+        viewSource = new StubDescriptorViewSource();
+        stateSource = new StubPersonalityStateSource();
+        effective = new EffectiveCognitiveDefaults(registry, viewSource, stateSource);
+    }
+
+    @Test
+    void forAgentReturnsEffectiveDefaults() {
+        var view = DescriptorView.of("agent-1",
+                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                List.of(new WeightedTerm("fe", 0.8)), List.of());
+        viewSource.add("tenant-1", view);
+
+        var defaults = effective.forAgent("tenant-1", "agent-1");
+        assertThat(defaults).isNotNull();
+        assertThat(defaults.agentId()).isEqualTo("agent-1");
+        assertThat(defaults.moodBaseline()).isNotNull();
+    }
+
+    @Test
+    void restingForReturnsLearningProfile() {
+        var view = DescriptorView.of("agent-1",
+                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                List.of(new WeightedTerm("fe", 0.8)), List.of());
+        viewSource.add("tenant-1", view);
+
+        var profile = effective.restingFor("tenant-1", "agent-1");
+        assertThat(profile).isNotNull();
+        assertThat(profile.agentId()).isEqualTo("agent-1");
+    }
+
+    @Test
+    void secondDerivationWithChangedFacetsChangesDefaults() {
+        var facets = List.of(
+                new PersonalityFacet("Anxiousness", 0.5, "eidos"),
+                new PersonalityFacet("Emotional Lability", 0.5, "eidos"));
+        var view = new DescriptorView("agent-1",
+                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                List.of(new WeightedTerm("fe", 0.8)), List.of(), null, facets);
+        viewSource.add("tenant-1", view);
+
+        var before = effective.forAgent("tenant-1", "agent-1");
+        var beforeAppraisal = before.appraisalWeights();
+
+        var shifted = new PersonalityStateSnapshot(
+                Map.of("Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.0, 0.3)),
+                1);
+        effective.updateState("tenant-1", "agent-1", shifted, "tick-2");
+
+        var after = effective.forAgent("tenant-1", "agent-1");
+        assertThat(after.appraisalWeights()).isNotEqualTo(beforeAppraisal);
+    }
+
+    @Test
+    void explicitPinnedFieldSurvivesReDerivation() {
+        var explicit = CognitiveDefaults.empty("agent-1")
+                .withRegulationDefaults(new RegulationDefaults(0.99, 0.1, 0.1, 0.1));
+        registry.register(explicit);
+        var view = DescriptorView.of("agent-1",
+                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                List.of(new WeightedTerm("fe", 0.8)), List.of());
+        viewSource.add("tenant-1", view);
+
+        var defaults = effective.forAgent("tenant-1", "agent-1");
+        assertThat(defaults.regulationDefaults().reappraisalCapacity()).isEqualTo(0.99);
+    }
+
+    @Test
+    void sameAgentIdInTwoTenantsHasIndependentDefaults() {
+        var facetsA = List.of(new PersonalityFacet("Anxiousness", 0.3, "eidos"));
+        var facetsB = List.of(new PersonalityFacet("Anxiousness", 0.9, "eidos"));
+        var viewA = new DescriptorView("agent-1", null, List.of(), List.of(), null, facetsA);
+        var viewB = new DescriptorView("agent-1", null, List.of(), List.of(), null, facetsB);
+        viewSource.add("tenant-A", viewA);
+        viewSource.add("tenant-B", viewB);
+
+        var defaultsA = effective.forAgent("tenant-A", "agent-1");
+        var defaultsB = effective.forAgent("tenant-B", "agent-1");
+        assertThat(defaultsA.descriptor().personalityFacets())
+                .isNotEqualTo(defaultsB.descriptor().personalityFacets());
+    }
+
+    @Test
+    void concurrentUpdateStateNoLostUpdate() throws Exception {
+        var view = new DescriptorView("agent-1", null, List.of(), List.of(), null,
+                List.of(new PersonalityFacet("Anxiousness", 0.5, "eidos")));
+        viewSource.add("t1", view);
+        effective.forAgent("t1", "agent-1");
+
+        int threads = 8;
+        var latch = new CountDownLatch(1);
+        var executor = Executors.newFixedThreadPool(threads);
+        var futures = new ArrayList<Future<?>>();
+
+        for (int i = 0; i < threads; i++) {
+            int version = i + 1;
+            futures.add(executor.submit(() -> {
+                try { latch.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                effective.updateState("t1", "agent-1",
+                        new PersonalityStateSnapshot(
+                                Map.of("Anxiousness",
+                                        new PersonalityStateSnapshot.FacetDisplacement(0.01 * version, 0.0)),
+                                version),
+                        "tick-" + version);
+            }));
+        }
+        latch.countDown();
+        for (var f : futures) f.get(5, TimeUnit.SECONDS);
+        executor.shutdown();
+
+        var defaults = effective.forAgent("t1", "agent-1");
+        assertThat(defaults).isNotNull();
+    }
+
+    @Test
+    void agentIdsReturnsTenantScopedUnion() {
+        viewSource.add("t1", DescriptorView.of("a1", null, List.of(), List.of()));
+        viewSource.add("t1", DescriptorView.of("a2", null, List.of(), List.of()));
+        registry.register(CognitiveDefaults.empty("a3"));
+
+        var ids = effective.agentIds("t1");
+        assertThat(ids).containsExactlyInAnyOrder("a1", "a2", "a3");
+    }
+
+    @Test
+    void updateBaseRefreshesSlot() {
+        var view = DescriptorView.of("agent-1",
+                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                List.of(new WeightedTerm("fe", 0.8)), List.of());
+        viewSource.add("t1", view);
+        effective.forAgent("t1", "agent-1");
+
+        var updatedView = DescriptorView.of("agent-1",
+                new DispositionAxes("competitive", "strict", "bold", "high", "analytical"),
+                List.of(new WeightedTerm("te", 0.9)), List.of());
+        effective.updateBase("t1", updatedView, "tick-2");
+
+        var defaults = effective.forAgent("t1", "agent-1");
+        assertThat(defaults.descriptor()).isEqualTo(updatedView);
+    }
+
+    @Test
+    void forAgentOrDefaultsNeverReturnsNull() {
+        var defaults = effective.forAgentOrDefaults("t1", "unknown-agent");
+        assertThat(defaults).isNotNull();
+        assertThat(defaults.agentId()).isEqualTo("unknown-agent");
+    }
+
+    @Test
+    void restingExcludesDisplacementEffectiveIncludes() {
+        var facets = List.of(new PersonalityFacet("Anxiousness", 0.5, "eidos"));
+        var view = new DescriptorView("agent-1",
+                new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical"),
+                List.of(new WeightedTerm("fe", 0.8)), List.of(), null, facets);
+        viewSource.add("t1", view);
+
+        var state = new PersonalityStateSnapshot(
+                Map.of("Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.1, 0.2)),
+                1);
+        stateSource.set("t1", "agent-1", state);
+
+        var resting = effective.restingFor("t1", "agent-1");
+        var eff = effective.forAgent("t1", "agent-1");
+
+        var restingAnx = resting.facets().stream()
+                .filter(f -> f.facet().equals("Anxiousness")).findFirst().orElseThrow();
+        var effAnx = eff.descriptor().personalityFacets().stream()
+                .filter(f -> f.facet().equals("Anxiousness")).findFirst().orElseThrow();
+
+        assertThat(restingAnx.score()).isCloseTo(0.6, org.assertj.core.data.Offset.offset(0.001));
+        assertThat(effAnx.score()).isCloseTo(0.8, org.assertj.core.data.Offset.offset(0.001));
+    }
+
+    @Test
+    void situationalOriginSetWhenFacetShifted() {
+        var facets = List.of(new PersonalityFacet("Anxiousness", 0.5, "eidos"));
+        var view = new DescriptorView("agent-1", null, List.of(), List.of(), null, facets);
+        viewSource.add("t1", view);
+
+        var state = new PersonalityStateSnapshot(
+                Map.of("Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.0, 0.2)),
+                1);
+        stateSource.set("t1", "agent-1", state);
+
+        var eff = effective.forAgent("t1", "agent-1");
+        var anxFacet = eff.descriptor().personalityFacets().stream()
+                .filter(f -> f.facet().equals("Anxiousness")).findFirst().orElseThrow();
+        assertThat(anxFacet.origin()).isEqualTo("situational");
+    }
+
+    // --- Stubs ---
+
+    static class StubDescriptorViewSource implements DescriptorViewSource {
+        private final Map<String, Map<String, DescriptorView>> views = new HashMap<>();
+
+        void add(String tenantId, DescriptorView view) {
+            views.computeIfAbsent(tenantId, k -> new HashMap<>()).put(view.agentId(), view);
+        }
+
+        @Override
+        public Optional<DescriptorView> find(String tenantId, String agentId) {
+            return Optional.ofNullable(views.getOrDefault(tenantId, Map.of()).get(agentId));
+        }
+
+        @Override
+        public List<String> agentIds(String tenantId) {
+            return List.copyOf(views.getOrDefault(tenantId, Map.of()).keySet());
+        }
+    }
+
+    static class StubPersonalityStateSource implements PersonalityStateSource {
+        private final Map<String, PersonalityStateSnapshot> states = new HashMap<>();
+
+        void set(String tenantId, String agentId, PersonalityStateSnapshot snap) {
+            states.put(tenantId + ":" + agentId, snap);
+        }
+
+        @Override
+        public Optional<PersonalityStateSnapshot> find(String tenantId, String agentId, Instant now) {
+            return Optional.ofNullable(states.get(tenantId + ":" + agentId));
+        }
+    }
+}

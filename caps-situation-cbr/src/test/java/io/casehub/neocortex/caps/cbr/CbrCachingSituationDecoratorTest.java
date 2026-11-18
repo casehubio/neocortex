@@ -13,6 +13,7 @@ import io.casehub.neocortex.memory.cbr.FeatureValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class CbrCachingSituationDecoratorTest {
 
@@ -202,4 +207,62 @@ class CbrCachingSituationDecoratorTest {
         assertThat(result.activations()).isEmpty();
         verify(cbrStore, never()).store(any(), any(), any(), any(), any(), any(), any());
     }
+
+    @Test
+    void computeCaseId_sameDisposition_differentPid5_differentIds() {
+        var meta1 = new HashMap<String, String>();
+        meta1.put("disposition.socialOrient", "cooperative");
+        meta1.put("pid5.Anxiousness", "0.85");
+
+        var meta2 = new HashMap<String, String>();
+        meta2.put("disposition.socialOrient", "cooperative");
+        meta2.put("pid5.Anxiousness", "0.20");
+
+        String id1 = CbrCachingSituationDecorator.computeCaseId("desc", "", "", meta1);
+        String id2 = CbrCachingSituationDecorator.computeCaseId("desc", "", "", meta2);
+
+        assertThat(id1).isNotEqualTo(id2);
+    }
+
+    @Test
+    void computeCaseId_samePid5AndAppraisal_sameId() {
+        var meta1 = new HashMap<String, String>();
+        meta1.put("pid5.Anxiousness", "0.85");
+        meta1.put("appraisal.urgencyWeight", "1.45");
+
+        var meta2 = new HashMap<String, String>();
+        meta2.put("pid5.Anxiousness", "0.85");
+        meta2.put("appraisal.urgencyWeight", "1.45");
+
+        String id1 = CbrCachingSituationDecorator.computeCaseId("desc", "", "", meta1);
+        String id2 = CbrCachingSituationDecorator.computeCaseId("desc", "", "", meta2);
+
+        assertThat(id1).isEqualTo(id2);
+    }
+
+    @Test
+    void computeCaseId_noPid5_backwardCompatibleWithDisposition() {
+        var metaDisp     = Map.of("disposition.socialOrient", "cooperative");
+        var metaDispCopy = new HashMap<>(metaDisp);
+
+        String id1 = CbrCachingSituationDecorator.computeCaseId("desc", "ev", "ck", metaDisp);
+        String id2 = CbrCachingSituationDecorator.computeCaseId("desc", "ev", "ck", metaDispCopy);
+
+        assertThat(id1).isEqualTo(id2);
+    }
+
+    @Test
+    void computeCaseId_differentAppraisal_differentIds() {
+        var meta1 = new HashMap<String, String>();
+        meta1.put("appraisal.fearOnsetThreshold", "1.60");
+
+        var meta2 = new HashMap<String, String>();
+        meta2.put("appraisal.fearOnsetThreshold", "0.70");
+
+        String id1 = CbrCachingSituationDecorator.computeCaseId("desc", "", "", meta1);
+        String id2 = CbrCachingSituationDecorator.computeCaseId("desc", "", "", meta2);
+
+        assertThat(id1).isNotEqualTo(id2);
+    }
+
 }

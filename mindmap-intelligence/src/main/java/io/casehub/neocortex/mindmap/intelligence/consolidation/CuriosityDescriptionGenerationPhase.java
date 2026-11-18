@@ -1,8 +1,8 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognition.drive.CuriosityChannel;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
+import io.casehub.neocortex.cognitive.index.LearningProfile;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -63,7 +63,7 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
     private final MindMapStore store;
     private final InformationGapDetector gapDetector;
     private final CuriosityChannelComputer channelComputer;
-    private final CognitiveDefaultsRegistry defaultsRegistry;
+    private final EffectiveCognitiveDefaults effectiveDefaults;
     private final @Nullable SessionPipeline sessionPipeline;
     private final @Nullable RecurringThoughtPhase recurringThoughtPhase;
 
@@ -72,13 +72,13 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
     public CuriosityDescriptionGenerationPhase(
             MindMapStore store,
             InformationGapDetector gapDetector,
-            CognitiveDefaultsRegistry defaultsRegistry,
+            EffectiveCognitiveDefaults effectiveDefaults,
             Instance<SessionPipeline> sessionPipelineInstance,
             Instance<RecurringThoughtPhase> recurringThoughtPhaseInstance) {
         this.store                 = store;
         this.gapDetector           = gapDetector;
         this.channelComputer       = new CuriosityChannelComputer();
-        this.defaultsRegistry      = defaultsRegistry;
+        this.effectiveDefaults      = effectiveDefaults;
         this.sessionPipeline       = sessionPipelineInstance != null && sessionPipelineInstance.isResolvable()
                                      ? sessionPipelineInstance.get() : null;
         this.recurringThoughtPhase = recurringThoughtPhaseInstance != null && recurringThoughtPhaseInstance.isResolvable()
@@ -88,12 +88,12 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
     CuriosityDescriptionGenerationPhase(
             MindMapStore store,
             InformationGapDetector gapDetector,
-            CognitiveDefaultsRegistry defaultsRegistry,
+            EffectiveCognitiveDefaults effectiveDefaults,
             @Nullable SessionPipeline sessionPipeline) {
         this.store                 = store;
         this.gapDetector           = gapDetector;
         this.channelComputer       = new CuriosityChannelComputer();
-        this.defaultsRegistry      = defaultsRegistry;
+        this.effectiveDefaults      = effectiveDefaults;
         this.sessionPipeline       = sessionPipeline;
         this.recurringThoughtPhase = null;
     }
@@ -111,11 +111,9 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
         var tasks = new ArrayList<Consumer<AgentSession>>();
         var agentChannels = new ArrayList<Map.Entry<String, CuriosityChannel>>();
 
-        for (CognitiveDefaults defaults : defaultsRegistry.allProfiles()) {
-            if (defaults.tenantId() != null && !tenantId.equals(defaults.tenantId())) continue;
-
-            String agentId = defaults.agentId();
-            double deprivationBias = deriveDeprivationBias(defaults);
+        for (String agentId : effectiveDefaults.agentIds(tenantId)) {
+            var profile = effectiveDefaults.restingFor(tenantId, agentId);
+            double deprivationBias = deriveDeprivationBias(profile);
             var channel = channelComputer.compute(gaps, deprivationBias);
             if (channel == null) continue;
 
@@ -234,11 +232,13 @@ public class CuriosityDescriptionGenerationPhase implements ConsolidationPhase {
         return sb.toString().trim();
     }
 
-    private double deriveDeprivationBias(CognitiveDefaults defaults) {
-        if (defaults.appraisalWeights() != null) {
-            // Lower fear onset threshold = more anxiety-prone = higher D-type curiosity
-            double fearThreshold = defaults.appraisalWeights().fearOnsetThreshold();
-            return Math.clamp(1.0 - fearThreshold, 0.0, 1.0);
+    private double deriveDeprivationBias(LearningProfile profile) {
+        var facets = profile.facets();
+        if (facets != null && !facets.isEmpty()) {
+            double anxiousness = facets.stream()
+                .filter(f -> "Anxiousness".equals(f.facet()))
+                .findFirst().map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score).orElse(0.5);
+            return Math.clamp(anxiousness, 0.0, 1.0);
         }
         return 0.5;
     }

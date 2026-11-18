@@ -268,7 +268,10 @@ public record CopingDefaults(
     double reinterpretationTendency,  // Openness → positive reinterpretation, meaning-making
     double avoidanceTendency,         // Neuroticism → avoidant/emotion-focused coping
     double supportSeekingTendency,    // Agreeableness + Extraversion → social support
-    double acceptanceTendency         // Low Neuroticism → acceptance, equanimity
+    double acceptanceTendency,        // Low Neuroticism → acceptance, equanimity
+    double confrontationTendency,     // Extraversion + Conscientiousness → active confrontation (#1052)
+    double disengagementTendency,     // Neuroticism + low Conscientiousness → mental disengagement (#1052)
+    double suppressionTendency        // Neuroticism + ruleFollowing → thought suppression (#1052)
 ) {}
 ```
 
@@ -278,6 +281,9 @@ public record CopingDefaults(
 - Openness → positive reinterpretation (r = .11)
 - Agreeableness → social support seeking (r = .11)
 - Extraversion → social support seeking (r = .14)
+- Extraversion + Conscientiousness → active confrontation/engagement (r = .15, .26)
+- Neuroticism + low Conscientiousness → cognitive disengagement (r = .26)
+- Neuroticism + ruleFollowing → suppression (r = .30)
 
 ### CopingStrategyPredictor
 

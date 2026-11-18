@@ -57,7 +57,7 @@ public class InformationGapDetector {
         for (MindMapSubgraph sg : subgraphs) {
             if (SubgraphTypes.TYPE_SYSTEM.equals(sg.type())) continue;
 
-            var nodes = store.search(MindMapQuery.of(tenantId, 200)
+            var nodes = store.search(MindMapQuery.of(tenantId, 2000)
                     .withSubgraphId(sg.id()));
 
             for (MindMapNode node : nodes) {

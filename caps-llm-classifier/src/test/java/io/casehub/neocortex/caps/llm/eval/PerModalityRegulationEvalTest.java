@@ -13,7 +13,7 @@ import io.casehub.neocortex.cognition.regulation.ProactiveAvoidanceMode;
 import io.casehub.neocortex.cognition.regulation.RegulationContext;
 import io.casehub.neocortex.cognition.salience.ConcernBasedSalienceStrategy;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.cognitive.index.RegulationDefaults;
@@ -49,7 +49,7 @@ class PerModalityRegulationEvalTest {
         var axes = new DispositionAxes(
                 "cooperative", "flexible", "conservative", "high", "accommodating");
         var rd = new RegulationDefaults(0.80, 0.40, 0.30);
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-fatigue", axes, rd));
 
         var descriptor = AgentDescriptor.builder()
@@ -136,7 +136,7 @@ class PerModalityRegulationEvalTest {
 
         int concordant = 0;
         for (int run = 0; run < N; run++) {
-            var registryWith = CognitiveDefaultsRegistry.forTesting(
+            var registryWith = EffectiveCognitiveDefaults.forTesting(
                     buildDefaults("eval-automatic", axes, rd));
             var withPredictor = runMultiTickScenario(
                     "eval-automatic", descriptor, registryWith, List.of(observation));
@@ -179,7 +179,7 @@ class PerModalityRegulationEvalTest {
         var axes = new DispositionAxes(
                 "competitive", "strict", "conservative", "high", "competitive");
         var rd = new RegulationDefaults(0.35, 0.80, 0.40);
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-monitor", axes, rd));
 
         var descriptor = AgentDescriptor.builder()
@@ -232,7 +232,7 @@ class PerModalityRegulationEvalTest {
         var axes = new DispositionAxes(
                 "cooperative", "flexible", "conservative", "low", "avoidant");
         var rd = new RegulationDefaults(0.40, 0.50, 0.80);
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
                 buildDefaults("eval-proactive", axes, rd));
 
         var descriptor = AgentDescriptor.builder()
@@ -255,7 +255,7 @@ class PerModalityRegulationEvalTest {
                     TENANT);
 
             var core = CognitionTestHarness.builder().withCognitionConfig(config).withSessionPipeline(sessionPipeline).withMindMapStore(mindMap).build().core();
-            core.setDefaultsRegistry(registry);
+            core.setEffectiveDefaults(registry);
             core.configureAppraisal(
                     new LlmAppraisalStrategy(sessionPipeline),
                     new ConcernBasedSalienceStrategy());
@@ -316,14 +316,14 @@ class PerModalityRegulationEvalTest {
 
     private List<EmotionRegulationResult> runMultiTickScenario(
             String agentId, AgentDescriptor descriptor,
-            CognitiveDefaultsRegistry registry, List<String> observations) {
+            EffectiveCognitiveDefaults registry, List<String> observations) {
         var config = CognitionConfig.none()
                 .with("mood", true).with("drives", true)
                 .with("appraisal", true).with("salience", true)
                 .with("regulation", true);
         var mindMap = new InMemoryMindMapStore();
         var core = CognitionTestHarness.builder().withCognitionConfig(config).withSessionPipeline(sessionPipeline).withMindMapStore(mindMap).build().core();
-        core.setDefaultsRegistry(registry);
+        core.setEffectiveDefaults(registry);
         core.configureAppraisal(
                 new LlmAppraisalStrategy(sessionPipeline),
                 new ConcernBasedSalienceStrategy());

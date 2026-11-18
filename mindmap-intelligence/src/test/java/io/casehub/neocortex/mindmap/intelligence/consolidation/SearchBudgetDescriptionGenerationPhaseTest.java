@@ -3,7 +3,7 @@ package io.casehub.neocortex.mindmap.intelligence.consolidation;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.agent.session.SessionPipeline;
@@ -33,7 +33,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
         var defaults = CognitiveDefaults.empty("agent1")
                 .withTenantId("tenant1")
                 .withSearchBudgetConfig(SearchBudgetConfig.defaults());
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var phase = new SearchBudgetDescriptionGenerationPhase(store, registry, (SessionPipeline) null);
         phase.run("tenant1", List.of());
@@ -53,7 +53,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
         var defaults = CognitiveDefaults.empty("agent1")
                 .withTenantId("tenant1")
                 .withSearchBudgetConfig(SearchBudgetConfig.defaults());
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var phase = new SearchBudgetDescriptionGenerationPhase(store, registry, (SessionPipeline) null);
         phase.run("tenant1", List.of());
@@ -75,7 +75,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
         var defaults = CognitiveDefaults.empty("agent1")
                 .withTenantId("tenant1")
                 .withSearchBudgetConfig(SearchBudgetConfig.defaults());
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var phase = new SearchBudgetDescriptionGenerationPhase(store, registry, (SessionPipeline) null);
         phase.run("tenant1", List.of());
@@ -93,7 +93,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
     void skips_agent_without_config() {
         var store = newStore();
         var defaults = CognitiveDefaults.empty("agent1").withTenantId("tenant1");
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var phase = new SearchBudgetDescriptionGenerationPhase(store, registry, (SessionPipeline) null);
         phase.run("tenant1", List.of());
@@ -143,7 +143,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
         var defaults = CognitiveDefaults.empty("agent1")
                                         .withTenantId("tenant1")
                                         .withSearchBudgetConfig(config);
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var phase = new SearchBudgetDescriptionGenerationPhase(store, registry, (io.casehub.platform.agent.session.SessionPipeline) null);
         phase.run("tenant1", List.of());
@@ -164,7 +164,7 @@ class SearchBudgetDescriptionGenerationPhaseTest {
         var defaults = CognitiveDefaults.empty("agent1")
                                         .withTenantId("tenant1")
                                         .withSearchBudgetConfig(SearchBudgetConfig.defaults());
-        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var phase = new SearchBudgetDescriptionGenerationPhase(store, registry, (io.casehub.platform.agent.session.SessionPipeline) null);
         phase.run("tenant1", List.of());

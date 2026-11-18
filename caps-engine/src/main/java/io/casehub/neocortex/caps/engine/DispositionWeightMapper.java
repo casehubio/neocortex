@@ -301,6 +301,9 @@ public class DispositionWeightMapper {
         addResting(nodeStates, "seek_instrumental_support", copingBias(coping.supportSeekingTendency()));
         addResting(nodeStates, "seek_emotional_support", copingBias(coping.supportSeekingTendency()));
         addResting(nodeStates, "coping_acceptance", copingBias(coping.acceptanceTendency()));
+        addResting(nodeStates, "active_confrontation", copingBias(coping.confrontationTendency()));
+        addResting(nodeStates, "mental_disengagement", copingBias(coping.disengagementTendency()));
+        addResting(nodeStates, "suppression", copingBias(coping.suppressionTendency()));
     }
 
     private static double copingBias(double tendency) {

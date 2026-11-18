@@ -8,7 +8,7 @@ import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognition.mood.MoodSignal;
 import io.casehub.neocortex.cognitive.CognitiveEmotion;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.RelationalSchema;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -30,7 +30,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final AppraisalStrategy appraisalStrategy;
     private final DriveOrchestrator driveOrchestrator;
     private final MoodOrchestrator moodOrchestrator;
-    private final @Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private final @Nullable EffectiveCognitiveDefaults effectiveDefaults;
     private final CognitionConfig config;
     private final @Nullable MindMapStore mindMapStore;
 
@@ -47,6 +47,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final ConcurrentHashMap<String, ChannelWeightProfile> channelWeights  = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> regulatedNarratives = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AppraisalContext> contexts  = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, io.casehub.neocortex.cognition.journal.EventRef> resultEventRefs = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Map<String, Double>>                             inputActivations = new ConcurrentHashMap<>();
 
 
     public Map<String, Double> currentConcernSalience(String agentId, String tenantId) {
@@ -63,10 +65,10 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, null, AppraisalThresholds.defaults());
+             moodOrchestrator, effectiveDefaults, config, null, AppraisalThresholds.defaults());
     }
 
     public AppraisalTickParticipant(
@@ -74,11 +76,11 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, mindMapStore, AppraisalThresholds.defaults());
+             moodOrchestrator, effectiveDefaults, config, mindMapStore, AppraisalThresholds.defaults());
     }
 
     public AppraisalTickParticipant(
@@ -86,12 +88,12 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore,
             AppraisalThresholds thresholds) {
         this(salienceStrategy, appraisalStrategy, driveOrchestrator,
-             moodOrchestrator, defaultsRegistry, config, mindMapStore, thresholds, null);
+             moodOrchestrator, effectiveDefaults, config, mindMapStore, thresholds, null);
     }
 
     public AppraisalTickParticipant(
@@ -99,7 +101,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             AppraisalStrategy appraisalStrategy,
             DriveOrchestrator driveOrchestrator,
             MoodOrchestrator moodOrchestrator,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             CognitionConfig config,
             @Nullable MindMapStore mindMapStore,
             AppraisalThresholds thresholds,
@@ -108,7 +110,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         this.appraisalStrategy    = appraisalStrategy;
         this.driveOrchestrator    = driveOrchestrator;
         this.moodOrchestrator     = moodOrchestrator;
-        this.defaultsRegistry     = defaultsRegistry;
+        this.effectiveDefaults     = effectiveDefaults;
         this.config               = config;
         this.mindMapStore         = mindMapStore;
         this.thresholds           = thresholds;
@@ -143,8 +145,8 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         var mood = moodOrchestrator.currentMood(context.agentId(), context.tenantId())
                                    .orElse(null);
 
-        var defaults = defaultsRegistry != null
-                       ? defaultsRegistry.forAgentOrDefaults(context.agentId()) : null;
+        var defaults = effectiveDefaults != null
+                       ? effectiveDefaults.forAgentOrDefaults(context.tenantId(), context.agentId()) : null;
         var weights   = defaults != null ? defaults.appraisalWeights() : null;
         var habConfig = defaults != null ? defaults.habituationConfig() : null;
         var disposition = defaults != null && defaults.descriptor() != null
@@ -178,6 +180,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
         results.put(agentKey, result);
         contexts.put(agentKey, appraisalContext);
         habituationStates.put(agentKey, result.updatedHabituation());
+        if (context.tickEventRef() != null) {
+            resultEventRefs.put(agentKey, context.tickEventRef());
+        }
 
         if (!situation.salience().isEmpty()) {
             concernSaliences.put(agentKey, situation.salience());
@@ -187,6 +192,9 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             try {
                 var classCtx = new io.casehub.neocortex.caps.ClassificationContext(context.tenantId(), context.agentId());
                 var activations = situationClassifier.classify(observation, Map.of(), classCtx).activations();
+                var rawMap = new java.util.HashMap<String, Double>();
+                for (var act : activations) { rawMap.put(act.nodeId(), act.confidence()); }
+                inputActivations.put(agentKey, Map.copyOf(rawMap));
                 activations = RelationalBiasing.apply(targetSchema, activations);
                 channelWeights.put(agentKey, TopologyChannelWeighter.weight(activations, result.actionTendencies()));
             } catch (Exception e) {
@@ -204,6 +212,20 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     public Optional<AppraisalResult> currentResult(String agentId, String tenantId) {
         return Optional.ofNullable(results.get(agentId + ":" + tenantId));
     }
+
+    public Optional<AppraisalResult> currentResultAt(String agentId, String tenantId, io.casehub.neocortex.cognition.journal.EventRef tickEventRef) {
+        var agentKey  = agentId + ":" + tenantId;
+        var storedRef = resultEventRefs.get(agentKey);
+        if (storedRef == null || !storedRef.equals(tickEventRef)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(results.get(agentKey));
+    }
+
+    public Map<String, Double> currentInputActivations(String agentId, String tenantId) {
+        return inputActivations.getOrDefault(agentId + ":" + tenantId, Map.of());
+    }
+
 
     public Optional<AppraisalContext> currentContext(String agentId, String tenantId) {
         return Optional.ofNullable(contexts.get(agentId + ":" + tenantId));
@@ -262,7 +284,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     }
 
     private List<MindMapNode> loadDriveIntensityNodes(String agentId, String tenantId) {
-        return mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE))
+        return mindMapStore.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE))
                            .stream()
                            .filter(n -> DRIVE_INTENSITY_KIND.equals(n.properties().get("cognitiveKind")))
                            .filter(n -> agentId.equals(n.properties().get("agent-id")))
@@ -286,7 +308,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
                     null, null, null, null, null));
         }
 
-        var goalNodes = mindMapStore.search(MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.GOAL));
+        var goalNodes = mindMapStore.search(MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.GOAL));
         for (var node : goalNodes) {
             if (!"active".equals(node.properties().get("status"))) continue;
             if (!agentId.equals(node.properties().get("agent-id"))) continue;

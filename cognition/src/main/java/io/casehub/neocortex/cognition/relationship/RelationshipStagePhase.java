@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognition.relationship;
 
 import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.relationship.RelationshipQuery;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -36,7 +36,7 @@ public class RelationshipStagePhase implements ConsolidationPhase {
     private final RelationshipStageConfigProvider configProvider;
     private final String peopleSubgraphName;
     private final long consolidationIntervalMs;
-    private final @Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private final @Nullable EffectiveCognitiveDefaults effectiveDefaults;
 
 
     @Inject
@@ -44,7 +44,7 @@ public class RelationshipStagePhase implements ConsolidationPhase {
             MindMapStore mindMapStore,
             CaseMemoryStore memoryStore,
             Instance<RelationshipStageConfigProvider> configProvider,
-            Instance<CognitiveDefaultsRegistry> defaultsRegistryInstance,
+            Instance<EffectiveCognitiveDefaults> effectiveDefaultsInstance,
             @ConfigProperty(name = "casehub.cognition.relationship.subgraph",
                             defaultValue = "person") String peopleSubgraphName,
             @ConfigProperty(name = "casehub.cognition.relationship.interval-ms",
@@ -52,7 +52,7 @@ public class RelationshipStagePhase implements ConsolidationPhase {
         this(mindMapStore, memoryStore,
              configProvider.isResolvable() ? configProvider.get()
                                            : agentId -> RelationshipStageConfig.defaults(),
-             defaultsRegistryInstance.isResolvable() ? defaultsRegistryInstance.get() : null,
+             effectiveDefaultsInstance.isResolvable() ? effectiveDefaultsInstance.get() : null,
              peopleSubgraphName, consolidationIntervalMs);
     }
 
@@ -60,13 +60,13 @@ public class RelationshipStagePhase implements ConsolidationPhase {
             MindMapStore mindMapStore,
             CaseMemoryStore memoryStore,
             RelationshipStageConfigProvider configProvider,
-            @Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            @Nullable EffectiveCognitiveDefaults effectiveDefaults,
             String peopleSubgraphName,
             long consolidationIntervalMs) {
         this.mindMapStore            = mindMapStore;
         this.memoryStore             = memoryStore;
         this.configProvider          = configProvider;
-        this.defaultsRegistry        = defaultsRegistry;
+        this.effectiveDefaults        = effectiveDefaults;
         this.peopleSubgraphName      = peopleSubgraphName;
         this.consolidationIntervalMs = consolidationIntervalMs;
     }
@@ -144,11 +144,13 @@ public class RelationshipStagePhase implements ConsolidationPhase {
         var stageConfig = configProvider.forAgent(observerId);
         double trustRate = 0.5;
         var conflictMode = io.casehub.neocortex.cognitive.index.ConflictInterpretation.NEUTRAL;
-        if (defaultsRegistry != null) {
-            var defaults = defaultsRegistry.forAgentOrDefaults(observerId);
-            if (defaults.socialCognition() != null) {
-                trustRate = defaults.socialCognition().trustFormationRate();
-                conflictMode = defaults.socialCognition().conflictInterpretation();
+        if (effectiveDefaults != null) {
+            var profile = effectiveDefaults.restingFor(tenantId, observerId);
+            if (profile.trustFormationRate() != null) {
+                trustRate = profile.trustFormationRate();
+            }
+            if (profile.conflictInterpretation() != null) {
+                conflictMode = profile.conflictInterpretation();
             }
         }
         double score = UserModelOrchestrator.computeFamiliarity(

@@ -132,11 +132,13 @@ public class CognitionCore implements io.casehub.neocortex.cognition.trace.Cogni
     private volatile String lastAgentId;
     private volatile String lastTenantId;
     private volatile io.casehub.neocortex.cognition.prompt.TierFilterCustomizer tierFilter;
-    private volatile io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private volatile io.casehub.neocortex.cognitive.index.@Nullable EffectiveCognitiveDefaults effectiveDefaults;
 private volatile @Nullable String lastTargetAgentId;
 private volatile           io.casehub.neocortex.cognitive.index.@org.jspecify.annotations.Nullable CognitiveMemoryRetriever cognitiveMemoryRetriever;
 private volatile           io.casehub.neocortex.mindmap.intelligence.consolidation.@org.jspecify.annotations.Nullable BehavioralSynthesisPhase behavioralSynthesis;
-private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
+private volatile           io.casehub.neocortex.cognition.tom.@org.jspecify.annotations.Nullable TheoryOfMindBridge                            theoryOfMindBridge;
+
+    private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
 private final              java.util.concurrent.atomic.AtomicInteger                                                                           tickCounter = new java.util.concurrent.atomic.AtomicInteger();
 private volatile           io.casehub.neocortex.cognition.journal.CognitiveJournal                                                             cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
 
@@ -151,34 +153,34 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
     private static final double MOOD_FALLBACK_DECAY = 0.5;
     private final java.util.concurrent.ConcurrentHashMap<String, double[]> lastMoodDelta = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public CognitionCore(MoodOrchestrator mood,
-                         DriveOrchestrator drives,
-                         @Nullable UserModelOrchestrator userModel,
-                         @Nullable MentalModelOrchestrator mentalModel,
-                         @Nullable StrategyLearningOrchestrator strategy,
-                         @Nullable NarrativeOrchestrator narrative,
-                         @Nullable GoalProposalOrchestrator goals,
-                         @Nullable MemoryHygieneOrchestrator memoryHygiene) {
+    CognitionCore(MoodOrchestrator mood,
+                  DriveOrchestrator drives,
+                  @Nullable UserModelOrchestrator userModel,
+                  @Nullable MentalModelOrchestrator mentalModel,
+                  @Nullable StrategyLearningOrchestrator strategy,
+                  @Nullable NarrativeOrchestrator narrative,
+                  @Nullable GoalProposalOrchestrator goals,
+                  @Nullable MemoryHygieneOrchestrator memoryHygiene) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
              goals, memoryHygiene, null, CognitionConfig.all(), null);
     }
 
-    public CognitionCore(MoodOrchestrator mood,
-                         DriveOrchestrator drives,
-                         @Nullable UserModelOrchestrator userModel,
-                         @Nullable MentalModelOrchestrator mentalModel,
-                         @Nullable StrategyLearningOrchestrator strategy,
-                         @Nullable NarrativeOrchestrator narrative,
-                         @Nullable GoalProposalOrchestrator goals,
-                         @Nullable MemoryHygieneOrchestrator memoryHygiene,
-                         @Nullable InnerLifeOrchestrator innerLife,
-                         CognitionConfig config,
-                         @Nullable SessionPipeline sessionPipeline) {
+    CognitionCore(MoodOrchestrator mood,
+                  DriveOrchestrator drives,
+                  @Nullable UserModelOrchestrator userModel,
+                  @Nullable MentalModelOrchestrator mentalModel,
+                  @Nullable StrategyLearningOrchestrator strategy,
+                  @Nullable NarrativeOrchestrator narrative,
+                  @Nullable GoalProposalOrchestrator goals,
+                  @Nullable MemoryHygieneOrchestrator memoryHygiene,
+                  @Nullable InnerLifeOrchestrator innerLife,
+                  CognitionConfig config,
+                  @Nullable SessionPipeline sessionPipeline) {
         this(mood, drives, userModel, mentalModel, strategy, narrative,
              goals, memoryHygiene, innerLife, config, null, null, null, null, null, null, null, sessionPipeline);
     }
 
-    public CognitionCore(MoodOrchestrator mood,
+    CognitionCore(MoodOrchestrator mood,
                          DriveOrchestrator drives,
                          @Nullable UserModelOrchestrator userModel,
                          @Nullable MentalModelOrchestrator mentalModel,
@@ -278,10 +280,17 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
             }
         }
         if (config.temporalFocusEnabled() && temporalFocus != null) {
-            safeRun(() -> temporalFocus.tick(agentId, tenantId,
-                                             resolver.relevantSubjects(agentId, tenantId)));
+            var subjects = resolver.relevantSubjects(agentId, tenantId);
+            safeRun(() -> temporalFocus.tick(agentId, tenantId, subjects));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.TemporalFocusTicked(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now(), subjects.size()));
         }
         var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId, regulationContext);
+
+        if (effectiveDefaults != null && descriptor != null && descriptor.disposition() != null) {
+            var view = io.casehub.neocortex.cognitive.eidos.EidosCognitiveProfileBridge.toDescriptorView(descriptor);
+            effectiveDefaults.updateBase(tenantId, view, tickEventRef.toString());
+        }
 
         if (config.moodEnabled()) {
             safeRun(() -> tickMood(agentId, tenantId));
@@ -293,13 +302,15 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
         }
         if (config.memoryHygieneEnabled() && memoryHygiene != null) {
             safeRun(() -> memoryHygiene.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.MemoryHygieneTicked(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         runCustomParticipants(CognitionPhase.FOUNDATION, context);
 
         if (cognitiveMemoryRetriever != null) {
             var moodState = mood.currentMood(agentId, tenantId).orElse(null);
-            var personality = defaultsRegistry != null
-                              ? defaultsRegistry.forAgentOrDefaults(agentId).personality()
+            var personality = effectiveDefaults != null
+                              ? effectiveDefaults.forAgentOrDefaults(tenantId, agentId).personality()
                               : null;
             cognitiveMemoryRetriever.setTickContext(
                     new io.casehub.neocortex.cognitive.index.ModulationContext(
@@ -308,21 +319,41 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
 
         if (config.narrativeEnabled() && narrative != null) {
             safeRun(() -> narrative.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.NarrativeUpdated(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         if (config.strategyEnabled() && strategy != null) {
             safeRun(() -> strategy.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.StrategyUpdated(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         if (config.reflectionEnabled() && reflectionOrchestrator != null) {
             safeRun(() -> reflectionOrchestrator.tick(agentId, tenantId));
+            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.ReflectionRetrieved(
+                    tenantId, agentId, tickEventRef, java.time.Instant.now()));
         }
         runCustomParticipants(CognitionPhase.SOURCE, context);
 
         for (String subjectId : resolver.relevantSubjects(agentId, tenantId)) {
             if (config.userModelEnabled() && userModel != null) {
                 safeRun(() -> userModel.tick(agentId, subjectId, tenantId));
+                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.UserModelUpdated(
+                        tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId));
             }
             if (config.mentalModelEnabled() && mentalModel != null) {
                 safeRun(() -> mentalModel.tick(agentId, subjectId, tenantId));
+                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.MentalModelUpdated(
+                        tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId));
+            }
+            if (theoryOfMindBridge != null && mentalModel != null && appraisalParticipant != null) {
+                appraisalParticipant.currentResult(agentId, tenantId).ifPresent(appraisalResult ->
+                        safeRun(() -> {
+                            var posterior = theoryOfMindBridge.infer(appraisalResult);
+                            mentalModel.recordTomPosterior(agentId, subjectId, tenantId, posterior);
+                            cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.TheoryOfMindInferred(
+                                    tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId,
+                                    posterior.dominantValence(), posterior.dominantProbability()));
+                        }));
             }
         }
 
@@ -822,17 +853,17 @@ public @Nullable String lastTargetAgentId() {
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
-            io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
-        configureAppraisal(appraisalStrategy, salienceStrategy, defaultsRegistry, null);
+            io.casehub.neocortex.cognitive.index.@Nullable EffectiveCognitiveDefaults effectiveDefaults) {
+        configureAppraisal(appraisalStrategy, salienceStrategy, effectiveDefaults, null);
     }
 
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy,
-            io.casehub.neocortex.cognitive.index.@Nullable CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.cognitive.index.@Nullable EffectiveCognitiveDefaults effectiveDefaults,
             io.casehub.neocortex.caps.@Nullable SituationClassifier situationClassifier) {
         this.appraisalParticipant = new io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant(
-                salienceStrategy, appraisalStrategy, drives, mood, defaultsRegistry, config, mindMapStore,
+                salienceStrategy, appraisalStrategy, drives, mood, effectiveDefaults, config, mindMapStore,
                 io.casehub.neocortex.cognition.appraisal.AppraisalThresholds.defaults(), situationClassifier);
         addParticipant(CognitionPhase.DERIVED, this.appraisalParticipant);
     }
@@ -840,7 +871,7 @@ public @Nullable String lastTargetAgentId() {
     public void configureAppraisal(
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy) {
-        configureAppraisal(appraisalStrategy, salienceStrategy, this.defaultsRegistry);
+        configureAppraisal(appraisalStrategy, salienceStrategy, this.effectiveDefaults);
     }
 
     public void configureRegulation() {
@@ -866,7 +897,7 @@ public @Nullable String lastTargetAgentId() {
 
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
                 appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
-                defaultsRegistry, loadEstimator);
+                effectiveDefaults, loadEstimator);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
 
@@ -901,7 +932,7 @@ public @Nullable String lastTargetAgentId() {
 
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
                 appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
-                defaultsRegistry, loadEstimator, capsEngine, cascadeConfig);
+                effectiveDefaults, loadEstimator, capsEngine, cascadeConfig);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
 
@@ -915,13 +946,13 @@ public @Nullable String lastTargetAgentId() {
     public void configureProactiveRegulation(
             io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator goalOrchestrator,
             io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
-            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults,
             String cognitiveSubgraphId,
             io.casehub.neocortex.cognition.regulation.ProactiveAvoidanceMode mode,
             int decayTimeConstant,
             double tickIntervalSeconds) {
         this.proactiveRegulationParticipant = new io.casehub.neocortex.cognition.regulation.ProactiveRegulationParticipant(
-                mindMapStore, goalOrchestrator, defaultsRegistry,
+                mindMapStore, goalOrchestrator, effectiveDefaults,
                 cognitiveSubgraphId, mode, decayTimeConstant, tickIntervalSeconds);
         addParticipant(CognitionPhase.FOUNDATION, this.proactiveRegulationParticipant);
     }
@@ -960,7 +991,7 @@ public @Nullable String lastTargetAgentId() {
     public void configureSearchBudget(
             DriveOrchestrator driveOrchestrator,
             @Nullable MoodOrchestrator moodOrchestrator,
-            io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry,
+            io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults,
             io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
             io.casehub.neocortex.cognition.drive.@Nullable CuriosityDrive curiosityDrive,
             @Nullable CognitiveResourcePool cognitiveResourcePool) {
@@ -969,7 +1000,7 @@ public @Nullable String lastTargetAgentId() {
                 this.appraisalParticipant,
                 this.gutFeelingParticipant,
                 moodOrchestrator,
-                defaultsRegistry,
+                effectiveDefaults,
                 config,
                 curiosityDrive,
                 cognitiveResourcePool);
@@ -1091,6 +1122,11 @@ public @Nullable String lastTargetAgentId() {
         this.pipelineSnapshotStore = store;
     }
 
+    public void configureTheoryOfMind() {
+        this.theoryOfMindBridge = new io.casehub.neocortex.cognition.tom.TheoryOfMindBridge();
+    }
+
+
     @Override
     public java.util.Optional<io.casehub.neocortex.cognition.trace.PipelineTrace> currentTrace(String agentId, String tenantId) {
         if (lastAgentId == null) {return java.util.Optional.empty();}
@@ -1114,8 +1150,8 @@ public @Nullable String lastTargetAgentId() {
         io.casehub.neocortex.cognition.trace.PipelineTrace.CapsSettlingSnapshot capsSnapshot = null;
         Map<String, Double>                                                     capsInputs   = Map.of();
         if (behavioralSynthesis != null) {
-            capsInputs = behavioralSynthesis.lastInputActivations(agentId);
-            var settling = behavioralSynthesis.lastSettlingResult(agentId);
+            capsInputs = behavioralSynthesis.lastInputActivations(tenantId, agentId);
+            var settling = behavioralSynthesis.lastSettlingResult(tenantId, agentId);
             if (settling.isPresent()) {
                 var sr = settling.get();
                 var attractorSnapshots = sr.attractors().stream()
@@ -1160,21 +1196,13 @@ public @Nullable String lastTargetAgentId() {
     }
 
 
-    /**
-     * Sets the cognitive defaults registry. When set, CognitionCore auto-configures:
-     * - Tier filtering: reads personalityDominance per-agent from the registry
-     * - Appraisal disposition: populates disposition axes per-agent in appraisal context
-     * <p>
-     * Call this once at setup. The core looks up the active agent's defaults
-     * at render time and tick time — no per-agent configure calls needed.
-     */
-    public void setDefaultsRegistry(io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry registry) {
-        this.defaultsRegistry = registry;
-        configureTierFilterFromRegistry();
+    public void setEffectiveDefaults(io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
+        this.effectiveDefaults = effectiveDefaults;
+        configureTierFilterFromEffectiveDefaults();
     }
 
-    private void configureTierFilterFromRegistry() {
-        if (defaultsRegistry == null) {return;}
+    private void configureTierFilterFromEffectiveDefaults() {
+        if (effectiveDefaults == null) {return;}
         if (tierFilter != null) {return;}
         tierFilter = new io.casehub.neocortex.cognition.prompt.TierFilterCustomizer(
                 () -> {
@@ -1187,10 +1215,12 @@ public @Nullable String lastTargetAgentId() {
                 },
                 () -> {
                     String aid = lastAgentId;
-                    if (aid == null || defaultsRegistry == null) {return 0.5;}
-                    return defaultsRegistry.forAgent(aid)
-                                           .map(io.casehub.neocortex.cognitive.index.CognitiveDefaults::personalityDominance)
-                                           .orElse(0.5);
+                    String tid = lastTenantId;
+                    if (aid == null || tid == null || effectiveDefaults == null) {return 0.5;}
+                    var defaults = effectiveDefaults.forAgent(tid, aid);
+                    if (defaults == null) return 0.5;
+                    var pd = defaults.personalityDominance();
+                    return pd != null ? pd : 0.5;
                 }
         );
         chainSectionCustomizer(tierFilter);

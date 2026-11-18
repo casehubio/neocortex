@@ -52,7 +52,7 @@ public abstract class CapsEngineContractTest {
     void initializeAgentSeedsCopingAttractorsFromCopingDefaults() {
         var disposition = new DispositionAxes(
                 "cooperative", "moderate", "calculated", "moderate", "analytical");
-        var coping = new CopingDefaults(0.8, 0.3, 0.2, 0.7, 0.6);
+        var coping = new CopingDefaults(0.8, 0.3, 0.2, 0.7, 0.6, 0.7, 0.2, 0.3);
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
 
@@ -73,6 +73,15 @@ public abstract class CapsEngineContractTest {
         // Moderate acceptanceTendency (0.6) → slightly positive
         assertThat(state.nodeStates().get("coping_acceptance").restingActivation())
                 .isGreaterThan(0.0);
+        // High confrontationTendency (0.7) → positive active_confrontation resting activation
+        assertThat(state.nodeStates().get("active_confrontation").restingActivation())
+                .isGreaterThan(0.0);
+        // Low disengagementTendency (0.2) → below midpoint → negative
+        assertThat(state.nodeStates().get("mental_disengagement").restingActivation())
+                .isLessThan(0.0);
+        // Low suppressionTendency (0.3) → below midpoint → negative
+        assertThat(state.nodeStates().get("suppression").restingActivation())
+                .isLessThan(0.0);
     }
 
     @Test
@@ -93,7 +102,7 @@ public abstract class CapsEngineContractTest {
     void highBISInputActivatesAvoidantCopingAttractors() {
         var disposition = new DispositionAxes(
                 "cooperative", "moderate", "conservative", "moderate", "avoidant");
-        var coping = new CopingDefaults(0.3, 0.3, 0.8, 0.3, 0.3);
+        var coping = new CopingDefaults(0.3, 0.3, 0.8, 0.3, 0.3, 0.2, 0.7, 0.6);
 
         AgentCapsState state = engine.initializeAgent("t1", "agent1", disposition, coping);
 
@@ -105,6 +114,49 @@ public abstract class CapsEngineContractTest {
         assertThat(avoidance).as("high BIS + high avoidance tendency should activate avoidance")
                              .isGreaterThan(planning);
     }
+
+    @Test
+    void moderateThreat_copingBiasIsTiebreaker() {
+        var disposition = new DispositionAxes(
+                "cooperative", "moderate", "calculated", "moderate", "analytical");
+        var planful  = new CopingDefaults(0.8, 0.5, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5);
+        var avoidant = new CopingDefaults(0.2, 0.5, 0.8, 0.5, 0.5, 0.5, 0.5, 0.5);
+
+        AgentCapsState planfulState  = engine.initializeAgent("t1", "planful",  disposition, planful);
+        AgentCapsState avoidantState = engine.initializeAgent("t1", "avoidant", disposition, avoidant);
+
+        // Moderate threat: coping bias should visibly differentiate profiles
+        var moderateInputs = Map.of("physical_threat", 0.4);
+        SettlingResult planfulResult  = engine.settle(planfulState, moderateInputs);
+        SettlingResult avoidantResult = engine.settle(avoidantState, moderateInputs);
+
+        double planfulGap  = planfulResult.activations().getOrDefault("planning", 0.0)
+                - planfulResult.activations().getOrDefault("avoidance", 0.0);
+        double avoidantGap = avoidantResult.activations().getOrDefault("planning", 0.0)
+                - avoidantResult.activations().getOrDefault("avoidance", 0.0);
+
+        assertThat(planfulGap)
+                .as("planful agent should have smaller avoidance-over-planning gap than avoidant agent")
+                .isGreaterThan(avoidantGap);
+
+        // Strong threat: connection-driven activation dominates, coping bias washes out
+        var strongInputs = Map.of("physical_threat", 0.9, "unpredictable_danger", 0.7);
+        SettlingResult planfulStrong  = engine.settle(planfulState, strongInputs);
+        SettlingResult avoidantStrong = engine.settle(avoidantState, strongInputs);
+
+        double strongPlanfulGap  = planfulStrong.activations().getOrDefault("planning", 0.0)
+                - planfulStrong.activations().getOrDefault("avoidance", 0.0);
+        double strongAvoidantGap = avoidantStrong.activations().getOrDefault("planning", 0.0)
+                - avoidantStrong.activations().getOrDefault("avoidance", 0.0);
+
+        double moderateDivergence = planfulGap - avoidantGap;
+        double strongDivergence   = strongPlanfulGap - strongAvoidantGap;
+
+        assertThat(Math.abs(moderateDivergence))
+                .as("coping bias divergence should be larger under moderate threat than strong threat")
+                .isGreaterThan(Math.abs(strongDivergence));
+}
+
 
     @Test
     void loadStateReturnsInitializedState() {

@@ -13,7 +13,7 @@ import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.mood.MoodState;
 import org.junit.jupiter.api.Test;
 
@@ -475,9 +475,9 @@ class SearchBudgetTickParticipantTest {
         return driveOrch;
     }
 
-    private CognitiveDefaultsRegistry registry() {
-        var registry = mock(CognitiveDefaultsRegistry.class);
-        when(registry.forAgentOrDefaults(anyString())).thenReturn(
+    private EffectiveCognitiveDefaults registry() {
+        var registry = mock(EffectiveCognitiveDefaults.class);
+        when(registry.forAgentOrDefaults(anyString(), anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(SearchBudgetConfig.defaults()));
         return registry;
     }
@@ -499,8 +499,8 @@ class SearchBudgetTickParticipantTest {
         var config = channelMod != null
                      ? new io.casehub.neocortex.cognitive.SearchBudgetConfig(6.0, 0.5, 6.0, 0.5, 0.7, 3.0, 0.5, 6.0, 0.5, 1.4, channelMod, 0.85, null, null)
                      : io.casehub.neocortex.cognitive.SearchBudgetConfig.defaults();
-        var reg = mock(CognitiveDefaultsRegistry.class);
-        when(reg.forAgentOrDefaults(anyString())).thenReturn(
+        var reg = mock(EffectiveCognitiveDefaults.class);
+        when(reg.forAgentOrDefaults(anyString(), anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(config));
         return new SearchBudgetTickParticipant(
                 mockDriveOrch(axis, intensity), null, null, null, reg, null, curiosityDrive, null);
@@ -514,8 +514,8 @@ class SearchBudgetTickParticipantTest {
     }
 
     private SearchBudgetTickParticipant withDriveAndConfig(DriveAxis axis, double intensity, SearchBudgetConfig config) {
-        var reg = mock(CognitiveDefaultsRegistry.class);
-        when(reg.forAgentOrDefaults(anyString())).thenReturn(
+        var reg = mock(EffectiveCognitiveDefaults.class);
+        when(reg.forAgentOrDefaults(anyString(), anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(config));
         return new SearchBudgetTickParticipant(
                 mockDriveOrch(axis, intensity), null, null, null, reg, null, null, null);
@@ -523,8 +523,8 @@ class SearchBudgetTickParticipantTest {
 
     private SearchBudgetTickParticipant withDriveConfigAndPool(DriveAxis axis, double intensity, SearchBudgetConfig config) {
         var poolConfig = io.casehub.neocortex.cognitive.CognitiveResourcePoolConfig.defaults();
-        var reg        = mock(CognitiveDefaultsRegistry.class);
-        when(reg.forAgentOrDefaults(anyString())).thenReturn(
+        var reg        = mock(EffectiveCognitiveDefaults.class);
+        when(reg.forAgentOrDefaults(anyString(), anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT).withSearchBudgetConfig(config).withCognitiveResourcePoolConfig(poolConfig));
         var pool = new io.casehub.neocortex.cognition.core.DefaultCognitiveResourcePool(reg);
         return new SearchBudgetTickParticipant(
@@ -609,8 +609,8 @@ class SearchBudgetTickParticipantTest {
 
     private SearchBudgetTickParticipant withDriveAndCapacity(DriveAxis axis, double intensity,
                                                              io.casehub.neocortex.cognitive.CognitiveCapacityConfig capacity) {
-        var reg = mock(CognitiveDefaultsRegistry.class);
-        when(reg.forAgentOrDefaults(anyString())).thenReturn(
+        var reg = mock(EffectiveCognitiveDefaults.class);
+        when(reg.forAgentOrDefaults(anyString(), anyString())).thenReturn(
                 CognitiveDefaults.empty(AGENT)
                                  .withSearchBudgetConfig(SearchBudgetConfig.defaults())
                                  .withCapacityConfig(capacity));

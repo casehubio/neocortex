@@ -1,10 +1,10 @@
 package io.casehub.neocortex.cognition.regulation;
 
-import io.casehub.neocortex.cognition.core.CognitionCore;
+import io.casehub.neocortex.cognition.core.CognitivePipelineBuilder;
 import io.casehub.neocortex.cognition.core.CognitionPhase;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import org.junit.jupiter.api.Test;
 
@@ -15,10 +15,10 @@ class ProactiveRegulationPipelineTest {
 
     @Test
     void proactiveParticipantRegisteredInFoundationPhase() {
-        var core = new CognitionCore(null, null, null, null, null, null, null, null);
+        var core = CognitivePipelineBuilder.create(null, null).build();
         var mindMapStore = mock(MindMapStore.class);
         var goalOrchestrator = mock(GoalProposalOrchestrator.class);
-        var defaultsRegistry = mock(CognitiveDefaultsRegistry.class);
+        var defaultsRegistry = mock(EffectiveCognitiveDefaults.class);
 
         core.configureProactiveRegulation(
                 goalOrchestrator, mindMapStore, defaultsRegistry,
@@ -31,10 +31,10 @@ class ProactiveRegulationPipelineTest {
 
     @Test
     void proactiveParticipantTicksWithoutError() {
-        var core = new CognitionCore(null, null, null, null, null, null, null, null);
+        var core = CognitivePipelineBuilder.create(null, null).build();
         var mindMapStore = mock(MindMapStore.class);
         var goalOrchestrator = mock(GoalProposalOrchestrator.class);
-        var defaultsRegistry = mock(CognitiveDefaultsRegistry.class);
+        var defaultsRegistry = mock(EffectiveCognitiveDefaults.class);
 
         core.configureProactiveRegulation(
                 goalOrchestrator, mindMapStore, defaultsRegistry,

@@ -4,14 +4,15 @@ import io.casehub.neocortex.caps.AgentCapsState;
 import io.casehub.neocortex.caps.CapsAttractor;
 import io.casehub.neocortex.caps.CapsConnection;
 import io.casehub.neocortex.caps.CapsEngine;
-import io.casehub.neocortex.caps.ConvergenceType;
 import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.ClassificationResult;
+import io.casehub.neocortex.caps.ConvergenceType;
 import io.casehub.neocortex.caps.DriveCompetitionDetector;
 import io.casehub.neocortex.caps.SituationActivation;
 import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.cognitive.EmotionType;
+import io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -52,8 +53,10 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final double emaRetention;
     private final double reinforcementBoostCap;
     private final int reinforcementScale;
-    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+    private final io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults;
     private final CbrRecordStore cbrRecordStore;
+    private final java.util.Set<String> pid5FacetSet;
+
     private final java.util.concurrent.ConcurrentHashMap<String, io.casehub.neocortex.caps.SettlingResult> lastSettlingResults = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>                      lastInputActivations = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -62,19 +65,21 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     public BehavioralSynthesisPhase(MindMapStore store,
                                     Instance<CapsEngine> capsEngine,
                                     Instance<SituationClassifier> classifier,
-                                    Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry,
+                                    Instance<io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults> effectiveDefaults,
                                     Instance<BehavioralSynthesisConfig> config,
-                                    Instance<CbrRecordStore> cbrRecordStore) {
+                                    Instance<CbrRecordStore> cbrRecordStore,
+                                    Instance<Pid5FacetsConfig> pid5Config) {
         this.store            = store;
         this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
         this.classifier       = classifier.isResolvable() ? classifier.get() : null;
-        this.defaultsRegistry = defaultsRegistry.isResolvable() ? defaultsRegistry.get() : null;
+        this.effectiveDefaults = effectiveDefaults.isResolvable() ? effectiveDefaults.get() : null;
         BehavioralSynthesisConfig c = config.isResolvable() ? config.get() : null;
         this.maxPerPass            = c != null ? c.maxPerPass() : 20;
         this.emaRetention          = c != null ? c.emaRetention() : 0.5;
         this.reinforcementBoostCap = c != null ? c.reinforcementBoostCap() : 0.5;
         this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
         this.cbrRecordStore        = cbrRecordStore.isResolvable() ? cbrRecordStore.get() : null;
+        this.pid5FacetSet          = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
     }
 
     public BehavioralSynthesisPhase(MindMapStore store,
@@ -93,20 +98,21 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
     public BehavioralSynthesisPhase(MindMapStore store,
-                             CapsEngine capsEngine,
-                             SituationClassifier classifier,
-                             int maxPerPass,
-                             CbrRecordStore cbrRecordStore,
-                             io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
+                                    CapsEngine capsEngine,
+                                    SituationClassifier classifier,
+                                    int maxPerPass,
+                                    CbrRecordStore cbrRecordStore,
+                                    io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
         this.store                 = store;
         this.capsEngine            = capsEngine;
         this.classifier            = classifier;
-        this.defaultsRegistry      = defaultsRegistry;
+        this.effectiveDefaults      = effectiveDefaults;
         this.maxPerPass            = maxPerPass;
         this.emaRetention          = 0.5;
         this.reinforcementBoostCap = 0.5;
         this.reinforcementScale    = 20;
         this.cbrRecordStore        = cbrRecordStore;
+        this.pid5FacetSet          = null;
     }
 
     @Override
@@ -151,7 +157,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 for (MindMapNode node : agentNodes) {
                     classifyFutures.add(classifyExecutor.submit(() -> {
                         ClassificationResult classResult = classifier.classify(
-                            node.name(), addDispositionMetadata(nodeMetadata(node), agentId),
+                            node.name(), addPersonalityMetadata(nodeMetadata(node), tenantId, agentId),
                             ClassificationContext.of(tenantId));
                         for (SituationActivation sa : classResult.activations()) {
                             experienceActivations.merge(sa.nodeId(), sa.confidence(), Math::max);
@@ -179,18 +185,17 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             try {
                 var result = capsEngine.settle(state, combinedActivations);
-                lastSettlingResults.put(agentId, result);
-                lastInputActivations.put(agentId, Map.copyOf(combinedActivations));
+                String cacheKey = tenantId + ":" + agentId;
+                lastSettlingResults.put(cacheKey, result);
+                lastInputActivations.put(cacheKey, Map.copyOf(combinedActivations));
 
                 List<String> nodeNames = agentNodes.stream()
                     .map(MindMapNode::name).toList();
 
                 io.casehub.neocortex.cognitive.index.ExpressionStyleDefaults expressionStyles = null;
-                if (defaultsRegistry != null) {
-                    var defaults = defaultsRegistry.forAgent(agentId);
-                    if (defaults.isPresent() && defaults.get().expressionStyles() != null) {
-                        expressionStyles = defaults.get().expressionStyles();
-                    }
+                if (effectiveDefaults != null) {
+                    var profile = effectiveDefaults.restingFor(tenantId, agentId);
+                    expressionStyles = profile.expressionStyles();
                 }
 
                 for (CapsAttractor attractor : result.attractors()) {
@@ -242,7 +247,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                             updated = capsEngine.updateWeights(updated,
                                 new WeightUpdateContext(emotionActivations, intensity,
                                     signal.lambdaSign(), salienceMultiplier, "continuous",
-                                    resolveAssociativeReach(agentId)));
+                                    resolveAssociativeReach(tenantId, agentId)));
                         }
                     }
                 }
@@ -253,7 +258,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                             averageIntensity(regularNodes),
                             averageValence(regularNodes),
                             1.0, "continuous",
-                            resolveAssociativeReach(agentId)));
+                            resolveAssociativeReach(tenantId, agentId)));
                 }
 
                 capsEngine.saveState(updated);
@@ -261,7 +266,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 if (cbrRecordStore != null && !classificationCaseIds.isEmpty()) {
                     CbrOutcome outcome = ClassificationOutcomeEvaluator.evaluate(
                         result, java.time.Instant.now());
-                    Double effectiveLR = resolveEffectiveCbrLearningRate(agentId);
+                    Double effectiveLR = resolveEffectiveCbrLearningRate(tenantId, agentId);
                     for (String caseId : classificationCaseIds.keySet()) {
                         try {
                             cbrRecordStore.recordOutcome(caseId, outcome, tenantId, effectiveLR);
@@ -391,20 +396,10 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         return meta;
     }
 
-    private Map<String, String> addDispositionMetadata(Map<String, String> metadata, String agentId) {
-        if (defaultsRegistry == null) return metadata;
-        var defaults = defaultsRegistry.forAgent(agentId);
-        if (defaults.isEmpty() || defaults.get().descriptor() == null) return metadata;
-        var axes = defaults.get().descriptor().disposition();
-        if (axes == null) return metadata;
-
-        var enriched = new HashMap<>(metadata);
-        if (axes.socialOrient() != null) enriched.put("disposition.socialOrient", axes.socialOrient());
-        if (axes.ruleFollowing() != null) enriched.put("disposition.ruleFollowing", axes.ruleFollowing());
-        if (axes.riskAppetite() != null) enriched.put("disposition.riskAppetite", axes.riskAppetite());
-        if (axes.autonomy() != null) enriched.put("disposition.autonomy", axes.autonomy());
-        if (axes.conflictMode() != null) enriched.put("disposition.conflictMode", axes.conflictMode());
-        return enriched;
+    private Map<String, String> addPersonalityMetadata(Map<String, String> metadata, String tenantId, String agentId) {
+        if (effectiveDefaults == null) {return metadata;}
+        var profile = effectiveDefaults.restingFor(tenantId, agentId);
+        return PersonalityMetadataEnricher.enrich(metadata, profile, pid5FacetSet);
     }
 
     private double averageIntensity(List<MindMapNode> nodes) {
@@ -447,7 +442,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private void mergeDriveIntensities(Map<String, Double> combinedActivations,
                                        String agentId, String tenantId) {
         var cognitiveNodes = store.search(
-                MindMapQuery.of(tenantId, 200).withType(SubgraphTypes.COGNITIVE));
+                MindMapQuery.of(tenantId, 2000).withType(SubgraphTypes.COGNITIVE));
         for (var node : cognitiveNodes) {
             if (!"drive-intensity".equals(node.properties().get("cognitiveKind"))) {continue;}
             if (!agentId.equals(node.properties().get("agent-id"))) {continue;}
@@ -469,7 +464,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 String description = node.properties().get("description");
                 if (description == null || description.isBlank()) {continue;}
                 var classResult = classifier.classify(description,
-                    addDispositionMetadata(Map.of(), agentId),
+                    addPersonalityMetadata(Map.of(), tenantId, agentId),
                     ClassificationContext.of(tenantId));
                 for (var sa : classResult.activations()) {
                     double scaled = sa.confidence() * intensity;
@@ -490,20 +485,20 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     }
 
 
-    public java.util.Optional<io.casehub.neocortex.caps.SettlingResult> lastSettlingResult(String agentId) {
-        return java.util.Optional.ofNullable(lastSettlingResults.get(agentId));
+    public java.util.Optional<io.casehub.neocortex.caps.SettlingResult> lastSettlingResult(String tenantId, String agentId) {
+        return java.util.Optional.ofNullable(lastSettlingResults.get(tenantId + ":" + agentId));
     }
 
-    public Map<String, Double> lastInputActivations(String agentId) {
-        return lastInputActivations.getOrDefault(agentId, Map.of());
+    public Map<String, Double> lastInputActivations(String tenantId, String agentId) {
+        return lastInputActivations.getOrDefault(tenantId + ":" + agentId, Map.of());
     }
 
     /**
      * Cattell (1971): associativeReach (Mednick 1962) modulates CAPS base alpha.
      */
-    private double resolveAssociativeReach(String agentId) {
-        if (defaultsRegistry == null) {return 1.0;}
-        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+    private double resolveAssociativeReach(String tenantId, String agentId) {
+        if (effectiveDefaults == null) {return 1.0;}
+        var cap = effectiveDefaults.restingFor(tenantId, agentId).capacityConfig();
         return cap != null ? cap.associativeReachOrDefault() : 1.0;
     }
 
@@ -511,9 +506,9 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
      * Cattell (1971): workingMemorySpan (Engle &amp; Kane 2004) modulates CBR EMA learning rate.
      * Returns null when no modulation is needed (no registry or full capacity).
      */
-    private Double resolveEffectiveCbrLearningRate(String agentId) {
-        if (defaultsRegistry == null) {return null;}
-        var cap = defaultsRegistry.forAgentOrDefaults(agentId).capacityConfig();
+    private Double resolveEffectiveCbrLearningRate(String tenantId, String agentId) {
+        if (effectiveDefaults == null) {return null;}
+        var cap = effectiveDefaults.restingFor(tenantId, agentId).capacityConfig();
         if (cap == null) {return null;}
         double wmSpan = cap.workingMemorySpanOrDefault();
         if (wmSpan >= 1.0) {return null;}

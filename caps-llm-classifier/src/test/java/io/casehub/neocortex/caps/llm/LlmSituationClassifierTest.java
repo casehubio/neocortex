@@ -285,6 +285,74 @@ class LlmSituationClassifierTest {
     }
 
     @Test
+    void pid5Suffix_formatsHighLowModerate() {
+        var metadata = new HashMap<String, String>();
+        metadata.put("pid5.Anxiousness", "0.85");
+        metadata.put("pid5.Risk Taking", "0.25");
+        metadata.put("pid5.Withdrawal", "0.55");
+
+        String suffix = PersonalityPromptBuilder.pid5Suffix(metadata);
+
+        assertThat(suffix).contains("high Anxiousness (0.85)");
+        assertThat(suffix).contains("low Risk Taking (0.25)");
+        assertThat(suffix).contains("moderate Withdrawal (0.55)");
+        assertThat(suffix).startsWith("\nPersonality facets:");
+    }
+
+    @Test
+    void pid5Suffix_emptyWhenNoFacets() {
+        assertThat(PersonalityPromptBuilder.pid5Suffix(Map.of())).isEmpty();
+        assertThat(PersonalityPromptBuilder.pid5Suffix(null)).isEmpty();
+    }
+
+    @Test
+    void appraisalSuffix_formatsElevatedAndReduced() {
+        var metadata = new HashMap<String, String>();
+        metadata.put("appraisal.urgencyWeight", "1.45");
+        metadata.put("appraisal.fearOnsetThreshold", "0.60");
+        metadata.put("appraisal.relationshipWeight", "1.05");
+
+        String suffix = PersonalityPromptBuilder.appraisalSuffix(metadata);
+
+        assertThat(suffix).contains("elevated urgency");
+        assertThat(suffix).contains("dampened fear onset");
+        assertThat(suffix).doesNotContain("relationship");
+        assertThat(suffix).startsWith("\nPerception biases:");
+    }
+
+    @Test
+    void appraisalSuffix_emptyWhenAllNeutral() {
+        var metadata = new HashMap<String, String>();
+        metadata.put("appraisal.urgencyWeight", "1.00");
+        metadata.put("appraisal.fearOnsetThreshold", "1.00");
+
+        assertThat(PersonalityPromptBuilder.appraisalSuffix(metadata)).isEmpty();
+    }
+
+    @Test
+    void classify_pathA_includesPid5InUserPrompt() {
+        var capturedPrompts = new ArrayList<String>();
+        var pipeline = capturingPipeline(capturedPrompts,
+                                         "{\"activations\": [{\"node\": \"reward\", \"confidence\": 0.8}]}");
+        var classifier = new LlmSituationClassifier(pipeline, TOPOLOGY);
+
+        var metadata = new HashMap<String, String>();
+        metadata.put("disposition.socialOrient", "cooperative");
+        metadata.put("pid5.Anxiousness", "0.85");
+        metadata.put("appraisal.urgencyWeight", "1.45");
+
+        classifier.classify("Got rewarded", metadata,
+                            ClassificationContext.of("t1"));
+
+        assertThat(capturedPrompts).hasSize(1);
+        assertThat(capturedPrompts.getFirst()).contains("Personality facets:");
+        assertThat(capturedPrompts.getFirst()).contains("high Anxiousness");
+        assertThat(capturedPrompts.getFirst()).contains("Perception biases:");
+        assertThat(capturedPrompts.getFirst()).contains("elevated urgency");
+    }
+
+
+    @Test
     void classify_noDisposition_usesDefaultSystemPrompt() {
         var capturedInits = new ArrayList<AgentSessionInit>();
         var pipeline = capturingInitPipeline(capturedInits,

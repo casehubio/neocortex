@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.CognitiveAttentionRequired;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -45,7 +45,7 @@ class AttentionIntegrationTest {
             Subject.of("test", "seed"), new MemoryDomain("general"),
             "t1", "seed"));
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("agent-1"));
 
         Clock clock = Clock.fixed(
@@ -89,7 +89,7 @@ class AttentionIntegrationTest {
             Subject.of("test", "seed"), new MemoryDomain("general"),
             "t1", "seed"));
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("agent-2"));
         var accumulator = new CognitiveAttentionAccumulator(
             registry, store, fired::add, Clock.systemUTC(), 0.5, 0);
@@ -127,7 +127,7 @@ class AttentionIntegrationTest {
             Subject.of("test", "seed"), new MemoryDomain("general"),
             "t1", "seed"));
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("agent-1"));
         var accumulator = new CognitiveAttentionAccumulator(
             registry, store, fired::add, Clock.systemUTC(), 3.0, 0);

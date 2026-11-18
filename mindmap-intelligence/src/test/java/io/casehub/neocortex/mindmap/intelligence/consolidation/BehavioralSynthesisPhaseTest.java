@@ -14,7 +14,7 @@ import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightProvenance;
 import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
@@ -679,11 +679,10 @@ class BehavioralSynthesisPhaseTest {
         var axes = new DispositionAxes("competitive", "flexible", "bold", "high", "assertive");
         var descriptor = new DescriptorView(AGENT, axes, List.of(), List.of(), null, List.of());
         var defaults = CognitiveDefaults.empty(AGENT).withDescriptor(descriptor);
-        var registry = new CognitiveDefaultsRegistry();
-        registry.register(defaults);
+        var effectiveDefaults = EffectiveCognitiveDefaults.forTesting(defaults);
 
         var dispPhase = new BehavioralSynthesisPhase(
-            store, capsEngine, capturingClassifier, 20, null, registry);
+            store, capsEngine, capturingClassifier, 20, null, effectiveDefaults);
 
         store.addNode(NodeInput.of("Won a competition", cognitiveSubgraphId)
             .withProperties(Map.of(

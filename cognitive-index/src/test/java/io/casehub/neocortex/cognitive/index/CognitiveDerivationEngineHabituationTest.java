@@ -97,7 +97,7 @@ class CognitiveDerivationEngineHabituationTest {
                 .withHabituationConfig(explicitHab)
                 .withDescriptor(DescriptorView.of("agent-h8", axes, List.of(), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.habituationConfig().habituationRate()).isCloseTo(0.9, within(0.01));
     }
@@ -109,7 +109,7 @@ class CognitiveDerivationEngineHabituationTest {
                 .withTenantId("t1")
                 .withDescriptor(DescriptorView.of("agent-h9", axes, List.of(), List.of()));
 
-        var result = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var result = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
 
         assertThat(result.habituationConfig()).isNotNull();
         assertThat(result.habituationConfig().habituationRate()).isGreaterThan(0.3);

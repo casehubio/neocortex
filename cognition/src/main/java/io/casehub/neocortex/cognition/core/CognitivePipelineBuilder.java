@@ -30,7 +30,7 @@ import io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant;
 import io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator;
 import io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator;
 import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.knowledge.TermNormalizer;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
@@ -62,7 +62,7 @@ public final class CognitivePipelineBuilder {
     private @Nullable ConsolidationMediator consolidationMediator;
     private @Nullable SessionPipeline sessionPipeline;
 
-    private @Nullable CognitiveDefaultsRegistry defaultsRegistry;
+    private @Nullable EffectiveCognitiveDefaults effectiveDefaults;
     private @Nullable AppraisalStrategy appraisalStrategy;
     private @Nullable SalienceStrategy salienceStrategy;
     private io.casehub.neocortex.caps.@Nullable SituationClassifier situationClassifier;
@@ -169,8 +169,8 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
-    public CognitivePipelineBuilder defaultsRegistry(@Nullable CognitiveDefaultsRegistry defaultsRegistry) {
-        this.defaultsRegistry = defaultsRegistry;
+    public CognitivePipelineBuilder effectiveDefaults(@Nullable EffectiveCognitiveDefaults effectiveDefaults) {
+        this.effectiveDefaults = effectiveDefaults;
         return this;
     }
 
@@ -246,12 +246,12 @@ public final class CognitivePipelineBuilder {
                 engagementPersister, temporalFocus, reflectionOrchestrator,
                 consolidationMediator, sessionPipeline);
 
-        if (defaultsRegistry != null) {
-            core.setDefaultsRegistry(defaultsRegistry);
+        if (effectiveDefaults != null) {
+            core.setEffectiveDefaults(effectiveDefaults);
         }
         if (appraisalStrategy != null && salienceStrategy != null) {
             core.configureAppraisal(appraisalStrategy, salienceStrategy,
-                                    defaultsRegistry, situationClassifier);
+                                    effectiveDefaults, situationClassifier);
         }
         core.configureRegulation();
         core.configureRegulationGoals();

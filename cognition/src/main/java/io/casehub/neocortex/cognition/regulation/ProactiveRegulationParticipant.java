@@ -5,7 +5,7 @@ import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.goal.DriveGoalProposal;
 import io.casehub.neocortex.cognition.goal.GoalProposalOrchestrator;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
@@ -19,7 +19,7 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
 
     private final MindMapStore mindMapStore;
     private final GoalProposalOrchestrator goalOrchestrator;
-    private final CognitiveDefaultsRegistry defaultsRegistry;
+    private final EffectiveCognitiveDefaults defaultsRegistry;
     private final String cognitiveSubgraphId;
     private final ProactiveAvoidanceMode mode;
     private final int decayTimeConstant;
@@ -27,7 +27,7 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
 
     public ProactiveRegulationParticipant(MindMapStore mindMapStore,
                                           GoalProposalOrchestrator goalOrchestrator,
-                                          CognitiveDefaultsRegistry defaultsRegistry,
+                                          EffectiveCognitiveDefaults defaultsRegistry,
                                           String cognitiveSubgraphId,
                                           ProactiveAvoidanceMode mode,
                                           int decayTimeConstant,
@@ -46,10 +46,10 @@ public final class ProactiveRegulationParticipant implements CognitionTickPartic
         var regCtx = context.regulationContext();
         if (regCtx == null || regCtx.location() == null) return;
 
-        var defaults = defaultsRegistry.forAgent(context.agentId());
-        if (defaults.isEmpty()) return;
+        var defaults = defaultsRegistry.forAgent(context.tenantId(), context.agentId());
+        if (defaults == null) return;
 
-        var rd = defaults.get().regulationDefaults();
+        var rd = defaults.regulationDefaults();
         if (rd == null) return;
 
         double threshold = 1.0 - rd.redirectTendency();

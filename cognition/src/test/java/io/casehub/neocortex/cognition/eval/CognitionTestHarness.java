@@ -19,7 +19,7 @@ import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.cognition.search.SearchBudget;
 import io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
@@ -62,7 +62,7 @@ public class CognitionTestHarness {
     private final CuriosityDrive curiosityDrive;
     private final MoodOrchestrator moodOrchestrator;
     private final SearchBudgetTickParticipant budgetParticipant;
-    private final CognitiveDefaultsRegistry registry;
+    private final EffectiveCognitiveDefaults registry;
     private final ConsolidationMediator mediator;
     private final List<ConsolidationPhase> consolidationPhases;
     private final Map<String, AgentDescriptor> descriptors;
@@ -74,7 +74,7 @@ public class CognitionTestHarness {
                          CuriosityDrive curiosityDrive,
                          MoodOrchestrator moodOrchestrator,
                          SearchBudgetTickParticipant budgetParticipant,
-                         CognitiveDefaultsRegistry registry,
+                         EffectiveCognitiveDefaults registry,
                          ConsolidationMediator mediator,
                          List<ConsolidationPhase> consolidationPhases,
                          Map<String, AgentDescriptor> descriptors) {
@@ -308,7 +308,7 @@ public class CognitionTestHarness {
             var memStore = memoryStore != null ? memoryStore : createDefaultMemoryStore();
 
             var allDefaults = agentDefaults.values().toArray(new CognitiveDefaults[0]);
-            var registry    = CognitiveDefaultsRegistry.forTesting(allDefaults);
+            var registry    = EffectiveCognitiveDefaults.forTesting(allDefaults);
 
             var cbrStore = new io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore();
 
@@ -377,15 +377,14 @@ public class CognitionTestHarness {
             var mediator = new ConsolidationMediator();
             var config   = cognitionConfig != null ? cognitionConfig : CognitionConfig.all();
 
-            var core = new CognitionCore(
-                    moodOrchestrator, driveOrchestrator,
-                    userModel, mentalModel, strategy,
-                    narrativeOrch, goals, hygiene,
-                    innerLife, config,
-                    store, null, null, null, null, null,
-                    mediator, sessionPipeline);
-
-            core.setDefaultsRegistry(registry);
+            var core = io.casehub.neocortex.cognition.core.CognitivePipelineBuilder
+                    .create(moodOrchestrator, driveOrchestrator)
+                    .userModel(userModel).mentalModel(mentalModel).strategy(strategy)
+                    .narrative(narrativeOrch).goals(goals).memoryHygiene(hygiene)
+                    .innerLife(innerLife).config(config).mindMapStore(store)
+                    .consolidationMediator(mediator).sessionPipeline(sessionPipeline)
+                    .effectiveDefaults(registry)
+                    .build();
 
             io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant appraisalStub = null;
             if (!habituationStates.isEmpty() || !appraisalResults.isEmpty()) {

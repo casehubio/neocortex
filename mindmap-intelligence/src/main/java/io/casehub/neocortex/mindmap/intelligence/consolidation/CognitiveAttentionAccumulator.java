@@ -1,6 +1,6 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.experience.ExperienceRecorded;
 import io.casehub.neocortex.memory.mood.AffectRecorded;
 import io.casehub.neocortex.mindmap.AttentionBriefing;
@@ -35,7 +35,7 @@ public class CognitiveAttentionAccumulator {
         new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, PadEntry> padCache =
         new ConcurrentHashMap<>();
-    private final CognitiveDefaultsRegistry registry;
+    private final EffectiveCognitiveDefaults registry;
     private final MindMapStore mindMapStore;
     private final Consumer<CognitiveAttentionRequired> eventSink;
     private final Clock clock;
@@ -53,7 +53,7 @@ public class CognitiveAttentionAccumulator {
 
     @Inject
     public CognitiveAttentionAccumulator(
-            Instance<CognitiveDefaultsRegistry> registry,
+            Instance<EffectiveCognitiveDefaults> registry,
             Instance<MindMapStore> mindMapStore,
             Event<CognitiveAttentionRequired> eventSink,
             @ConfigProperty(name = "casehub.mindmap.attention.threshold", defaultValue = "5.0") double baseThreshold,
@@ -66,7 +66,7 @@ public class CognitiveAttentionAccumulator {
     }
 
     public CognitiveAttentionAccumulator(
-            CognitiveDefaultsRegistry registry,
+            EffectiveCognitiveDefaults registry,
             MindMapStore mindMapStore,
             Consumer<CognitiveAttentionRequired> eventSink,
             Clock clock,
@@ -76,7 +76,7 @@ public class CognitiveAttentionAccumulator {
     }
 
     CognitiveAttentionAccumulator(
-            CognitiveDefaultsRegistry registry,
+            EffectiveCognitiveDefaults registry,
             MindMapStore mindMapStore,
             Consumer<CognitiveAttentionRequired> eventSink,
             Clock clock,
@@ -110,7 +110,8 @@ public class CognitiveAttentionAccumulator {
         }
 
         if (broadcastSignals != null && registry != null) {
-            for (String agentId : registry.allAgentIds()) {
+            String broadcastTenantId = broadcastSignals.get(0).tenantId();
+            for (String agentId : registry.agentIds(broadcastTenantId)) {
                 var pa = perPrincipal.computeIfAbsent(
                     agentId, k -> new PrincipalAttention());
                 deduplicateAndAdd(pa, broadcastSignals);

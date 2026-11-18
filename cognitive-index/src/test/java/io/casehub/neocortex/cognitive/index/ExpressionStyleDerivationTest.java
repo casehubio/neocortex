@@ -89,7 +89,7 @@ class ExpressionStyleDerivationTest {
                 .withExpressionStyles(new ExpressionStyleDefaults(Map.of("triumph", "custom override")))
                 .withDescriptor(DescriptorView.of("agent-1", null, List.of(), List.of()));
 
-        var merged = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var merged = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
         assertThat(merged.expressionStyles().expressionFor("triumph")).isEqualTo("custom override");
     }
 

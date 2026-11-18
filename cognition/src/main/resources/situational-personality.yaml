@@ -1,0 +1,66 @@
+gains: {beta_N: 0.5, beta_R: 0.25, m_floor: 0.3, switch_margin: 0.10}
+classifiers:
+  uncalibrated_default: {x_floor: 0.6, model: "uncalibrated", calibrated_on: "", corpus: ""}
+modes:
+  stress:
+    group: affective
+    exogenous:
+      - {source: situation_input, nodes: [physical_threat, social_threat, psychological_threat, unpredictable_danger], aggregate: max, weight: 0.35}
+      - {source: situation_input, nodes: [failure, scarcity, powerlessness, rejection, betrayal, abandonment], aggregate: max, weight: 0.25}
+      - {source: caps_mediating, nodes: [FFFS_activation, BIS_activation, threat_sensitivity], aggregate: mean, transform: rise_from_rest, weight: 0.40}
+    endogenous:
+      - {source: sec, product: [{dim: relevance}, {dim: conduciveness, transform: negative_part}, {dim: controllability, transform: complement}], weight: 0.60}
+      - {source: mood, axis: pleasure, transform: negative_part, weight: 0.25}
+      - {source: mood, axis: arousal, transform: positive_part, weight: 0.15}
+    relational: none
+    threshold_on: 0.50
+    threshold_off: 0.42
+    fade_tau: PT2H
+  flow:
+    group: affective
+    exogenous:
+      - {source: situation_input, nodes: [mastery, competence_recognition, choice_available, agency_granted], aggregate: max, weight: 0.5}
+      - {source: caps_mediating, nodes: [BAS_activation], aggregate: max, transform: rise_from_rest, weight: 0.3}
+      - {source: caps_mediating, nodes: [self_efficacy], aggregate: max, transform: rise_from_rest, weight: 0.2}
+    endogenous:
+      - {source: sec, product: [{dim: relevance}, {dim: conduciveness, transform: positive_part}], weight: 0.60}
+      - {source: mood, axis: arousal, transform: "band(0.25, 0.6)", weight: 0.25}
+      - {source: mood, axis: pleasure, transform: positive_part, weight: 0.15}
+    relational: none
+    threshold_on: 0.50
+    threshold_off: 0.42
+    fade_tau: PT45M
+  social_collaborative:
+    group: social
+    exogenous:
+      - {source: situation_input, nodes: [acceptance, sharing, perceived_responsiveness], aggregate: max, weight: 0.6}
+      - {source: caps_mediating, nodes: [other_safety, other_reliability], aggregate: mean, transform: rise_from_rest, weight: 0.4}
+    endogenous:
+      - {source: mood, axis: pleasure, transform: positive_part, weight: 1.0}
+    relational: {field: trust, transform: positive_part}
+    threshold_on: 0.50
+    threshold_off: 0.42
+    fade_tau: PT30M
+  social_competitive:
+    group: social
+    exogenous:
+      - {source: situation_input, nodes: [competition, exclusion, dominance], aggregate: max, weight: 0.6}
+      - {source: caps_mediating, nodes: [other_safety, other_reliability], aggregate: mean, transform: drop_from_rest, weight: 0.4}
+    endogenous:
+      - {source: sec, product: [{dim: relevance}], weight: 0.6}
+      - {source: mood, axis: arousal, transform: positive_part, weight: 0.4}
+    relational: {field: trust, transform: negative_part}
+    threshold_on: 0.50
+    threshold_off: 0.42
+    fade_tau: PT30M
+  social_hierarchical:
+    group: social
+    exogenous:
+      - {source: situation_input, nodes: [power_asymmetry, controlled, submission], aggregate: max, weight: 0.7}
+      - {source: caps_mediating, nodes: [self_efficacy], aggregate: max, transform: drop_from_rest, weight: 0.3}
+    endogenous:
+      - {source: mood, axis: dominance, transform: negative_part, weight: 1.0}
+    relational: none
+    threshold_on: 0.50
+    threshold_off: 0.42
+    fade_tau: PT30M

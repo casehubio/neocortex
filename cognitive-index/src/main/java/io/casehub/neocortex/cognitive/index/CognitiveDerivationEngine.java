@@ -294,35 +294,6 @@ public final class CognitiveDerivationEngine {
     }
 
 
-    public static CognitiveDefaults deriveAndMerge(CognitiveDefaults explicit) {
-        if (explicit.descriptor() == null) {
-            return explicit;
-        }
-        CognitiveDefaults derived = derive(explicit.descriptor());
-        var mergedProfile = mergePersonalityProfile(explicit.personalityProfile(), derived.personalityProfile());
-        var mergedEmotion = explicit.emotionDefaults().mergeWith(derived.emotionDefaults());
-        var mergedResources = explicit.cognitiveResourceDefaults().mergeWith(derived.cognitiveResourceDefaults());
-        var mergedGraph = explicit.graphDefaults().mergeWith(derived.graphDefaults());
-        var mergedBehavioral = explicit.behavioralDefaults().mergeWith(derived.behavioralDefaults());
-
-        return new CognitiveDefaults(explicit.agentId(), explicit.tenantId(), mergedProfile,
-                explicit.descriptor(), mergedEmotion, mergedResources, mergedGraph, mergedBehavioral);
-    }
-
-
-    private static PersonalityProfile mergePersonalityProfile(PersonalityProfile explicit, PersonalityProfile derived) {
-        if (explicit == null) return derived;
-        if (derived == null) return explicit;
-        return new PersonalityProfile(
-                explicit.personality() != null ? explicit.personality() : derived.personality(),
-                explicit.personalityDominance() != null ? explicit.personalityDominance() : derived.personalityDominance(),
-                explicit.expressionStyles() != null ? explicit.expressionStyles() : derived.expressionStyles(),
-                explicit.attachment() != null ? explicit.attachment() : derived.attachment(),
-                !explicit.facets().isEmpty() ? explicit.facets() : derived.facets()
-        );
-    }
-
-
     static CognitiveCapacityConfig deriveCapacity(List<WeightedTerm> profile) {
         return deriveCapacity(profile, List.of());
     }
@@ -848,21 +819,30 @@ public final class CognitiveDerivationEngine {
         double avoidance        = neuroticism;
         double supportSeeking   = (agreeableness + extraversion) / 2.0;
         double acceptance       = 1.0 - neuroticism;
+        double confrontation    = (extraversion + conscientiousness) / 2.0;
+        double disengagement    = (neuroticism + (1.0 - conscientiousness)) / 2.0;
+        double suppression      = (neuroticism + ruleFollowingNumeric) / 2.0;
 
         planful          = clamp01(planful);
         reinterpretation = clamp01(reinterpretation);
         avoidance        = clamp01(avoidance);
         supportSeeking   = clamp01(supportSeeking);
         acceptance       = clamp01(acceptance);
+        confrontation    = clamp01(confrontation);
+        disengagement    = clamp01(disengagement);
+        suppression      = clamp01(suppression);
 
         ctx.output("planfulTendency", planful);
         ctx.output("reinterpretationTendency", reinterpretation);
         ctx.output("avoidanceTendency", avoidance);
         ctx.output("supportSeekingTendency", supportSeeking);
         ctx.output("acceptanceTendency", acceptance);
+        ctx.output("confrontationTendency", confrontation);
+        ctx.output("disengagementTendency", disengagement);
+        ctx.output("suppressionTendency", suppression);
         ctx.stageEnd();
 
-        return new CopingDefaults(planful, reinterpretation, avoidance, supportSeeking, acceptance);
+        return new CopingDefaults(planful, reinterpretation, avoidance, supportSeeking, acceptance, confrontation, disengagement, suppression);
     }
 
 

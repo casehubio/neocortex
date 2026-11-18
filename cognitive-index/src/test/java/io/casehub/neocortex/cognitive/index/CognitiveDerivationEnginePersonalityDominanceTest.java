@@ -95,7 +95,7 @@ class CognitiveDerivationEnginePersonalityDominanceTest {
         var explicit = CognitiveDefaults.empty("test")
                 .withDescriptor(view)
                 .withPersonalityDominance(0.3);
-        var merged = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var merged = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
         assertThat(merged.personalityDominance()).isEqualTo(0.3);
     }
 
@@ -105,7 +105,7 @@ class CognitiveDerivationEnginePersonalityDominanceTest {
                 new FormationPadSummary(0.9 * 0.9 + 0.9 * 0.9, 0.9 + 0.9, 2));
         var explicit = CognitiveDefaults.empty("test")
                 .withDescriptor(view);
-        var merged = CognitiveDerivationEngine.deriveAndMerge(explicit);
+        var merged = EffectiveCognitiveDefaults.merge(explicit, CognitiveDerivationEngine.derive(explicit.descriptor()));
         assertThat(merged.personalityDominance()).isBetween(0.8, 0.99);
     }
 }

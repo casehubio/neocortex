@@ -1,6 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.caps.CapsConnection;
+import io.casehub.neocortex.cognitive.index.PersonalityMetadataEnricher;
 import io.casehub.neocortex.caps.CapsTopology;
 import io.casehub.neocortex.caps.ClassificationContext;
 import io.casehub.neocortex.caps.NodeType;
@@ -49,36 +50,42 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
     private final MindMapStore store;
     private final SituationClassifier classifier;
     private final CapsTopology topology;
-    private final io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry;
+    private final io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults;
+    private final java.util.Set<String>                                          pid5FacetSet;
+
 
     @Inject
     public DriveProfileDerivationPhase(MindMapStore store,
                                        Instance<SituationClassifier> classifier,
                                        Instance<CapsTopology> topology,
-                                       Instance<io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry> defaultsRegistry) {
-        this.store = store;
-        this.classifier = classifier.isResolvable() ? classifier.get() : null;
-        this.topology = topology.isResolvable() ? topology.get() : null;
-        this.defaultsRegistry = defaultsRegistry.isResolvable() ? defaultsRegistry.get() : null;
+                                       Instance<io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults> effectiveDefaults,
+                                       Instance<Pid5FacetsConfig> pid5Config) {
+        this.store            = store;
+        this.classifier       = classifier.isResolvable() ? classifier.get() : null;
+        this.topology         = topology.isResolvable() ? topology.get() : null;
+        this.effectiveDefaults = effectiveDefaults.isResolvable() ? effectiveDefaults.get() : null;
+        this.pid5FacetSet     = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
     }
 
     public DriveProfileDerivationPhase(MindMapStore store,
                                        SituationClassifier classifier,
                                        CapsTopology topology) {
-        this.store = store;
-        this.classifier = classifier;
-        this.topology = topology;
-        this.defaultsRegistry = null;
+        this.store            = store;
+        this.classifier       = classifier;
+        this.topology         = topology;
+        this.effectiveDefaults = null;
+        this.pid5FacetSet     = null;
     }
 
     public DriveProfileDerivationPhase(MindMapStore store,
                                        SituationClassifier classifier,
                                        CapsTopology topology,
-                                       io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry defaultsRegistry) {
+                                       io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
         this.store            = store;
         this.classifier       = classifier;
         this.topology         = topology;
-        this.defaultsRegistry = defaultsRegistry;
+        this.effectiveDefaults = effectiveDefaults;
+        this.pid5FacetSet     = null;
     }
 
 
@@ -192,8 +199,8 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
 
             if (servingMemories.isEmpty()) {continue;}
 
-            Map<String, String> discriminationMeta = addDispositionMetadata(
-                    buildDiscriminationMetadata(driveType, driveDescriptions), agentId);
+            Map<String, String> discriminationMeta = addPersonalityMetadata(
+                    buildDiscriminationMetadata(driveType, driveDescriptions), tenantId, agentId);
 
             var inputActivations = new java.util.concurrent.ConcurrentHashMap<String, Double>();
             var memoryExcerpts = java.util.Collections.synchronizedList(new ArrayList<String>());
@@ -286,20 +293,10 @@ public class DriveProfileDerivationPhase implements ConsolidationPhase {
                       + "this drive from the others. Fewer is better than more.");
     }
 
-    private Map<String, String> addDispositionMetadata(Map<String, String> metadata, String agentId) {
-        if (defaultsRegistry == null) {return metadata;}
-        var defaults = defaultsRegistry.forAgent(agentId);
-        if (defaults.isEmpty() || defaults.get().descriptor() == null) {return metadata;}
-        var axes = defaults.get().descriptor().disposition();
-        if (axes == null) {return metadata;}
-
-        var enriched = new HashMap<>(metadata);
-        if (axes.socialOrient() != null) {enriched.put("disposition.socialOrient", axes.socialOrient());}
-        if (axes.ruleFollowing() != null) {enriched.put("disposition.ruleFollowing", axes.ruleFollowing());}
-        if (axes.riskAppetite() != null) {enriched.put("disposition.riskAppetite", axes.riskAppetite());}
-        if (axes.autonomy() != null) {enriched.put("disposition.autonomy", axes.autonomy());}
-        if (axes.conflictMode() != null) {enriched.put("disposition.conflictMode", axes.conflictMode());}
-        return enriched;
+    private Map<String, String> addPersonalityMetadata(Map<String, String> metadata, String tenantId, String agentId) {
+        if (effectiveDefaults == null) {return metadata;}
+        var profile = effectiveDefaults.restingFor(tenantId, agentId);
+        return PersonalityMetadataEnricher.enrich(metadata, profile, pid5FacetSet);
     }
 
 

@@ -1,6 +1,6 @@
 package io.casehub.neocortex.cognition.core;
 
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.mindmap.ContinuumPosition;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -41,10 +41,10 @@ public class CognitionTestAccess {
     }
 
     public static RecurringThoughtPhase createRecurringThoughtPhase(
-            CaseMemoryStore memStore, MindMapStore mindMapStore, CognitiveDefaultsRegistry registry) {
+            CaseMemoryStore memStore, MindMapStore mindMapStore, EffectiveCognitiveDefaults registry) {
         try {
             var ctor = RecurringThoughtPhase.class.getDeclaredConstructor(
-                CaseMemoryStore.class, MindMapStore.class, CognitiveDefaultsRegistry.class);
+                CaseMemoryStore.class, MindMapStore.class, EffectiveCognitiveDefaults.class);
             ctor.setAccessible(true);
             return ctor.newInstance(memStore, mindMapStore, registry);
         } catch (Exception e) {

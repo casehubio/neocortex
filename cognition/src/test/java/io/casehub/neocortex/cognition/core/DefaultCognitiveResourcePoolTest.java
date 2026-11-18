@@ -2,7 +2,7 @@ package io.casehub.neocortex.cognition.core;
 
 import io.casehub.neocortex.cognitive.CognitiveResourcePoolConfig;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,17 +17,8 @@ class DefaultCognitiveResourcePoolTest {
     @BeforeEach
     void setUp() {
         var config = CognitiveResourcePoolConfig.defaults();
-        CognitiveDefaultsRegistry registry = new CognitiveDefaultsRegistry() {
-            @Override
-            public Optional<CognitiveDefaults> forAgent(String agentId) {
-                return Optional.of(CognitiveDefaults.empty(agentId)
-                        .withCognitiveResourcePoolConfig(config));
-            }
-            @Override
-            public CognitiveDefaults forAgentOrDefaults(String agentId) {
-                return forAgent(agentId).orElseThrow();
-            }
-        };
+        var defaults = CognitiveDefaults.empty("a1").withCognitiveResourcePoolConfig(config);
+        var registry = EffectiveCognitiveDefaults.forTesting(defaults);
         pool = new DefaultCognitiveResourcePool(registry);
     }
 

@@ -20,7 +20,7 @@ import io.casehub.neocortex.cognitive.ExtremeInteractionConfig;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.cognitive.SearchFatigueEffects;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
@@ -46,7 +46,7 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
     private final @Nullable AppraisalTickParticipant appraisalParticipant;
     private final @Nullable GutFeelingParticipant gutFeelingParticipant;
     private final @Nullable MoodOrchestrator moodOrchestrator;
-    private final CognitiveDefaultsRegistry defaultsRegistry;
+    private final EffectiveCognitiveDefaults defaultsRegistry;
     private final @Nullable CognitionConfig cognitionConfig;
     private final @Nullable CuriosityDrive curiosityDrive;
     private final @Nullable CognitiveResourcePool cognitiveResourcePool;
@@ -59,7 +59,7 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
             @Nullable AppraisalTickParticipant appraisalParticipant,
             @Nullable GutFeelingParticipant gutFeelingParticipant,
             @Nullable MoodOrchestrator moodOrchestrator,
-            CognitiveDefaultsRegistry defaultsRegistry,
+            EffectiveCognitiveDefaults defaultsRegistry,
             @Nullable CognitionConfig cognitionConfig,
             @Nullable CuriosityDrive curiosityDrive,
             @Nullable CognitiveResourcePool cognitiveResourcePool) {
@@ -84,7 +84,7 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
         if (driveOpt.isEmpty()) {return;}
         DriveProfile profile = driveOpt.get();
 
-        var defaults = defaultsRegistry.forAgentOrDefaults(agentId);
+        var defaults = defaultsRegistry.forAgentOrDefaults(tenantId, agentId);
         SearchBudgetConfig config = defaults.searchBudgetConfig() != null
                                     ? defaults.searchBudgetConfig() : SearchBudgetConfig.defaults();
 

@@ -73,15 +73,14 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
                 "external-standards": <0.0-1.0, does this align with social norms (1.0=fine)>
               },
               "action_targets": {
-                "<tendency>": "<what the tendency is directed at>",
-                "approach": "the discovery",
-                "avoidance": "social exposure"
+                "<tendency>": "<what the tendency is directed at>"
               }
             }
             action_targets: for each Frijda action tendency that fires, name what it is \
             directed at. Keys are lowercase tendency names (approach, avoidance, attending, \
             rejection, antagonism, interruption, submission, dominance). Only include \
-            tendencies that are relevant.""";
+            tendencies that are relevant. Example: {"approach": "the discovery", \
+            "avoidance": "social exposure"}.""";
 
     private final @Nullable SessionPipeline sessionPipeline;
 
@@ -128,7 +127,7 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
         double novelty = dims.getOrDefault(SecDimensions.NOVELTY, 1.0);
         var habituation = updateHabituation(context, novelty);
 
-        return new AppraisalResult(emotions, tendencies, habituation, narrative);
+        return new AppraisalResult(emotions, tendencies, habituation, narrative, dims);
     }
 
     private static HabituationState updateHabituation(AppraisalContext context, double novelty) {

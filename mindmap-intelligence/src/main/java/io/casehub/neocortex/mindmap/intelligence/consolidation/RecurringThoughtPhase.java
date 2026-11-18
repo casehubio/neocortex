@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.RecurringThoughtConfig;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.experience.ExperienceAttributeKeys;
@@ -33,7 +33,7 @@ public class RecurringThoughtPhase implements ConsolidationPhase {
 
     private final CaseMemoryStore memoryStore;
     private final MindMapStore mindMapStore;
-    private final CognitiveDefaultsRegistry registry;
+    private final EffectiveCognitiveDefaults registry;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     private final List<ConsolidationArtifact> pendingArtifacts = new ArrayList<>();
     private final ConcurrentHashMap<String, List<RecurringThoughtAssessment>> cache = new ConcurrentHashMap<>();
@@ -41,14 +41,14 @@ public class RecurringThoughtPhase implements ConsolidationPhase {
     @jakarta.inject.Inject
     public RecurringThoughtPhase(Instance<CaseMemoryStore> memoryStoreInstance,
                                   Instance<MindMapStore> mindMapStoreInstance,
-                                  Instance<CognitiveDefaultsRegistry> registryInstance) {
+                                  Instance<EffectiveCognitiveDefaults> registryInstance) {
         this.memoryStore = memoryStoreInstance.isResolvable() ? memoryStoreInstance.get() : null;
         this.mindMapStore = mindMapStoreInstance.isResolvable() ? mindMapStoreInstance.get() : null;
         this.registry = registryInstance.isResolvable() ? registryInstance.get() : null;
     }
 
     RecurringThoughtPhase(CaseMemoryStore memoryStore, MindMapStore mindMapStore,
-                           CognitiveDefaultsRegistry registry) {
+                           EffectiveCognitiveDefaults registry) {
         this.memoryStore = memoryStore;
         this.mindMapStore = mindMapStore;
         this.registry = registry;
@@ -75,7 +75,7 @@ public class RecurringThoughtPhase implements ConsolidationPhase {
 
         for (var entry : byAgent.entrySet()) {
             String agentId = entry.getKey();
-            RecurringThoughtConfig config = resolveConfig(registry, agentId, defaultConfig);
+            RecurringThoughtConfig config = resolveConfig(registry, tenantId, agentId, defaultConfig);
 
             Set<String> topicNodeIds = resolveTopics(memoryStore, mindMapStore, agentId, tenantId, config);
 
@@ -113,7 +113,7 @@ public class RecurringThoughtPhase implements ConsolidationPhase {
 
     private Map<String, List<MindMapNode>> discoverAgents(MindMapStore store, String tenantId) {
         var cognitiveNodes = store.search(
-                io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 200));
+                io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 2000));
 
         return cognitiveNodes.stream()
                 .filter(n -> n.property("agent-id").isPresent())
@@ -146,12 +146,12 @@ public class RecurringThoughtPhase implements ConsolidationPhase {
         return nodeIds;
     }
 
-    private RecurringThoughtConfig resolveConfig(CognitiveDefaultsRegistry registry,
-                                                  String agentId,
+    private RecurringThoughtConfig resolveConfig(EffectiveCognitiveDefaults registry,
+                                                  String tenantId, String agentId,
                                                   RecurringThoughtConfig defaultConfig) {
         if (registry == null) return defaultConfig;
-        var defaults = registry.forAgentOrDefaults(agentId);
-        return defaults.recurringThoughtConfig() != null ? defaults.recurringThoughtConfig() : defaultConfig;
+        var profile = registry.restingFor(tenantId, agentId);
+        return profile.recurringThoughtConfig() != null ? profile.recurringThoughtConfig() : defaultConfig;
     }
 
     private void emitSignal(String agentId, String tenantId, RecurringThoughtAssessment assessment) {

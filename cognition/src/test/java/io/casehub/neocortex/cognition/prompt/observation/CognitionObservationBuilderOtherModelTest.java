@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognition.prompt.observation;
 
 import io.casehub.neocortex.cognition.core.CognitionConfig;
-import io.casehub.neocortex.cognition.core.CognitionCore;
+import io.casehub.neocortex.cognition.core.CognitivePipelineBuilder;
 import io.casehub.neocortex.cognition.mood.MoodConfig;
 import io.casehub.neocortex.cognition.mood.MoodOrchestrator;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -33,8 +33,7 @@ class CognitionObservationBuilderOtherModelTest {
 
         var mood = new MoodOrchestrator(MoodConfig.defaults());
         var config = CognitionConfig.all().with("otherModel", true);
-        var core = new CognitionCore(mood, null, null, null, null, null, null, null,
-            null, config, store, null, null, null, null, null, null, null);
+        var core = CognitivePipelineBuilder.create(mood, null).config(config).mindMapStore(store).build();
 
         core.tick("agent1", "t1", null, (a, t) -> Set.of(), "obs", "target1");
 
@@ -60,8 +59,7 @@ class CognitionObservationBuilderOtherModelTest {
 
         var mood = new MoodOrchestrator(MoodConfig.defaults());
         var config = CognitionConfig.all().with("otherModel", true);
-        var core = new CognitionCore(mood, null, null, null, null, null, null, null,
-            null, config, store, null, null, null, null, null, null, null);
+        var core = CognitivePipelineBuilder.create(mood, null).config(config).mindMapStore(store).build();
 
         core.tick("agent1", "t1", null, (a, t) -> Set.of());
 

@@ -1,16 +1,16 @@
 package io.casehub.neocortex.cognition.core;
 
 import io.casehub.neocortex.cognitive.CognitiveResourcePoolConfig;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultCognitiveResourcePool implements CognitiveResourcePool {
 
-    private final CognitiveDefaultsRegistry defaultsRegistry;
+    private final EffectiveCognitiveDefaults defaultsRegistry;
     private final ConcurrentHashMap<String, Double> accumulators = new ConcurrentHashMap<>();
 
-    public DefaultCognitiveResourcePool(CognitiveDefaultsRegistry defaultsRegistry) {
+    public DefaultCognitiveResourcePool(EffectiveCognitiveDefaults defaultsRegistry) {
         this.defaultsRegistry = defaultsRegistry;
     }
 
@@ -36,7 +36,7 @@ public class DefaultCognitiveResourcePool implements CognitiveResourcePool {
         String key = agentId + ":" + tenantId;
         double accumulator = accumulators.getOrDefault(key, 0.0);
         if (accumulator <= 0.0) return 0.0;
-        var defaults = defaultsRegistry.forAgentOrDefaults(agentId);
+        var defaults = defaultsRegistry.forAgentOrDefaults(tenantId, agentId);
         var poolConfig = defaults.cognitiveResourcePoolConfig();
         int maxEffort = poolConfig != null ? poolConfig.maxEffort()
                 : CognitiveResourcePoolConfig.defaults().maxEffort();

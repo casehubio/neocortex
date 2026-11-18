@@ -17,81 +17,22 @@ package io.casehub.neocortex.cognitive.eidos;
 
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentGoal;
-import io.casehub.eidos.api.AgentQuery;
-import io.casehub.eidos.api.AgentRegistry;
 import io.casehub.eidos.api.DispositionAxis;
-import io.casehub.neocortex.cognitive.index.PersonalityFacet;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
-import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.WeightedTerm;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 import java.util.logging.Logger;
 
-@ApplicationScoped
 public class EidosCognitiveProfileBridge {
 
     private static final Logger LOG = Logger.getLogger(EidosCognitiveProfileBridge.class.getName());
 
-    private final CognitiveDefaultsRegistry registry;
-    private final Instance<AgentRegistry> agentRegistryInstance;
-    private final AgentRegistry directAgentRegistry;
+    public EidosCognitiveProfileBridge() {}
 
-    @Inject
-    public EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry,
-                                       Instance<AgentRegistry> agentRegistryInstance) {
-        this.registry = registry;
-        this.agentRegistryInstance = agentRegistryInstance;
-        this.directAgentRegistry = null;
-    }
-
-    EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry) {
-        this.registry = registry;
-        this.agentRegistryInstance = null;
-        this.directAgentRegistry = null;
-    }
-
-    EidosCognitiveProfileBridge(CognitiveDefaultsRegistry registry, AgentRegistry agentRegistry) {
-        this.registry = registry;
-        this.agentRegistryInstance = null;
-        this.directAgentRegistry = agentRegistry;
-    }
-
-    public void bridgeAll(String tenancyId) {
-        AgentRegistry agentRegistry = directAgentRegistry;
-        if (agentRegistry == null && agentRegistryInstance != null && !agentRegistryInstance.isUnsatisfied()) {
-            agentRegistry = agentRegistryInstance.get();
-        }
-        if (agentRegistry == null) {
-            LOG.info("No AgentRegistry available — skipping eidos profile bridge");
-            return;
-        }
-        var matches = agentRegistry.find(AgentQuery.all(tenancyId));
-        int count = 0;
-        for (var match : matches) {
-            var view = toDescriptorView(match.descriptor());
-            registerFromDescriptor(view);
-            count++;
-        }
-        LOG.info("Registered " + count + " cognitive profiles from eidos descriptors");
-    }
-
-    public void registerFromDescriptor(DescriptorView view) {
-        var existing = registry.forAgent(view.agentId());
-        if (existing.isPresent()) {
-            var merged = CognitiveDerivationEngine.deriveAndMerge(existing.get().withDescriptor(view));
-            registry.register(merged);
-        } else {
-            var defaults = CognitiveDerivationEngine.derive(view);
-            registry.register(defaults);
-        }
-    }
-
-    static DescriptorView toDescriptorView(AgentDescriptor descriptor) {
+    public static DescriptorView toDescriptorView(AgentDescriptor descriptor) {
         var disposition = descriptor.disposition();
         var axes = new DispositionAxes(
                 disposition.primaryTerm(DispositionAxis.SOCIAL_ORIENTATION),
@@ -130,5 +71,4 @@ public class EidosCognitiveProfileBridge {
         }
         return sb.toString();
     }
-
 }

@@ -33,7 +33,7 @@ class CopingGenerationPhaseTest {
             new DispositionAxes("cooperative", "flexible", "calculated", "high", "analytical");
 
     private static final CopingDefaults DEFAULTS =
-            new CopingDefaults(0.8, 0.5, 0.2, 0.4, 0.6);
+            new CopingDefaults(0.8, 0.5, 0.2, 0.4, 0.6, 0.6, 0.2, 0.3);
 
     private static CognitiveEmotion emotion(EmotionType type, double intensity) {
         return new CognitiveEmotion(type, intensity, "test-agent",

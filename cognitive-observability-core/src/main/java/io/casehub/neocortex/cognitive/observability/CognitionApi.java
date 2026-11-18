@@ -61,6 +61,11 @@ public interface CognitionApi {
                                        Integer fromTick,
                                        Integer toTick);
 
+    @PlatformQuery("Prediction calibration: compares predictor vs LLM regulation effectiveness per agent. "
+                   + "Returns delta, miscalibration flag, and episode counts. minEpisodes defaults to 5")
+    PredictionCalibrationResult calibration(@ContextParam("tenancyId") String tenancyId,
+                                            String agentId, Integer minEpisodes);
+
 
     @McpExclude
     @PlatformQuery("Activity queries — internal dispatch method")

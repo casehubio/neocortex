@@ -14,7 +14,7 @@ import io.casehub.neocortex.cognition.strategy.StrategyLearningOrchestrator;
 import io.casehub.neocortex.cognition.temporal.ReflectionRetrievalOrchestrator;
 import io.casehub.neocortex.cognition.temporal.TemporalFocusOrchestrator;
 import io.casehub.neocortex.cognition.usermodel.UserModelOrchestrator;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.engagement.EngagementEvent;
 import io.casehub.neocortex.mindmap.MindMapStore;
@@ -54,7 +54,7 @@ public class CognitionCoreFactory {
     @Inject Instance<TemporalFocusOrchestrator> temporalFocus;
     @Inject Instance<ReflectionRetrievalOrchestrator> reflectionOrchestrator;
     @Inject Instance<ConsolidationMediator> consolidationMediator;
-    @Inject Instance<CognitiveDefaultsRegistry> defaultsRegistry;
+    @Inject Instance<EffectiveCognitiveDefaults> effectiveDefaults;
 
     @Inject Instance<AppraisalStrategy> appraisalStrategy;
     @Inject Instance<SalienceStrategy> salienceStrategy;
@@ -99,8 +99,8 @@ public class CognitionCoreFactory {
                                               .consolidationMediator(resolve(consolidationMediator))
                                               .sessionPipeline(resolve(sessionPipeline));
 
-        if (defaultsRegistry.isResolvable()) {
-            builder.defaultsRegistry(defaultsRegistry.get());
+        if (effectiveDefaults.isResolvable()) {
+            builder.effectiveDefaults(effectiveDefaults.get());
         }
         if (appraisalStrategy.isResolvable() && salienceStrategy.isResolvable()) {
             builder.appraisal(appraisalStrategy.get(), salienceStrategy.get());

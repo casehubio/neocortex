@@ -44,6 +44,8 @@ public class MentalModelOrchestrator {
 
     private final ConcurrentHashMap<String, SubjectMentalState> states = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, TheoryOfMindPosterior> tomPosteriors = new ConcurrentHashMap<>();
+
 
     public MentalModelOrchestrator(MentalModelMemory modelMemory,
                             MentalModelConfig config,
@@ -149,6 +151,28 @@ public class MentalModelOrchestrator {
                      .filter(s -> s != null)
                      .toList();
     }
+
+    public void recordTomPosterior(String agentId, String subjectId, String tenantId, TheoryOfMindPosterior posterior) {
+        tomPosteriors.put(stateKey(agentId, subjectId, tenantId), posterior);
+    }
+
+    public java.util.Optional<TheoryOfMindPosterior> tomPosterior(String agentId, String subjectId, String tenantId) {
+        return java.util.Optional.ofNullable(tomPosteriors.get(stateKey(agentId, subjectId, tenantId)));
+    }
+
+    public Map<String, TheoryOfMindPosterior> activeTomPosteriors(String agentId, String tenantId) {
+        var prefix = agentId + ":";
+        var suffix = ":" + tenantId;
+        var result = new LinkedHashMap<String, TheoryOfMindPosterior>();
+        tomPosteriors.forEach((key, posterior) -> {
+            if (key.startsWith(prefix) && key.endsWith(suffix)) {
+                String subjectId = key.substring(prefix.length(), key.length() - suffix.length());
+                result.put(subjectId, posterior);
+            }
+        });
+        return result;
+    }
+
 
     private MentalModelTick doTick(SubjectMentalState state) {
         int snapPending;
@@ -503,8 +527,12 @@ public class MentalModelOrchestrator {
         var timeout = config.evictionTimeout();
         states.entrySet().removeIf(entry -> {
             var st = entry.getValue();
-            return st.lastActivityTimestamp != null
+            boolean stale = st.lastActivityTimestamp != null
                     && Duration.between(st.lastActivityTimestamp, now).compareTo(timeout) > 0;
+            if (stale) {
+                tomPosteriors.remove(entry.getKey());
+            }
+            return stale;
         });
     }
 

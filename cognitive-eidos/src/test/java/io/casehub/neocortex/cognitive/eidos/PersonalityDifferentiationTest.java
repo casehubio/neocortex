@@ -15,7 +15,7 @@
  */
 package io.casehub.neocortex.cognitive.eidos;
 
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.cognitive.index.WeightedTerm;
@@ -23,45 +23,29 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class PersonalityDifferentiationTest {
 
     @Test
     void differentPersonalitiesProduceDifferentCognitiveDefaults() {
-        var registry = CognitiveDefaultsRegistry.forTesting();
-        var bridge = new EidosCognitiveProfileBridge(registry);
-
-        bridge.registerFromDescriptor(DescriptorView.of(
+        var clawView = DescriptorView.of(
                 "hooded-claw",
                 new DispositionAxes("competitive", "flexible", "bold", "high", "competitive"),
                 List.of(new WeightedTerm("Se", 0.9), new WeightedTerm("Te", 0.7)),
-                List.of("defeat enemies", "seize control")
-        ));
+                List.of("defeat enemies", "seize control"));
 
-        bridge.registerFromDescriptor(DescriptorView.of(
+        var penelopeView = DescriptorView.of(
                 "penelope-pitstop",
                 new DispositionAxes("cooperative", "strict", "conservative", "moderate", "cooperative"),
                 List.of(new WeightedTerm("Fe", 0.9), new WeightedTerm("Fi", 0.7)),
-                List.of("help others", "win fairly")
-        ));
+                List.of("help others", "win fairly"));
 
-        var claw = registry.forAgent("hooded-claw").orElseThrow();
-        var penelope = registry.forAgent("penelope-pitstop").orElseThrow();
+        var claw     = CognitiveDerivationEngine.derive(clawView);
+        var penelope = CognitiveDerivationEngine.derive(penelopeView);
 
         assertNotEquals(claw.moodBaseline(), penelope.moodBaseline());
         assertNotEquals(claw.cbrStrategy(), penelope.cbrStrategy());
         assertNotEquals(claw.socialCognition(), penelope.socialCognition());
-        assertNotEquals(claw.graphStructure(), penelope.graphStructure());
-
-        assertNotNull(claw.personalityProfile());
-        assertNotNull(claw.moodBaseline());
-        assertNotNull(claw.curiosity());
-        assertNotNull(claw.cbrStrategy());
-        assertNotNull(claw.socialCognition());
-        assertNotNull(claw.graphStructure());
-        assertNotNull(claw.extractionBias());
-        assertNotNull(claw.appraisalWeights());
-        assertNotNull(claw.habituationConfig());
     }
 }

@@ -127,6 +127,67 @@ class CopingDefaultsDerivationTest {
     }
 
     @Test
+    void highExtraversionAndConscientiousness_highConfrontationTendency() {
+        var axes = new DispositionAxes("cooperative", "strict", "bold", "high", "competitive");
+        var facets = List.of(
+                new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.1, "test"),
+                new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.1, "test"),
+                new PersonalityFacet(PersonalityFacet.INTIMACY_AVOIDANCE, 0.1, "test"),
+                new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.2, "test"),
+                new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.2, "test"),
+                new PersonalityFacet(PersonalityFacet.RISK_TAKING, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.3, "test"),
+                new PersonalityFacet(PersonalityFacet.CALLOUSNESS, 0.2, "test"),
+                new PersonalityFacet(PersonalityFacet.HOSTILITY, 0.2, "test"),
+                new PersonalityFacet(PersonalityFacet.MANIPULATIVENESS, 0.2, "test")
+                            );
+        var cd = CognitiveDerivationEngine.deriveCopingDefaults(axes, facets);
+        assertThat(cd).isNotNull();
+        assertThat(cd.confrontationTendency()).isGreaterThan(0.7);
+    }
+
+    @Test
+    void highNeuroticismLowConscientiousness_highDisengagementTendency() {
+        var axes = new DispositionAxes("independent", "flexible", "conservative", "low", "avoidant");
+        var facets = List.of(
+                new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.9, "test"),
+                new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.85, "test"),
+                new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.8, "test"),
+                new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.7, "test"),
+                new PersonalityFacet(PersonalityFacet.RISK_TAKING, 0.2, "test"),
+                new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.6, "test"),
+                new PersonalityFacet(PersonalityFacet.CALLOUSNESS, 0.3, "test"),
+                new PersonalityFacet(PersonalityFacet.HOSTILITY, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.INTIMACY_AVOIDANCE, 0.7, "test"),
+                new PersonalityFacet(PersonalityFacet.MANIPULATIVENESS, 0.3, "test")
+                            );
+        var cd = CognitiveDerivationEngine.deriveCopingDefaults(axes, facets);
+        assertThat(cd).isNotNull();
+        assertThat(cd.disengagementTendency()).isGreaterThan(0.6);
+    }
+
+    @Test
+    void highNeuroticismAndRuleFollowing_highSuppressionTendency() {
+        var axes = new DispositionAxes("cooperative", "strict", "conservative", "moderate", "analytical");
+        var facets = List.of(
+                new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.85, "test"),
+                new PersonalityFacet(PersonalityFacet.EMOTIONAL_LABILITY, 0.8, "test"),
+                new PersonalityFacet(PersonalityFacet.IMPULSIVITY, 0.3, "test"),
+                new PersonalityFacet(PersonalityFacet.WITHDRAWAL, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.RISK_TAKING, 0.3, "test"),
+                new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.CALLOUSNESS, 0.2, "test"),
+                new PersonalityFacet(PersonalityFacet.HOSTILITY, 0.3, "test"),
+                new PersonalityFacet(PersonalityFacet.INTIMACY_AVOIDANCE, 0.4, "test"),
+                new PersonalityFacet(PersonalityFacet.MANIPULATIVENESS, 0.2, "test")
+                            );
+        var cd = CognitiveDerivationEngine.deriveCopingDefaults(axes, facets);
+        assertThat(cd).isNotNull();
+        assertThat(cd.suppressionTendency()).isGreaterThan(0.6);
+    }
+
+
+    @Test
     void nullFacets_returnsNull() {
         var axes = new DispositionAxes("cooperative", "moderate", "calculated", "moderate", "analytical");
         assertThat(CognitiveDerivationEngine.deriveCopingDefaults(axes, null)).isNull();
@@ -176,6 +237,9 @@ class CopingDefaultsDerivationTest {
         assertThat(cd.avoidanceTendency()).isBetween(0.0, 1.0);
         assertThat(cd.supportSeekingTendency()).isBetween(0.0, 1.0);
         assertThat(cd.acceptanceTendency()).isBetween(0.0, 1.0);
+        assertThat(cd.confrontationTendency()).isBetween(0.0, 1.0);
+        assertThat(cd.disengagementTendency()).isBetween(0.0, 1.0);
+        assertThat(cd.suppressionTendency()).isBetween(0.0, 1.0);
     }
 
     @Test

@@ -1,7 +1,7 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.mindmap.AttentionSignal;
 import io.casehub.neocortex.mindmap.CognitiveAttentionRequired;
 import io.casehub.neocortex.mindmap.SignalCategory;
@@ -21,7 +21,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void signals_accumulate_per_principal() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("agent-a"),
             CognitiveDefaults.empty("agent-b"));
         var acc = new CognitiveAttentionAccumulator(
@@ -46,7 +46,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void adaptive_threshold_lowers_with_high_urgency_p75() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
@@ -64,7 +64,7 @@ class CognitiveAttentionAccumulatorTest {
         var fired = new ArrayList<CognitiveAttentionRequired>();
         var fixedClock = Clock.fixed(
             Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, fixedClock, 5.0, 300);
@@ -83,7 +83,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void deduplication_keeps_higher_significance() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
@@ -106,7 +106,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void null_principal_broadcasts_to_all_registered_agents() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"), CognitiveDefaults.empty("b"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
@@ -120,7 +120,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void threshold_floor_prevents_zero_threshold() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
@@ -141,7 +141,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void signals_sorted_by_significance_descending_in_briefing() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
@@ -163,7 +163,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void pending_signals_cleared_after_fire() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(
+        var registry = EffectiveCognitiveDefaults.forTesting(
             CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
@@ -185,7 +185,7 @@ class CognitiveAttentionAccumulatorTest {
     void affect_recorded_with_large_pad_delta_creates_signal() {
         var fired    = new ArrayList<CognitiveAttentionRequired>();
         var store    = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a"));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
                 registry, store, fired::add, Clock.systemUTC(), 1.0, 0);
 
@@ -212,7 +212,7 @@ class CognitiveAttentionAccumulatorTest {
     void affect_recorded_with_small_pad_delta_no_signal() {
         var fired    = new ArrayList<CognitiveAttentionRequired>();
         var store    = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a"));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty("a"));
         var acc = new CognitiveAttentionAccumulator(
                 registry, store, fired::add, Clock.systemUTC(), 5.0, 0);
 
@@ -235,7 +235,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void experience_recorded_with_goal_metadata_creates_signal() {
         var fired    = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-x"));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty("agent-x"));
         var acc = new CognitiveAttentionAccumulator(
                 registry, null, fired::add, Clock.systemUTC(), 1.0, 0);
 
@@ -253,7 +253,7 @@ class CognitiveAttentionAccumulatorTest {
     @Test
     void experience_recorded_without_goal_metadata_no_signal() {
         var fired    = new ArrayList<CognitiveAttentionRequired>();
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-x"));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty("agent-x"));
         var acc = new CognitiveAttentionAccumulator(
                 registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
 
@@ -271,7 +271,7 @@ class CognitiveAttentionAccumulatorTest {
     void pad_cache_entries_expire_after_interval() {
         var fired    = new ArrayList<CognitiveAttentionRequired>();
         var store    = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
-        var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("a"));
+        var registry = EffectiveCognitiveDefaults.forTesting(CognitiveDefaults.empty("a"));
 
         // Use a mutable clock to control time
         var baseInstant = Instant.parse("2026-01-01T00:00:00Z");

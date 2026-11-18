@@ -170,7 +170,7 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
                 "event-type", FeatureValue.string(eventType),
                 "cognitiveKind", FeatureValue.string(cognitiveKind),
                 "model-version", FeatureValue.string(modelVersion)));
-            addDispositionFeatures(features, metadata);
+            addPersonalityFeatures(features, metadata);
 
             var record = new CbrFeatureRecord(description, solution,
                 null, null, features, null, null);
@@ -186,13 +186,21 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
         }
     }
 
-    private static void addDispositionFeatures(Map<String, FeatureValue> features,
-                                                Map<String, String> metadata) {
-        if (metadata == null) return;
+    private static void addPersonalityFeatures(Map<String, FeatureValue> features,
+                                               Map<String, String> metadata) {
+        if (metadata == null) {return;}
         for (String key : DISPOSITION_KEYS) {
             String val = metadata.getOrDefault(key, "");
             features.put(key.replace('.', '-'), FeatureValue.string(val));
         }
+        metadata.entrySet().stream()
+                .filter(e -> e.getKey().startsWith("pid5."))
+                .forEach(e -> features.put(
+                        e.getKey().replace('.', '-'), FeatureValue.string(e.getValue())));
+        metadata.entrySet().stream()
+                .filter(e -> e.getKey().startsWith("appraisal."))
+                .forEach(e -> features.put(
+                        e.getKey().replace('.', '-'), FeatureValue.string(e.getValue())));
     }
 
     String serializeActivations(List<SituationActivation> activations) {
@@ -236,7 +244,7 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
     }
 
     static String computeCaseId(String description, String eventType,
-                                 String cognitiveKind, Map<String, String> metadata) {
+                                String cognitiveKind, Map<String, String> metadata) {
         try {
             var digest = MessageDigest.getInstance("SHA-256");
             digest.update(description.getBytes(StandardCharsets.UTF_8));
@@ -248,6 +256,24 @@ public class CbrCachingSituationDecorator implements SituationClassifier {
                 String val = metadata != null ? metadata.getOrDefault(key, "") : "";
                 digest.update((byte) 0);
                 digest.update(val.getBytes(StandardCharsets.UTF_8));
+            }
+            if (metadata != null) {
+                metadata.entrySet().stream()
+                        .filter(e -> e.getKey().startsWith("pid5."))
+                        .sorted(Map.Entry.comparingByKey())
+                        .forEach(e -> {
+                            digest.update((byte) 0);
+                            digest.update((e.getKey() + "=" + e.getValue())
+                                                  .getBytes(StandardCharsets.UTF_8));
+                        });
+                metadata.entrySet().stream()
+                        .filter(e -> e.getKey().startsWith("appraisal."))
+                        .sorted(Map.Entry.comparingByKey())
+                        .forEach(e -> {
+                            digest.update((byte) 0);
+                            digest.update((e.getKey() + "=" + e.getValue())
+                                                  .getBytes(StandardCharsets.UTF_8));
+                        });
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException e) {
