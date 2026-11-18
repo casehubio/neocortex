@@ -1077,9 +1077,10 @@ public @Nullable String lastTargetAgentId() {
                 var snapshot = sitParticipant.currentSnapshot(agentId, tenantId);
                 if (snapshot.isEmpty()) return null;
                 var s = snapshot.get();
+                double affIntensity = s.affectiveWinner() != null ? s.modeIntensities().getOrDefault(s.affectiveWinner(), 0.0) : 0.0;
+                double socIntensity = s.socialWinner() != null ? s.modeIntensities().getOrDefault(s.socialWinner(), 0.0) : 0.0;
                 return new io.casehub.neocortex.cognition.appraisal.SituationalModeContext(
-                        s.affectiveWinner(), s.modeIntensities().getOrDefault(s.affectiveWinner() != null ? s.affectiveWinner() : "", 0.0),
-                        s.socialWinner(), s.modeIntensities().getOrDefault(s.socialWinner() != null ? s.socialWinner() : "", 0.0));
+                        s.affectiveWinner(), affIntensity, s.socialWinner(), socIntensity);
             });
         }
     }
