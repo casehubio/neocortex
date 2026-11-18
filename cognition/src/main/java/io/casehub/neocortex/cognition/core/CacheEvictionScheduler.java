@@ -3,7 +3,7 @@ package io.casehub.neocortex.cognition.core;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -17,7 +17,7 @@ public final class CacheEvictionScheduler {
     private final Duration timeThreshold;
     private final Duration maxIdle;
     private final Clock clock;
-    private final List<Consumer<Duration>> evictors = new ArrayList<>();
+    private final List<Consumer<Duration>> evictors = new CopyOnWriteArrayList<>();
 
     private int lastEvictionTick;
     private Instant lastEvictionTime;
