@@ -1,6 +1,5 @@
 package io.casehub.neocortex.cognition.prompt;
 
-import io.casehub.eidos.api.PromptBlock;
 import io.casehub.eidos.api.PromptTier;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -110,6 +109,24 @@ class CognitiveLifecycleContributeBlocksTest {
         assertThat(blocks.get(0).tag()).isNotNull();
         assertThat(blocks.get(0).tier()).isEqualTo(PromptTier.COGNITIVE);
     }
+
+    @Test
+    void fallbackTagIsNonEmptyForAnonymousRenderers() {
+        var renderer = new CognitionPromptRenderer() {
+            @Override
+            public @Nullable String render(CognitionRenderContext context) {
+                return "Anonymous content.";
+            }
+        };
+        var lifecycle = lifecycleWith(List.of(renderer));
+        var ctx       = new CognitionRenderContext("agent-1", "tenant-1", null);
+
+        var blocks = lifecycle.contributeBlocks(ctx);
+
+        assertThat(blocks).hasSize(1);
+        assertThat(blocks.get(0).tag()).isNotEmpty();
+    }
+
 
     @Test
     void preservesInsertionOrderAcrossMultipleRenderers() {

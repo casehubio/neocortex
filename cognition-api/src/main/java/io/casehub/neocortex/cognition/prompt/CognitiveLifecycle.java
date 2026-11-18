@@ -32,7 +32,9 @@ public interface CognitiveLifecycle {
                 var content = renderer.render(context);
                 if (content != null && !content.isBlank()) {
                     var tag = renderer.blockTag();
-                    var tagName = tag != null ? tag.name() : renderer.getClass().getSimpleName();
+                    var simpleName = renderer.getClass().getSimpleName();
+                    var tagName = tag != null ? tag.name()
+                            : simpleName.isEmpty() ? renderer.getClass().getName() : simpleName;
                     blocks.add(new PromptBlock(PromptTier.COGNITIVE, tagName, 0f, content));
                 }
             } catch (Exception e) {
