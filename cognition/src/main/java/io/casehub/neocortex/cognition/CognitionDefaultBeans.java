@@ -17,6 +17,7 @@ import io.casehub.neocortex.cognition.memory.ConfidenceScorer;
 import io.casehub.neocortex.cognition.memory.ConsolidationSummariser;
 import io.casehub.neocortex.cognition.memory.IntegrityChecker;
 import io.casehub.neocortex.cognition.memory.RetentionConfig;
+import io.casehub.neocortex.cognition.memory.RetentionConfigSupplier;
 import io.casehub.neocortex.cognition.memory.SemanticIntegrityChecker;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelConfig;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
@@ -349,6 +350,14 @@ public class CognitionDefaultBeans {
     RetentionConfig retentionConfig() {
         return RetentionConfig.DEFAULT;
     }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    RetentionConfigSupplier retentionConfigSupplier() {
+        return () -> RetentionConfig.DEFAULT;
+    }
+
 
     @Produces
     @DefaultBean
