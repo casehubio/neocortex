@@ -245,11 +245,15 @@ public List<MissingCapability> validateCapabilities(String tenantId,
                 allArtifacts.addAll(phaseArtifacts);
                 long elapsed = Duration.between(phaseStart, Instant.now()).toMillis();
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), true, null));
-                journal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated(
-                        tenantId, "_system",
-                        io.casehub.neocortex.cognition.journal.EventRef.consolidation(
-                                io.casehub.neocortex.cognition.journal.EventRef.init()),
-                        Instant.now(), 0, phaseArtifacts.size(), elapsed, phase.name()));
+                try {
+                    journal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated(
+                            tenantId, "_system",
+                            io.casehub.neocortex.cognition.journal.EventRef.consolidation(
+                                    io.casehub.neocortex.cognition.journal.EventRef.init()),
+                            Instant.now(), 0, phaseArtifacts.size(), elapsed, phase.name()));
+                } catch (Exception je) {
+                    LOG.log(Level.WARNING, "Journal record failed for phase " + phase.name(), je);
+                }
                 LOG.info("Phase END: " + phase.name() + " [" + elapsed + "ms, tenant=" + tenantId + "]");
             } catch (Exception e) {
                 phaseResults.add(new PhaseResult(phase.name(), phaseStart, Instant.now(), false, e.getMessage()));

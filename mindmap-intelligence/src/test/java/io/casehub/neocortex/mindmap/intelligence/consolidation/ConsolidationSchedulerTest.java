@@ -473,5 +473,29 @@ class ConsolidationSchedulerTest {
         assertThat(consolidated.get(0).phase()).isEqualTo("succeeding");
     }
 
+    @Test
+    void runPhases_journal_failure_does_not_corrupt_phase_results() {
+        io.casehub.neocortex.cognition.journal.CognitiveJournal throwingJournal = entry -> {
+            throw new RuntimeException("journal broken");
+        };
+
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(
+                        new ConsolidationPhase() {
+                            @Override
+                            public String name() {return "resilient";}
+
+                            @Override
+                            public void run(String tenantId, java.util.List<String> sp) {
+                                executedPhases.add("resilient:" + tenantId);
+                            }
+                        }
+                                 ), idleTracker, memoryStore, null);
+        testScheduler.setCognitiveJournal(throwingJournal);
+        testScheduler.consolidateNow("tenant-1");
+
+        assertThat(executedPhases).containsExactly("resilient:tenant-1");
+    }
+
 
 }
