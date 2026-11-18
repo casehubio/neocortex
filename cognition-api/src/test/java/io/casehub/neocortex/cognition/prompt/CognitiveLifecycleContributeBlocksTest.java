@@ -50,7 +50,7 @@ class CognitiveLifecycleContributeBlocksTest {
         assertThat(blocks).hasSize(1);
         assertThat(blocks.get(0).tier()).isEqualTo(PromptTier.COGNITIVE);
         assertThat(blocks.get(0).tag()).isEqualTo("MOOD");
-        assertThat(blocks.get(0).salience()).isEqualTo(0f);
+        assertThat(blocks.get(0).salience()).isEqualTo(0.5f);
         assertThat(blocks.get(0).content()).isEqualTo("You feel calm.");
     }
 
@@ -225,5 +225,108 @@ class CognitiveLifecycleContributeBlocksTest {
 
         assertThat(blocks).hasSize(1);
         assertThat(blocks.get(0).tag()).isEqualTo("DRIVES");
+    }
+
+    @Test
+    void coreSectionHasSalienceOne() {
+        var renderer = new CognitionPromptRenderer() {
+            @Override
+            public @Nullable String render(CognitionRenderContext context) {
+                return "Core content.";
+            }
+
+            @Override
+            public BlockTag blockTag() {
+                return BlockTag.MOOD;
+            }
+
+            @Override
+            public SectionTier sectionTier() {
+                return SectionTier.CORE;
+            }
+        };
+        var lifecycle = lifecycleWith(List.of(renderer));
+        var ctx       = new CognitionRenderContext("agent-1", "tenant-1", null);
+
+        var blocks = lifecycle.contributeBlocks(ctx);
+
+        assertThat(blocks).hasSize(1);
+        assertThat(blocks.get(0).salience()).isEqualTo(1.0f);
+    }
+
+    @Test
+    void contextualSectionHasMediumSalience() {
+        var renderer = new CognitionPromptRenderer() {
+            @Override
+            public @Nullable String render(CognitionRenderContext context) {
+                return "Contextual content.";
+            }
+
+            @Override
+            public BlockTag blockTag() {
+                return BlockTag.NARRATIVE;
+            }
+
+            @Override
+            public SectionTier sectionTier() {
+                return SectionTier.CONTEXTUAL;
+            }
+        };
+        var lifecycle = lifecycleWith(List.of(renderer));
+        var ctx       = new CognitionRenderContext("agent-1", "tenant-1", null);
+
+        var blocks = lifecycle.contributeBlocks(ctx);
+
+        assertThat(blocks).hasSize(1);
+        assertThat(blocks.get(0).salience()).isEqualTo(0.6f);
+    }
+
+    @Test
+    void supplementarySectionHasLowSalience() {
+        var renderer = new CognitionPromptRenderer() {
+            @Override
+            public @Nullable String render(CognitionRenderContext context) {
+                return "Supplementary content.";
+            }
+
+            @Override
+            public BlockTag blockTag() {
+                return BlockTag.REFLECTION;
+            }
+
+            @Override
+            public SectionTier sectionTier() {
+                return SectionTier.SUPPLEMENTARY;
+            }
+        };
+        var lifecycle = lifecycleWith(List.of(renderer));
+        var ctx       = new CognitionRenderContext("agent-1", "tenant-1", null);
+
+        var blocks = lifecycle.contributeBlocks(ctx);
+
+        assertThat(blocks).hasSize(1);
+        assertThat(blocks.get(0).salience()).isEqualTo(0.3f);
+    }
+
+    @Test
+    void nullSectionTierDefaultsToMidSalience() {
+        var renderer = new CognitionPromptRenderer() {
+            @Override
+            public @Nullable String render(CognitionRenderContext context) {
+                return "Unknown tier content.";
+            }
+
+            @Override
+            public BlockTag blockTag() {
+                return BlockTag.MOOD;
+            }
+        };
+        var lifecycle = lifecycleWith(List.of(renderer));
+        var ctx       = new CognitionRenderContext("agent-1", "tenant-1", null);
+
+        var blocks = lifecycle.contributeBlocks(ctx);
+
+        assertThat(blocks).hasSize(1);
+        assertThat(blocks.get(0).salience()).isEqualTo(0.5f);
     }
 }

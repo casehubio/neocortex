@@ -74,7 +74,7 @@ class CognitionCoreContributeBlocksTest {
 
         assertThat(blocks).allSatisfy(block -> {
             assertThat(block.tier()).isEqualTo(PromptTier.COGNITIVE);
-            assertThat(block.salience()).isEqualTo(0f);
+            assertThat(block.salience()).isBetween(0f, 1f);
         });
     }
 }

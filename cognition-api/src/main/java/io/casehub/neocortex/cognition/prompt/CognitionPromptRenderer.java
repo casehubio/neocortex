@@ -8,4 +8,8 @@ public interface CognitionPromptRenderer {
     default BlockTag blockTag() {
         return null;
     }
+
+    default @Nullable SectionTier sectionTier() {
+        return null;
+    }
 }
