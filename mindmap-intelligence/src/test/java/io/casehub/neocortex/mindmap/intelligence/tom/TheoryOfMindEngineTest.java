@@ -104,4 +104,69 @@ class TheoryOfMindEngineTest {
         assertTrue(softAvoidant[EmotionalValence.POSITIVE.ordinal()] < hardApproach[EmotionalValence.POSITIVE.ordinal()],
             "soft avoidant evidence should lower positive compared to hard approach");
     }
+
+    @Test
+    void highAnxietyRaisesBaselineDistress() {
+        var anxious = new TheoryOfMindEngine(new TomPersonalityModulation(0.9, 0.0));
+        var calm = new TheoryOfMindEngine(TomPersonalityModulation.NEUTRAL);
+
+        double[] anxiousBaseline = anxious.inferEmotionalState();
+        double[] calmBaseline = calm.inferEmotionalState();
+
+        assertTrue(anxiousBaseline[EmotionalValence.DISTRESSED.ordinal()] >
+                   calmBaseline[EmotionalValence.DISTRESSED.ordinal()],
+                   "high anxiety should raise baseline distress probability");
+    }
+
+    @Test
+    void lowAnxietyLowersBaselineDistress() {
+        var relaxed = new TheoryOfMindEngine(new TomPersonalityModulation(0.1, 0.0));
+        var neutral = new TheoryOfMindEngine(TomPersonalityModulation.NEUTRAL);
+
+        double[] relaxedBaseline = relaxed.inferEmotionalState();
+        double[] neutralBaseline = neutral.inferEmotionalState();
+
+        assertTrue(relaxedBaseline[EmotionalValence.DISTRESSED.ordinal()] <
+                   neutralBaseline[EmotionalValence.DISTRESSED.ordinal()],
+                   "low anxiety should lower baseline distress probability");
+    }
+
+    @Test
+    void callousAgentDiscountsAvoidanceEvidence() {
+        var callous = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.9));
+        var empathic = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.0));
+
+        callous.observeBehavior(BehaviorType.AVOIDANT);
+        callous.observeThreat(ThreatLevel.MILD);
+        empathic.observeBehavior(BehaviorType.AVOIDANT);
+        empathic.observeThreat(ThreatLevel.MILD);
+
+        double[] callousState = callous.inferEmotionalState();
+        double[] empathicState = empathic.inferEmotionalState();
+
+        assertTrue(callousState[EmotionalValence.DISTRESSED.ordinal()] <
+                   empathicState[EmotionalValence.DISTRESSED.ordinal()],
+                   "callous agent should infer less distress from avoidant behavior: callous=" +
+                   callousState[EmotionalValence.DISTRESSED.ordinal()] + " empathic=" +
+                   empathicState[EmotionalValence.DISTRESSED.ordinal()]);
+    }
+
+    @Test
+    void neutralModulationMatchesDefault() {
+        var modulated = new TheoryOfMindEngine(TomPersonalityModulation.NEUTRAL);
+        var unmodulated = new TheoryOfMindEngine();
+
+        modulated.observeBehavior(BehaviorType.AVOIDANT);
+        modulated.observeThreat(ThreatLevel.MILD);
+        unmodulated.observeBehavior(BehaviorType.AVOIDANT);
+        unmodulated.observeThreat(ThreatLevel.MILD);
+
+        double[] m = modulated.inferEmotionalState();
+        double[] u = unmodulated.inferEmotionalState();
+
+        for (int i = 0; i < 3; i++) {
+            assertEquals(u[i], m[i], 0.001,
+                         "NEUTRAL modulation should match default for " + EmotionalValence.values()[i]);
+        }
+    }
 }
