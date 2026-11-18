@@ -1176,18 +1176,18 @@ public @Nullable String lastTargetAgentId() {
         if (profile == null || profile.facets().isEmpty()) {
             return io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
         }
-        double anxiousness    = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.ANXIOUSNESS);
-        double callousness    = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.CALLOUSNESS);
-        double suspiciousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.SUSPICIOUSNESS);
+        double anxiousness    = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.ANXIOUSNESS, 0.5);
+        double callousness    = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.CALLOUSNESS, 0.0);
+        double suspiciousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.SUSPICIOUSNESS, 0.0);
         return new io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation(anxiousness, callousness, suspiciousness);
     }
 
-    private static double tomFacetScore(java.util.List<io.casehub.neocortex.cognitive.index.PersonalityFacet> facets, String name) {
+    private static double tomFacetScore(java.util.List<io.casehub.neocortex.cognitive.index.PersonalityFacet> facets, String name, double defaultValue) {
         return facets.stream()
-            .filter(f -> name.equals(f.facet()))
-            .findFirst()
-            .map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score)
-            .orElse(0.5);
+                     .filter(f -> name.equals(f.facet()))
+                     .findFirst()
+                     .map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score)
+                     .orElse(defaultValue);
     }
 
 
