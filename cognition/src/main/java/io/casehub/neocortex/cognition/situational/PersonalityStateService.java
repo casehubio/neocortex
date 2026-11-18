@@ -1,7 +1,9 @@
 package io.casehub.neocortex.cognition.situational;
 
+import io.casehub.neocortex.cognitive.index.LivedProfile;
 import io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot;
 import io.casehub.neocortex.cognitive.index.PersonalityStateSource;
+import io.casehub.neocortex.cognitive.index.WeightedTerm;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
@@ -170,9 +172,9 @@ public class PersonalityStateService implements PersonalityStateSource {
         for (var entry : state.facets().entrySet()) {
             var fs = entry.getValue();
             facets.put(entry.getKey(),
-                    new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement(), fs.promoted()));
+                       new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement(), fs.promoted()));
         }
-        return new PersonalityStateSnapshot(facets, state.version(), 0);
+        return new PersonalityStateSnapshot(facets, state.version(), 0, state.livedProfile());
     }
 
     public Set<String> cachedAgentIds(String tenantId) {
@@ -296,6 +298,15 @@ public class PersonalityStateService implements PersonalityStateSource {
         if (state.reflection() != null) {
             props.putAll(state.reflection().toProperties());
         }
+        if (state.livedProfile() != null) {
+            props.put("lived.fingerprint", state.livedProfile().authoredFingerprint());
+            var livedTerms = state.livedProfile().profile();
+            props.put("lived.count", String.valueOf(livedTerms.size()));
+            for (int i = 0; i < livedTerms.size(); i++) {
+                props.put("lived." + i + ".term", livedTerms.get(i).term());
+                props.put("lived." + i + ".weight", String.valueOf(livedTerms.get(i).weight()));
+            }
+        }
         return Map.copyOf(props);
     }
 
@@ -337,7 +348,19 @@ public class PersonalityStateService implements PersonalityStateSource {
         var version = parseLong(props.get("version"), 0L);
         ReflectionLedger reflection = props.containsKey("jpaf.lastReflectionAt")
                 ? ReflectionLedger.fromProperties(props, fallbackNow) : null;
-        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, version, reflection);
+        LivedProfile livedProfile = null;
+        var livedFp = props.get("lived.fingerprint");
+        if (livedFp != null) {
+            int livedCount = (int) parseLong(props.get("lived.count"), 0);
+            var terms = new java.util.ArrayList<WeightedTerm>();
+            for (int i = 0; i < livedCount; i++) {
+                var term = props.get("lived." + i + ".term");
+                var weight = parseDouble(props.get("lived." + i + ".weight"), 0.0);
+                if (term != null) terms.add(new WeightedTerm(term, weight));
+            }
+            livedProfile = new LivedProfile(terms, livedFp);
+        }
+        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, version, reflection, livedProfile);
     }
 
     private static double parseDouble(String v, double fallback) {

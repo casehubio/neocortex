@@ -16,13 +16,16 @@
 package io.casehub.neocortex.cognitive.eidos;
 
 import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.eidos.api.AgentDisposition;
 import io.casehub.eidos.api.AgentGoal;
 import io.casehub.eidos.api.DispositionAxis;
+import io.casehub.eidos.api.DispositionValue;
+import io.casehub.neocortex.cognitive.index.LivedComposition;
+import io.casehub.neocortex.cognitive.index.LivedProfile;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import io.casehub.neocortex.cognitive.index.PersonalityFacet;
 import io.casehub.neocortex.cognitive.index.WeightedTerm;
-import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.logging.Logger;
 
@@ -52,6 +55,32 @@ public class EidosCognitiveProfileBridge {
                                 .toList();
         return new DescriptorView(descriptor.agentId(), axes, profile, goals, null, facets);
     }
+
+    public static AgentDescriptor livedDescriptor(AgentDescriptor authored, LivedProfile lived) {
+        if (lived == null) {return authored;}
+        var authoredProfile = authored.disposition().dispositionProfile().stream()
+                                      .map(dv -> new WeightedTerm(dv.term(), dv.weight()))
+                                      .toList();
+        var effectiveTerms = LivedComposition.profile(authoredProfile, lived);
+        if (effectiveTerms == authoredProfile) {return authored;}
+        var effectiveValues = effectiveTerms.stream()
+                                            .map(wt -> new DispositionValue(wt.term(), wt.weight()))
+                                            .toList();
+        var newDisposition = AgentDisposition.builder()
+                                             .socialOrient(authored.disposition().socialOrient())
+                                             .ruleFollowing(authored.disposition().ruleFollowing())
+                                             .riskAppetite(authored.disposition().riskAppetite())
+                                             .autonomy(authored.disposition().autonomy())
+                                             .conflictMode(authored.disposition().conflictMode())
+                                             .delegation(authored.disposition().delegation())
+                                             .dispositionProfile(effectiveValues)
+                                             .styleProfile(authored.disposition().styleProfile())
+                                             .mbtiType(authored.disposition().mbtiType())
+                                             .enneagramType(authored.disposition().enneagramType())
+                                             .build();
+        return authored.toBuilder().disposition(newDisposition).build();
+    }
+
 
     private static String titleCase(String s) {
         if (s == null || s.isEmpty()) {return s;}
