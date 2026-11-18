@@ -821,6 +821,10 @@ private volatile @org.jspecify.annotations.Nullable CacheEvictionScheduler      
         if (config.behavioralEnabled() && mindMapStore != null) {
             sections.add(new BehavioralPromptSection(mindMapStore, gutFeelingParticipant));
         }
+        if (config.situationalPersonalityEnabled() && situationalPersonalityParticipant != null) {
+            sections.add(new io.casehub.neocortex.cognition.situational.ShadowArchetypePromptSection(
+                    situationalPersonalityParticipant::currentSnapshot));
+        }
         if (config.otherModelEnabled() && mindMapStore != null) {
             sections.add(new OtherModelPromptSection(mindMapStore));
         }
@@ -1066,6 +1070,18 @@ public @Nullable String lastTargetAgentId() {
                 appraisalAccessor, moodAccessor, trustAccessor, cognitiveJournal,
                 java.time.Clock.systemUTC());
         addParticipant(CognitionPhase.TERMINAL, this.situationalPersonalityParticipant);
+
+        if (appraisalParticipant != null) {
+            var sitParticipant = this.situationalPersonalityParticipant;
+            appraisalParticipant.setSituationalModeAccessor((agentId, tenantId) -> {
+                var snapshot = sitParticipant.currentSnapshot(agentId, tenantId);
+                if (snapshot.isEmpty()) return null;
+                var s = snapshot.get();
+                return new io.casehub.neocortex.cognition.appraisal.SituationalModeContext(
+                        s.affectiveWinner(), s.modeIntensities().getOrDefault(s.affectiveWinner() != null ? s.affectiveWinner() : "", 0.0),
+                        s.socialWinner(), s.modeIntensities().getOrDefault(s.socialWinner() != null ? s.socialWinner() : "", 0.0));
+            });
+        }
     }
 
 

@@ -43,6 +43,7 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
     private final ConcurrentHashMap<String, Map<String, Double>> concernSaliences = new ConcurrentHashMap<>();
     private final @Nullable SituationClassifier                  situationClassifier;
     private volatile java.util.function.@Nullable BiFunction<String, String, Optional<io.casehub.neocortex.cognition.search.SearchBudget>> searchBudgetAccessor;
+    private volatile java.util.function.@Nullable BiFunction<String, String, @Nullable SituationalModeContext> situationalModeAccessor;
 
     private final ConcurrentHashMap<String, ChannelWeightProfile> channelWeights  = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> regulatedNarratives = new ConcurrentHashMap<>();
@@ -173,8 +174,14 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
             personalityFacets = defaults.personalityProfile().facets();
         }
 
+        SituationalModeContext sitMode = null;
+        var sitAccessor = this.situationalModeAccessor;
+        if (sitAccessor != null) {
+            sitMode = sitAccessor.apply(context.agentId(), context.tenantId());
+        }
+
         var appraisalContext = new AppraisalContext(context.agentId(), situation, drives, weights, habConfig, habituation, mood,
-                        disposition, targetSchema, personalityFacets);
+                        disposition, targetSchema, personalityFacets, sitMode);
         var result = appraisalStrategy.appraise(appraisalContext);
 
         results.put(agentKey, result);
@@ -247,6 +254,10 @@ public class AppraisalTickParticipant implements CognitionTickParticipant {
 
     public void setSearchBudgetAccessor(java.util.function.BiFunction<String, String, Optional<io.casehub.neocortex.cognition.search.SearchBudget>> accessor) {
         this.searchBudgetAccessor = accessor;
+    }
+
+    public void setSituationalModeAccessor(java.util.function.BiFunction<String, String, @Nullable SituationalModeContext> accessor) {
+        this.situationalModeAccessor = accessor;
     }
 
 

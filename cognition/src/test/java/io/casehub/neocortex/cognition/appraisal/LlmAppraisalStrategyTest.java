@@ -330,6 +330,41 @@ class LlmAppraisalStrategyTest {
         assertThat(capturedSystem[0]).contains("situational");
     }
 
+    @Test
+    void situationalModeRenderedInPromptWhenActive() {
+        var capturedMessage = new String[1];
+        var strategy = new LlmAppraisalStrategy(StubPipelines.create(init -> new AgentSession() {
+            @Override
+            public Multi<AgentEvent> query(String prompt) {
+                capturedMessage[0] = prompt;
+                var json = """
+                           {
+                             "narrative": "Alert.",
+                             "dimensions": { "relevance": 0.7, "conduciveness": -0.4 }
+                           }""";
+                return Multi.createFrom().item(new AgentEvent.TextDelta(json));
+            }
+
+            @Override
+            public io.smallrye.mutiny.Uni<Void> interrupt() {return io.smallrye.mutiny.Uni.createFrom().voidItem();}
+
+            @Override
+            public void close(java.time.Duration timeout) {}
+        }));
+        var sitMode = new SituationalModeContext("STRESS", 0.72, null, 0.0);
+        var ctx = new AppraisalContext("test-agent",
+                                       PerceivedSituation.passThrough("a tense standoff"),
+                                       List.of(new Drive("protection", DriveCategory.CHARACTER, 0.7, "")),
+                                       null, HabituationConfig.defaults(), HabituationState.empty(), null,
+                                       null, null, null, sitMode);
+
+        strategy.appraise(ctx);
+
+        assertThat(capturedMessage[0]).contains("Situational mode:");
+        assertThat(capturedMessage[0]).contains("Affective: STRESS");
+        assertThat(capturedMessage[0]).contains("0.72");
+    }
+
 
     private static AppraisalContext context(String observation, List<Drive> drives) {
         return new AppraisalContext("test-agent", 

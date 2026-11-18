@@ -5,6 +5,7 @@ public enum BlockTag {
     // Tier 1 — Identity (who you are)
     BEHAVIORAL(100),
     PERSONALITY(110),
+    SITUATIONAL(115),
     CONSTRAINTS(120),
 
     // Tier 2 — State (how you feel right now)

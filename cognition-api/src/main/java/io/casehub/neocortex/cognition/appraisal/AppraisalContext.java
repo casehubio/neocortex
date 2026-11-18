@@ -21,7 +21,23 @@ public record AppraisalContext(
         MoodState currentMood,
         @Nullable DispositionAxes dispositionAxes,
         @Nullable RelationalSchema targetSchema,
-        @Nullable List<PersonalityFacet> personalityFacets) {
+        @Nullable List<PersonalityFacet> personalityFacets,
+        @Nullable SituationalModeContext situationalMode) {
+
+    public AppraisalContext(
+            String agentId,
+            PerceivedSituation situation,
+            List<Drive> drives,
+            AppraisalWeights weights,
+            HabituationConfig habituationConfig,
+            HabituationState habituation,
+            MoodState currentMood,
+            @Nullable DispositionAxes dispositionAxes,
+            @Nullable RelationalSchema targetSchema,
+            @Nullable List<PersonalityFacet> personalityFacets) {
+        this(agentId, situation, drives, weights, habituationConfig, habituation, currentMood,
+             dispositionAxes, targetSchema, personalityFacets, null);
+    }
 
     public AppraisalContext(
             String agentId,
@@ -33,7 +49,7 @@ public record AppraisalContext(
             MoodState currentMood,
             @Nullable DispositionAxes dispositionAxes) {
         this(agentId, situation, drives, weights, habituationConfig, habituation, currentMood,
-             dispositionAxes, null, null);
+             dispositionAxes, null, null, null);
     }
 
     public AppraisalContext(
@@ -45,7 +61,7 @@ public record AppraisalContext(
             HabituationState habituation,
             MoodState currentMood) {
         this(agentId, situation, drives, weights, habituationConfig, habituation, currentMood,
-             null, null, null);
+             null, null, null, null);
     }
 
     public AppraisalContext {

@@ -52,6 +52,12 @@ public class LlmAppraisalStrategy implements AppraisalStrategy {
             and the usual score as their typical pattern. The gap between them is the story — recent \
             experience reshaping the character's disposition in this moment.
 
+            When a situational mode is active (e.g. STRESS or FLOW), it describes the character's \
+            current operating state. Under stress, controllability feels lower and urgency higher \
+            than the situation alone warrants — the character's body is already mobilised. Under \
+            flow, novelty is tempered and conduciveness amplified. Let the mode colour your \
+            appraisal without overriding the situation itself.
+
             For each drive, consider: does this situation touch it? How? What does it \
             make the character want to do? Consider ALL drives, not just the strongest one.
 
@@ -240,6 +246,19 @@ private static List<ActionTendency> applyTargets(List<ActionTendency> tendencies
                         sb.append(": ").append(f.origin());
                     }
                 }
+            }
+        }
+
+        if (context.situationalMode() != null && context.situationalMode().hasActiveMode()) {
+            var sm = context.situationalMode();
+            sb.append("\n\nSituational mode:");
+            if (sm.affectiveMode() != null) {
+                sb.append("\n- Affective: ").append(sm.affectiveMode())
+                  .append(" (intensity ").append(String.format("%.2f", sm.affectiveIntensity())).append(")");
+            }
+            if (sm.socialMode() != null) {
+                sb.append("\n- Social: ").append(sm.socialMode())
+                  .append(" (intensity ").append(String.format("%.2f", sm.socialIntensity())).append(")");
             }
         }
 
