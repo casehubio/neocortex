@@ -133,5 +133,28 @@ class ConversationBridgeTest {
         assertThat(firedEvents.getFirst().agentId()).isNull();
     }
 
+    @Test
+    void process_setsAgentIdFromPrincipalId() {
+        var capturedAgentId = new java.util.concurrent.atomic.AtomicReference<String>();
+        var captureBridge = new ConversationBridge(store, tracker,
+                                                   event -> capturedAgentId.set(io.casehub.neocortex.mindmap.MutationContext.agentId()));
+
+        PrincipalId pid = PrincipalId.agent("agent-99");
+        captureBridge.process("Some text.", "t1", List.of(), pid, null);
+
+        assertThat(capturedAgentId.get()).isEqualTo("agent-99");
+    }
+
+    @Test
+    void process_nullPrincipalId_doesNotSetAgentId() {
+        var capturedAgentId = new java.util.concurrent.atomic.AtomicReference<String>("sentinel");
+        var captureBridge = new ConversationBridge(store, tracker,
+                                                   event -> capturedAgentId.set(io.casehub.neocortex.mindmap.MutationContext.agentId()));
+
+        captureBridge.process("Some text.", "t1", List.of(), null, null);
+
+        assertThat(capturedAgentId.get()).isNull();
+    }
+
 
 }

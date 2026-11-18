@@ -52,6 +52,9 @@ public class ConversationBridge {
         }
 
         MutationContext.set("conversation-bridge");
+        if (principalId != null) {
+            MutationContext.setAgent(principalId.id());
+        }
         try {
             List<TextSegment> segments   = segment(cleanedText);
             String            subgraphId = findOrCreateGeneralSubgraph(tenantId);
