@@ -41,9 +41,9 @@ When an emotion or cognitive process demands an operation (reappraisal, perspect
 
 | Gap combination | Operation needed | Personality constraint | Current handling | Source |
 |---|---|---|---|---|
-| Callous + empathic modeling | Perspective-taking, emotional resonance | High callousness → reduced empathy capacity | **Addressed.** `TheoryOfMindBridge` maps appraisal SEC→threat and action tendencies→behavior as soft evidence, runs the Bayesian network per-subject via `TomPersonalityModulation`. Anxiety shifts the threat prior (Bar-Haim 2007); callousness weakens the distress→avoidant coupling in the behaviour CPT (Blair 2005/2013). BDI intent biases trust via `RelationalSchemaEvolutionPhase`. | #1094, #1095, #1096, #1097 |
+| Callous + empathic modeling | Perspective-taking, emotional resonance | High callousness → reduced empathy capacity | **Addressed.** `TheoryOfMindBridge` maps appraisal SEC→threat and action tendencies→behavior as soft evidence, runs the Bayesian network per-subject via `TomPersonalityModulation`. Anxiety shifts the threat prior (Bar-Haim 2007); callousness weakens the distress→avoidant coupling in the behaviour CPT (Blair 2005/2013); suspiciousness scales the behavior evidence vector, transferring approach weight to avoidant (Fenigstein & Vanable 1992; Combs et al. 2007). BDI intent biases trust via `RelationalSchemaEvolutionPhase`. | #1094, #1095, #1096, #1097, #1127 |
 
-**Detection mechanism:** Personality modulation is now automatic. `CognitionCore.tick()` extracts anxiousness and callousness facets from `EffectiveCognitiveDefaults` and passes `TomPersonalityModulation` to the bridge. Different personality profiles produce measurably different posteriors from the same appraisal inputs.
+**Detection mechanism:** Personality modulation is now automatic. `CognitionCore.tick()` extracts anxiousness, callousness, and suspiciousness facets from `EffectiveCognitiveDefaults` and passes `TomPersonalityModulation` to the bridge. Different personality profiles produce measurably different posteriors from the same appraisal inputs.
 
 **What's wired (2026-11-17):**
 - `TheoryOfMindBridge` in `CognitionCore.tick()` — runs per-subject after `mentalModel.tick()`, mapping SEC dimensions (conduciveness→incongruence, controllability→powerlessness) to soft threat evidence and ActionTendencies to soft behavior evidence. Posterior stored on `MentalModelOrchestrator`.
@@ -55,8 +55,12 @@ When an emotion or cognitive process demands an operation (reappraisal, perspect
 - `TheoryOfMindEngine(TomPersonalityModulation)` constructor builds the personality-conditioned network. No-arg constructor delegates with NEUTRAL (backward-compatible).
 - `TheoryOfMindBridge.infer(AppraisalResult, TomPersonalityModulation)` overload. Original method delegates with NEUTRAL.
 
+**What was done (2026-11-18, #1127):**
+- **Suspiciousness-modulated evidence weighting** — `TomPersonalityModulation` now carries a third dimension: `suspiciousness` [0,1]. In `TheoryOfMindBridge.infer()`, after computing the behavior distribution, `scaleBehaviorEvidence()` transfers approach weight to avoidant proportional to `suspiciousness * 0.6`, then renormalizes. This is evidence scaling, not CPT modulation — the network structure stays unchanged. Literature: Fenigstein & Vanable 1992 (paranoia and interpretive bias); Combs et al. 2007 (attributional bias in suspicious individuals).
+- `CognitionCore.tomModulation()` extracts `PersonalityFacet.SUSPICIOUSNESS` alongside anxiousness and callousness.
+- Three modulation mechanisms now span distinct levels: prior (anxiousness), CPT (callousness), evidence (suspiciousness).
+
 **What remains:**
-- **Suspiciousness-modulated evidence weighting** (#1127) — a suspicious agent should discount cooperative signals and amplify hostile ones at the evidence level, not the CPT level.
 - **Personality-gated empathic rendering** — `OtherModelPromptSection` still renders empathic content unconditionally. High callousness should attenuate the felt-sense of another's distress.
 
 **Note:** Expression style derivation (CDE) differentiates callousness for behavioral output (e.g., "gallantry" expression varies from "genuine, protective" to "instrumental, helps when it serves a purpose"). With #1097, the observation quality is now also personality-modulated — the full chain from perception to expression is personality-conditioned.
@@ -72,7 +76,7 @@ Defence mechanisms do not exist in the codebase. The CAPS topology defines cogni
 | **Explicit + systematic** | Per-parameter gap values, boolean signal, downstream rendering | Intelligence capacity (#840) |
 | **Implicit + ad-hoc** | Returns empty/null, with case-specific downstream handling | Emotion regulation predictor |
 | **Implicit via parameters** | Personality traits adjust thresholds, reducing feature activation | Proactive regulation, social regulation (CAPS) |
-| **Personality-modulated** | Bayesian engine wired with personality-conditioned CPTs, posterior feeds prompts and trust. Remaining: suspiciousness evidence weighting (#1127), empathic rendering gating | Theory of mind |
+| **Personality-modulated** | Bayesian engine wired with personality-conditioned priors (anxiousness), CPTs (callousness), and evidence weighting (suspiciousness). Posterior feeds prompts and trust. Remaining: empathic rendering gating | Theory of mind |
 
 ## Development Checklist
 

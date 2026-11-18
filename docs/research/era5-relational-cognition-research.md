@@ -1118,6 +1118,18 @@ Inferred emotional state (Bayesian):
 
 The 60% threshold prevents noisy low-confidence signals from cluttering the prompt. When the posterior is diffuse (no dominant state), only the qualitative BDI is shown.
 
+### Personality modulation (#1097, #1127)
+
+The Bayesian CPTs are no longer fixed. `TomPersonalityModulation` carries three personality dimensions that modulate inference at distinct levels:
+
+| Dimension | Mechanism | Level | Literature |
+|-----------|-----------|-------|------------|
+| **Anxiousness** | Shifts threat prior toward elevated threat | Prior | Bar-Haim et al. 2007 |
+| **Callousness** | Weakens distress→avoidant coupling in Behavior\|Emotion CPT | CPT | Blair 2005/2013 |
+| **Suspiciousness** | Scales behavior evidence: transfers approach weight to avoidant before junction tree inference | Evidence | Fenigstein & Vanable 1992; Combs et al. 2007 |
+
+`CognitionCore.tomModulation()` extracts all three from `EffectiveCognitiveDefaults` per-agent. The three mechanisms operate at different abstraction layers of the Bayesian network — prior, conditional probability, and likelihood — giving each personality dimension a mechanistically distinct effect on the inference.
+
 ### What remains
 
-The Bayesian CPTs are fixed — all agents use the same prior and conditional probability tables. Personality-modulated CPTs (e.g., an agent high in neuroticism having a stronger threat→distress link) would make the inference personality-aware. This is the gap identified in the capacity-gap-mapping as "Foundational" rather than "Full."
+- **Personality-gated empathic rendering** — `OtherModelPromptSection` renders empathic content unconditionally. High callousness should attenuate the felt-sense of another's distress.
