@@ -15,7 +15,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class EidosLivedDispositionSourceTest {
 
@@ -122,38 +122,69 @@ class EidosLivedDispositionSourceTest {
     }
 
     @Test
-    void preservesAllDispositionFieldsInComposedResult() {
+    void resolveEffectiveComposesFacetsWhenDisplacementPresent() {
         var authored = AgentDisposition.builder()
-                .socialOrient("cooperative")
-                .ruleFollowing("flexible")
-                .riskAppetite("moderate")
-                .autonomy("high")
-                .conflictMode("collaborating")
-                .delegation(true)
-                .dispositionProfile(TI_NE_PROFILE)
-                .styleProfile(List.of(new DispositionValue("analytical", 0.5)))
-                .mbtiType("INTP")
-                .enneagramType("5w6")
-                .build();
+                                       .socialOrient("cooperative")
+                                       .dispositionProfile(TI_NE_PROFILE)
+                                       .ampdFacets(List.of(
+                                               new io.casehub.eidos.api.AmpdFacet("Anxiousness", 50),
+                                               new io.casehub.eidos.api.AmpdFacet("Callousness", 20)))
+                                       .build();
+        var facets = Map.of(
+                "Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.1, 0.0, 0.05),
+                "Callousness", new PersonalityStateSnapshot.FacetDisplacement(-0.1, 0.0, 0.0));
+        var                    snapshot = new PersonalityStateSnapshot(facets, 1, 1, null);
+        PersonalityStateSource source   = (tenantId, agentId, now) -> Optional.of(snapshot);
 
-        var livedTerms = NE_TI_PROFILE.stream()
-                .map(dv -> new WeightedTerm(dv.term(), dv.weight()))
-                .toList();
-        var lived = new LivedProfile(livedTerms, fingerprint(TI_NE_PROFILE));
-        var snapshot = new PersonalityStateSnapshot(Map.of(), 1, 1, lived);
-
-        var sut = new EidosLivedDispositionSource(sourceReturning(snapshot));
+        var sut    = new EidosLivedDispositionSource(source);
         var result = sut.resolveEffective("agent-1", "tenant-1", authored);
 
-        assertEquals("cooperative", result.socialOrient().getFirst().term());
-        assertEquals("flexible", result.ruleFollowing().getFirst().term());
-        assertEquals("moderate", result.riskAppetite().getFirst().term());
-        assertEquals("high", result.autonomy().getFirst().term());
-        assertEquals("collaborating", result.conflictMode().getFirst().term());
-        assertTrue(result.delegation());
-        assertEquals("analytical", result.styleProfile().getFirst().term());
-        assertEquals("INTP", result.mbtiType());
-        assertEquals("5w6", result.enneagramType());
-        assertEquals("Ne", result.dispositionProfile().get(0).term());
+        var anxiousness = result.ampdFacets().stream()
+                                .filter(f -> "Anxiousness".equals(f.facet())).findFirst().orElseThrow();
+        assertEquals(65, anxiousness.score());
+
+        var callousness = result.ampdFacets().stream()
+                                .filter(f -> "Callousness".equals(f.facet())).findFirst().orElseThrow();
+        assertEquals(10, callousness.score());
+    }
+
+    @Test
+    void resolveEffectiveClampsFacetScoresTo0And100() {
+        var authored = AgentDisposition.builder()
+                                       .socialOrient("cooperative")
+                                       .dispositionProfile(TI_NE_PROFILE)
+                                       .ampdFacets(List.of(new io.casehub.eidos.api.AmpdFacet("Anxiousness", 90)))
+                                       .build();
+        var facets = Map.of(
+                "Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.3, 0.0, 0.0));
+        var                    snapshot = new PersonalityStateSnapshot(facets, 1, 1, null);
+        PersonalityStateSource source   = (tenantId, agentId, now) -> Optional.of(snapshot);
+
+        var sut    = new EidosLivedDispositionSource(source);
+        var result = sut.resolveEffective("agent-1", "tenant-1", authored);
+
+        var anxiousness = result.ampdFacets().stream()
+                                .filter(f -> "Anxiousness".equals(f.facet())).findFirst().orElseThrow();
+        assertEquals(100, anxiousness.score());
+    }
+
+    @Test
+    void resolveEffectiveIgnoresTransientDisplacement() {
+        var authored = AgentDisposition.builder()
+                                       .socialOrient("cooperative")
+                                       .dispositionProfile(TI_NE_PROFILE)
+                                       .ampdFacets(List.of(new io.casehub.eidos.api.AmpdFacet("Anxiousness", 50)))
+                                       .build();
+        var facets = Map.of(
+                "Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.0, 0.3, 0.0));
+        var                    snapshot = new PersonalityStateSnapshot(facets, 1, 1, null);
+        PersonalityStateSource source   = (tenantId, agentId, now) -> Optional.of(snapshot);
+
+        var sut    = new EidosLivedDispositionSource(source);
+        var result = sut.resolveEffective("agent-1", "tenant-1", authored);
+
+        var anxiousness = result.ampdFacets().stream()
+                                .filter(f -> "Anxiousness".equals(f.facet())).findFirst().orElseThrow();
+        assertEquals(50, anxiousness.score());
     }
 }

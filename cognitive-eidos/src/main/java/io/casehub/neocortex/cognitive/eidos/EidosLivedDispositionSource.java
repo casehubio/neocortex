@@ -50,31 +50,14 @@ public class EidosLivedDispositionSource implements LivedDispositionSource {
         if (source == null) return authored;
 
         var snapshot = source.find(tenancyId, agentId, Instant.now());
-        if (snapshot.isEmpty() || snapshot.get().livedProfile() == null) return authored;
-
-        var authoredTerms = authored.dispositionProfile().stream()
-                .map(dv -> new WeightedTerm(dv.term(), dv.weight()))
-                .toList();
-        var effectiveTerms = LivedComposition.profile(authoredTerms, snapshot.get().livedProfile());
-        if (effectiveTerms == authoredTerms) return authored;
-
-        var effectiveValues = effectiveTerms.stream()
-                .map(wt -> new DispositionValue(wt.term(), wt.weight()))
-                .toList();
-        return AgentDisposition.builder()
-                .socialOrient(authored.socialOrient())
-                .ruleFollowing(authored.ruleFollowing())
-                .riskAppetite(authored.riskAppetite())
-                .autonomy(authored.autonomy())
-                .conflictMode(authored.conflictMode())
-                .delegation(authored.delegation())
-                .dispositionProfile(effectiveValues)
-                .styleProfile(authored.styleProfile())
-                .mbtiType(authored.mbtiType())
-                .enneagramType(authored.enneagramType())
-                .ampdFacets(authored.ampdFacets())
-                .situationalProfiles(authored.situationalProfiles())
-                .build();
+        if (snapshot.isEmpty()) {return authored;}
+        var state  = snapshot.get();
+        var result = authored;
+        if (state.livedProfile() != null) {
+            result = EidosCognitiveProfileBridge.livedDisposition(result, state.livedProfile());
+        }
+        result = EidosCognitiveProfileBridge.composeFacets(result, state);
+        return result;
     }
 
     private PersonalityStateSource resolveSource() {

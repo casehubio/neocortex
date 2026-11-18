@@ -81,6 +81,43 @@ public class EidosCognitiveProfileBridge {
         return authored.toBuilder().disposition(newDisposition).build();
     }
 
+    public static AgentDisposition composeFacets(AgentDisposition disposition,
+                                                 io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot snapshot) {
+        if (snapshot == null || snapshot.facets().isEmpty()) {return disposition;}
+        var authored = disposition.ampdFacets();
+        if (authored.isEmpty()) {return disposition;}
+
+        boolean anyChanged = false;
+        var     composed   = new java.util.ArrayList<io.casehub.eidos.api.AmpdFacet>(authored.size());
+        for (var af : authored) {
+            var fd = snapshot.facets().get(af.facet());
+            if (fd == null) {
+                composed.add(af);
+                continue;
+            }
+            double resting       = Math.max(0.0, Math.min(1.0, af.score() / 100.0 + fd.homeOffset() + fd.promoted()));
+            int    composedScore = (int) Math.round(resting * 100.0);
+            if (composedScore != af.score()) {anyChanged = true;}
+            composed.add(new io.casehub.eidos.api.AmpdFacet(af.facet(), composedScore));
+        }
+        if (!anyChanged) {return disposition;}
+
+        return AgentDisposition.builder()
+                               .socialOrient(disposition.socialOrient())
+                               .ruleFollowing(disposition.ruleFollowing())
+                               .riskAppetite(disposition.riskAppetite())
+                               .autonomy(disposition.autonomy())
+                               .conflictMode(disposition.conflictMode())
+                               .delegation(disposition.delegation())
+                               .dispositionProfile(disposition.dispositionProfile())
+                               .styleProfile(disposition.styleProfile())
+                               .mbtiType(disposition.mbtiType())
+                               .enneagramType(disposition.enneagramType())
+                               .ampdFacets(composed)
+                               .situationalProfiles(disposition.situationalProfiles())
+                               .build();
+    }
+
 
     private static String titleCase(String s) {
         if (s == null || s.isEmpty()) {return s;}
