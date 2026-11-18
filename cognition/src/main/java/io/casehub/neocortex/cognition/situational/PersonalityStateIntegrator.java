@@ -51,7 +51,8 @@ public class PersonalityStateIntegrator {
                 double newLoad = fs.load() + weight * Math.abs(dIntegralHours);
                 double newD = d * expDecay;
 
-                entry.setValue(new FacetState(newD, fs.homeOffset(), r, newExposure, newLoad));
+                entry.setValue(new FacetState(newD, fs.homeOffset(), r, newExposure, newLoad,
+                        fs.promoted(), fs.saturatedSince(), fs.cappedSince()));
             }
 
             cursor = segEnd;
@@ -94,14 +95,37 @@ public class PersonalityStateIntegrator {
         return state.withFacets(facets).withExposedUntil(exposedUntil);
     }
 
+    public record PromotionCandidate(String facet, double delta) {}
+
+    public Map<String, PromotionCandidate> promotionCandidates(PersonalityState state,
+                                                               Map<String, Double> baselines,
+                                                               Instant now) {
+        var    candidates = new LinkedHashMap<String, PromotionCandidate>();
+        double threshold  = config.promoteFraction() * config.dMax();
+        for (var entry : state.facets().entrySet()) {
+            var facetName = entry.getKey();
+            var fs        = entry.getValue();
+            if (fs.saturatedSince() == null) {continue;}
+            if (Duration.between(fs.saturatedSince(), now).compareTo(config.promoteDwell()) < 0) {continue;}
+            double baseline = baselines.getOrDefault(facetName, 0.5);
+            if (Math.abs(fs.promoted() + fs.homeOffset()) > config.promotionBudget()) {continue;}
+            double delta = clamp01(baseline + fs.promoted() + fs.homeOffset()) - (baseline + fs.promoted());
+            if (Math.abs(delta) < 1e-9) {continue;}
+            candidates.put(facetName, new PromotionCandidate(facetName, delta));
+        }
+        return Map.copyOf(candidates);
+    }
+
+
     private LinkedHashMap<String, FacetState> closeHour(LinkedHashMap<String, FacetState> facets) {
-        var result = new LinkedHashMap<String, FacetState>();
+        var    result    = new LinkedHashMap<String, FacetState>();
+        double threshold = config.promoteFraction() * config.dMax();
         for (var entry : facets.entrySet()) {
             FacetState fs = entry.getValue();
-            double r = fs.resilience();
-            double L = fs.load();
-            double A = fs.exposure();
-            double o = fs.homeOffset();
+            double     r  = fs.resilience();
+            double     L  = fs.load();
+            double     A  = fs.exposure();
+            double     o  = fs.homeOffset();
 
             r = Math.max(config.rMin(), r - L / config.tauFatigue());
             r = 1.0 - (1.0 - r) * Math.exp(-3600.0 / tauHealSeconds());
@@ -113,18 +137,34 @@ public class PersonalityStateIntegrator {
             o = clamp(o + step, -config.dMax(), config.dMax());
             o = o * Math.exp(-3600.0 / tauSetpointSeconds());
 
-            result.put(entry.getKey(), new FacetState(fs.displacement(), o, r, 0, 0));
+            Instant saturatedSince = fs.saturatedSince();
+            if (Math.abs(o) >= threshold && saturatedSince == null) {
+                saturatedSince = Instant.now();
+            } else if (Math.abs(o) < threshold) {
+                saturatedSince = null;
+            }
+
+            result.put(entry.getKey(), new FacetState(fs.displacement(), o, r, 0, 0,
+                                                      fs.promoted(), saturatedSince, fs.cappedSince()));
         }
         return result;
     }
 
     private LinkedHashMap<String, FacetState> fastForwardIdleHours(LinkedHashMap<String, FacetState> facets, long hours) {
-        var result = new LinkedHashMap<String, FacetState>();
+        var    result    = new LinkedHashMap<String, FacetState>();
+        double threshold = config.promoteFraction() * config.dMax();
         for (var entry : facets.entrySet()) {
             FacetState fs = entry.getValue();
-            double r = 1.0 - (1.0 - fs.resilience()) * Math.exp(-hours * 3600.0 / tauHealSeconds());
-            double o = fs.homeOffset() * Math.exp(-hours * 3600.0 / tauSetpointSeconds());
-            result.put(entry.getKey(), new FacetState(fs.displacement(), o, r, 0, 0));
+            double     r  = 1.0 - (1.0 - fs.resilience()) * Math.exp(-hours * 3600.0 / tauHealSeconds());
+            double     o  = fs.homeOffset() * Math.exp(-hours * 3600.0 / tauSetpointSeconds());
+
+            Instant saturatedSince = fs.saturatedSince();
+            if (Math.abs(o) < threshold) {
+                saturatedSince = null;
+            }
+
+            result.put(entry.getKey(), new FacetState(fs.displacement(), o, r, 0, 0,
+                                                      fs.promoted(), saturatedSince, fs.cappedSince()));
         }
         return result;
     }
