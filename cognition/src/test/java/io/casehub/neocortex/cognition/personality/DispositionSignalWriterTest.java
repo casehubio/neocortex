@@ -46,8 +46,8 @@ class DispositionSignalWriterTest {
 
         writer.drain("t1", "agent1");
 
-        var counts = signalStore.activationCounts("agent1", "t1");
-        assertThat(counts.getOrDefault("ti", 0)).isEqualTo(800);
+        var counts = signalStore.activationWeights("agent1", "t1");
+        assertThat(counts.getOrDefault("ti", 0.0)).isEqualTo(800.0);
     }
 
     @Test
@@ -55,31 +55,31 @@ class DispositionSignalWriterTest {
         writer.enqueue("t1", "agent1", List.of("ti", "ne", "ti"));
         writer.drain("t1", "agent1");
 
-        var counts = signalStore.activationCounts("agent1", "t1");
-        assertThat(counts.getOrDefault("ti", 0)).isGreaterThanOrEqualTo(2);
-        assertThat(counts.getOrDefault("ne", 0)).isGreaterThanOrEqualTo(1);
+        var counts = signalStore.activationWeights("agent1", "t1");
+        assertThat(counts.getOrDefault("ti", 0.0)).isGreaterThanOrEqualTo(2.0);
+        assertThat(counts.getOrDefault("ne", 0.0)).isGreaterThanOrEqualTo(1.0);
     }
 
     @Test
     void clearDiscardsPendingAndClearsStore() {
         writer.enqueue("t1", "agent1", List.of("ti", "ne"));
         writer.drain("t1", "agent1");
-        assertThat(signalStore.activationCounts("agent1", "t1")).isNotEmpty();
+        assertThat(signalStore.activationWeights("agent1", "t1")).isNotEmpty();
 
         writer.enqueue("t1", "agent1", List.of("ti"));
         writer.clear("t1", "agent1");
 
-        assertThat(signalStore.activationCounts("agent1", "t1")).isEmpty();
+        assertThat(signalStore.activationWeights("agent1", "t1")).isEmpty();
     }
 
     @Test
     void decayDrainsThenDecays() {
         writer.enqueue("t1", "agent1", List.of("ti", "ti", "ti", "ti", "ti"));
         writer.drain("t1", "agent1");
-        assertThat(signalStore.activationCounts("agent1", "t1").get("ti")).isEqualTo(5);
+        assertThat(signalStore.activationWeights("agent1", "t1").get("ti")).isEqualTo(5.0);
 
         writer.decay("t1", "agent1", 0.5);
-        assertThat(signalStore.activationCounts("agent1", "t1").get("ti")).isEqualTo(2);
+        assertThat(signalStore.activationWeights("agent1", "t1").get("ti")).isEqualTo(2.0);
     }
 
     @Test
@@ -92,8 +92,8 @@ class DispositionSignalWriterTest {
 
         signalStore.failOnNext = false;
         writer.drain("t1", "agent1");
-        assertThat(signalStore.activationCounts("agent1", "t1").getOrDefault("ti", 0))
-                .isGreaterThanOrEqualTo(1);
+        assertThat(signalStore.activationWeights("agent1", "t1").getOrDefault("ti", 0.0))
+                .isGreaterThanOrEqualTo(1.0);
     }
 
     @Test
@@ -102,10 +102,10 @@ class DispositionSignalWriterTest {
         writer.enqueue("t1", "agent2", List.of("ne"));
         writer.flushAll();
 
-        assertThat(signalStore.activationCounts("agent1", "t1").getOrDefault("ti", 0))
-                .isGreaterThanOrEqualTo(1);
-        assertThat(signalStore.activationCounts("agent2", "t1").getOrDefault("ne", 0))
-                .isGreaterThanOrEqualTo(1);
+        assertThat(signalStore.activationWeights("agent1", "t1").getOrDefault("ti", 0.0))
+                .isGreaterThanOrEqualTo(1.0);
+        assertThat(signalStore.activationWeights("agent2", "t1").getOrDefault("ne", 0.0))
+                .isGreaterThanOrEqualTo(1.0);
     }
 
     static class InMemorySignalStore implements DispositionSignalStore {
@@ -120,11 +120,11 @@ class DispositionSignalWriterTest {
         }
 
         @Override
-        public Map<String, Integer> activationCounts(String agentId, String tenancyId) {
+        public Map<String, Double> activationWeights(String agentId, String tenancyId) {
             var agent = counts.get(key(agentId, tenancyId));
-            if (agent == null) return Map.of();
-            var result = new java.util.LinkedHashMap<String, Integer>();
-            agent.forEach((k, v) -> { if (v.get() > 0) result.put(k, v.get()); });
+            if (agent == null) {return Map.of();}
+            var result = new java.util.LinkedHashMap<String, Double>();
+            agent.forEach((k, v) -> {if (v.get() > 0) {result.put(k, (double) v.get());}});
             return result;
         }
 
