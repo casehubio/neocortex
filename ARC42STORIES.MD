@@ -539,6 +539,8 @@ C4Deployment
 
 **Deployment mode:** JVM. The inference service is long-running — native image's fast startup provides no benefit, and HotSpot's JIT optimisation outperforms AOT for sustained workloads. The C2 native image gate passed (both JNI layers work), and reachability metadata ships in `inference-quarkus` for downstream native consumers, but this project deploys in JVM mode by design.
 
+**Tenant affinity (single instance per tenant)** — The cognitive pipeline assumes one active neocortex instance per tenant. `ConsolidationScheduler` serialises consolidation ticks with an in-JVM `ReentrantLock` and maintains per-tenant state in `knownTenants`. `SignificanceAccumulator` and `CognitiveAttentionAccumulator` aggregate in-memory signals between ticks. `EffectiveCognitiveDefaults` caches derived personality slots with base-version tracking. `PersonalityStateService` serialises per-agent read-modify-write cycles against MindMap with in-JVM locks and buffers pending pressure updates in memory. If two instances serve one tenant, events split across nodes: consolidation runs on each, and per-agent state updates (personality pressure, drive adaptation cursors) lose writes. Scaling options if multi-instance is ever required: tenant-affinity routing at the load balancer, optimistic versioning (compare-and-set on MindMap node version properties), or per-tenant leader election for consolidation. Until one of these is implemented, deploy with tenant affinity.
+
 **Embedding dimension consistency** — `ReactiveQdrantEmbeddingIngestor` computes `denseDimension` from its `embeddingModel` argument in the constructor, not from a separate parameter. With `MatryoshkaEmbeddingModel` wrapping active, `dimension()` returns the truncated size. The cached `denseDimension` field is retained (rather than calling `embeddingModel.dimension()` inline) because `buildCreateRequest()` runs on Qdrant's gRPC callback thread via `directExecutor()` — calling a potentially non-trivial method there risks blocking.
 
 ---
@@ -1492,6 +1494,7 @@ LangChain4j provides Tika document parsing, chunking, `OnnxEmbeddingModel` (dens
 | LangChain4j #4994 (Qdrant hybrid) ships | Low | Low | Unified Qdrant gRPC client used for both legs — no migration needed; evaluate langchain4j-qdrant adoption opportunistically if it simplifies code |
 | Hortora's usage pattern conflicts with SPI design | Low | Medium | rag-* consumption enabled (#35); tenancy optionality shipped (#36); Hortora adoption pending |
 | ArchUnit rule drift | Low | High | ArchUnit tests run in CI on every build; fail-fast |
+| Cognitive pipeline multi-instance data loss | Low | High | In-JVM locks and in-memory accumulators assume one instance per tenant; deploy with tenant affinity until optimistic versioning or leader election is implemented (§7) |
 
 **Technical debt:**
 - `CrossEncoderReranker` in `rag` is optional (precision mode) — default path is RRF without reranking; reranking adds latency
