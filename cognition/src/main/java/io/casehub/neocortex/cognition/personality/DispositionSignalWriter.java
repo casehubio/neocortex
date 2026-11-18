@@ -1,7 +1,7 @@
 package io.casehub.neocortex.cognition.personality;
 
 import io.casehub.eidos.api.DispositionSignalStore;
-import io.casehub.neocortex.cognition.situational.TenantAgentKey;
+import io.casehub.neocortex.cognitive.TenantAgentKey;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;

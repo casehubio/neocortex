@@ -1,5 +1,6 @@
 package io.casehub.neocortex.cognition.situational;
 
+import io.casehub.neocortex.cognitive.TenantAgentKey;
 import io.casehub.neocortex.cognitive.index.LivedProfile;
 import io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot;
 import io.casehub.neocortex.cognitive.index.PersonalityStateSource;
@@ -35,9 +36,9 @@ public class PersonalityStateService implements PersonalityStateSource {
 
     private final MindMapStore store;
     private final Set<String> facetNames;
-    private final ConcurrentHashMap<String, String> subgraphIds = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<TenantAgentKey, PersonalityState> stateCache = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<TenantAgentKey, Long> compositionVersionCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String>                   subgraphIds             = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<TenantAgentKey, PersonalityState> stateCache              = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<TenantAgentKey, Long>             compositionVersionCache = new ConcurrentHashMap<>();
     private final ReentrantLock[] stripes;
 
     public PersonalityStateService(MindMapStore store, Set<String> facetNames) {

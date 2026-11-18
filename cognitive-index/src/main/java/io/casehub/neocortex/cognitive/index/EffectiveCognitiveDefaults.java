@@ -15,6 +15,8 @@
  */
 package io.casehub.neocortex.cognitive.index;
 
+import io.casehub.neocortex.cognitive.TenantAgentKey;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -106,8 +108,8 @@ public class EffectiveCognitiveDefaults {
     // --- internals ---
 
     private Slot ensureSlot(TenantAgentKey key) {
-        var baseView = viewSource.find(key.tenantId, key.agentId).orElse(null);
-        var stateSnap = stateSource.find(key.tenantId, key.agentId, Instant.now()).orElse(null);
+        var baseView = viewSource.find(key.tenantId(), key.agentId()).orElse(null);
+        var stateSnap = stateSource.find(key.tenantId(), key.agentId(), Instant.now()).orElse(null);
         long bv = currentBaseVersion(key);
         long sv = stateSnap != null ? stateSnap.stateVersion() : 0;
         long cv = currentCompositionVersion(key);
@@ -129,10 +131,10 @@ public class EffectiveCognitiveDefaults {
             baseView = existing.baseView;
         }
         if (baseView == null) {
-            baseView = viewSource.find(key.tenantId, key.agentId).orElse(null);
+            baseView = viewSource.find(key.tenantId(), key.agentId()).orElse(null);
         }
 
-        var stateSnap = stateSource.find(key.tenantId, key.agentId, Instant.now()).orElse(null);
+        var stateSnap = stateSource.find(key.tenantId(), key.agentId(), Instant.now()).orElse(null);
 
         long bv = currentBaseVersion(key);
         long sv = stateSnap != null ? stateSnap.stateVersion() : 0;
@@ -150,7 +152,7 @@ public class EffectiveCognitiveDefaults {
 
     private Slot deriveSlot(TenantAgentKey key, DescriptorView baseView,
                             PersonalityStateSnapshot state, long bv, long sv, long cv) {
-        var explicit = explicitLayer.forAgent(key.agentId).orElse(null);
+        var explicit = explicitLayer.forAgent(key.agentId()).orElse(null);
 
         DescriptorView restingView = baseView;
         if (baseView != null && state != null && !state.facets().isEmpty()) {
@@ -158,7 +160,7 @@ public class EffectiveCognitiveDefaults {
         }
         CognitiveDefaults restingDefaults = restingView != null
                 ? merge(explicit, CognitiveDerivationEngine.derive(restingView))
-                : (explicit != null ? explicit : CognitiveDefaults.empty(key.agentId));
+                : (explicit != null ? explicit : CognitiveDefaults.empty(key.agentId()));
 
         DescriptorView effectiveView = baseView;
         if (baseView != null && state != null && !state.facets().isEmpty()) {
@@ -216,8 +218,6 @@ public class EffectiveCognitiveDefaults {
     private void incrementBaseVersion(TenantAgentKey key) {
         baseVersions.computeIfAbsent(key, k -> new AtomicLong()).incrementAndGet();
     }
-
-    record TenantAgentKey(String tenantId, String agentId) {}
 
     static final class Slot {
         final DescriptorView baseView;

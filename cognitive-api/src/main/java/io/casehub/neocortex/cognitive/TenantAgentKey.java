@@ -1,4 +1,4 @@
-package io.casehub.neocortex.cognition.situational;
+package io.casehub.neocortex.cognitive;
 
 public record TenantAgentKey(String tenantId, String agentId) {
 
