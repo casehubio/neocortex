@@ -8,13 +8,14 @@ public record InnerLifeConfig(
         int maxReflectionSources,
         int maxObservationsInPrompt,
         Duration windowDuration,
-        Duration evictionTimeout) {
+        Duration evictionTimeout,
+        NonVerbalConfig nonVerbalConfig) {
 
-    public static final double DEFAULT_MOTIVATION_THRESHOLD = 0.6;
-    public static final int DEFAULT_MAX_REFLECTION_SOURCES = 10;
-    public static final int DEFAULT_MAX_OBSERVATIONS_IN_PROMPT = 50;
-    public static final Duration DEFAULT_WINDOW_DURATION = Duration.ofHours(1);
-    public static final Duration DEFAULT_EVICTION_TIMEOUT = Duration.ofHours(24);
+    public static final double   DEFAULT_MOTIVATION_THRESHOLD       = 0.6;
+    public static final int      DEFAULT_MAX_REFLECTION_SOURCES     = 10;
+    public static final int      DEFAULT_MAX_OBSERVATIONS_IN_PROMPT = 50;
+    public static final Duration DEFAULT_WINDOW_DURATION            = Duration.ofHours(1);
+    public static final Duration DEFAULT_EVICTION_TIMEOUT           = Duration.ofHours(24);
 
     public InnerLifeConfig {
         if (motivationThreshold < 0.0 || motivationThreshold > 1.0) {
@@ -29,6 +30,9 @@ public record InnerLifeConfig(
         if (maxObservationsInPrompt <= 0) {
             throw new IllegalArgumentException("maxObservationsInPrompt must be positive");
         }
+        if (nonVerbalConfig == null) {
+            throw new IllegalArgumentException("nonVerbalConfig must not be null");
+        }
     }
 
     public static InnerLifeConfig defaults() {
@@ -38,6 +42,7 @@ public record InnerLifeConfig(
                 DEFAULT_MAX_REFLECTION_SOURCES,
                 DEFAULT_MAX_OBSERVATIONS_IN_PROMPT,
                 DEFAULT_WINDOW_DURATION,
-                DEFAULT_EVICTION_TIMEOUT);
+                DEFAULT_EVICTION_TIMEOUT,
+                NonVerbalConfig.defaults());
     }
 }

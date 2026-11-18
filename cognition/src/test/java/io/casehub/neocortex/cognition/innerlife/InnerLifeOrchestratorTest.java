@@ -2,10 +2,10 @@ package io.casehub.neocortex.cognition.innerlife;
 
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentDisposition;
-import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
 import io.casehub.neocortex.cognition.drive.DriveProfile;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
+import io.casehub.neocortex.session.testing.StubPipelines;
 import io.casehub.neocortex.summarisation.EventLevel;
 import io.casehub.neocortex.summarisation.LevelEvent;
 import io.casehub.platform.agent.AgentEvent;
@@ -184,5 +184,153 @@ class InnerLifeOrchestratorTest {
         assertThat(((InnerLifeTick.Silent) result).reason())
                 .isEqualTo("drives not current");
     }
+
+    @Test
+    void tickReturnsNonVerbalWhenAffiliationHighAndSilenceLong() {
+        var driveProfile = new DriveProfile(
+                "agent-1", "tenant-1",
+                java.util.Map.of(
+                        io.casehub.neocortex.cognition.drive.DriveAxis.AFFILIATION,
+                        new io.casehub.neocortex.cognition.drive.DriveIntensity(
+                                io.casehub.neocortex.cognition.drive.DriveAxis.AFFILIATION, 0.8, "loneliness"),
+                        io.casehub.neocortex.cognition.drive.DriveAxis.CURIOSITY,
+                        new io.casehub.neocortex.cognition.drive.DriveIntensity(
+                                io.casehub.neocortex.cognition.drive.DriveAxis.CURIOSITY, 0.3, "idle")),
+                0.55,
+                io.casehub.neocortex.cognition.drive.DriveAxis.AFFILIATION,
+                java.time.Instant.now());
+        when(driveOrchestrator.currentDrives("agent-1", "tenant-1"))
+                .thenReturn(java.util.Optional.of(driveProfile));
+
+        var nvConfig = new NonVerbalConfig(java.time.Duration.ofMillis(1), 0.6, "knock");
+        var config = new InnerLifeConfig(
+                InnerLifeConfig.DEFAULT_MOTIVATION_THRESHOLD,
+                ContentQualityGate.defaults(),
+                InnerLifeConfig.DEFAULT_MAX_REFLECTION_SOURCES,
+                InnerLifeConfig.DEFAULT_MAX_OBSERVATIONS_IN_PROMPT,
+                InnerLifeConfig.DEFAULT_WINDOW_DURATION,
+                InnerLifeConfig.DEFAULT_EVICTION_TIMEOUT,
+                nvConfig);
+        var orch = new InnerLifeOrchestrator(
+                reflectionOrchestrator, List.of(ctx -> new CivilityCheck.Permitted()),
+                config, driveOrchestrator, null);
+
+        // first tick seeds agent state with lastActivityTimestamp
+        orch.tick(descriptor, "context");
+
+        // sleep past the silence threshold
+        try {Thread.sleep(10);} catch (InterruptedException e) {Thread.currentThread().interrupt();}
+
+        var result = orch.tick(descriptor, "context");
+
+        assertThat(result).isInstanceOf(InnerLifeTick.NonVerbal.class);
+        var nv = (InnerLifeTick.NonVerbal) result;
+        assertThat(nv.tag()).isEqualTo("knock");
+        assertThat(nv.motivationScore()).isEqualTo(0.8);
+    }
+
+    @Test
+    void tickDoesNotReturnNonVerbalWhenAffiliationBelowThreshold() {
+        var driveProfile = new DriveProfile(
+                "agent-1", "tenant-1",
+                java.util.Map.of(
+                        io.casehub.neocortex.cognition.drive.DriveAxis.AFFILIATION,
+                        new io.casehub.neocortex.cognition.drive.DriveIntensity(
+                                io.casehub.neocortex.cognition.drive.DriveAxis.AFFILIATION, 0.3, "minimal"),
+                        io.casehub.neocortex.cognition.drive.DriveAxis.CURIOSITY,
+                        new io.casehub.neocortex.cognition.drive.DriveIntensity(
+                                io.casehub.neocortex.cognition.drive.DriveAxis.CURIOSITY, 0.5, "exploring")),
+                0.4,
+                io.casehub.neocortex.cognition.drive.DriveAxis.CURIOSITY,
+                java.time.Instant.now());
+        when(driveOrchestrator.currentDrives("agent-1", "tenant-1"))
+                .thenReturn(java.util.Optional.of(driveProfile));
+
+        var nvConfig = new NonVerbalConfig(java.time.Duration.ofMillis(1), 0.6, "knock");
+        var config = new InnerLifeConfig(
+                InnerLifeConfig.DEFAULT_MOTIVATION_THRESHOLD,
+                ContentQualityGate.defaults(),
+                InnerLifeConfig.DEFAULT_MAX_REFLECTION_SOURCES,
+                InnerLifeConfig.DEFAULT_MAX_OBSERVATIONS_IN_PROMPT,
+                InnerLifeConfig.DEFAULT_WINDOW_DURATION,
+                InnerLifeConfig.DEFAULT_EVICTION_TIMEOUT,
+                nvConfig);
+        var orch = new InnerLifeOrchestrator(
+                reflectionOrchestrator, List.of(ctx -> new CivilityCheck.Permitted()),
+                config, driveOrchestrator, null);
+
+        // seed state, sleep past silence threshold
+        orch.tick(descriptor, "context");
+        try {Thread.sleep(10);} catch (InterruptedException e) {Thread.currentThread().interrupt();}
+
+        var result = orch.tick(descriptor, "context");
+
+        assertThat(result).isNotInstanceOf(InnerLifeTick.NonVerbal.class);
+    }
+
+    @Test
+    void tickWithAdditionalSectionsAppendsToSystemPrompt() {
+        var sectionRendered = new java.util.concurrent.atomic.AtomicBoolean(false);
+        io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer section = ctx -> {
+            sectionRendered.set(true);
+            return "Use expressive gestures when speaking.";
+        };
+
+        var orch = makeOrchestrator(
+                stubPipeline("{\"score\": 0.9, \"content\": \"Hey!\", \"channelHint\": null}"),
+                ctx -> new CivilityCheck.Permitted());
+
+        for (int i = 0; i < 5; i++) {
+            orch.observe(event("novel content " + i + " unique " + System.nanoTime()), descriptor);
+        }
+
+        when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
+                .thenReturn(List.of("thoughts"));
+
+        var result = orch.tick(descriptor, "context", List.of(section));
+
+        assertThat(sectionRendered.get()).isTrue();
+        assertThat(result).isInstanceOf(InnerLifeTick.Initiated.class);
+    }
+
+    @Test
+    void reportDroppedDecrementsConsecutiveInitiations() {
+        var orch = makeOrchestrator(
+                stubPipeline("{\"score\": 0.9, \"content\": \"Hello!\", \"channelHint\": null}"),
+                ctx -> new CivilityCheck.Permitted());
+
+        for (int i = 0; i < 5; i++) {
+            orch.observe(event("novel content " + i + " unique " + System.nanoTime()), descriptor);
+        }
+
+        when(reflectionOrchestrator.reflect(anyString(), anyString(), any(), anyInt()))
+                .thenReturn(List.of("reflections"));
+
+        // Trigger an initiation
+        var tick1 = orch.tick(descriptor, "context");
+        assertThat(tick1).isInstanceOf(InnerLifeTick.Initiated.class);
+
+        // Report it was dropped
+        orch.reportDropped("agent-1", "tenant-1", java.time.Instant.now());
+
+        // Observe a response — should not go below 0
+        orch.observeResponse(descriptor);
+
+        // Now new observations and another tick — verify the agent can still initiate
+        for (int i = 0; i < 5; i++) {
+            orch.observe(event("fresh content " + i + " new " + System.nanoTime()), descriptor);
+        }
+        var tick2 = orch.tick(descriptor, "context");
+        assertThat(tick2).isInstanceOf(InnerLifeTick.Initiated.class);
+    }
+
+    @Test
+    void reportDroppedWithNoStateDoesNotThrow() {
+        var orch = makeOrchestrator();
+        // No prior tick — no agent state exists
+        orch.reportDropped("unknown-agent", "unknown-tenant", java.time.Instant.now());
+        // Should not throw
+    }
+
 
 }

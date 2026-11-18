@@ -2,7 +2,11 @@ package io.casehub.neocortex.cognition.innerlife;
 
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.neocortex.cognition.core.TokenJaccardDistance;
+import io.casehub.neocortex.cognition.drive.DriveAxis;
 import io.casehub.neocortex.cognition.drive.DriveOrchestrator;
+import io.casehub.neocortex.cognition.drive.DriveProfile;
+import io.casehub.neocortex.cognition.prompt.CognitionPromptRenderer;
+import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.memory.reflection.ReflectionOrchestrator;
 import io.casehub.neocortex.summarisation.LevelEvent;
 import io.casehub.platform.agent.AgentEvent;
@@ -82,31 +86,60 @@ public class InnerLifeOrchestrator {
         }
     }
 
+    public void reportDropped(String agentId, String tenantId, Instant userActivityAt) {
+        var key   = tenantId + ":" + agentId;
+        var state = agentStates.get(key);
+        if (state == null) {
+            LOG.log(Level.FINE, "reportDropped: no state for {0}", key);
+            return;
+        }
+        synchronized (state) {
+            if (state.consecutiveInitiationsWithoutResponse > 0) {
+                state.consecutiveInitiationsWithoutResponse--;
+            }
+            if (!state.initiationTimestamps.isEmpty()) {
+                state.initiationTimestamps.removeLast();
+            }
+            state.lastActivityTimestamp = userActivityAt;
+        }
+        LOG.log(Level.FINE, "Proactive turn dropped for {0}, userActivityAt={1}",
+                new Object[]{key, userActivityAt});
+    }
+
+
     public InnerLifeTick tick(final AgentDescriptor descriptor, final String channelContext) {
+        return tick(descriptor, channelContext, List.of());
+    }
+
+    public InnerLifeTick tick(final AgentDescriptor descriptor, final String channelContext,
+                              final List<CognitionPromptRenderer> additionalSections) {
         var agentKey = agentKey(descriptor);
-        var lock = tickLocks.computeIfAbsent(agentKey, k -> new ReentrantLock());
+        var lock     = tickLocks.computeIfAbsent(agentKey, k -> new ReentrantLock());
         lock.lock();
         try {
-            return doTick(descriptor, channelContext, agentKey);
+            return doTick(descriptor, channelContext, agentKey, additionalSections);
         } finally {
             lock.unlock();
         }
     }
 
+
     private InnerLifeTick doTick(final AgentDescriptor descriptor,
-                                  final String channelContext,
-                                  final String agentKey) {
-        if (driveOrchestrator.currentDrives(
-                descriptor.agentId(), descriptor.tenancyId()).isEmpty()) {
+                                 final String channelContext,
+                                 final String agentKey,
+                                 final List<CognitionPromptRenderer> additionalSections) {
+        var drivesOpt = driveOrchestrator.currentDrives(
+                descriptor.agentId(), descriptor.tenancyId());
+        if (drivesOpt.isEmpty()) {
             LOG.log(Level.WARNING,
                     "InnerLife tick called without current drive profile for "
-                            + descriptor.agentId()
-                            + " — ensure CognitionCore.tick() has run first");
+                    + descriptor.agentId()
+                    + " — ensure CognitionCore.tick() has run first");
             return new InnerLifeTick.Silent("drives not current");
         }
 
-        var state = agentStates.computeIfAbsent(agentKey, k -> new AgentState());
-        state.lastActivityTimestamp = Instant.now();
+        var driveProfile = drivesOpt.get();
+        var state        = agentStates.computeIfAbsent(agentKey, k -> new AgentState());
 
         List<LevelEvent<?>> eventSnapshot;
         String              rawTextSnapshot;
@@ -128,6 +161,14 @@ public class InnerLifeOrchestrator {
                 return new InnerLifeTick.Silent(denied.reason());
             }
         }
+
+        var nonVerbalTick = evaluateNonVerbal(driveProfile, state);
+        if (nonVerbalTick != null) {
+            state.lastActivityTimestamp = Instant.now();
+            return nonVerbalTick;
+        }
+
+        state.lastActivityTimestamp = Instant.now();
 
         var gate = config.contentQualityGate();
         var now  = Instant.now();
@@ -157,11 +198,12 @@ public class InnerLifeOrchestrator {
                 state.lastLlmEvaluationTimestamp.equals(Instant.EPOCH) ? Instant.EPOCH : state.lastLlmEvaluationTimestamp,
                 config.maxReflectionSources());
 
-        var userPrompt    = assemblePrompt(descriptor, eventSnapshot, reflections, channelContext);
+        var userPrompt   = assemblePrompt(descriptor, eventSnapshot, reflections, channelContext);
+        var systemPrompt = buildSystemPrompt(driveProfile, additionalSections);
 
         MotivationAssessment assessment;
         try {
-            var responseText = invokeText(SYSTEM_PROMPT, userPrompt, descriptor.agentId());
+            var responseText = invokeText(systemPrompt, userPrompt, descriptor.agentId());
             if (responseText == null) {
                 throw new RuntimeException("LLM invocation returned empty");
             }
@@ -187,6 +229,49 @@ public class InnerLifeOrchestrator {
 
         return new InnerLifeTick.Silent(null);
     }
+
+    private @Nullable InnerLifeTick evaluateNonVerbal(DriveProfile driveProfile, AgentState state) {
+        var nvConfig             = config.nonVerbalConfig();
+        var affiliationDrive     = driveProfile.drives().get(DriveAxis.AFFILIATION);
+        var affiliationIntensity = affiliationDrive != null ? affiliationDrive.intensity() : 0.0;
+
+        if (affiliationIntensity < nvConfig.affiliationDriveThreshold()) {
+            return null;
+        }
+
+        var silenceDuration = Duration.between(state.lastActivityTimestamp, Instant.now());
+        if (silenceDuration.compareTo(nvConfig.silenceThreshold()) < 0) {
+            return null;
+        }
+
+        LOG.log(Level.FINE, "Non-verbal bid: affiliation={0}, silence={1}s",
+                new Object[]{affiliationIntensity, silenceDuration.toSeconds()});
+        return new InnerLifeTick.NonVerbal(nvConfig.defaultTag(), affiliationIntensity);
+    }
+
+    private String buildSystemPrompt(DriveProfile driveProfile,
+                                     List<CognitionPromptRenderer> additionalSections) {
+        if (additionalSections == null || additionalSections.isEmpty()) {
+            return SYSTEM_PROMPT;
+        }
+
+        var renderContext = new CognitionRenderContext(
+                driveProfile.agentId(), driveProfile.tenantId(), null,
+                driveProfile.drives().entrySet().stream()
+                            .filter(e -> e.getValue().intensity() >= config.motivationThreshold())
+                            .map(e -> e.getKey().name())
+                            .toList());
+
+        var sb = new StringBuilder(SYSTEM_PROMPT);
+        for (var section : additionalSections) {
+            var rendered = section.render(renderContext);
+            if (rendered != null && !rendered.isBlank()) {
+                sb.append("\n\n").append(rendered);
+            }
+        }
+        return sb.toString();
+    }
+
 
     private void restoreBuffer(AgentState state, List<LevelEvent<?>> events,
                                 String rawText, int observationCount) {
