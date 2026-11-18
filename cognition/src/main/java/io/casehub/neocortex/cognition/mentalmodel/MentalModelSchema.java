@@ -1,8 +1,8 @@
 package io.casehub.neocortex.cognition.mentalmodel;
 
+import io.casehub.neocortex.memory.cbr.CbrMatch;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.FeatureValue;
-import io.casehub.neocortex.memory.cbr.CbrMatch;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
@@ -60,18 +60,19 @@ final class MentalModelSchema {
     }
 
     static String serializeStates(List<AttributedState> states) {
-        if (states.isEmpty()) return "[]";
+        if (states.isEmpty()) {return "[]";}
         var sb = new StringBuilder("[");
         for (int i = 0; i < states.size(); i++) {
-            if (i > 0) sb.append(",");
+            if (i > 0) {sb.append(",");}
             var s = states.get(i);
             sb.append("{\"key\":\"").append(escapeJson(s.key()))
-                    .append("\",\"description\":\"").append(escapeJson(s.description()))
-                    .append("\",\"confidence\":").append(s.confidence())
-                    .append(",\"entrenchment\":").append(s.entrenchment())
-                    .append(",\"lastReinforced\":\"").append(s.lastReinforced())
-                    .append("\",\"dimension\":\"").append(s.dimension().name())
-                    .append("\"}");
+              .append("\",\"description\":\"").append(escapeJson(s.description()))
+              .append("\",\"confidence\":").append(s.confidence())
+              .append(",\"entrenchment\":").append(s.entrenchment())
+              .append(",\"lastReinforced\":\"").append(s.lastReinforced())
+              .append("\",\"dimension\":\"").append(s.dimension().name())
+              .append("\",\"valence\":\"").append(s.valence().name())
+              .append("\"}");
         }
         sb.append("]");
         return sb.toString();
@@ -108,22 +109,28 @@ final class MentalModelSchema {
 
     private static @Nullable AttributedState parseStateObject(String obj) {
         try {
-            var key = extractField(obj, "key");
-            var description = extractField(obj, "description");
-            var confidenceStr = extractField(obj, "confidence");
-            var entrenchmentStr = extractField(obj, "entrenchment");
+            var key               = extractField(obj, "key");
+            var description       = extractField(obj, "description");
+            var confidenceStr     = extractField(obj, "confidence");
+            var entrenchmentStr   = extractField(obj, "entrenchment");
             var lastReinforcedStr = extractField(obj, "lastReinforced");
-            var dimensionStr = extractField(obj, "dimension");
+            var dimensionStr      = extractField(obj, "dimension");
+            var valenceStr        = extractField(obj, "valence");
 
             if (key == null || description == null || confidenceStr == null
-                    || entrenchmentStr == null || lastReinforcedStr == null || dimensionStr == null) {
+                || entrenchmentStr == null || lastReinforcedStr == null || dimensionStr == null) {
                 return null;
             }
+            IntentValence valence = IntentValence.NEUTRAL;
+            if (valenceStr != null) {
+                try {valence = IntentValence.valueOf(valenceStr);} catch (IllegalArgumentException ignored) {}
+            }
             return new AttributedState(key, description,
-                    Double.parseDouble(confidenceStr),
-                    Integer.parseInt(entrenchmentStr),
-                    Instant.parse(lastReinforcedStr),
-                    BdiDimension.valueOf(dimensionStr));
+                                       Double.parseDouble(confidenceStr),
+                                       Integer.parseInt(entrenchmentStr),
+                                       Instant.parse(lastReinforcedStr),
+                                       BdiDimension.valueOf(dimensionStr),
+                                       valence);
         } catch (Exception e) {
             return null;
         }

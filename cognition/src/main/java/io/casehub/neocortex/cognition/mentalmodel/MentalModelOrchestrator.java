@@ -24,17 +24,21 @@ public class MentalModelOrchestrator {
     private static final Logger LOG = Logger.getLogger(MentalModelOrchestrator.class.getName());
 
     private static final String SYSTEM_PROMPT = """
-            You are analysing conversation signals to infer another person's mental state. \
-            Given the current attributed beliefs, desires, and intentions, plus recent signals, \
-            produce an updated BDI assessment.
-
-            Respond with JSON only:
-            {"beliefs":[{"key":"...","text":"...","confidence":0.8}],\
-            "desires":[{"key":"...","text":"...","confidence":0.7}],\
-            "intentions":[{"key":"...","text":"...","confidence":0.5}]}
-
-            Only include NEW or CHANGED entries. Omit unchanged entries — they are preserved. \
-            Only include entries with confidence >= 0.3.""";
+                                                You are analysing conversation signals to infer another person's mental state. \
+                                                Given the current attributed beliefs, desires, and intentions, plus recent signals, \
+                                                produce an updated BDI assessment.
+                                                
+                                                Respond with JSON only:
+                                                {"beliefs":[{"key":"...","text":"...","confidence":0.8,"valence":"neutral"}],\
+                                                "desires":[{"key":"...","text":"...","confidence":0.7,"valence":"cooperative"}],\
+                                                "intentions":[{"key":"...","text":"...","confidence":0.5,"valence":"hostile"}]}
+                                                
+                                                valence classifies the entry's interpersonal direction: \
+                                                "hostile" (harmful, deceptive, exploitative, aggressive, undermining), \
+                                                "cooperative" (helpful, supportive, protective, collaborative, reconciling), \
+                                                or "neutral" (observational, self-directed, ambiguous). \
+                                                Only include NEW or CHANGED entries. Omit unchanged entries — they are preserved. \
+                                                Only include entries with confidence >= 0.3.""";
 
     private final MentalModelMemory modelMemory;
     private final MentalModelConfig config;
@@ -401,28 +405,30 @@ public class MentalModelOrchestrator {
         for (var entry : entries) {
             var existing = map.get(entry.key);
             int entrenchment = dimension == BdiDimension.BELIEF
-                    ? (existing != null ? existing.entrenchment() + 1 : 1)
-                    : 0;
+                               ? (existing != null ? existing.entrenchment() + 1 : 1)
+                               : 0;
             map.put(entry.key, new AttributedState(entry.key, entry.text,
-                    entry.confidence, entrenchment, now, dimension));
+                                                   entry.confidence, entrenchment, now, dimension, entry.valence()));
         }
     }
 
     private List<InferredEntry> extractArray(String json, String field) {
         var result = new ArrayList<InferredEntry>();
         var needle = "\"" + field + "\"";
-        int idx = json.indexOf(needle);
-        if (idx < 0) return result;
+        int idx    = json.indexOf(needle);
+        if (idx < 0) {return result;}
         int arrStart = json.indexOf('[', idx);
-        if (arrStart < 0) return result;
+        if (arrStart < 0) {return result;}
 
-        int depth = 0;
+        int depth  = 0;
         int arrEnd = arrStart;
         for (int i = arrStart; i < json.length(); i++) {
-            if (json.charAt(i) == '[') depth++;
-            else if (json.charAt(i) == ']') {
+            if (json.charAt(i) == '[') {depth++;} else if (json.charAt(i) == ']') {
                 depth--;
-                if (depth == 0) { arrEnd = i; break; }
+                if (depth == 0) {
+                    arrEnd = i;
+                    break;
+                }
             }
         }
         var arrStr = json.substring(arrStart + 1, arrEnd);
@@ -431,19 +437,21 @@ public class MentalModelOrchestrator {
         int objStart = -1;
         for (int i = 0; i < arrStr.length(); i++) {
             if (arrStr.charAt(i) == '{') {
-                if (objDepth == 0) objStart = i;
+                if (objDepth == 0) {objStart = i;}
                 objDepth++;
             } else if (arrStr.charAt(i) == '}') {
                 objDepth--;
                 if (objDepth == 0 && objStart >= 0) {
-                    var obj = arrStr.substring(objStart, i + 1);
-                    var key = extractJsonString(obj, "key");
-                    var text = extractJsonString(obj, "text");
-                    var confStr = extractJsonValue(obj, "confidence");
+                    var obj        = arrStr.substring(objStart, i + 1);
+                    var key        = extractJsonString(obj, "key");
+                    var text       = extractJsonString(obj, "text");
+                    var confStr    = extractJsonValue(obj, "confidence");
+                    var valenceStr = extractJsonString(obj, "valence");
                     if (key != null && text != null && confStr != null) {
                         try {
-                            double conf = Double.parseDouble(confStr);
-                            if (conf >= 0.3) result.add(new InferredEntry(key, text, conf));
+                            double conf    = Double.parseDouble(confStr);
+                            var    valence = parseValence(valenceStr);
+                            if (conf >= 0.3) {result.add(new InferredEntry(key, text, conf, valence));}
                         } catch (NumberFormatException ignored) {}
                     }
                     objStart = -1;
@@ -488,13 +496,24 @@ public class MentalModelOrchestrator {
         return json.substring(start, end).strip();
     }
 
+    private static IntentValence parseValence(@Nullable String s) {
+        if (s == null || s.isBlank()) {return IntentValence.NEUTRAL;}
+        return switch (s.strip().toLowerCase()) {
+            case "hostile" -> IntentValence.HOSTILE;
+            case "cooperative" -> IntentValence.COOPERATIVE;
+            default -> IntentValence.NEUTRAL;
+        };
+    }
+
     private String formatBdi(List<AttributedState> states) {
-        if (states.isEmpty()) return "none";
+        if (states.isEmpty()) {return "none";}
         var sb = new StringBuilder();
         for (var s : states) {
-            if (!sb.isEmpty()) sb.append("; ");
+            if (!sb.isEmpty()) {sb.append("; ");}
             sb.append(s.key()).append("=").append(s.description())
-                    .append(" (conf=").append(String.format("%.2f", s.confidence())).append(")");
+              .append(" (conf=").append(String.format("%.2f", s.confidence()))
+              .append(", valence=").append(s.valence().name().toLowerCase())
+              .append(")");
         }
         return sb.toString();
     }
@@ -550,7 +569,7 @@ public class MentalModelOrchestrator {
         return agentId + ":" + subjectId + ":" + tenantId;
     }
 
-    private record InferredEntry(String key, String text, double confidence) {}
+    private record InferredEntry(String key, String text, double confidence, IntentValence valence) {}
 
     static final class SubjectMentalState {
         final String agentId;
