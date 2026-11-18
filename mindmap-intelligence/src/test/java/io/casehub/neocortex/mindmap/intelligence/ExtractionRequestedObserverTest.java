@@ -4,8 +4,8 @@ import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
-import io.casehub.platform.api.identity.PrincipalId;
 import io.casehub.neocortex.mindmap.intelligence.consolidation.RetrievalAccessTracker;
+import io.casehub.platform.api.identity.PrincipalId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -72,6 +72,46 @@ class ExtractionRequestedObserverTest {
         var snapshot = tracker.swapAndReset();
         assertThat(snapshot.counts()).containsKeys("e1", "e2");
     }
+
+    @Test
+    void onEvent_setsAgentIdOnMutationContext() {
+        var capturedAgentId = new java.util.concurrent.atomic.AtomicReference<String>();
+        var extractor = new MindMapExtractor(store, null) {
+            @Override
+            public ParsedExtraction parse(String text, String tenantId,
+                                          List<String> recentEntityNames) {
+                capturedAgentId.set(io.casehub.neocortex.mindmap.MutationContext.agentId());
+                return null;
+            }
+        };
+        var observer = new ExtractionRequestedObserver(extractor, store, tracker);
+
+        observer.onExtractionRequested(
+                new ExtractionRequested("text", "t1", List.of(), List.of(), null,
+                                        null, null, "agent-7"));
+
+        assertThat(capturedAgentId.get()).isEqualTo("agent-7");
+    }
+
+    @Test
+    void onEvent_nullAgentId_doesNotSetMutationContext() {
+        var capturedAgentId = new java.util.concurrent.atomic.AtomicReference<String>("sentinel");
+        var extractor = new MindMapExtractor(store, null) {
+            @Override
+            public ParsedExtraction parse(String text, String tenantId,
+                                          List<String> recentEntityNames) {
+                capturedAgentId.set(io.casehub.neocortex.mindmap.MutationContext.agentId());
+                return null;
+            }
+        };
+        var observer = new ExtractionRequestedObserver(extractor, store, tracker);
+
+        observer.onExtractionRequested(
+                new ExtractionRequested("text", "t1", List.of(), List.of(), null));
+
+        assertThat(capturedAgentId.get()).isNull();
+    }
+
 
     private MindMapExtractor stubExtractor(ExtractionResult result) {
         return new MindMapExtractor(store, null) {

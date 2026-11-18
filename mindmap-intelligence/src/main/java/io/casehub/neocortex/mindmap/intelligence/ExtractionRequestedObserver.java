@@ -41,6 +41,9 @@ public class ExtractionRequestedObserver {
 
     public void onExtractionRequested(@ObservesAsync ExtractionRequested event) {
         MutationContext.set("extraction");
+        if (event.agentId() != null) {
+            MutationContext.setAgent(event.agentId());
+        }
         try {
             var parsed = extractor.parse(
                     event.cleanedText(), event.tenantId(), event.recentEntityNames());

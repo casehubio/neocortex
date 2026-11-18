@@ -114,5 +114,24 @@ class ConversationBridgeTest {
         assertThat(firedEvents.getFirst().principalId()).isEqualTo(pid);
     }
 
+    @Test
+    void process_propagatesAgentIdToExtractionEvent() {
+        io.casehub.neocortex.mindmap.MutationContext.setAgent("agent-42");
+        try {
+            bridge.process("Some text.", "t1", List.of(), null, null);
+            assertThat(firedEvents).hasSize(1);
+            assertThat(firedEvents.getFirst().agentId()).isEqualTo("agent-42");
+        } finally {
+            io.casehub.neocortex.mindmap.MutationContext.clear();
+        }
+    }
+
+    @Test
+    void process_nullAgentId_propagatesNull() {
+        bridge.process("Some text.", "t1", List.of(), null, null);
+        assertThat(firedEvents).hasSize(1);
+        assertThat(firedEvents.getFirst().agentId()).isNull();
+    }
+
 
 }

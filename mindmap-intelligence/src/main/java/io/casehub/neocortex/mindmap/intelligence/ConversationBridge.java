@@ -78,10 +78,11 @@ public class ConversationBridge {
 
             String batchId        = java.util.UUID.randomUUID().toString();
             String ownerSubjectId = principalId != null ? principalId.id() : null;
+            String agentId        = MutationContext.agentId();
 
             eventSink.accept(new ExtractionRequested(
                     cleanedText, tenantId, recentEntityNames, createdNodeIds, principalId,
-                    batchId, ownerSubjectId));
+                    batchId, ownerSubjectId, agentId));
 
             return new SegmentationResult(createdNodeIds, segments.size());
         } finally {
