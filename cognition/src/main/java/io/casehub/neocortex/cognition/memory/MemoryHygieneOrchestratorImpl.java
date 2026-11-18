@@ -3,6 +3,7 @@ package io.casehub.neocortex.cognition.memory;
 import io.casehub.neocortex.memory.EraseRequest;
 import io.casehub.neocortex.memory.KnowledgeGapSummary;
 import io.casehub.neocortex.memory.MemoryDomain;
+import io.casehub.neocortex.memory.Subject;
 import io.casehub.neocortex.memory.cbr.CbrRecord;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.memory.cbr.CbrQuery;
@@ -41,7 +42,12 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
     private final double crossLinkSimilarityThreshold;
     private final Consumer<HygieneEvent> eventSink;
 
-    private final ConcurrentHashMap<String, ReentrantLock> tickLocks = new ConcurrentHashMap<>();
+    private static final int LOCK_STRIPES = 16;
+    private final ReentrantLock[] tickLocks;
+    {
+        tickLocks = new ReentrantLock[LOCK_STRIPES];
+        for (int i = 0; i < LOCK_STRIPES; i++) tickLocks[i] = new ReentrantLock();
+    }
     private final ConcurrentHashMap<String, KnowledgeGapSummary> gapStates = new ConcurrentHashMap<>();
 
     public MemoryHygieneOrchestratorImpl(
@@ -81,7 +87,8 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
     }
 
     HygieneTick doTick(String agentId, String tenantId) {
-        var lock = tickLocks.computeIfAbsent(agentId + ":" + tenantId, k -> new ReentrantLock());
+        var key = agentId + ":" + tenantId;
+        var lock = tickLocks[Math.floorMod(key.hashCode(), LOCK_STRIPES)];
         lock.lock();
         try {
             return doTickInternal(agentId, tenantId);
@@ -129,15 +136,17 @@ public class MemoryHygieneOrchestratorImpl implements MemoryHygieneOrchestrator 
                     .toList();
 
             for (var eviction : toEvict) {
-                store.erase(new EraseRequest(eviction.entityId(), domain, tenantId, eviction.caseId()));
+                store.erase(new EraseRequest(Subject.of("memory", eviction.entityId()), domain, tenantId, eviction.caseId()));
                 eventSink.accept(new HygieneEvent.MemoryEvicted(eviction.caseId(), eviction));
             }
             totalEvicted += toEvict.size();
 
+            var survivorIds = scored.stream()
+                    .filter(s -> s.composite() >= retentionConfig.retentionThreshold())
+                    .map(RetentionScore::caseId)
+                    .collect(java.util.stream.Collectors.toSet());
             var survivors = agentMemories.stream()
-                    .filter(m -> scored.stream()
-                            .anyMatch(s -> s.caseId().equals(m.caseId())
-                                    && s.composite() >= retentionConfig.retentionThreshold()))
+                    .filter(m -> survivorIds.contains(m.caseId()))
                     .toList();
 
             totalConsolidated += consolidate(survivors, tenantId, caseType);
