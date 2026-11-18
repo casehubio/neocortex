@@ -90,7 +90,7 @@ Our use case — cognitive agent characters in a social simulation — falls squ
 | Era 6 | + AMPD/PID-5 facets (expression styles, search budget, recurring thoughts) | Continuous [0,1] for 5 methods, categorical for 6 |
 | **Era 7** | **Bridge fix + full facet integration + Jungian×PID-5 modulation** | **Continuous for all methods, dual-channel interaction** |
 
-## Implementation Status (2026-11-17)
+## Implementation Status (2026-11-18)
 
 All design goals achieved. Implementation complete across three repos (eidos, neocortex, examples). Coping strategies pipeline (epic #595) Batches 1-5 complete — regulation refactoring, CAPS coping attractors, goal operations dispatch all wired.
 
@@ -151,7 +151,7 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 | #1061 | BehavioralSynthesisPhase cache key agentId → tenantId:agentId | Multi-tenant isolation — prevents cross-tenant settling result leakage |
 | #1064 | 9 MindMapQuery search limits raised 200→2000 | Prevents silent data loss from search-then-filter pattern on active tenants |
 
-#1060 (PersonalityEvolutionOrchestrator never ticked) deferred — requires design decision on evolution cadence and propagation path. Filed: #1091 (MindMapQuery property filters), #1092 (AppraisalStatePropagationTest failure), #1093 (EmotionRegulationTickParticipantTest failures).
+#1060 (PersonalityEvolutionOrchestrator never ticked) **Batches 1-4 implemented (2026-11-18).** Design review completed (option A: neocortex stores lived results, Eidos keeps authored identity). Pull model replaces push — `compositionVersion` freshness, `updateState` deleted. Striped locking (`ReentrantLock[256]`) for concurrent personality state mutations via `transition()`. PID-5 baseline promotion implemented (dwell-gated, budget-capped, continuity-preserving). Signal recording pipeline: `DispositionSignalWriter` (coalescing buffer, per-agent stripe serialisation) + `DispositionSignalRecorder` (CDI observer + direct call). `TraitActivation` loses valence (D13). Remaining: Batches 5-6 (JPAF `DispositionEvolutionPhase`, production wiring, cleanup, integration tests). Filed: #1091, #1092, #1093, #1116 (duplicate TenantAgentKey), #1117 (toSnapshot compositionVersion).
 
 ## Open Questions
 
@@ -163,7 +163,7 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 
 ## Era 7b — Situational Personality Modulation (#712)
 
-**Status (2026-11-17):** All 5 batches complete. Implementation finished — 79 tests (75 cognition + 4 caps-engine). Production CDI wiring deferred to #1082.
+**Status (2026-11-18):** All 5 batches complete. Implementation finished — 79 tests (75 cognition + 4 caps-engine). Production CDI wiring deferred to #1082. **#1060 update:** `updateState` deleted (pull model), `SituationalPersonalityParticipant` and `SituationalDeformationPhase` now use `PersonalityStateService.transition()` with striped locking. PID-5 baseline promotion added to deformation phase. `cachedAgentIds` → `agentIds` for restart survival.
 
 - **Batch 1:** Config loader, integrator, detector — 44 tests
 - **Batch 2:** Appraisal fixes — SEC dimensions passthrough, tick stamping, relational bias clamp, input activations accessor — 9 tests
