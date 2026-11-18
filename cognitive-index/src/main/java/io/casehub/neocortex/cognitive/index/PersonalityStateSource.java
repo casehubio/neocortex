@@ -20,4 +20,8 @@ import java.util.Optional;
 
 public interface PersonalityStateSource {
     Optional<PersonalityStateSnapshot> find(String tenantId, String agentId, Instant now);
+
+    default long compositionVersion(String tenantId, String agentId) {
+        return 0;
+    }
 }

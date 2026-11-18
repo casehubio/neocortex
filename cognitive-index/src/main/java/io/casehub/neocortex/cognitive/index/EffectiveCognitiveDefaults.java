@@ -17,15 +17,12 @@ package io.casehub.neocortex.cognitive.index;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class EffectiveCognitiveDefaults {
-
-    private static final double EPSILON_PUBLISH = 0.005;
 
     private final CognitiveDefaultsRegistry explicitLayer;
     private final DescriptorViewSource viewSource;
@@ -44,7 +41,7 @@ public class EffectiveCognitiveDefaults {
     public CognitiveDefaults forAgent(String tenantId, String agentId) {
         var key = new TenantAgentKey(tenantId, agentId);
         var slot = slots.get(key);
-        if (slot != null && !slot.isStale(currentBaseVersion(key))) {
+        if (slot != null && !slot.isStale(currentBaseVersion(key), currentCompositionVersion(key))) {
             return slot.effective;
         }
         return ensureSlot(key).effective;
@@ -58,7 +55,7 @@ public class EffectiveCognitiveDefaults {
     public LearningProfile restingFor(String tenantId, String agentId) {
         var key = new TenantAgentKey(tenantId, agentId);
         var slot = slots.get(key);
-        if (slot != null && !slot.isStale(currentBaseVersion(key))) {
+        if (slot != null && !slot.isStale(currentBaseVersion(key), currentCompositionVersion(key))) {
             return slot.resting;
         }
         return ensureSlot(key).resting;
@@ -67,13 +64,7 @@ public class EffectiveCognitiveDefaults {
     public void updateBase(String tenantId, DescriptorView view, String eventRef) {
         var key = new TenantAgentKey(tenantId, view.agentId());
         incrementBaseVersion(key);
-        recompute(key, view, null, eventRef);
-    }
-
-    public void updateState(String tenantId, String agentId,
-                            PersonalityStateSnapshot snapshot, String eventRef) {
-        var key = new TenantAgentKey(tenantId, agentId);
-        recompute(key, null, snapshot, eventRef);
+        recompute(key, view, eventRef);
     }
 
     public Set<String> agentIds(String tenantId) {
@@ -90,7 +81,7 @@ public class EffectiveCognitiveDefaults {
     public void onExplicitReload() {
         for (var key : slots.keySet()) {
             incrementBaseVersion(key);
-            recompute(key, null, null, "reload");
+            recompute(key, null, "reload");
         }
     }
 
@@ -119,19 +110,19 @@ public class EffectiveCognitiveDefaults {
         var stateSnap = stateSource.find(key.tenantId, key.agentId, Instant.now()).orElse(null);
         long bv = currentBaseVersion(key);
         long sv = stateSnap != null ? stateSnap.stateVersion() : 0;
+        long cv = currentCompositionVersion(key);
 
-        var candidate = deriveSlot(key, baseView, stateSnap, bv, sv);
+        var candidate = deriveSlot(key, baseView, stateSnap, bv, sv, cv);
         return slots.compute(key, (k, existing) -> {
             if (existing == null) return candidate;
             if (candidate.baseVersion > existing.baseVersion) return candidate;
             if (candidate.baseVersion == existing.baseVersion
-                    && candidate.stateVersion > existing.stateVersion) return candidate;
+                    && candidate.compositionVersion > existing.compositionVersion) return candidate;
             return existing;
         });
     }
 
-    private void recompute(TenantAgentKey key, DescriptorView newBase,
-                           PersonalityStateSnapshot newState, String eventRef) {
+    private void recompute(TenantAgentKey key, DescriptorView newBase, String eventRef) {
         var existing = slots.get(key);
         var baseView = newBase;
         if (baseView == null && existing != null) {
@@ -141,34 +132,29 @@ public class EffectiveCognitiveDefaults {
             baseView = viewSource.find(key.tenantId, key.agentId).orElse(null);
         }
 
-        PersonalityStateSnapshot stateSnap = newState;
-        if (stateSnap == null && existing != null) {
-            stateSnap = existing.stateSnapshot;
-        }
-        if (stateSnap == null) {
-            stateSnap = stateSource.find(key.tenantId, key.agentId, Instant.now()).orElse(null);
-        }
+        var stateSnap = stateSource.find(key.tenantId, key.agentId, Instant.now()).orElse(null);
 
         long bv = currentBaseVersion(key);
         long sv = stateSnap != null ? stateSnap.stateVersion() : 0;
+        long cv = currentCompositionVersion(key);
 
-        var candidate = deriveSlot(key, baseView, stateSnap, bv, sv);
+        var candidate = deriveSlot(key, baseView, stateSnap, bv, sv, cv);
         slots.compute(key, (k, prev) -> {
             if (prev == null) return candidate;
             if (candidate.baseVersion > prev.baseVersion) return candidate;
             if (candidate.baseVersion == prev.baseVersion
-                    && candidate.stateVersion > prev.stateVersion) return candidate;
+                    && candidate.compositionVersion > prev.compositionVersion) return candidate;
             return prev;
         });
     }
 
     private Slot deriveSlot(TenantAgentKey key, DescriptorView baseView,
-                            PersonalityStateSnapshot state, long bv, long sv) {
+                            PersonalityStateSnapshot state, long bv, long sv, long cv) {
         var explicit = explicitLayer.forAgent(key.agentId).orElse(null);
 
         DescriptorView restingView = baseView;
         if (baseView != null && state != null && !state.facets().isEmpty()) {
-            restingView = composeFacets(baseView, state, false);
+            restingView = LivedComposition.compose(baseView, state, false);
         }
         CognitiveDefaults restingDefaults = restingView != null
                 ? merge(explicit, CognitiveDerivationEngine.derive(restingView))
@@ -176,7 +162,7 @@ public class EffectiveCognitiveDefaults {
 
         DescriptorView effectiveView = baseView;
         if (baseView != null && state != null && !state.facets().isEmpty()) {
-            effectiveView = composeFacets(baseView, state, true);
+            effectiveView = LivedComposition.compose(baseView, state, true);
         }
         CognitiveDefaults effectiveDefaults = effectiveView != null
                 ? merge(explicit, CognitiveDerivationEngine.derive(effectiveView))
@@ -184,28 +170,7 @@ public class EffectiveCognitiveDefaults {
 
         return new Slot(baseView, state,
                 LearningProfile.from(restingDefaults),
-                effectiveDefaults, bv, sv, Instant.now());
-    }
-
-    private DescriptorView composeFacets(DescriptorView base,
-                                          PersonalityStateSnapshot state,
-                                          boolean includeDisplacement) {
-        var composed = new ArrayList<PersonalityFacet>();
-        for (var facet : base.personalityFacets()) {
-            double delta = state.homeOffset(facet.facet());
-            if (includeDisplacement) {
-                delta += state.displacement(facet.facet());
-            }
-            if (Math.abs(delta) < 1e-9) {
-                composed.add(facet);
-            } else {
-                double newScore = Math.max(0.0, Math.min(1.0, facet.score() + delta));
-                String origin = Math.abs(newScore - facet.score()) >= EPSILON_PUBLISH
-                        ? "situational" : facet.origin();
-                composed.add(new PersonalityFacet(facet.facet(), newScore, origin));
-            }
-        }
-        return base.withFacets(composed);
+                effectiveDefaults, bv, sv, cv, Instant.now());
     }
 
     public static CognitiveDefaults merge(CognitiveDefaults explicit, CognitiveDefaults derived) {
@@ -244,6 +209,10 @@ public class EffectiveCognitiveDefaults {
         return v != null ? v.get() : 0;
     }
 
+    private long currentCompositionVersion(TenantAgentKey key) {
+        return stateSource.compositionVersion(key.tenantId(), key.agentId());
+    }
+
     private void incrementBaseVersion(TenantAgentKey key) {
         baseVersions.computeIfAbsent(key, k -> new AtomicLong()).incrementAndGet();
     }
@@ -257,23 +226,25 @@ public class EffectiveCognitiveDefaults {
         final CognitiveDefaults effective;
         final long baseVersion;
         final long stateVersion;
+        final long compositionVersion;
         volatile Instant lastAccess;
 
         Slot(DescriptorView baseView, PersonalityStateSnapshot stateSnapshot,
              LearningProfile resting, CognitiveDefaults effective,
-             long baseVersion, long stateVersion, Instant lastAccess) {
+             long baseVersion, long stateVersion, long compositionVersion, Instant lastAccess) {
             this.baseView = baseView;
             this.stateSnapshot = stateSnapshot;
             this.resting = resting;
             this.effective = effective;
             this.baseVersion = baseVersion;
             this.stateVersion = stateVersion;
+            this.compositionVersion = compositionVersion;
             this.lastAccess = lastAccess;
         }
 
-        boolean isStale(long currentBaseVersion) {
+        boolean isStale(long currentBaseVersion, long currentCompositionVersion) {
             lastAccess = Instant.now();
-            return baseVersion < currentBaseVersion;
+            return baseVersion < currentBaseVersion || compositionVersion < currentCompositionVersion;
         }
     }
 }

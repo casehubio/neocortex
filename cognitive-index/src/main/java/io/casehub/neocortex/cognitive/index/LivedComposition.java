@@ -9,6 +9,8 @@ import java.util.HexFormat;
 import java.util.List;
 
 public final class LivedComposition {
+    private static final double EPSILON_PUBLISH = 0.005;
+
     private LivedComposition() {}
 
     public static String fingerprint(List<WeightedTerm> authoredProfile) {
@@ -54,7 +56,9 @@ public final class LivedComposition {
             double effective = includeDisplacement
                     ? clamp01(facet.score() + fd.promoted() + fd.homeOffset() + fd.displacement())
                     : resting;
-            composedFacets.add(new PersonalityFacet(facet.facet(), effective, facet.origin()));
+            String origin = Math.abs(effective - facet.score()) >= EPSILON_PUBLISH
+                    ? "situational" : facet.origin();
+            composedFacets.add(new PersonalityFacet(facet.facet(), effective, origin));
         }
 
         var result = new DescriptorView(authored.agentId(), authored.disposition(),

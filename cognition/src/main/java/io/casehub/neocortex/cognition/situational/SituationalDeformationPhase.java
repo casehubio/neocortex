@@ -58,12 +58,6 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
             int hoursAdvanced = (int) Duration.between(before, after).toHours();
             int facetsWithDrift = countFacetsWithDrift(state);
 
-            if (facetsWithDrift > 0) {
-                var snapshot = toSnapshot(state);
-                effectiveDefaults.updateState(tenantId, agentId, snapshot,
-                        "consolidation-deformation");
-            }
-
             stateService.persist(tenantId, agentId, state);
 
             journal.record(new CognitiveEntry.SituationalDeformationConsolidated(

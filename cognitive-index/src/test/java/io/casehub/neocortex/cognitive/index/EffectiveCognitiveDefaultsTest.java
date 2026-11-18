@@ -57,7 +57,7 @@ class EffectiveCognitiveDefaultsTest {
     }
 
     @Test
-    void secondDerivationWithChangedFacetsChangesDefaults() {
+    void compositionVersionChangeCausesReDerivation() {
         var facets = List.of(
                 new PersonalityFacet("Anxiousness", 0.5, "eidos"),
                 new PersonalityFacet("Emotional Lability", 0.5, "eidos"));
@@ -72,7 +72,8 @@ class EffectiveCognitiveDefaultsTest {
         var shifted = new PersonalityStateSnapshot(
                 Map.of("Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.0, 0.3)),
                 1);
-        effective.updateState("tenant-1", "agent-1", shifted, "tick-2");
+        stateSource.set("tenant-1", "agent-1", shifted);
+        stateSource.setCompositionVersion("tenant-1", "agent-1", 1);
 
         var after = effective.forAgent("tenant-1", "agent-1");
         assertThat(after.appraisalWeights()).isNotEqualTo(beforeAppraisal);
@@ -108,35 +109,22 @@ class EffectiveCognitiveDefaultsTest {
     }
 
     @Test
-    void concurrentUpdateStateNoLostUpdate() throws Exception {
+    void pullContractReflectsStateWithoutPublish() {
         var view = new DescriptorView("agent-1", null, List.of(), List.of(), null,
                 List.of(new PersonalityFacet("Anxiousness", 0.5, "eidos")));
         viewSource.add("t1", view);
         effective.forAgent("t1", "agent-1");
 
-        int threads = 8;
-        var latch = new CountDownLatch(1);
-        var executor = Executors.newFixedThreadPool(threads);
-        var futures = new ArrayList<Future<?>>();
-
-        for (int i = 0; i < threads; i++) {
-            int version = i + 1;
-            futures.add(executor.submit(() -> {
-                try { latch.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-                effective.updateState("t1", "agent-1",
-                        new PersonalityStateSnapshot(
-                                Map.of("Anxiousness",
-                                        new PersonalityStateSnapshot.FacetDisplacement(0.01 * version, 0.0)),
-                                version),
-                        "tick-" + version);
-            }));
-        }
-        latch.countDown();
-        for (var f : futures) f.get(5, TimeUnit.SECONDS);
-        executor.shutdown();
+        stateSource.set("t1", "agent-1", new PersonalityStateSnapshot(
+                Map.of("Anxiousness", new PersonalityStateSnapshot.FacetDisplacement(0.08, 0.0)),
+                1));
+        stateSource.setCompositionVersion("t1", "agent-1", 1);
 
         var defaults = effective.forAgent("t1", "agent-1");
         assertThat(defaults).isNotNull();
+        var anxFacet = defaults.descriptor().personalityFacets().stream()
+                .filter(f -> f.facet().equals("Anxiousness")).findFirst().orElseThrow();
+        assertThat(anxFacet.score()).isCloseTo(0.58, org.assertj.core.data.Offset.offset(0.001));
     }
 
     @Test
@@ -237,14 +225,24 @@ class EffectiveCognitiveDefaultsTest {
 
     static class StubPersonalityStateSource implements PersonalityStateSource {
         private final Map<String, PersonalityStateSnapshot> states = new HashMap<>();
+        private final Map<String, Long> compositionVersions = new HashMap<>();
 
         void set(String tenantId, String agentId, PersonalityStateSnapshot snap) {
             states.put(tenantId + ":" + agentId, snap);
         }
 
+        void setCompositionVersion(String tenantId, String agentId, long cv) {
+            compositionVersions.put(tenantId + ":" + agentId, cv);
+        }
+
         @Override
         public Optional<PersonalityStateSnapshot> find(String tenantId, String agentId, Instant now) {
             return Optional.ofNullable(states.get(tenantId + ":" + agentId));
+        }
+
+        @Override
+        public long compositionVersion(String tenantId, String agentId) {
+            return compositionVersions.getOrDefault(tenantId + ":" + agentId, 0L);
         }
     }
 }

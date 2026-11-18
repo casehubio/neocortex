@@ -86,12 +86,6 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
             state = integrator.pull(state, compositeDelta, maxIntensity, evidenceSustained, now);
         }
 
-        var snapshot = toSnapshot(state);
-        boolean dirty = isDirty(snapshot);
-        if (dirty) {
-            effectiveDefaults.updateState(tenantId, agentId, snapshot, eventRefString(context));
-        }
-
         stateService.persist(tenantId, agentId, state);
 
         journal.record(new CognitiveEntry.SituationalModulation(
@@ -103,7 +97,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
                 winnerName(detection, SituationalMode.Group.AFFECTIVE),
                 winnerName(detection, SituationalMode.Group.SOCIAL),
                 compositeDelta,
-                dirty ? countPublishedFacets(snapshot) : 0,
+                0,
                 provenance));
     }
 
