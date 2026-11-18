@@ -5,8 +5,11 @@ import io.casehub.eidos.api.DispositionValue;
 import io.casehub.neocortex.memory.relationship.QualitySignal;
 
 import java.util.Comparator;
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.List;
 
+@ApplicationScoped
 public class InteractionPressureSource implements TraitPressureSource<InteractionAppraised> {
 
     @Override

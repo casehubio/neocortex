@@ -6,8 +6,11 @@ import io.casehub.neocortex.memory.relationship.QualitySignal;
 import io.casehub.neocortex.memory.relationship.RelationshipEvent;
 
 import java.util.Comparator;
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.List;
 
+@ApplicationScoped
 public class RelationshipPressureSource implements TraitPressureSource<RelationshipEvent> {
 
     @Override

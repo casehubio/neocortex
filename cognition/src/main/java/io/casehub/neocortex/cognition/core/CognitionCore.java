@@ -141,6 +141,7 @@ private volatile           io.casehub.neocortex.cognition.tom.@org.jspecify.anno
     private volatile           io.casehub.neocortex.cognitive.observability.@org.jspecify.annotations.Nullable PipelineSnapshotStore               pipelineSnapshotStore;
 private final              java.util.concurrent.atomic.AtomicInteger                                                                           tickCounter = new java.util.concurrent.atomic.AtomicInteger();
 private volatile           io.casehub.neocortex.cognition.journal.CognitiveJournal                                                             cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
+private volatile           io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder             dispositionSignalRecorder;
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -497,6 +498,14 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
                                               null, null, null);
                 safeRun(() -> engagementPersister.accept(engagementEvent));
             }
+        }
+        if (dispositionSignalRecorder != null) {
+            var quality = (impact != null && impact.userModelSignal() != null)
+                          ? impact.userModelSignal().quality()
+                          : deriveQualitySignal(agentId, tenantId, userMessage).quality();
+            var appraised = new io.casehub.neocortex.cognition.personality.InteractionAppraised(
+                    tenantId, agentId, subjectId, quality, Instant.now());
+            safeRun(() -> dispositionSignalRecorder.onInteractionAppraised(appraised));
         }
     }
 
@@ -1119,6 +1128,11 @@ public @Nullable String lastTargetAgentId() {
     public void configureCognitiveJournal(io.casehub.neocortex.cognition.journal.CognitiveJournal journal) {
         this.cognitiveJournal = journal;
     }
+
+    public void setDispositionSignalRecorder(io.casehub.neocortex.cognition.personality.DispositionSignalRecorder recorder) {
+        this.dispositionSignalRecorder = recorder;
+    }
+
 
     public io.casehub.neocortex.cognition.journal.CognitiveJournal cognitiveJournal() {
         return cognitiveJournal;

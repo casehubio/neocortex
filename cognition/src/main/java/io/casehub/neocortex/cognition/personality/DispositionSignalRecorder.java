@@ -3,6 +3,10 @@ package io.casehub.neocortex.cognition.personality;
 import io.casehub.eidos.api.AgentRegistry;
 import io.casehub.neocortex.cognition.situational.PersonalityStateService;
 import io.casehub.neocortex.memory.relationship.RelationshipRecorded;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,26 +15,35 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@ApplicationScoped
 public class DispositionSignalRecorder {
 
     private static final Logger LOG = Logger.getLogger(DispositionSignalRecorder.class.getName());
 
     private final Map<Class<?>, TraitPressureSource<?>> sources;
-    private final PersonalityStateService stateService;
-    private final AgentRegistry agentRegistry;
-    private final DispositionSignalWriter signalWriter;
+    private final PersonalityStateService               stateService;
+    private final AgentRegistry                         agentRegistry;
+    private final DispositionSignalWriter               signalWriter;
 
-    public DispositionSignalRecorder(List<TraitPressureSource<?>> sources,
+    @Inject
+    public DispositionSignalRecorder(Instance<TraitPressureSource<?>> sources,
                                      PersonalityStateService stateService,
                                      AgentRegistry agentRegistry,
                                      DispositionSignalWriter signalWriter) {
-        this.sources = buildSourceMap(sources);
-        this.stateService = stateService;
-        this.agentRegistry = agentRegistry;
-        this.signalWriter = signalWriter;
+        this(sources.stream().toList(), stateService, agentRegistry, signalWriter);
     }
 
-    public void onRelationshipRecorded(RelationshipRecorded event) {
+    DispositionSignalRecorder(List<TraitPressureSource<?>> sources,
+                              PersonalityStateService stateService,
+                              AgentRegistry agentRegistry,
+                              DispositionSignalWriter signalWriter) {
+        this.sources       = buildSourceMap(sources);
+        this.stateService  = stateService;
+        this.agentRegistry = agentRegistry;
+        this.signalWriter  = signalWriter;
+    }
+
+    public void onRelationshipRecorded(@Observes RelationshipRecorded event) {
         record(event.event(), event.event().tenantId(), event.event().agentId());
     }
 
@@ -42,11 +55,11 @@ public class DispositionSignalRecorder {
     private <E> void record(E ev, String tenantId, String agentId) {
         try {
             var source = (TraitPressureSource<E>) sources.get(ev.getClass());
-            if (source == null || !source.relevant(ev)) return;
+            if (source == null || !source.relevant(ev)) {return;}
 
-            var now = java.time.Instant.now();
+            var now   = java.time.Instant.now();
             var state = stateService.read(tenantId, agentId, now);
-            if (state.reflection() != null && state.reflection().disabled()) return;
+            if (state.reflection() != null && state.reflection().disabled()) {return;}
 
             var authoredOpt = agentRegistry.findById(agentId, tenantId);
             if (authoredOpt.isEmpty()) {
@@ -55,14 +68,14 @@ public class DispositionSignalRecorder {
             }
             var authored = authoredOpt.get();
 
-            var profile = authored.disposition().dispositionProfile();
+            var profile      = authored.disposition().dispositionProfile();
             var profileTerms = new java.util.HashSet<String>();
             if (profile != null) {
-                for (var dv : profile) profileTerms.add(dv.term());
+                for (var dv : profile) {profileTerms.add(dv.term());}
             }
 
             var activations = source.translate(ev, authored);
-            var terms = new ArrayList<String>();
+            var terms       = new ArrayList<String>();
             for (var a : activations) {
                 if (profileTerms.contains(a.functionTerm())) {
                     terms.add(a.functionTerm());

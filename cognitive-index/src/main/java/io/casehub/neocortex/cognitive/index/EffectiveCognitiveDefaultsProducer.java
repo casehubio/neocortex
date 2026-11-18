@@ -5,7 +5,6 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +16,7 @@ import java.util.Optional;
  * Both collaborating SPIs are optional: when no {@link DescriptorViewSource} bean is present
  * (for example {@code cognitive-eidos} is not on the classpath) descriptors come from the
  * explicit profiles in {@link CognitiveDefaultsRegistry}; when no {@link PersonalityStateSource}
- * bean is present {@link DefaultPersonalityStateSource} is used.
+ * bean is present a no-op source returning {@code Optional.empty()} is used.
  */
 @ApplicationScoped
 public class EffectiveCognitiveDefaultsProducer {
@@ -32,13 +31,15 @@ public class EffectiveCognitiveDefaultsProducer {
                 stateSource.isResolvable() ? stateSource.get() : null);
     }
 
-    /** Framework-neutral factory; {@code viewSource} and {@code stateSource} may be {@code null}. */
+    /**
+     * Framework-neutral factory; {@code viewSource} and {@code stateSource} may be {@code null}.
+     */
     public static EffectiveCognitiveDefaults create(CognitiveDefaultsRegistry registry,
                                                     DescriptorViewSource viewSource,
                                                     PersonalityStateSource stateSource) {
         return new EffectiveCognitiveDefaults(registry,
-                viewSource != null ? viewSource : registryBacked(registry),
-                stateSource != null ? stateSource : new DefaultPersonalityStateSource());
+                                              viewSource != null ? viewSource : registryBacked(registry),
+                                              stateSource != null ? stateSource : (t, a, now) -> Optional.empty());
     }
 
     private static DescriptorViewSource registryBacked(CognitiveDefaultsRegistry registry) {

@@ -78,6 +78,7 @@ public final class CognitivePipelineBuilder {
     private           java.util.function.@Nullable BiFunction<String, String, io.casehub.neocortex.entity.token.EntityIdentity> entityIdentityLookup;
     private           boolean                                                                                                   entityRenderingConfigured;
     private           io.casehub.neocortex.cognition.journal.@org.jspecify.annotations.Nullable CognitiveJournal                    cognitiveJournal;
+    private           io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder       dispositionSignalRecorder;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -237,6 +238,11 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder dispositionSignalRecorder(io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder dispositionSignalRecorder) {
+        this.dispositionSignalRecorder = dispositionSignalRecorder;
+        return this;
+    }
+
 
     public CognitionCore build() {
         var core = new CognitionCore(
@@ -284,6 +290,9 @@ public final class CognitivePipelineBuilder {
         }
         if (cognitiveJournal != null) {
             core.configureCognitiveJournal(cognitiveJournal);
+        }
+        if (dispositionSignalRecorder != null) {
+            core.setDispositionSignalRecorder(dispositionSignalRecorder);
         }
 
         return core;

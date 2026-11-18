@@ -91,6 +91,31 @@ public class CognitionDefaultBeans {
         return new DirectIsolatedTransactions();
     }
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.personality.DispositionSignalWriter dispositionSignalWriter(
+            io.casehub.eidos.api.DispositionSignalStore signalStore,
+            IsolatedTransactions tx) {
+        return new io.casehub.neocortex.cognition.personality.DispositionSignalWriter(signalStore, tx);
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.situational.PersonalityStateService personalityStateService(
+            io.casehub.neocortex.mindmap.MindMapStore mindMapStore,
+            @org.eclipse.microprofile.config.inject.ConfigProperty(
+                    name = "casehub.cognition.pid5-facets",
+                    defaultValue = "Anxiousness,Emotional Lability,Withdrawal,Impulsivity,Risk Taking,Suspiciousness,Intimacy Avoidance,Callousness,Manipulativeness,Grandiosity,Deceitfulness,Attention Seeking,Hostility")
+            String pid5Facets) {
+        var facets = java.util.Arrays.stream(pid5Facets.split(","))
+                                     .map(String::trim)
+                                     .filter(s -> !s.isEmpty())
+                                     .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        return new io.casehub.neocortex.cognition.situational.PersonalityStateService(mindMapStore, facets);
+    }
+
 
     @Produces @DefaultBean @Singleton
     InnerLifeConfig innerLifeConfig() {
