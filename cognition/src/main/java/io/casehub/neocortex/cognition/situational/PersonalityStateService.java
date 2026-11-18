@@ -170,9 +170,9 @@ public class PersonalityStateService implements PersonalityStateSource {
         for (var entry : state.facets().entrySet()) {
             var fs = entry.getValue();
             facets.put(entry.getKey(),
-                    new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement()));
+                    new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement(), fs.promoted()));
         }
-        return new PersonalityStateSnapshot(facets, state.version());
+        return new PersonalityStateSnapshot(facets, state.version(), 0);
     }
 
     public Set<String> cachedAgentIds(String tenantId) {
@@ -271,6 +271,12 @@ public class PersonalityStateService implements PersonalityStateSource {
             if (fs.promoted() != 0.0) {
                 props.put(prefix + "promoted", String.valueOf(fs.promoted()));
             }
+            if (fs.saturatedSince() != null) {
+                props.put(prefix + "saturatedSince", fs.saturatedSince().toString());
+            }
+            if (fs.cappedSince() != null) {
+                props.put(prefix + "cappedSince", fs.cappedSince().toString());
+            }
         }
         for (var mode : SituationalMode.values()) {
             props.put("intensity." + mode.name(), String.valueOf(state.intensity(mode)));
@@ -283,6 +289,9 @@ public class PersonalityStateService implements PersonalityStateSource {
         props.put("hourCursor", state.hourCursor().toString());
         props.put("exposedUntil", state.exposedUntil().toString());
         props.put("version", String.valueOf(state.version()));
+        if (state.reflection() != null) {
+            props.putAll(state.reflection().toProperties());
+        }
         return Map.copyOf(props);
     }
 
@@ -300,7 +309,9 @@ public class PersonalityStateService implements PersonalityStateSource {
                     Double.parseDouble(props.get(prefix + "resilience")),
                     Double.parseDouble(props.get(prefix + "exposure")),
                     Double.parseDouble(props.get(prefix + "load")),
-                    parseDouble(props.get(prefix + "promoted"), 0.0)));
+                    parseDouble(props.get(prefix + "promoted"), 0.0),
+                    parseInstant(props.get(prefix + "saturatedSince"), null),
+                    parseInstant(props.get(prefix + "cappedSince"), null)));
         }
         var intensities = new EnumMap<SituationalMode, Double>(SituationalMode.class);
         var engaged = new EnumMap<SituationalMode, Boolean>(SituationalMode.class);
@@ -320,7 +331,9 @@ public class PersonalityStateService implements PersonalityStateSource {
         var hourCursor = parseInstant(props.get("hourCursor"), PersonalityState.truncateToHour(fallbackNow));
         var exposedUntil = parseInstant(props.get("exposedUntil"), Instant.EPOCH);
         var version = parseLong(props.get("version"), 0L);
-        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, version);
+        ReflectionLedger reflection = props.containsKey("jpaf.lastReflectionAt")
+                ? ReflectionLedger.fromProperties(props, fallbackNow) : null;
+        return new PersonalityState(facets, intensities, engaged, winners, cursorTime, hourCursor, exposedUntil, version, reflection);
     }
 
     private static double parseDouble(String v, double fallback) {

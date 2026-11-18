@@ -19,16 +19,25 @@ import java.util.Map;
 
 public record PersonalityStateSnapshot(
         Map<String, FacetDisplacement> facets,
-        long stateVersion
+        long stateVersion,
+        long compositionVersion
 ) {
-    public record FacetDisplacement(double homeOffset, double displacement) {}
+    public record FacetDisplacement(double homeOffset, double displacement, double promoted) {
+        public FacetDisplacement(double homeOffset, double displacement) {
+            this(homeOffset, displacement, 0.0);
+        }
+    }
+
+    public PersonalityStateSnapshot(Map<String, FacetDisplacement> facets, long stateVersion) {
+        this(facets, stateVersion, 0L);
+    }
 
     public PersonalityStateSnapshot {
         facets = facets != null ? Map.copyOf(facets) : Map.of();
     }
 
     public static PersonalityStateSnapshot empty() {
-        return new PersonalityStateSnapshot(Map.of(), 0);
+        return new PersonalityStateSnapshot(Map.of(), 0, 0);
     }
 
     public double homeOffset(String facet) {
@@ -39,5 +48,10 @@ public record PersonalityStateSnapshot(
     public double displacement(String facet) {
         var fd = facets.get(facet);
         return fd != null ? fd.displacement() : 0.0;
+    }
+
+    public double promoted(String facet) {
+        var fd = facets.get(facet);
+        return fd != null ? fd.promoted() : 0.0;
     }
 }
