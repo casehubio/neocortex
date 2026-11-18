@@ -13,6 +13,11 @@ import io.casehub.neocortex.cognition.goal.CognitiveGoalConfig;
 import io.casehub.neocortex.cognition.goal.GoalEscalationConfig;
 import io.casehub.neocortex.cognition.goal.GoalProposalConfig;
 import io.casehub.neocortex.cognition.innerlife.InnerLifeConfig;
+import io.casehub.neocortex.cognition.memory.ConfidenceScorer;
+import io.casehub.neocortex.cognition.memory.ConsolidationSummariser;
+import io.casehub.neocortex.cognition.memory.IntegrityChecker;
+import io.casehub.neocortex.cognition.memory.RetentionConfig;
+import io.casehub.neocortex.cognition.memory.SemanticIntegrityChecker;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelConfig;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
 import io.casehub.neocortex.cognition.mood.MoodConfig;
@@ -23,6 +28,7 @@ import io.casehub.neocortex.cognition.strategy.StrategyLearningConfig;
 import io.casehub.neocortex.cognition.usermodel.UserModelConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
+import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.platform.agent.session.SessionPipeline;
 import io.quarkus.arc.DefaultBean;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -299,4 +305,47 @@ public class CognitionDefaultBeans {
         return io.casehub.neocortex.cognitive.RecurringThoughtConfig.defaults();
     }
 
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    RetentionConfig retentionConfig() {
+        return RetentionConfig.DEFAULT;
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    ConsolidationSummariser consolidationSummariser() {
+        return new io.casehub.neocortex.cognition.memory.NoOpConsolidationSummariser();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    SemanticIntegrityChecker semanticIntegrityChecker() {
+        return new io.casehub.neocortex.cognition.memory.NoOpSemanticIntegrityChecker();
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    ConfidenceScorer confidenceScorer() {
+        return new io.casehub.neocortex.cognition.memory.CompositeConfidenceScorer(java.util.List.of(
+                new io.casehub.neocortex.cognition.memory.WeightedScorer(
+                        new io.casehub.neocortex.cognition.memory.ArousalScorer(), 1.0),
+                new io.casehub.neocortex.cognition.memory.WeightedScorer(
+                        new io.casehub.neocortex.cognition.memory.SurpriseScorer(), 0.5)));
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    IntegrityChecker integrityChecker(
+            Instance<CbrRecordStore> cbrStore,
+            SemanticIntegrityChecker semanticChecker) {
+        if (!cbrStore.isResolvable()) {return (agentId, tenantId, domain) -> java.util.List.of();}
+        return new io.casehub.neocortex.cognition.memory.DefaultIntegrityChecker(
+                cbrStore.get(), semanticChecker, java.util.List.of());
+    }
 }

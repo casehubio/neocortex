@@ -47,8 +47,7 @@ public class DefaultIntegrityChecker implements IntegrityChecker {
                 try {
                     var target = store.getSupersessionStatus(
                             status.supersedingCaseId(), tenantId);
-                    if (target == SupersessionStatus.NOT_SUPERSEDED
-                            && status.supersedingCaseId() != null) {
+                    if (target == SupersessionStatus.NOT_SUPERSEDED) {
                         violations.add(new IntegrityViolation(
                                 status.caseId(),
                                 ViolationType.ORPHANED_SUPERSESSION,
