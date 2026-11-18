@@ -69,7 +69,7 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
-public class CognitionCore implements io.casehub.neocortex.cognition.trace.CognitionStateProvider {
+public class CognitionCore implements io.casehub.neocortex.cognition.prompt.CognitiveLifecycle, io.casehub.neocortex.cognition.trace.CognitionStateProvider {
 
     private static final System.Logger LOG =
             System.getLogger(CognitionCore.class.getName());
@@ -236,6 +236,12 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
                      SubjectResolver resolver,
                      @Nullable String observation,
                      @Nullable String targetAgentId) {tick(agentId, tenantId, descriptor, resolver, observation, targetAgentId, null);}
+
+
+    @Override
+    public void tick(String agentId, String tenantId, java.util.Set<String> activeSubjects) {
+        tick(agentId, tenantId, lastDescriptor, (aid, tid) -> activeSubjects);
+    }
 
     public void tick(String agentId, String tenantId,
                      @Nullable AgentDescriptor descriptor,
@@ -419,6 +425,13 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
         }
     }
 
+
+    @Override
+    public void recordInteraction(String agentId, String tenantId,
+                                  @Nullable String subjectId,
+                                  String userMessage, String response) {
+        recordInteraction(agentId, tenantId, subjectId, userMessage, response, null);
+    }
 
     public void recordInteraction(String agentId, String tenantId,
                                   @Nullable String subjectId,
