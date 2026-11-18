@@ -20,7 +20,8 @@ import java.util.Map;
 public record PersonalityStateSnapshot(
         Map<String, FacetDisplacement> facets,
         long stateVersion,
-        long compositionVersion
+        long compositionVersion,
+        LivedProfile livedProfile
 ) {
     public record FacetDisplacement(double homeOffset, double displacement, double promoted) {
         public FacetDisplacement(double homeOffset, double displacement) {
@@ -29,7 +30,11 @@ public record PersonalityStateSnapshot(
     }
 
     public PersonalityStateSnapshot(Map<String, FacetDisplacement> facets, long stateVersion) {
-        this(facets, stateVersion, 0L);
+        this(facets, stateVersion, 0L, null);
+    }
+
+    public PersonalityStateSnapshot(Map<String, FacetDisplacement> facets, long stateVersion, long compositionVersion) {
+        this(facets, stateVersion, compositionVersion, null);
     }
 
     public PersonalityStateSnapshot {
@@ -37,7 +42,7 @@ public record PersonalityStateSnapshot(
     }
 
     public static PersonalityStateSnapshot empty() {
-        return new PersonalityStateSnapshot(Map.of(), 0, 0);
+        return new PersonalityStateSnapshot(Map.of(), 0, 0, null);
     }
 
     public double homeOffset(String facet) {
