@@ -350,12 +350,27 @@ public class DispositionEvolutionPhase implements ConsolidationPhase {
         var pending = new ReflectionLedger.PendingEvolution(
                 intentId, evolved.previousLabel(), evolved.newLabel(),
                 null, now, interval);
+
+        // Reversal detection: A→B→A pattern
+        var r = s.reflection();
+        boolean isReversal = r.lastTransitionFromLabel() != null
+                             && r.lastTransitionFromLabel().equals(evolved.newLabel());
+        int newStreak = isReversal ? r.reversalStreak() + 1 : 0;
+
         stateService.transition(tenantId, agentId, now,
-                                st -> st.withReflection(st.reflection().withPendingEvolution(pending).withReauthor(null))
+                                st -> st.withReflection(st.reflection()
+                                                          .withPendingEvolution(pending)
+                                                          .withReauthor(null)
+                                                          .withReversalStreak(newStreak))
                                         .withLivedProfile(livedProfile));
         signalWriter.clear(tenantId, agentId);
         stateService.transition(tenantId, agentId, now,
                                 st -> st.withReflection(st.reflection().closeEpoch()));
+
+        if (newStreak >= 2) {
+            journal.record(new CognitiveEntry.DispositionReversal(tenantId, agentId,
+                                                                  EventRef.consolidation(EventRef.tick(0)), now, newStreak));
+        }
 
         pendingSignals.add(new AttentionSignal(agentId, tenantId, SignalCategory.PERSONALITY_EVOLVED,
                                                null, "disposition-evolution", 0.8,

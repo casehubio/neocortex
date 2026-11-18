@@ -3,22 +3,18 @@ package io.casehub.neocortex.cognition.personality;
 import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.eidos.api.AgentDisposition;
 import io.casehub.eidos.api.AgentRegistry;
-import io.casehub.eidos.api.CapabilityHealth;
 import io.casehub.eidos.api.DispositionEvolution;
 import io.casehub.eidos.api.DispositionHealth;
 import io.casehub.eidos.api.DispositionHealth.DispositionStatus;
+import io.casehub.eidos.api.DispositionSignalStore;
 import io.casehub.eidos.api.DispositionValue;
 import io.casehub.eidos.api.EvolutionType;
-import io.casehub.eidos.api.DispositionSignalStore;
-import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.LivedComposition;
-import io.casehub.neocortex.cognitive.index.WeightedTerm;
 import io.casehub.neocortex.cognition.journal.CognitiveEntry;
 import io.casehub.neocortex.cognition.journal.CognitiveJournal;
-import io.casehub.neocortex.cognition.situational.PersonalityState;
 import io.casehub.neocortex.cognition.situational.PersonalityStateService;
 import io.casehub.neocortex.cognition.situational.ReflectionLedger;
+import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.cbr.CbrRecordStore;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -249,4 +245,95 @@ class DispositionEvolutionPhaseTest {
         assertThat(state.reflection().pendingEvolution()).isNull();
         assertThat(state.reflection().lastTransitionAt()).isNotNull();
     }
+
+    @Test
+    void reversalDetection_streakIncrementsAndJournalsAtThreshold() {
+        seedState(Duration.ofHours(25));
+
+        // Simulate a prior A→B transition by seeding lastTransitionFromLabel="TI-NE"
+        // (meaning the previous transition was FROM "TI-NE" TO something else)
+        stateService.transition(TENANT, AGENT, NOW,
+                                st -> st.withReflection(st.reflection().withLastTransitionFromLabel("TI-NE")));
+
+        // Now evolve back TO "TI-NE" — this is a reversal (B→A where A="TI-NE")
+        var newProfile = List.of(
+                new DispositionValue("Ti", 0.35), new DispositionValue("Ne", 0.20));
+        EvolutionType swapType = () -> "DOMINANT_AUXILIARY_SWAP";
+        when(health.probe(any(), any()))
+                .thenReturn(new DispositionStatus.EvolutionPending(
+                        swapType, "Ti", Map.of("Ti", 0.36, "Ne", 0.30)));
+        when(evolution.evaluate(any(), any()))
+                .thenReturn(new DispositionEvolution.EvolutionResult.Evolved(
+                        newProfile, "NE-TI", "TI-NE"));
+
+        phase.run(TENANT, List.of());
+
+        // First reversal — streak=1, no journal entry yet
+        var state = stateService.read(TENANT, AGENT, NOW);
+        assertThat(state.reflection().reversalStreak()).isEqualTo(1);
+        assertThat(journalEntries.stream()
+                                 .filter(e -> e instanceof CognitiveEntry.DispositionReversal)
+                                 .count()).isZero();
+
+        // Now seed for second reversal: evolve away and back again
+        // After closeEpoch, lastTransitionFromLabel = "NE-TI" (previous transition's previousLabel)
+        assertThat(state.reflection().lastTransitionFromLabel()).isEqualTo("NE-TI");
+
+        // Advance ledger so the wall-clock gate passes
+        var t2 = NOW.plus(Duration.ofDays(31));
+        var phase2 = new DispositionEvolutionPhase(
+                health, evolution, agentRegistry, cbrStore,
+                effectiveDefaults, stateService, signalWriter,
+                DispositionEvolutionConfig.defaults(),
+                Clock.fixed(t2, ZoneOffset.UTC));
+        phase2.setCognitiveJournal(journal);
+        journalEntries.clear();
+
+        // Evolve back to "NE-TI" — second reversal
+        var reverseProfile = List.of(
+                new DispositionValue("Ne", 0.35), new DispositionValue("Ti", 0.20));
+        when(evolution.evaluate(any(), any()))
+                .thenReturn(new DispositionEvolution.EvolutionResult.Evolved(
+                        reverseProfile, "TI-NE", "NE-TI"));
+
+        phase2.run(TENANT, List.of());
+
+        var state2 = stateService.read(TENANT, AGENT, t2);
+        assertThat(state2.reflection().reversalStreak()).isEqualTo(2);
+        var reversalJournal = journalEntries.stream()
+                                            .filter(e -> e instanceof CognitiveEntry.DispositionReversal)
+                                            .map(e -> (CognitiveEntry.DispositionReversal) e)
+                                            .findFirst();
+        assertThat(reversalJournal).isPresent();
+        assertThat(reversalJournal.get().streak()).isEqualTo(2);
+    }
+
+    @Test
+    void nonReversal_resetsStreak() {
+        seedState(Duration.ofHours(25));
+
+        // Seed a prior reversal streak and lastTransitionFromLabel
+        stateService.transition(TENANT, AGENT, NOW,
+                                st -> st.withReflection(st.reflection()
+                                                          .withLastTransitionFromLabel("TI-NE")
+                                                          .withReversalStreak(1)));
+
+        // Evolve to "NE-FI" — NOT a reversal (new label != "TI-NE")
+        var newProfile = List.of(
+                new DispositionValue("Ne", 0.35), new DispositionValue("Fi", 0.20));
+        EvolutionType swapType = () -> "DOMINANT_AUXILIARY_SWAP";
+        when(health.probe(any(), any()))
+                .thenReturn(new DispositionStatus.EvolutionPending(
+                        swapType, "Ne", Map.of("Ne", 0.36, "Fi", 0.30)));
+        when(evolution.evaluate(any(), any()))
+                .thenReturn(new DispositionEvolution.EvolutionResult.Evolved(
+                        newProfile, "TI-NE", "NE-FI"));
+
+        phase.run(TENANT, List.of());
+
+        var state = stateService.read(TENANT, AGENT, NOW);
+        assertThat(state.reflection().reversalStreak()).isZero();
+    }
+
+
 }
