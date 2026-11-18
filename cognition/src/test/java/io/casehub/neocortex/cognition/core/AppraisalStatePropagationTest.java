@@ -187,7 +187,7 @@ class AppraisalStatePropagationTest {
         assertThat(driveSection).as("DrivePromptSection should be present").isNotNull();
         assertThat(driveSection)
                 .as("High-novelty HOPE should override curiosity trigger text")
-                .contains("elevated by emotional response");
+                .contains("elevated by HOPE");
         assertThat(driveSection)
                 .as("Original 'no knowledge gaps' trigger should be replaced")
                 .doesNotContain("no knowledge gaps");
