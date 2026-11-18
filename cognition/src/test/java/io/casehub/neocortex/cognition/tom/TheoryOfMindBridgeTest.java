@@ -4,6 +4,7 @@ import io.casehub.neocortex.cognition.appraisal.ActionReadiness;
 import io.casehub.neocortex.cognition.appraisal.ActionTendency;
 import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.HabituationState;
+import io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -126,6 +127,53 @@ class TheoryOfMindBridgeTest {
                      () -> new io.casehub.neocortex.cognition.mentalmodel.TheoryOfMindPosterior(0.5, 0.5, 0.5));
     }
 
+    @Test
+    void anxiousAgentInfersMoreDistressFromSameAppraisal() {
+        var anxiousMod = new TomPersonalityModulation(0.9, 0.0);
+        var calmMod = new TomPersonalityModulation(0.1, 0.0);
+
+        var appraisal = appraisalWith(
+                Map.of("conduciveness", -0.3, "controllability", 0.5),
+                List.of(new ActionTendency(ActionReadiness.ATTENDING, 0.5, "")));
+
+        var anxiousPosterior = bridge.infer(appraisal, anxiousMod);
+        var calmPosterior = bridge.infer(appraisal, calmMod);
+
+        assertTrue(anxiousPosterior.distressed() > calmPosterior.distressed(),
+            "anxious agent should infer more distress: anxious=" +
+            anxiousPosterior.distressed() + " calm=" + calmPosterior.distressed());
+    }
+
+    @Test
+    void callousAgentInfersLessDistressFromAvoidantBehavior() {
+        var callousMod = new TomPersonalityModulation(0.5, 0.9);
+        var empathicMod = new TomPersonalityModulation(0.5, 0.0);
+
+        var appraisal = appraisalWith(
+                Map.of("conduciveness", -0.5, "controllability", 0.3),
+                List.of(new ActionTendency(ActionReadiness.AVOIDANCE, 0.8, "")));
+
+        var callousPosterior = bridge.infer(appraisal, callousMod);
+        var empathicPosterior = bridge.infer(appraisal, empathicMod);
+
+        assertTrue(callousPosterior.distressed() < empathicPosterior.distressed(),
+            "callous agent should infer less distress: callous=" +
+            callousPosterior.distressed() + " empathic=" + empathicPosterior.distressed());
+    }
+
+    @Test
+    void neutralModulationMatchesUnmodulatedInference() {
+        var appraisal = appraisalWith(
+                Map.of("conduciveness", -0.5, "controllability", 0.3),
+                List.of(new ActionTendency(ActionReadiness.AVOIDANCE, 0.7, "")));
+
+        var withDefault = bridge.infer(appraisal, TomPersonalityModulation.NEUTRAL);
+        var withoutMod = bridge.infer(appraisal);
+
+        assertEquals(withoutMod.positive(), withDefault.positive(), 0.001);
+        assertEquals(withoutMod.neutral(), withDefault.neutral(), 0.001);
+        assertEquals(withoutMod.distressed(), withDefault.distressed(), 0.001);
+    }
 
     private static AppraisalResult appraisalWith(Map<String, Double> secDimensions,
                                                   List<ActionTendency> tendencies) {

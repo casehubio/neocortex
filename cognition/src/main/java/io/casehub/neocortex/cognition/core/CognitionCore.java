@@ -354,7 +354,8 @@ private volatile           io.casehub.neocortex.cognition.journal.CognitiveJourn
             if (theoryOfMindBridge != null && mentalModel != null && appraisalParticipant != null) {
                 appraisalParticipant.currentResult(agentId, tenantId).ifPresent(appraisalResult ->
                         safeRun(() -> {
-                            var posterior = theoryOfMindBridge.infer(appraisalResult);
+                            var mod = tomModulation(agentId, tenantId);
+                            var posterior = theoryOfMindBridge.infer(appraisalResult, mod);
                             mentalModel.recordTomPosterior(agentId, subjectId, tenantId, posterior);
                             cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.TheoryOfMindInferred(
                                     tenantId, agentId, tickEventRef, java.time.Instant.now(), subjectId,
@@ -1137,6 +1138,28 @@ public @Nullable String lastTargetAgentId() {
 
     public void configureTheoryOfMind() {
         this.theoryOfMindBridge = new io.casehub.neocortex.cognition.tom.TheoryOfMindBridge();
+    }
+
+    private io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation tomModulation(String agentId, String tenantId) {
+        if (effectiveDefaults == null) {
+            return io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
+        }
+        var defaults = effectiveDefaults.forAgentOrDefaults(tenantId, agentId);
+        var profile = defaults.personalityProfile();
+        if (profile == null || profile.facets().isEmpty()) {
+            return io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
+        }
+        double anxiousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.ANXIOUSNESS);
+        double callousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.CALLOUSNESS);
+        return new io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation(anxiousness, callousness);
+    }
+
+    private static double tomFacetScore(java.util.List<io.casehub.neocortex.cognitive.index.PersonalityFacet> facets, String name) {
+        return facets.stream()
+            .filter(f -> name.equals(f.facet()))
+            .findFirst()
+            .map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score)
+            .orElse(0.5);
     }
 
 

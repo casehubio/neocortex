@@ -6,6 +6,7 @@ import io.casehub.neocortex.cognition.appraisal.AppraisalResult;
 import io.casehub.neocortex.cognition.appraisal.SecDimensions;
 import io.casehub.neocortex.cognition.mentalmodel.TheoryOfMindPosterior;
 import io.casehub.neocortex.mindmap.intelligence.tom.TheoryOfMindEngine;
+import io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.Set;
  * Bayesian Theory-of-Mind engine, returning an emotional-state
  * posterior for a subject.
  *
- * <p>Mapping grounded in Scherer's SEC model:
+ * <p>Mapping grounded in Scherer\u2019s SEC model:
  * <ul>
  *   <li>Threat level: derived from goal-incongruence (inverse of
  *       conduciveness) combined with low coping power (controllability).
@@ -38,12 +39,16 @@ public class TheoryOfMindBridge {
 
     public TheoryOfMindBridge() {}
 
-    public TheoryOfMindPosterior infer(AppraisalResult appraisal) {
-        var engine = new TheoryOfMindEngine();
+    public TheoryOfMindPosterior infer(AppraisalResult appraisal, TomPersonalityModulation modulation) {
+        var engine = new TheoryOfMindEngine(modulation);
         engine.observeThreat(threatDistribution(appraisal.secDimensions()));
         engine.observeBehavior(behaviorDistribution(appraisal.actionTendencies()));
         double[] posterior = engine.inferEmotionalState();
         return new TheoryOfMindPosterior(posterior[0], posterior[1], posterior[2]);
+    }
+
+    public TheoryOfMindPosterior infer(AppraisalResult appraisal) {
+        return infer(appraisal, TomPersonalityModulation.NEUTRAL);
     }
 
     static double[] threatDistribution(Map<String, Double> secDimensions) {
