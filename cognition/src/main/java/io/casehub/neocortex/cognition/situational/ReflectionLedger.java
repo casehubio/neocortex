@@ -2,9 +2,9 @@ package io.casehub.neocortex.cognition.situational;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
 
 public record ReflectionLedger(
         Instant lastReflectionAt,
@@ -87,6 +87,13 @@ public record ReflectionLedger(
                 disabled, decayedThrough, reauthor, epochFingerprint, label,
                 reversalStreak, auditOutbox, inert);
     }
+
+    public ReflectionLedger withAuditOutbox(List<AuditEntry> outbox) {
+        return new ReflectionLedger(lastReflectionAt, lastTransitionAt, pendingEvolution,
+                                    disabled, decayedThrough, reauthor, epochFingerprint, lastTransitionFromLabel,
+                                    reversalStreak, outbox, inert);
+    }
+
 
     public ReflectionLedger closeEpoch() {
         if (pendingEvolution == null) return this;

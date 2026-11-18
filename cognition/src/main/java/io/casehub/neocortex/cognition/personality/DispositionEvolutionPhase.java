@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,6 +140,7 @@ public class DispositionEvolutionPhase implements ConsolidationPhase {
         // R. Recovery
         s = handleRecovery(tenantId, agentId, now, s);
         r = s.reflection();
+        flushAuditOutbox(tenantId, agentId, now);
 
         // G. Wall-clock gate
         if (now.isBefore(r.lastReflectionAt())) {
@@ -266,6 +268,7 @@ public class DispositionEvolutionPhase implements ConsolidationPhase {
                                                                                     EventRef.consolidation(EventRef.tick(0)), now, true, rc));
         }
         recordOutcome(tenantId, agentId, now, outcome);
+        flushAuditOutbox(tenantId, agentId, now);
     }
 
     private PersonalityState handleRecovery(String tenantId, String agentId, Instant now, PersonalityState s) {
@@ -347,9 +350,16 @@ public class DispositionEvolutionPhase implements ConsolidationPhase {
                                 .toList();
         var livedProfile = new LivedProfile(livedTerms, LivedComposition.fingerprint(authoredTerms));
         var intentId     = UUID.randomUUID().toString();
+
+        var caseFeatures = Map.of(
+                "previousLabel", evolved.previousLabel(),
+                "newLabel", evolved.newLabel(),
+                "triggerType", evolved.triggerType(),
+                "descriptorFingerprint", LivedComposition.fingerprint(authoredTerms));
+
         var pending = new ReflectionLedger.PendingEvolution(
                 intentId, evolved.previousLabel(), evolved.newLabel(),
-                null, now, interval);
+                caseFeatures, now, interval);
 
         // Reversal detection: A→B→A pattern
         var r = s.reflection();
@@ -376,6 +386,59 @@ public class DispositionEvolutionPhase implements ConsolidationPhase {
                                                null, "disposition-evolution", 0.8,
                                                "Disposition evolved: " + evolved.previousLabel() + " → " + evolved.newLabel()));
     }
+
+    private void flushAuditOutbox(String tenantId, String agentId, Instant now) {
+        var state = stateService.read(tenantId, agentId, now);
+        var r     = state.reflection();
+        if (r == null || r.auditOutbox().isEmpty()) {return;}
+
+        var     remaining = new java.util.ArrayList<ReflectionLedger.AuditEntry>();
+        boolean changed   = false;
+        for (var entry : r.auditOutbox()) {
+            if (entry.attempts() >= config.maxAuditAttempts()) {
+                journal.record(new CognitiveEntry.DispositionTransitionAuditFailed(tenantId, agentId,
+                                                                                   EventRef.consolidation(EventRef.tick(0)), now, entry.intentId(), entry.attempts()));
+                changed = true;
+                continue;
+            }
+            if (entry.nextAttemptAt().isAfter(now)) {
+                remaining.add(entry);
+                continue;
+            }
+            try {
+                if (cbrStore != null) {
+                    var features = new java.util.LinkedHashMap<String, io.casehub.neocortex.memory.cbr.FeatureValue>();
+                    if (entry.caseFeatures() != null) {
+                        for (var kv : entry.caseFeatures().entrySet()) {
+                            features.put(kv.getKey(), io.casehub.neocortex.memory.cbr.FeatureValue.string(kv.getValue()));
+                        }
+                    }
+                    var record = new io.casehub.neocortex.memory.cbr.CbrFeatureRecord(
+                            "disposition-transition:" + entry.intentId(),
+                            "transition-recorded",
+                            null,
+                            new io.casehub.neocortex.cognitive.Confidence(
+                                    io.casehub.neocortex.cognitive.ConfidenceOrigin.STATED, 1.0, null),
+                            features, null, agentId);
+                    cbrStore.store(record, "disposition-transition", agentId,
+                                   new io.casehub.neocortex.memory.MemoryDomain("disposition-transition"),
+                                   tenantId, entry.intentId(), io.casehub.platform.api.path.Path.root());
+                }
+                changed = true;
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING, "Audit outbox flush failed for " + entry.intentId(), e);
+                var nextAttempt = now.plus(config.reflectionPeriod().multipliedBy(entry.attempts() + 1));
+                remaining.add(new ReflectionLedger.AuditEntry(
+                        entry.intentId(), entry.caseFeatures(), entry.attempts() + 1, nextAttempt));
+                changed = true;
+            }
+        }
+        if (!changed) {return;}
+        var finalRemaining = List.copyOf(remaining);
+        stateService.transition(tenantId, agentId, now,
+                                st -> st.withReflection(st.reflection().withAuditOutbox(finalRemaining)));
+    }
+
 
     private void advanceLedger(String tenantId, String agentId, Instant now, long n) {
         var period = config.reflectionPeriod();

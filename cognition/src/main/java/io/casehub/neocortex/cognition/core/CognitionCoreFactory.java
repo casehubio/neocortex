@@ -78,6 +78,8 @@ public class CognitionCoreFactory {
     Instance<io.casehub.neocortex.entity.token.cdi.EntityIdentityCache>     entityIdentityCache;
     @Inject
     Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal>       cognitiveJournal;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.personality.DispositionSignalRecorder> dispositionSignalRecorder;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -140,6 +142,9 @@ public class CognitionCoreFactory {
         }
         if (cognitiveJournal.isResolvable()) {
             builder.cognitiveJournal(cognitiveJournal.get());
+        }
+        if (dispositionSignalRecorder.isResolvable()) {
+            builder.dispositionSignalRecorder(dispositionSignalRecorder.get());
         }
 
         return builder.build();

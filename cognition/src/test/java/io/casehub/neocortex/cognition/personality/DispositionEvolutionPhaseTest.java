@@ -335,5 +335,61 @@ class DispositionEvolutionPhaseTest {
         assertThat(state.reflection().reversalStreak()).isZero();
     }
 
+    @Test
+    void evolvedPath_populatesOutboxAndFlushes() {
+        seedState(Duration.ofHours(25));
+        var newProfile = List.of(
+                new DispositionValue("Ne", 0.35), new DispositionValue("Ti", 0.20));
+        EvolutionType swapType = () -> "DOMINANT_AUXILIARY_SWAP";
+        when(health.probe(any(), any()))
+                .thenReturn(new DispositionStatus.EvolutionPending(
+                        swapType, "Ne", Map.of("Ne", 0.36, "Ti", 0.30)));
+        when(evolution.evaluate(any(), any()))
+                .thenReturn(new DispositionEvolution.EvolutionResult.Evolved(
+                        newProfile, "TI-NE", "NE-TI"));
+
+        phase.run(TENANT, List.of());
+
+        // After evolution + closeEpoch + flushAuditOutbox, the outbox should be drained
+        var state = stateService.read(TENANT, AGENT, NOW);
+        // CbrStore is a mock — store() succeeds by default, so the entry is drained
+        assertThat(state.reflection().auditOutbox()).isEmpty();
+        // The entry went through closeEpoch (lastTransitionAt set)
+        assertThat(state.reflection().lastTransitionAt()).isNotNull();
+    }
+
+    @Test
+    void auditOutbox_givesUpAfterMaxAttempts() {
+        seedState(Duration.ofHours(25));
+
+        // Seed an outbox entry that has already exceeded max attempts
+        var exhausted = new ReflectionLedger.AuditEntry("old-intent", Map.of("k", "v"), 5, Instant.EPOCH);
+        stateService.transition(TENANT, AGENT, NOW,
+                                st -> st.withReflection(new ReflectionLedger(
+                                        st.reflection().lastReflectionAt(), st.reflection().lastTransitionAt(),
+                                        st.reflection().pendingEvolution(), st.reflection().disabled(),
+                                        st.reflection().decayedThrough(), st.reflection().reauthor(),
+                                        st.reflection().epochFingerprint(), st.reflection().lastTransitionFromLabel(),
+                                        st.reflection().reversalStreak(), List.of(exhausted), st.reflection().inert())));
+
+        when(health.probe(any(), any()))
+                .thenReturn(new DispositionStatus.Aligned(Map.of()));
+
+        phase.run(TENANT, List.of());
+
+        // Outbox should be empty — exhausted entry removed
+        var state = stateService.read(TENANT, AGENT, NOW);
+        assertThat(state.reflection().auditOutbox()).isEmpty();
+
+        // Should have journaled the failure
+        var auditFailed = journalEntries.stream()
+                                        .filter(e -> e instanceof CognitiveEntry.DispositionTransitionAuditFailed)
+                                        .map(e -> (CognitiveEntry.DispositionTransitionAuditFailed) e)
+                                        .findFirst();
+        assertThat(auditFailed).isPresent();
+        assertThat(auditFailed.get().intentId()).isEqualTo("old-intent");
+        assertThat(auditFailed.get().attempts()).isEqualTo(5);
+    }
+
 
 }

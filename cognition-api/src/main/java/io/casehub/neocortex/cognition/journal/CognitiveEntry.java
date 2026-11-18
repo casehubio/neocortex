@@ -151,5 +151,9 @@ public sealed interface CognitiveEntry {
     record DispositionReversal(String tenantId, String agentId, EventRef eventRef, Instant timestamp,
                                int streak) implements CognitiveEntry {}
 
+    record DispositionTransitionAuditFailed(String tenantId, String agentId, EventRef eventRef,
+                                            Instant timestamp, String intentId,
+                                            int attempts) implements CognitiveEntry {}
+
 
 }
