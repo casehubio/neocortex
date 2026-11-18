@@ -100,7 +100,7 @@ public class TheoryOfMindBridge {
     }
 
     // Fenigstein & Vanable 1992; Combs et al. 2007 — attributional bias in suspicious individuals
-    static double[] scaleBehaviorEvidence(double[] behavior, double suspiciousness) {
+    public static double[] scaleBehaviorEvidence(double[] behavior, double suspiciousness) {
         double approach = behavior[0];
         double neutral  = behavior[1];
         double avoidant = behavior[2];

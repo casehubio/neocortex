@@ -1167,7 +1167,7 @@ public @Nullable String lastTargetAgentId() {
         this.theoryOfMindBridge = new io.casehub.neocortex.cognition.tom.TheoryOfMindBridge();
     }
 
-    private io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation tomModulation(String agentId, String tenantId) {
+    public io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation tomModulation(String agentId, String tenantId) {
         if (effectiveDefaults == null) {
             return io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
         }

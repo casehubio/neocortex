@@ -61,6 +61,8 @@ public class CognitionObservationBuilder {
     private boolean lastClassifierActive = true;
     private final Map<String, TheoryOfMindEngine> tomEngines = new HashMap<>();
     private final RegulationTracker regulationTracker = new RegulationTracker();
+    private       io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation cachedModulation;
+
 
     public CognitionObservationBuilder(
             String agentId,
@@ -82,11 +84,30 @@ public class CognitionObservationBuilder {
     // --- Theory of Mind ---
 
     public void observeCharacterState(String characterId, BehaviorType behavior, ThreatLevel threat) {
-        var engine = tomEngines.computeIfAbsent(characterId, k -> new TheoryOfMindEngine());
-        engine.observeBehavior(behavior);
+        var mod = resolveModulation();
+        var engine = tomEngines.computeIfAbsent(characterId,
+                                                k -> new TheoryOfMindEngine(mod));
         engine.observeThreat(threat);
+        double[] behaviorEvidence = new double[3];
+        behaviorEvidence[behavior.ordinal()] = 1.0;
+        if (mod.suspiciousness() > 0.0) {
+            behaviorEvidence = io.casehub.neocortex.cognition.tom.TheoryOfMindBridge
+                                       .scaleBehaviorEvidence(behaviorEvidence, mod.suspiciousness());
+        }
+        engine.observeBehavior(behaviorEvidence);
         regulationTracker.recordPosterior(characterId, engine.inferEmotionalState());
     }
+
+    private io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation resolveModulation() {
+        if (cachedModulation != null) {
+            return cachedModulation;
+        }
+        cachedModulation = cognitionCore != null
+                           ? cognitionCore.tomModulation(agentId, tenantId)
+                           : io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
+        return cachedModulation;
+    }
+
 
     public List<ObservationSection> renderTheoryOfMind(Collection<String> nearbyAgentIds,
                                                         Map<String, String> agentNames) {
