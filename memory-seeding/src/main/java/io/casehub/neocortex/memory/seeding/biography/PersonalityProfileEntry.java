@@ -14,11 +14,13 @@ public record PersonalityProfileEntry(
     List<ArchetypeSelection> archetypes,
     Disposition disposition,
     Reconciliation reconciliation,
-    List<String> inconsistencies
+    List<String> inconsistencies,
+    @JsonProperty("situational_profiles") List<SituationalProfileEntry> situationalProfiles
 ) {
     public PersonalityProfileEntry {
         archetypes = archetypes != null ? List.copyOf(archetypes) : List.of();
         inconsistencies = inconsistencies != null ? List.copyOf(inconsistencies) : List.of();
+        situationalProfiles = situationalProfiles != null ? List.copyOf(situationalProfiles) : List.of();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -144,4 +146,16 @@ public record PersonalityProfileEntry(
         @JsonProperty("evidence_for_published") String evidenceForPublished,
         String resolution
     ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record SituationalProfileEntry(
+            String mode,
+            @JsonProperty("facet_deltas") Map<String, Integer> facetDeltas,
+            String evidence
+    ) {
+        public SituationalProfileEntry {
+            facetDeltas = facetDeltas != null ? Map.copyOf(facetDeltas) : Map.of();
+        }
+    }
+
 }

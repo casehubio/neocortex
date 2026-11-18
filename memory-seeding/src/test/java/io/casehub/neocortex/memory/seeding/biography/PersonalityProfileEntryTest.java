@@ -137,4 +137,51 @@ class PersonalityProfileEntryTest {
         assertThat(entry.archetypes()).isEmpty();
         assertThat(entry.inconsistencies()).isEmpty();
     }
+
+    @Test
+    void deserializesSituationalProfiles() throws Exception {
+        String json = """
+                      {
+                          "id": "pp-6",
+                          "entity_ref": "Frida Kahlo",
+                          "situational_profiles": [
+                              {
+                                  "mode": "stress",
+                                  "facet_deltas": {"anxiousness": 15, "emotional-lability": 12, "hostility": 8},
+                                  "evidence": "During spinal surgery recovery..."
+                              },
+                              {
+                                  "mode": "flow",
+                                  "facet_deltas": {"emotional-lability": -10, "withdrawal": -15},
+                                  "evidence": "While painting in bed..."
+                              }
+                          ]
+                      }
+                      """;
+        var entry = MAPPER.readValue(json, PersonalityProfileEntry.class);
+        assertThat(entry.situationalProfiles()).hasSize(2);
+        assertThat(entry.situationalProfiles().getFirst().mode()).isEqualTo("stress");
+        assertThat(entry.situationalProfiles().getFirst().facetDeltas())
+                .containsEntry("anxiousness", 15)
+                .containsEntry("emotional-lability", 12)
+                .containsEntry("hostility", 8);
+        assertThat(entry.situationalProfiles().getFirst().evidence()).startsWith("During");
+        assertThat(entry.situationalProfiles().get(1).mode()).isEqualTo("flow");
+        assertThat(entry.situationalProfiles().get(1).facetDeltas())
+                .containsEntry("emotional-lability", -10)
+                .containsEntry("withdrawal", -15);
+    }
+
+    @Test
+    void situationalProfilesDefaultsToEmptyList() throws Exception {
+        String json = """
+                      {
+                          "id": "pp-7",
+                          "entity_ref": "Test Subject"
+                      }
+                      """;
+        var entry = MAPPER.readValue(json, PersonalityProfileEntry.class);
+        assertThat(entry.situationalProfiles()).isEmpty();
+    }
+
 }

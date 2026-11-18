@@ -34,6 +34,7 @@ public class PersonalityProfileHandler implements BiographyHandler {
             writeFrameworks(entry.frameworks(), props);
             writeArchetypes(entry.archetypes(), props);
             writeDisposition(entry.disposition(), props);
+            writeSituationalProfiles(entry.situationalProfiles(), props);
 
             if (!props.isEmpty()) {
                 store.updateNode(nodeId, NodeUpdate.empty().withPropertiesToSet(props), tenantId);
@@ -138,6 +139,21 @@ public class PersonalityProfileHandler implements BiographyHandler {
             props.put(key, axis.term());
         }
     }
+
+    private void writeSituationalProfiles(java.util.List<PersonalityProfileEntry.SituationalProfileEntry> profiles,
+                                          HashMap<String, String> props) {
+        if (profiles == null || profiles.isEmpty()) {return;}
+
+        for (var profile : profiles) {
+            if (profile.mode() == null) {continue;}
+            String prefix = "situational-" + profile.mode();
+            for (var delta : profile.facetDeltas().entrySet()) {
+                props.put(prefix + "-" + delta.getKey(), String.valueOf(delta.getValue()));
+            }
+            props.put(prefix + "-provenance", "biographical");
+        }
+    }
+
 
     private void putIfNonNull(HashMap<String, String> props, String key, Number value) {
         if (value != null) props.put(key, String.valueOf(value));

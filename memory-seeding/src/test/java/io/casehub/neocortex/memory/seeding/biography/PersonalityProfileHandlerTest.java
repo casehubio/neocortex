@@ -120,6 +120,64 @@ class PersonalityProfileHandlerTest {
         // no exception — silently skips
     }
 
+    @Test
+    void writesSituationalProfileProperties() {
+        var store = new InMemoryMindMapStore();
+        var sgId  = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Frida Kahlo", sgId).withProvenance("test"), TENANT);
+
+        var handler = new PersonalityProfileHandler(store, true);
+        handler.handle(buildProfileWithSituational(), AGENT, TENANT);
+
+        var node = store.resolveNode("Frida Kahlo", sgId, TENANT);
+        assertThat(node.properties()).containsEntry("situational-stress-anxiousness", "15");
+        assertThat(node.properties()).containsEntry("situational-stress-emotional-lability", "12");
+        assertThat(node.properties()).containsEntry("situational-stress-hostility", "8");
+        assertThat(node.properties()).containsEntry("situational-flow-emotional-lability", "-10");
+        assertThat(node.properties()).containsEntry("situational-flow-withdrawal", "-15");
+        assertThat(node.properties()).containsEntry("situational-stress-provenance", "biographical");
+        assertThat(node.properties()).containsEntry("situational-flow-provenance", "biographical");
+    }
+
+    @Test
+    void skipsEmptySituationalProfiles() {
+        var store = new InMemoryMindMapStore();
+        var sgId  = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Frida Kahlo", sgId).withProvenance("test"), TENANT);
+
+        var handler = new PersonalityProfileHandler(store, true);
+        handler.handle(buildProfile(), AGENT, TENANT);
+
+        var node = store.resolveNode("Frida Kahlo", sgId, TENANT);
+        assertThat(node.properties().keySet().stream().filter(k -> k.startsWith("situational-")).toList()).isEmpty();
+    }
+
+    private BiographyProfile buildProfileWithSituational() {
+        var existing = buildProfile().personalityProfiles().getFirst();
+
+        var situational = List.of(
+                new PersonalityProfileEntry.SituationalProfileEntry(
+                        "stress", Map.of("anxiousness", 15, "emotional-lability", 12, "hostility", 8),
+                        "During spinal surgery recovery..."
+                ),
+                new PersonalityProfileEntry.SituationalProfileEntry(
+                        "flow", Map.of("emotional-lability", -10, "withdrawal", -15),
+                        "While painting in bed..."
+                )
+                                 );
+
+        var entry = new PersonalityProfileEntry("pp-1", "Frida Kahlo",
+                                                existing.frameworks(), existing.archetypes(), existing.disposition(),
+                                                null, List.of(), situational);
+
+        return new BiographyProfile(AGENT, TENANT,
+                                    List.of(), List.of(), List.of(), List.of(),
+                                    List.of(), List.of(), List.of(), List.of(),
+                                    List.of(), List.of(), List.of(), List.of(),
+                                    List.of(entry), List.of());
+    }
+
+
     private BiographyProfile buildProfile() {
         var mbti = new PersonalityProfileEntry.MbtiAssessment("infp", "Fi dominant", 0.8, "extracted");
         var ocean = new PersonalityProfileEntry.OceanAssessment(0.85, 0.35, 0.55, 0.40, 0.75, "evidence", 0.8, "extracted");
@@ -151,7 +209,7 @@ class PersonalityProfileHandlerTest {
             new PersonalityProfileEntry.DispositionAxis(0.8, "competing", "confrontational")
         );
 
-        var entry = new PersonalityProfileEntry("pp-1", "Frida Kahlo", frameworks, archetypes, disposition, null, List.of());
+        var entry = new PersonalityProfileEntry("pp-1", "Frida Kahlo", frameworks, archetypes, disposition, null, List.of(), List.of());
 
         return new BiographyProfile(AGENT, TENANT,
             List.of(), List.of(), List.of(), List.of(),
