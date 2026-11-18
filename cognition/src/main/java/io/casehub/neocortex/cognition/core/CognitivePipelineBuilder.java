@@ -78,6 +78,8 @@ public final class CognitivePipelineBuilder {
     private           java.util.function.@Nullable BiFunction<String, String, io.casehub.neocortex.entity.token.EntityIdentity> entityIdentityLookup;
     private           boolean                                                                                                   entityRenderingConfigured;
     private           io.casehub.neocortex.cognition.journal.@org.jspecify.annotations.Nullable CognitiveJournal                    cognitiveJournal;
+    private           CacheEvictionScheduler                                                                                        cacheEvictionScheduler;
+
     private           io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder       dispositionSignalRecorder;
 
 
@@ -238,6 +240,12 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder cacheEviction(CacheEvictionScheduler scheduler) {
+        this.cacheEvictionScheduler = scheduler;
+        return this;
+    }
+
+
     public CognitivePipelineBuilder dispositionSignalRecorder(io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder dispositionSignalRecorder) {
         this.dispositionSignalRecorder = dispositionSignalRecorder;
         return this;
@@ -293,6 +301,9 @@ public final class CognitivePipelineBuilder {
         }
         if (dispositionSignalRecorder != null) {
             core.setDispositionSignalRecorder(dispositionSignalRecorder);
+        }
+        if (cacheEvictionScheduler != null) {
+            core.configureCacheEviction(cacheEvictionScheduler);
         }
 
         return core;

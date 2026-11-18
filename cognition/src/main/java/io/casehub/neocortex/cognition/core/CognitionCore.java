@@ -142,6 +142,7 @@ private volatile           io.casehub.neocortex.cognition.tom.@org.jspecify.anno
 private final              java.util.concurrent.atomic.AtomicInteger                                                                           tickCounter = new java.util.concurrent.atomic.AtomicInteger();
 private volatile           io.casehub.neocortex.cognition.journal.CognitiveJournal                                                             cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
 private volatile           io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder             dispositionSignalRecorder;
+private volatile @org.jspecify.annotations.Nullable CacheEvictionScheduler                                                                     cacheEvictionScheduler;
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -424,6 +425,10 @@ private volatile           io.casehub.neocortex.cognition.personality.@org.jspec
         if (pipelineSnapshotStore != null) {
             currentTrace(agentId, tenantId).ifPresent(trace ->
                     pipelineSnapshotStore.store(tenantId, agentId, tickNumber, java.time.Instant.now(), trace));
+        }
+
+        if (cacheEvictionScheduler != null) {
+            cacheEvictionScheduler.onTick(tickNumber);
         }
     }
 
@@ -1149,6 +1154,14 @@ public @Nullable String lastTargetAgentId() {
     public void configurePipelineSnapshotStore(io.casehub.neocortex.cognitive.observability.PipelineSnapshotStore store) {
         this.pipelineSnapshotStore = store;
     }
+
+    public void configureCacheEviction(CacheEvictionScheduler scheduler) {
+        this.cacheEvictionScheduler = scheduler;
+        if (effectiveDefaults != null) {
+            scheduler.register(effectiveDefaults::evictIdle);
+        }
+    }
+
 
     public void configureTheoryOfMind() {
         this.theoryOfMindBridge = new io.casehub.neocortex.cognition.tom.TheoryOfMindBridge();
