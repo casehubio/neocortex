@@ -317,6 +317,9 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     ConsolidationSummariser consolidationSummariser() {
+        if (sessionPipelineInstance != null && sessionPipelineInstance.isResolvable()) {
+            return new io.casehub.neocortex.cognition.memory.LlmConsolidationSummariser(sessionPipelineInstance.get());
+        }
         return new io.casehub.neocortex.cognition.memory.NoOpConsolidationSummariser();
     }
 
