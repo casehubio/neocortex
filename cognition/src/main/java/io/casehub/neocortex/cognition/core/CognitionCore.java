@@ -1052,9 +1052,18 @@ public @Nullable String lastTargetAgentId() {
                     }
                 };
 
+        io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant.TrustAccessor trustAccessor = null;
+        if (mindMapStore != null) {
+            var resolver = new io.casehub.neocortex.cognition.relationship.RelationalSchemaResolver(mindMapStore);
+            trustAccessor = (observer, target, tenant) -> {
+                var schema = resolver.resolve(observer, target, tenant);
+                return schema != null ? schema.trust() : 0.0;
+            };
+        }
+
         this.situationalPersonalityParticipant = new io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant(
                 stateService, detector, integrator, sitConfig, effDefaults,
-                appraisalAccessor, moodAccessor, cognitiveJournal,
+                appraisalAccessor, moodAccessor, trustAccessor, cognitiveJournal,
                 java.time.Clock.systemUTC());
         addParticipant(CognitionPhase.TERMINAL, this.situationalPersonalityParticipant);
     }

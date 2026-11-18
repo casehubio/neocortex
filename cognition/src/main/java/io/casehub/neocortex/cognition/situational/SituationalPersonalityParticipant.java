@@ -24,6 +24,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
     private final MoodAccessor moodAccessor;
     private final CognitiveJournal journal;
     private final Clock clock;
+    private final @org.jspecify.annotations.Nullable TrustAccessor trustAccessor;
 
     private final java.util.concurrent.ConcurrentHashMap<String, DetectionResult> lastResults = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, java.time.Instant> lastResultAccess = new java.util.concurrent.ConcurrentHashMap<>();
@@ -38,6 +39,21 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
             MoodAccessor moodAccessor,
             CognitiveJournal journal,
             Clock clock) {
+        this(stateService, detector, integrator, config, effectiveDefaults,
+             appraisalAccessor, moodAccessor, null, journal, clock);
+    }
+
+    public SituationalPersonalityParticipant(
+            PersonalityStateService stateService,
+            SituationalDetector detector,
+            PersonalityStateIntegrator integrator,
+            SituationalPersonalityConfig config,
+            EffectiveCognitiveDefaults effectiveDefaults,
+            AppraisalAccessor appraisalAccessor,
+            MoodAccessor moodAccessor,
+            @org.jspecify.annotations.Nullable TrustAccessor trustAccessor,
+            CognitiveJournal journal,
+            Clock clock) {
         this.stateService = stateService;
         this.detector = detector;
         this.integrator = integrator;
@@ -45,6 +61,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         this.effectiveDefaults = effectiveDefaults;
         this.appraisalAccessor = appraisalAccessor;
         this.moodAccessor = moodAccessor;
+        this.trustAccessor = trustAccessor;
         this.journal = journal;
         this.clock = clock;
     }
@@ -159,7 +176,10 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
                 moodAccessor.arousal(agentId, tenantId),
                 moodAccessor.dominance(agentId, tenantId));
         if (context.targetAgentId() != null) {
-            builder.interlocutor(0.0);
+            double trust = trustAccessor != null
+                    ? trustAccessor.trust(agentId, context.targetAgentId(), tenantId)
+                    : 0.0;
+            builder.interlocutor(trust);
         }
         return builder.build();
     }
@@ -210,4 +230,9 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         double arousal(String agentId, String tenantId);
         double dominance(String agentId, String tenantId);
     }
+
+    public interface TrustAccessor {
+        double trust(String observerAgentId, String targetAgentId, String tenantId);
+    }
+
 }
