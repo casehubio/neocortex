@@ -406,4 +406,21 @@ public class CognitionDefaultBeans {
         return new io.casehub.neocortex.cognition.situational.PersonalityStateIntegrator(dynamicsConfig);
     }
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig situationalPersonalityConfig() {
+        return new io.casehub.neocortex.cognition.situational.SituationalPersonalityConfigLoader()
+                       .loadFromClasspath("situational-personality.yaml");
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.situational.SituationalDetector situationalDetector(
+            io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig config) {
+        return new io.casehub.neocortex.cognition.situational.SituationalDetector(config);
+    }
+
+
 }

@@ -81,6 +81,10 @@ public final class CognitivePipelineBuilder {
     private           CacheEvictionScheduler                                                                                        cacheEvictionScheduler;
 
     private           io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder       dispositionSignalRecorder;
+    private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable PersonalityStateService         situationalStateService;
+    private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalDetector             situationalDetector;
+    private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable PersonalityStateIntegrator      situationalIntegrator;
+    private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalPersonalityConfig    situationalPersonalityConfig;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -251,6 +255,18 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder situationalPersonality(
+            io.casehub.neocortex.cognition.situational.PersonalityStateService stateService,
+            io.casehub.neocortex.cognition.situational.SituationalDetector detector,
+            io.casehub.neocortex.cognition.situational.PersonalityStateIntegrator integrator,
+            io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig config) {
+        this.situationalStateService      = stateService;
+        this.situationalDetector          = detector;
+        this.situationalIntegrator        = integrator;
+        this.situationalPersonalityConfig = config;
+        return this;
+    }
+
 
     public CognitionCore build() {
         var core = new CognitionCore(
@@ -304,6 +320,13 @@ public final class CognitivePipelineBuilder {
         }
         if (cacheEvictionScheduler != null) {
             core.configureCacheEviction(cacheEvictionScheduler);
+        }
+        if (situationalStateService != null && situationalDetector != null
+                && situationalIntegrator != null && situationalPersonalityConfig != null
+                && effectiveDefaults != null) {
+            core.configureSituationalPersonality(
+                    situationalStateService, situationalDetector,
+                    situationalIntegrator, situationalPersonalityConfig, effectiveDefaults);
         }
 
         return core;

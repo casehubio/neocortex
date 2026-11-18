@@ -126,6 +126,7 @@ public class CognitionCore implements io.casehub.neocortex.cognition.prompt.Cogn
     private volatile @Nullable GutFeelingParticipant gutFeelingParticipant;
     private volatile io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant subThoughtParticipant;
     private volatile io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant regulationParticipant;
+    private volatile io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalPersonalityParticipant situationalPersonalityParticipant;
 
 
     private volatile @Nullable Consumer<MoodState> moodPersister;
@@ -1009,6 +1010,55 @@ public @Nullable String lastTargetAgentId() {
         this.gutFeelingParticipant = new GutFeelingParticipant(cognitiveMemoryRetriever, memoryStore, moodOrchestrator, config);
         addParticipant(CognitionPhase.DERIVED, this.gutFeelingParticipant);
     }
+
+    public void configureSituationalPersonality(
+            io.casehub.neocortex.cognition.situational.PersonalityStateService stateService,
+            io.casehub.neocortex.cognition.situational.SituationalDetector detector,
+            io.casehub.neocortex.cognition.situational.PersonalityStateIntegrator integrator,
+            io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig sitConfig,
+            io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effDefaults) {
+        if (!config.situationalPersonalityEnabled() || appraisalParticipant == null) {return;}
+
+        io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant.AppraisalAccessor appraisalAccessor =
+                new io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant.AppraisalAccessor() {
+                    @Override
+                    public java.util.Map<String, Double> currentInputActivations(String agentId, String tenantId) {
+                        return appraisalParticipant.currentInputActivations(agentId, tenantId);
+                    }
+
+                    @Override
+                    public java.util.Map<String, Double> currentSecDimensions(String agentId, String tenantId) {
+                        return appraisalParticipant.currentResult(agentId, tenantId)
+                                                   .map(io.casehub.neocortex.cognition.appraisal.AppraisalResult::secDimensions)
+                                                   .orElse(java.util.Map.of());
+                    }
+                };
+
+        io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant.MoodAccessor moodAccessor =
+                new io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant.MoodAccessor() {
+                    @Override
+                    public double pleasure(String agentId, String tenantId) {
+                        return mood != null ? mood.currentMood(agentId, tenantId).map(io.casehub.neocortex.memory.mood.MoodState::pleasure).orElse(0.0) : 0.0;
+                    }
+
+                    @Override
+                    public double arousal(String agentId, String tenantId) {
+                        return mood != null ? mood.currentMood(agentId, tenantId).map(io.casehub.neocortex.memory.mood.MoodState::arousal).orElse(0.0) : 0.0;
+                    }
+
+                    @Override
+                    public double dominance(String agentId, String tenantId) {
+                        return mood != null ? mood.currentMood(agentId, tenantId).map(io.casehub.neocortex.memory.mood.MoodState::dominance).orElse(0.0) : 0.0;
+                    }
+                };
+
+        this.situationalPersonalityParticipant = new io.casehub.neocortex.cognition.situational.SituationalPersonalityParticipant(
+                stateService, detector, integrator, sitConfig, effDefaults,
+                appraisalAccessor, moodAccessor, cognitiveJournal,
+                java.time.Clock.systemUTC());
+        addParticipant(CognitionPhase.TERMINAL, this.situationalPersonalityParticipant);
+    }
+
 
     /**
      * Activates the search budget cognitive exploration model.

@@ -80,6 +80,14 @@ public class CognitionCoreFactory {
     Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal>       cognitiveJournal;
     @Inject
     Instance<io.casehub.neocortex.cognition.personality.DispositionSignalRecorder> dispositionSignalRecorder;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.situational.PersonalityStateService>   situationalStateService;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.situational.SituationalDetector>       situationalDetector;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.situational.PersonalityStateIntegrator> situationalIntegrator;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig> situationalPersonalityConfig;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -145,6 +153,12 @@ public class CognitionCoreFactory {
         }
         if (dispositionSignalRecorder.isResolvable()) {
             builder.dispositionSignalRecorder(dispositionSignalRecorder.get());
+        }
+        if (situationalStateService.isResolvable() && situationalDetector.isResolvable()
+                && situationalIntegrator.isResolvable() && situationalPersonalityConfig.isResolvable()) {
+            builder.situationalPersonality(
+                    situationalStateService.get(), situationalDetector.get(),
+                    situationalIntegrator.get(), situationalPersonalityConfig.get());
         }
 
         return builder.build();
