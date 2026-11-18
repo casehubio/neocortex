@@ -326,7 +326,7 @@ class EmotionRegulationTickParticipantTest {
         var config = CognitionConfig.none().with("regulation", true)
                                     .with("appraisal", true).with("coping", true);
         var participant = new EmotionRegulationTickParticipant(
-                appraisalParticipant, config, null, null, null,
+                appraisalParticipant, config, mock(EmotionRegulationGenerationPhase.class), null, null,
                 null, null, null, null, null, copingMicroLoop, null,
                 driveOrchestrator, null);
         participant.tick(context);
@@ -365,7 +365,7 @@ class EmotionRegulationTickParticipantTest {
         var config = CognitionConfig.none().with("regulation", true)
                                     .with("appraisal", true).with("coping", true);
         var participant = new EmotionRegulationTickParticipant(
-                appraisalParticipant, config, null, null, null,
+                appraisalParticipant, config, mock(EmotionRegulationGenerationPhase.class), null, null,
                 null, null, null, null, null, copingMicroLoop, null,
                 driveOrchestrator, null);
         participant.tick(context);
@@ -405,7 +405,7 @@ class EmotionRegulationTickParticipantTest {
         var config = CognitionConfig.none().with("regulation", true)
                                     .with("appraisal", true).with("coping", true);
         var participant = new EmotionRegulationTickParticipant(
-                appraisalParticipant, config, null, null, null,
+                appraisalParticipant, config, mock(EmotionRegulationGenerationPhase.class), null, null,
                 null, null, null, null, null, copingMicroLoop, null,
                 null, attentionMediator);
         participant.tick(context);
