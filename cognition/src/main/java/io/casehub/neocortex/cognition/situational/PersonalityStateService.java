@@ -11,7 +11,6 @@ import io.casehub.neocortex.mindmap.SubgraphInput;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -94,20 +93,20 @@ public class PersonalityStateService implements PersonalityStateSource {
 
     @Override
     public Optional<PersonalityStateSnapshot> find(String tenantId, String agentId, Instant now) {
-        var key = new TenantAgentKey(tenantId, agentId);
+        var key    = new TenantAgentKey(tenantId, agentId);
         var cached = stateCache.get(key);
-        if (cached != null) return Optional.of(toSnapshot(cached));
+        if (cached != null) {return Optional.of(toSnapshot(cached, compositionVersionCache.getOrDefault(key, 0L)));}
         var lock = stripes[key.stripeIndex(STRIPE_COUNT)];
         lock.lock();
         try {
             var second = stateCache.get(key);
-            if (second != null) return Optional.of(toSnapshot(second));
+            if (second != null) {return Optional.of(toSnapshot(second, compositionVersionCache.getOrDefault(key, 0L)));}
             var sgId = resolveSubgraph(tenantId);
             var node = store.resolveNode(nodeName(agentId), sgId, tenantId);
-            if (node == null) return Optional.empty();
+            if (node == null) {return Optional.empty();}
             var state = fromProperties(node.properties(), now);
             stateCache.put(key, state);
-            return Optional.of(toSnapshot(state));
+            return Optional.of(toSnapshot(state, compositionVersionCache.getOrDefault(key, 0L)));
         } finally {
             lock.unlock();
         }
@@ -167,14 +166,14 @@ public class PersonalityStateService implements PersonalityStateSource {
         return stateCache.get(new TenantAgentKey(tenantId, agentId));
     }
 
-    public static PersonalityStateSnapshot toSnapshot(PersonalityState state) {
+    public static PersonalityStateSnapshot toSnapshot(PersonalityState state, long compositionVersion) {
         var facets = new LinkedHashMap<String, PersonalityStateSnapshot.FacetDisplacement>();
         for (var entry : state.facets().entrySet()) {
             var fs = entry.getValue();
             facets.put(entry.getKey(),
                        new PersonalityStateSnapshot.FacetDisplacement(fs.homeOffset(), fs.displacement(), fs.promoted()));
         }
-        return new PersonalityStateSnapshot(facets, state.version(), 0, state.livedProfile());
+        return new PersonalityStateSnapshot(facets, state.version(), compositionVersion, state.livedProfile());
     }
 
     public Set<String> cachedAgentIds(String tenantId) {
