@@ -267,7 +267,8 @@ sealed interface MentalModelTick {
 | `MentalModelOrchestrator` | `@ApplicationScoped` CDI bean | Composition root: record()+tick()+project()+observeConversation() |
 | `MentalStateSignal` | Sealed interface | Input signal: VerbalCue, BehavioralCue, ContextualCue, RelationshipCue |
 | `CueType` | Enum | BELIEF_STATEMENT, DESIRE_EXPRESSION, INTENTION_DECLARATION |
-| `AttributedState` | Record | Unified BDI entry: key, description, confidence, entrenchment, lastReinforced, dimension |
+| `AttributedState` | Record | Unified BDI entry: key, description, confidence, entrenchment, lastReinforced, dimension, valence |
+| `IntentValence` | Enum | HOSTILE, COOPERATIVE, NEUTRAL — LLM-resolved interpersonal direction (#1098) |
 | `MentalProjection` | Record | GOAP projection: conditionKey + value + confidence + dimension |
 | `BdiDimension` | Enum | BELIEF, DESIRE, INTENTION |
 | `MentalModelTick` | Sealed interface | Tick outcome: Unchanged, Updated, Inferred |
@@ -276,7 +277,7 @@ sealed interface MentalModelTick {
 | `MentalModelMemory` | `@DefaultBean @ApplicationScoped` | CbrRecordStore adapter |
 | `MentalModelConfig` | Record | Configuration: decay rates, thresholds, cooldowns |
 
-11 types total (6 new records/enums, 2 sealed interfaces, 1 CDI bean, 1 SPI interface, 1 default bean).
+12 types total (7 new records/enums, 2 sealed interfaces, 1 CDI bean, 1 SPI interface, 1 default bean).
 
 ## Dependencies
 

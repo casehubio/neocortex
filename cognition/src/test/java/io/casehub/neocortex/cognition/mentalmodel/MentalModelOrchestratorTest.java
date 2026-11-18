@@ -373,4 +373,34 @@ class MentalModelOrchestratorTest {
         assertThat(capturedPrompt.get()).contains("User expressed concern about project timeline");
         assertThat(capturedPrompt.get()).contains("User showed enthusiasm for new feature proposal");
     }
+
+    @Test
+    void valenceRoundTripsSerializationCorrectly() {
+        var now = java.time.Instant.now();
+        var states = List.of(
+                new AttributedState("hostile-key", "hostile desc", 0.9, 1, now, BdiDimension.INTENTION, IntentValence.HOSTILE),
+                new AttributedState("coop-key", "cooperative desc", 0.7, 0, now, BdiDimension.DESIRE, IntentValence.COOPERATIVE),
+                new AttributedState("neutral-key", "neutral desc", 0.5, 0, now, BdiDimension.BELIEF, IntentValence.NEUTRAL));
+
+        var json         = MentalModelSchema.serializeStates(states);
+        var deserialized = MentalModelSchema.deserializeStates(json);
+
+        assertThat(deserialized).hasSize(3);
+        assertThat(deserialized.get(0).valence()).isEqualTo(IntentValence.HOSTILE);
+        assertThat(deserialized.get(1).valence()).isEqualTo(IntentValence.COOPERATIVE);
+        assertThat(deserialized.get(2).valence()).isEqualTo(IntentValence.NEUTRAL);
+    }
+
+    @Test
+    void oldSerializedDataWithoutValenceDeserializesToNeutral() {
+        var json = "[{\"key\":\"old-key\",\"description\":\"old desc\",\"confidence\":0.8," +
+                   "\"entrenchment\":1,\"lastReinforced\":\"2026-01-01T00:00:00Z\",\"dimension\":\"BELIEF\"}]";
+
+        var deserialized = MentalModelSchema.deserializeStates(json);
+
+        assertThat(deserialized).hasSize(1);
+        assertThat(deserialized.get(0).key()).isEqualTo("old-key");
+        assertThat(deserialized.get(0).valence()).isEqualTo(IntentValence.NEUTRAL);
+    }
+
 }
