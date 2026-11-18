@@ -130,11 +130,12 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - neocortex#969: CDI wiring activation ✅ — CognitionCoreFactory injects CognitiveJournal, ConsolidationScheduler CDI constructor accepts it, InMemoryCognitiveJournalStore made @ApplicationScoped (activates the entire pipeline). Follow-up: neocortex#980 (consolidation phase instrumentation), examples#209 (PlaybookOrchestrator wiring).
 
 ### Remaining work
-- neocortex#962: Instrument remaining 4 CDE methods with journal (searchBudget, pool, recurringThought, expressionStyles)
+- ~~neocortex#962: Instrument remaining 4 CDE methods with journal (searchBudget, pool, recurringThought, expressionStyles)~~ ✅ Landed 2026-11-18 (backward-compatible overloads, expression styles adapted for categorical output)
 - neocortex#963: Bridge should fire onFacetMapped events
 - examples#207: Add ampdFacets to wacky-manor character engrams
 - neocortex#964: YAML round-trip test for ampdFacets deserialization
 - ~~neocortex#980: ConsolidationScheduler does not journal during consolidation phases~~ ✅ Landed 2026-11-17 (setCognitiveJournal() on ConsolidationPhase SPI)
+- ~~neocortex#966: ConsolidationScheduler records per-phase Consolidated journal entries~~ ✅ Landed 2026-11-18 (journal.record() after each successful phase, defensive try-catch isolation — observability failures cannot corrupt PhaseResult)
 - ~~neocortex#1070: Wire pid5Facets config to metadata enrichment and cache key~~ ✅ Landed 2026-11-17 (Pid5FacetsConfig in mindmap-intelligence, PersonalityMetadataEnricher filters)
 - ~~neocortex#1071: Extract addPersonalityMetadata to shared utility~~ ✅ Landed 2026-11-17 (PersonalityMetadataEnricher in cognitive-index)
 - ~~neocortex#1072: Remove dead hasPid5(), strengthen eval test assertions~~ ✅ Landed 2026-11-17
