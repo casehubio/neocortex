@@ -18,9 +18,9 @@ package io.casehub.neocortex.cognitive.index;
 import io.casehub.neocortex.cognitive.ChannelModulationConfig;
 import io.casehub.neocortex.cognitive.CognitiveCapacityConfig;
 import io.casehub.neocortex.cognitive.CognitiveResourcePoolConfig;
-import io.casehub.neocortex.cognitive.ExtremeInteractionConfig;
 import io.casehub.neocortex.cognitive.HabituationConfig;
 import io.casehub.neocortex.cognitive.RecurringThoughtConfig;
+import io.casehub.neocortex.cognitive.ExtremeInteractionConfig;
 import io.casehub.neocortex.cognitive.SearchBudgetConfig;
 import io.casehub.neocortex.cognitive.SearchFatigueEffects;
 import io.casehub.neocortex.cognitive.observability.DerivationObserver;
@@ -274,12 +274,12 @@ public final class CognitiveDerivationEngine {
         if (graphStructure != null) {
             ctx.flow("deriveGraphStructure", "connectiveBias", "deriveSearchBudgetDefaults", "connectiveBias", graphStructure.connectiveBias());
         }
-        SearchBudgetConfig          searchBudget     = deriveSearchBudgetDefaults(facets, descriptor.disposition(), graphStructure != null ? graphStructure.connectiveBias() : 0.5);
-        CognitiveResourcePoolConfig poolConfig       = derivePoolConfig(facets, descriptor.disposition());
-        RecurringThoughtConfig      recurringThought = deriveRecurringThoughtConfig(facets, descriptor.disposition());
+        SearchBudgetConfig          searchBudget     = deriveSearchBudgetDefaults(facets, descriptor.disposition(), graphStructure != null ? graphStructure.connectiveBias() : 0.5, ctx);
+        CognitiveResourcePoolConfig poolConfig       = derivePoolConfig(facets, descriptor.disposition(), ctx);
+        RecurringThoughtConfig      recurringThought = deriveRecurringThoughtConfig(facets, descriptor.disposition(), ctx);
         CognitiveCapacityConfig     capacity         = deriveCapacity(descriptor.dispositionProfile(), facets, ctx);
         double                      personalityDom   = derivePersonalityDominance(descriptor.formationPadSummary());
-        ExpressionStyleDefaults     expressionStyles = deriveExpressionStyles(facets);
+        ExpressionStyleDefaults     expressionStyles = deriveExpressionStyles(facets, ctx);
         PersonalityProfile          personalityProf  = new PersonalityProfile(personality, personalityDom, expressionStyles, null, facets);
 
         var emotionDefaults = new EmotionDefaults(mood, appraisal, regulation, coping);
@@ -847,46 +847,48 @@ public final class CognitiveDerivationEngine {
 
 
     static RecurringThoughtConfig deriveRecurringThoughtConfig(List<PersonalityFacet> facets, DispositionAxes axes) {
-        if (facets == null || facets.isEmpty()) { return null; }
+        return deriveRecurringThoughtConfig(facets, axes, Ctx.NOOP);
+    }
+
+    static RecurringThoughtConfig deriveRecurringThoughtConfig(List<PersonalityFacet> facets, DispositionAxes axes, Ctx ctx) {
+        if (facets == null || facets.isEmpty()) {return null;}
+        ctx.stageStart("deriveRecurringThoughtConfig");
 
         var defaults = RecurringThoughtConfig.defaults();
 
-        double anxiousness = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
+        double anxiousness       = facetScore(facets, PersonalityFacet.ANXIOUSNESS, 0.5);
         double emotionalLability = facetScore(facets, PersonalityFacet.EMOTIONAL_LABILITY, 0.5);
-        double withdrawal = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
-        double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
-        double riskTaking = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
-        double suspiciousness = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
+        double withdrawal        = facetScore(facets, PersonalityFacet.WITHDRAWAL, 0.5);
+        double impulsivity       = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
+        double riskTaking        = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
+        double suspiciousness    = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
         double intimacyAvoidance = facetScore(facets, PersonalityFacet.INTIMACY_AVOIDANCE, 0.5);
 
         double ruleFollowingNumeric = axes != null
-                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+                                      ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
 
-        // Neuroticism (Anxiousness + Emotional Lability) -> lower fixation threshold
-        // Eysenck (1967): neuroticism amplifies negative affect sensitivity
-        // Continuous modulation: high anxiousness (0.9) lowers by 0.08, moderate (0.5) by 0.0
-        double fixation = defaults.fixationThreshold()
-                - (anxiousness - 0.5) * 0.2
-                - (emotionalLability - 0.5) * 0.1;
+        double fixation0 = defaults.fixationThreshold();
+        ctx.base("fixationThreshold", fixation0);
+        double fixation = fixation0
+                          - (anxiousness - 0.5) * 0.2
+                          - (emotionalLability - 0.5) * 0.1;
+        ctx.mod(PersonalityFacet.ANXIOUSNESS, anxiousness, "fixationThreshold", fixation0, fixation);
 
-        // Conscientiousness (ruleFollowing + low Impulsivity) -> higher obsession threshold
-        // Roberts et al. (2014): self-regulation buffers against loss of control
         double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
-        double obsession = defaults.obsessionThreshold()
-                + (conscientiousness - 0.5) * 0.15;
+        double obsession0        = defaults.obsessionThreshold();
+        ctx.base("obsessionThreshold", obsession0);
+        double obsession = obsession0 + (conscientiousness - 0.5) * 0.15;
+        ctx.mod(PersonalityFacet.IMPULSIVITY, impulsivity, "obsessionThreshold", obsession0, obsession);
 
-        // Withdrawal + Intimacy Avoidance -> lower rumination threshold
-        // Nolen-Hoeksema (1991): social isolation amplifies circular thinking
-        double isolation = (withdrawal + intimacyAvoidance) / 2.0;
-        double rumination = defaults.ruminationThreshold()
-                - (isolation - 0.5) * 0.15;
+        double isolation   = (withdrawal + intimacyAvoidance) / 2.0;
+        double rumination0 = defaults.ruminationThreshold();
+        ctx.base("ruminationThreshold", rumination0);
+        double rumination = rumination0 - (isolation - 0.5) * 0.15;
+        ctx.mod(PersonalityFacet.WITHDRAWAL, withdrawal, "ruminationThreshold", rumination0, rumination);
 
-        // Openness proxy (low Withdrawal + low Suspiciousness + Risk Taking) -> broader window
-        // DeYoung (2015): open individuals shift attention more fluidly
-        double openness = (1.0 - withdrawal + 1.0 - suspiciousness + riskTaking) / 3.0;
-        int recurrenceDays = (int) Math.round(7.0 + (openness - 0.5) * 4.0);
+        double openness       = (1.0 - withdrawal + 1.0 - suspiciousness + riskTaking) / 3.0;
+        int    recurrenceDays = (int) Math.round(7.0 + (openness - 0.5) * 4.0);
 
-        // Symptom weights modulated by personality
         Map<String, Double> weights = new HashMap<>();
         if (anxiousness > 0.6) {
             weights.put("arousalTrajectory", 1.0 + (anxiousness - 0.5));
@@ -896,11 +898,21 @@ public final class CognitiveDerivationEngine {
             weights.put("attentionalCapture", 1.0 - (conscientiousness - 0.5) * 0.5);
         }
 
+        fixation   = Math.max(0.1, fixation);
+        obsession  = Math.max(fixation + 0.1, obsession);
+        rumination = Math.max(obsession + 0.05, rumination);
+
+        ctx.output("fixationThreshold", fixation);
+        ctx.output("obsessionThreshold", obsession);
+        ctx.output("ruminationThreshold", rumination);
+        ctx.output("recurrenceDays", recurrenceDays);
+        ctx.stageEnd();
+
         return new RecurringThoughtConfig(
                 weights,
-                Math.max(0.1, fixation),
-                Math.max(fixation + 0.1, obsession),
-                Math.max(obsession + 0.05, rumination),
+                fixation,
+                obsession,
+                rumination,
                 java.time.Duration.ofDays(Math.max(3, recurrenceDays)),
                 3);
     }
@@ -915,13 +927,29 @@ public final class CognitiveDerivationEngine {
     }
 
     static ExpressionStyleDefaults deriveExpressionStyles(List<PersonalityFacet> facets) {
+        return deriveExpressionStyles(facets, Ctx.NOOP);
+    }
+
+    static ExpressionStyleDefaults deriveExpressionStyles(List<PersonalityFacet> facets, Ctx ctx) {
         if (facets == null || facets.isEmpty()) {return null;}
+        ctx.stageStart("deriveExpressionStyles");
+
+        double grandiosity      = facetScore(facets, PersonalityFacet.GRANDIOSITY, 0.5);
+        double callousness      = facetScore(facets, PersonalityFacet.CALLOUSNESS, 0.5);
+        double manipulativeness = facetScore(facets, PersonalityFacet.MANIPULATIVENESS, 0.5);
+        double suspiciousness   = facetScore(facets, PersonalityFacet.SUSPICIOUSNESS, 0.5);
+        double hostility        = facetScore(facets, PersonalityFacet.HOSTILITY, 0.5);
+        double riskTaking       = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
+
+        ctx.base(PersonalityFacet.GRANDIOSITY, grandiosity);
+        ctx.base(PersonalityFacet.CALLOUSNESS, callousness);
+        ctx.base(PersonalityFacet.MANIPULATIVENESS, manipulativeness);
+        ctx.base(PersonalityFacet.SUSPICIOUSNESS, suspiciousness);
+        ctx.base(PersonalityFacet.HOSTILITY, hostility);
+        ctx.base(PersonalityFacet.RISK_TAKING, riskTaking);
 
         var styles = new HashMap<String, String>();
 
-        // Triumph expression — Grandiosity × Callousness interaction
-        // McAdams (2001) Level 2 characteristic adaptations: same trait produces
-        // different behavioral signatures depending on co-occurring traits
         if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isHigh(facets, PersonalityFacet.CALLOUSNESS)) {
             styles.put("triumph", "public, theatrical, needs audience to witness");
         } else if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isLow(facets, PersonalityFacet.CALLOUSNESS)) {
@@ -930,9 +958,6 @@ public final class CognitiveDerivationEngine {
             styles.put("triumph", "private, quiet satisfaction, deflects credit");
         }
 
-        // Gloating expression — Antagonism triad (Grandiosity + Callousness + Manipulativeness)
-        // Paulhus & Williams (2002) Dark Triad: convergence of narcissism, psychopathy,
-        // Machiavellianism predicts schadenfreude and dominance displays
         if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isHigh(facets, PersonalityFacet.CALLOUSNESS)
             && isHigh(facets, PersonalityFacet.MANIPULATIVENESS)) {
             styles.put("gloating", "savoring, deliberate, wants the other to know");
@@ -942,8 +967,6 @@ public final class CognitiveDerivationEngine {
             styles.put("gloating", "uncomfortable with others' misfortune, suppresses it");
         }
 
-        // Scheming expression — Manipulativeness × Suspiciousness
-        // Mischel & Shoda (1995) CAPS: if-then profiles predict situation-specific strategy selection
         if (isHigh(facets, PersonalityFacet.MANIPULATIVENESS) && isHigh(facets, PersonalityFacet.SUSPICIOUSNESS)) {
             styles.put("scheming", "elaborate, multi-step, assumes others are doing the same");
         } else if (isHigh(facets, PersonalityFacet.MANIPULATIVENESS) && isLow(facets, PersonalityFacet.SUSPICIOUSNESS)) {
@@ -952,9 +975,6 @@ public final class CognitiveDerivationEngine {
             styles.put("scheming", "transparent, prefers direct negotiation");
         }
 
-        // Proving-worth expression — Grandiosity × Hostility interaction
-        // Krueger et al. (2012) AMPD: Grandiosity facet reflects both compensatory
-        // and genuine self-enhancement depending on co-occurring Negative Affectivity
         if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isHigh(facets, PersonalityFacet.HOSTILITY)) {
             styles.put("proving-worth", "combative, proving through dominance and comparison");
         } else if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isLow(facets, PersonalityFacet.HOSTILITY)) {
@@ -963,9 +983,6 @@ public final class CognitiveDerivationEngine {
             styles.put("proving-worth", "quiet competence, lets work speak, uncomfortable with praise");
         }
 
-        // Gallantry expression — inverse of Callousness × Suspiciousness
-        // Costa & McCrae (1992) FFM: high Agreeableness (low AMPD Antagonism) predicts
-        // prosocial helping motivated by empathic concern vs. reciprocity expectations
         if (isLow(facets, PersonalityFacet.CALLOUSNESS) && isLow(facets, PersonalityFacet.SUSPICIOUSNESS)) {
             styles.put("gallantry", "genuine, protective, feels others' vulnerability");
         } else if (isLow(facets, PersonalityFacet.CALLOUSNESS) && isHigh(facets, PersonalityFacet.SUSPICIOUSNESS)) {
@@ -974,9 +991,6 @@ public final class CognitiveDerivationEngine {
             styles.put("gallantry", "instrumental, helps when it serves a purpose");
         }
 
-        // Distrust expression — Suspiciousness × Hostility
-        // Krueger et al. (2012): Suspiciousness loads on both Detachment and Psychoticism,
-        // co-occurring Hostility shifts from avoidant vigilance to aggressive preemption
         if (isHigh(facets, PersonalityFacet.SUSPICIOUSNESS) && isHigh(facets, PersonalityFacet.HOSTILITY)) {
             styles.put("distrust", "aggressive vigilance, reads threats into neutral behavior");
         } else if (isHigh(facets, PersonalityFacet.SUSPICIOUSNESS) && isLow(facets, PersonalityFacet.HOSTILITY)) {
@@ -985,9 +999,6 @@ public final class CognitiveDerivationEngine {
             styles.put("distrust", "trusts by default, slow to suspect");
         }
 
-        // Territorial expression — Hostility × Risk Taking
-        // Patrick et al. (2009) Triarchic: boldness + meanness interaction
-        // determines whether resource defense is proactive or reactive
         if (isHigh(facets, PersonalityFacet.HOSTILITY) && isHigh(facets, PersonalityFacet.RISK_TAKING)) {
             styles.put("territorial", "aggressive, preemptive, expands boundaries");
         } else if (isHigh(facets, PersonalityFacet.HOSTILITY) && isLow(facets, PersonalityFacet.RISK_TAKING)) {
@@ -996,30 +1007,26 @@ public final class CognitiveDerivationEngine {
             styles.put("territorial", "shares space easily, low boundary sensitivity");
         }
 
+        ctx.output("stylesResolved", styles.size());
+        ctx.stageEnd();
+
         return styles.isEmpty() ? null : new ExpressionStyleDefaults(styles);
     }
+
 
     private static final Map<String, Double> RULE_FOLLOWING_NUMERIC = Map.of(
             "strict", 0.8, "moderate", 0.5, "flexible", 0.2
     );
 
-    /**
-     * Derives personality-shaped search budget defaults from PID-5 facets and
-     * disposition axes. Each parameter mapping traces to published findings.
-     * <p>
-     * Breadth ← connectiveBias + Risk Taking (DeYoung 2015, Grajzel et al. 2023 r=0.20 DT).
-     * Laterality ← low Withdrawal + low Intimacy Avoidance + low Suspiciousness (DeYoung 2015).
-     * Depth ← ruleFollowing + low Impulsivity (Krueger et al. 2012 PID-5 dimensional alignment).
-     * Convergence ← ruleFollowing modulated by Anxiousness + Emotional Lability (Davis & Nolen-Hoeksema 1998).
-     *
-     * @param facets         PID-5 personality facets with scores in [0,1]
-     * @param axes           disposition axes (String values: strict/moderate/flexible etc.)
-     * @param connectiveBias from GraphStructureDefaults (0-1), higher = broader associative network
-     * @return personality-derived SearchBudgetConfig, or null if insufficient data
-     */
     static SearchBudgetConfig deriveSearchBudgetDefaults(
             List<PersonalityFacet> facets, DispositionAxes axes, double connectiveBias) {
+        return deriveSearchBudgetDefaults(facets, axes, connectiveBias, Ctx.NOOP);
+    }
+
+    static SearchBudgetConfig deriveSearchBudgetDefaults(
+            List<PersonalityFacet> facets, DispositionAxes axes, double connectiveBias, Ctx ctx) {
         if (facets == null || facets.isEmpty()) {return null;}
+        ctx.stageStart("deriveSearchBudgetDefaults");
 
         var defaults = SearchBudgetConfig.defaults();
 
@@ -1034,21 +1041,36 @@ public final class CognitiveDerivationEngine {
         double ruleFollowingNumeric = axes != null
                                       ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
 
-        double breadthSteepness = defaults.breadthSteepness() + (connectiveBias - 0.5) * 4.0 + (riskTaking - 0.5) * 2.0;
-        double breadthMidpoint  = defaults.breadthMidpoint() - (connectiveBias - 0.5) * 0.2;
+        double breadthSteepness0 = defaults.breadthSteepness();
+        ctx.base("breadthSteepness", breadthSteepness0);
+        double breadthSteepness = breadthSteepness0 + (connectiveBias - 0.5) * 4.0 + (riskTaking - 0.5) * 2.0;
+        ctx.mod(PersonalityFacet.RISK_TAKING, riskTaking, "breadthSteepness", breadthSteepness0, breadthSteepness);
 
-        double openness           = (1.0 - withdrawal + 1.0 - intimacyAvoidance + 1.0 - suspiciousness) / 3.0;
-        double lateralityMidpoint = defaults.lateralityMidpoint() - (openness - 0.5) * 0.3;
+        double breadthMidpoint0 = defaults.breadthMidpoint();
+        double breadthMidpoint  = breadthMidpoint0 - (connectiveBias - 0.5) * 0.2;
+
+        double openness            = (1.0 - withdrawal + 1.0 - intimacyAvoidance + 1.0 - suspiciousness) / 3.0;
+        double lateralityMidpoint0 = defaults.lateralityMidpoint();
+        ctx.base("lateralityMidpoint", lateralityMidpoint0);
+        double lateralityMidpoint = lateralityMidpoint0 - (openness - 0.5) * 0.3;
+        ctx.mod(PersonalityFacet.WITHDRAWAL, withdrawal, "lateralityMidpoint", lateralityMidpoint0, lateralityMidpoint);
 
         double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
-        double depthMidpoint     = defaults.depthMidpoint() - (conscientiousness - 0.5) * 0.3;
+        double depthMidpoint0    = defaults.depthMidpoint();
+        ctx.base("depthMidpoint", depthMidpoint0);
+        double depthMidpoint = depthMidpoint0 - (conscientiousness - 0.5) * 0.3;
+        ctx.mod(PersonalityFacet.IMPULSIVITY, impulsivity, "depthMidpoint", depthMidpoint0, depthMidpoint);
 
-        double convergenceMidpoint = defaults.convergenceMidpoint() - (conscientiousness - 0.5) * 0.2;
+        double convergenceMidpoint0 = defaults.convergenceMidpoint();
+        double convergenceMidpoint  = convergenceMidpoint0 - (conscientiousness - 0.5) * 0.2;
 
-        double pathologicalThreshold = defaults.pathologicalThreshold()
+        double pathologicalThreshold0 = defaults.pathologicalThreshold();
+        ctx.base("pathologicalThreshold", pathologicalThreshold0);
+        double pathologicalThreshold = pathologicalThreshold0
                                        - (anxiousness - 0.5) * 0.6
                                        - (emotionalLability - 0.5) * 0.4;
         pathologicalThreshold = Math.max(0.5, pathologicalThreshold);
+        ctx.mod(PersonalityFacet.ANXIOUSNESS, anxiousness, "pathologicalThreshold", pathologicalThreshold0, pathologicalThreshold);
 
         var channelModulation = deriveChannelModulationDefaults(facets, axes);
 
@@ -1068,18 +1090,27 @@ public final class CognitiveDerivationEngine {
         double breadthAmplification     = -(1.0 - openness) * 1.5;
         double lateralityAmplification  = -(1.0 - openness) * 1.2;
         double convergenceAmplification = -(anxiousness * 2.0 - conscientiousness * 0.8);
-        double amplificationThreshold = clampPeak(extremePeak - conscientiousness * 0.1);
+        double amplificationThreshold   = clampPeak(extremePeak - conscientiousness * 0.1);
         var extremeInteraction = new ExtremeInteractionConfig(depthDecay, breadthDecay,
                                                               lateralityDecay, convergenceDecay, depthAmplification, breadthAmplification,
                                                               lateralityAmplification, convergenceAmplification,
                                                               depthPeak, breadthPeak, lateralityPeak, convergencePeak,
                                                               amplificationThreshold);
 
-        double fatigueDepth    = Math.min(0.0, -0.08 * (1.0 - conscientiousness));
-        double fatigueBreadth  = -(0.15 + (1.0 - openness) * 0.15);
-        double fatigueLat      = -(0.1 + (1.0 - openness) * 0.1) + impulsivity * 0.15;
-        double fatigueConv     = conscientiousness * 0.2 - anxiousness * 0.15;
-        var fatigueEffects = new SearchFatigueEffects(fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
+        double fatigueDepth   = Math.min(0.0, -0.08 * (1.0 - conscientiousness));
+        double fatigueBreadth = -(0.15 + (1.0 - openness) * 0.15);
+        double fatigueLat     = -(0.1 + (1.0 - openness) * 0.1) + impulsivity * 0.15;
+        double fatigueConv    = conscientiousness * 0.2 - anxiousness * 0.15;
+        var    fatigueEffects = new SearchFatigueEffects(fatigueDepth, fatigueBreadth, fatigueLat, fatigueConv);
+
+        ctx.output("breadthSteepness", Math.max(1.0, breadthSteepness));
+        ctx.output("breadthMidpoint", clamp01(breadthMidpoint));
+        ctx.output("lateralityMidpoint", clamp01(lateralityMidpoint));
+        ctx.output("depthMidpoint", clamp01(depthMidpoint));
+        ctx.output("convergenceMidpoint", clamp01(convergenceMidpoint));
+        ctx.output("pathologicalThreshold", pathologicalThreshold);
+        ctx.output("extremePeak", extremePeak);
+        ctx.stageEnd();
 
         return new SearchBudgetConfig(
                 Math.max(1.0, breadthSteepness),
@@ -1098,14 +1129,25 @@ public final class CognitiveDerivationEngine {
                 fatigueEffects);
     }
 
+
     static CognitiveResourcePoolConfig derivePoolConfig(List<PersonalityFacet> facets, DispositionAxes axes) {
-        if (facets == null || facets.isEmpty()) return null;
+        return derivePoolConfig(facets, axes, Ctx.NOOP);
+    }
+
+    static CognitiveResourcePoolConfig derivePoolConfig(List<PersonalityFacet> facets, DispositionAxes axes, Ctx ctx) {
+        if (facets == null || facets.isEmpty()) {return null;}
+        ctx.stageStart("derivePoolConfig");
         double impulsivity = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
         double ruleFollowingNumeric = axes != null
-                ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
+                                      ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
         double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
-        int    maxEffort         = (int) (6 + conscientiousness * 8);
-        double recoveryRate      = 0.3 + conscientiousness * 0.4;
+        ctx.base("conscientiousness", conscientiousness);
+        int    maxEffort    = (int) (6 + conscientiousness * 8);
+        double recoveryRate = 0.3 + conscientiousness * 0.4;
+        ctx.mod(PersonalityFacet.IMPULSIVITY, impulsivity, "maxEffort", 6.0, maxEffort);
+        ctx.output("maxEffort", maxEffort);
+        ctx.output("recoveryRate", recoveryRate);
+        ctx.stageEnd();
         return new CognitiveResourcePoolConfig(maxEffort, recoveryRate);
     }
 
