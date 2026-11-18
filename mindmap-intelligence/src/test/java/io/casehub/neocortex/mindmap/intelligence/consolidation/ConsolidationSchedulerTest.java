@@ -373,7 +373,7 @@ class ConsolidationSchedulerTest {
         testScheduler.setCognitiveJournal(journal);
         testScheduler.consolidateNow("tenant-1");
 
-        assertThat(entries).hasSize(1);
+        assertThat(entries).hasSize(2);
         assertThat(entries.get(0)).isInstanceOf(io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated.class);
         var consolidated = (io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated) entries.get(0);
         assertThat(consolidated.phase()).isEqualTo("recording-phase");
@@ -389,4 +389,89 @@ class ConsolidationSchedulerTest {
         assertThat(executedPhases).containsExactly(
                 "phase-1:tenant-1", "phase-2:tenant-1");
     }
+
+    @Test
+    void runPhases_records_consolidated_entry_per_successful_phase() {
+        var                                                     entries = new java.util.ArrayList<io.casehub.neocortex.cognition.journal.CognitiveEntry>();
+        io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entries::add;
+
+        ConsolidationPhase alpha = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "alpha";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+
+            @Override
+            public java.util.List<io.casehub.neocortex.mindmap.ConsolidationArtifact> artifacts() {
+                return java.util.List.of(
+                        new io.casehub.neocortex.mindmap.ConsolidationArtifact.MergePerformed(
+                                "tenant-1", "n1", "n2", 0.9, "similar", java.time.Instant.now()));
+            }
+        };
+        ConsolidationPhase beta = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "beta";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+        };
+
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(alpha, beta), idleTracker, memoryStore, null);
+        testScheduler.setCognitiveJournal(journal);
+        testScheduler.consolidateNow("tenant-1");
+
+        var consolidated = entries.stream()
+                                  .filter(e -> e instanceof io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated)
+                                  .map(e -> (io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated) e)
+                                  .toList();
+        assertThat(consolidated).hasSize(2);
+
+        assertThat(consolidated.get(0).phase()).isEqualTo("alpha");
+        assertThat(consolidated.get(0).outputNodes()).isEqualTo(1);
+        assertThat(consolidated.get(0).tenantId()).isEqualTo("tenant-1");
+        assertThat(consolidated.get(0).agentId()).isEqualTo("_system");
+        assertThat(consolidated.get(0).elapsedMs()).isGreaterThanOrEqualTo(0);
+
+        assertThat(consolidated.get(1).phase()).isEqualTo("beta");
+        assertThat(consolidated.get(1).outputNodes()).isEqualTo(0);
+    }
+
+    @Test
+    void runPhases_skips_journal_entry_for_failed_phase() {
+        var                                                     entries = new java.util.ArrayList<io.casehub.neocortex.cognition.journal.CognitiveEntry>();
+        io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entries::add;
+
+        ConsolidationPhase failing = new ConsolidationPhase() {
+            @Override
+            public String name() {return "failing";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {
+                throw new RuntimeException("boom");
+            }
+        };
+        ConsolidationPhase succeeding = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "succeeding";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+        };
+
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(failing, succeeding), idleTracker, memoryStore, null);
+        testScheduler.setCognitiveJournal(journal);
+        testScheduler.consolidateNow("tenant-1");
+
+        var consolidated = entries.stream()
+                                  .filter(e -> e instanceof io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated)
+                                  .map(e -> (io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated) e)
+                                  .toList();
+        assertThat(consolidated).hasSize(1);
+        assertThat(consolidated.get(0).phase()).isEqualTo("succeeding");
+    }
+
+
 }
