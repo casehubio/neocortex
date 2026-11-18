@@ -436,6 +436,10 @@ def _map_personality_profile(subject, pp, seen_ids):
     if inconsistencies:
         entry["inconsistencies"] = inconsistencies
 
+    situational = pp.get("situational_profiles")
+    if situational:
+        entry["situational_profiles"] = situational
+
     return entry
 
 
