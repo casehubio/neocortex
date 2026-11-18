@@ -8,4 +8,8 @@ public interface TraitPressureSource<E> {
     Class<E> eventType();
 
     List<TraitActivation> translate(E event, AgentDescriptor descriptor);
+
+    default boolean relevant(E event) {
+        return true;
+    }
 }

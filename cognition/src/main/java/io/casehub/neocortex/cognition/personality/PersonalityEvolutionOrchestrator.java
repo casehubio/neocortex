@@ -88,7 +88,7 @@ public class PersonalityEvolutionOrchestrator {
                         if (profileTerms.contains(activation.functionTerm())) {
                             signalStore.recordActivation(
                                     descriptor.agentId(), descriptor.tenancyId(),
-                                    activation.functionTerm(), activation.valence());
+                                    activation.functionTerm());
                         }
                     }
                 }
