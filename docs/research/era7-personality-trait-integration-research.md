@@ -201,7 +201,7 @@ The modulation sits between the personality store and the CDE. The CDE is unmodi
 | `SituationalPersonalityConfig` + YAML | Detection thresholds, signal weights, dynamics parameters |
 | `SituationalDetector` | Gain-form evidence → mode intensities and group winners |
 | `PersonalityStateIntegrator` | Elastic band — advance (hourly grid) + pull (per-tick) |
-| `SituationalStateService` | Per-agent state cache, MindMap persistence |
+| `PersonalityStateService` | Per-agent state cache, MindMap persistence |
 | `SituationalPersonalityParticipant` | TERMINAL tick participant |
 | `EffectiveCognitiveDefaults` (#1055) | Resting vs effective split |
 

@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-public class SituationalStateService {
+public class PersonalityStateService {
 
     private static final Logger LOG = Logger.getLogger(SituationalStateService.class.getName());
 
@@ -28,7 +28,7 @@ public class SituationalStateService {
     private final ConcurrentHashMap<String, String> subgraphIds = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, PersonalityState> stateCache = new ConcurrentHashMap<>();
 
-    public SituationalStateService(MindMapStore store, Set<String> facetNames) {
+    public PersonalityStateService(MindMapStore store, Set<String> facetNames) {
         this.store = store;
         this.facetNames = Set.copyOf(facetNames);
     }

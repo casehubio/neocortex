@@ -36,9 +36,9 @@ class SituationalPersonalityParticipantTest {
     private SituationalPersonalityParticipant participant;
     private StubAppraisalAccessor             appraisalAccessor;
     private StubMoodAccessor                  moodAccessor;
-    private InMemoryMindMapStore              mindMapStore;
-    private SituationalStateService           stateService;
-    private EffectiveCognitiveDefaults        effectiveDefaults;
+    private InMemoryMindMapStore       mindMapStore;
+    private PersonalityStateService    stateService;
+    private EffectiveCognitiveDefaults effectiveDefaults;
     private List<CognitiveEntry>              journalEntries;
     private Clock                             clock;
 
@@ -46,7 +46,7 @@ class SituationalPersonalityParticipantTest {
     void setUp() {
         clock             = Clock.fixed(NOW, ZoneId.of("UTC"));
         mindMapStore      = new InMemoryMindMapStore();
-        stateService      = new SituationalStateService(mindMapStore, FACETS);
+        stateService      = new PersonalityStateService(mindMapStore, FACETS);
         effectiveDefaults = EffectiveCognitiveDefaults.forTesting();
         appraisalAccessor = new StubAppraisalAccessor();
         moodAccessor      = new StubMoodAccessor();

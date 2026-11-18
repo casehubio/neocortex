@@ -40,8 +40,8 @@ class SituationalPersonalityIntegrationTest {
     private static final Set<String> FACETS = Set.of("Anxiousness", "Emotional Lability", "Hostility");
 
     private SituationalPersonalityParticipant participant;
-    private SituationalStateService stateService;
-    private EffectiveCognitiveDefaults effectiveDefaults;
+    private PersonalityStateService           stateService;
+    private EffectiveCognitiveDefaults        effectiveDefaults;
     private List<CognitiveEntry> journalEntries;
     private StubAppraisal appraisal;
     private StubMood mood;
@@ -51,7 +51,7 @@ class SituationalPersonalityIntegrationTest {
     void setUp() {
         now = Instant.parse("2026-11-17T10:00:00Z");
         var store = new InMemoryMindMapStore();
-        stateService = new SituationalStateService(store, FACETS);
+        stateService = new PersonalityStateService(store, FACETS);
         journalEntries = new ArrayList<>();
         CognitiveJournal journal = journalEntries::add;
         appraisal = new StubAppraisal();

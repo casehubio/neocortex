@@ -11,12 +11,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-class SituationalStateServiceTest {
+class PersonalityStateServiceTest {
 
-    private InMemoryMindMapStore store;
-    private SituationalStateService service;
-    private static final Instant NOW = Instant.parse("2026-11-17T10:00:00Z");
-    private static final java.util.Set<String> FACETS = java.util.Set.of(
+    private              InMemoryMindMapStore    store;
+    private              PersonalityStateService service;
+    private static final Instant                 NOW = Instant.parse("2026-11-17T10:00:00Z");
+    private static final java.util.Set<String>   FACETS = java.util.Set.of(
             "Anxiousness", "Callousness", "Hostility", "Emotional Lability",
             "Grandiosity", "Impulsivity", "Risk Taking", "Suspiciousness",
             "Withdrawal", "Manipulativeness", "Deceitfulness",
@@ -25,7 +25,7 @@ class SituationalStateServiceTest {
     @BeforeEach
     void setUp() {
         store = new InMemoryMindMapStore();
-        service = new SituationalStateService(store, FACETS);
+        service = new PersonalityStateService(store, FACETS);
     }
 
     @Test
@@ -51,7 +51,7 @@ class SituationalStateServiceTest {
                 "Hostility", new FacetState(-0.1, 0.0, 1.0, 0.0, 0.0)));
         service.persist("t1", "agent1", updated);
 
-        var service2 = new SituationalStateService(store, FACETS);
+        var service2 = new PersonalityStateService(store, FACETS);
         var loaded = service2.loadOrCreate("t1", "agent1", NOW);
         assertThat(loaded.facets().get("Anxiousness").displacement()).isCloseTo(0.15, within(1e-9));
         assertThat(loaded.facets().get("Anxiousness").homeOffset()).isCloseTo(0.02, within(1e-9));
@@ -61,16 +61,16 @@ class SituationalStateServiceTest {
 
     @Test
     void deterministicNodeIdentity() {
-        var name1 = SituationalStateService.nodeName("agent1");
-        var name2 = SituationalStateService.nodeName("agent1");
+        var name1 = PersonalityStateService.nodeName("agent1");
+        var name2 = PersonalityStateService.nodeName("agent1");
         assertThat(name1).isEqualTo(name2);
         assertThat(name1).startsWith("sit-state:");
     }
 
     @Test
     void differentAgentsDifferentNodes() {
-        var name1 = SituationalStateService.nodeName("agent1");
-        var name2 = SituationalStateService.nodeName("agent2");
+        var name1 = PersonalityStateService.nodeName("agent1");
+        var name2 = PersonalityStateService.nodeName("agent2");
         assertThat(name1).isNotEqualTo(name2);
     }
 
@@ -120,7 +120,7 @@ class SituationalStateServiceTest {
                 Map.of(SituationalMode.Group.AFFECTIVE, SituationalMode.STRESS),
                 NOW, PersonalityState.truncateToHour(NOW), NOW.plusSeconds(3600));
 
-        var props = SituationalStateService.toProperties(state);
+        var props = PersonalityStateService.toProperties(state);
         var loaded = service.fromProperties(props, NOW);
 
         assertThat(loaded.facets().get("Anxiousness").displacement()).isCloseTo(0.12, within(1e-9));

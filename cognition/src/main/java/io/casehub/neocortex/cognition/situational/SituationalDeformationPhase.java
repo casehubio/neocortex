@@ -9,22 +9,20 @@ import io.casehub.neocortex.mindmap.intelligence.consolidation.ConsolidationPhas
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 public class SituationalDeformationPhase implements ConsolidationPhase {
 
     private static final double EPSILON_PUBLISH = 0.005;
 
-    private final SituationalStateService stateService;
+    private final PersonalityStateService    stateService;
     private final PersonalityStateIntegrator integrator;
     private final EffectiveCognitiveDefaults effectiveDefaults;
     private volatile CognitiveJournal journal;
     private final Clock clock;
 
     public SituationalDeformationPhase(
-            SituationalStateService stateService,
+            PersonalityStateService stateService,
             PersonalityStateIntegrator integrator,
             EffectiveCognitiveDefaults effectiveDefaults,
             CognitiveJournal journal,
@@ -75,7 +73,7 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
     }
 
     private PersonalityStateSnapshot toSnapshot(PersonalityState state) {
-        return SituationalStateService.toSnapshot(state);
+        return PersonalityStateService.toSnapshot(state);
     }
 
     private int countFacetsWithDrift(PersonalityState state) {

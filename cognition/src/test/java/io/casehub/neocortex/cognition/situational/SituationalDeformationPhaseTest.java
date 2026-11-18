@@ -14,7 +14,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,8 +26,8 @@ class SituationalDeformationPhaseTest {
     private static final Set<String> FACETS = Set.of("Anxiousness", "Emotional Lability", "Hostility");
 
     private SituationalDeformationPhase phase;
-    private SituationalStateService stateService;
-    private EffectiveCognitiveDefaults effectiveDefaults;
+    private PersonalityStateService     stateService;
+    private EffectiveCognitiveDefaults  effectiveDefaults;
     private List<CognitiveEntry> journalEntries;
     private Clock clock;
 
@@ -36,7 +35,7 @@ class SituationalDeformationPhaseTest {
     void setUp() {
         clock = Clock.fixed(NOW.plus(Duration.ofHours(3)), ZoneId.of("UTC"));
         var store = new InMemoryMindMapStore();
-        stateService = new SituationalStateService(store, FACETS);
+        stateService = new PersonalityStateService(store, FACETS);
         effectiveDefaults = EffectiveCognitiveDefaults.forTesting();
         journalEntries = new ArrayList<>();
         CognitiveJournal journal = journalEntries::add;
@@ -102,7 +101,7 @@ class SituationalDeformationPhaseTest {
     void alreadyAdvancedStateSkips() {
         var advancedClock = Clock.fixed(NOW, ZoneId.of("UTC"));
         var store = new InMemoryMindMapStore();
-        var svc = new SituationalStateService(store, FACETS);
+        var svc = new PersonalityStateService(store, FACETS);
         var journal2 = new ArrayList<CognitiveEntry>();
         var phase2 = new SituationalDeformationPhase(
                 svc, new PersonalityStateIntegrator(DynamicsConfig.defaults()),

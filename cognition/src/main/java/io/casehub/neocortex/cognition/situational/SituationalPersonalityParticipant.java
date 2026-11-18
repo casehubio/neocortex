@@ -1,6 +1,5 @@
 package io.casehub.neocortex.cognition.situational;
 
-import io.casehub.eidos.api.AgentDescriptor;
 import io.casehub.neocortex.cognition.core.CognitionTickContext;
 import io.casehub.neocortex.cognition.core.CognitionTickParticipant;
 import io.casehub.neocortex.cognition.journal.CognitiveEntry;
@@ -10,7 +9,6 @@ import io.casehub.neocortex.cognitive.index.PersonalityStateSnapshot;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -18,8 +16,8 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
 
     private static final double EPSILON_PUBLISH = 0.005;
 
-    private final SituationalStateService stateService;
-    private final SituationalDetector detector;
+    private final PersonalityStateService stateService;
+    private final SituationalDetector     detector;
     private final PersonalityStateIntegrator integrator;
     private final SituationalPersonalityConfig config;
     private final EffectiveCognitiveDefaults effectiveDefaults;
@@ -31,7 +29,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
     private final java.util.concurrent.ConcurrentHashMap<String, DetectionResult> lastResults = new java.util.concurrent.ConcurrentHashMap<>();
 
     public SituationalPersonalityParticipant(
-            SituationalStateService stateService,
+            PersonalityStateService stateService,
             SituationalDetector detector,
             PersonalityStateIntegrator integrator,
             SituationalPersonalityConfig config,
@@ -142,7 +140,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
     }
 
     private PersonalityStateSnapshot toSnapshot(PersonalityState state) {
-        return SituationalStateService.toSnapshot(state);
+        return PersonalityStateService.toSnapshot(state);
     }
 
     private boolean isDirty(PersonalityStateSnapshot snapshot) {
