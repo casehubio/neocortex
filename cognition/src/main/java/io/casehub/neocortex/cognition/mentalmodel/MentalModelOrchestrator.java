@@ -283,14 +283,14 @@ public class MentalModelOrchestrator {
     private boolean decayMap(Map<String, AttributedState> map, Duration halfLife, Instant now) {
         boolean changed = false;
         for (var entry : map.entrySet()) {
-            var s = entry.getValue();
-            long elapsedMs = Duration.between(s.lastReinforced(), now).toMillis();
+            var    s          = entry.getValue();
+            long   elapsedMs  = Duration.between(s.lastReinforced(), now).toMillis();
             double halfLifeMs = halfLife.toMillis();
             if (halfLifeMs > 0 && elapsedMs > 0) {
                 double decayed = s.confidence() * Math.pow(0.5, elapsedMs / halfLifeMs);
                 if (Math.abs(decayed - s.confidence()) > 0.001) {
                     entry.setValue(new AttributedState(s.key(), s.description(), decayed,
-                            s.entrenchment(), s.lastReinforced(), s.dimension()));
+                                                       s.entrenchment(), s.lastReinforced(), s.dimension(), s.valence()));
                     changed = true;
                 }
             }
