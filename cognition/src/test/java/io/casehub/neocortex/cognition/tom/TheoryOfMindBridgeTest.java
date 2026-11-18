@@ -100,6 +100,26 @@ class TheoryOfMindBridgeTest {
     }
 
     @Test
+    void scaleBehaviorEvidenceTransfersApproachToAvoidant() {
+        double[] behavior = {0.6, 0.2, 0.2};
+        double[] scaled   = TheoryOfMindBridge.scaleBehaviorEvidence(behavior, 0.9);
+        assertEquals(1.0, scaled[0] + scaled[1] + scaled[2], 0.001, "scaled evidence sums to 1");
+        assertTrue(scaled[0] < behavior[0], "approach weight should decrease");
+        assertTrue(scaled[2] > behavior[2], "avoidant weight should increase");
+    }
+
+    @Test
+    void scaleBehaviorEvidenceWithZeroSuspiciousnessIsIdentity() {
+        double[] behavior = {0.5, 0.3, 0.2};
+        double[] scaled   = TheoryOfMindBridge.scaleBehaviorEvidence(behavior, 0.0);
+        for (int i = 0; i < 3; i++) {
+            assertEquals(behavior[i], scaled[i], 0.001,
+                         "zero suspiciousness should not change evidence at index " + i);
+        }
+    }
+
+
+    @Test
     void consecutiveInferencesAreIndependent() {
         var threatening = appraisalWith(
                 Map.of("conduciveness", -0.9, "controllability", 0.1),
@@ -129,8 +149,8 @@ class TheoryOfMindBridgeTest {
 
     @Test
     void anxiousAgentInfersMoreDistressFromSameAppraisal() {
-        var anxiousMod = new TomPersonalityModulation(0.9, 0.0);
-        var calmMod = new TomPersonalityModulation(0.1, 0.0);
+        var anxiousMod = new TomPersonalityModulation(0.9, 0.0, 0.0);
+        var calmMod = new TomPersonalityModulation(0.1, 0.0, 0.0);
 
         var appraisal = appraisalWith(
                 Map.of("conduciveness", -0.3, "controllability", 0.5),
@@ -146,8 +166,8 @@ class TheoryOfMindBridgeTest {
 
     @Test
     void callousAgentInfersLessDistressFromAvoidantBehavior() {
-        var callousMod = new TomPersonalityModulation(0.5, 0.9);
-        var empathicMod = new TomPersonalityModulation(0.5, 0.0);
+        var callousMod = new TomPersonalityModulation(0.5, 0.9, 0.0);
+        var empathicMod = new TomPersonalityModulation(0.5, 0.0, 0.0);
 
         var appraisal = appraisalWith(
                 Map.of("conduciveness", -0.5, "controllability", 0.3),
@@ -159,6 +179,42 @@ class TheoryOfMindBridgeTest {
         assertTrue(callousPosterior.distressed() < empathicPosterior.distressed(),
             "callous agent should infer less distress: callous=" +
             callousPosterior.distressed() + " empathic=" + empathicPosterior.distressed());
+    }
+
+
+    @Test
+    void suspiciousAgentInfersMoreDistressFromCooperativeBehavior() {
+        var suspiciousMod = new TomPersonalityModulation(0.5, 0.0, 0.9);
+        var trustingMod   = new TomPersonalityModulation(0.5, 0.0, 0.0);
+
+        var appraisal = appraisalWith(
+                Map.of("conduciveness", -0.3, "controllability", 0.5),
+                List.of(new ActionTendency(ActionReadiness.APPROACH, 0.7, "")));
+
+        var suspiciousPosterior = bridge.infer(appraisal, suspiciousMod);
+        var trustingPosterior   = bridge.infer(appraisal, trustingMod);
+
+        assertTrue(suspiciousPosterior.distressed() > trustingPosterior.distressed(),
+                   "suspicious agent should infer more distress from cooperative behavior: suspicious=" +
+                   suspiciousPosterior.distressed() + " trusting=" + trustingPosterior.distressed());
+    }
+
+
+    @Test
+    void suspiciousAgentInfersLessPositiveFromApproach() {
+        var suspiciousMod = new TomPersonalityModulation(0.5, 0.0, 0.9);
+        var trustingMod   = new TomPersonalityModulation(0.5, 0.0, 0.0);
+
+        var appraisal = appraisalWith(
+                Map.of("conduciveness", 0.5, "controllability", 0.7),
+                List.of(new ActionTendency(ActionReadiness.APPROACH, 0.8, "")));
+
+        var suspiciousPosterior = bridge.infer(appraisal, suspiciousMod);
+        var trustingPosterior   = bridge.infer(appraisal, trustingMod);
+
+        assertTrue(suspiciousPosterior.positive() < trustingPosterior.positive(),
+                   "suspicious agent should infer less positive from approach: suspicious=" +
+                   suspiciousPosterior.positive() + " trusting=" + trustingPosterior.positive());
     }
 
     @Test

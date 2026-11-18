@@ -1172,13 +1172,14 @@ public @Nullable String lastTargetAgentId() {
             return io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
         }
         var defaults = effectiveDefaults.forAgentOrDefaults(tenantId, agentId);
-        var profile = defaults.personalityProfile();
+        var profile  = defaults.personalityProfile();
         if (profile == null || profile.facets().isEmpty()) {
             return io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation.NEUTRAL;
         }
-        double anxiousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.ANXIOUSNESS);
-        double callousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.CALLOUSNESS);
-        return new io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation(anxiousness, callousness);
+        double anxiousness    = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.ANXIOUSNESS);
+        double callousness    = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.CALLOUSNESS);
+        double suspiciousness = tomFacetScore(profile.facets(), io.casehub.neocortex.cognitive.index.PersonalityFacet.SUSPICIOUSNESS);
+        return new io.casehub.neocortex.mindmap.intelligence.tom.TomPersonalityModulation(anxiousness, callousness, suspiciousness);
     }
 
     private static double tomFacetScore(java.util.List<io.casehub.neocortex.cognitive.index.PersonalityFacet> facets, String name) {

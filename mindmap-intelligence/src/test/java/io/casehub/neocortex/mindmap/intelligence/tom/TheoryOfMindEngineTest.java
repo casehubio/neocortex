@@ -3,7 +3,8 @@ package io.casehub.neocortex.mindmap.intelligence.tom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TheoryOfMindEngineTest {
 
@@ -107,7 +108,7 @@ class TheoryOfMindEngineTest {
 
     @Test
     void highAnxietyRaisesBaselineDistress() {
-        var anxious = new TheoryOfMindEngine(new TomPersonalityModulation(0.9, 0.0));
+        var anxious = new TheoryOfMindEngine(new TomPersonalityModulation(0.9, 0.0, 0.0));
         var calm = new TheoryOfMindEngine(TomPersonalityModulation.NEUTRAL);
 
         double[] anxiousBaseline = anxious.inferEmotionalState();
@@ -120,7 +121,7 @@ class TheoryOfMindEngineTest {
 
     @Test
     void lowAnxietyLowersBaselineDistress() {
-        var relaxed = new TheoryOfMindEngine(new TomPersonalityModulation(0.1, 0.0));
+        var relaxed = new TheoryOfMindEngine(new TomPersonalityModulation(0.1, 0.0, 0.0));
         var neutral = new TheoryOfMindEngine(TomPersonalityModulation.NEUTRAL);
 
         double[] relaxedBaseline = relaxed.inferEmotionalState();
@@ -133,8 +134,8 @@ class TheoryOfMindEngineTest {
 
     @Test
     void callousAgentDiscountsAvoidanceEvidence() {
-        var callous = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.9));
-        var empathic = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.0));
+        var callous = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.9, 0.0));
+        var empathic = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.0, 0.0));
 
         callous.observeBehavior(BehaviorType.AVOIDANT);
         callous.observeThreat(ThreatLevel.MILD);
@@ -149,6 +150,26 @@ class TheoryOfMindEngineTest {
                    "callous agent should infer less distress from avoidant behavior: callous=" +
                    callousState[EmotionalValence.DISTRESSED.ordinal()] + " empathic=" +
                    empathicState[EmotionalValence.DISTRESSED.ordinal()]);
+    }
+
+
+    @Test
+    void zeroSuspiciousnessMatchesNeutral() {
+        var withZero = new TheoryOfMindEngine(new TomPersonalityModulation(0.5, 0.0, 0.0));
+        var neutral  = new TheoryOfMindEngine(TomPersonalityModulation.NEUTRAL);
+
+        withZero.observeBehavior(BehaviorType.AVOIDANT);
+        withZero.observeThreat(ThreatLevel.MILD);
+        neutral.observeBehavior(BehaviorType.AVOIDANT);
+        neutral.observeThreat(ThreatLevel.MILD);
+
+        double[] z = withZero.inferEmotionalState();
+        double[] n = neutral.inferEmotionalState();
+
+        for (int i = 0; i < 3; i++) {
+            assertEquals(n[i], z[i], 0.001,
+                         "zero suspiciousness should match NEUTRAL for " + EmotionalValence.values()[i]);
+        }
     }
 
     @Test

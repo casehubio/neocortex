@@ -42,7 +42,11 @@ public class TheoryOfMindBridge {
     public TheoryOfMindPosterior infer(AppraisalResult appraisal, TomPersonalityModulation modulation) {
         var engine = new TheoryOfMindEngine(modulation);
         engine.observeThreat(threatDistribution(appraisal.secDimensions()));
-        engine.observeBehavior(behaviorDistribution(appraisal.actionTendencies()));
+        double[] behavior = behaviorDistribution(appraisal.actionTendencies());
+        if (modulation.suspiciousness() > 0.0) {
+            behavior = scaleBehaviorEvidence(behavior, modulation.suspiciousness());
+        }
+        engine.observeBehavior(behavior);
         double[] posterior = engine.inferEmotionalState();
         return new TheoryOfMindPosterior(posterior[0], posterior[1], posterior[2]);
     }
@@ -94,4 +98,19 @@ public class TheoryOfMindBridge {
         }
         return new double[]{approachWeight / total, neutralWeight / total, avoidantWeight / total};
     }
+
+    // Fenigstein & Vanable 1992; Combs et al. 2007 — attributional bias in suspicious individuals
+    static double[] scaleBehaviorEvidence(double[] behavior, double suspiciousness) {
+        double approach = behavior[0];
+        double neutral  = behavior[1];
+        double avoidant = behavior[2];
+
+        double transfer = approach * suspiciousness * 0.6;
+        approach -= transfer;
+        avoidant += transfer;
+
+        double sum = approach + neutral + avoidant;
+        return new double[]{approach / sum, neutral / sum, avoidant / sum};
+    }
+
 }
