@@ -235,6 +235,7 @@ public List<MissingCapability> validateCapabilities(String tenantId,
             phase.setCognitiveJournal(journal);
             Instant phaseStart = Instant.now();
             MutationContext.set("consolidation:" + phase.name());
+            MutationContext.setAgent("_system");
             try {
                 LOG.info("Phase START: " + phase.name() + " [tenant=" + tenantId + "]");
                 phase.run(tenantId, priority);

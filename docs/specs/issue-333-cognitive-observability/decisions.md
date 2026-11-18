@@ -84,16 +84,17 @@
 
 ## D8: Mutation tracking — capture all, tag by source, fire CDI events
 
-**Choice:** MindMapStore decorator captures every mutation and tags it with source context (consolidation phase name, conversation-bridge, extraction, manual). Thread-local context set by callers. Fires `GraphMutationRecorded` CDI event after flushing each delta batch — enables cross-module reactivity consistent with existing event patterns (AffectRecorded, CbrCasesErased, etc.).
+**Choice:** MindMapStore decorator captures every mutation and tags it with source context (consolidation phase name, conversation-bridge, extraction, manual) and optional agentId. Thread-local context set by callers via `MutationContext.set()` (source) and `MutationContext.setAgent()` (agentId). Fires `GraphMutationRecorded(tenantId, agentId, mutation)` CDI event — enables cross-module reactivity consistent with existing event patterns (AffectRecorded, CbrCasesErased, etc.). `GraphMutatedJournalBridge` observes the CDI event and bridges it to `CognitiveEntry.GraphMutated` journal entries, enabling full correlation between MindMap mutations and the cognitive pipeline that caused them.
 **Alternatives:**
 - Consolidation only — misses conversation/extraction mutations, partial observability
 - Two decorators — clean separation but two interception points for the same concern
-**Rationale:** Maximum observability. cognition_diff can filter by source. ConsolidationScheduler sets context before running phases; ConversationBridge and ExtractionRequestedObserver set their own context. Unknown sources get a "manual" tag. CDI events enable other modules to react to graph changes without coupling to the decorator. ThreadLocal is appropriate because MindMapStore is a synchronous SPI — all current callers (ConsolidationScheduler, ConversationBridge, ExtractionRequestedObserver) operate on worker threads, not reactive chains.
-**Trade-offs:** Thread-local context coupling. All mutation paths must set context or accept default "manual" tag. Slight overhead on every MindMapStore write. If reactive callers are added to MindMapStore in future, ThreadLocal must be upgraded to Mutiny Context propagation.
-**Sources:** AffectTrajectoryDecorator pattern, DerivedEdgeDecorator thread-local precedent, decision review R1-07 (ThreadLocal assessment), R1-09 (CDI events)
+- agentId via ThreadLocal only (not on the event) — fragile across async boundaries, consumers must read ambient state instead of event data
+**Rationale:** Maximum observability. cognition_diff can filter by source. ConsolidationScheduler sets context (source + `_system` agentId) before running phases; ConversationBridge and ExtractionRequestedObserver set their own source context. Unknown sources get a "manual" tag. agentId on the event makes the data self-contained for consumers — the ThreadLocal is used to get agentId INTO the decorator, the event carries it OUT. CDI events enable other modules to react to graph changes without coupling to the decorator. ThreadLocal is appropriate because MindMapStore is a synchronous SPI — all current callers operate on worker threads, not reactive chains. The bridge uses `Instance<CognitiveJournal>` (optional CDI dependency) and try/catch to prevent journal failures from disrupting MindMap operations.
+**Trade-offs:** Thread-local context coupling. All mutation paths must set context or accept default "manual" tag. Slight overhead on every MindMapStore write. If reactive callers are added to MindMapStore in future, ThreadLocal must be upgraded to Mutiny Context propagation. Async CDI event boundaries (e.g. `@ObservesAsync` in ExtractionRequestedObserver) don't propagate ThreadLocal — those callers need to carry agentId on the event record itself (#1150).
+**Sources:** AffectTrajectoryDecorator pattern, DerivedEdgeDecorator thread-local precedent, decision review R1-07 (ThreadLocal assessment), R1-09 (CDI events), #965 (agentId enrichment), #961 (runtime cognitive journal)
 **Depends on:** D3 (GraphMutation model)
 **Exploration:** quick
-**Status:** revised (removed D1 dependency per R1-04; added CDI events per R1-09)
+**Status:** revised (removed D1 dependency per R1-04; added CDI events per R1-09; added agentId enrichment + journal bridge per #965)
 
 ## D9: Epic decomposition — by layer
 

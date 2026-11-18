@@ -2,11 +2,21 @@ package io.casehub.neocortex.mindmap;
 
 public final class MutationContext {
 
-    private static final ThreadLocal<String> SOURCE = ThreadLocal.withInitial(() -> "manual");
+    private static final ThreadLocal<String> SOURCE   = ThreadLocal.withInitial(() -> "manual");
+    private static final ThreadLocal<String> AGENT_ID = new ThreadLocal<>();
 
-    private MutationContext() {}
+    private MutationContext()                   {}
 
-    public static void set(String source) { SOURCE.set(source); }
-    public static String get() { return SOURCE.get(); }
-    public static void clear() { SOURCE.remove(); }
+    public static void set(String source)       {SOURCE.set(source);}
+
+    public static String get()                  {return SOURCE.get();}
+
+    public static void setAgent(String agentId) {AGENT_ID.set(agentId);}
+
+    public static String agentId()              {return AGENT_ID.get();}
+
+    public static void clear()                  {
+                                                    SOURCE.remove();
+                                                    AGENT_ID.remove();
+                                                }
 }

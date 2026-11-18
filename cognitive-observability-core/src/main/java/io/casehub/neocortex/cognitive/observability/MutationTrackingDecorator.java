@@ -189,7 +189,7 @@ public class MutationTrackingDecorator extends AbstractForwardingMindMapStore {
             snapshotStore.storeMutation(tenantId, mutation);
         }
         if (eventSink != null) {
-            eventSink.accept(new GraphMutationRecorded(tenantId, mutation));
+            eventSink.accept(new GraphMutationRecorded(tenantId, MutationContext.agentId(), mutation));
         }
     }
 }

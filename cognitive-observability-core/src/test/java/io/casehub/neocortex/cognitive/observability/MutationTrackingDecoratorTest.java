@@ -16,19 +16,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MutationTrackingDecoratorTest {
 
     private InMemoryMindMapStore store;
     private List<GraphMutation> mutations;
+    private List<GraphMutationRecorded> events = new ArrayList<>();
+
     private MutationTrackingDecorator decorator;
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryMindMapStore();
+        store     = new InMemoryMindMapStore();
         mutations = new ArrayList<>();
-        decorator = new MutationTrackingDecorator(store, null, evt -> mutations.add(evt.mutation()));
+        events    = new ArrayList<>();
+        decorator = new MutationTrackingDecorator(store, null, evt -> {
+            mutations.add(evt.mutation());
+            events.add(evt);
+        });
     }
 
     @AfterEach
@@ -198,5 +207,23 @@ class MutationTrackingDecoratorTest {
 
         assertEquals(1, mutations.size());
         assertInstanceOf(GraphMutation.SubgraphErased.class, mutations.getFirst());
+    }
+
+    @Test
+    void shouldPropagateAgentIdFromMutationContext() {
+        MutationContext.setAgent("agent-42");
+        String sgId = decorator.createSubgraph(new SubgraphInput("test", "concept", null), "t1");
+
+        assertEquals(1, events.size());
+        assertEquals("agent-42", events.getFirst().agentId());
+        assertEquals("t1", events.getFirst().tenantId());
+    }
+
+    @Test
+    void shouldDefaultAgentIdToNullWhenNotSet() {
+        String sgId = decorator.createSubgraph(new SubgraphInput("test", "concept", null), "t1");
+
+        assertEquals(1, events.size());
+        assertNull(events.getFirst().agentId());
     }
 }
