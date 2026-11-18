@@ -18,7 +18,7 @@ import java.util.Set;
  * Bayesian Theory-of-Mind engine, returning an emotional-state
  * posterior for a subject.
  *
- * <p>Mapping grounded in Scherer\u2019s SEC model:
+ * <p>Mapping grounded in Scherer’s SEC model:
  * <ul>
  *   <li>Threat level: derived from goal-incongruence (inverse of
  *       conduciveness) combined with low coping power (controllability).

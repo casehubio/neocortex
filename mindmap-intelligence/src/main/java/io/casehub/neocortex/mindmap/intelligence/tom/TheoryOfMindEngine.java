@@ -9,11 +9,11 @@ import io.quarkmind.perception.EvidenceFusionEngine;
  * Bayesian Theory of Mind engine for inferring another character's emotional
  * state from observed behavior and situational threat level.
  *
- * Network structure: [SituationThreat] \u2192 [EmotionalState] \u2192 [ObservedBehavior]
+ * Network structure: [SituationThreat] → [EmotionalState] → [ObservedBehavior]
  *
  * CPTs grounded in appraisal theory (Scherer 2001; Ellsworth & Scherer 2003):
- * - Threat causes emotional state (goal-incongruence \u2192 distress)
- * - Emotional state causes observable behavior (distress \u2192 avoidance)
+ * - Threat causes emotional state (goal-incongruence → distress)
+ * - Emotional state causes observable behavior (distress → avoidance)
  *
  * The engine handles diagnostic inference: given observed behavior and threat,
  * infer the latent emotional state via junction tree exact inference.

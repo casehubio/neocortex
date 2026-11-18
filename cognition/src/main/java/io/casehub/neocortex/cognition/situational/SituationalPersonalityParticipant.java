@@ -27,6 +27,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
     private final Clock clock;
 
     private final java.util.concurrent.ConcurrentHashMap<String, DetectionResult> lastResults = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, java.time.Instant> lastResultAccess = new java.util.concurrent.ConcurrentHashMap<>();
 
     public SituationalPersonalityParticipant(
             PersonalityStateService stateService,
@@ -85,6 +86,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         var finalDetection = new DetectionResult(state.intensities(), state.engaged(), state.winners(),
                 Map.of(), Map.of(), Map.of(), Map.of());
         lastResults.put(agentKey, finalDetection);
+        lastResultAccess.put(agentKey, clock.instant());
         var compositeDelta = computeCompositeDelta(finalDetection, deltas);
 
         journal.record(new CognitiveEntry.SituationalModulation(
@@ -98,6 +100,19 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
                 compositeDelta,
                 0,
                 provenance));
+    }
+
+    public int evictIdle(java.time.Duration maxIdle) {
+        var cutoff = clock.instant().minus(maxIdle);
+        var stale = new java.util.ArrayList<String>();
+        lastResultAccess.forEach((key, time) -> {
+            if (time.isBefore(cutoff)) stale.add(key);
+        });
+        for (var key : stale) {
+            lastResults.remove(key);
+            lastResultAccess.remove(key);
+        }
+        return stale.size();
     }
 
     private SituationalEvidence buildEvidence(String agentId, String tenantId, CognitionTickContext context) {
