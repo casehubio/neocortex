@@ -58,7 +58,7 @@ public class HygieneAdaptationPhase implements ConsolidationPhase {
         var currentSummary = hygieneOrchestrator.tenantGapSummary(tenantId);
         if (currentSummary.totalScored() == 0) {return;}
 
-        var previous      = previousSummaries.get(tenantId);
+        var previous = previousSummaries.get(tenantId);
         var currentConfig = adaptiveConfig.current(tenantId);
 
         if (previous == null) {
@@ -86,7 +86,7 @@ public class HygieneAdaptationPhase implements ConsolidationPhase {
             }
         }
 
-        double                                     newThreshold = currentConfig.retentionThreshold();
+        double newThreshold = currentConfig.retentionThreshold();
         HygieneAdaptationEvent.AdaptationDirection direction;
 
         if (pressure > config.evictionPressureUpperThreshold()) {

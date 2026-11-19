@@ -77,6 +77,8 @@ public class EidosCognitiveProfileBridge {
                                              .styleProfile(authored.disposition().styleProfile())
                                              .mbtiType(authored.disposition().mbtiType())
                                              .enneagramType(authored.disposition().enneagramType())
+                                             .ampdFacets(authored.disposition().ampdFacets())
+                                             .situationalProfiles(authored.disposition().situationalProfiles())
                                              .build();
         return authored.toBuilder().disposition(newDisposition).build();
     }

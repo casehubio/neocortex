@@ -1,6 +1,8 @@
 package io.casehub.neocortex.cognitive.eidos;
 
 import io.casehub.eidos.api.AgentDescriptor;
+import io.casehub.eidos.api.AmpdFacet;
+import io.casehub.eidos.api.SituationalProfile;
 import io.casehub.eidos.api.AgentDisposition;
 import io.casehub.eidos.api.DispositionValue;
 import io.casehub.neocortex.cognitive.index.LivedComposition;
@@ -100,5 +102,34 @@ class EidosCognitiveProfileBridgeLivedTest {
         assertEquals("Test", result.name());
         assertEquals("test", result.slot());
         assertEquals("cooperative", result.disposition().socialOrient().getFirst().term());
+    }
+
+    @Test
+    void livedDescriptorPreservesAmpdFacetsAndSituationalProfiles() {
+        var facets   = List.of(new AmpdFacet("anxiousness", 70));
+        var profiles = List.of(new SituationalProfile("stress", List.of(), "test"));
+        var authored = AgentDescriptor.builder()
+                                      .agentId("test-agent")
+                                      .name("Test")
+                                      .slot("test")
+                                      .tenancyId("t1")
+                                      .disposition(AgentDisposition.builder()
+                                                                   .socialOrient("cooperative")
+                                                                   .dispositionProfile(TI_NE_PROFILE)
+                                                                   .ampdFacets(facets)
+                                                                   .situationalProfiles(profiles)
+                                                                   .build())
+                                      .build();
+        var authoredTerms = TI_NE_PROFILE.stream()
+                                         .map(dv -> new WeightedTerm(dv.term(), dv.weight()))
+                                         .toList();
+        var lived = new LivedProfile(
+                NE_TI_PROFILE.stream().map(dv -> new WeightedTerm(dv.term(), dv.weight())).toList(),
+                LivedComposition.fingerprint(authoredTerms));
+
+        var result = EidosCognitiveProfileBridge.livedDescriptor(authored, lived);
+
+        assertEquals(facets, result.disposition().ampdFacets());
+        assertEquals(profiles, result.disposition().situationalProfiles());
     }
 }
