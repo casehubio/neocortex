@@ -120,7 +120,7 @@ def check_memory_coverage(memories: list[dict], registry: dict, stage: str = Non
     mem_key_map = {
         'text': 'text', 'domain': 'domain', 'event_type': 'event_type',
         'subject': 'subject', 'period': 'period', 'related_entities': 'related_entities',
-        'source_provenance': 'source_passage', 'extraction_method': 'extraction_method',
+        'source_provenance': 'source_provenance', 'extraction_method': 'extraction_method',
         'extraction_pass': 'extraction_pass', 'passage_id': 'source_passage',
         'enrichment_version': 'enrichment_version', 'enrichment_timestamp': 'enrichment_timestamp',
         'mentioned_entities': 'mentioned_entities',
