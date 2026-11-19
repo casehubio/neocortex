@@ -867,6 +867,7 @@ public final class CognitiveDerivationEngine {
         double ruleFollowingNumeric = axes != null
                                       ? RULE_FOLLOWING_NUMERIC.getOrDefault(lower(axes.ruleFollowing()), 0.5) : 0.5;
 
+        // Eysenck (1967): neuroticism amplifies negative affect sensitivity
         double fixation0 = defaults.fixationThreshold();
         ctx.base("fixationThreshold", fixation0);
         double fixation = fixation0
@@ -874,18 +875,21 @@ public final class CognitiveDerivationEngine {
                           - (emotionalLability - 0.5) * 0.1;
         ctx.mod(PersonalityFacet.ANXIOUSNESS, anxiousness, "fixationThreshold", fixation0, fixation);
 
+        // Roberts et al. (2014): self-regulation buffers against loss of control
         double conscientiousness = (ruleFollowingNumeric + 1.0 - impulsivity) / 2.0;
         double obsession0        = defaults.obsessionThreshold();
         ctx.base("obsessionThreshold", obsession0);
         double obsession = obsession0 + (conscientiousness - 0.5) * 0.15;
         ctx.mod(PersonalityFacet.IMPULSIVITY, impulsivity, "obsessionThreshold", obsession0, obsession);
 
+        // Nolen-Hoeksema (1991): social isolation amplifies circular thinking
         double isolation   = (withdrawal + intimacyAvoidance) / 2.0;
         double rumination0 = defaults.ruminationThreshold();
         ctx.base("ruminationThreshold", rumination0);
         double rumination = rumination0 - (isolation - 0.5) * 0.15;
         ctx.mod(PersonalityFacet.WITHDRAWAL, withdrawal, "ruminationThreshold", rumination0, rumination);
 
+        // DeYoung (2015): open individuals shift attention more fluidly
         double openness       = (1.0 - withdrawal + 1.0 - suspiciousness + riskTaking) / 3.0;
         int    recurrenceDays = (int) Math.round(7.0 + (openness - 0.5) * 4.0);
 
@@ -950,6 +954,8 @@ public final class CognitiveDerivationEngine {
 
         var styles = new HashMap<String, String>();
 
+        // McAdams (2001) Level 2 characteristic adaptations: same trait produces
+        // different behavioral signatures depending on co-occurring traits
         if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isHigh(facets, PersonalityFacet.CALLOUSNESS)) {
             styles.put("triumph", "public, theatrical, needs audience to witness");
         } else if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isLow(facets, PersonalityFacet.CALLOUSNESS)) {
@@ -958,6 +964,8 @@ public final class CognitiveDerivationEngine {
             styles.put("triumph", "private, quiet satisfaction, deflects credit");
         }
 
+        // Paulhus & Williams (2002) Dark Triad: convergence of narcissism, psychopathy,
+        // Machiavellianism predicts schadenfreude and dominance displays
         if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isHigh(facets, PersonalityFacet.CALLOUSNESS)
             && isHigh(facets, PersonalityFacet.MANIPULATIVENESS)) {
             styles.put("gloating", "savoring, deliberate, wants the other to know");
@@ -967,6 +975,7 @@ public final class CognitiveDerivationEngine {
             styles.put("gloating", "uncomfortable with others' misfortune, suppresses it");
         }
 
+        // Mischel & Shoda (1995) CAPS: if-then profiles predict situation-specific strategy selection
         if (isHigh(facets, PersonalityFacet.MANIPULATIVENESS) && isHigh(facets, PersonalityFacet.SUSPICIOUSNESS)) {
             styles.put("scheming", "elaborate, multi-step, assumes others are doing the same");
         } else if (isHigh(facets, PersonalityFacet.MANIPULATIVENESS) && isLow(facets, PersonalityFacet.SUSPICIOUSNESS)) {
@@ -975,6 +984,8 @@ public final class CognitiveDerivationEngine {
             styles.put("scheming", "transparent, prefers direct negotiation");
         }
 
+        // Krueger et al. (2012) AMPD: Grandiosity facet reflects both compensatory
+        // and genuine self-enhancement depending on co-occurring Negative Affectivity
         if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isHigh(facets, PersonalityFacet.HOSTILITY)) {
             styles.put("proving-worth", "combative, proving through dominance and comparison");
         } else if (isHigh(facets, PersonalityFacet.GRANDIOSITY) && isLow(facets, PersonalityFacet.HOSTILITY)) {
@@ -983,6 +994,8 @@ public final class CognitiveDerivationEngine {
             styles.put("proving-worth", "quiet competence, lets work speak, uncomfortable with praise");
         }
 
+        // Costa & McCrae (1992) FFM: high Agreeableness (low AMPD Antagonism) predicts
+        // prosocial helping motivated by empathic concern vs. reciprocity expectations
         if (isLow(facets, PersonalityFacet.CALLOUSNESS) && isLow(facets, PersonalityFacet.SUSPICIOUSNESS)) {
             styles.put("gallantry", "genuine, protective, feels others' vulnerability");
         } else if (isLow(facets, PersonalityFacet.CALLOUSNESS) && isHigh(facets, PersonalityFacet.SUSPICIOUSNESS)) {
@@ -991,6 +1004,8 @@ public final class CognitiveDerivationEngine {
             styles.put("gallantry", "instrumental, helps when it serves a purpose");
         }
 
+        // Krueger et al. (2012): Suspiciousness loads on both Detachment and Psychoticism,
+        // co-occurring Hostility shifts from avoidant vigilance to aggressive preemption
         if (isHigh(facets, PersonalityFacet.SUSPICIOUSNESS) && isHigh(facets, PersonalityFacet.HOSTILITY)) {
             styles.put("distrust", "aggressive vigilance, reads threats into neutral behavior");
         } else if (isHigh(facets, PersonalityFacet.SUSPICIOUSNESS) && isLow(facets, PersonalityFacet.HOSTILITY)) {
@@ -999,6 +1014,8 @@ public final class CognitiveDerivationEngine {
             styles.put("distrust", "trusts by default, slow to suspect");
         }
 
+        // Patrick et al. (2009) Triarchic: boldness + meanness interaction
+        // determines whether resource defense is proactive or reactive
         if (isHigh(facets, PersonalityFacet.HOSTILITY) && isHigh(facets, PersonalityFacet.RISK_TAKING)) {
             styles.put("territorial", "aggressive, preemptive, expands boundaries");
         } else if (isHigh(facets, PersonalityFacet.HOSTILITY) && isLow(facets, PersonalityFacet.RISK_TAKING)) {
@@ -1018,6 +1035,15 @@ public final class CognitiveDerivationEngine {
             "strict", 0.8, "moderate", 0.5, "flexible", 0.2
     );
 
+    /**
+     * Derives personality-modulated search budget from PID-5 facets and
+     * disposition axes. Each parameter mapping traces to published findings.
+     * <p>
+     * Breadth ← connectiveBias + Risk Taking (DeYoung 2015, Grajzel et al. 2023 r=0.20 DT).
+     * Laterality ← low Withdrawal + low Intimacy Avoidance + low Suspiciousness (DeYoung 2015).
+     * Depth ← ruleFollowing + low Impulsivity (Krueger et al. 2012 PID-5 dimensional alignment).
+     * Convergence ← ruleFollowing modulated by Anxiousness + Emotional Lability (Davis &amp; Nolen-Hoeksema 1998).
+     */
     static SearchBudgetConfig deriveSearchBudgetDefaults(
             List<PersonalityFacet> facets, DispositionAxes axes, double connectiveBias) {
         return deriveSearchBudgetDefaults(facets, axes, connectiveBias, Ctx.NOOP);
