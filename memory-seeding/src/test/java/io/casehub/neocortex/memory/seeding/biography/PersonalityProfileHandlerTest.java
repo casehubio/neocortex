@@ -152,6 +152,23 @@ class PersonalityProfileHandlerTest {
         assertThat(node.properties().keySet().stream().filter(k -> k.startsWith("situational-")).toList()).isEmpty();
     }
 
+    @Test
+    void writesPhaseSalienceProperties() {
+        var store = new InMemoryMindMapStore();
+        var sgId  = BiographyUtils.ensureSubgraph(store, SubgraphTypes.PERSON, TENANT);
+        store.addNode(NodeInput.of("Frida Kahlo", sgId).withProvenance("test"), TENANT);
+
+        var handler = new PersonalityProfileHandler(store, true);
+        handler.handle(buildProfileWithPhaseSalience(), AGENT, TENANT);
+
+        var node = store.resolveNode("Frida Kahlo", sgId, TENANT);
+        assertThat(node.properties()).containsEntry("archetype-1-salience-childhood", "0.8");
+        assertThat(node.properties()).containsEntry("archetype-1-salience-adulthood", "0.4");
+        assertThat(node.properties()).doesNotContainKey("archetype-1-salience-adolescence");
+        assertThat(node.properties()).containsEntry("archetype-2-salience-childhood", "0.15");
+    }
+
+
     private BiographyProfile buildProfileWithSituational() {
         var existing = buildProfile().personalityProfiles().getFirst();
 
@@ -216,5 +233,30 @@ class PersonalityProfileHandlerTest {
             List.of(), List.of(), List.of(), List.of(),
             List.of(), List.of(), List.of(), List.of(),
             List.of(entry), List.of());
+    }
+
+    private BiographyProfile buildProfileWithPhaseSalience() {
+        var archetypes = List.of(
+                new PersonalityProfileEntry.ArchetypeSelection(1, "creator", "artist",
+                                                               List.of("expressive"), "created from truth", 0.9,
+                                                               List.of(
+                                                                       new PersonalityProfileEntry.PhaseSalience("childhood", 0.8, "childhood evidence"),
+                                                                       new PersonalityProfileEntry.PhaseSalience("adulthood", 0.4, "adulthood evidence")
+                                                                      )),
+                new PersonalityProfileEntry.ArchetypeSelection(2, "rebel", "activist",
+                                                               List.of("passionate"), "political activism", 0.85,
+                                                               List.of(
+                                                                       new PersonalityProfileEntry.PhaseSalience("childhood", 0.15, "early rebel signs")
+                                                                      ))
+                                );
+
+        var entry = new PersonalityProfileEntry("pp-1", "Frida Kahlo",
+                                                null, archetypes, null, null, List.of(), List.of());
+
+        return new BiographyProfile(AGENT, TENANT,
+                                    List.of(), List.of(), List.of(), List.of(),
+                                    List.of(), List.of(), List.of(), List.of(),
+                                    List.of(), List.of(), List.of(), List.of(),
+                                    List.of(entry), List.of());
     }
 }

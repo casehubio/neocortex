@@ -103,15 +103,30 @@ public record PersonalityProfileEntry(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ArchetypeSelection(
-        Integer rank, String family,
-        @JsonProperty("sub_archetype") String subArchetype,
-        List<String> adjectives,
-        String evidence, Double confidence
+            Integer rank, String family,
+            @JsonProperty("sub_archetype") String subArchetype,
+            List<String> adjectives,
+            String evidence, Double confidence,
+            @JsonProperty("phase_salience") List<PhaseSalience> phaseSalience
     ) {
         public ArchetypeSelection {
-            adjectives = adjectives != null ? List.copyOf(adjectives) : List.of();
+            adjectives    = adjectives != null ? List.copyOf(adjectives) : List.of();
+            phaseSalience = phaseSalience != null ? List.copyOf(phaseSalience) : List.of();
+        }
+
+        public ArchetypeSelection(Integer rank, String family, String subArchetype,
+                                  List<String> adjectives, String evidence, Double confidence) {
+            this(rank, family, subArchetype, adjectives, evidence, confidence, List.of());
         }
     }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public record PhaseSalience(
+            String phase,
+            Double salience,
+            String evidence
+    ) {}
+
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Disposition(

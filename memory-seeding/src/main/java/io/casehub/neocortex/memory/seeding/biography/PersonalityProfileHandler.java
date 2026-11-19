@@ -119,6 +119,11 @@ public class PersonalityProfileHandler implements BiographyHandler {
             if (!arch.adjectives().isEmpty()) {
                 props.put(prefix + "-adjectives", String.join(",", arch.adjectives()));
             }
+            for (var ps : arch.phaseSalience()) {
+                if (ps.phase() != null && ps.salience() != null) {
+                    props.put(prefix + "-salience-" + ps.phase(), String.valueOf(ps.salience()));
+                }
+            }
         }
     }
 
