@@ -47,8 +47,10 @@ public class ConsolidationScheduler {
     private final CognitiveAttentionAccumulator attentionAccumulator;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
+    private final int maxStarvationIntervals;
     private int tickCount;
     private final java.util.Set<String> knownTenants = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final java.util.concurrent.ConcurrentHashMap<String, Integer> lastRunTick = new java.util.concurrent.ConcurrentHashMap<>();
     private volatile ScheduledExecutorService executor;
     private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
     private volatile io.casehub.neocortex.cognition.journal.CognitiveJournal cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
@@ -64,7 +66,9 @@ public class ConsolidationScheduler {
                            Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal> cognitiveJournal,
                            Instance<io.casehub.platform.agent.session.SessionPipeline> sessionPipelineInstance,
                            @ConfigProperty(name = "casehub.mindmap.consolidation.interval-minutes",
-                                           defaultValue = "5") long intervalMinutes) {
+                                           defaultValue = "5") long intervalMinutes,
+                           @ConfigProperty(name = "casehub.mindmap.consolidation.max-starvation-intervals",
+                                           defaultValue = "6") int maxStarvationIntervals) {
         this(phases.stream()
                    .sorted(Comparator.comparingInt(p -> {
                        for (Class<?> c = p.getClass(); c != null; c = c.getSuperclass()) {
@@ -79,7 +83,8 @@ public class ConsolidationScheduler {
              completionEvent::fire,
              intervalMinutes,
              significanceAccumulator.isResolvable() ? significanceAccumulator.get() : null,
-             attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null);
+             attentionAccumulator.isResolvable() ? attentionAccumulator.get() : null,
+             maxStarvationIntervals);
         if (cognitiveJournal.isResolvable()) {
             this.cognitiveJournal = cognitiveJournal.get();
         }
@@ -96,6 +101,19 @@ public class ConsolidationScheduler {
                            long intervalMinutes,
                            SignificanceAccumulator significanceAccumulator,
                            CognitiveAttentionAccumulator attentionAccumulator) {
+        this(phases, idleTracker, memoryStore, curiosityGenerator, completionSink,
+             intervalMinutes, significanceAccumulator, attentionAccumulator, 6);
+    }
+
+    ConsolidationScheduler(List<ConsolidationPhase> phases,
+                           IdleTracker idleTracker,
+                           CaseMemoryStore memoryStore,
+                           CuriositySignalGenerator curiosityGenerator,
+                           Consumer<ConsolidationCompleted> completionSink,
+                           long intervalMinutes,
+                           SignificanceAccumulator significanceAccumulator,
+                           CognitiveAttentionAccumulator attentionAccumulator,
+                           int maxStarvationIntervals) {
         this.phases = phases;
         this.idleTracker = idleTracker;
         this.memoryStore = memoryStore;
@@ -104,17 +122,19 @@ public class ConsolidationScheduler {
         this.intervalMinutes = intervalMinutes;
         this.significanceAccumulator = significanceAccumulator;
         this.attentionAccumulator = attentionAccumulator;
+        this.maxStarvationIntervals = maxStarvationIntervals;
     }
 
     ConsolidationScheduler(List<ConsolidationPhase> phases,
                            IdleTracker idleTracker,
                            CaseMemoryStore memoryStore,
                            CuriositySignalGenerator curiosityGenerator) {
-        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5, null, null);
+        this(phases, idleTracker, memoryStore, curiosityGenerator, e -> {}, 5, null, null, 6);
     }
 
     @PostConstruct
     void start() {
+        seedTenantsFromStore();
         executor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "consolidation-scheduler");
             t.setDaemon(true);
@@ -142,12 +162,22 @@ public class ConsolidationScheduler {
         try {
             if (!lock.tryLock()) {return;}
             try {
-                if (!idleTracker.isIdle(Duration.ofMinutes(1))) {return;}
                 if (knownTenants.isEmpty()) {return;}
                 tickCount++;
+                boolean idle = idleTracker.isIdle(Duration.ofMinutes(1));
+                List<String> tenantsToRun;
+                if (idle) {
+                    tenantsToRun = List.copyOf(knownTenants);
+                } else {
+                    tenantsToRun = knownTenants.stream()
+                            .filter(t -> tickCount - lastRunTick.getOrDefault(t, 0) >= maxStarvationIntervals)
+                            .toList();
+                    if (tenantsToRun.isEmpty()) {return;}
+                }
                 beginTickAllPhases();
-                for (String tenantId : knownTenants) {
+                for (String tenantId : tenantsToRun) {
                     runPhases(tenantId);
+                    lastRunTick.put(tenantId, tickCount);
                 }
             } finally {
                 lock.unlock();
@@ -166,6 +196,23 @@ public class ConsolidationScheduler {
         }
     }
 
+    public void registerTenant(String tenantId) {
+        knownTenants.add(tenantId);
+    }
+
+    public void seedTenantsFromStore() {
+        try {
+            var tenants = memoryStore.discoverTenants(null, null);
+            knownTenants.addAll(tenants);
+            if (!tenants.isEmpty()) {
+                LOG.info("Seeded " + tenants.size() + " tenant(s) from memory store");
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to seed tenants from memory store", e);
+        }
+    }
+
+
     private void runConsolidation(String tenantId) {
         if (!lock.tryLock()) {
             LOG.info("Consolidation already running — skipping on-demand request for " + tenantId);
@@ -175,6 +222,7 @@ public class ConsolidationScheduler {
             tickCount++;
             beginTickAllPhases();
             runPhases(tenantId);
+            lastRunTick.put(tenantId, tickCount);
         } finally {
             lock.unlock();
         }

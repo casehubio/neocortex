@@ -527,5 +527,72 @@ class ConsolidationSchedulerTest {
         assertThat(consolidated.get(1).eventRef().toString()).isEqualTo("consolidation:tick:2");
     }
 
+    @Test
+    void registerTenant_makesKnownWithoutRunningPhases() {
+        var testScheduler = new ConsolidationScheduler(
+                List.of(new ConsolidationPhase() {
+                    @Override
+                    public String name() {return "tracked";}
+
+                    @Override
+                    public void run(String tenantId, java.util.List<String> sp) {
+                        executedPhases.add("tracked:" + tenantId);
+                    }
+                }), idleTracker, memoryStore, null);
+
+        testScheduler.registerTenant("tenant-2");
+
+        assertThat(executedPhases).isEmpty();
+
+        testScheduler.tick();
+        assertThat(executedPhases).containsExactly("tracked:tenant-2");
+    }
+
+    @Test
+    void tick_whenNotIdle_runsStarvedTenants() {
+        var testScheduler = new ConsolidationScheduler(
+                List.of(new ConsolidationPhase() {
+                    @Override
+                    public String name() {return "starved";}
+
+                    @Override
+                    public void run(String tenantId, java.util.List<String> sp) {
+                        executedPhases.add("starved:" + tenantId);
+                    }
+                }), idleTracker, memoryStore, null, e -> {}, 5, null, null, 3);
+
+        testScheduler.registerTenant("tenant-1");
+
+        idleTracker.recordWrite();
+        testScheduler.tick();
+        assertThat(executedPhases).as("first tick while busy — not starved yet").isEmpty();
+
+        testScheduler.tick();
+        assertThat(executedPhases).as("second tick while busy — not starved yet").isEmpty();
+
+        testScheduler.tick();
+        assertThat(executedPhases).as("third tick while busy — now starved, should run")
+                                  .containsExactly("starved:tenant-1");
+    }
+
+    @Test
+    void seedTenantsFromStore_populatesKnownTenants() {
+        var testScheduler = new ConsolidationScheduler(
+                List.of(new ConsolidationPhase() {
+                    @Override
+                    public String name() {return "seeded";}
+
+                    @Override
+                    public void run(String tenantId, java.util.List<String> sp) {
+                        executedPhases.add("seeded:" + tenantId);
+                    }
+                }), idleTracker, memoryStore, null);
+
+        testScheduler.seedTenantsFromStore();
+
+        testScheduler.tick();
+        assertThat(executedPhases).containsExactly("seeded:tenant-1");
+    }
+
 
 }
