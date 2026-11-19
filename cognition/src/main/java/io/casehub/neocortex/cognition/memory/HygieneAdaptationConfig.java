@@ -22,4 +22,10 @@ public interface HygieneAdaptationConfig {
 
     @WithDefault("0.5")
     double maxRetentionThreshold();
+
+    @WithDefault("3")
+    int stabilityThreshold();
+
+    @WithDefault("0.3")
+    double cbrMinSimilarity();
 }
