@@ -223,8 +223,6 @@ public class CognitionService implements CognitionApi {
     }
 
     private static final String REGULATION_COGNITIVE_KIND     = "emotion-regulation-result";
-    private static final double DEFAULT_MISCALIBRATION_MARGIN = 0.15;
-
     @Override
     public PredictionCalibrationResult calibration(String tenancyId, String agentId, Integer minEpisodes) {
         if (store == null || agentId == null) {return null;}
@@ -248,46 +246,22 @@ public class CognitionService implements CognitionApi {
             } catch (NumberFormatException ignored) {}
         }
 
-        var sourceSummaries = new java.util.ArrayList<PredictionCalibrationResult.SourceSummary>();
-        var summaryByName   = new java.util.HashMap<String, PredictionCalibrationResult.SourceSummary>();
+        var summaries = new java.util.HashMap<String, io.casehub.neocortex.cognition.regulation.SourceOutcomeSummary>();
         for (var entry : bySource.entrySet()) {
-            var    scores  = entry.getValue();
-            double mean    = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-            var    summary = new PredictionCalibrationResult.SourceSummary(entry.getKey(), scores.size(), mean);
-            sourceSummaries.add(summary);
-            summaryByName.put(entry.getKey(), summary);
+            var    scores = entry.getValue();
+            double mean   = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            summaries.put(entry.getKey(), new io.casehub.neocortex.cognition.regulation.SourceOutcomeSummary(
+                    entry.getKey(), scores.size(), mean));
         }
 
-        var    predictor         = summaryByName.get("PREDICTOR");
-        var    llm               = summaryByName.get("LLM");
-        int    predictorEpisodes = predictor != null ? predictor.episodeCount() : 0;
-        int    llmEpisodes       = llm != null ? llm.episodeCount() : 0;
-        int    totalEpisodes     = sourceSummaries.stream().mapToInt(PredictionCalibrationResult.SourceSummary::episodeCount).sum();
-        double predictorMean     = predictor != null ? predictor.meanEffectiveness() : 0.0;
-        double llmMean           = llm != null ? llm.meanEffectiveness() : 0.0;
-        double delta             = predictorMean - llmMean;
+        var report = io.casehub.neocortex.cognition.regulation.PredictionCalibrationAnalyzer.analyze(summaries, min);
 
-        if (predictorEpisodes < min || llmEpisodes < min) {
-            String reason;
-            if (predictorEpisodes == 0 && llmEpisodes == 0) {
-                reason = "No PREDICTOR or LLM episodes";
-            } else if (predictorEpisodes < min && llmEpisodes < min) {
-                reason = "Insufficient PREDICTOR (%d) and LLM (%d) episodes (min %d)"
-                                 .formatted(predictorEpisodes, llmEpisodes, min);
-            } else if (predictorEpisodes < min) {
-                reason = "Insufficient PREDICTOR episodes (%d, min %d)"
-                                 .formatted(predictorEpisodes, min);
-            } else {
-                reason = "Insufficient LLM episodes (%d, min %d)"
-                                 .formatted(llmEpisodes, min);
-            }
-            return new PredictionCalibrationResult(sourceSummaries, predictorEpisodes, llmEpisodes,
-                                                   totalEpisodes, predictorMean, llmMean, delta, false, true, reason);
-        }
-
-        boolean miscalibrated = delta < -DEFAULT_MISCALIBRATION_MARGIN;
-        return new PredictionCalibrationResult(sourceSummaries, predictorEpisodes, llmEpisodes,
-                                               totalEpisodes, predictorMean, llmMean, delta, miscalibrated, false, null);
+        var apiSummaries = report.sourceSummaries().values().stream()
+                .map(s -> new PredictionCalibrationResult.SourceSummary(s.source(), s.episodeCount(), s.meanEffectiveness()))
+                .toList();
+        return new PredictionCalibrationResult(apiSummaries, report.predictorEpisodes(), report.llmEpisodes(),
+                report.totalEpisodes(), report.predictorMeanEffectiveness(), report.llmMeanEffectiveness(),
+                report.delta(), report.miscalibrated(), report.inconclusive(), report.inconclusiveReason());
     }
 
 

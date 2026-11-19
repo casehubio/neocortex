@@ -1,7 +1,5 @@
 package io.casehub.neocortex.cognition.regulation;
 
-import io.casehub.neocortex.cognition.regulation.EmotionRegulationMindMapAdapter.SourceOutcomeSummary;
-
 import java.util.Map;
 
 public final class PredictionCalibrationAnalyzer {

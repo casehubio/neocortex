@@ -99,8 +99,6 @@ public final class EmotionRegulationMindMapAdapter {
                 .toList();
     }
 
-    public record SourceOutcomeSummary(String source, int episodeCount, double meanEffectiveness) {}
-
     public static java.util.Map<String, SourceOutcomeSummary> loadOutcomeSummaryBySource(
             MindMapStore store, String agentId, String tenantId, int episodeLimit) {
         var nodes = store.search(MindMapQuery.of(tenantId, episodeLimit).withType(SubgraphTypes.COGNITIVE))
