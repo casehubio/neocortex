@@ -1,6 +1,7 @@
 package io.casehub.neocortex.cognition.memory;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,5 +28,9 @@ public class AdaptiveRetentionConfig implements RetentionConfigSupplier {
 
     public void update(String tenantId, RetentionConfig newConfig) {
         tenantConfigs.put(tenantId, newConfig);
+    }
+
+    public void evictAbsent(Set<String> activeTenantIds) {
+        tenantConfigs.keySet().retainAll(activeTenantIds);
     }
 }

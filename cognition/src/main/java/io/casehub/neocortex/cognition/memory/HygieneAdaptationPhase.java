@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -27,6 +28,9 @@ public class HygieneAdaptationPhase implements ConsolidationPhase {
             new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, RetentionConfig> previousConfigs =
             new ConcurrentHashMap<>();
+    private final Set<String> activeTenants =
+            ConcurrentHashMap.newKeySet();
+
 
     public HygieneAdaptationPhase(
             MemoryHygieneOrchestrator hygieneOrchestrator,
@@ -54,7 +58,19 @@ public class HygieneAdaptationPhase implements ConsolidationPhase {
     }
 
     @Override
+    public void beginTick() {
+        if (!activeTenants.isEmpty()) {
+            adaptiveConfig.evictAbsent(activeTenants);
+            previousSummaries.keySet().retainAll(activeTenants);
+            previousConfigs.keySet().retainAll(activeTenants);
+        }
+        activeTenants.clear();
+    }
+
+
+    @Override
     public void run(String tenantId, List<String> subgraphPriority) {
+        activeTenants.add(tenantId);
         var currentSummary = hygieneOrchestrator.tenantGapSummary(tenantId);
         if (currentSummary.totalScored() == 0) {return;}
 

@@ -188,6 +188,34 @@ class HygieneAdaptationPhaseTest {
                 .isEqualTo(RetentionConfig.DEFAULT);
     }
 
+    @Test
+    void beginTickEvictsTenantsNotSeenInPreviousCycle() {
+        orchestrator.setTenantSummary("t1",
+                                      new KnowledgeGapSummary(40, 2, 100));
+        orchestrator.setTenantSummary("t2",
+                                      new KnowledgeGapSummary(2, 1, 100));
+        phase.run("t1", List.of());
+        phase.run("t2", List.of());
+        phase.run("t1", List.of());
+        phase.run("t2", List.of());
+
+        assertThat(adaptiveConfig.current("t1").retentionThreshold())
+                .isNotEqualTo(RetentionConfig.DEFAULT.retentionThreshold());
+        assertThat(adaptiveConfig.current("t2").retentionThreshold())
+                .isNotEqualTo(RetentionConfig.DEFAULT.retentionThreshold());
+
+        phase.beginTick();
+        phase.run("t1", List.of());
+
+        phase.beginTick();
+        phase.run("t1", List.of());
+
+        assertThat(adaptiveConfig.current("t1").retentionThreshold())
+                .isNotEqualTo(RetentionConfig.DEFAULT.retentionThreshold());
+        assertThat(adaptiveConfig.current("t2"))
+                .isEqualTo(RetentionConfig.DEFAULT);
+    }
+
 
     // --- Test doubles ---
 
