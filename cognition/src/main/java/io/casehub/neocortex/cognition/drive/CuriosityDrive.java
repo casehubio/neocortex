@@ -7,25 +7,33 @@ import io.casehub.neocortex.mindmap.intelligence.InformationGapScore;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 
 public class CuriosityDrive implements DriveSource {
 
     private static final int                       TOP_N    = 5;
     private final        InformationGapDetector    gapDetector;
     private final        CuriosityChannelComputer  channelComputer;
-    private final        double                    deprivationBias;
+    private final        ToDoubleFunction<String>  deprivationBiasFor;
     private final        Supplier<Set<String>>     activeGoalNodeIds;
     private volatile     List<InformationGapScore> lastGaps = List.of();
     private volatile     CuriosityChannel          lastChannel;
 
     public CuriosityDrive(InformationGapDetector gapDetector,
                           CuriosityChannelComputer channelComputer,
+                          ToDoubleFunction<String> deprivationBiasFor,
+                          Supplier<Set<String>> activeGoalNodeIds) {
+        this.gapDetector        = gapDetector;
+        this.channelComputer    = channelComputer;
+        this.deprivationBiasFor = deprivationBiasFor;
+        this.activeGoalNodeIds  = activeGoalNodeIds;
+    }
+
+    public CuriosityDrive(InformationGapDetector gapDetector,
+                          CuriosityChannelComputer channelComputer,
                           double deprivationBias,
                           Supplier<Set<String>> activeGoalNodeIds) {
-        this.gapDetector       = gapDetector;
-        this.channelComputer   = channelComputer;
-        this.deprivationBias   = deprivationBias;
-        this.activeGoalNodeIds = activeGoalNodeIds;
+        this(gapDetector, channelComputer, agentId -> deprivationBias, activeGoalNodeIds);
     }
 
     public CuriosityDrive(InformationGapDetector gapDetector,
@@ -39,7 +47,7 @@ public class CuriosityDrive implements DriveSource {
         var goals = activeGoalNodeIds.get();
         var gaps = gapDetector.detectGaps(tenantId, goals.isEmpty() ? null : goals);
         this.lastGaps    = gaps;
-        this.lastChannel = channelComputer.compute(gaps, deprivationBias);
+        this.lastChannel = channelComputer.compute(gaps, deprivationBiasFor.applyAsDouble(agentId));
 
         if (gaps.isEmpty()) {
             return new DriveIntensity(DriveAxis.CURIOSITY, 0.0, "no knowledge gaps");

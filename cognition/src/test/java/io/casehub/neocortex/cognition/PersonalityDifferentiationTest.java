@@ -141,6 +141,56 @@ class PersonalityDifferentiationTest {
         assertThat(openPrompt).isNotEqualTo(cautiousPrompt);
     }
 
+    @Test
+    void curiosityChannelDivergesOnHedonicType() {
+        var openView = new DescriptorView("open", OPEN_AXES,
+                                          List.of(new WeightedTerm("ne", 0.5), new WeightedTerm("se", 0.5)),
+                                          List.of(), null, OPEN_FACETS);
+        var cautiousView = new DescriptorView("cautious", CAUTIOUS_AXES,
+                                              List.of(new WeightedTerm("si", 0.5), new WeightedTerm("te", 0.5)),
+                                              List.of(), null, CAUTIOUS_FACETS);
+
+        var openDefaults     = CognitiveDerivationEngine.derive(openView);
+        var cautiousDefaults = CognitiveDerivationEngine.derive(cautiousView);
+
+        var store = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var subgraphId = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("General",
+                                                               io.casehub.neocortex.mindmap.SubgraphTypes.GENERAL, null), TENANT);
+        var nodeIds = new java.util.ArrayList<String>();
+        for (int i = 0; i < 5; i++) {
+            nodeIds.add(store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("topic-" + i, subgraphId)
+                    .withConfidence(new io.casehub.neocortex.cognitive.Confidence(
+                            io.casehub.neocortex.cognitive.ConfidenceOrigin.INFERRED, 0.4, null)), TENANT));
+        }
+        for (int i = 1; i < nodeIds.size(); i++) {
+            store.addEdge(io.casehub.neocortex.mindmap.EdgeInput.of(
+                    nodeIds.get(i), nodeIds.get(0), "related"), TENANT);
+        }
+
+        var harness = CognitionTestHarness.builder()
+                                          .withMindMapStore(store)
+                                          .agentFromDefaults("open", openDefaults)
+                                          .agentFromDefaults("cautious", cautiousDefaults)
+                                          .build();
+
+        harness.observe("open", TENANT, "someone shared an unexpected idea");
+        harness.tick("open", TENANT);
+        var openChannel = harness.lastChannel("open");
+
+        harness.observe("cautious", TENANT, "someone shared an unexpected idea");
+        harness.tick("cautious", TENANT);
+        var cautiousChannel = harness.lastChannel("cautious");
+
+        assertThat(openChannel).as("open agent should have non-null channel").isNotNull();
+        assertThat(cautiousChannel).as("cautious agent should have non-null channel").isNotNull();
+
+        assertThat(openChannel.hedonic())
+                .as("open (anxiousness=0.2) should be I_TYPE, cautious (anxiousness=0.85) should be D_TYPE")
+                .isNotEqualTo(cautiousChannel.hedonic());
+    }
+
+
     private static CopingDefaults deriveCopingDefaults(String agentId,
                                                         DispositionAxes axes,
                                                         List<PersonalityFacet> facets) {

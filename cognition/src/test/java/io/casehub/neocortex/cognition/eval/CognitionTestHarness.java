@@ -353,7 +353,21 @@ public class CognitionTestHarness {
 
             var gapDetector     = new InformationGapDetector(store);
             var channelComputer = new CuriosityChannelComputer();
-            var curiosityDrive  = new CuriosityDrive(gapDetector, channelComputer, 0.5, goalNodeIds);
+            java.util.function.ToDoubleFunction<String> biasLookup = agentId -> {
+                var defaults = agentDefaults.get(agentId);
+                if (defaults != null && defaults.personalityProfile() != null) {
+                    var facets = defaults.personalityProfile().facets();
+                    if (facets != null) {
+                        return facets.stream()
+                                .filter(f -> "Anxiousness".equals(f.facet()))
+                                .findFirst()
+                                .map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score)
+                                .orElse(0.5);
+                    }
+                }
+                return 0.5;
+            };
+            var curiosityDrive  = new CuriosityDrive(gapDetector, channelComputer, biasLookup, goalNodeIds);
 
             var driveOrchestrator = new DriveOrchestrator(
                     curiosityDrive,
