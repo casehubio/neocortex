@@ -14,21 +14,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ShadowArchetypePromptSectionTest {
 
     @Test
-    void rendersAffectiveModeWhenActive() {
+    void rendersAffectiveModeWithFacets() {
         var snapshot = new PipelineTrace.SituationalPersonalitySnapshot(
                 Map.of("STRESS", 0.72, "FLOW", 0.1),
-                "STRESS", null, Map.of("Anxiousness", 0.15), 1);
+                "STRESS", null, Map.of("anxiousness", 0.15, "emotional-lability", 0.12), 2);
 
         var section = new ShadowArchetypePromptSection((a, t) -> Optional.of(snapshot));
-        var ctx = new CognitionRenderContext("agent1", "t1", null, List.of());
+        var ctx     = new CognitionRenderContext("agent1", "t1", null, List.of());
 
         var text = section.render(ctx);
 
         assertThat(text).isNotNull();
         assertThat(text).contains("stress");
         assertThat(text).contains("72%");
-        assertThat(text).contains("1 personality trait has shifted");
-        assertThat(text).contains("do not comment on or explain it");
+        assertThat(text).contains("Anxiousness");
+        assertThat(text).contains("Emotional lability");
     }
 
     @Test
@@ -38,7 +38,7 @@ class ShadowArchetypePromptSectionTest {
                 null, "SOCIAL_COMPETITIVE", Map.of(), 0);
 
         var section = new ShadowArchetypePromptSection((a, t) -> Optional.of(snapshot));
-        var ctx = new CognitionRenderContext("agent1", "t1", null, List.of());
+        var ctx     = new CognitionRenderContext("agent1", "t1", null, List.of());
 
         var text = section.render(ctx);
 
@@ -49,7 +49,7 @@ class ShadowArchetypePromptSectionTest {
     @Test
     void returnsNullWhenNoSnapshotAvailable() {
         var section = new ShadowArchetypePromptSection((a, t) -> Optional.empty());
-        var ctx = new CognitionRenderContext("agent1", "t1", null, List.of());
+        var ctx     = new CognitionRenderContext("agent1", "t1", null, List.of());
 
         assertThat(section.render(ctx)).isNull();
     }
@@ -60,7 +60,7 @@ class ShadowArchetypePromptSectionTest {
                 Map.of("STRESS", 0.1), null, null, Map.of(), 0);
 
         var section = new ShadowArchetypePromptSection((a, t) -> Optional.of(snapshot));
-        var ctx = new CognitionRenderContext("agent1", "t1", null, List.of());
+        var ctx     = new CognitionRenderContext("agent1", "t1", null, List.of());
 
         assertThat(section.render(ctx)).isNull();
     }
@@ -69,5 +69,60 @@ class ShadowArchetypePromptSectionTest {
     void blockTagIsSituational() {
         var section = new ShadowArchetypePromptSection((a, t) -> Optional.empty());
         assertThat(section.blockTag()).isEqualTo(BlockTag.SITUATIONAL);
+    }
+
+    @Test
+    void rendersWithArchetypeAndStoreContext() {
+        var snapshot = new PipelineTrace.SituationalPersonalitySnapshot(
+                Map.of("STRESS", 0.72),
+                "STRESS", null,
+                Map.of("anxiousness", 0.15, "emotional-lability", 0.12,
+                       "hostility", 0.08, "grandiosity", 0.03),
+                3);
+        var store = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+        var personSgId = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput(
+                        "Person", io.casehub.neocortex.mindmap.SubgraphTypes.PERSON, null), "t1");
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("agent-1", personSgId)
+                                                            .withProperties(Map.of("archetype-1-family", "creator")), "t1");
+
+        java.util.Set<String> modeProfileFacets = java.util.Set.of("anxiousness", "emotional-lability");
+        var                   config            = ShadowFrameConfig.defaults();
+
+        var section = new ShadowArchetypePromptSection(
+                (a, t) -> Optional.of(snapshot),
+                store, config,
+                (agentId, tenantId, mode) -> modeProfileFacets);
+        var ctx    = new CognitionRenderContext("agent-1", "t1", null, List.of());
+        var result = section.render(ctx);
+
+        assertThat(result).isNotNull();
+        assertThat(result).contains("stress");
+        assertThat(result).contains("72%");
+        assertThat(result).contains("Anxiousness");
+        assertThat(result).contains("characteristic of this state");
+        assertThat(result).contains("Creator");
+        assertThat(result).doesNotContain("Grandiosity");
+    }
+
+    @Test
+    void modeCharacteristicFacetsAnnotated() {
+        var snapshot = new PipelineTrace.SituationalPersonalitySnapshot(
+                Map.of("STRESS", 0.72),
+                "STRESS", null,
+                Map.of("anxiousness", 0.15, "hostility", 0.08),
+                2);
+
+        java.util.Set<String> modeProfileFacets = java.util.Set.of("anxiousness");
+        var                   config            = ShadowFrameConfig.defaults();
+
+        var section = new ShadowArchetypePromptSection(
+                (a, t) -> Optional.of(snapshot),
+                null, config,
+                (agentId, tenantId, mode) -> modeProfileFacets);
+        var ctx    = new CognitionRenderContext("agent1", "t1", null, List.of());
+        var result = section.render(ctx);
+
+        assertThat(result).contains("characteristic of this state");
     }
 }

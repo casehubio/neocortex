@@ -823,7 +823,10 @@ private volatile @org.jspecify.annotations.Nullable CacheEvictionScheduler      
         }
         if (config.situationalPersonalityEnabled() && situationalPersonalityParticipant != null) {
             sections.add(new io.casehub.neocortex.cognition.situational.ShadowArchetypePromptSection(
-                    situationalPersonalityParticipant::currentSnapshot));
+                    situationalPersonalityParticipant::currentSnapshot,
+                    mindMapStore,
+                    io.casehub.neocortex.cognition.situational.ShadowFrameConfig.defaults(),
+                    null));
         }
         if (config.otherModelEnabled() && mindMapStore != null) {
             sections.add(new OtherModelPromptSection(mindMapStore));
