@@ -22,6 +22,9 @@ public interface ConsolidationPhase {
 
     default List<ConsolidationArtifact> artifacts() {return List.of();}
 
+    default int inputNodeCount()  { return 0; }
+    default int outputNodeCount() { return artifacts().size(); }
+
     default ConsolidationCapability capability()    {return ConsolidationCapability.empty();}
 
 }

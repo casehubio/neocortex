@@ -253,7 +253,8 @@ public List<MissingCapability> validateCapabilities(String tenantId,
                             tenantId, "_system",
                             io.casehub.neocortex.cognition.journal.EventRef.consolidation(
                                     io.casehub.neocortex.cognition.journal.EventRef.tick(tickCount)),
-                            Instant.now(), 0, phaseArtifacts.size(), elapsed, phase.name()));
+                            Instant.now(), phase.inputNodeCount(), phase.outputNodeCount(),
+                            elapsed, phase.name()));
                 } catch (Exception je) {
                     LOG.log(Level.WARNING, "Journal record failed for phase " + phase.name(), je);
                 }
