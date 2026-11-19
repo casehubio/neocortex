@@ -200,7 +200,7 @@ class EffectiveCognitiveDefaultsTest {
         var eff = effective.forAgent("t1", "agent-1");
         var anxFacet = eff.descriptor().personalityFacets().stream()
                 .filter(f -> f.facet().equals("Anxiousness")).findFirst().orElseThrow();
-        assertThat(anxFacet.origin()).isEqualTo("situational");
+        assertThat(anxFacet.origin()).isEqualTo("situational [usual 0.50]");
     }
 
     // --- Stubs ---
