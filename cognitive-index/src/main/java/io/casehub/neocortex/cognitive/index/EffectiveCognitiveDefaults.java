@@ -31,6 +31,8 @@ public class EffectiveCognitiveDefaults {
     private final PersonalityStateSource stateSource;
     private final ConcurrentHashMap<TenantAgentKey, Slot> slots = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<TenantAgentKey, AtomicLong> baseVersions = new ConcurrentHashMap<>();
+    private volatile java.util.function.Function<String, io.casehub.neocortex.cognitive.observability.DerivationObserver> derivationObserverFactory =
+            tenantId -> io.casehub.neocortex.cognitive.observability.DerivationObserver.NOOP;
 
     public EffectiveCognitiveDefaults(CognitiveDefaultsRegistry explicitLayer,
                                        DescriptorViewSource viewSource,
@@ -38,6 +40,10 @@ public class EffectiveCognitiveDefaults {
         this.explicitLayer = explicitLayer;
         this.viewSource = viewSource;
         this.stateSource = stateSource;
+    }
+
+    public void setDerivationObserverFactory(java.util.function.Function<String, io.casehub.neocortex.cognitive.observability.DerivationObserver> factory) {
+        this.derivationObserverFactory = factory;
     }
 
     public CognitiveDefaults forAgent(String tenantId, String agentId) {
@@ -158,8 +164,9 @@ public class EffectiveCognitiveDefaults {
         if (baseView != null && state != null && !state.facets().isEmpty()) {
             restingView = LivedComposition.compose(baseView, state, false);
         }
+        var observer = derivationObserverFactory.apply(key.tenantId());
         CognitiveDefaults restingDefaults = restingView != null
-                ? merge(explicit, CognitiveDerivationEngine.derive(restingView))
+                ? merge(explicit, CognitiveDerivationEngine.derive(restingView, observer))
                 : (explicit != null ? explicit : CognitiveDefaults.empty(key.agentId()));
 
         DescriptorView effectiveView = baseView;
@@ -167,7 +174,7 @@ public class EffectiveCognitiveDefaults {
             effectiveView = LivedComposition.compose(baseView, state, true);
         }
         CognitiveDefaults effectiveDefaults = effectiveView != null
-                ? merge(explicit, CognitiveDerivationEngine.derive(effectiveView))
+                ? merge(explicit, CognitiveDerivationEngine.derive(effectiveView, observer))
                 : restingDefaults;
 
         return new Slot(baseView, state,

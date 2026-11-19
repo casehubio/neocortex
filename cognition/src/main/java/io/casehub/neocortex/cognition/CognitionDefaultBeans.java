@@ -285,7 +285,8 @@ public class CognitionDefaultBeans {
     io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever cognitiveMemoryRetriever(
             Instance<io.casehub.neocortex.memory.CaseMemoryStore> memoryStore,
             io.casehub.neocortex.cognitive.index.RetrievalModulationConfig config,
-            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore) {
+            Instance<io.casehub.neocortex.mindmap.MindMapStore> mindMapStore,
+            Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal> cognitiveJournal) {
         if (!memoryStore.isResolvable()) {return null;}
         var staticFactors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
         var now = java.time.Instant.now();
@@ -320,8 +321,12 @@ public class CognitionDefaultBeans {
                 return new io.casehub.neocortex.cognitive.index.EntityOverlapModulationFactor(ctx.contextEntityNodeIds());
             });
         }
+        var recallObservers = new java.util.ArrayList<io.casehub.neocortex.cognitive.observability.MemoryRecallObserver>();
+        if (cognitiveJournal.isResolvable()) {
+            recallObservers.add(new io.casehub.neocortex.cognition.core.MemoryRecallJournalBridge(cognitiveJournal.get()));
+        }
         return new io.casehub.neocortex.cognitive.index.CognitiveMemoryRetriever(
-                memoryStore.get(), staticFactors, contextualFactories);
+                memoryStore.get(), staticFactors, contextualFactories, recallObservers);
     }
 
     @Produces

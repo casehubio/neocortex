@@ -110,7 +110,13 @@ public class CognitionCoreFactory {
                                               .sessionPipeline(resolve(sessionPipeline));
 
         if (effectiveDefaults.isResolvable()) {
-            builder.effectiveDefaults(effectiveDefaults.get());
+            var defaults = effectiveDefaults.get();
+            if (cognitiveJournal.isResolvable()) {
+                var journal = cognitiveJournal.get();
+                defaults.setDerivationObserverFactory(
+                        tenantId -> new DerivationJournalBridge(journal, tenantId));
+            }
+            builder.effectiveDefaults(defaults);
         }
         if (appraisalStrategy.isResolvable() && salienceStrategy.isResolvable()) {
             builder.appraisal(appraisalStrategy.get(), salienceStrategy.get());
