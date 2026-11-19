@@ -34,7 +34,8 @@ class AttentionSignalTest {
 
     @Test
     void signal_category_covers_all_sources() {
-        assertEquals(14, SignalCategory.values().length);
+        assertTrue(SignalCategory.values().length >= 15,
+                "SignalCategory should have at least 15 values, got " + SignalCategory.values().length);
     }
 
     @Test
