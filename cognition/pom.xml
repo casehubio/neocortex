@@ -168,6 +168,11 @@
       <artifactId>casehub-eidos-memory</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.casehub</groupId>
+      <artifactId>casehub-neocortex-caps-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

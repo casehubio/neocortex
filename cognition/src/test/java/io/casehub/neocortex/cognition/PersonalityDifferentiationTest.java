@@ -190,6 +190,105 @@ class PersonalityDifferentiationTest {
                 .isNotEqualTo(cautiousChannel.hedonic());
     }
 
+    @Test
+    void behavioralAttractorsDivergeAfterConsolidation() {
+        var openView = new DescriptorView("open", OPEN_AXES,
+                                          List.of(new WeightedTerm("ne", 0.5), new WeightedTerm("se", 0.5)),
+                                          List.of(), null, OPEN_FACETS);
+        var cautiousView = new DescriptorView("cautious", CAUTIOUS_AXES,
+                                              List.of(new WeightedTerm("si", 0.5), new WeightedTerm("te", 0.5)),
+                                              List.of(), null, CAUTIOUS_FACETS);
+
+        var openDefaults     = CognitiveDerivationEngine.derive(openView);
+        var cautiousDefaults = CognitiveDerivationEngine.derive(cautiousView);
+
+        var store = new io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore();
+
+        var cogSgId = store.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput("Cognitive",
+                                                               io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE, null), TENANT);
+
+        for (String agentId : List.of("open", "cautious")) {
+            for (int i = 0; i < 5; i++) {
+                store.addNode(
+                        io.casehub.neocortex.mindmap.NodeInput.of("experience-" + agentId + "-" + i, cogSgId)
+                                                              .withProperties(java.util.Map.of(
+                                                                      "source-memory-id", "mem-" + agentId + "-" + i,
+                                                                      "agent-id", agentId,
+                                                                      "event-type", "observation")),
+                        TENANT);
+            }
+        }
+
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("drive-adventure-open", cogSgId)
+                                                            .withProperties(java.util.Map.of(
+                                                                    "cognitiveKind", "drive-intensity", "agent-id", "open",
+                                                                    "drive-type", "adventure", "intensity", "0.9")), TENANT);
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("drive-curiosity-open", cogSgId)
+                                                            .withProperties(java.util.Map.of(
+                                                                    "cognitiveKind", "drive-intensity", "agent-id", "open",
+                                                                    "drive-type", "curiosity", "intensity", "0.8")), TENANT);
+
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("drive-suspicion-cautious", cogSgId)
+                                                            .withProperties(java.util.Map.of(
+                                                                    "cognitiveKind", "drive-intensity", "agent-id", "cautious",
+                                                                    "drive-type", "suspicion", "intensity", "0.9")), TENANT);
+        store.addNode(io.casehub.neocortex.mindmap.NodeInput.of("drive-self-preservation-cautious", cogSgId)
+                                                            .withProperties(java.util.Map.of(
+                                                                    "cognitiveKind", "drive-intensity", "agent-id", "cautious",
+                                                                    "drive-type", "self-preservation", "intensity", "0.8")), TENANT);
+
+        var harness = CognitionTestHarness.builder()
+                                          .withMindMapStore(store)
+                                          .agentFromDefaults("open", openDefaults)
+                                          .agentFromDefaults("cautious", cautiousDefaults)
+                                          .withBehavioralSynthesis(true)
+                                          .build();
+
+        harness.consolidate("open", TENANT);
+
+        var openResult     = harness.capsSettlingResult("open", TENANT);
+        var cautiousResult = harness.capsSettlingResult("cautious", TENANT);
+
+        assertThat(openResult).as("open agent should have settling result").isPresent();
+        assertThat(cautiousResult).as("cautious agent should have settling result").isPresent();
+
+        var openAttractors     = openResult.get().attractors();
+        var cautiousAttractors = cautiousResult.get().attractors();
+
+        assertThat(openAttractors).as("open agent should have attractors").isNotEmpty();
+        assertThat(cautiousAttractors).as("cautious agent should have attractors").isNotEmpty();
+
+        var openByCategory = openAttractors.stream()
+                                           .collect(java.util.stream.Collectors.toMap(
+                                                   io.casehub.neocortex.caps.CapsAttractor::category,
+                                                   io.casehub.neocortex.caps.CapsAttractor::strength,
+                                                   Math::max));
+        var cautiousByCategory = cautiousAttractors.stream()
+                                                   .collect(java.util.stream.Collectors.toMap(
+                                                           io.casehub.neocortex.caps.CapsAttractor::category,
+                                                           io.casehub.neocortex.caps.CapsAttractor::strength,
+                                                           Math::max));
+
+        boolean strengthsDiffer = false;
+        for (var category : openByCategory.keySet()) {
+            double openStr     = openByCategory.getOrDefault(category, 0.0);
+            double cautiousStr = cautiousByCategory.getOrDefault(category, 0.0);
+            if (Math.abs(openStr - cautiousStr) > 0.001) {
+                strengthsDiffer = true;
+                break;
+            }
+        }
+        if (!strengthsDiffer) {
+            strengthsDiffer = !openByCategory.keySet().equals(cautiousByCategory.keySet());
+        }
+
+        assertThat(strengthsDiffer)
+                .as("behavioral attractor strengths should differ — " +
+                    "open=%s vs cautious=%s", openByCategory, cautiousByCategory)
+                .isTrue();
+    }
+
 
     private static CopingDefaults deriveCopingDefaults(String agentId,
                                                         DispositionAxes axes,

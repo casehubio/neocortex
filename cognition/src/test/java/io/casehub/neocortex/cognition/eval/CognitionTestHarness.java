@@ -19,10 +19,10 @@ import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.cognition.search.SearchBudget;
 import io.casehub.neocortex.cognition.search.SearchBudgetTickParticipant;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDerivationEngine;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.experience.ExperienceEvent;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
@@ -67,6 +67,10 @@ public class CognitionTestHarness {
     private final List<ConsolidationPhase> consolidationPhases;
     private final Map<String, AgentDescriptor> descriptors;
     private final Map<String, String> lastObservations = new ConcurrentHashMap<>();
+    private final io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase behavioralSynthesisPhase;
+    private final io.casehub.neocortex.caps.CapsEngine                                             capsEngine;
+    private final Map<String, io.casehub.neocortex.cognitive.index.CognitiveDefaults>              agentDefaults;
+
 
     CognitionTestHarness(CognitionCore core,
                          MindMapStore mindMapStore,
@@ -77,17 +81,23 @@ public class CognitionTestHarness {
                          EffectiveCognitiveDefaults registry,
                          ConsolidationMediator mediator,
                          List<ConsolidationPhase> consolidationPhases,
-                         Map<String, AgentDescriptor> descriptors) {
-        this.core = core;
-        this.mindMapStore = mindMapStore;
-        this.memoryStore = memoryStore;
-        this.curiosityDrive = curiosityDrive;
-        this.moodOrchestrator = moodOrchestrator;
-        this.budgetParticipant = budgetParticipant;
-        this.registry = registry;
-        this.mediator = mediator;
-        this.consolidationPhases = List.copyOf(consolidationPhases);
-        this.descriptors = Map.copyOf(descriptors);
+                         Map<String, AgentDescriptor> descriptors,
+                         io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase behavioralSynthesisPhase,
+                         io.casehub.neocortex.caps.CapsEngine capsEngine,
+                         Map<String, io.casehub.neocortex.cognitive.index.CognitiveDefaults> agentDefaults) {
+        this.core                     = core;
+        this.mindMapStore             = mindMapStore;
+        this.memoryStore              = memoryStore;
+        this.curiosityDrive           = curiosityDrive;
+        this.moodOrchestrator         = moodOrchestrator;
+        this.budgetParticipant        = budgetParticipant;
+        this.registry                 = registry;
+        this.mediator                 = mediator;
+        this.consolidationPhases      = List.copyOf(consolidationPhases);
+        this.descriptors              = Map.copyOf(descriptors);
+        this.behavioralSynthesisPhase = behavioralSynthesisPhase;
+        this.capsEngine               = capsEngine;
+        this.agentDefaults            = agentDefaults != null ? Map.copyOf(agentDefaults) : Map.of();
     }
 
     public static Builder builder() {
@@ -145,6 +155,24 @@ public class CognitionTestHarness {
     }
 
     public void consolidate(String agentId, String tenantId) {
+        if (capsEngine != null) {
+            for (var entry : agentDefaults.entrySet()) {
+                if (capsEngine.loadState(tenantId, entry.getKey()) == null) {
+                    var descriptor = entry.getValue().descriptor();
+                    var axes       = descriptor != null ? descriptor.disposition() : null;
+                    if (axes == null) {
+                        axes = new io.casehub.neocortex.cognitive.index.DispositionAxes(
+                                "cooperative", "moderate", "calculated", "moderate", "cooperative");
+                    }
+                    var copingDefaults = entry.getValue().copingDefaults();
+                    if (copingDefaults != null) {
+                        capsEngine.initializeAgent(tenantId, entry.getKey(), axes, copingDefaults);
+                    } else {
+                        capsEngine.initializeAgent(tenantId, entry.getKey(), axes);
+                    }
+                }
+            }
+        }
         for (var phase : consolidationPhases) {
             phase.beginTick();
             phase.run(tenantId, List.of());
@@ -153,7 +181,7 @@ public class CognitionTestHarness {
             var artifacts = phase.artifacts();
             if (!artifacts.isEmpty()) {
                 CognitionTestAccess.pushConsolidationArtifacts(mediator,
-                    new ConsolidationCompleted(tenantId, List.of(), artifacts));
+                                                               new ConsolidationCompleted(tenantId, List.of(), artifacts));
             }
         }
     }
@@ -211,6 +239,14 @@ public class CognitionTestHarness {
         return moodOrchestrator.currentMood(agentId, tenantId);
     }
 
+    public Optional<io.casehub.neocortex.caps.SettlingResult> capsSettlingResult(String agentId, String tenantId) {
+        if (behavioralSynthesisPhase == null) {
+            return Optional.empty();
+        }
+        return behavioralSynthesisPhase.lastSettlingResult(tenantId, agentId);
+    }
+
+
     // --- Prompt rendering ---
 
     public String renderPrompt(String agentId, String tenantId) {
@@ -233,6 +269,8 @@ public class CognitionTestHarness {
         private Supplier<Set<String>> goalNodeIds = Set::of;
         private CognitionConfig cognitionConfig;
         private boolean consolidationEnabled;
+        private boolean behavioralSynthesisEnabled;
+
         private io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
         private final Map<String, io.casehub.neocortex.cognition.appraisal.HabituationState> habituationStates = new HashMap<>();
@@ -302,6 +340,11 @@ public class CognitionTestHarness {
             return this;
         }
 
+        public Builder withBehavioralSynthesis(boolean enabled) {
+            this.behavioralSynthesisEnabled = enabled;
+            return this;
+        }
+
 
         public CognitionTestHarness build() {
             var store    = mindMapStore != null ? mindMapStore : new InMemoryMindMapStore();
@@ -359,15 +402,15 @@ public class CognitionTestHarness {
                     var facets = defaults.personalityProfile().facets();
                     if (facets != null) {
                         return facets.stream()
-                                .filter(f -> "Anxiousness".equals(f.facet()))
-                                .findFirst()
-                                .map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score)
-                                .orElse(0.5);
+                                     .filter(f -> "Anxiousness".equals(f.facet()))
+                                     .findFirst()
+                                     .map(io.casehub.neocortex.cognitive.index.PersonalityFacet::score)
+                                     .orElse(0.5);
                     }
                 }
                 return 0.5;
             };
-            var curiosityDrive  = new CuriosityDrive(gapDetector, channelComputer, biasLookup, goalNodeIds);
+            var curiosityDrive = new CuriosityDrive(gapDetector, channelComputer, biasLookup, goalNodeIds);
 
             var driveOrchestrator = new DriveOrchestrator(
                     curiosityDrive,
@@ -392,13 +435,13 @@ public class CognitionTestHarness {
             var config   = cognitionConfig != null ? cognitionConfig : CognitionConfig.all();
 
             var core = io.casehub.neocortex.cognition.core.CognitivePipelineBuilder
-                    .create(moodOrchestrator, driveOrchestrator)
-                    .userModel(userModel).mentalModel(mentalModel).strategy(strategy)
-                    .narrative(narrativeOrch).goals(goals).memoryHygiene(hygiene)
-                    .innerLife(innerLife).config(config).mindMapStore(store)
-                    .consolidationMediator(mediator).sessionPipeline(sessionPipeline)
-                    .effectiveDefaults(registry)
-                    .build();
+                               .create(moodOrchestrator, driveOrchestrator)
+                               .userModel(userModel).mentalModel(mentalModel).strategy(strategy)
+                               .narrative(narrativeOrch).goals(goals).memoryHygiene(hygiene)
+                               .innerLife(innerLife).config(config).mindMapStore(store)
+                               .consolidationMediator(mediator).sessionPipeline(sessionPipeline)
+                               .effectiveDefaults(registry)
+                               .build();
 
             io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant appraisalStub = null;
             if (!habituationStates.isEmpty() || !appraisalResults.isEmpty()) {
@@ -443,9 +486,21 @@ public class CognitionTestHarness {
                 phases.add(CognitionTestAccess.createRecurringThoughtPhase(memStore, store, registry));
             }
 
+            io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase bsp = null;
+            io.casehub.neocortex.caps.CapsEngine capsEngineRef = null;
+            if (behavioralSynthesisEnabled) {
+                var capsEngine = new io.casehub.neocortex.caps.testing.InMemoryCapsEngine();
+                var classifier = new io.casehub.neocortex.caps.engine.RuleBasedSituationClassifier(capsEngine.topology());
+                bsp = new io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase(
+                        store, capsEngine, classifier, 20, cbrStore, registry);
+                phases.add(bsp);
+                capsEngineRef = capsEngine;
+            }
+
             return new CognitionTestHarness(core, store, memStore, curiosityDrive,
                                             moodOrchestrator, budgetParticipant, registry, mediator,
-                                            phases, descriptors);
+                                            phases, descriptors, bsp, capsEngineRef,
+                                            behavioralSynthesisEnabled ? agentDefaults : null);
         }
 
         private static CaseMemoryStore createDefaultMemoryStore() {
