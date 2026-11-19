@@ -47,6 +47,7 @@ public class ConsolidationScheduler {
     private final CognitiveAttentionAccumulator attentionAccumulator;
     private final ReentrantLock lock = new ReentrantLock();
     private final long intervalMinutes;
+    private int tickCount;
     private final java.util.Set<String> knownTenants = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private volatile ScheduledExecutorService executor;
     private volatile io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
@@ -143,6 +144,7 @@ public class ConsolidationScheduler {
             try {
                 if (!idleTracker.isIdle(Duration.ofMinutes(1))) {return;}
                 if (knownTenants.isEmpty()) {return;}
+                tickCount++;
                 beginTickAllPhases();
                 for (String tenantId : knownTenants) {
                     runPhases(tenantId);
@@ -170,6 +172,7 @@ public class ConsolidationScheduler {
             return;
         }
         try {
+            tickCount++;
             beginTickAllPhases();
             runPhases(tenantId);
         } finally {
@@ -249,7 +252,7 @@ public List<MissingCapability> validateCapabilities(String tenantId,
                     journal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated(
                             tenantId, "_system",
                             io.casehub.neocortex.cognition.journal.EventRef.consolidation(
-                                    io.casehub.neocortex.cognition.journal.EventRef.init()),
+                                    io.casehub.neocortex.cognition.journal.EventRef.tick(tickCount)),
                             Instant.now(), 0, phaseArtifacts.size(), elapsed, phase.name()));
                 } catch (Exception je) {
                     LOG.log(Level.WARNING, "Journal record failed for phase " + phase.name(), je);

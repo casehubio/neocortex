@@ -497,5 +497,35 @@ class ConsolidationSchedulerTest {
         assertThat(executedPhases).containsExactly("resilient:tenant-1");
     }
 
+    @Test
+    void consolidation_tick_counter_increments_in_eventRef() {
+        var                                                     entries = new java.util.ArrayList<io.casehub.neocortex.cognition.journal.CognitiveEntry>();
+        io.casehub.neocortex.cognition.journal.CognitiveJournal journal = entries::add;
+
+        ConsolidationPhase phase = new ConsolidationPhase() {
+            @Override
+            public String name()                                        {return "counter-phase";}
+
+            @Override
+            public void run(String tenantId, java.util.List<String> sp) {}
+        };
+
+        var testScheduler = new ConsolidationScheduler(
+                java.util.List.of(phase), idleTracker, memoryStore, null);
+        testScheduler.setCognitiveJournal(journal);
+
+        testScheduler.consolidateNow("tenant-1");
+        testScheduler.consolidateNow("tenant-1");
+
+        var consolidated = entries.stream()
+                                  .filter(e -> e instanceof io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated)
+                                  .map(e -> (io.casehub.neocortex.cognition.journal.CognitiveEntry.Consolidated) e)
+                                  .toList();
+        assertThat(consolidated).hasSize(2);
+
+        assertThat(consolidated.get(0).eventRef().toString()).isEqualTo("consolidation:tick:1");
+        assertThat(consolidated.get(1).eventRef().toString()).isEqualTo("consolidation:tick:2");
+    }
+
 
 }
