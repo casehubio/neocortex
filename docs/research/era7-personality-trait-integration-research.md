@@ -144,6 +144,9 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - ~~neocortex#1151: ConversationBridge MutationContext.setAgent() wiring~~ ✅ Landed 2026-11-18 (set from principalId.id() inside process())
 - ~~neocortex#967: Evaluate CognitiveJournal lower layer~~ ✅ Closed 2026-11-19 (decision: keep bridge pattern — moving journal interface would require splitting CognitiveEntry types across layers)
 - ~~neocortex#1067: Extract PredictionCalibrationAnalyzer to shared module~~ ✅ Landed 2026-11-19 (moved to cognition-api, CognitionService.calibration() delegates to shared analyzer)
+- ~~neocortex#1155: ConsolidationScheduler tick counter for EventRef provenance~~ ✅ Landed 2026-11-19 (monotonic tickCount under ReentrantLock, EventRef.tick(N) replaces EventRef.init())
+- ~~neocortex#1156: ConsolidationPhase input/output node counts~~ ✅ Landed 2026-11-19 (default methods, scheduler uses phase.inputNodeCount()/outputNodeCount())
+- ~~neocortex#1159: CognitionTestHarness per-agent curiosity wiring~~ ✅ Landed 2026-11-19 (CuriosityDrive accepts ToDoubleFunction for per-agent deprivation bias; PersonalityDifferentiationTest verifies hedonic divergence)
 
 ### Epic #1050 — CAPS pipeline wiring completeness (resolved 2026-11-17)
 84 issues across the full CAPS pipeline — topology structure, coping→regulation connections, orphaned output nodes, personality-aware classification (PID-5 + AppraisalWeights), search budget, drive composition, CAPS settling, and observability. All verified end-to-end. Pre-existing test failures filed as #1077 (AttentionSignalTest) and #1078 (CopingStrategyPredictorTest).
