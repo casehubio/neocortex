@@ -5,6 +5,8 @@ author: mdp
 type: delivery
 projects: [casehub-neural-text]
 tags: [migration, architecture, memory, cross-repo, intellij-mcp]
+entry_type: note
+subtype: diary
 ---
 
 # The Great Memory Migration
