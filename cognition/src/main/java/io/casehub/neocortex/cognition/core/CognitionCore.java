@@ -1072,6 +1072,9 @@ public @Nullable String lastTargetAgentId() {
                 stateService, detector, integrator, sitConfig, effDefaults,
                 appraisalAccessor, moodAccessor, trustAccessor, cognitiveJournal,
                 java.time.Clock.systemUTC());
+        if (mindMapStore != null) {
+            this.situationalPersonalityParticipant.setMindMapStore(mindMapStore);
+        }
         addParticipant(CognitionPhase.TERMINAL, this.situationalPersonalityParticipant);
 
         if (appraisalParticipant != null) {

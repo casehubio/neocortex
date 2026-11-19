@@ -28,6 +28,8 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
 
     private final java.util.concurrent.ConcurrentHashMap<String, DetectionResult> lastResults = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, java.time.Instant> lastResultAccess = new java.util.concurrent.ConcurrentHashMap<>();
+    private volatile io.casehub.neocortex.mindmap.@org.jspecify.annotations.Nullable MindMapStore mindMapStore;
+
 
     public SituationalPersonalityParticipant(
             PersonalityStateService stateService,
@@ -81,6 +83,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         String provenance = profiles.isEmpty() ? "none" : profiles.getFirst().provenance();
         var agentKey = agentId + ":" + tenantId;
         var previousResult = lastResults.getOrDefault(agentKey, DetectionResult.initial());
+        var phaseSalience = buildPhaseSalienceMap(agentId, tenantId, now, profiles);
 
         var state = stateService.transition(tenantId, agentId, now, st -> {
             var advanced = integrator.advance(st, now);
@@ -88,7 +91,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
             if (dtSeconds < 0) dtSeconds = 0;
             var detection = detector.detect(evidence, previousResult, dtSeconds);
             var withDetection = advanced.withDetection(detection);
-            var compositeDelta = computeCompositeDelta(detection, deltas);
+            var compositeDelta = computeCompositeDelta(detection, deltas, phaseSalience);
             boolean hasWinner = !detection.winners().isEmpty();
             double maxIntensity = detection.intensities().values().stream()
                     .mapToDouble(Double::doubleValue).max().orElse(0);
@@ -103,7 +106,7 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
                 Map.of(), Map.of(), Map.of(), Map.of());
         lastResults.put(agentKey, finalDetection);
         lastResultAccess.put(agentKey, clock.instant());
-        var compositeDelta = computeCompositeDelta(finalDetection, deltas);
+        var compositeDelta = computeCompositeDelta(finalDetection, deltas, phaseSalience);
 
         journal.record(new CognitiveEntry.SituationalModulation(
                 tenantId, agentId,
@@ -130,6 +133,11 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         }
         return stale.size();
     }
+
+    public void setMindMapStore(io.casehub.neocortex.mindmap.MindMapStore store) {
+        this.mindMapStore = store;
+    }
+
 
     public java.util.Optional<io.casehub.neocortex.cognition.trace.PipelineTrace.SituationalPersonalitySnapshot> currentSnapshot(String agentId, String tenantId) {
         var agentKey  = agentId + ":" + tenantId;
@@ -184,17 +192,74 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
         return builder.build();
     }
 
+    private java.util.Map<SituationalMode, Double> buildPhaseSalienceMap(
+            String agentId, String tenantId, java.time.Instant now,
+            java.util.List<io.casehub.eidos.api.SituationalProfile> profiles) {
+        var store = this.mindMapStore;
+        if (store == null) {return java.util.Map.of();}
+
+        var personNodes = store.search(
+                io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 10)
+                                                         .withType(io.casehub.neocortex.mindmap.SubgraphTypes.PERSON)
+                                                         .withText(agentId));
+        if (personNodes.isEmpty()) {return java.util.Map.of();}
+        var personNode = personNodes.getFirst();
+
+        String phase         = io.casehub.neocortex.mindmap.DevelopmentalPhaseResolver.resolvePhase(personNode, now);
+        String primaryFamily = personNode.properties().get("archetype-1-family");
+
+        var salienceMap = new java.util.EnumMap<SituationalMode, Double>(SituationalMode.class);
+        for (var profile : profiles) {
+            var mode = SituationalDeltaConverter.toMode(profile.mode());
+            if (mode == null) {continue;}
+
+            String family = resolveFamilyFromProvenance(profile.provenance(), primaryFamily);
+            if (family == null) {continue;}
+
+            int rank = resolveArchetypeRank(personNode, family);
+            if (rank < 1) {continue;}
+
+            String key = "archetype-" + rank + "-salience-" + phase;
+            String val = personNode.properties().get(key);
+            if (val != null) {
+                try {
+                    salienceMap.put(mode, Double.parseDouble(val));
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return java.util.Map.copyOf(salienceMap);
+    }
+
+    private static String resolveFamilyFromProvenance(String provenance, String primaryFamily) {
+        if (provenance == null) {return primaryFamily;}
+        if (provenance.startsWith("family-default:")) {
+            return provenance.substring("family-default:".length()).toLowerCase(java.util.Locale.ROOT);
+        }
+        return primaryFamily;
+    }
+
+    private static int resolveArchetypeRank(io.casehub.neocortex.mindmap.MindMapNode personNode, String family) {
+        for (int rank = 1; rank <= 3; rank++) {
+            String nodeFamily = personNode.properties().get("archetype-" + rank + "-family");
+            if (family.equalsIgnoreCase(nodeFamily)) {return rank;}
+        }
+        return 0;
+    }
+
+
     private Map<String, Double> computeCompositeDelta(DetectionResult detection,
-                                                       Map<SituationalMode, Map<String, Double>> profileDeltas) {
+                                                      Map<SituationalMode, Map<String, Double>> profileDeltas,
+                                                      Map<SituationalMode, Double> phaseSalience) {
         var composite = new LinkedHashMap<String, Double>();
         for (var group : SituationalMode.Group.values()) {
             var winner = detection.winner(group);
-            if (winner == null) continue;
+            if (winner == null) {continue;}
             double intensity = detection.intensity(winner);
-            var deltas = profileDeltas.get(winner);
-            if (deltas == null) continue;
+            double salience  = phaseSalience.getOrDefault(winner, 1.0);
+            var    deltas    = profileDeltas.get(winner);
+            if (deltas == null) {continue;}
             for (var entry : deltas.entrySet()) {
-                composite.merge(entry.getKey(), entry.getValue() * intensity, Double::sum);
+                composite.merge(entry.getKey(), entry.getValue() * intensity * salience, Double::sum);
             }
         }
         double sMax = config.dynamics().sMax();

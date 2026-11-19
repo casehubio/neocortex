@@ -433,5 +433,12 @@ public class CognitionDefaultBeans {
         return (agentId, tenantId) -> java.util.Optional.empty();
     }
 
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.situational.ShadowFrameConfig shadowFrameConfig() {
+        return io.casehub.neocortex.cognition.situational.ShadowFrameConfig.defaults();
+    }
+
 
 }

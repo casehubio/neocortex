@@ -439,7 +439,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                                .sorted(java.util.Comparator.comparingDouble(
                                                        (Map.Entry<String, Double> e) -> Math.abs(e.getValue())).reversed())
                                                .limit(8)
-                                               .map(e -> e.getKey() + ":" + String.format("%.2f", e.getValue()))
+                                               .map(e -> e.getKey() + ":" + String.format(java.util.Locale.ROOT, "%.2f", e.getValue()))
                                                .collect(java.util.stream.Collectors.joining(","));
                     if (!displaced.isEmpty()) {props.put("displaced-facets", displaced);}
                 }

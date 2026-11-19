@@ -197,6 +197,51 @@ class SituationalPersonalityParticipantTest {
         assertThat(snapshot).isEmpty();
     }
 
+    @Test
+    void compositeDeltaScaledByPhaseSalience() {
+        var personSgId = mindMapStore.createSubgraph(
+                new io.casehub.neocortex.mindmap.SubgraphInput(
+                        "Person", io.casehub.neocortex.mindmap.SubgraphTypes.PERSON, null), TENANT);
+        mindMapStore.addNode(
+                io.casehub.neocortex.mindmap.NodeInput.of(AGENT, personSgId)
+                                                      .withProperties(Map.of(
+                                                              "lifecycle.born", "2020-01-01",
+                                                              "archetype-1-family", "creator",
+                                                              "archetype-1-salience-childhood", "0.5"
+                                                                            )).withProvenance("test"),
+                TENANT);
+
+        participant.setMindMapStore(mindMapStore);
+
+        appraisalAccessor.situationInputs = Map.of("threat-physical", 0.9, "threat-social", 0.8);
+        appraisalAccessor.secDimensions   = Map.of("relevance", 0.9, "conduciveness", 0.1);
+        moodAccessor.pleasure             = -0.5;
+        moodAccessor.arousal              = 0.6;
+        moodAccessor.dominance            = -0.4;
+
+        var context = contextWith(descriptorWithStressProfile());
+        participant.tick(context);
+        double scaledDisplacement = stateService.currentState(TENANT, AGENT).facet("Anxiousness").displacement();
+
+        var noSalienceParticipant = new SituationalPersonalityParticipant(
+                stateService, new SituationalDetector(SituationalPersonalityConfig.withDefaults(buildModeConfigs())),
+                new PersonalityStateIntegrator(SituationalPersonalityConfig.withDefaults(buildModeConfigs()).dynamics()),
+                SituationalPersonalityConfig.withDefaults(buildModeConfigs()),
+                effectiveDefaults, appraisalAccessor, moodAccessor,
+                new ArrayList<CognitiveEntry>()::add, clock);
+
+        var context2 = new CognitionTickContext("agent-no-salience", TENANT,
+                                                descriptorWithStressProfileForAgent("agent-no-salience"), (a, t) -> Set.of(),
+                                                "test observation", null, null, null, io.casehub.neocortex.cognition.journal.EventRef.tick(1));
+        noSalienceParticipant.tick(context2);
+        double unscaledDisplacement = stateService.currentState(TENANT, "agent-no-salience")
+                                                  .facet("Anxiousness").displacement();
+
+        assertThat(scaledDisplacement).isGreaterThan(0);
+        assertThat(unscaledDisplacement).isGreaterThan(0);
+        assertThat(scaledDisplacement).isLessThan(unscaledDisplacement);
+    }
+
 
     // --- Helpers ---
 
@@ -237,6 +282,27 @@ class SituationalPersonalityParticipantTest {
                                                    .build(),
                                    null, null, TENANT, null, null, null, List.of(), List.of(), List.of(), Map.of());
     }
+
+    private AgentDescriptor descriptorWithStressProfileForAgent(String agentId) {
+        var stressProfile = new SituationalProfile("stress", List.of(
+                new AmpdFacetShift("Anxiousness", 15),
+                new AmpdFacetShift("Emotional Lability", 10),
+                new AmpdFacetShift("Hostility", 5)
+                                                                    ), "estimated");
+
+        return new AgentDescriptor(agentId, "Test", "Artist", "1.0", null, null, null, null,
+                                   null, null, null, null, null, "test-slot", null, "creator-artist", null, null,
+                                   List.of(),
+                                   AgentDisposition.builder()
+                                                   .ampdFacets(List.of(
+                                                           new AmpdFacet("Anxiousness", 62),
+                                                           new AmpdFacet("Emotional Lability", 55),
+                                                           new AmpdFacet("Hostility", 30)))
+                                                   .situationalProfiles(stressProfile)
+                                                   .build(),
+                                   null, null, TENANT, null, null, null, List.of(), List.of(), List.of(), Map.of());
+    }
+
 
     private Map<SituationalMode, ModeDetectionConfig> buildModeConfigs() {
         var stressExo = List.<SignalConfig>of(
