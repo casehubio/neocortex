@@ -56,6 +56,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults;
     private final CbrRecordStore cbrRecordStore;
     private final java.util.Set<String> pid5FacetSet;
+    private final io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor snapshotAccessor;
+
 
     private final java.util.concurrent.ConcurrentHashMap<String, io.casehub.neocortex.caps.SettlingResult> lastSettlingResults = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>                      lastInputActivations = new java.util.concurrent.ConcurrentHashMap<>();
@@ -68,10 +70,11 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                     Instance<io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults> effectiveDefaults,
                                     Instance<BehavioralSynthesisConfig> config,
                                     Instance<CbrRecordStore> cbrRecordStore,
-                                    Instance<Pid5FacetsConfig> pid5Config) {
-        this.store            = store;
-        this.capsEngine       = capsEngine.isResolvable() ? capsEngine.get() : null;
-        this.classifier       = classifier.isResolvable() ? classifier.get() : null;
+                                    Instance<Pid5FacetsConfig> pid5Config,
+                                    Instance<io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor> snapshotAccessor) {
+        this.store             = store;
+        this.capsEngine        = capsEngine.isResolvable() ? capsEngine.get() : null;
+        this.classifier        = classifier.isResolvable() ? classifier.get() : null;
         this.effectiveDefaults = effectiveDefaults.isResolvable() ? effectiveDefaults.get() : null;
         BehavioralSynthesisConfig c = config.isResolvable() ? config.get() : null;
         this.maxPerPass            = c != null ? c.maxPerPass() : 20;
@@ -80,6 +83,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
         this.cbrRecordStore        = cbrRecordStore.isResolvable() ? cbrRecordStore.get() : null;
         this.pid5FacetSet          = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
+        this.snapshotAccessor      = snapshotAccessor.isResolvable() ? snapshotAccessor.get() : null;
     }
 
     public BehavioralSynthesisPhase(MindMapStore store,
@@ -103,17 +107,29 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                     int maxPerPass,
                                     CbrRecordStore cbrRecordStore,
                                     io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults) {
+        this(store, capsEngine, classifier, maxPerPass, cbrRecordStore, effectiveDefaults, null);
+    }
+
+    public BehavioralSynthesisPhase(MindMapStore store,
+                                    CapsEngine capsEngine,
+                                    SituationClassifier classifier,
+                                    int maxPerPass,
+                                    CbrRecordStore cbrRecordStore,
+                                    io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults,
+                                    io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor snapshotAccessor) {
         this.store                 = store;
         this.capsEngine            = capsEngine;
         this.classifier            = classifier;
-        this.effectiveDefaults      = effectiveDefaults;
+        this.effectiveDefaults     = effectiveDefaults;
         this.maxPerPass            = maxPerPass;
         this.emaRetention          = 0.5;
         this.reinforcementBoostCap = 0.5;
         this.reinforcementScale    = 20;
         this.cbrRecordStore        = cbrRecordStore;
         this.pid5FacetSet          = null;
+        this.snapshotAccessor      = snapshotAccessor;
     }
+
 
     @Override
     public String name() {
@@ -355,6 +371,8 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                 props.put("convergence-type", "");
             }
 
+            props.putAll(buildSituationalProperties(agentId, tenantId));
+
             store.updateNode(node.id(),
                              NodeUpdate.empty().withPropertiesToSet(props),
                              tenantId);
@@ -377,6 +395,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             if (convergence == ConvergenceType.OSCILLATION) {
                 props.put("convergence-type", "oscillation");
             }
+            props.putAll(buildSituationalProperties(agentId, tenantId));
 
             store.addNode(
                     NodeInput.of(attractor.nodeId() + (dominantInput.isEmpty() ? "" : "-" + dominantInput), behavioralSgId)
@@ -401,6 +420,43 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
         var profile = effectiveDefaults.restingFor(tenantId, agentId);
         return PersonalityMetadataEnricher.enrich(metadata, profile, pid5FacetSet);
     }
+
+    private Map<String, String> buildSituationalProperties(String agentId, String tenantId) {
+        var props = new HashMap<String, String>();
+        if (snapshotAccessor != null) {
+            snapshotAccessor.currentSnapshot(agentId, tenantId).ifPresent(snapshot -> {
+                if (snapshot.affectiveWinner() != null) {
+                    props.put("situational-mode", snapshot.affectiveWinner());
+                    Double intensity = snapshot.modeIntensities().get(snapshot.affectiveWinner());
+                    if (intensity != null) {props.put("situational-intensity", String.valueOf(intensity));}
+                }
+                if (snapshot.socialWinner() != null) {
+                    props.put("situational-social-mode", snapshot.socialWinner());
+                }
+                if (!snapshot.facetDisplacements().isEmpty()) {
+                    String displaced = snapshot.facetDisplacements().entrySet().stream()
+                                               .filter(e -> Math.abs(e.getValue()) >= 0.01)
+                                               .sorted(java.util.Comparator.comparingDouble(
+                                                       (Map.Entry<String, Double> e) -> Math.abs(e.getValue())).reversed())
+                                               .limit(8)
+                                               .map(e -> e.getKey() + ":" + String.format("%.2f", e.getValue()))
+                                               .collect(java.util.stream.Collectors.joining(","));
+                    if (!displaced.isEmpty()) {props.put("displaced-facets", displaced);}
+                }
+            });
+        }
+        resolveArchetypeFamily(agentId, tenantId).ifPresent(family ->
+                                                                    props.put("archetype-family", family));
+        return props;
+    }
+
+    private Optional<String> resolveArchetypeFamily(String agentId, String tenantId) {
+        var nodes = store.search(
+                MindMapQuery.of(tenantId, 10).withType(SubgraphTypes.PERSON).withText(agentId));
+        if (nodes.isEmpty()) {return Optional.empty();}
+        return Optional.ofNullable(nodes.getFirst().properties().get("archetype-1-family"));
+    }
+
 
     private double averageIntensity(List<MindMapNode> nodes) {
         return nodes.stream()

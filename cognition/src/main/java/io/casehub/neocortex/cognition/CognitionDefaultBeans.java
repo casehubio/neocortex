@@ -17,7 +17,6 @@ import io.casehub.neocortex.cognition.memory.ConfidenceScorer;
 import io.casehub.neocortex.cognition.memory.ConsolidationSummariser;
 import io.casehub.neocortex.cognition.memory.IntegrityChecker;
 import io.casehub.neocortex.cognition.memory.RetentionConfig;
-import io.casehub.neocortex.cognition.memory.RetentionConfigSupplier;
 import io.casehub.neocortex.cognition.memory.SemanticIntegrityChecker;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelConfig;
 import io.casehub.neocortex.cognition.mentalmodel.MentalModelLookup;
@@ -425,6 +424,13 @@ public class CognitionDefaultBeans {
     io.casehub.neocortex.cognition.situational.SituationalDetector situationalDetector(
             io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig config) {
         return new io.casehub.neocortex.cognition.situational.SituationalDetector(config);
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor situationalSnapshotAccessor() {
+        return (agentId, tenantId) -> java.util.Optional.empty();
     }
 
 

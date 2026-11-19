@@ -14,9 +14,9 @@ import io.casehub.neocortex.caps.SituationClassifier;
 import io.casehub.neocortex.caps.WeightProvenance;
 import io.casehub.neocortex.caps.WeightUpdateContext;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
-import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.DescriptorView;
 import io.casehub.neocortex.cognitive.index.DispositionAxes;
+import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.cbr.CbrOutcome;
 import io.casehub.neocortex.memory.cbr.inmem.InMemoryCbrRecordStore;
 import io.casehub.neocortex.mindmap.MindMapNode;
@@ -729,4 +729,65 @@ class BehavioralSynthesisPhaseTest {
         assertThat(meta).doesNotContainKey("disposition.socialOrient");
     }
 
+
+    @Test
+    void newAttractorCarriesSituationalContext() {
+        var personSgId = store.createSubgraph(
+                new SubgraphInput("Person", SubgraphTypes.PERSON, null), TENANT);
+        store.addNode(NodeInput.of(AGENT, personSgId)
+                               .withProperties(Map.of("archetype-1-family", "creator")),
+                      TENANT);
+
+        store.addNode(NodeInput.of("Stressed at work", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-sit",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+
+        var snapshot = new io.casehub.neocortex.cognition.trace.PipelineTrace.SituationalPersonalitySnapshot(
+                Map.of("STRESS", 0.72),
+                "STRESS", null,
+                Map.of("anxiousness", 0.15, "emotional-lability", 0.12),
+                2
+        );
+        io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor accessor =
+                (a, t) -> java.util.Optional.of(snapshot);
+
+        SituationClassifier classifier = (desc, meta, ctx) ->
+                                                 new ClassificationResult(List.of(new SituationActivation("withdraw", 0.8)));
+        var sitPhase = new BehavioralSynthesisPhase(
+                store, capsEngine, classifier, 20, null, null, accessor);
+        sitPhase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral).isNotEmpty();
+        var attractor = behavioral.getFirst();
+        assertThat(attractor.properties()).containsEntry("situational-mode", "STRESS");
+        assertThat(attractor.properties()).containsEntry("archetype-family", "creator");
+        assertThat(attractor.properties()).containsKey("displaced-facets");
+        assertThat(attractor.properties().get("displaced-facets")).contains("anxiousness");
+    }
+
+    @Test
+    void attractorWithoutSnapshotOmitsSituationalProperties() {
+        store.addNode(NodeInput.of("Normal experience", cognitiveSubgraphId)
+                               .withProperties(Map.of(
+                                       "source-memory-id", "mem-no-sit",
+                                       "agent-id", AGENT,
+                                       "event-type", "observation",
+                                       "graduation-score", "0.7")),
+                      TENANT);
+
+        phase.run(TENANT, List.of());
+
+        List<MindMapNode> behavioral = store.search(
+                MindMapQuery.of(TENANT, 100).withType(SubgraphTypes.BEHAVIORAL));
+        assertThat(behavioral).isNotEmpty();
+        var attractor = behavioral.getFirst();
+        assertThat(attractor.properties()).doesNotContainKey("situational-mode");
+        assertThat(attractor.properties()).doesNotContainKey("displaced-facets");
+    }
 }
