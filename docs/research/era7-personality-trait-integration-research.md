@@ -139,6 +139,11 @@ All design goals achieved. Implementation complete across three repos (eidos, ne
 - ~~neocortex#1070: Wire pid5Facets config to metadata enrichment and cache key~~ ✅ Landed 2026-11-17 (Pid5FacetsConfig in mindmap-intelligence, PersonalityMetadataEnricher filters)
 - ~~neocortex#1071: Extract addPersonalityMetadata to shared utility~~ ✅ Landed 2026-11-17 (PersonalityMetadataEnricher in cognitive-index)
 - ~~neocortex#1072: Remove dead hasPid5(), strengthen eval test assertions~~ ✅ Landed 2026-11-17
+- ~~neocortex#981: Wire DerivationJournalBridge and MemoryRecallJournalBridge in production~~ ✅ Landed 2026-11-19 (CDI wiring via CognitionCoreFactory factory + CognitionDefaultBeans observer list)
+- ~~neocortex#1150: ExtractionRequested agentId for journal correlation~~ ✅ Landed 2026-11-18 (agentId field on event record, propagated across @ObservesAsync boundary)
+- ~~neocortex#1151: ConversationBridge MutationContext.setAgent() wiring~~ ✅ Landed 2026-11-18 (set from principalId.id() inside process())
+- ~~neocortex#967: Evaluate CognitiveJournal lower layer~~ ✅ Closed 2026-11-19 (decision: keep bridge pattern — moving journal interface would require splitting CognitiveEntry types across layers)
+- ~~neocortex#1067: Extract PredictionCalibrationAnalyzer to shared module~~ ✅ Landed 2026-11-19 (moved to cognition-api, CognitionService.calibration() delegates to shared analyzer)
 
 ### Epic #1050 — CAPS pipeline wiring completeness (resolved 2026-11-17)
 84 issues across the full CAPS pipeline — topology structure, coping→regulation connections, orphaned output nodes, personality-aware classification (PID-5 + AppraisalWeights), search budget, drive composition, CAPS settling, and observability. All verified end-to-end. Pre-existing test failures filed as #1077 (AttentionSignalTest) and #1078 (CopingStrategyPredictorTest).
