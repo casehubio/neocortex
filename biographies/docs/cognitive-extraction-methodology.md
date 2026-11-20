@@ -1029,7 +1029,7 @@ All LLM-based scripts write incrementally via atomic rename (`os.replace`) after
 
 Convergence-generated items carry full derivation context:
 
-- `extraction_pass`: `convergence-pass-N`
+- `extraction_phase`: `convergence-pass-N`
 - `extraction_method`: `llm-convergence-extract`
 - `convergence_pass`: integer pass number
 

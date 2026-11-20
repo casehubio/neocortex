@@ -150,7 +150,7 @@ For each memory:
 - period: approximate date or year
 - related_entities: other entities involved (list of names)
 - extraction_method: "llm-extract"
-- extraction_pass: "phase-1-structural"
+- extraction_phase: "phase-1-structural"
 
 FORMATIVE EXPERIENCE EXTRACTION — extract these aggressively.
 
@@ -310,7 +310,7 @@ def infer_cross_passage_edges(client, all_entities, all_memories, edge_dedup, to
                 continue
             ekey = f"{edge['source'].lower()}|{edge['target'].lower()}|{edge['type']}"
             if ekey not in edge_dedup:
-                edge['extraction_pass'] = 'edge-inference-cross-passage'
+                edge['extraction_phase'] = 'edge-inference-cross-passage'
                 edge['confidence_origin'] = 'INFERRED'
                 edge['validation_tier'] = 'UNVALIDATED'
                 edge_dedup[ekey] = edge
@@ -460,7 +460,7 @@ def merge_extraction_results(existing: dict, new_results: dict, pass_n: int) -> 
                 if k not in ent_by_key[key]:
                     ent_by_key[key][k] = v
         else:
-            ent['extraction_pass'] = f'convergence-pass-{pass_n}'
+            ent['extraction_phase'] = f'convergence-pass-{pass_n}'
             ent['extraction_method'] = 'llm-convergence-extract'
             if 'confidence' in ent:
                 ent['confidence'] = clamp_confidence(ent['confidence'], pass_n)
@@ -482,12 +482,12 @@ def merge_extraction_results(existing: dict, new_results: dict, pass_n: int) -> 
         key = f"{edge['source'].lower()}|{edge['target'].lower()}|{edge['type']}"
         if key not in edge_keys:
             edge_keys.add(key)
-            edge['extraction_pass'] = f'convergence-pass-{pass_n}'
+            edge['extraction_phase'] = f'convergence-pass-{pass_n}'
             merged_edges.append(edge)
 
     merged_memories = list(existing.get('memories', []))
     for mem in new_results.get('memories', []):
-        mem['extraction_pass'] = f'convergence-pass-{pass_n}'
+        mem['extraction_phase'] = f'convergence-pass-{pass_n}'
         mem['extraction_method'] = 'llm-convergence-extract'
         mem['convergence_pass'] = pass_n
         if 'confidence' in mem:
@@ -555,7 +555,7 @@ def run_convergence(args):
 
         for mem in mems:
             mem['structurally_extracted'] = True
-            mem['extraction_pass'] = f'convergence-pass-{args.pass_num}'
+            mem['extraction_phase'] = f'convergence-pass-{args.pass_num}'
 
         structure['stats'] = {
             'entities': len(structure['entities']),
@@ -758,8 +758,8 @@ def main():
                 mem['domain'] = 'experience'
             if 'extraction_method' not in mem:
                 mem['extraction_method'] = 'llm-extract'
-            if 'extraction_pass' not in mem:
-                mem['extraction_pass'] = 'phase-1-structural'
+            if 'extraction_phase' not in mem:
+                mem['extraction_phase'] = 'phase-1-structural'
             all_memories.append(mem)
 
         for e in result.get('edges', []):

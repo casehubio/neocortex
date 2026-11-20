@@ -207,7 +207,7 @@ def has_new_data(entity_name: str, memories: list, last_synthesis_pass: int) -> 
     """Check if entity has new memories since its last synthesis pass."""
     name_lower = entity_name.lower()
     for mem in memories:
-        pass_str = mem.get('extraction_pass', 'phase-1-structural')
+        pass_str = mem.get('extraction_phase', 'phase-1-structural')
         if pass_str.startswith('convergence-pass-'):
             mem_pass = int(pass_str.split('-')[-1])
             if mem_pass > last_synthesis_pass:
@@ -291,9 +291,9 @@ def main():
                 ref['enrichment_version'] = 'v1.0-phase2b'
                 ref['convergence_pass'] = args.pass_num
                 if args.pass_num > 1:
-                    ref['extraction_pass'] = f'convergence-pass-{args.pass_num}'
+                    ref['extraction_phase'] = f'convergence-pass-{args.pass_num}'
                 else:
-                    ref['extraction_pass'] = 'phase-2b-entity'
+                    ref['extraction_phase'] = 'phase-2b-entity'
                 if 'confidence' in ref:
                     ref['confidence'] = clamp_confidence(ref['confidence'], args.pass_num)
                 reflections.append(ref)
@@ -313,9 +313,9 @@ def main():
                 mood['enrichment_version'] = 'v1.0-phase2b'
                 mood['convergence_pass'] = args.pass_num
                 if args.pass_num > 1:
-                    mood['extraction_pass'] = f'convergence-pass-{args.pass_num}'
+                    mood['extraction_phase'] = f'convergence-pass-{args.pass_num}'
                 else:
-                    mood['extraction_pass'] = 'phase-2b-entity'
+                    mood['extraction_phase'] = 'phase-2b-entity'
                 if 'confidence' in mood:
                     mood['confidence'] = clamp_confidence(mood['confidence'], args.pass_num)
                 mood_snapshots.append(mood)

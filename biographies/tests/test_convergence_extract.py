@@ -94,7 +94,7 @@ class TestMergeExtractionResults:
         }
         merged = merge_extraction_results(existing, new_results, pass_n=3)
         ent = merged['entities'][0]
-        assert ent['extraction_pass'] == 'convergence-pass-3'
+        assert ent['extraction_phase'] == 'convergence-pass-3'
         assert ent['extraction_method'] == 'llm-convergence-extract'
 
     def test_edge_dedup(self):
@@ -122,7 +122,7 @@ class TestMergeExtractionResults:
         }
         merged = merge_extraction_results(existing, new_results, pass_n=2)
         mem = merged['memories'][0]
-        assert mem['extraction_pass'] == 'convergence-pass-2'
+        assert mem['extraction_phase'] == 'convergence-pass-2'
         assert mem['convergence_pass'] == 2
 
     def test_confidence_clamped_on_new_entity(self):

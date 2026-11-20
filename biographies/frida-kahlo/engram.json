@@ -11295,7 +11295,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:49:05Z",
       "pad_justification": "Pleasure is moderate-positive: birth is celebrated as a foundational life event, and the detail of the distinctive blue house suggests valued aesthetic memory. Arousal is low (0.2): this is a quiet biographical fact, a peaceful origin story rather than an acute crisis. Dominance is moderate (0.5): the father's deliberate construction of the house signals parental agency and intentionality, but the newborn infant has no control.",
       "drive_justification": "Curiosity: minimal delta (0.3) \u2014 birth itself does not activate exploration; however, the father's later role as a teacher and nature-guide will amplify this. Competence: slightly positive (0.2) \u2014 being born into a prepared, intentional environment supports foundational efficacy, though the newborn has no direct agency. Affiliation: moderate positive (0.5) \u2014 birth into a specific family structure with named father and mother activates relational identity and belonging. Autonomy: slightly negative (-0.1) \u2014 birth is the ultimate non-autonomous state, determined entirely by parental circumstance.",
@@ -11452,7 +11452,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:49:20Z",
       "pad_justification": "Pleasure is mildly negative due to the melancholy Frida absorbed from her father, though tempered by their later positive bond; arousal is low because this is a quiet biographical observation of a personality trait rather than an acute event; dominance is slightly positive as Frida's recognition of his condition suggests emerging emotional awareness rather than helplessness.",
       "drive_justification": "Curiosity moderately increased as she learns to observe emotional and physical states; competence slightly increased through empathic attunement but limited by her helplessness to change his condition; affiliation moderately increased as emotional recognition binds her to him; autonomy slightly decreased as she becomes attuned to managing his emotional states rather than her own independent experience.",
@@ -11621,7 +11621,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:49:36Z",
       "pad_justification": "Pleasure is negative due to emotional deprivation and conditional love; arousal is low because this is a biographical characterization rather than an acute event; dominance is low because the child experiences maternal control through withheld affection.",
       "drive_justification": "Curiosity delta is minimal: maternal distance does not suppress intellectual interest. Competence delta is slightly positive: conditional approval creates achievement-motivation. Affiliation delta is strongly negative: emotional unavailability damages the drive to seek connection. Autonomy delta is negative: obedience is required for approval, suppressing autonomous self-assertion.",
@@ -11814,7 +11814,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:49:54Z",
       "pad_justification": "Pleasure is elevated due to paternal affection, intellectual engagement, and special status among siblings; arousal is mild-to-moderate reflecting calm, purposeful activities (walks, collecting, learning) rather than crisis; dominance is moderate-high as Frida is actively chosen and empowered by her father to engage in learning and physical exploration typically denied to girls.",
       "drive_justification": "Curiosity is strongly elevated by active encouragement of observation and scientific inquiry; competence delta is high as father actively teaches skills and positions her as capable; affiliation delta is moderate-positive as the bond is strong but also somewhat instrumental (based on intellectual matching); autonomy delta is moderate as father empowers physical/intellectual freedom but within his chosen framework.",
@@ -12002,7 +12002,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:50:16Z",
       "developmental_period": "childhood",
       "situation_types": "trust_offered, intimacy_available, social_support, skill_challenge, agency_granted, recognition_received",
@@ -12205,7 +12205,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:46:50Z",
       "developmental_period": "childhood",
       "situation_types": "physical_threat, social_threat, rejection, psychological_threat, failure_experienced",
@@ -12434,7 +12434,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "childhood",
       "situation_types": "trust_offered, social_support, agency_granted, achievement_opportunity, choice_available, skill_challenge, recognition_received, challenge_to_gender_norms",
       "salience_multiplier": 1.5,
@@ -12459,7 +12459,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:51:19Z",
       "developmental_period": "childhood",
       "situation_types": "novelty_encountered, social_support, agency_granted, political_awareness",
@@ -12649,7 +12649,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:51:39Z",
       "pad_justification": "Pleasure is moderate-to-positive (pride in revolutionary identity, reclamation of narrative). Arousal is moderate (deliberate reframing requires cognitive activation but is reflective, not acute). Dominance is high (asserting control over her own origin story, rejecting imposed biographical facts).",
       "drive_justification": "Curiosity is low (this is not about exploring; it is about claiming). Competence is moderate (asserting narrative control shows skill, but she is not learning or mastering something new). Affiliation is high (she is aligning herself with revolutionary collective identity). Autonomy is very high (she is rejecting imposed chronology and authoring her own origin).",
@@ -12844,7 +12844,7 @@
       "source_end": 3015,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:52:00Z",
       "pad_justification": "Pleasure is mildly negative because 'complicated bond' carries undertones of conflict and unresolved tension rather than straightforward joy. Arousal is mild-to-moderate (0.35) reflecting the biographical significance and emotional complexity of sibling relationships, elevated slightly above routine reflection but not crisis-level. Dominance is neutral (0.0) because the memory itself makes no claim about power dynamics\u2014it identifies complexity without directional control.",
       "drive_justification": "Curiosity is mildly dampened (-0.15) because complexity can inhibit the exploratory openness siblings might otherwise share. Affiliation is notably reduced (-0.35) because 'complicated' signals friction and distance in what should be a primary kinship bond. Competence is neutral (0.0): managing a complicated sibling bond requires skill but is not framed as a competence challenge here. Autonomy is slightly elevated (0.1): complexity in sibling bonds often reflects Frida's strong individualism and unwillingness to conform to expected harmony.",
@@ -13013,7 +13013,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:52:18Z",
       "pad_justification": "Pleasure is elevated (0.7) due to achievement and access to prestige; arousal is moderate-high (0.6) reflecting the significance of entry to an elite institution and the novelty of being in a rarified environment; dominance is moderately high (0.65) because admission itself signals competence and represents gaining access to spaces previously closed to girls, conferring a degree of agency.",
       "drive_justification": "Curiosity is powerfully activated (0.85): the Preparatoria provides intellectual stimulation and exposure to philosophy, politics, and art. Competence drive is elevated (0.8): admission itself validates her abilities and the environment offers challenges to master. Affiliation is moderate (0.4): being a rare girl creates some social isolation; she seeks intellectual rather than social belonging. Autonomy increases (0.7): access to elite education expands her choices and intellectual freedom beyond what she would have otherwise had.",
@@ -13211,7 +13211,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:52:35Z",
       "developmental_period": "adolescence",
       "situation_types": "achievement_opportunity, social_support, recognition_received, skill_challenge, agency_granted",
@@ -13407,7 +13407,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:52:51Z",
       "pad_justification": "Pleasure is high because aspiration reflects genuine intellectual excitement and alignment with intrinsic interests. Arousal is moderate because this represents focused contemplation of a future goal rather than acute activation\u2014it's a calm ambition. Dominance is elevated because choosing medicine reflects agency and self-directed intellectual pursuit despite being in a male-dominated institution.",
       "drive_justification": "Curiosity is strongly elevated\u2014medicine directly engages her omnivorous intellectual appetite and desire to understand hidden mechanisms. Competence drive is high because she seeks mastery and precision work. Affiliation is slightly depressed because medicine as a solitary intellectual pursuit is not about social bonding. Autonomy is elevated because choosing medicine (despite gender barriers) asserts self-directed agency and independence from conventional expectations.",
@@ -13584,7 +13584,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:53:11Z",
       "developmental_period": "adolescence",
       "situation_types": "achievement_opportunity, novelty_encountered",
@@ -13790,7 +13790,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:47:26Z",
       "pad_justification": "Pleasure is elevated due to romantic intensity and intellectual connection, but tempered by possessiveness/jealousy dynamics. Arousal is high reflecting the emotional volatility and passionate engagement of an intense relationship. Dominance is moderate-low because the oscillation between dependency and independence suggests power fluctuates and neither partner maintains stable control.",
       "drive_justification": "Curiosity moderately elevated by intellectual companionship and desire to know Alejandro deeply. Competence reduced by emotional vulnerability and loss of control in passionate dynamics. Affiliation strongly activated by intense romantic bonding and need for deep connection. Autonomy significantly compromised by possessiveness, jealousy, and oscillating dependency that conflict with fierce independence drive.",
@@ -14029,7 +14029,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:54:09Z",
       "developmental_period": "adolescence",
       "situation_types": "trust_offered, intimacy_available, recognition_received, choice_available",
@@ -14291,7 +14291,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:54:27Z",
       "developmental_period": "adolescence",
       "situation_types": "achievement_opportunity, choice_available, agency_granted, social_support",
@@ -14473,7 +14473,7 @@
       "source_end": 5552,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:54:47Z",
       "pad_justification": "Pleasure is elevated due to intellectual engagement, group belonging, and the thrill of ideological discovery; arousal is moderate-to-high reflecting animated debate and youthful intensity; dominance is elevated because Frida is actively choosing her intellectual commitments and asserting her convictions rather than passively receiving them.",
       "drive_justification": "Curiosity is strongly activated by exposure to Marx, Hegel, Spengler, and revolutionary aesthetics (delta=+0.85). Competence is elevated through intellectual engagement and recognition as an equal in Los Cachuchas (delta=+0.75). Affiliation is heightened by group membership and the validation of being chosen by Alejandro and accepted among thirty-five exceptional girls (delta=+0.80). Autonomy is increased by her conscious choice to join the Young Communist League and her assertion that she will not live a divided life (delta=+0.80).",
@@ -14686,7 +14686,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:55:14Z",
       "developmental_period": "adolescence",
       "situation_types": "physical_threat, novelty_encountered, agency_denied",
@@ -14914,7 +14914,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:47:45Z",
       "pad_justification": "Pleasure is deeply negative due to witnessing severe trauma and potential death of a loved one. Arousal is extreme (near 1.0) due to acute crisis, shock, and physiological activation from witnessing catastrophic injury. Dominance is very low because the situation is completely uncontrollable and the witness is powerless to prevent harm.",
       "drive_justification": "Curiosity suppressed by crisis (no room for exploration). Competence severely threatened (witness cannot heal or fix the injury, triggering inadequacy). Affiliation strongly activated (urgent bond with injured person, need to help and protect). Autonomy severely constrained (emergency dictates all actions; no choice available).",
@@ -15113,7 +15113,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:55:52Z",
       "pad_justification": "Pleasure is deeply negative due to extreme physical trauma, uncertainty of survival, and medical crisis. Arousal is at near-maximum due to acute pain, life-threatening condition, and intensive medical interventions. Dominance is profoundly low as the subject is helpless, dependent on doctors, and entirely subject to medical procedures beyond her control.",
       "drive_justification": "Curiosity is reduced but not eliminated (hospital environment is novel but under duress). Competence is devastated (body is non-functional; all prior skills are blocked). Affiliation is severely blocked (isolation at hospital, dependent role disrupts peer relationships). Autonomy is nearly obliterated (complete physical dependence on medical staff and family).",
@@ -15332,7 +15332,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:56:11Z",
       "developmental_period": "adolescence",
       "situation_types": "abandonment_threat, agency_denied, psychological_threat, relationship_loss",
@@ -15544,7 +15544,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:56:29Z",
       "pad_justification": "Pleasure: moderate positive valence from parental care and provision of creative tools despite dire circumstances. Arousal: low-to-mild; this is a quiet, intimate moment of recovery care, not acute crisis. Dominance: moderate; Frida is physically dependent (low control over body) but the gift of agency through art materials begins to restore some sense of control.",
       "drive_justification": "Curiosity: +0.65 \u2014 the mirror and paints invite investigation of self and creative possibility. Competence: +0.4 \u2014 painting offers a domain in which she can still exercise skill, though uncertain given injuries. Affiliation: +0.7 \u2014 parental care signals belonging and emotional support during isolation. Autonomy: +0.55 \u2014 the tools restore a sense of agency and choice (what to paint, how to represent) despite physical confinement.",
@@ -15742,7 +15742,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:56:54Z",
       "developmental_period": "adolescence",
       "situation_types": "agency_granted, choice_available, skill_challenge, achievement_opportunity, novelty_encountered",
@@ -15956,7 +15956,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:57:20Z",
       "pad_justification": "Pleasure is moderate-to-positive because painting represents agency, creative expression, and transformation of suffering into meaning\u2014a reclamation of control. Arousal is moderate because this is sustained, focused cognitive work rather than acute crisis, yet involves intense psychological engagement. Dominance is elevated because the shift from patient to observer represents a restoration of agency and interpretive control over her own body and suffering.",
       "drive_justification": "Curiosity surges: examining pain and bodily facts as subjects requires intense investigative interest. Competence increases: she discovers a domain (visual representation) where she can develop mastery despite physical constraints. Affiliation decreases: isolation forces her inward and away from the social role (pranks, conversation) that once defined her, though painting will later reconnect her to others. Autonomy increases dramatically: painting is the primary means by which she reclaims agency and interpretive control over her own narrative.",
@@ -16177,7 +16177,7 @@
       "source_end": 8045,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:57:46Z",
       "developmental_period": "adolescence",
       "situation_types": "choice_available, agency_granted, psychological_threat",
@@ -16406,7 +16406,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:58:05Z",
       "developmental_period": "early_adulthood",
       "situation_types": "physical_threat, psychological_threat, choice_restricted, agency_denied",
@@ -16589,7 +16589,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:58:24Z",
       "developmental_period": "early_adulthood",
       "situation_types": "skill_challenge, choice_available, achievement_opportunity, novelty_encountered",
@@ -16777,7 +16777,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:58:45Z",
       "developmental_period": "early_adulthood",
       "situation_types": "abandonment_threat, relationship_loss, rejection, psychological_threat",
@@ -17004,7 +17004,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:59:07Z",
       "developmental_period": "early_adulthood",
       "situation_types": "relationship_loss, choice_available, agency_granted",
@@ -17220,7 +17220,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:59:23Z",
       "pad_justification": "Pleasure is moderately positive: reconnection with friends and access to valued artistic circles represents social restoration and opportunity. Arousal is moderate: active engagement in social/political life and deliberate re-entry into communities after isolation, but not crisis-level intensity. Dominance is moderately elevated: she is actively choosing her connections and navigating social spaces with intentional purpose rather than passive acceptance.",
       "drive_justification": "Curiosity gains +0.65: exposure to new intellectual and artistic ideas through Modotti's circles and political meetings. Competence gains +0.70: validation from artistic community and recognition that her paintings have merit strengthens sense of mastery. Affiliation gains +0.75: reconnection with Los Cachuchas friends and entry into artist/intellectual networks fulfills belonging needs. Autonomy gains +0.80: deliberate choice-making, financial self-sufficiency ambitions, and resistance to conventional marriage roles are reinforced by independent social positioning.",
@@ -17415,7 +17415,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:59:41Z",
       "pad_justification": "Pleasure is elevated (0.7) because the salon represents both intellectual stimulation and the beginning of romantic possibility; arousal is moderate (0.6) reflecting animated social engagement and the significance of encountering Diego; dominance is moderate (0.5) as Frida is entering established circles but beginning to assert her artistic identity.",
       "drive_justification": "Curiosity strongly enabled (+0.8) by exposure to new artistic and political ideas. Competence enhanced (+0.75) through critical feedback and peer recognition. Affiliation strongly enabled (+0.85) by the salon's social-intellectual structure. Autonomy moderately enabled (+0.7) as she gains financial and creative independence, though still dependent on Modotti's mediation.",
@@ -17610,7 +17610,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T15:59:58Z",
       "pad_justification": "Pleasure is moderately positive (seeking validation from an admired artist), arousal is elevated due to the boldness of the approach and social risk-taking, dominance reflects agency in initiating contact despite vulnerability",
       "drive_justification": "Curiosity elevated (seeking expert feedback); competence drive high (testing artistic capability against professional standard); affiliation moderate (seeking connection but not dependency); autonomy strongly activated (reasserting control after Alejandro abandonment)",
@@ -17805,7 +17805,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:00:16Z",
       "pad_justification": "Pleasure is high due to receiving genuine, expert validation from a respected figure; arousal is moderate-to-elevated because this encounter represents a pivotal social and professional moment with significant life implications; dominance is moderate because while Frida initiated the contact ('Diego, come down!'), the praise and his subsequent visits position her in a receptive role where his judgment carries weight.",
       "drive_justification": "Curiosity increases because Rivera's praise validates her investigative approach to art (studying anatomy, art history). Competence increases substantially\u2014external validation of her artistic skill strengthens her sense of mastery. Affiliation increases moderately because acceptance into Rivera's circle and the artistic community fulfills belonging needs. Autonomy decreases slightly because accepting praise and validation introduces a degree of dependence on external judgment, which conflicts with her earlier resolution toward self-sufficiency.",
@@ -18006,7 +18006,7 @@
       "source_end": 10713,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:00:33Z",
       "pad_justification": "Pleasure is elevated (0.7) due to validation and emerging romantic interest; arousal is moderate (0.5) reflecting animated engagement with an artistic peer becoming a romantic focus; dominance is low (0.3) as she is in the receiving position of his critique and repeated visits, though she initiated the first contact.",
       "drive_justification": "Curiosity increases (0.8) as she engages with a major artistic figure and wants to understand him better. Competence increases (0.75) as his validation reinforces her artistic identity. Affiliation increases (0.7) as connection with Diego fulfills social and romantic yearning. Autonomy decreases (-0.4) as emotional investment in another person begins to compromise her hard-won resolution for independence.",
@@ -18217,7 +18217,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:00:58Z",
       "pad_justification": "Pleasure is mildly positive (marriage as commitment, desire to be taken seriously) tempered by maternal disapproval and the crude public comparison; arousal is moderate (significant life transition, public ceremony, social tension present); dominance is slightly negative (young woman entering marriage with powerful older man, constrained by family judgment and social positioning).",
       "drive_justification": "Curiosity is slightly boosted (new creative partnership, new household of intellectuals); competence is strongly activated (Diego's recognition of her talent, permission to paint herself); affiliation is elevated (joining an intellectual salon, being part of a revolutionary movement); autonomy is significantly undermined (entering dependent relationship, submitting to Diego's artistic direction, constrained by family judgment and gender norms of the era)",
@@ -18455,7 +18455,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:01:21Z",
       "developmental_period": "early_adulthood",
       "situation_types": "social_threat, rejection, criticism_received",
@@ -18677,7 +18677,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:01:50Z",
       "pad_justification": "Pleasure is negative due to the pain of infidelity and asymmetrical emotional need, though partially offset by the agency of adopting independence. Arousal is high because the memory describes ongoing interpersonal conflict, emotional turbulence, and active coping strategies. Dominance is low because Frida experiences submission to Diego's emotional centrality and his unilateral sexual freedom, though her adoption of reciprocal independence partially restores agency.",
       "drive_justification": "Curiosity is slightly suppressed: emotional turbulence narrows focus to relational crisis rather than intellectual exploration. Competence is substantially reduced: Frida's artistic confidence depends on Diego's validation, creating fragility. Affiliation is slightly positive: the marriage itself and the social salon provide connection, though marred by inequality. Autonomy is reduced: Frida's dependency on Diego's approval conflicts with her need for independent agency, though her reciprocal independence strategy partially restores it.",
@@ -18941,7 +18941,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:02:10Z",
       "developmental_period": "adulthood",
       "situation_types": "trust_offered, intimacy_available, psychological_threat, agency_denied",
@@ -19169,7 +19169,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:02:29Z",
       "developmental_period": "early_adulthood",
       "situation_types": "mentorship, achievement_opportunity, recognition_received, skill_challenge, choice_available, agency_granted",
@@ -19376,7 +19376,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:02:46Z",
       "pad_justification": "Pleasure is mildly negative because the liberation is undermined by the dependency it creates; arousal is moderate because this involves focused artistic work but with underlying tension; dominance is substantially negative because Frida's sense of agency is contingent on Diego's external validation.",
       "drive_justification": "Curiosity reduced because artistic exploration becomes narrowed to what Diego will validate. Competence severely undermined \u2014 she cannot trust her own judgment of her work. Affiliation strengthened \u2014 her need for Diego's regard intensifies. Autonomy catastrophically compromised \u2014 her creative agency depends on his external validation; this is the core mechanism of the dependency.",
@@ -19598,7 +19598,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:48:03Z",
       "developmental_period": "adulthood",
       "situation_types": "choice_available, agency_granted",
@@ -19822,7 +19822,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:03:28Z",
       "pad_justification": "Pleasure is moderate because hosting a salon of stimulating intellectuals provided intellectual engagement and social validation, offset by the consistent subordination in introductions. Arousal is moderate because salon-hosting involves animated conversation and focused social work, but is routine rather than crisis-level. Dominance is slightly negative because despite her intellectual participation, she was systematically introduced as wife-first, creating a structural submission despite her agency as hostess and artist.",
       "drive_justification": "Curiosity is boosted by engagement with intellectuals and artists. Competence is diminished because despite her intellectual and artistic contributions, public recognition denies her expertise. Affiliation is modestly positive: the salon provides social belonging, but undermined by the hierarchical framing. Autonomy is significantly impaired: she is defined through Diego's identity and constrained by social conventions about how wives are introduced.",
@@ -20029,7 +20029,7 @@
       "source_end": 13335,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:48:23Z",
       "developmental_period": "adulthood",
       "situation_types": "social_threat, agency_denied, rejection, criticism_received",
@@ -20247,7 +20247,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:04:09Z",
       "pad_justification": "Pleasure is mildly positive due to fascination with museums and cultural sophistication, tempered by repulsion at social injustices, yielding net modest positivity. Arousal is moderate: travel to a new continent, novel urban environments, and social attention from American elites creates animated engagement. Dominance is moderate-low: she is positioned as exotic spectacle by socialites (objectifying) yet exercises agency in forming critical judgments about the country's values.",
       "drive_justification": "Curiosity moderately elevated by novel museums and urban energy but constrained by alienation. Competence slightly reduced: she is positioned as exotic spectacle rather than capable agent. Affiliation significantly diminished: socialites' interest is superficial and objectifying, Americans' values repel her, and she experiences homesickness\u2014belonging needs unmet. Autonomy reduced: she is dependent on Diego's commissions and must navigate a society whose values conflict with hers.",
@@ -20464,7 +20464,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:04:30Z",
       "pad_justification": "Pleasure is elevated (0.7) due to the relief and validation of finally receiving honest medical information after years of patronizing treatment. Arousal is moderate (0.5) because this is a significant clinical interaction involving serious health information, but not a crisis moment \u2014 it is a moment of clarity rather than distress. Dominance is moderately high (0.65) because Frida experiences agency and control in the interaction: she is being treated as an intelligent adult capable of handling truth, not as a fragile patient to be managed.",
       "drive_justification": "Curiosity increases modestly (delta +0.5) because Eloesser's directness invites her to take intellectual ownership of her condition. Competence increases significantly (delta +0.7) because she is treated as an intelligent adult capable of understanding complex medical information \u2014 her epistemic authority is validated. Affiliation increases substantially (delta +0.75) because she experiences authentic recognition and respect from Eloesser, forming a deep bond of trust. Autonomy increases strongly (delta +0.8) because being given honest information enables her to make informed decisions about her own body rather than passively receiving paternalistic guidance.",
@@ -20652,7 +20652,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:04:45Z",
       "pad_justification": "Pleasure is high due to relief and gratitude from honest medical care after years of paternalistic treatment; arousal is moderate because this is a significant relationship formation but emotionally grounded rather than acute; dominance is elevated because Eloesser's directness gave Frida agency and control over understanding her condition.",
       "drive_justification": "Curiosity is enhanced by her desire to understand her condition; competence increases through validated agency; affiliation surges as she finds genuine recognition; autonomy peaks because directness respects her capacity for self-determination rather than infantilizing her.",
@@ -20833,7 +20833,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:05:01Z",
       "pad_justification": "Pleasure is elevated due to gratitude and affection toward Eloesser; arousal is moderate because portraiture is focused, deliberate work rather than emotionally intense; dominance is moderate-high because she exercises agency through the gift of her artistic talent and creative control over representation.",
       "drive_justification": "Curiosity delta is modest because the focus is on gratitude rather than exploration; competence delta is strong because portraiture affirms her artistic mastery and ability to represent complex human character; affiliation delta is high because Eloesser becomes a trusted intimate and rare genuine connection; autonomy delta is moderate-high because his honesty affirms her agency to understand her own body and condition.",
@@ -21010,7 +21010,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:05:20Z",
       "pad_justification": "Pleasure is mildly negative due to the underlying medical risk and tension, though tempered by hope and determination. Arousal is moderate\u2014this is a significant life decision involving travel, pregnancy, and defiance of medical advice, creating sustained activation. Dominance is moderate-positive; Frida is asserting her agency against doctors' recommendations, but remains constrained by her body's limitations.",
       "drive_justification": "Curiosity is slightly suppressed; focus is on outcome (motherhood) rather than exploration. Competence takes a negative hit\u2014defying medical advice creates doubt about her body's capability, though the defiance itself is autonomy-driven. Affiliation increases through shared journey with Diego (though he is ambivalent). Autonomy surges; she is asserting will against medical authority.",
@@ -21212,7 +21212,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:05:43Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, physical_threat, psychological_threat, achievement_opportunity",
@@ -21445,7 +21445,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:06:04Z",
       "pad_justification": "Pleasure is negative due to the context of miscarriage and physical trauma, but the act of seeking knowledge carries some agency reward, yielding mild negative valence overall. Arousal is high because the memory involves acute physical pain, medical crisis, and intense cognitive effort to master distressing information. Dominance is elevated because Frida actively asserts control over her medical understanding against institutional resistance, reclaiming agency in a vulnerable moment.",
       "drive_justification": "Curiosity: strongly activated\u2014she demands textbooks and pursues precise anatomical understanding. Competence: moderately elevated\u2014mastering the medical facts and creating sketches restores some sense of competence and skill. Affiliation: negatively impacted\u2014the doctors' resistance and her sense of being treated as a helpless patient creates distance from medical authority. Autonomy: strongly reinforced\u2014her deliberate assertion of agency against institutional norms deepens her need for self-determination and control.",
@@ -21657,7 +21657,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:06:21Z",
       "pad_justification": "Pleasure is negative (depicting trauma, bleeding, loss) tempered by agency in creative act; arousal is moderate-high (intense emotional processing, focused creative work following acute crisis); dominance moderate (she exerts control over representation of her own suffering, reclaiming narrative authority after medical passivity)",
       "drive_justification": "Curiosity reduced (inward focus, not exploratory); competence elevated (mastery through artistic documentation, reclaiming control); affiliation depressed (isolation in grief, sense of separateness from intact bodies, marital distance); autonomy heightened (assertion of self-directed processing, refusal of medical silencing, creation as sovereign act)",
@@ -21874,7 +21874,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:48:38Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, psychological_threat, failure_experienced",
@@ -22098,7 +22098,7 @@
       "source_end": 16975,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:07:10Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, psychological_threat, failure_experienced",
@@ -22333,7 +22333,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:07:30Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "trust_betrayed, relationship_loss, psychological_threat, rejection",
@@ -22561,7 +22561,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:07:55Z",
       "pad_justification": "Pleasure deeply negative due to betrayal by two trusted figures; arousal high due to acute emotional crisis and violation of core relational bonds; dominance low reflecting helplessness against deception and loss of control over intimate relationships.",
       "drive_justification": "Curiosity reduced by emotional numbing and protective disengagement; competence diminished by inability to control or predict intimate relationships; affiliation severely damaged by dual betrayal creating relational distrust; autonomy slightly increased as separation physically enacts boundary-setting and decision to pursue independent relationships.",
@@ -22792,7 +22792,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:08:14Z",
       "pad_justification": "Pleasure is deeply negative due to betrayal and loss of trust; arousal is high due to acute emotional crisis and deliberate confrontational action; dominance is moderately positive as cutting hair and rejecting his aesthetic preferences represents reclamation of bodily autonomy after feeling controlled.",
       "drive_justification": "Curiosity diminished by certainty of betrayal; competence increased through assertive action and artistic channeling; affiliation severely damaged by dual betrayal; autonomy dramatically strengthened through physical reclamation of body and identity.",
@@ -23005,7 +23005,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:08:36Z",
       "pad_justification": "Pleasure is deeply negative due to the act expressing fury and betrayal; arousal is high because painting in rage is physiologically activating and emotionally intense; dominance is moderate because while the painting reclaims agency through art, it stems from inability to confront Diego directly.",
       "drive_justification": "Curiosity down: betrayal closes inquiry into Diego's fidelity rather than opening it. Competence up: the act of painting reasserts mastery over chaos. Affiliation down severely: the violation of trust destroys the foundation of safe attachment. Autonomy up: painting is an autonomous act of reclamation despite external powerlessness.",
@@ -23224,7 +23224,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:08:59Z",
       "pad_justification": "Pleasure is deeply negative due to betrayal and loss of trust in two primary relationships. Arousal is high (0.75) because this represents acute emotional crisis, active decision-making under duress, and confrontation with existential relationship questions. Dominance is low-to-negative (-0.4) because Frida is reacting to circumstances imposed by Diego's infidelity rather than initiating from a position of control, though the move itself is an attempt to reclaim some agency.",
       "drive_justification": "Curiosity drops (-0.3) because emotional shock initially narrows exploratory impulse. Competence decreases (-0.4) as Frida experiences diminished sense of mastery in controlling her marriage and relationships. Affiliation plummets (-0.9) \u2014 the breach of family and marital bonds represents existential threat to attachment security. Autonomy increases (0.5) because the move and divorce consideration represent reclamation of agency and self-determination, a counterforce to the passive victimization.",
@@ -23438,7 +23438,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:09:16Z",
       "pad_justification": "Pleasure is deeply negative due to the protective stance against disappointment and emotional numbness; arousal is moderate because she is engaged in deliberate cognitive reframing rather than passive resignation; dominance is low because the frame itself is a submission to inevitability\u2014she cedes control to Diego's unpredictability by refusing to expect anything.",
       "drive_justification": "Curiosity decreases because anticipating nothing kills the motivation to discover; competence drops because she feels powerless to affect the relationship; affiliation is severely damaged\u2014she withdraws from emotional connection as protection; autonomy is slightly diminished because her behavioral freedom is constrained by the need to maintain emotional numbness.",
@@ -23654,7 +23654,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:09:35Z",
       "pad_justification": "Pleasure is mildly negative due to unresolved emotional conflict beneath surface reconciliation. Arousal is low because this describes a settled, habitual pattern rather than acute crisis. Dominance is negative because Frida submits to social convention and family pressure rather than asserting her authentic emotional state.",
       "drive_justification": "Curiosity decreases\u2014she avoids exploring the truth of Cristina's motives or the nature of the betrayal. Competence erodes\u2014she cannot resolve the conflict authentically, only suppress it, undermining her sense of agency. Affiliation is marginally enabled (surface contact restored) but at cost of authentic connection. Autonomy is severely restricted; she submits to family pressure and social convention, abandoning her own emotional needs.",
@@ -23869,7 +23869,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:09:53Z",
       "pad_justification": "Pleasure is moderately positive (seeking genuine tenderness and intimacy after deprivation), arousal is moderate (deliberate, emotionally engaged action rather than passive acceptance), dominance is elevated (she reclaims agency and choice after betrayal stripped it away).",
       "drive_justification": "Curiosity unchanged (not about exploration, about fulfillment). Competence slightly elevated (she demonstrates skill in managing secrecy and emotional navigation). Affiliation strongly enabled (she seeks genuine intimate connection). Autonomy dramatically elevated (she reasserts her right to make independent choices about her emotional/physical needs).",
@@ -24070,7 +24070,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural"
+      "extraction_phase": "phase-1-structural"
     },
     {
       "text": "Diego had an affair with Frida's younger sister Cristina, constituting a profound violation of the marriage and the sibling bond that Frida had trusted since childhood.",
@@ -24091,7 +24091,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:10:35Z",
       "pad_justification": "Pleasure is deeply negative due to betrayal by two intimate figures simultaneously; arousal is very high, reflecting the acute emotional crisis and shock of discovery; dominance is strongly negative as Frida is powerless to prevent or control the violation of her most intimate relationships.",
       "drive_justification": "Curiosity declines as Frida retreats into protective pessimism rather than exploring the affair's context. Competence is slightly diminished by the humiliation of public betrayal, though her painting responds with great skill. Affiliation is severely damaged: both Diego and Cristina, her two closest bonds, are now contaminated by betrayal; she temporarily isolates. Autonomy increases as she takes the deliberate step to separate, pursue her own affairs, and assert independence through art and sexuality.",
@@ -24343,7 +24343,7 @@
       "source_end": 19705,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:11:01Z",
       "pad_justification": "Pleasure is deeply negative due to profound betrayal and loss of trust in two critical relationships. Arousal is high because this discovery triggered acute emotional crisis and confrontation with core identity violations. Dominance is low because Frida experienced helplessness\u2014the betrayal was imposed upon her, and she initially had no control over the revelation or its implications.",
       "drive_justification": "Curiosity drops slightly because the affair answered questions she may not have wanted answered, replacing mystery with pain. Competence drops significantly because her inability to prevent Diego's betrayal or maintain the marriage as she wished undermines her sense of mastery. Affiliation is devastated\u2014trust in both Diego and Cristina is shattered, and the discovery isolates her. Autonomy paradoxically increases because the crisis forces her to make independent decisions (moving out, considering divorce, pursuing her own affairs) rather than remaining within Diego's gravitational field.",
@@ -24592,7 +24592,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:11:16Z",
       "pad_justification": "Pleasure is elevated (0.7) due to creative achievement and identity assertion; arousal is moderate (0.5) reflecting focused artistic work rather than crisis; dominance is high (0.75) as she actively claims narrative control over her own identity through the biological diagram metaphor.",
       "drive_justification": "Curiosity elevated (0.7) by exploration of biological/genealogical symbolism; competence strongly increased (0.85) through mastery of novel visual technique; affiliation slightly reduced (-0.3) as she asserts individual identity separate from family/Diego; autonomy greatly enhanced (0.9) through artistic control and identity self-definition.",
@@ -24766,7 +24766,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:11:35Z",
       "pad_justification": "Pleasure is slightly negative because the memory centers on loss (childlessness) despite creative agency; arousal is moderate because painting is focused, intentional work, not passive rumination; dominance is moderately positive because she actively transforms grief into artistic expression, exerting control over an uncontrollable circumstance.",
       "drive_justification": "Curiosity slightly decreases because the focus is on processing existing loss rather than exploring new territories; competence increases strongly because she demonstrates mastery over artistic form and symbolic language; affiliation decreases because the loss is isolating and the painting emphasizes her separateness; autonomy increases because she asserts control over her narrative and artistic direction, rejecting biological determinism.",
@@ -24973,7 +24973,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:11:54Z",
       "pad_justification": "Pleasure is elevated due to intellectual attraction and admiration for Trotsky's qualities, creating positive valence. Arousal is moderate\u2014this is a significant political and personal encounter, not routine, but described as intellectual engagement rather than crisis. Dominance is moderate-to-high: Frida experiences agency in the attraction and intellectual parity, yet there is also submission to the significance of hosting a historical figure.",
       "drive_justification": "Curiosity is elevated: Trotsky's dialectical rigour and historical role activate Frida's intellectual hunger. Competence is high: intellectual engagement with a major political theorist validates her analytical abilities. Affiliation is moderate: the affair is emotionally significant but ultimately brief and conducted partly in secret. Autonomy is elevated: the affair demonstrates her independence from Diego and her capacity to choose her own intellectual/romantic partners.",
@@ -25165,7 +25165,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:12:12Z",
       "pad_justification": "Pleasure: high positive valence from feeling desired and intellectually validated by a significant historical figure. Arousal: moderate-high activation from the intensity of clandestine affair, intellectual engagement, and transgressive nature of the relationship. Dominance: elevated sense of control and agency \u2014 she wielded power through intellect and attraction in a way her marriage did not permit.",
       "drive_justification": "Curiosity: elevated \u2014 Trotsky's intellectual rigor and political philosophy stimulated intellectual engagement. Competence: strongly positive \u2014 affair validated her intellect and confirmed her ability to engage at the highest level. Affiliation: negative delta \u2014 affair violated bonds with Diego and Natalia, creating isolation and secrecy. Autonomy: strongly positive \u2014 affair was an act of self-determination independent of Diego's control or approval.",
@@ -25374,7 +25374,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:12:30Z",
       "pad_justification": "Pleasure is high due to validation, commercial success, and independence achieved (elation stated). Arousal is moderate-high: this is a focused, achievement moment with sustained activation but not crisis-level intensity. Dominance is high because she accomplished autonomy on her own terms, proving she could operate without Diego's shadow.",
       "drive_justification": "Competence delta is strongly positive: she has concrete proof of artistic mastery and market validation. Autonomy delta is strongly positive: financial independence removes a major constraint on self-direction. Curiosity delta is neutral: this is a consolidation moment, not discovery. Affiliation delta is negative: the achievement is explicitly framed as independent *from* Diego, creating distance in her dependency narrative on him.",
@@ -25560,7 +25560,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:12:50Z",
       "pad_justification": "Pleasure is high (0.85) due to achievement and validation; arousal is moderate-high (0.65) reflecting focused intensity and purposeful action rather than crisis; dominance is high (0.80) as financial independence represents agency reclaimed and freedom from economic subjugation to Diego.",
       "drive_justification": "Curiosity +0.40: moderate engagement in how market and critics will receive her work. Competence +0.95: validates artistic skill and market viability at maximum. Affiliation -0.30: economic independence paradoxically creates distance from Diego-dependent identity and emotional enmeshment, though not from human connection. Autonomy +0.95: maximal positive impact\u2014economic independence is the material foundation enabling self-determination.",
@@ -25762,7 +25762,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:49:10Z",
       "pad_justification": "Pleasure is negative due to the rejection and dismissal of her work's categorization; arousal is elevated (0.7) because this represents a confrontational moment involving her artistic identity and autonomy; dominance is reduced (-0.5) because Breton's classification imposed an external framework against her will, diminishing her control over her own narrative.",
       "drive_justification": "Curiosity unaffected (0.0) as this is not exploratory; competence damaged (-0.7) by external validation system that misframes her work; affiliation severely threatened (-0.8) by alignment with European instead of Mexican cultural identity; autonomy most damaged (-0.9) as her self-determination and voice are overridden by curatorial authority.",
@@ -25959,7 +25959,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:13:41Z",
       "pad_justification": "Pleasure is negative due to resentment and disgust at being misunderstood and colonized; arousal is elevated due to the intensity of emotional reaction to appropriation and intellectual violation; dominance is low because she felt her narrative and identity were seized and reframed by an external authority despite her commercial success.",
       "drive_justification": "Curiosity decreases because the misframing closes interpretive inquiry rather than opening it. Competence is significantly reduced because her explicit artistic intent has been overridden by an external authority, suggesting her ability to control her own narrative is inadequate. Affiliation drops because she feels betrayed by Breton's misinterpretation and alienated from the European art establishment. Autonomy is most severely impacted: despite financial independence, her work has been reappropriated and recontextualized without her consent, revealing that economic autonomy does not guarantee interpretive autonomy.",
@@ -26166,7 +26166,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:14:01Z",
       "pad_justification": "Pleasure is elevated (0.7) due to the warmth, attentiveness, and unconditional affection described\u2014a contrast to Diego's coercive intensity. Arousal is moderate (0.5) reflecting engaged romantic/emotional connection rather than crisis or passivity. Dominance is moderately positive (0.6) because Muray's devotion 'without competition' grants her agency and control over the relationship dynamic, contrasting with Diego's dominating presence.",
       "drive_justification": "Curiosity delta is minimal (0.3) as Muray offers emotional stability rather than intellectual challenge. Competence shows slight positive delta (0.2) from the validation of being admired for herself. Affiliation shows strong positive delta (0.8)\u2014Muray provides the secure, reciprocal attachment she craves. Autonomy shows strong positive delta (0.7)\u2014his unconditional devotion and financial generosity enable her freedom and self-determination without coercive obligation.",
@@ -26375,7 +26375,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:14:21Z",
       "pad_justification": "Pleasure is elevated (0.75) due to the relief and comfort Muray's tenderness provided after Diego's turbulent intensity; arousal is moderate (0.45) as this reflects calm, attentive companionship rather than crisis or passion; dominance is moderately positive (0.65) because Muray's unconditional regard allowed Frida agency without coercion, contrasting sharply with Diego's controlling dynamics.",
       "drive_justification": "Curiosity receives minimal boost (0.10) as this relationship offered emotional comfort rather than intellectual challenge; competence is moderately enhanced (0.35) by Muray's validation without competition, which allowed her creative confidence to grow; affiliation is strongly activated (0.85) as Muray provided the secure attachment and belonging that Diego's volatility could not; autonomy is substantially enabled (0.75) through financial support, emotional safety, and freedom from coercive demands\u2014this relationship directly enabled her goal of economic independence.",
@@ -26590,7 +26590,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:14:43Z",
       "pad_justification": "Pleasure is negative due to the regret and loss involved in ending the relationship, tempered slightly by acceptance of her choice. Arousal is moderate\u2014the memory involves a deliberate decision and its emotional aftermath, not crisis-level activation. Dominance is low because the decision, while ultimately hers, was constrained by her prior commitment to Diego and her return to Mexico, leaving her somewhat controlled by circumstances.",
       "drive_justification": "Curiosity dips slightly; the decision closes off exploration of alternative relationship models. Competence decreases modestly; she proves she cannot sustain an emotionally healthy relationship when it conflicts with prior attachment. Affiliation drops significantly; she severs a warm connection that genuinely met her needs. Autonomy plummets; she subordinates her own well-being to her emotional bond with Diego, demonstrating that financial independence did not translate to relational independence.",
@@ -26792,7 +26792,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:15:04Z",
       "pad_justification": "Pleasure is mildly positive (intellectual clarity, assertion of agency) but tempered by the resentment of misunderstanding; arousal is moderate-to-high (passionate ideological stance, confrontational assertion against institutional power); dominance is elevated (she claims authorship and interpretive control over her own work against external framing).",
       "drive_justification": "Curiosity is suppressed (defensive posture, not exploring Breton's intent). Competence is strongly affirmed (she proves her technical and conceptual rigor against external classification). Affiliation is negative delta (rejection of European art world's interpretive community and their categorization). Autonomy is powerfully activated (reassertion of interpretive control and artistic agency, extending from her economic independence goal).",
@@ -26996,7 +26996,7 @@
       "source_end": 23736,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:15:20Z",
       "pad_justification": "Pleasure is elevated due to artistic achievement and assertion of independence despite physical constraints. Arousal is moderate\u2014sustained creative focus and deliberate strategic action rather than crisis intensity. Dominance reflects her reclaiming agency in her own artistic practice while Diego's attention was diverted.",
       "drive_justification": "Autonomy delta highest\u2014this period is explicitly about economic and artistic self-sufficiency. Competence elevated\u2014sustained creative output demonstrates mastery. Curiosity positive but moderate\u2014she is engaged in refining existing vision rather than exploratory play. Affiliation negative\u2014she is deliberately separating from Diego's orbit and establishing independent standing, which requires some distancing.",
@@ -27184,7 +27184,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:15:35Z",
       "pad_justification": "Pleasure is strongly negative due to the betrayal of expectations and poor treatment; arousal is high due to the intense anger and frustration described ('furious'); dominance is low because she arrived to find herself powerless in a chaotic situation orchestrated by others who failed her.",
       "drive_justification": "Curiosity dips because anger narrows focus; competence is undermined by her inability to control the situation; affiliation crashes due to alienation from Parisian culture and Breton's failure; autonomy plummets because she arrives dependent on others' arrangements and finds herself powerless.",
@@ -27388,7 +27388,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:15:56Z",
       "pad_justification": "Pleasure is strongly negative due to contempt and disgust toward Parisian culture. Arousal is high (0.8) because the memory involves active judgment, confrontation with intellectual pretension, and emotional intensity in dismissing an entire cultural milieu. Dominance is moderately positive (0.6) because Frida positions herself as a judge of authenticity and sees through what she perceives as false intellectualism, granting her a sense of moral/intellectual authority in this evaluation.",
       "drive_justification": "Curiosity is dampened (-0.5) by her dismissive stance toward European intellectual culture\u2014she closes herself off from genuine exploration. Competence is slightly affirmed (0.3) by her ability to see through pretense and judge authenticity. Affiliation is severely undermined (-0.8) by her contempt for and rejection of the European artistic community and surrealist circles. Autonomy is strengthened (0.6) by her assertion of independent values and refusal to be seduced by European validation or shaped by cosmopolitan expectations.",
@@ -27605,7 +27605,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:16:16Z",
       "pad_justification": "Pleasure is strongly negative due to disgust and homesickness ('makes me vomit'). Arousal is high due to intense emotional activation\u2014anger, physical ache, and visceral rejection. Dominance is low because she felt trapped by circumstances beyond her control (unorganized exhibition, customs delays, cultural alienation).",
       "drive_justification": "Curiosity drops sharply\u2014disgust at European ideas kills intellectual openness. Competence increases slightly (she recognizes her work's quality, proven by Louvre purchase). Affiliation collapses; she rejects the European art community entirely. Autonomy decreases; she feels constrained by circumstances (logistics, customs, cultural pressure) and pulled back to Mexico despite her initial agency in traveling.",
@@ -27819,7 +27819,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:16:35Z",
       "pad_justification": "Pleasure is moderate-to-positive (recognition by prestigious institution) tempered by ambivalence about the source and context of validation. Arousal is moderate (focused attention on significant achievement, but without acute intensity\u2014this is retrospective recognition, not crisis). Dominance is moderate because while the achievement represents professional validation, it came through European gatekeepers rather than self-directed Mexican recognition.",
       "drive_justification": "Curiosity slightly dampened (European culture revealed as shallow, reducing interest in further engagement). Competence strongly elevated (objective validation by Louvre proves technical mastery and artistic legitimacy). Affiliation sharply reduced (European surrealists exposed as pretentious and disconnected; Frida feels alienated from their world). Autonomy reduced (recognition came through institutional gatekeepers, not self-directed effort; she experiences lack of control over meaning-making).",
@@ -28014,7 +28014,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:16:56Z",
       "pad_justification": "Pleasure is moderate because the achievement itself is genuinely satisfying (museum validation), but tempered by the recognition arriving in an undesired form. Arousal is moderate-to-high due to the cognitive dissonance between triumph and disappointment\u2014an emotionally activating contradiction. Dominance is low-to-negative because external European institutions are defining the terms of her success, leaving her without control over the meaning attributed to her work.",
       "drive_justification": "Curiosity is slightly dampened because the European art world's frameworks no longer intrigue her\u2014she has decided it is intellectually hollow. Competence is boosted by the Louvre validation, confirming her artistic skill at the highest level. Affiliation is reduced because European surrealists are revealed as self-serving and disconnected from meaningful action; she rejects alignment with them. Autonomy takes the largest hit: European institutions dictating the terms and meaning of her work strips her of control over her artistic identity and narrative.",
@@ -28217,7 +28217,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:49:25Z",
       "pad_justification": "Pleasure is negative due to physical illness and confinement. Arousal is elevated due to acute medical distress and hospitalization stress. Dominance is low because illness strips agency and places her under medical control.",
       "drive_justification": "Curiosity reduced: confinement limits exploration of Paris. Competence severely blocked: cannot paint, her primary competence domain. Affiliation slightly positive: Duchamp's visit provides connection. Autonomy dramatically impaired: medical authority controls her body and movement.",
@@ -28429,7 +28429,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:49:44Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "choice_available, agency_granted, novelty_encountered, criticism_received, rejection, achievement_opportunity",
@@ -28629,7 +28629,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:18:04Z",
       "pad_justification": "Pleasure is negative due to frustration with perceived intellectual pretense and disconnection from reality. Arousal is elevated due to the intensity of her critical judgment and the passionate conviction driving her worldview reassessment. Dominance is moderate\u2014she asserts her values but recognizes she is excluded from the European art establishment.",
       "drive_justification": "Curiosity is reduced; she has decided the European intellectual project is not worth exploring further. Competence is slightly elevated; the Louvre recognition confirms her technical skill, though on wrong terms. Affiliation is strongly reduced; she explicitly rejects the surrealist community and intellectual culture. Autonomy is increased; she reasserts her right to define her identity and artistic purpose on Mexican, not European, terms.",
@@ -28854,7 +28854,7 @@
       "source_end": 26094,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:50:00Z",
       "pad_justification": "Pleasure is negative due to perception of extraction and inauthenticity; arousal is moderate, reflecting contemplative disillusionment rather than acute crisis; dominance is elevated as the perception motivates assertive reclamation of agency through Mexican identity.",
       "drive_justification": "Curiosity decreases as European engagement is framed as inauthentic; competence increases through affirmation of her distinctive artistic skill rooted in Mexican tradition; affiliation drops sharply as cosmopolitan validation networks are rejected; autonomy surges as she asserts independent control over her identity and artistic direction.",
@@ -29056,7 +29056,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:18:45Z",
       "pad_justification": "Pleasure is deeply negative (loss, betrayal, emotional exhaustion). Arousal is high due to the intensity of accumulated grievances and the finality of divorce. Dominance is low because Frida experienced submission to Diego's infidelities and cruelty, though the divorce itself represents some reclamation of agency.",
       "drive_justification": "Curiosity dampened by emotional overwhelm. Competence severely compromised (loss of Diego-scaffolded art-world status). Affiliation crashed (primary intimate bond severed; social isolation follows). Autonomy boosted by separation but shadowed by dependence anxiety.",
@@ -29278,7 +29278,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:50:18Z",
       "pad_justification": "Pleasure deeply negative due to divorce trauma, emotional distress, and pain; arousal elevated by crisis state (heavy drinking, medical treatment, rumination); dominance severely reduced reflecting loss of agency and identity tied to Diego's presence.",
       "drive_justification": "Curiosity suppressed by crisis overwhelm; competence shattered by internalized belief that art-making requires Diego's validation; affiliation destroyed by divorce and fear of social rejection; autonomy collapsed by identity-fusion with Diego and perception that agency depends on his presence.",
@@ -29525,7 +29525,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:19:23Z",
       "pad_justification": "Pleasure is deeply negative: the painting expresses loss, rejection, and self-fragmentation rather than joy. Arousal is high (0.8): the act of creating this large, ambitious work while emotionally devastated involves intense psychological activation and confrontation with painful truths. Dominance is low-negative (-0.3): Frida is responding to Diego's rejection and her own internalized shame rather than exerting control; she is in a state of reactive vulnerability.",
       "drive_justification": "Curiosity (+0.3): the act of painting represents an attempt to understand the fragmentation, a modest exploratory impulse, though overwhelmed by pain. Competence (-0.4): Frida doubts her intrinsic artistic worth; she fears her talent is derivative of Diego's patronage. Affiliation (-0.8): the divorce represents catastrophic loss of intimate connection; the painting visualizes the severing of relational bonds. Autonomy (-0.6): she has internalized the belief that her identity depends on Diego's validation, undermining her sense of self-directed agency and independent worth.",
@@ -29745,7 +29745,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural"
+      "extraction_phase": "phase-1-structural"
     },
     {
       "text": "Frida and Diego remarried on 8 December 1940 in San Francisco on terms she dictated: separate finances, no intimate life, and functioning as intellectual and domestic partners rather than lovers. This was a strategic alliance concluded by both that they were better together than apart, though 'together' required eliminating everything that had made their relationship both ecstatic and unbearable.",
@@ -29766,7 +29766,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:20:11Z",
       "pad_justification": "Pleasure is mildly positive (pragmatic satisfaction of regained partnership) but tempered by the loss of romantic intimacy and emotional ecstasy. Arousal is moderate (negotiation, decision-making, formal ceremony) reflecting focused deliberation rather than passion. Dominance is elevated (Frida dictated all terms; Diego capitulated) indicating significant agency recovery.",
       "drive_justification": "Curiosity declines (closure of exploration; fixed contractual terms reduce open-endedness). Competence increases (successfully negotiated terms; regained agency). Affiliation remains low (intimate partnership explicitly eliminated; connection is functional rather than bonding). Autonomy increases significantly (separate finances, her terms, no obligation to romantic role-play).",
@@ -29995,7 +29995,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:50:52Z",
       "pad_justification": "Pleasure is deeply negative due to the shame of recognising dependency and performativity. Arousal is moderate-high because this is an acute moment of painful self-awareness and internal confrontation. Dominance is low because the recognition involves loss of agency\u2014realising one's autonomy was illusory.",
       "drive_justification": "Curiosity gains (+0.7) through heightened self-examination. Competence drops sharply (-0.8) because artistic validity is now questioned. Affiliation dips (-0.6) because dependency on Diego is revealed as problematic. Autonomy plummets (-0.85) because the recognition strips away the illusion of independent agency.",
@@ -30201,7 +30201,7 @@
       "source_end": 29332,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:51:15Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, trust_betrayed, psychological_threat, rejection, choice_available, achievement_opportunity, agency_granted",
@@ -30442,7 +30442,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:21:13Z",
       "pad_justification": "Pleasure is high due to creative autonomy and curation of a beloved space reflecting her values; arousal is moderate as this represents engaged, purposeful activity rather than crisis or rest; dominance is high because she exercised total control over La Casa Azul as 'her domain' distinct from Diego's studios.",
       "drive_justification": "Curiosity moderately elevated by curation of diverse cultural objects; competence strongly elevated through mastery of aesthetic domain; affiliation moderately supported by the house as gathering place; autonomy highly elevated as this was her exclusive domain, independent of Diego's presence.",
@@ -30626,7 +30626,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:21:34Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, skill_challenge, agency_denied",
@@ -30825,7 +30825,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:21:53Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, failure_experienced, skill_challenge",
@@ -31024,7 +31024,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:22:11Z",
       "pad_justification": "Pleasure is elevated due to popularity with students and genuine competence achievement; arousal is moderate because teaching involves sustained engagement but is routine activity rather than crisis; dominance increases notably as teaching provides autonomy independent of Diego's control, shifting from submission to assertion of her own authority.",
       "drive_justification": "Competence surge (0.9 delta): teaching provides measurable skill demonstration and student progress feedback. Autonomy surge (0.85 delta): institutional role independent of Diego creates genuine agency. Affiliation moderately enabled (0.7 delta): student relationships and 'Los Fridos' identity create community. Curiosity modestly elevated (0.6 delta): teaching encourages observation and experimentation with students.",
@@ -31224,7 +31224,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:22:29Z",
       "pad_justification": "Pleasure is elevated because teaching gave Frida 'a sense of competence...independent of Diego's approval' and 'visible progress of her students' \u2014 intrinsically rewarding. Arousal is moderate because teaching is engaged professional activity but not crisis-level; it's purposeful work with calm attention to craft. Dominance is high because she controlled the pedagogical direction, shaped students' artistic vision, and established her own authority as a teacher rather than derivative of Diego.",
       "drive_justification": "Competence delta is very high: teaching directly affirms her mastery and validates her knowledge. Autonomy delta is very high: she controls curriculum, location, and pedagogy independent of Diego. Affiliation delta is moderate: she gains meaningful connection with students ('Los Fridos') and institutional recognition, but the text emphasizes autonomy over relational bonding. Curiosity delta is low: teaching from observation reinforces established artistic philosophy rather than exploring new domains.",
@@ -31423,7 +31423,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:22:49Z",
       "pad_justification": "Pleasure is elevated due to alignment with deeply held convictions and sense of purposeful action; arousal is moderate-to-high reflecting the significance of formal commitment and ideological intensity; dominance is notably high because this act represents autonomous choice independent of Diego's influence, asserting her own political agency.",
       "drive_justification": "Curiosity modestly affected\u2014she is engaging with established ideology rather than exploring new intellectual territory. Competence delta positive but moderate: political engagement offers different domain of mastery than art or teaching. Affiliation strongly enabled: joining party provides community of like-minded individuals and sense of belonging to larger movement. Autonomy dramatically enhanced: formal party membership represents assertion of independent political agency distinct from Diego's influence.",
@@ -31633,7 +31633,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:23:15Z",
       "pad_justification": "Pleasure is mildly negative due to the frustration of an unresolvable disagreement with an intimate partner; arousal is moderate because this represents sustained intellectual tension and conflict rather than acute crisis; dominance is slightly negative because neither party could impose resolution, leaving both somewhat constrained.",
       "drive_justification": "The disagreement simultaneously reinforced Frida's autonomy and ideological independence while constraining affiliation and limiting curiosity about bridge-building. Competence was marginally enhanced by her commitment to conviction, but overall drove a small wedge into the relationship.",
@@ -31862,7 +31862,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:51:31Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "choice_available, agency_granted, psychological_threat",
@@ -32065,7 +32065,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:51:47Z",
       "pad_justification": "Pleasure is mildly negative because the memory centers on suffering and systemic injustice, though tempered by intellectual synthesis. Arousal is moderate\u2014this represents focused cognitive work (synthesis) rather than acute crisis. Dominance is low because the memory emphasizes victimization by an external system (capitalism) rather than personal agency or control.",
       "drive_justification": "Curiosity increases through political-intellectual synthesis. Competence increases slightly as she masters an explanatory framework. Affiliation increases markedly\u2014she aligns with working-class struggle and leftist community. Autonomy decreases significantly\u2014the framework emphasizes systemic constraint over personal choice.",
@@ -32257,7 +32257,7 @@
       "source_end": 32306,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:24:33Z",
       "pad_justification": "Pleasure is moderate-to-positive (0.6) because establishing her own domain represents autonomy and creative control after years of living in Diego's shadow. Arousal is calm-engaged (0.4) \u2014 this is a biographical arrangement, not a crisis moment, though it carries significance. Dominance is notably elevated (0.7) because this represents a decisive claim to autonomous space and authority within the marriage structure.",
       "drive_justification": "Curiosity delta is low (0.2) \u2014 the domain establishment doesn't primarily activate exploration drives. Competence delta is very high (0.85) \u2014 she now has a space to exercise artistic and curatorial competence independently. Affiliation delta is negative (-0.3) \u2014 spatial separation from Diego creates distance, though it may preserve the relationship long-term by reducing friction. Autonomy delta is very high (0.9) \u2014 this is the core drive impact: explicit recognition of separate agency and self-determination.",
@@ -32456,7 +32456,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:24:49Z",
       "pad_justification": "Pleasure is elevated (0.7) because choosing intimate scale reflects creative satisfaction and intentional agency; arousal is mild (0.3) as this describes deliberate, reflective artistic practice rather than crisis or excitement; dominance is high (0.8) because Frida actively chose format, scale, and viewing distance to control how her work would be experienced.",
       "drive_justification": "Curiosity is elevated (0.8) by detailed technical choices and formal experimentation; competence increases (0.75) through mastering small-format technique; affiliation decreases (-0.3) because intimate scale explicitly rejects public/collective viewing; autonomy is maximized (0.9) as she dictates all parameters of creation and reception.",
@@ -32635,7 +32635,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:25:07Z",
       "pad_justification": "Pleasure is mildly positive (creative mastery, self-expression) tempered by the confrontation with suffering embedded in the work. Arousal is moderate\u2014focused artistic labour with psychological intensity but not acute crisis. Dominance is elevated because the act of collapsing observer/subject represents cognitive and artistic control over one's own narrative.",
       "drive_justification": "Curiosity is elevated by the deep investigation of self and suffering. Competence is high (mastery of technique and conceptual innovation). Affiliation is negative because the collapse of observer/subject is inherently isolating\u2014it creates intimacy with the self but distance from viewer as separate person. Autonomy is very high (complete rejection of external artistic standards in favour of personal vision).",
@@ -32829,7 +32829,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:25:31Z",
       "pad_justification": "Pleasure is slightly negative because the painting depicts loss (dead children, the accident) and dissolution, creating melancholic reflection rather than joy. Arousal is moderate because the act of painting is focused, deliberate work, but the subject matter (mortality, grief, dissolution) maintains emotional engagement without crisis intensity. Dominance is low because the composition shows the self submerged and surrounded by forces beyond control\u2014the water, the floating images, the biographical weight.",
       "drive_justification": "Curiosity is elevated because the painting investigates her own psychological and biographical depths through visual metaphor. Competence is moderate-positive because she demonstrates technical skill in the surrealist composition and anatomical detail, though the subject matter is one she cannot 'master' (loss is uncontrollable). Affiliation is strongly negative because the painting depicts the people she loved as lost, dead, or dissolving\u2014intimacy is shown as impermanent and tragic. Autonomy is moderate because the painting asserts her right to depict her own body and suffering on her own terms, but this autonomy is shadowed by her inability to prevent the biographical losses she portrays.",
@@ -33022,7 +33022,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:25:56Z",
       "pad_justification": "Pleasure is negative due to the subject matter of pain and suffering, though the artistic act itself carries some positive valence (\u22120.6 reflects the balance of dark content with creative agency). Arousal is moderate (0.5) because this represents focused, deliberate creative work with emotional intensity but not acute crisis\u2014it is remembered as compositional rather than traumatic. Dominance is slightly negative (\u22120.3) because the work expresses submission to pain and its pre-linguistic nature, though the act of painting reasserts some control through artistic form.",
       "drive_justification": "Curiosity increases (0.7 delta) due to investigation of pain's pre-linguistic nature and anatomical form. Competence increases (0.8 delta) through mastery of anatomical rendering and symbolic composition. Affiliation decreases (\u22120.4 delta) because the work emphasizes isolation and solitary suffering rather than connection (though the painting is later viewed by others). Autonomy increases (0.75 delta) because the work asserts radical artistic freedom from European conventions and from the demand that suffering be aesthetically palatable.",
@@ -33226,7 +33226,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:26:13Z",
       "pad_justification": "Pleasure is moderate-positive: the deliberate craftsmanship and mastery of method suggest satisfaction and creative agency. Arousal is calm-engaged (0.4): this describes routine, methodical work\u2014not crisis or passion, but focused attention. Dominance is high (0.7): she exerts complete control over her process, rejecting European tradition and imposing her own system.",
       "drive_justification": "Curiosity +0.5: moderate engagement with technical refinement and anatomical study, but not primary driver. Competence +0.85: obsessive revision and technical mastery directly feed competence drive. Affiliation -0.3: small private formats and rejection of public declaration reduce social/relational motivation. Autonomy +0.9: complete rejection of external norms and control of process maximally activates autonomy drive.",
@@ -33405,7 +33405,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:52:03Z",
       "pad_justification": "Pleasure moderately positive due to deliberate artistic choice and creative agency; arousal moderate as this represents focused compositional decision-making rather than crisis or routine; dominance elevated as Frida actively controlled her aesthetic strategy to prioritise her values over convention.",
       "drive_justification": "Curiosity modest\u2014technique is established choice, not experimental exploration. Competence strongly boosted: deliberate mastery of form to achieve emotional goal. Affiliation elevated: flattening is relational act, bringing people closer or forcing confrontation. Autonomy maximally boosted: Frida asserts complete control over her medium against external convention.",
@@ -33597,7 +33597,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:26:51Z",
       "pad_justification": "Pleasure is moderately positive (creative mastery, intellectual synthesis of medical and emotional domains), arousal is moderate (focused, deliberate work requiring sustained attention and precision), dominance is elevated (she exercised authorial control over both the medium and the conceptual framework, positioning herself as reader and author of the body-text).",
       "drive_justification": "Curiosity: strongly activated by desire to understand pain through anatomical precision and to merge knowledge domains. Competence: elevated through mastery of both medical knowledge and painting technique, and the novel synthesis. Affiliation: slightly negative (her anatomical honesty about bodily suffering was isolating; she prioritized truthfulness over social acceptance). Autonomy: elevated (she refused to conform to European traditions and asserted her own framework for what art could contain).",
@@ -33777,7 +33777,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:27:09Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "achievement_opportunity, skill_challenge, choice_available",
@@ -33960,7 +33960,7 @@
       "source_end": 34890,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:27:27Z",
       "pad_justification": "Pleasure: moderate positive valence from creative productivity and mastery (200 paintings, deliberate formal choices). Arousal: calm engagement consistent with sustained artistic practice\u2014not crisis, but focused work over decades. Dominance: high sense of control\u2014she established her own formal system, chose her subjects, and resisted European conventions deliberately.",
       "drive_justification": "Curiosity: very high\u2014200 paintings + obsessive revision reveals sustained investigation of self and medium. Competence: high\u2014mastery of materials, method, and formal innovation demonstrated by consistent production. Affiliation: moderate-low\u2014self-portraiture is solitary production, though subjects include relationships and the paintings are 'meant to be viewed' (implies audience consideration). Autonomy: very high\u2014she established her own formal system, rejected European conventions, and chose small scale specifically to resist public declaration.",
@@ -34149,7 +34149,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:52:19Z",
       "pad_justification": "Pleasure is deeply negative: surgical failure, infection, and deterioration represent profound loss of hoped-for relief. Arousal is elevated due to the acute medical crisis, physical pain, and psychological distress of worsening condition. Dominance is low: Frida is passive subject to medical intervention that backfired, stripped of agency and control over her own body.",
       "drive_justification": "Curiosity drops: distrust of medical expertise and desire to avoid further information about her condition. Competence plummets: failure to achieve pain relief via surgery undermines sense of efficacy and mastery over her body. Affiliation declines: betrayal by medical professionals damages trust in those meant to help. Autonomy severely impacted: lack of control over surgical outcome and forced dependence on medical system reduces sense of agency.",
@@ -34364,7 +34364,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:28:11Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, agency_denied, skill_challenge, novelty_encountered",
@@ -34608,7 +34608,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:28:34Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, skill_challenge, achievement_opportunity",
@@ -34810,7 +34810,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:28:58Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, choice_available, agency_granted, trust_offered",
@@ -35031,7 +35031,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:29:21Z",
       "pad_justification": "Pleasure is mildly negative due to the existential fear and dependency depicted, though there is creative agency in the act of painting. Arousal is moderate\u2014the pre-surgical context and the intentional act of fixing the surgeon's image create focused intensity without panic. Dominance is low because Frida is positioned in a wheelchair, physically vulnerable, and dependent on Dr Farill's surgical skill.",
       "drive_justification": "Curiosity drops slightly because medical outcomes are predetermined, not exploratory. Competence plummets\u2014her body is failing her, and her most valued skill (painting) may be about to be removed from her control. Affiliation rises modestly because she must bond with and trust Dr Farill. Autonomy collapses\u2014she is in a wheelchair, dependent on medical intervention, and has surrendered control of her body to surgery.",
@@ -35243,7 +35243,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:52:35Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, abandonment_threat, choice_available",
@@ -35454,7 +35454,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:52:53Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, choice_available, choice_restricted",
@@ -35663,7 +35663,7 @@
       "source_end": 37365,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:30:28Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "trust_offered, intimacy_available, vulnerability_exposure",
@@ -35897,7 +35897,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:30:47Z",
       "pad_justification": "Pleasure is high because the memory captures genuine achievement and recognition after lifelong struggle; arousal is moderate-to-high due to the significance of the event and the effort required to attend despite illness (activation of achievement celebration); dominance is elevated because Frida asserted agency over her body and circumstances, controlling the narrative of her recognition independent of Diego.",
       "drive_justification": "Competence delta is extremely positive: her work was publicly validated and recognized as masterful, confirming artistic competence. Autonomy delta is very positive: she asserted agency by defying medical orders and controlling the narrative of her recognition on her own terms. Affiliation delta is moderate-positive: recognition from 'her own people' and Mexican society affirms belonging, though the focus is more on independence than social bonding. Curiosity has minimal delta: this is achievement of a known goal, not exploration of the unknown.",
@@ -36092,7 +36092,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:31:09Z",
       "pad_justification": "Pleasure is high (0.9) because the text explicitly states 'genuine, uncomplicatedly happy' and her long-sought recognition occurred. Arousal is moderately-high (0.7) because she was performing, holding court, singing, and drinking tequila despite severe illness\u2014a sustained activation state mixing physical performance with emotional intensity. Dominance is high (0.8) because she orchestrated the event on her own terms, arranged the bed installation, controlled the narrative, and received visitors as 'a queen'\u2014asserting agency over both her body and her recognition.",
       "drive_justification": "Competence delta +0.95: her mastery was fully validated by the recognition of 300 viewers and institutional endorsement. Affiliation delta +0.85: she was surrounded by her people (Mexico's art community) and received as 'a queen,' deepening social belonging. Autonomy delta +0.9: she overrode medical authority and orchestrated the event entirely on her terms, asserting maximum agency. Curiosity delta +0.3: while not the primary driver here, the novelty of her first solo show and the attention it generated maintained curiosity engagement.",
@@ -36295,7 +36295,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:31:33Z",
       "pad_justification": "Pleasure is extremely high: genuine, uncomplicated joy at recognition\u2014the culmination of lifelong waiting. Arousal is high due to the intensity of the moment: physical exertion despite illness, performance before 300 people, emotional significance. Dominance is elevated: she controlled the narrative by attending against medical orders, staged her own bed as centrepiece, held court, and defined how she would be seen.",
       "drive_justification": "Competence peaks: her skill and artistic worth are publicly validated at the highest level. Autonomy surges: she asserts control over her narrative, defies medical authority, and defines her own terms. Affiliation increases moderately: Mexico's recognition provides belonging, though on her terms, not through merger. Curiosity is minimal: this is the answer to a question she has long carried, not a new mystery.",
@@ -36499,7 +36499,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:31:49Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, relationship_loss, abandonment_threat",
@@ -36713,7 +36713,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:32:06Z",
       "pad_justification": "Pleasure is negative due to depression, heavy drinking, and painkiller dependence shadowing recovery; arousal is moderate because learning to walk again requires sustained physical effort and attention despite emotional burden; dominance is low because the body's betrayal and dependence on prosthetics/substances undermines her sense of control.",
       "drive_justification": "Curiosity declines due to depression narrowing cognitive scope; competence is severely damaged by loss of physical control and artistic productivity ('very little painted after'); affiliation is compromised by isolation, shame, and emotional withdrawal during substance use; autonomy is devastated by dependence on prosthetics, alcohol, and painkillers, inverting her sense of self-determination.",
@@ -36930,7 +36930,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:32:27Z",
       "pad_justification": "Pleasure is negative due to physical deterioration and loss of technical mastery, tempered by the persistence of emotional engagement. Arousal is moderate\u2014focused creative work despite pain, but shadowed by depression and difficulty. Dominance is low because the body's betrayal and artistic limitations impose constraint, though creative expression itself offers some agency.",
       "drive_justification": "Curiosity is dampened by pain and depression, reducing exploratory engagement. Competence is severely diminished; inability to execute technique as before undermines mastery drive. Affiliation is slightly reduced due to isolation from physical limitation and social withdrawal. Autonomy is strongly constrained; bodily dependence and medical control override agency.",
@@ -37146,7 +37146,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:53:10Z",
       "pad_justification": "Pleasure is moderately positive due to the affirmation and defiance expressed in the inscription, tempered by the recognition of bodily suffering. Arousal is moderate\u2014this is a reflective, deliberate act of inscription rather than acute crisis, but it carries emotional weight. Dominance is elevated because the act represents assertion of will and meaning-making against physical constraint.",
       "drive_justification": "Curiosity shows mild impact\u2014the act is expressive rather than exploratory. Competence is strongly elevated: this is mastery of symbolic language and artistic medium. Affiliation shows low impact; this is a solitary act of assertion, not relational. Autonomy is maximally elevated: the inscription is an exercise of will and self-determination against external constraint.",
@@ -37340,7 +37340,7 @@
       "source_end": 40101,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:33:11Z",
       "pad_justification": "Pleasure is deeply negative due to the recontextualisation of once-defiant words into despair; arousal is high due to the acute psychological trauma of amputation and the shattering realisation of bodily betrayal; dominance is low because the phrase shifts from agency ('I have wings') to victimhood, revealing loss of control over her own narrative and body.",
       "drive_justification": "Curiosity moderately suppressed by acute distress and inward focus. Competence devastated by amputation\u2014the core threat to artistic identity and bodily function. Affiliation slightly reduced (vulnerability may drive some connection-seeking, but despair isolates). Autonomy nearly obliterated\u2014the body's involuntary failure and loss of mobility represent maximum autonomy constraint.",
@@ -37553,7 +37553,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:33:30Z",
       "pad_justification": "Pleasure: moderate-to-positive from agency and political conviction despite physical suffering. Arousal: high\u2014defiant public action against medical orders, physical exertion in wheelchair, political passion. Dominance: elevated\u2014she asserted her will against doctors' authority and frailty, reclaiming control at life's end.",
       "drive_justification": "Curiosity: no delta\u2014not discovery-driven. Competence: +0.4\u2014she performs her identity as activist-artist one final time, mastering the symbolic act. Affiliation: +0.7\u2014she joins a collective movement and asserts solidarity with Guatemalan resistance. Autonomy: +0.85\u2014she reclaims agency over her own body and meaning-making by defying medical authority and choosing her last public narrative.",
@@ -37763,7 +37763,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:33:51Z",
       "pad_justification": "Pleasure is negative due to the predominance of suffering, medical trauma, and physical deterioration; arousal is moderate because this is a reflective biographical synthesis that carries emotional weight but is not an acute crisis moment; dominance is low-moderate because Frida transformed suffering into agency through art, yet remained subject to medical and bodily constraint.",
       "drive_justification": "Curiosity delta +0.4: pain and body became objects of intense creative investigation. Competence delta +0.7: mastery over artistic medium became a compensatory achievement as bodily mastery declined. Affiliation delta -0.3: chronic suffering created isolation; medical trauma and marital turmoil strained relational bonds. Autonomy delta +0.2: bodily constraint reduced autonomy, but artistic creation and political engagement partially restored volitional agency.",
@@ -37973,7 +37973,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:34:12Z",
       "pad_justification": "Pleasure is deeply negative due to death and suffering culmination; arousal is high due to the intensity of mortality, ambiguity, and the biographical pivot point; dominance is moderate-to-high because Frida maintained agency in her final act and messaging, despite physical constraint.",
       "drive_justification": "Curiosity decreases (no future exploration possible). Competence collapses (the body fails utterly; painting ends). Affiliation becomes ambiguous (Diego's love is affirmed but physical presence is lost). Autonomy spikes (final act of self-determination in timing/manner of death).",
@@ -38192,7 +38192,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:34:30Z",
       "pad_justification": "Pleasure is deeply negative due to the loss and grief of death, tempered slightly by the bittersweet recognition of love. Arousal is very high due to the acute emotional crisis and confrontation with mortality. Dominance is low because Diego is passive and overwhelmed by circumstances beyond his control.",
       "drive_justification": "Curiosity drops sharply as grief narrows focus to loss. Competence plummets: he could not save her or prevent her death, fundamental failure. Affiliation collapses completely: his primary attachment figure is gone, severing his deepest relational anchor. Autonomy declines: his sense of agency and choice is shattered by her death.",
@@ -38406,7 +38406,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:34:47Z",
       "pad_justification": "Pleasure is moderate-to-positive because the flag gesture honored Frida's core conviction and would have delighted her (satisfying alignment); arousal is moderate because this is a significant ceremonial moment with political weight, not a crisis but not routine either; dominance is elevated because the flag-draping represents posthumous assertion of her political identity and values despite institutional/political controversy.",
       "drive_justification": "Curiosity delta is minimal\u2014the gesture is explained by her known philosophy, not mysterious. Competence increases slightly because the gesture affirms her ability to shape her own narrative even posthumously. Affiliation increases moderately because it signals her solidarity with communist and leftist communities. Autonomy increases substantially because the flag-draping represents her values being honored without her compromising them\u2014her selfhood asserted on her own terms.",
@@ -38591,7 +38591,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:35:06Z",
       "pad_justification": "Pleasure is slightly negative (death, loss) but tempered by the transcendent, almost mythic quality of the moment; arousal is extreme (cremation, physical transformation, witnesses present, high stakes); dominance is low (body subject to fire, agency ended, but the image itself becomes iconic\u2014slight control via symbolic interpretation).",
       "drive_justification": "Curiosity (+0.8): The unexplained phenomenon\u2014body upright, halo of hair\u2014triggers intense questioning. Competence (-0.4): death and uncontrollable physical processes diminish sense of mastery. Affiliation (+0.3): witnesses present, shared witnessing of symbolic moment. Autonomy (-0.7): Frida's body is entirely subject to external forces; agency is zero; the event forecloses future choices.",
@@ -38790,7 +38790,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:35:25Z",
       "pad_justification": "Pleasure is mildly positive (honoring gesture, legacy preservation) but tempered by the context of death and loss. Arousal is low (quiet, deliberate action, no crisis element). Dominance is moderate (Diego exercises agency in custodianship, yet constrained by grief and duty).",
       "drive_justification": "Curiosity delta is near-zero (action is reactive, not exploratory). Competence delta is moderate (Diego demonstrates curation skill but faces the incompetence of preventing death). Affiliation delta is strong (the act reaffirms bond and responsibility to Frida). Autonomy delta is moderate (Diego exercises agency in custodianship but is constrained by grief and propriety).",
@@ -38988,7 +38988,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:35:45Z",
       "pad_justification": "Pleasure is moderate-to-positive (transformation of private suffering into recognized legacy, global pilgrimage), arousal is calm-engaged (retrospective contemplation of institutional establishment, not immediate crisis), dominance is neutral-leaning-positive (Frida's space converted to public monument, a form of cultural control/influence posthumously).",
       "drive_justification": "Curiosity: +0.8 (museum attracts millions seeking to understand her life and work). Competence: +0.7 (institutional recognition validates her artistic skill and resilience). Affiliation: +0.5 (her work draws diverse communities, though she might resist being 'claimed'). Autonomy: -0.4 (her private creative space is now subject to curatorial control and public access, constraining her original dominion over La Casa Azul).",
@@ -39169,7 +39169,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:36:04Z",
       "pad_justification": "Pleasure is mildly positive (recognition, legacy achieved) but tempered by skepticism about appropriation. Arousal is moderate\u2014intellectual engagement with the paradox of iconic status without understood meaning. Dominance is negative because Frida's image is claimed by others who may misinterpret her intent, removing her interpretive control.",
       "drive_justification": "Curiosity is slightly dampened because the appropriation prevents discovery of her actual meaning. Competence suffers because she cannot control how her work is interpreted or used\u2014her mastery is compromised by misreading. Affiliation is negative because being claimed by groups contradicts her desire to be understood as an individual; she resists false solidarity. Autonomy is severely damaged because her image and work are no longer hers to define; others have seized interpretive control.",
@@ -39357,7 +39357,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:53:27Z",
       "pad_justification": "Pleasure is elevated due to the affirmative, self-directed nature of her artistic philosophy and the agency it represents. Arousal is moderate\u2014this is a reflective articulation of purpose rather than acute crisis, but it carries focused intentionality. Dominance is high because she asserts control over her subject matter and refuses external dictation of what art should address.",
       "drive_justification": "Curiosity is elevated\u2014her philosophy demands deep exploration of self and experience. Competence is high; she asserts mastery over her subject matter. Affiliation shows negative delta because her stance is deliberately oppositional to mainstream art world norms and aesthetic community pressure. Autonomy delta is strongly positive; this philosophy is fundamentally about agency and self-determination.",
@@ -39541,7 +39541,7 @@
       "source_end": 42670,
       "enrichment_version": "v1.0",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "enrichment_timestamp": "2026-10-26T16:36:45Z",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, relationship_loss, achievement_opportunity, agency_denied, agency_granted, novelty_encountered",
@@ -39741,7 +39741,7 @@
       "subject": "Frida Kahlo",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         18,
@@ -39913,7 +39913,7 @@
       "subject": "Frida Kahlo",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         36,
@@ -40127,7 +40127,7 @@
       "subject": "Frida Kahlo",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         20,
@@ -40315,7 +40315,7 @@
       "subject": "Frida Kahlo",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         122,
@@ -40506,7 +40506,7 @@
       "subject": "Diego Rivera",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         33,
@@ -40700,7 +40700,7 @@
       "subject": "Diego Rivera",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         33,
@@ -40945,7 +40945,7 @@
       "subject": "Diego Rivera",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         31,
@@ -41137,7 +41137,7 @@
       "subject": "Diego Rivera",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         38,
@@ -41319,7 +41319,7 @@
       "subject": "La Casa Azul",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         0,
@@ -41488,7 +41488,7 @@
       "subject": "La Casa Azul",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         23,
@@ -41680,7 +41680,7 @@
       "subject": "La Casa Azul",
       "enrichment_version": "v1.0-phase2b",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         21,
@@ -41695,7 +41695,7 @@
       "subject": "La Casa Azul",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         131,
@@ -41884,7 +41884,7 @@
       "subject": "Mexico City",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         18,
@@ -42071,7 +42071,7 @@
       "subject": "Mexico City",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         121,
@@ -42252,7 +42252,7 @@
       "subject": "Mexico City",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         18,
@@ -42421,7 +42421,7 @@
       "subject": "Mexico City",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         58,
@@ -42599,7 +42599,7 @@
       "subject": "Alejandro",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         18,
@@ -42794,7 +42794,7 @@
       "subject": "Alejandro",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         28,
@@ -42967,7 +42967,7 @@
       "subject": "Alejandro",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 3,
       "source_memory_indices": [
         19,
@@ -43174,7 +43174,7 @@
       "subject": "Frida and Diego's household salon",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         42
@@ -43355,7 +43355,7 @@
       "subject": "Frida and Diego's household salon",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         42
@@ -43536,7 +43536,7 @@
       "subject": "Frida and Diego's household salon",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         42
@@ -43714,7 +43714,7 @@
       "subject": "Frida's artistic practice",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         23,
@@ -43880,7 +43880,7 @@
       "subject": "Frida's artistic practice",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         23,
@@ -44049,7 +44049,7 @@
       "subject": "Frida's artistic practice",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         23,
@@ -44225,7 +44225,7 @@
       "subject": "The Two Fridas",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         89,
@@ -44424,7 +44424,7 @@
       "subject": "The Two Fridas",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         89,
@@ -44612,7 +44612,7 @@
       "subject": "The Two Fridas",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         89,
@@ -44790,7 +44790,7 @@
       "subject": "Self-Portrait with Cropped Hair",
       "enrichment_version": "v1.0-phase2b",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         90,
@@ -44804,7 +44804,7 @@
       "subject": "Self-Portrait with Cropped Hair",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         93,
@@ -44993,7 +44993,7 @@
       "subject": "Self-Portrait with Cropped Hair",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         90
@@ -45167,7 +45167,7 @@
       "subject": "Frida's mother",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         22,
@@ -45354,7 +45354,7 @@
       "subject": "Frida's mother",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         22,
@@ -45527,7 +45527,7 @@
       "subject": "Frida's father",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         22
@@ -45697,7 +45697,7 @@
       "subject": "Frida's father",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         22,
@@ -45888,7 +45888,7 @@
       "subject": "Frida's father",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         22
@@ -46059,7 +46059,7 @@
       "subject": "the bus accident",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         18
@@ -46244,7 +46244,7 @@
       "subject": "the bus accident",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         18
@@ -46434,7 +46434,7 @@
       "subject": "the bus accident",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         18
@@ -46612,7 +46612,7 @@
       "subject": "San Francisco",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         44,
@@ -46787,7 +46787,7 @@
       "subject": "San Francisco",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         44,
@@ -46955,7 +46955,7 @@
       "subject": "Los Cachuchas",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         11,
@@ -47133,7 +47133,7 @@
       "subject": "Los Cachuchas",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [
         11,
@@ -47303,7 +47303,7 @@
       "subject": "Los Cachuchas",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [
         11,
@@ -47477,7 +47477,7 @@
       "subject": "Establish authentic Mexican artistic identity",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:06:44Z",
@@ -47641,7 +47641,7 @@
       "subject": "Establish authentic Mexican artistic identity",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:06:59Z",
@@ -47793,7 +47793,7 @@
       "subject": "Establish authentic Mexican artistic identity",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:07:16Z",
@@ -47954,7 +47954,7 @@
       "subject": "Create intimate, private visual self-examination",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:07:33Z",
@@ -48113,7 +48113,7 @@
       "subject": "Create intimate, private visual self-examination",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:07:52Z",
@@ -48284,7 +48284,7 @@
       "subject": "Create intimate, private visual self-examination",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:08:11Z",
@@ -48459,7 +48459,7 @@
       "subject": "Create intimate, private visual self-examination",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:41:04Z",
@@ -48628,7 +48628,7 @@
       "subject": "Achieve recognition as an artist in Mexico on her own terms",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:08:43Z",
@@ -48802,7 +48802,7 @@
       "subject": "Achieve recognition as an artist in Mexico on her own terms",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:08:59Z",
@@ -48964,7 +48964,7 @@
       "subject": "Achieve recognition as an artist in Mexico on her own terms",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:09:20Z",
@@ -49135,7 +49135,7 @@
       "subject": "Political activism and anti-imperialism",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:09:36Z",
@@ -49328,7 +49328,7 @@
       "subject": "Political activism and anti-imperialism",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:09:50Z",
@@ -49502,7 +49502,7 @@
       "subject": "Political activism and anti-imperialism",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:10:06Z",
@@ -49688,7 +49688,7 @@
       "subject": "Artistic expression and documentation of lived experience",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:10:22Z",
@@ -49868,7 +49868,7 @@
       "subject": "Artistic expression and documentation of lived experience",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:10:37Z",
@@ -50038,7 +50038,7 @@
       "subject": "Artistic expression and documentation of lived experience",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 2,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:10:55Z",
@@ -50201,7 +50201,7 @@
       "subject": "Integrate personal experience with political conviction",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:11:13Z",
@@ -50383,7 +50383,7 @@
       "subject": "Integrate personal experience with political conviction",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:11:29Z",
@@ -50545,7 +50545,7 @@
       "subject": "Integrate personal experience with political conviction",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:11:46Z",
@@ -50719,7 +50719,7 @@
       "subject": "Physical resilience and bodily defiance",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:12:06Z",
@@ -50880,7 +50880,7 @@
       "subject": "Physical resilience and bodily defiance",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:12:23Z",
@@ -51049,7 +51049,7 @@
       "subject": "Physical resilience and bodily defiance",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:12:39Z",
@@ -51229,7 +51229,7 @@
       "subject": "Artistic and intellectual independence",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:12:55Z",
@@ -51396,7 +51396,7 @@
       "subject": "Artistic and intellectual independence",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:13:10Z",
@@ -51552,7 +51552,7 @@
       "subject": "Artistic and intellectual independence",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:13:24Z",
@@ -51713,7 +51713,7 @@
       "subject": "Transform suffering into artistic expression",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:13:40Z",
@@ -51887,7 +51887,7 @@
       "subject": "Transform suffering into artistic expression",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:14:01Z",
@@ -52085,7 +52085,7 @@
       "subject": "Transform suffering into artistic expression",
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity",
+      "extraction_phase": "phase-2b-entity",
       "reflection_level": 1,
       "source_memory_indices": [],
       "enrichment_timestamp": "2026-10-26T17:14:21Z",
@@ -52261,7 +52261,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1930 (immediate post-accident recovery and artistic emergence): Acute physical suffering, multiple surgeries, and months of immobility created distress. Yet artistic discovery and Diego's recognition provided purpose and arousal. Dominance remained contested: she was dependent on medical care and Diego's patronage, but increasingly exerted control through artistic creation.",
@@ -52276,7 +52276,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1930-1939 (marriage, artistic development, infidelity crisis): The marriage to Diego was simultaneously exhilarating and destabilising. Public humiliation (Lupe Mar\u00edn incident), recurrent infidelities, and competing for artistic legitimacy created high arousal and emotional volatility. Artistic mastery increased her dominance, but emotional dependency on Diego's validation undercut her sense of secure control.",
@@ -52291,7 +52291,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1939-1945 (post-divorce autonomy and artistic vindication): Divorce liberated Frida from the turbulent dynamics but left her emotionally bereft. Artistic output intensified as a form of emotional processing and self-validation. Absence of Diego's daily presence increased her sense of dominance over her work, though longing and residual dependency created persistent melancholy.",
@@ -52306,7 +52306,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1945-1954 (late career, physical deterioration, and political engagement): Escalating medical crises, amputation, and declining technical capacity reduced pleasure and arousal. Yet political engagement and the solo exhibition provided moments of renewed purpose. Final year marked by defiant performances of autonomy (political demonstration, diary entries) against mounting bodily failure.",
@@ -52321,7 +52321,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1920-1928 (Pre-marriage): Ascending muralist with clear ideological purpose; admired by Frida; secure in artistic mission and political conviction. High arousal from revolutionary fervor and creative ambition; high dominance from public recognition and artistic authority.",
@@ -52336,7 +52336,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1929-1939 (Marriage turbulence): Pulled between romantic idealization of Frida and compulsive infidelities; creative productivity sustained but emotional coherence fractured. Arousal remains elevated by political activity and artistic output, but dominance undermined by Frida's growing independence and his inability to reconcile ideology with behaviour.",
@@ -52351,7 +52351,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940-1954 (Remarriage and maturity): Remarriage on Frida's terms; recognition of her as genuine peer rather than prot\u00e9g\u00e9. Pleasure stabilizes around mutual artistic respect. Arousal decreases slightly as political engagement moderates. Dominance recalibrated downward, reflecting negotiated rather than unilateral partnership.",
@@ -52366,7 +52366,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1907-1925 (birth to accident aftermath): Born in the Blue House; early years marked by relative comfort but shadowed by family instability and her father's illness. The house was refuge but not yet fortress\u2014dominance emerging only through inherited space rather than claimed ownership.",
@@ -52381,7 +52381,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1935 (bedridden recovery & artistic emergence): Confined physically but creatively liberated. Mirror-gazing transformed trauma into agency. Diego's recognition elevates mood but introduces tension\u2014pleasure mixed with awareness of dependence. Arousal high as painting becomes obsessive channel for pain and identity.",
@@ -52396,7 +52396,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1936-1945 (refuge for exiles, marital turbulence): The Blue House becomes explicitly hers\u2014a fortress against Diego's infidelities and political upheaval. Hosting Trotsky signals her intellectual authority. High arousal reflects domestic conflict; high dominance reflects territorial claim; low pleasure reflects chronic pain and emotional volatility.",
@@ -52411,7 +52411,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1946-1954 (final decline & cultural apotheosis): Increasing physical deterioration but unshaken command of her domain. She dies in the Blue House\u2014choosing it as her final stage. Dominance peaks as death transforms her into myth. The space now entirely hers; pleasure minimal but purpose absolute.",
@@ -52426,7 +52426,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925 (accident & hospitalization): Acute trauma, physical agony, loss of bodily autonomy, repeated surgeries. Frida is passive victim to medical interventions.",
@@ -52441,7 +52441,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1930-1939 (early artistic emergence despite pain): Chronic pain persists but creativity provides meaning. Turbulent marriage with Diego creates emotional volatility. Some agency through art-making.",
@@ -52456,7 +52456,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940-1950 (renewed crises & public recognition): Multiple spinal surgeries, severe physical suffering, but first solo exhibition in Mexico City marks shift to public recognition. Defiant persistence despite medical restrictions.",
@@ -52471,7 +52471,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1950-1954 (final years in La Casa Azul): Chronic pain at maximum, body failing, but political commitment strengthens. Mexico City is home base; she controls her creative and ideological legacy from her bed.",
@@ -52486,7 +52486,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925 (post-accident): Immediate aftermath of witnessing Frida's trauma; acute distress mixed with helplessness at witnessing vulnerability he could not control or prevent",
@@ -52501,7 +52501,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1928 (letter-writing phase): Maintained connection while managing emotional intensity through written distance; moderate engagement with controlled vulnerability",
@@ -52516,7 +52516,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1928+ (Europe, post-correspondence): Geographic and emotional withdrawal; restored sense of autonomy at cost of relational depth; low pleasure suggests isolation rather than true contentment",
@@ -52531,7 +52531,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during salon-active-period: The household salon represents a period of high creative ferment and intellectual intensity. Frida and Diego experience elevated pleasure through the clash of ideas and mutual affirmation of political vision. High arousal stems from the constant influx of artistic peers and ideological debate. Dominance is substantial\u2014they control the space, set the agenda, and attract disciples; yet dominance may be tempered slightly by the volatility of hosting strong-willed artists.",
@@ -52546,7 +52546,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1930 (post-accident confinement): Immobilized by injury but artistically awakened; mirror-bound discovery of painting as agency; high creative activation despite physical constraint",
@@ -52561,7 +52561,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1930-1954 (sustained artistic practice): Chronic pain managed through artistic expression; psychological isolation countered by painting as dialogic act (speaking to self, to body, to viewer); increasing mastery and self-determination through art",
@@ -52576,7 +52576,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1939 (The Two Fridas creation): Immediate aftermath of Diego's infidelity and separation; high emotional intensity and creative urgency; temporary restoration of agency through artistic control despite profound loss and self-doubt",
@@ -52591,7 +52591,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1939-1940 (Post-creation reflection): The monumental painting completed; cathartic but unresolved psychological state; external recognition of the work provides modest dominance restoration, but internal integration of the split self remains incomplete",
@@ -52606,7 +52606,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940 (Self-Portrait with Cropped Hair creation): Post-separation acute crisis. Rage and defiance dominate; the act of creation is cathartic but pain is visceral. High arousal from confronting betrayal directly through aesthetic choice. Dominance elevated through deliberate self-alteration\u2014reclaiming agency in aftermath of abandonment.",
@@ -52621,7 +52621,7 @@
       },
       "enrichment_version": "v1.0-phase2b",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1939-1940 (marriage dissolution window): Acute powerlessness during divorce proceedings contrasts with creative empowerment. Low pleasure, high arousal (distress), low dominance in relational sphere\u2014but art becomes compensatory domain where control is absolute.",
@@ -52636,7 +52636,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during During Frida's artistic emergence (early 1920s): Providing material support (mirror, paints) suggests investment in daughter's development; controlled environment maintains parental authority",
@@ -52651,7 +52651,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during Frida's marriage to Diego (1929): Disapproval indicates loss of control over daughter's trajectory; emotional distance masked by concern over unsuitable match",
@@ -52666,7 +52666,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during childhood-with-father: Father's artistic encouragement and material provision created secure pleasure, though emotional dependence on paternal approval suggests lower dominance and controlled arousal.",
@@ -52681,7 +52681,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during post-paternal-absence: Loss or distance from father increased emotional arousal and search for replacement figures; reduced pleasure reflects unfilled validation needs.",
@@ -52696,7 +52696,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-09-17 (day of accident): Immediate impact: shock, helplessness, physical extremity. Complete loss of control in moment of collision; dominance near zero.",
@@ -52711,7 +52711,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1926 (acute recovery phase): Bedridden, pain-dominant, but beginning to reassert agency through small acts of will and observation. Shift toward reclamation begins.",
@@ -52726,7 +52726,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1926-1928 (painting emerges): Chronic pain normalized; creative control re-established. Art becomes dominant mode of agency and expression, pleasure rises as purpose crystallizes.",
@@ -52741,7 +52741,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1930 (First San Francisco arrival): Excitement and displacement as she entered the international art scene for the first time; accompanying Diego but beginning to establish her own artistic presence; nervous energy in unfamiliar territory",
@@ -52756,7 +52756,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940 (San Francisco remarriage): Strategic confidence; remarrying on dictated terms with separate finances and conditions; reclamation of agency after years of marital instability; measured, controlled decision-making",
@@ -52771,7 +52771,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1922-1926 (Los Cachuchas years): Intellectually stimulated, socially embedded, engaged in political discourse with peers; pre-accident vitality and sense of possibility",
@@ -52786,7 +52786,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1926-1927 (post-accident confinement): Physically immobilized, psychologically isolated, confined to bed and plaster; reconnection with Los Cachuchas friends becomes lifeline",
@@ -52801,7 +52801,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1927-1928 (reconnection phase): Gradual return to political meetings and intellectual engagement; regaining agency through ideological participation despite ongoing physical recovery",
@@ -52816,7 +52816,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1930-1939 (intensified Mexican identity assertion): Active reclamation of Mexican identity through dress, imagery, and geographic return; aesthetic and political dimensions fused; growing confidence in Mexican artistic legitimacy despite ongoing recognition struggles",
@@ -52831,7 +52831,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940-1954 (consolidation of Mexican artistic authority): Mexican recognition solidifying; Tehuana identity fully established as cultural marker; pre-Columbian imagery integrated into mature artistic language; increased domestic validation and cultural authority",
@@ -52846,7 +52846,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1932 (early self-portraiture, post-accident): Physical recovery uncertain; painting emerges as primary means of control and self-assertion. High arousal from intensity of introspection; moderate pleasure from creative emergence; dominance undermined by bodily fragility.",
@@ -52861,7 +52861,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1932-1940 (mature self-portraiture, technical refinement): Technical mastery increasing; emotional turbulence (miscarriage, infidelity) channeled into work. Sustained engagement with formal revision; growing confidence in artistic voice; intimacy with canvas as compensation for relational instability.",
@@ -52876,7 +52876,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940-1954 (late work, synthesis): Physical deterioration accelerating; political commitment intensifying; self-examination becomes increasingly raw and unflinching. High arousal from pain and urgency; lower pleasure; dominance compromised by bodily limits but asserted through unflinching artistic vision.",
@@ -52891,7 +52891,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1938-1940 (pre-first solo exhibition): High creative intensity and anxiety; chronic physical pain; acute awareness of being viewed as 'Diego's wife' rather than independent artist; determination mixed with doubt about legitimacy of solo recognition",
@@ -52906,7 +52906,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940 (first solo exhibition): Validation despite illness; anxiety about critical reception; emergence of tangible evidence that her work could stand independently; breakthrough moment of public recognition on her own terms",
@@ -52921,7 +52921,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940s (consolidation): Established artistic identity; continued physical deterioration; growing confidence in distinctive voice; Mexican art world increasingly recognizing her as singular force, not appendage",
@@ -52936,7 +52936,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1930s-1940s: Early political engagement; physical pain chronic but purpose emerging; defiant energy despite vulnerability",
@@ -52951,7 +52951,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940s-1950s: Deepening anti-imperialism; witnessing geopolitical injustice; bodily decline accelerating; activism becomes fiercer as physical grip weakens",
@@ -52966,7 +52966,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during Post-Guatemala coup (early 1950s): Acute moral outrage at imperial intervention; sense of vindication for long-held convictions; helplessness mixed with fierce solidarity",
@@ -52981,7 +52981,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1920-1925 (pre-accident emergence): Young artist forming identity; intellectual curiosity and political awakening; uncertain of artistic voice but energized by possibility.",
@@ -52996,7 +52996,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1932 (post-accident, early painting): Chronic pain becomes creative fuel; high arousal from urgent need to express unbearable experience; emerging dominance through artistic control of suffering's representation.",
@@ -53011,7 +53011,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1932-1940 (artistic maturation, political engagement): Confident in artistic vision; fusing personal and political registers; sustained arousal from creative output and ideological commitment; growing dominance in cultural sphere.",
@@ -53026,7 +53026,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940-1954 (late career, physical decline): Pain intensifies but artistic urgency remains ferocious; arousal sustained by defiance and legacy-consciousness; high dominance\u2014her work and persona now established forces; pleasure diminished but purpose crystallized.",
@@ -53041,7 +53041,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1932: Post-accident recovery; physical pain coexists with artistic awakening; growing political consciousness through Diego's influence; beginning to articulate personal suffering as cultural expression",
@@ -53056,7 +53056,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1932-1939: Sustained physical deterioration; miscarriage trauma; deep engagement with communist politics; art becomes increasingly urgent vehicle for political testimony; marital conflict heightens emotional volatility",
@@ -53071,7 +53071,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1939-1950: International recognition of work; clearer articulation of Mexican identity in art; stronger assertion of artistic independence from Diego; chronic pain shapes daily existence but fuels defiance; political conviction hardens",
@@ -53086,7 +53086,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1950-1954: Severe physical decline; political activism intensifies despite illness (peace movement, anti-imperialism); art becomes more explicitly propagandistic; refusal to separate personal deterioration from political urgency; assertion of will over body",
@@ -53101,7 +53101,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during post-polio diagnosis (early periods): Initial grief and shame; body experienced as betrayer; high emotional activation but sense of powerlessness",
@@ -53116,7 +53116,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during physical recovery and activity engagement (middle periods): Growing sense of agency through physical challenge; deliberate cultivation of strength; increasing reclamation of bodily autonomy",
@@ -53131,7 +53131,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during maturity and composure consolidation (later periods): Settled confidence in physical and psychological resilience; crisis response marked by calm authority; body integrated as source of strength rather than shame",
@@ -53146,7 +53146,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during Early artistic formation (emerging independence): Discovering photography and nature study as tools for personal voice; high engagement but still seeking legitimacy and authority",
@@ -53161,7 +53161,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during Political awakening and integration (revolutionary commitment): Finding ideological framework that validates artistic independence; elevated sense of agency and purpose; arousal high from commitment intensity",
@@ -53176,7 +53176,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during Mature integration (consolidated independence): Technical mastery + political clarity = confident autonomy; reduced arousal reflects stabilized certainty; high dominance from earned authority",
@@ -53191,7 +53191,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1925-1932 (Post-accident, early artistic emergence): Physical recovery period marked by chronic pain, but accompanied by intense creative urgency and discovery of artistic purpose. High arousal from bodily sensations (both pain and creative drive), moderate dominance as she begins asserting her vision despite physical constraints.",
@@ -53206,7 +53206,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1932-1940 (Artistic consolidation and personal crisis): Heightened emotional turbulence from marital conflict and miscarriage, but increased artistic output and growing recognition. High arousal reflects both suffering and creative intensity; increasing dominance as her artistic voice becomes more distinctive and self-directed.",
@@ -53221,7 +53221,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     },
     {
       "text": "Mood during 1940-1954 (Final period, political engagement and physical decline): Severe physical deterioration but paradoxically greater artistic confidence and political voice. Lower pleasure reflects cumulative bodily burden, but dominance peaks as she commits fully to her vision and political convictions, accepting suffering as inseparable from her identity.",
@@ -53236,7 +53236,7 @@
       },
       "enrichment_version": "v1.0",
       "extraction_method": "llm-synthesis",
-      "extraction_pass": "phase-2b-entity"
+      "extraction_phase": "phase-2b-entity"
     }
   ],
   "entity_enrichments": {

@@ -121,7 +121,7 @@ def check_memory_coverage(memories: list[dict], registry: dict, stage: str = Non
         'text': 'text', 'domain': 'domain', 'event_type': 'event_type',
         'subject': 'subject', 'period': 'period', 'related_entities': 'related_entities',
         'source_provenance': 'source_provenance', 'extraction_method': 'extraction_method',
-        'extraction_pass': 'extraction_pass', 'passage_id': 'source_passage',
+        'extraction_phase': 'extraction_phase', 'passage_id': 'source_passage',
         'enrichment_version': 'enrichment_version', 'enrichment_timestamp': 'enrichment_timestamp',
         'mentioned_entities': 'mentioned_entities',
         'formative_developmental_period': 'developmental_period',

@@ -4191,7 +4191,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4206,7 +4206,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4221,7 +4221,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4236,7 +4236,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4251,7 +4251,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4270,7 +4270,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4290,7 +4290,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4309,7 +4309,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4329,7 +4329,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4349,7 +4349,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4369,7 +4369,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4389,7 +4389,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4409,7 +4409,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4429,7 +4429,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4449,7 +4449,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4468,7 +4468,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4487,7 +4487,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4506,7 +4506,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4521,7 +4521,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4536,7 +4536,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4551,7 +4551,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4571,7 +4571,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4591,7 +4591,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4611,7 +4611,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4631,7 +4631,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4650,7 +4650,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4669,7 +4669,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4688,7 +4688,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4708,7 +4708,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4728,7 +4728,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4748,7 +4748,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4770,7 +4770,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4790,7 +4790,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4812,7 +4812,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4831,7 +4831,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4850,7 +4850,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4869,7 +4869,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4888,7 +4888,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4911,7 +4911,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4935,7 +4935,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4955,7 +4955,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4975,7 +4975,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -4995,7 +4995,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5014,7 +5014,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5033,7 +5033,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5052,7 +5052,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5070,7 +5070,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5089,7 +5089,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5108,7 +5108,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5122,7 +5122,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5136,7 +5136,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5150,7 +5150,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5165,7 +5165,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5180,7 +5180,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5195,7 +5195,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5215,7 +5215,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5239,7 +5239,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5259,7 +5259,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5279,7 +5279,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5299,7 +5299,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5314,7 +5314,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5329,7 +5329,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5344,7 +5344,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5359,7 +5359,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5374,7 +5374,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5389,7 +5389,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5408,7 +5408,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5427,7 +5427,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5446,7 +5446,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5465,7 +5465,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5484,7 +5484,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5503,7 +5503,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5522,7 +5522,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5542,7 +5542,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5562,7 +5562,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5582,7 +5582,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5605,7 +5605,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5629,7 +5629,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5649,7 +5649,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5669,7 +5669,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5689,7 +5689,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5708,7 +5708,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5727,7 +5727,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5746,7 +5746,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5765,7 +5765,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5784,7 +5784,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5803,7 +5803,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5822,7 +5822,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5841,7 +5841,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5860,7 +5860,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     }
   ],
@@ -8407,7 +8407,7 @@
       "type": "manifests-as",
       "confidence_origin": "insight_2",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Recursive validation-seeking and defiant autonomy pattern",
@@ -8415,7 +8415,7 @@
       "type": "tensions-with",
       "confidence_origin": "insight_2",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Recursive validation-seeking and defiant autonomy pattern",
@@ -8423,7 +8423,7 @@
       "type": "motivates",
       "confidence_origin": "insight_2",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Embodied agency as prerequisite for artistic defiance",
@@ -8431,7 +8431,7 @@
       "type": "requires",
       "confidence_origin": "insight_3",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Embodied agency as prerequisite for artistic defiance",
@@ -8439,7 +8439,7 @@
       "type": "depends-on",
       "confidence_origin": "insight_3",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Constraint-enabled introspection",
@@ -8447,7 +8447,7 @@
       "type": "enables",
       "confidence_origin": "insight_3",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Constraint-enabled introspection",
@@ -8455,7 +8455,7 @@
       "type": "enables",
       "confidence_origin": "insight_3",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Performance of autonomy as political and existential statement",
@@ -8463,7 +8463,7 @@
       "type": "manifests-as",
       "confidence_origin": "insight_4",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Performance of autonomy as political and existential statement",
@@ -8471,7 +8471,7 @@
       "type": "expresses",
       "confidence_origin": "insight_4",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Amputation and technical capacity loss",
@@ -8479,7 +8479,7 @@
       "type": "undermines",
       "confidence_origin": "insight_3, insight_9",
       "validation_tier": "biographical",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -8487,7 +8487,7 @@
       "type": "demonstrates",
       "confidence_origin": "insight_3",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8495,7 +8495,7 @@
       "type": "embodies",
       "confidence_origin": "synthesis-insight-1",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8503,7 +8503,7 @@
       "type": "creates-and-maintains",
       "confidence_origin": "synthesis-insight-3",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Serial infidelity within ideological framework",
@@ -8511,7 +8511,7 @@
       "type": "harms",
       "confidence_origin": "synthesis-insight-1",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Artistic validation as mechanism of romantic control",
@@ -8519,7 +8519,7 @@
       "type": "constrains",
       "confidence_origin": "synthesis-insight-2",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8527,7 +8527,7 @@
       "type": "implements",
       "confidence_origin": "synthesis-insight-2",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8535,7 +8535,7 @@
       "type": "recognizes-as-peer",
       "confidence_origin": "synthesis-insight-7",
       "validation_tier": "relational",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Remarriage on negotiated terms",
@@ -8543,7 +8543,7 @@
       "type": "enables",
       "confidence_origin": "synthesis-insight-7",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8551,7 +8551,7 @@
       "type": "participated-in",
       "confidence_origin": "synthesis-insight-7",
       "validation_tier": "biographical",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "La Casa Azul as spatial autonomy",
@@ -8559,7 +8559,7 @@
       "type": "manifests",
       "confidence_origin": "insights 1, 3, 7 describe claiming domestic space as independence assertion",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Mirror-painting as self-gazing practice",
@@ -8567,7 +8567,7 @@
       "type": "enables",
       "confidence_origin": "insight 2 describes mirror-painting as transformation of trauma into agency",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Mirror-painting as self-gazing practice",
@@ -8575,7 +8575,7 @@
       "type": "operationalizes",
       "confidence_origin": "insight 6 describes mirror-gazing as creative liberation and trauma processing",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -8583,7 +8583,7 @@
       "type": "created",
       "confidence_origin": "insights 1, 3, 7 describe Frida progressively claiming and commanding the space",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Bed as exhibition platform",
@@ -8591,7 +8591,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight 3 describes commanding bed's transport despite medical prohibition",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Hosting Trotsky at La Casa Azul",
@@ -8599,7 +8599,7 @@
       "type": "demonstrates",
       "confidence_origin": "insight 7 describes hosting Trotsky as signal of intellectual authority",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Hosting Trotsky at La Casa Azul",
@@ -8607,7 +8607,7 @@
       "type": "enacts",
       "confidence_origin": "insight 2 describes Blue House as threshold for revolutionary spirits",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Ashes enshrined in La Casa Azul",
@@ -8615,7 +8615,7 @@
       "type": "completes",
       "confidence_origin": "insight 4 describes final metamorphosis transforming personal suffering into cultural inheritance",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "La Casa Azul",
@@ -8623,7 +8623,7 @@
       "type": "enabled",
       "confidence_origin": "insights 1, 2 describe the house as sanctuary and container allowing creative expression",
       "validation_tier": "medium-high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -8631,7 +8631,7 @@
       "type": "controlled-creative-space",
       "confidence_origin": "insight 4: refuge during marital crisis evolved into permanent headquarters for creation and environmental control",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Four-poster bed as artistic medium",
@@ -8639,7 +8639,7 @@
       "type": "enables",
       "confidence_origin": "insight 2: bed transported to exhibition opening, turning medical necessity into artistic statement",
       "validation_tier": "strategic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Communist ideological commitment",
@@ -8647,7 +8647,7 @@
       "type": "manifests-as",
       "confidence_origin": "insight 3: Communist flag at Palace of Fine Arts represents ideological honoring at death",
       "validation_tier": "thematic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -8655,7 +8655,7 @@
       "type": "honored-at",
       "confidence_origin": "insight 3: body honored at Palace of Fine Arts with Communist flag draped over coffin",
       "validation_tier": "biographical",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "La Casa Azul",
@@ -8663,7 +8663,7 @@
       "type": "enables",
       "confidence_origin": "insight 4: space where she could control environment, receive visitors, and create while managing physical limitations",
       "validation_tier": "strategic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Alejandro",
@@ -8671,7 +8671,7 @@
       "type": "pursues",
       "confidence_origin": "insight_1_2_3",
       "validation_tier": "inferred_from_behavioral_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "the bus accident",
@@ -8679,7 +8679,7 @@
       "type": "triggered_defense_mechanism_in",
       "confidence_origin": "insight_1_4",
       "validation_tier": "psychological_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Develop intellectual and emotional intimacy with an equal",
@@ -8687,7 +8687,7 @@
       "type": "conflicts-with",
       "confidence_origin": "insight_1_3",
       "validation_tier": "thematic_contradiction",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Alejandro",
@@ -8695,7 +8695,7 @@
       "type": "pursues",
       "confidence_origin": "insight_2_5",
       "validation_tier": "behavioral_evidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida and Diego's household salon",
@@ -8703,7 +8703,7 @@
       "type": "embodies",
       "confidence_origin": "insight 1 - weaponization of intimacy into ideological assertion",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida and Diego's household salon",
@@ -8711,7 +8711,7 @@
       "type": "enables",
       "confidence_origin": "insight 2 - deliberate ecosystem and distributed laboratory",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida and Diego's household salon",
@@ -8719,7 +8719,7 @@
       "type": "facilitates",
       "confidence_origin": "insight 4 - intellectual intensity and ideological debate",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Home as instrument of ideological assertion",
@@ -8727,7 +8727,7 @@
       "type": "manifests",
       "confidence_origin": "insight 1 - personal domestic life transformed into cultural resistance",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Dissolution of domestic-political boundaries",
@@ -8735,7 +8735,7 @@
       "type": "complicates",
       "confidence_origin": "insight 3 - radical dissolution creates tension between intimacy and autonomy",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Mirror as self-discovery tool",
@@ -8743,7 +8743,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Bodily confrontation (artistic strategy)",
@@ -8751,7 +8751,7 @@
       "type": "manifests-as",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Art as dialogic act and testimony",
@@ -8759,7 +8759,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insight_5",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida's artistic practice",
@@ -8767,7 +8767,7 @@
       "type": "manifests-as",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida's father",
@@ -8775,7 +8775,7 @@
       "type": "enabled",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida's mother",
@@ -8783,7 +8783,7 @@
       "type": "enabled",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Cognitive splitting and self-fragmentation",
@@ -8791,7 +8791,7 @@
       "type": "enables",
       "confidence_origin": "insight-1-externalisation-mechanism",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "All-or-nothing relational oscillation",
@@ -8799,7 +8799,7 @@
       "type": "constrains",
       "confidence_origin": "insight-2-binary-thinking",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Externalisation of internal fragmentation through monumental scale",
@@ -8807,7 +8807,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight-3-mastery-through-scale",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "The Two Fridas (painting)",
@@ -8815,7 +8815,7 @@
       "type": "created-by",
       "confidence_origin": "insight-3-authorship",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "The Two Fridas (painting)",
@@ -8823,7 +8823,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight-3-paradoxical-coping",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "The Two Fridas (painting)",
@@ -8831,7 +8831,7 @@
       "type": "manifest-of",
       "confidence_origin": "insight-1-visual-argument",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8839,7 +8839,7 @@
       "type": "triggers",
       "confidence_origin": "insight-1-abandonment-trigger",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Cathartic but unresolved psychological state post-creation",
@@ -8847,7 +8847,7 @@
       "type": "reflects-unresolved",
       "confidence_origin": "insight-5-incomplete-integration",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Self-Portrait with Cropped Hair (1940)",
@@ -8855,7 +8855,7 @@
       "type": "instantiates",
       "confidence_origin": "insight [1][4]: creation as cathartic act during post-separation acute crisis",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Self-Portrait with Cropped Hair (1940)",
@@ -8863,7 +8863,7 @@
       "type": "expresses",
       "confidence_origin": "insight [2]: systematic erasure of markers Diego valued; reclamation of agency",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Self-Portrait with Cropped Hair (1940)",
@@ -8871,7 +8871,7 @@
       "type": "demonstrates",
       "confidence_origin": "insight [4]: defiance and confrontation through direct aesthetic choice; visceral engagement with pain",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "aesthetic vandalism as agency reclamation",
@@ -8879,7 +8879,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight [1]: body speaks what words cannot; cutting hair is assertion not mutilation",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -8887,7 +8887,7 @@
       "type": "confronts",
       "confidence_origin": "insight [2]: forces Diego to recognize shallowness of his attachment through portrait",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "personal betrayal as cultural inheritance",
@@ -8895,7 +8895,7 @@
       "type": "intersects-with",
       "confidence_origin": "insight [3]: marriage dissolution recontextualized within historical patterns of Mexican loss and displacement",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "art as compensatory domain of absolute control",
@@ -8903,7 +8903,7 @@
       "type": "enables",
       "confidence_origin": "insight [5]: creative empowerment compensates for relational powerlessness; absolute control in artistic sphere",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -8911,7 +8911,7 @@
       "type": "embodies",
       "confidence_origin": "insight [2]: his desire predicated on Frida's beauty, femininity, accessibility",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Conditional maternal support",
@@ -8919,7 +8919,7 @@
       "type": "constrains",
       "confidence_origin": "synthesis of insights 1-3",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Conditional maternal support",
@@ -8927,7 +8927,7 @@
       "type": "ambivalently-enables",
       "confidence_origin": "insight 1 and 3",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Maternal loss of control over life trajectory",
@@ -8935,7 +8935,7 @@
       "type": "provokes",
       "confidence_origin": "insight 4",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida's mother",
@@ -8943,7 +8943,7 @@
       "type": "enacted-through",
       "confidence_origin": "synthesis of insights 1-4",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Paternal validation and creative permission",
@@ -8951,7 +8951,7 @@
       "type": "enables",
       "confidence_origin": "insight 3 - early validation as core psychological need",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Protective caregiving and emotional bonding with father",
@@ -8959,7 +8959,7 @@
       "type": "establishes-template-for",
       "confidence_origin": "insight 1 - foundational pattern of support intertwined with need for paternal validation",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Paternal absence (physical or emotional)",
@@ -8967,7 +8967,7 @@
       "type": "prompts-recruitment-of",
       "confidence_origin": "insight 2 - paternal absence created void that Diego was recruited to fill",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Paternal validation and creative permission",
@@ -8975,7 +8975,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight 3 - early validation became core psychological need throughout life",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Seeking creatively-engaged male figures",
@@ -8983,7 +8983,7 @@
       "type": "complicates",
       "confidence_origin": "insight 1 - creative support intertwined with need for paternal validation creates tension with independence",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "the bus accident",
@@ -8991,7 +8991,7 @@
       "type": "catalyzes",
       "confidence_origin": "synthesis[1,3]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Physical pain as territory of control",
@@ -8999,7 +8999,7 @@
       "type": "enables",
       "confidence_origin": "synthesis[1,3]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Physical pain as territory of control",
@@ -9007,7 +9007,7 @@
       "type": "enables",
       "confidence_origin": "synthesis[1,3]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Trauma-bonded intimacy template",
@@ -9015,7 +9015,7 @@
       "type": "characterizes",
       "confidence_origin": "synthesis[2]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "the bus accident",
@@ -9023,7 +9023,7 @@
       "type": "establishes",
       "confidence_origin": "synthesis[2]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Trauma-bonded intimacy template",
@@ -9031,7 +9031,7 @@
       "type": "complicates",
       "confidence_origin": "synthesis[2]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Endurance as rebellion",
@@ -9039,7 +9039,7 @@
       "type": "reinforces",
       "confidence_origin": "synthesis[3]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Endurance as rebellion",
@@ -9047,7 +9047,7 @@
       "type": "philosophically-grounds",
       "confidence_origin": "synthesis[3]",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9055,7 +9055,7 @@
       "type": "pursues",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Maintain independence within romantic relationships",
@@ -9063,7 +9063,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9071,7 +9071,7 @@
       "type": "participated",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "International art world entry",
@@ -9079,7 +9079,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9087,7 +9087,7 @@
       "type": "participated",
       "confidence_origin": "synthesized_insight_4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "1940 San Francisco remarriage",
@@ -9095,7 +9095,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insight_4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Los Cachuchas",
@@ -9103,7 +9103,7 @@
       "type": "enabled",
       "confidence_origin": "insight[3]: Los Cachuchas as crucible for emerging political consciousness",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Los Cachuchas",
@@ -9111,7 +9111,7 @@
       "type": "enabled",
       "confidence_origin": "insight[1]: space where intellectual participation was celebrated",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Los Cachuchas",
@@ -9119,7 +9119,7 @@
       "type": "enabled",
       "confidence_origin": "insight[2]: group became lifeline during post-accident confinement",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "the bus accident",
@@ -9127,7 +9127,7 @@
       "type": "catalyzed-return-to",
       "confidence_origin": "insight[2]: immobilization led to reconnection with group's orbit",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Fuse personal experience with political commitment through art",
@@ -9135,7 +9135,7 @@
       "type": "originates-from",
       "confidence_origin": "insight[3]: Los Cachuchas provided framework for transforming suffering into political commitment",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish authentic Mexican artistic identity",
@@ -9143,7 +9143,7 @@
       "type": "manifests-as",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish authentic Mexican artistic identity",
@@ -9151,7 +9151,7 @@
       "type": "enables",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish authentic Mexican artistic identity",
@@ -9159,7 +9159,7 @@
       "type": "operationalized-through",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish authentic Mexican artistic identity",
@@ -9167,7 +9167,7 @@
       "type": "operationalized-through",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish authentic Mexican artistic identity",
@@ -9175,7 +9175,7 @@
       "type": "deepens",
       "confidence_origin": "insights-1-2-4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9183,7 +9183,7 @@
       "type": "pursues",
       "confidence_origin": "all-insights",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Mexican artistic legitimacy on Mexican terms",
@@ -9191,7 +9191,7 @@
       "type": "reframes",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Process and understand bodily suffering through observation",
@@ -9199,7 +9199,7 @@
       "type": "enables",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Develop artistic mastery and distinctive visual voice",
@@ -9207,7 +9207,7 @@
       "type": "enables",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Self-portraiture as mirror-based introspection",
@@ -9215,7 +9215,7 @@
       "type": "enables",
       "confidence_origin": "insight-4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Paint honest, unflinching self-representation",
@@ -9223,7 +9223,7 @@
       "type": "requires",
       "confidence_origin": "insight-4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Self-portrait as archive of existence and validation",
@@ -9231,7 +9231,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9239,7 +9239,7 @@
       "type": "pursues",
       "confidence_origin": "insights-1,2,4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Canvas as relational substitute",
@@ -9247,7 +9247,7 @@
       "type": "enables",
       "confidence_origin": "insight-6",
       "validation_tier": "moderate",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Technical mastery as enabler of psychological honesty",
@@ -9255,7 +9255,7 @@
       "type": "enables",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Assertion of distinct artistic voice",
@@ -9263,7 +9263,7 @@
       "type": "enables",
       "confidence_origin": "insight [1]: deliberate separation as assertion of distinct voice",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Innovative format adaptation through constraint",
@@ -9271,7 +9271,7 @@
       "type": "enables",
       "confidence_origin": "insight [2]: physical constraints forced innovation becoming signature strength",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Physical resilience and bodily defiance",
@@ -9279,7 +9279,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight [2]: illness prevented conventional paths, forcing creative innovation",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Female artistic alliances and peer collaboration",
@@ -9287,7 +9287,7 @@
       "type": "enables",
       "confidence_origin": "insight [3]: female alliances provided visibility without subsumption",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Female artistic alliances and peer collaboration",
@@ -9295,7 +9295,7 @@
       "type": "enables",
       "confidence_origin": "insight [3]: structural alternative to male-dominated world preserved autonomy",
       "validation_tier": "medium-high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9303,7 +9303,7 @@
       "type": "pursues",
       "confidence_origin": "insight [1]: deliberate artistic separation from Diego",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9311,7 +9311,7 @@
       "type": "pursues",
       "confidence_origin": "insight [2]: transformation of physical limitation into stylistic signature",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lola \u00c1lvarez Bravo",
@@ -9319,7 +9319,7 @@
       "type": "artistic-ally-of",
       "confidence_origin": "insight [3]: female artistic alliance providing structural support",
       "validation_tier": "medium-high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Physical resilience and bodily defiance",
@@ -9327,7 +9327,7 @@
       "type": "enables",
       "confidence_origin": "insight_2_synthesis",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Transform suffering into artistic expression",
@@ -9335,7 +9335,7 @@
       "type": "enables",
       "confidence_origin": "insight_1_synthesis",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Fuse personal experience with political commitment through art",
@@ -9343,7 +9343,7 @@
       "type": "manifests-as",
       "confidence_origin": "insight_2_synthesis",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9351,7 +9351,7 @@
       "type": "embodies",
       "confidence_origin": "insight_1_and_2_synthesis",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9359,7 +9359,7 @@
       "type": "experienced",
       "confidence_origin": "insight_3_and_6_synthesis",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9367,7 +9367,7 @@
       "type": "participated",
       "confidence_origin": "insight_6_temporal_markers",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Art as radical testimony and witnessing",
@@ -9375,7 +9375,7 @@
       "type": "manifests-as",
       "confidence_origin": "synthesized_insights_1_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Autobiography as ideology",
@@ -9383,7 +9383,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insights_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Persona cultivation and artistic circulation",
@@ -9391,7 +9391,7 @@
       "type": "contributes-to",
       "confidence_origin": "synthesized_insights_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9399,7 +9399,7 @@
       "type": "pursues",
       "confidence_origin": "synthesized_insights_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Transform suffering into artistic expression",
@@ -9407,7 +9407,7 @@
       "type": "manifests-as",
       "confidence_origin": "synthesized_insights_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Defiance as creative fuel in late career",
@@ -9415,7 +9415,7 @@
       "type": "sustains",
       "confidence_origin": "synthesized_insights_7",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Fuse personal experience with political commitment through art",
@@ -9423,7 +9423,7 @@
       "type": "manifests-through",
       "confidence_origin": "insight-1",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Authenticity itself became a political act",
@@ -9431,7 +9431,7 @@
       "type": "enables",
       "confidence_origin": "insight-2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Mexican specificity in formal innovation",
@@ -9439,7 +9439,7 @@
       "type": "constitutes",
       "confidence_origin": "insight-2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Neutrality as complicity",
@@ -9447,7 +9447,7 @@
       "type": "motivates",
       "confidence_origin": "insight-3",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Victimhood as testimony",
@@ -9455,7 +9455,7 @@
       "type": "reframes",
       "confidence_origin": "insight-1",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Art as urgent political vehicle",
@@ -9463,7 +9463,7 @@
       "type": "reshapes",
       "confidence_origin": "insight-5",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Refusal to separate personal deterioration from political urgency",
@@ -9471,7 +9471,7 @@
       "type": "intensifies",
       "confidence_origin": "insight-7",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Diego Rivera",
@@ -9479,7 +9479,7 @@
       "type": "influences",
       "confidence_origin": "insight-4",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Somatic and psychological resilience integration",
@@ -9487,7 +9487,7 @@
       "type": "constitutes",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Collapsing gender and disability stigma through physical action",
@@ -9495,7 +9495,7 @@
       "type": "deepens",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Collapsing gender and disability stigma through physical action",
@@ -9503,7 +9503,7 @@
       "type": "deepens",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Body as source of strength rather than shame",
@@ -9511,7 +9511,7 @@
       "type": "embodies",
       "confidence_origin": "synthesized_insight_6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Bodily strength as silent testimony",
@@ -9519,7 +9519,7 @@
       "type": "manifests",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Master nature study and scientific observation",
@@ -9527,7 +9527,7 @@
       "type": "enables",
       "confidence_origin": "insight_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Learn and master photography",
@@ -9535,7 +9535,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Identify with revolutionary Mexico and political commitment",
@@ -9543,7 +9543,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Empirical authority through scientific method",
@@ -9551,7 +9551,7 @@
       "type": "legitimizes",
       "confidence_origin": "insight_3",
       "validation_tier": "medium-high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Triple integration of craft, observation, and ideology",
@@ -9559,7 +9559,7 @@
       "type": "operationalizes",
       "confidence_origin": "insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Process and understand bodily suffering through observation",
@@ -9567,7 +9567,7 @@
       "type": "enables",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "thematic_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Transform suffering into artistic expression",
@@ -9575,7 +9575,7 @@
       "type": "embodies",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "thematic_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Frida Kahlo",
@@ -9583,7 +9583,7 @@
       "type": "enacts",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "behavioral_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Transform suffering into artistic expression",
@@ -9591,7 +9591,7 @@
       "type": "leads-to",
       "confidence_origin": "synthesized_insight_6",
       "validation_tier": "temporal_narrative",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     }
   ],
   "memories": [
@@ -9607,7 +9607,7 @@
         "Coyoac\u00e1n"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9626,7 +9626,7 @@
       "other_agent": "Guillermo Kahlo",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9645,7 +9645,7 @@
       "other_agent": "Matilde Calder\u00f3n y Gonz\u00e1lez",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9664,7 +9664,7 @@
       "other_agent": "Guillermo Kahlo",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9684,7 +9684,7 @@
       "salience_multiplier": 1.3,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9702,7 +9702,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9722,7 +9722,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9743,7 +9743,7 @@
       "salience_multiplier": 1.2,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9757,7 +9757,7 @@
       "period": "1920s+",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9776,7 +9776,7 @@
       "other_agent": "Cristina",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 193,
       "source_end": 3015,
@@ -9793,7 +9793,7 @@
         "Mexico"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 3066,
       "source_end": 5552,
@@ -9813,7 +9813,7 @@
         "Spengler"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence",
       "situation_types": "achievement_opportunity, social_support, recognition_received, skill_challenge, agency_granted",
       "salience_multiplier": 1.2,
@@ -9831,7 +9831,7 @@
       "period": "1922-1923",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 3066,
       "source_end": 5552,
@@ -9849,7 +9849,7 @@
         "Creation"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence",
       "situation_types": "achievement_opportunity, novelty_encountered",
       "salience_multiplier": 1.3,
@@ -9869,7 +9869,7 @@
         "Alejandro G\u00f3mez Arias"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "POSITIVE",
       "other_agent": "Alejandro G\u00f3mez Arias",
       "trust_trajectory": "increasing",
@@ -9888,7 +9888,7 @@
         "Alejandro G\u00f3mez Arias"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence",
       "situation_types": "trust_offered, intimacy_available, recognition_received, choice_available",
       "salience_multiplier": 1.4,
@@ -9909,7 +9909,7 @@
         "Mexico"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence",
       "situation_types": "achievement_opportunity, choice_available, agency_granted, social_support",
       "salience_multiplier": 1.3,
@@ -9927,7 +9927,7 @@
       "period": "1922-1923",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 3066,
       "source_end": 5552,
@@ -9949,7 +9949,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -9966,7 +9966,7 @@
         "Mexico City"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -9983,7 +9983,7 @@
         "Mexico City"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -10004,7 +10004,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -10024,7 +10024,7 @@
       "other_agent": "Frida's parents",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -10045,7 +10045,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -10061,7 +10061,7 @@
         "Frida's artistic practice"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -10081,7 +10081,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 5591,
       "source_end": 8045,
@@ -10099,7 +10099,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10117,7 +10117,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10137,7 +10137,7 @@
       "salience_multiplier": 1.7,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10157,7 +10157,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10174,7 +10174,7 @@
         "Tina Modotti"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10192,7 +10192,7 @@
         "the Communist Party's"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10209,7 +10209,7 @@
         "the Ministry of Education"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10226,7 +10226,7 @@
         "La Casa Azul"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10245,7 +10245,7 @@
       "other_agent": "Diego Rivera",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 8092,
       "source_end": 10713,
@@ -10263,7 +10263,7 @@
         "Coyoac\u00e1n"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 10756,
       "source_end": 13335,
@@ -10280,7 +10280,7 @@
         "Diego Rivera"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "social_threat, rejection, criticism_received",
       "salience_multiplier": 1.2,
@@ -10300,7 +10300,7 @@
         "Diego Rivera"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "NEGATIVE",
       "other_agent": "Diego Rivera",
       "trust_trajectory": "decreasing",
@@ -10320,7 +10320,7 @@
         "Frida's father"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood",
       "situation_types": "trust_offered, intimacy_available, psychological_threat, agency_denied",
       "salience_multiplier": 1.5,
@@ -10342,7 +10342,7 @@
         "European artistic traditions"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "mentorship, achievement_opportunity, recognition_received, skill_challenge, choice_available, agency_granted",
       "salience_multiplier": 1.6,
@@ -10362,7 +10362,7 @@
         "Diego Rivera"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 10756,
       "source_end": 13335,
@@ -10378,7 +10378,7 @@
         "Diego Rivera"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood",
       "situation_types": "choice_available, agency_granted",
       "salience_multiplier": 1.0,
@@ -10404,7 +10404,7 @@
         "Frida and Diego's household salon"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 10756,
       "source_end": 13335,
@@ -10420,7 +10420,7 @@
         "Diego Rivera"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood",
       "situation_types": "social_threat, agency_denied, rejection, criticism_received",
       "salience_multiplier": 1.1,
@@ -10442,7 +10442,7 @@
         "Mexico"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10458,7 +10458,7 @@
         "Leo Eloesser"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10477,7 +10477,7 @@
       "other_agent": "Leo Eloesser",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10493,7 +10493,7 @@
         "Leo Eloesser"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10510,7 +10510,7 @@
         "Detroit"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10531,7 +10531,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10547,7 +10547,7 @@
         "Henry Ford Hospital"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10563,7 +10563,7 @@
         "Henry Ford Hospital"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10581,7 +10581,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10599,7 +10599,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "intermittent",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 13393,
       "source_end": 16975,
@@ -10616,7 +10616,7 @@
         "Cristina"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "trust_betrayed, relationship_loss, psychological_threat, rejection",
       "salience_multiplier": 1.8,
@@ -10637,7 +10637,7 @@
         "Cristina"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10653,7 +10653,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10669,7 +10669,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10686,7 +10686,7 @@
         "Mexico City"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10702,7 +10702,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10718,7 +10718,7 @@
         "Cristina"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "NEUTRAL",
       "other_agent": "Cristina",
       "trust_trajectory": "stable",
@@ -10738,7 +10738,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10755,7 +10755,7 @@
         "Georgia O'Keeffe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10772,7 +10772,7 @@
         "Cristina"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "NEGATIVE",
       "other_agent": "Frida",
       "trust_trajectory": "decreasing",
@@ -10792,7 +10792,7 @@
         "Cristina"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 17022,
       "source_end": 19705,
@@ -10808,7 +10808,7 @@
         "Mexican"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10822,7 +10822,7 @@
       "period": "1937",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10841,7 +10841,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10857,7 +10857,7 @@
         "Leon Trotsky"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10874,7 +10874,7 @@
         "New York"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10888,7 +10888,7 @@
       "period": "November 1938",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10905,7 +10905,7 @@
         "European"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10921,7 +10921,7 @@
         "Andr\u00e9 Breton"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10937,7 +10937,7 @@
         "Nickolas Muray"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "POSITIVE",
       "other_agent": "Nickolas Muray",
       "trust_trajectory": "increasing",
@@ -10957,7 +10957,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -10975,7 +10975,7 @@
         "Mexico"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "NEGATIVE",
       "other_agent": "Nickolas Muray",
       "trust_trajectory": "decreasing",
@@ -10994,7 +10994,7 @@
         "European"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -11010,7 +11010,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 19763,
       "source_end": 23736,
@@ -11027,7 +11027,7 @@
         "Paris"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11045,7 +11045,7 @@
         "European"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11063,7 +11063,7 @@
         "Paris"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11080,7 +11080,7 @@
         "Galerie Pierre Colle"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11098,7 +11098,7 @@
         "European"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11116,7 +11116,7 @@
         "Marcel Duchamp"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11137,7 +11137,7 @@
       "salience_multiplier": 1.3,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11153,7 +11153,7 @@
         "European"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11170,7 +11170,7 @@
         "Mexico"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 23784,
       "source_end": 26094,
@@ -11189,7 +11189,7 @@
       "other_agent": "Diego Rivera",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11206,7 +11206,7 @@
         "Dr Juan Farill"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11225,7 +11225,7 @@
         "all-or-nothing thinking"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11243,7 +11243,7 @@
         "Mexican song"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11263,7 +11263,7 @@
       "other_agent": "Diego Rivera",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11280,7 +11280,7 @@
         "shame"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11303,7 +11303,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 26140,
       "source_end": 29332,
@@ -11320,7 +11320,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11338,7 +11338,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11358,7 +11358,7 @@
       "salience_multiplier": 1.9,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11376,7 +11376,7 @@
         "Los Fridos"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11394,7 +11394,7 @@
         "European"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11412,7 +11412,7 @@
         "Marx"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11432,7 +11432,7 @@
       "other_agent": "Diego",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11453,7 +11453,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11470,7 +11470,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11491,7 +11491,7 @@
       "other_agent": "Diego",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 29388,
       "source_end": 32306,
@@ -11505,7 +11505,7 @@
       "period": "throughout career",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11519,7 +11519,7 @@
       "period": "1932",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11536,7 +11536,7 @@
         "the accident"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11550,7 +11550,7 @@
       "period": "1946",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11566,7 +11566,7 @@
         "Mexican"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11580,7 +11580,7 @@
       "period": "throughout career",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11594,7 +11594,7 @@
       "period": "throughout career",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11608,7 +11608,7 @@
       "period": "throughout career",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "achievement_opportunity, skill_challenge, choice_available",
       "salience_multiplier": 1.2,
@@ -11626,7 +11626,7 @@
       "period": "throughout career",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 32356,
       "source_end": 34890,
@@ -11644,7 +11644,7 @@
         "the Hospital for Special Surgery"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11665,7 +11665,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11683,7 +11683,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11703,7 +11703,7 @@
       "salience_multiplier": 1.7,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11720,7 +11720,7 @@
         "Self-Portrait with the Portrait of Dr Farill"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11738,7 +11738,7 @@
       "salience_multiplier": 1.9,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11756,7 +11756,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11779,7 +11779,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 34938,
       "source_end": 37365,
@@ -11798,7 +11798,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11815,7 +11815,7 @@
         "La Casa Azul"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11832,7 +11832,7 @@
         "Diego"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11848,7 +11848,7 @@
         "Dr Farill"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, relationship_loss, abandonment_threat",
       "salience_multiplier": 2.0,
@@ -11866,7 +11866,7 @@
       "period": "August 1953 onwards",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11880,7 +11880,7 @@
       "period": "1953 onwards",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11894,7 +11894,7 @@
       "period": "1953 onwards",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11908,7 +11908,7 @@
       "period": "August 1953",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 37434,
       "source_end": 40101,
@@ -11925,7 +11925,7 @@
         "CIA"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -11939,7 +11939,7 @@
       "period": "1954",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -11955,7 +11955,7 @@
         "La Casa Azul"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -11974,7 +11974,7 @@
       "other_agent": "Diego Rivera",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -11991,7 +11991,7 @@
         "Palace of Fine Arts"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12007,7 +12007,7 @@
         "Pante\u00f3n Civil de Dolores"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12027,7 +12027,7 @@
       "other_agent": "Frida Kahlo",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12044,7 +12044,7 @@
         "Mexico"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12058,7 +12058,7 @@
       "period": "1954+",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12072,7 +12072,7 @@
       "period": "career",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12090,7 +12090,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 40136,
       "source_end": 42670,
@@ -12110,7 +12110,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12128,7 +12128,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12146,7 +12146,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12164,7 +12164,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12183,7 +12183,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12201,7 +12201,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12214,7 +12214,7 @@
         "Ideological contradiction between communal principles and personal behaviour",
         "Serial infidelity within ideological framework"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12226,7 +12226,7 @@
       "related_entities": [
         "Household salon as political theatre"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12239,7 +12239,7 @@
         "Artistic validation as mechanism of romantic control",
         "Frida Kahlo"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12252,7 +12252,7 @@
         "Remarriage on negotiated terms",
         "Develop intellectual and emotional intimacy with an equal"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12265,7 +12265,7 @@
         "Ideological contradiction between communal principles and personal behaviour",
         "Serial infidelity within ideological framework"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12279,7 +12279,7 @@
         "Mirror-painting as self-gazing practice",
         "La Casa Azul as spatial autonomy"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12294,7 +12294,7 @@
         "Identify with revolutionary Mexico and political commitment",
         "Achieve intellectual independence and participation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12309,7 +12309,7 @@
         "La Casa Azul",
         "Create and exhibit ambitious artistic work"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12323,7 +12323,7 @@
         "Frida Kahlo",
         "Transform suffering into artistic expression"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12337,7 +12337,7 @@
         "Maintain personal autonomy and independence within relationships",
         "Develop composure and resilience in crisis"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12354,7 +12354,7 @@
         "Palace of Fine Arts",
         "Communist ideological commitment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12369,7 +12369,7 @@
         "Four-poster bed as artistic medium",
         "La Casa Azul"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12384,7 +12384,7 @@
         "Combat isolation and maintain psychological engagement",
         "Maintain personal autonomy and independence within relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12399,7 +12399,7 @@
         "Four-poster bed as artistic medium",
         "Mexico City"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12414,7 +12414,7 @@
         "La Casa Azul",
         "Palace of Fine Arts"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12428,7 +12428,7 @@
         "the bus accident",
         "Protect against emotional vulnerability and abandonment through self-reliance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12441,7 +12441,7 @@
         "Geographic escape pattern",
         "Maintain independence within romantic relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12454,7 +12454,7 @@
         "Self-reliance defense paradox",
         "Protect against emotional vulnerability and abandonment through self-reliance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12467,7 +12467,7 @@
         "the bus accident",
         "Frida Kahlo"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12480,7 +12480,7 @@
         "Frida Kahlo",
         "Develop intellectual and emotional intimacy with an equal"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12493,7 +12493,7 @@
         "Maintain independence within romantic relationships",
         "Protect against emotional vulnerability and abandonment through self-reliance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12508,7 +12508,7 @@
         "Julien Levy",
         "Identify with revolutionary Mexico and political commitment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12521,7 +12521,7 @@
         "La Casa Azul",
         "Dissolution of domestic-political boundaries"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12535,7 +12535,7 @@
         "Diego Rivera",
         "Home as instrument of ideological assertion"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12549,7 +12549,7 @@
         "Fuse personal experience with political commitment through art",
         "Engage in critical debate about Mexican nationalism and art's revolutionary role"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12564,7 +12564,7 @@
         "the bus accident",
         "Survive catastrophic injury and recovery"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12578,7 +12578,7 @@
         "Transform suffering into artistic expression",
         "Paint honest, unflinching self-representation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12593,7 +12593,7 @@
         "Combat isolation and maintain psychological engagement",
         "Develop artistic mastery and distinctive visual voice"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12608,7 +12608,7 @@
         "Bodily confrontation (artistic strategy)",
         "Protective caregiving and emotional bonding with father"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12622,7 +12622,7 @@
         "Diego Rivera",
         "Externalisation of internal fragmentation through monumental scale"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12636,7 +12636,7 @@
         "The Two Fridas (painting)",
         "Diego Rivera"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12650,7 +12650,7 @@
         "Cathartic but unresolved psychological state post-creation",
         "Diego Rivera"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12664,7 +12664,7 @@
         "Frida's artistic practice",
         "art as compensatory domain of absolute control"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12679,7 +12679,7 @@
         "love's conditionality and beauty-contingent attachment",
         "aesthetic vandalism as agency reclamation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12693,7 +12693,7 @@
         "Identify with revolutionary Mexico and political commitment",
         "retablo tradition"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12707,7 +12707,7 @@
         "Diego Rivera",
         "Transform suffering into artistic expression"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12725,7 +12725,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12743,7 +12743,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12757,7 +12757,7 @@
         "Paternal validation and creative permission",
         "Develop artistic identity and mastery"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12771,7 +12771,7 @@
         "Diego Rivera",
         "Seeking creatively-engaged male figures"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12785,7 +12785,7 @@
         "Diego Rivera",
         "Paternal absence (physical or emotional)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12799,7 +12799,7 @@
         "Frida's artistic practice",
         "Physical resilience and bodily defiance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12813,7 +12813,7 @@
         "the bus accident",
         "Maintain independence within romantic relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12828,7 +12828,7 @@
         "Frida's artistic practice",
         "Transform suffering into artistic expression"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12842,7 +12842,7 @@
         "Endurance as rebellion",
         "Identify with revolutionary Mexico and political commitment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12857,7 +12857,7 @@
         "Artistic and intellectual independence",
         "Maintain independence within romantic relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12872,7 +12872,7 @@
         "Geographic distance as relational renegotiation",
         "Maintain personal autonomy and independence within relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12887,7 +12887,7 @@
         "Diego Rivera",
         "Artistic and intellectual independence"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12902,7 +12902,7 @@
         "Diego Rivera",
         "Maintain personal autonomy and independence within relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12915,7 +12915,7 @@
         "Frida Kahlo",
         "Chosen family and ideological alignment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12929,7 +12929,7 @@
         "the bus accident",
         "Intellectual community as counterweight to physical confinement"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12942,7 +12942,7 @@
         "Frida Kahlo",
         "Fuse personal experience with political commitment through art"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12960,7 +12960,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12980,7 +12980,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -12998,7 +12998,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13016,7 +13016,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13030,7 +13030,7 @@
         "Self-portraiture as mirror-based introspection",
         "Process and understand bodily suffering through observation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13044,7 +13044,7 @@
         "Technical mastery as enabler of psychological honesty",
         "Paint honest, unflinching self-representation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13057,7 +13057,7 @@
         "Self-portrait as archive of existence and validation",
         "Maintain personal autonomy and independence within relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13070,7 +13070,7 @@
         "Paint honest, unflinching self-representation",
         "Visual proximity and refusal of idealization"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13084,7 +13084,7 @@
         "Develop artistic mastery and distinctive visual voice",
         "Maintain personal autonomy and independence within relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13098,7 +13098,7 @@
         "Fuse personal experience with political commitment through art",
         "Paint honest, unflinching self-representation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13116,7 +13116,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13134,7 +13134,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13152,7 +13152,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13170,7 +13170,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13188,7 +13188,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13206,7 +13206,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13220,7 +13220,7 @@
         "Embodied political conviction",
         "Physical resilience and bodily defiance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13234,7 +13234,7 @@
         "Witness to imperial violence",
         "Identify with revolutionary Mexico and political commitment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13248,7 +13248,7 @@
         "Physical resilience and bodily defiance",
         "Transform suffering into artistic expression"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13262,7 +13262,7 @@
         "Guatemala coup response",
         "Witness to imperial violence"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13276,7 +13276,7 @@
         "Mexico City",
         "Artistic and intellectual independence"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13290,7 +13290,7 @@
         "Transform suffering into artistic expression",
         "Develop artistic identity and mastery"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13304,7 +13304,7 @@
         "Develop artistic mastery and distinctive visual voice",
         "Integrate into artistic and political intellectual circles"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13318,7 +13318,7 @@
         "Persona cultivation and artistic circulation",
         "Physical resilience and bodily defiance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13331,7 +13331,7 @@
         "Persona cultivation and artistic circulation",
         "Gain recognition and validation as an artist"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13345,7 +13345,7 @@
         "the bus accident",
         "Transform suffering into artistic expression"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13358,7 +13358,7 @@
         "Art as urgent political vehicle",
         "Diego Rivera"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13372,7 +13372,7 @@
         "Mexican specificity in formal innovation",
         "Artistic and intellectual independence"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13385,7 +13385,7 @@
         "Refusal to separate personal deterioration from political urgency",
         "Physical resilience and bodily defiance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13399,7 +13399,7 @@
         "Body as political canvas",
         "Victimhood as testimony"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13412,7 +13412,7 @@
         "Physical resilience and bodily defiance",
         "Overcome polio-induced shame and social stigma"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13425,7 +13425,7 @@
         "Develop composure and resilience in crisis",
         "Somatic and psychological resilience integration"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13439,7 +13439,7 @@
         "Overcome polio-induced shame and social stigma",
         "Collapsing gender and disability stigma through physical action"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13452,7 +13452,7 @@
         "Physical resilience and bodily defiance",
         "Overcome polio-induced shame and social stigma"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13465,7 +13465,7 @@
         "Physical resilience and bodily defiance",
         "Develop composure and resilience in crisis"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13478,7 +13478,7 @@
         "Physical resilience and bodily defiance",
         "Body as source of strength rather than shame"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13493,7 +13493,7 @@
         "Master nature study and scientific observation",
         "Identify with revolutionary Mexico and political commitment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13507,7 +13507,7 @@
         "Empirical authority through scientific method",
         "Artistic and intellectual independence"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13521,7 +13521,7 @@
         "Develop artistic identity and mastery",
         "Identify with revolutionary Mexico and political commitment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13535,7 +13535,7 @@
         "Pain as witness and validator of existence",
         "Frida's artistic practice"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13549,7 +13549,7 @@
         "Process and understand bodily suffering through observation",
         "Develop artistic mastery and distinctive visual voice"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13563,7 +13563,7 @@
         "Identify with revolutionary Mexico and political commitment",
         "Fuse personal experience with political commitment through art"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -13577,7 +13577,7 @@
         "Transform suffering into artistic expression",
         "Maintain personal autonomy and independence within relationships"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     }

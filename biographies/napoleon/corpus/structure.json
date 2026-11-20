@@ -5707,7 +5707,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5727,7 +5727,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5747,7 +5747,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5767,7 +5767,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5787,7 +5787,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5807,7 +5807,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5827,7 +5827,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5846,7 +5846,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5865,7 +5865,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5884,7 +5884,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5904,7 +5904,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5918,7 +5918,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5932,7 +5932,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5946,7 +5946,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5960,7 +5960,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5974,7 +5974,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -5988,7 +5988,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6006,7 +6006,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6020,7 +6020,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6034,7 +6034,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6048,7 +6048,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6062,7 +6062,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6076,7 +6076,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6090,7 +6090,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6104,7 +6104,7 @@
         "origin": "INFERRED",
         "value": 0.78
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6118,7 +6118,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6132,7 +6132,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6146,7 +6146,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6159,7 +6159,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6172,7 +6172,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6191,7 +6191,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6210,7 +6210,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6229,7 +6229,7 @@
         "origin": "INFERRED",
         "value": 0.78
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6249,7 +6249,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6268,7 +6268,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6287,7 +6287,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6306,7 +6306,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6325,7 +6325,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6344,7 +6344,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6359,7 +6359,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6373,7 +6373,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6387,7 +6387,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6401,7 +6401,7 @@
         "origin": "INFERRED",
         "value": 0.78
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6416,7 +6416,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6431,7 +6431,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6446,7 +6446,7 @@
         "origin": "INFERRED",
         "value": 0.75
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6465,7 +6465,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6484,7 +6484,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6503,7 +6503,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6523,7 +6523,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6538,7 +6538,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6553,7 +6553,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6571,7 +6571,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6586,7 +6586,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6606,7 +6606,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6625,7 +6625,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6644,7 +6644,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6663,7 +6663,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6682,7 +6682,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6700,7 +6700,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6718,7 +6718,7 @@
         "origin": "INFERRED",
         "value": 0.78
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6736,7 +6736,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6757,7 +6757,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6775,7 +6775,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6794,7 +6794,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6813,7 +6813,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6836,7 +6836,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6856,7 +6856,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6875,7 +6875,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6894,7 +6894,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6913,7 +6913,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6934,7 +6934,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6953,7 +6953,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6972,7 +6972,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -6991,7 +6991,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7010,7 +7010,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7029,7 +7029,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7049,7 +7049,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7069,7 +7069,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7089,7 +7089,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7109,7 +7109,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7128,7 +7128,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7150,7 +7150,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7169,7 +7169,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7187,7 +7187,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7205,7 +7205,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7223,7 +7223,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7241,7 +7241,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7259,7 +7259,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7277,7 +7277,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7297,7 +7297,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7315,7 +7315,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7334,7 +7334,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7353,7 +7353,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7367,7 +7367,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7381,7 +7381,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7395,7 +7395,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7409,7 +7409,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7424,7 +7424,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7445,7 +7445,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7464,7 +7464,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7483,7 +7483,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7503,7 +7503,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7524,7 +7524,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7543,7 +7543,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7562,7 +7562,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7581,7 +7581,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7601,7 +7601,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7625,7 +7625,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7645,7 +7645,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7666,7 +7666,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7680,7 +7680,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7694,7 +7694,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7709,7 +7709,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7724,7 +7724,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7739,7 +7739,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7753,7 +7753,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7772,7 +7772,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7792,7 +7792,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7812,7 +7812,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7831,7 +7831,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7851,7 +7851,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7871,7 +7871,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7891,7 +7891,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7911,7 +7911,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7931,7 +7931,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7950,7 +7950,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7970,7 +7970,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -7989,7 +7989,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8009,7 +8009,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8024,7 +8024,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8043,7 +8043,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8058,7 +8058,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8076,7 +8076,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8094,7 +8094,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     },
     {
@@ -8114,7 +8114,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract"
     }
   ],
@@ -12417,7 +12417,7 @@
       "type": "constructed-identity-through",
       "confidence_origin": "insights-1-5-7",
       "validation_tier": "high-coherence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "isolation",
@@ -12425,7 +12425,7 @@
       "type": "caused-by",
       "confidence_origin": "insight-3",
       "validation_tier": "psychological-depth",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Conviction of superiority",
@@ -12433,7 +12433,7 @@
       "type": "metastasized-into",
       "confidence_origin": "insight-4",
       "validation_tier": "high-evidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Toulon (place)",
@@ -12441,7 +12441,7 @@
       "type": "catalyzed",
       "confidence_origin": "insights-1-7",
       "validation_tier": "formative-event",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12449,7 +12449,7 @@
       "type": "entrapped-in",
       "confidence_origin": "insights-1-4-9",
       "validation_tier": "pattern-across-lifetime",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Royal Military School at Brienne",
@@ -12457,7 +12457,7 @@
       "type": "source-of",
       "confidence_origin": "insight-6",
       "validation_tier": "childhood-trauma",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Linguistic alienation",
@@ -12465,7 +12465,7 @@
       "type": "manifestation-of",
       "confidence_origin": "insight-6",
       "validation_tier": "documented-historical",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12473,7 +12473,7 @@
       "type": "adopted-from",
       "confidence_origin": "insights-5-6",
       "validation_tier": "identity-formation",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Jos\u00e9phine de Beauharnais",
@@ -12481,7 +12481,7 @@
       "type": "subject-of",
       "confidence_origin": "insight-3",
       "validation_tier": "relational-analysis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Pleasure conditional on continual victory",
@@ -12489,7 +12489,7 @@
       "target": "Napoleon Bonaparte",
       "confidence_origin": "insight-9",
       "validation_tier": "late-empire-pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Grande Arm\u00e9e catastrophe",
@@ -12497,7 +12497,7 @@
       "type": "triggered",
       "confidence_origin": "insight-10",
       "validation_tier": "final-collapse-parallel",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Denial of dependency and failure",
@@ -12505,7 +12505,7 @@
       "type": "protects",
       "confidence_origin": "insight-2",
       "validation_tier": "defense-mechanism",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Exceptional vision",
@@ -12513,7 +12513,7 @@
       "type": "becomes-rationale-for",
       "confidence_origin": "insight-1",
       "validation_tier": "moral-erosion-mechanism",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12521,7 +12521,7 @@
       "type": "pursues-despite-failure",
       "confidence_origin": "insight-2-empirical-refusal",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12529,7 +12529,7 @@
       "type": "pursues-despite-warning",
       "confidence_origin": "insight-2-resource-bleeding",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12537,7 +12537,7 @@
       "type": "pursues-overreach",
       "confidence_origin": "insight-2-refusal-limits",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Narcissistic identity defense through denial",
@@ -12545,7 +12545,7 @@
       "type": "manifested-in",
       "confidence_origin": "insight-2-defensive-strategy",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Narcissistic identity defense through denial",
@@ -12553,7 +12553,7 @@
       "type": "manifested-in",
       "confidence_origin": "insight-2-defensive-strategy",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Narcissistic identity defense through denial",
@@ -12561,7 +12561,7 @@
       "type": "manifested-in",
       "confidence_origin": "insight-2-defensive-strategy",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Inability to accept constraint",
@@ -12569,7 +12569,7 @@
       "type": "activated-when-resisted-by",
       "confidence_origin": "insight-3-1813-fracture",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12577,7 +12577,7 @@
       "type": "exiled-to",
       "confidence_origin": "insight-8-exile-period",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12585,7 +12585,7 @@
       "type": "experiences",
       "confidence_origin": "insight-7-1812-1814-pattern",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Moscow campaign",
@@ -12593,7 +12593,7 @@
       "type": "precipitates",
       "confidence_origin": "insight-7-myth-shattering",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Empirical failure signals",
@@ -12601,7 +12601,7 @@
       "type": "defensively-avoided-by",
       "confidence_origin": "insight-2-consistent-blindspot",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12609,7 +12609,7 @@
       "type": "emotional-attachment-persists-despite",
       "confidence_origin": "insights 1, 3, 4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12617,7 +12617,7 @@
       "type": "constrained-by",
       "confidence_origin": "insights 1, 4, 7",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Trust erosion through infidelity",
@@ -12625,7 +12625,7 @@
       "type": "reinforced",
       "confidence_origin": "insight 2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Jos\u00e9phine de Beauharnais",
@@ -12633,7 +12633,7 @@
       "type": "resides-at-after-divorce",
       "confidence_origin": "insight 3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12641,7 +12641,7 @@
       "type": "visits-and-provides-patronage",
       "confidence_origin": "insights 3, 9",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Emotional attachment despite political necessity",
@@ -12649,7 +12649,7 @@
       "type": "exemplifies",
       "confidence_origin": "insights 1, 4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -12657,7 +12657,7 @@
       "type": "defeated-by",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -12665,7 +12665,7 @@
       "type": "commanded",
       "confidence_origin": "insight-4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Austerlitz (1805)",
@@ -12673,7 +12673,7 @@
       "type": "defeated",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -12681,7 +12681,7 @@
       "type": "commanded",
       "confidence_origin": "insight-5",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Invasion of Russia (1812)",
@@ -12689,7 +12689,7 @@
       "type": "destroyed-in",
       "confidence_origin": "insight-6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Continental System",
@@ -12697,7 +12697,7 @@
       "type": "rejected-by",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -12705,7 +12705,7 @@
       "type": "pursued",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russia's strategic depth and vastness",
@@ -12713,7 +12713,7 @@
       "type": "caused",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -12721,7 +12721,7 @@
       "type": "experienced",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Invasion of Russia (1812)",
@@ -12729,7 +12729,7 @@
       "type": "caused",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -12737,7 +12737,7 @@
       "type": "participated-in",
       "confidence_origin": "insight-7",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish personal dominance and power",
@@ -12745,7 +12745,7 @@
       "type": "undermined-by",
       "confidence_origin": "insight-2",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12753,7 +12753,7 @@
       "type": "psychological-refuge-during",
       "confidence_origin": "insight-3-collapse-pattern",
       "validation_tier": "inferred-from-behaviour",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12761,7 +12761,7 @@
       "type": "exhibits",
       "confidence_origin": "insight-1-relationship-evolution",
       "validation_tier": "thematic-pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Autonomy-seeking addiction",
@@ -12769,7 +12769,7 @@
       "type": "prototype-established-in",
       "confidence_origin": "insight-4-italy-pattern",
       "validation_tier": "historical-sequence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Autonomy-seeking addiction",
@@ -12777,7 +12777,7 @@
       "type": "ultimate-expression-in",
       "confidence_origin": "insight-4-ultimate-stage",
       "validation_tier": "thematic-culmination",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian catastrophe",
@@ -12785,7 +12785,7 @@
       "type": "triggered-retreat-to",
       "confidence_origin": "insight-3-collapse-precedent",
       "validation_tier": "historical-causation",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Hundred Days",
@@ -12793,7 +12793,7 @@
       "type": "return-to-for-legitimacy",
       "confidence_origin": "insight-3-return-pattern",
       "validation_tier": "historical-sequence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12801,7 +12801,7 @@
       "type": "subordinate-to",
       "confidence_origin": "insight-5-early-paris-years",
       "validation_tier": "historical-fact",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Directory",
@@ -12809,7 +12809,7 @@
       "type": "marginalised-by",
       "confidence_origin": "insight-6-italian-campaigns",
       "validation_tier": "historical-sequence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12817,7 +12817,7 @@
       "type": "displaced-by-return-of",
       "confidence_origin": "insight-9-hundred-days",
       "validation_tier": "historical-fact",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Denial and avoidance under distance",
@@ -12825,7 +12825,7 @@
       "type": "manifested-through-separation-from",
       "confidence_origin": "insight-2-distance-pattern",
       "validation_tier": "psychological-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12833,7 +12833,7 @@
       "type": "exhibits",
       "confidence_origin": "synthesized-insight-2",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Operational problem-solving vs adaptive strategy",
@@ -12841,7 +12841,7 @@
       "type": "contributed-to",
       "confidence_origin": "synthesized-insight-3",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Logistics-as-calculable-system worldview",
@@ -12849,7 +12849,7 @@
       "type": "precedes",
       "confidence_origin": "synthesized-insight-3",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12857,7 +12857,7 @@
       "type": "responsible-for",
       "confidence_origin": "synthesized-insight-1",
       "validation_tier": "medium-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Grande Arm\u00e9e",
@@ -12865,7 +12865,7 @@
       "type": "participated-in",
       "confidence_origin": "synthesized-insight-1",
       "validation_tier": "high-confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Battle of Austerlitz",
@@ -12873,7 +12873,7 @@
       "type": "satisfies",
       "confidence_origin": "insight-1-psychological-necessity",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish military dominance through superior tactical vision",
@@ -12881,7 +12881,7 @@
       "type": "depends-on",
       "confidence_origin": "insight-2-self-conception",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12889,7 +12889,7 @@
       "type": "exhibits",
       "confidence_origin": "insight-3-dissociation",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Win decisive military victories through innovative strategy",
@@ -12897,7 +12897,7 @@
       "type": "reinforces",
       "confidence_origin": "insight-4-validation-strengthening",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Overconfidence loop",
@@ -12905,7 +12905,7 @@
       "type": "precursor-to",
       "confidence_origin": "insight-4-moscow-miscalculation",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Battle of Austerlitz",
@@ -12913,7 +12913,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight-1-external-proof",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Conviction of superiority",
@@ -12921,7 +12921,7 @@
       "type": "strengthened-by",
       "confidence_origin": "insight-4-belief-pattern",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Austria",
@@ -12929,7 +12929,7 @@
       "type": "blocks",
       "confidence_origin": "insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12937,7 +12937,7 @@
       "type": "pursues-but-misunderstands",
       "confidence_origin": "insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Dynastic marriage as political tool",
@@ -12945,7 +12945,7 @@
       "type": "instantiated-by",
       "confidence_origin": "insight_5",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Limits on ambition",
@@ -12953,7 +12953,7 @@
       "type": "enforced-by",
       "confidence_origin": "insight_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12961,7 +12961,7 @@
       "type": "rejected",
       "confidence_origin": "insight_6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Austerlitz campaign",
@@ -12969,7 +12969,7 @@
       "type": "defeats",
       "confidence_origin": "insight_4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -12977,7 +12977,7 @@
       "type": "experiences",
       "confidence_origin": "insight_5",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Austria",
@@ -12985,7 +12985,7 @@
       "type": "caused-by",
       "confidence_origin": "insight_3",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Italy",
@@ -12993,7 +12993,7 @@
       "type": "crucible-for",
       "confidence_origin": "insight_1",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Italy",
@@ -13001,7 +13001,7 @@
       "type": "demonstrates",
       "confidence_origin": "insight_1",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Italian Campaign (1796-1797)",
@@ -13009,7 +13009,7 @@
       "type": "concurrent-with-passionate-correspondence",
       "confidence_origin": "insight_2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -13017,7 +13017,7 @@
       "type": "engages-in",
       "confidence_origin": "insight_2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Italy",
@@ -13025,7 +13025,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight_3",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Italian Campaign (1796-1797)",
@@ -13033,7 +13033,7 @@
       "type": "transforms-mood-and-authority",
       "confidence_origin": "insights_4_5",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Maintain emotional distance and self-reliance",
@@ -13041,7 +13041,7 @@
       "type": "contradicted-by",
       "confidence_origin": "insight_2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13049,7 +13049,7 @@
       "type": "exhibits",
       "confidence_origin": "insights 1, 4, 7",
       "validation_tier": "psychological_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Jos\u00e9phine de Beauharnais",
@@ -13057,7 +13057,7 @@
       "type": "emotional-anchor-for",
       "confidence_origin": "insight 1",
       "validation_tier": "relational_dynamic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13065,7 +13065,7 @@
       "type": "demonstrates",
       "confidence_origin": "insight 2",
       "validation_tier": "psychological_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Reality rewriting as control mechanism",
@@ -13073,7 +13073,7 @@
       "type": "instrumental-to",
       "confidence_origin": "insight 3",
       "validation_tier": "motivational_analysis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13081,7 +13081,7 @@
       "type": "employs",
       "confidence_origin": "insight 3",
       "validation_tier": "biographical_evidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Avoidance of emotional introspection",
@@ -13089,7 +13089,7 @@
       "type": "displaced-into",
       "confidence_origin": "insight 4",
       "validation_tier": "psychological_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13097,7 +13097,7 @@
       "type": "exhibits",
       "confidence_origin": "insight 4",
       "validation_tier": "behavioral_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Jos\u00e9phine de Beauharnais",
@@ -13105,7 +13105,7 @@
       "type": "psychological-stability-trigger-for",
       "confidence_origin": "insight 1",
       "validation_tier": "relational_dynamic",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13113,7 +13113,7 @@
       "type": "participated-in",
       "confidence_origin": "insights 1-7",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian campaign",
@@ -13121,7 +13121,7 @@
       "type": "includes",
       "confidence_origin": "insights 1, 5",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13129,7 +13129,7 @@
       "type": "commanded",
       "confidence_origin": "insight 4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Grande Arm\u00e9e",
@@ -13137,7 +13137,7 @@
       "type": "participated-in",
       "confidence_origin": "insights 3, 6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Scorched earth strategy",
@@ -13145,7 +13145,7 @@
       "type": "frustrated",
       "confidence_origin": "insight 3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian campaign",
@@ -13153,7 +13153,7 @@
       "type": "contradicted",
       "confidence_origin": "insights 1, 2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian campaign",
@@ -13161,7 +13161,7 @@
       "type": "challenged",
       "confidence_origin": "insight 1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian campaign",
@@ -13169,7 +13169,7 @@
       "type": "undermined",
       "confidence_origin": "insights 1, 5",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian campaign",
@@ -13177,7 +13177,7 @@
       "type": "led-to",
       "confidence_origin": "insight 7",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13185,7 +13185,7 @@
       "type": "internalized",
       "confidence_origin": "insight_1",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Corsican identity",
@@ -13193,7 +13193,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight_1",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "France",
@@ -13201,7 +13201,7 @@
       "type": "contributes-to",
       "confidence_origin": "insight_1",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13209,7 +13209,7 @@
       "type": "learned-from",
       "confidence_origin": "insight_3",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Corsica",
@@ -13217,7 +13217,7 @@
       "type": "taught-lesson",
       "confidence_origin": "insight_3",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13225,7 +13225,7 @@
       "type": "confined-by",
       "confidence_origin": "insight_2",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Corsica",
@@ -13233,7 +13233,7 @@
       "type": "imposed",
       "confidence_origin": "insight_2",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13241,7 +13241,7 @@
       "type": "undergoes",
       "confidence_origin": "insight_3",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Corsican identity",
@@ -13249,7 +13249,7 @@
       "type": "generates",
       "confidence_origin": "insight_2",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "dual consciousness",
@@ -13257,7 +13257,7 @@
       "type": "motivated",
       "confidence_origin": "insight_1",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13265,7 +13265,7 @@
       "type": "led",
       "confidence_origin": "synthesized_insights",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Egyptian campaign",
@@ -13273,7 +13273,7 @@
       "type": "demonstrated",
       "confidence_origin": "synthesized_insights_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Nelson's fleet",
@@ -13281,7 +13281,7 @@
       "type": "undermined",
       "confidence_origin": "synthesized_insights_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Mamluk resistance",
@@ -13289,7 +13289,7 @@
       "type": "constrained",
       "confidence_origin": "synthesized_insights_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Jos\u00e9phine de Beauharnais",
@@ -13297,7 +13297,7 @@
       "type": "betrayed",
       "confidence_origin": "synthesized_insights_1_4",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Egyptian campaign",
@@ -13305,7 +13305,7 @@
       "type": "distance-complicated-by",
       "confidence_origin": "synthesized_insights_3",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13313,7 +13313,7 @@
       "type": "employs",
       "confidence_origin": "synthesized_insights_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13321,7 +13321,7 @@
       "type": "compromised-by",
       "confidence_origin": "synthesized_insights_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish personal dominance and power",
@@ -13329,7 +13329,7 @@
       "type": "exposed-by",
       "confidence_origin": "synthesized_insights_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13337,7 +13337,7 @@
       "type": "participated-in",
       "confidence_origin": "synthesis insight 1,3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "The Moscow Campaign",
@@ -13345,7 +13345,7 @@
       "type": "required",
       "confidence_origin": "synthesis insight 1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "The Retreat from Moscow",
@@ -13353,7 +13353,7 @@
       "type": "created",
       "confidence_origin": "synthesis insight 3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Psychological compartmentalisation under extreme stress",
@@ -13361,7 +13361,7 @@
       "type": "coping-mechanism-of",
       "confidence_origin": "synthesis insight 2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "St Helena exile period",
@@ -13369,7 +13369,7 @@
       "type": "reversal-of",
       "confidence_origin": "synthesis insight 2,6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "The Retreat from Moscow",
@@ -13377,7 +13377,7 @@
       "type": "undermined",
       "confidence_origin": "synthesis insight 1,3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Conviction of superiority",
@@ -13385,7 +13385,7 @@
       "type": "fractured-by",
       "confidence_origin": "synthesis insight 3",
       "validation_tier": "medium-high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish personal dominance and power",
@@ -13393,7 +13393,7 @@
       "type": "requires",
       "confidence_origin": "synthesis-insight-1-2",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Rejection of negotiated peace",
@@ -13401,7 +13401,7 @@
       "type": "caused-by",
       "confidence_origin": "synthesis-insight-4",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Defiant escalation under adversity",
@@ -13409,7 +13409,7 @@
       "type": "expresses",
       "confidence_origin": "synthesis-insight-2-6",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Self-sealing cognitive loop",
@@ -13417,7 +13417,7 @@
       "type": "maintains",
       "confidence_origin": "synthesis-insight-4",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "External obstacles as validation",
@@ -13425,7 +13425,7 @@
       "type": "reinforces",
       "confidence_origin": "synthesis-insight-3",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13433,7 +13433,7 @@
       "type": "demonstrates",
       "confidence_origin": "synthesis-insights-1-2-5-6-7",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13441,7 +13441,7 @@
       "type": "exhibits",
       "confidence_origin": "synthesis-insight-6-7",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13449,7 +13449,7 @@
       "type": "trapped-in",
       "confidence_origin": "synthesis-insight-4",
       "validation_tier": "inferred",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Siege of Toulon",
@@ -13457,7 +13457,7 @@
       "type": "crystallized",
       "confidence_origin": "insight [1]",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Dangerous conviction of intellectual deservingness",
@@ -13465,7 +13465,7 @@
       "type": "enabled",
       "confidence_origin": "insight [1] - fusion of superiority conviction with demand for recognition",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Bayonet wound at Toulon",
@@ -13473,7 +13473,7 @@
       "type": "reinforced",
       "confidence_origin": "insight [2]",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Subordination of bodily limitation to will",
@@ -13481,7 +13481,7 @@
       "type": "enabled",
       "confidence_origin": "insight [2] - psychological pattern subordinates pain to triumphalism",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "L'\u00c9guillette",
@@ -13489,7 +13489,7 @@
       "type": "catalyzed",
       "confidence_origin": "insight [3]",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Cognitive blind spot regarding unilateral authority",
@@ -13497,7 +13497,7 @@
       "type": "caused",
       "confidence_origin": "insight [3] - belief in clarity granting authority to decide for others",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13505,7 +13505,7 @@
       "type": "internalized-at",
       "confidence_origin": "insights [1], [4]",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13513,7 +13513,7 @@
       "type": "sustained-in",
       "confidence_origin": "insight [2]",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Siege of Toulon",
@@ -13521,7 +13521,7 @@
       "type": "planted-seeds-of",
       "confidence_origin": "insight [3]",
       "validation_tier": "high_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13529,7 +13529,7 @@
       "type": "exiled-at",
       "confidence_origin": "synthesized_insight",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13537,7 +13537,7 @@
       "type": "pursues",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "St Helena",
@@ -13545,7 +13545,7 @@
       "type": "catalyzes",
       "confidence_origin": "synthesized_insight_1",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish personal dominance and power",
@@ -13553,7 +13553,7 @@
       "type": "constrained-by",
       "confidence_origin": "synthesized_insight_4",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13561,7 +13561,7 @@
       "type": "engages-in",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "St Helena",
@@ -13569,7 +13569,7 @@
       "type": "induces",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Loss of dominance in social hierarchy collapse",
@@ -13577,7 +13577,7 @@
       "type": "challenges",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13585,7 +13585,7 @@
       "type": "participated-in",
       "confidence_origin": "insight-4-5-6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Moscow campaign",
@@ -13593,7 +13593,7 @@
       "type": "revealed",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Moscow campaign",
@@ -13601,7 +13601,7 @@
       "type": "exposed",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Gap between military dominance and psychological leverage",
@@ -13609,7 +13609,7 @@
       "type": "contradicts",
       "confidence_origin": "insight-1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Alexander I of Russia",
@@ -13617,7 +13617,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13625,7 +13625,7 @@
       "type": "failed-to-recognize",
       "confidence_origin": "insight-2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13633,7 +13633,7 @@
       "type": "exhibits",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Rigid cognitive framework resistant to updating",
@@ -13641,7 +13641,7 @@
       "type": "related-to",
       "confidence_origin": "insight-3",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Moscow campaign",
@@ -13649,7 +13649,7 @@
       "type": "revealed",
       "confidence_origin": "insight-3-6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13657,7 +13657,7 @@
       "type": "failed-to-comprehend",
       "confidence_origin": "insight-3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Alexander I of Russia",
@@ -13665,7 +13665,7 @@
       "type": "adversary-of",
       "confidence_origin": "insight-2-5",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Royal Military School at Brienne",
@@ -13673,7 +13673,7 @@
       "type": "site-of",
       "confidence_origin": "synthesis_insight_1_2_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Aristocratic humiliation at Brienne",
@@ -13681,7 +13681,7 @@
       "type": "formative-trauma-of",
       "confidence_origin": "synthesis_insight_2_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Corsican identity",
@@ -13689,7 +13689,7 @@
       "type": "intersects-with",
       "confidence_origin": "synthesis_insight_2",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13697,7 +13697,7 @@
       "type": "pursues",
       "confidence_origin": "synthesis_insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Aristocratic humiliation at Brienne",
@@ -13705,7 +13705,7 @@
       "type": "crystallized-conviction-into",
       "confidence_origin": "synthesis_insight_1",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Humiliation transformed into revolutionary zeal",
@@ -13713,7 +13713,7 @@
       "type": "motivated",
       "confidence_origin": "synthesis_insight_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13721,7 +13721,7 @@
       "type": "pursues",
       "confidence_origin": "synthesis_insight_1_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Brienne",
@@ -13729,7 +13729,7 @@
       "type": "crucible-of",
       "confidence_origin": "synthesis_insight_3",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Military commission secured",
@@ -13737,7 +13737,7 @@
       "type": "constrained-by",
       "confidence_origin": "synthesis_insight_5",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "French Revolution",
@@ -13745,7 +13745,7 @@
       "type": "enabled-ascension-of",
       "confidence_origin": "synthesis_insight_6",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13753,7 +13753,7 @@
       "type": "pursues",
       "confidence_origin": "insight_1",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13761,7 +13761,7 @@
       "type": "pursues",
       "confidence_origin": "insight_2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13769,7 +13769,7 @@
       "type": "pursues",
       "confidence_origin": "insight_3",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13777,7 +13777,7 @@
       "type": "strategically-opposed-yet-nominally-aligned-with",
       "confidence_origin": "insights_2_5",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13785,7 +13785,7 @@
       "type": "participates-in",
       "confidence_origin": "insight_2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13793,7 +13793,7 @@
       "type": "leads",
       "confidence_origin": "insight_3",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleonic invasion of Russia",
@@ -13801,7 +13801,7 @@
       "type": "triggers",
       "confidence_origin": "insight_5",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Moscow burning (1812)",
@@ -13809,7 +13809,7 @@
       "type": "psychologically-transforms",
       "confidence_origin": "insight_5",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Geography as strategic weapon",
@@ -13817,7 +13817,7 @@
       "type": "defeats",
       "confidence_origin": "insight_3",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Tsar Alexander I",
@@ -13825,7 +13825,7 @@
       "type": "pursues",
       "confidence_origin": "insight_6",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13833,7 +13833,7 @@
       "type": "pursues",
       "confidence_origin": "synthesized_insights",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Defeat Wellington and the Anglo-allied army",
@@ -13841,7 +13841,7 @@
       "type": "depends-on",
       "confidence_origin": "insight_2_temporal_pressure",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Defeat Wellington and the Anglo-allied army",
@@ -13849,7 +13849,7 @@
       "type": "constrained-by",
       "confidence_origin": "insight_1_synchronization",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Battle of Waterloo",
@@ -13857,7 +13857,7 @@
       "type": "instantiation-of",
       "confidence_origin": "synthesis_climactic_engagement",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13865,7 +13865,7 @@
       "type": "experienced",
       "confidence_origin": "insight_4_mood_state",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13873,7 +13873,7 @@
       "type": "experienced",
       "confidence_origin": "insight_5_mood_state",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Defeat Wellington and the Anglo-allied army",
@@ -13881,7 +13881,7 @@
       "type": "serves",
       "confidence_origin": "strategic_objective_alignment",
       "validation_tier": "high",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish military dominance through superior tactical vision",
@@ -13889,7 +13889,7 @@
       "type": "realized-through",
       "confidence_origin": "military_strategy_goal_alignment",
       "validation_tier": "medium",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -13897,7 +13897,7 @@
       "type": "specialized-in",
       "confidence_origin": "insight_1_methodical_terrain_study",
       "validation_tier": "inferred_behavioral_pattern",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Master military science and strategy through rigorous study",
@@ -13905,7 +13905,7 @@
       "type": "manifested-through",
       "confidence_origin": "insight_1_tactical_precision",
       "validation_tier": "goal_behavior_alignment",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Artillery positioning and deployment",
@@ -13913,7 +13913,7 @@
       "type": "enabled",
       "confidence_origin": "insight_3_artillery_expertise_decisive",
       "validation_tier": "tactical_causation",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Technical mastery as path to authority",
@@ -13921,7 +13921,7 @@
       "type": "mechanism-for",
       "confidence_origin": "insight_2_promotion_competence",
       "validation_tier": "demonstrated_outcome",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon",
@@ -13929,7 +13929,7 @@
       "type": "embodies",
       "confidence_origin": "insight_2_promotion_brigadier_general",
       "validation_tier": "biographical_evidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Siege of Toulon",
@@ -13937,7 +13937,7 @@
       "type": "reinforced",
       "confidence_origin": "insight_3_confidence_emerging_from_success",
       "validation_tier": "psychological_outcome",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Battle of Borodino",
@@ -13945,7 +13945,7 @@
       "type": "exemplifies",
       "confidence_origin": "insight-1",
       "validation_tier": "synthesis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Pyrrhic victory pattern",
@@ -13953,7 +13953,7 @@
       "type": "undermines",
       "confidence_origin": "insight-1",
       "validation_tier": "inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian Campaign 1812",
@@ -13961,7 +13961,7 @@
       "type": "exposed",
       "confidence_origin": "insight-2",
       "validation_tier": "synthesis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Battle of Borodino",
@@ -13969,7 +13969,7 @@
       "type": "inflection-point-of",
       "confidence_origin": "insight-2",
       "validation_tier": "synthesis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Battle of Borodino",
@@ -13977,7 +13977,7 @@
       "type": "fails-to-secure",
       "confidence_origin": "insight-3",
       "validation_tier": "synthesis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Cognitive dissonance between tactical and strategic outcomes",
@@ -13985,7 +13985,7 @@
       "type": "exemplified-by",
       "confidence_origin": "insight-3",
       "validation_tier": "synthesis",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -13993,7 +13993,7 @@
       "type": "participated-in",
       "confidence_origin": "insight-6",
       "validation_tier": "historical",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Russian Campaign 1812",
@@ -14001,7 +14001,7 @@
       "type": "challenged",
       "confidence_origin": "insight-1,2,3",
       "validation_tier": "inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14009,7 +14009,7 @@
       "type": "underestimated",
       "confidence_origin": "insight-1-2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14017,7 +14017,7 @@
       "type": "strategic-blind-spot-toward",
       "confidence_origin": "insight-2",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Egypt campaign (1798-1799)",
@@ -14025,7 +14025,7 @@
       "type": "demonstrates-cognitive-dissonance-in",
       "confidence_origin": "insight-4",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "British fleet",
@@ -14033,7 +14033,7 @@
       "type": "converted-to-jailer",
       "confidence_origin": "insight-3",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Waterloo to surrender (1815)",
@@ -14041,7 +14041,7 @@
       "type": "shattered-military-reserve-of",
       "confidence_origin": "insight-5",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Post-surrender captivity period",
@@ -14049,7 +14049,7 @@
       "type": "transformative-constraint-on",
       "confidence_origin": "insight-6",
       "validation_tier": "synthesized",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Establish personal dominance and power",
@@ -14057,7 +14057,7 @@
       "type": "paradoxically-deepens",
       "confidence_origin": "insight-1-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Existential void",
@@ -14065,7 +14065,7 @@
       "type": "blocks-access-to",
       "confidence_origin": "insight-3-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Military collapse and loss of identity",
@@ -14073,7 +14073,7 @@
       "type": "triggers",
       "confidence_origin": "insight-4-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Active resistance through restoration attempts",
@@ -14081,7 +14081,7 @@
       "type": "component-of",
       "confidence_origin": "insight-2-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Passive surrender and self-annihilation ideation",
@@ -14089,7 +14089,7 @@
       "type": "component-of",
       "confidence_origin": "insight-2-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Bifurcation in coping",
@@ -14097,7 +14097,7 @@
       "type": "intensifies",
       "confidence_origin": "insight-5-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Psychological fragmentation",
@@ -14105,7 +14105,7 @@
       "type": "manifests-as",
       "confidence_origin": "insight-5-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Narrative restoration",
@@ -14113,7 +14113,7 @@
       "type": "attempts-to-address",
       "confidence_origin": "insight-6-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14121,7 +14121,7 @@
       "type": "experiences",
       "confidence_origin": "synthesized-insights",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14129,7 +14129,7 @@
       "type": "trapped-in",
       "confidence_origin": "synthesized-insights",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14137,7 +14137,7 @@
       "type": "experiences",
       "confidence_origin": "synthesized-insights",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14145,7 +14145,7 @@
       "type": "employs-coping-mechanism",
       "confidence_origin": "synthesized-insights",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Acceptance and meaning-construction divorced from dominion",
@@ -14153,7 +14153,7 @@
       "type": "alternative-route-to",
       "confidence_origin": "insight-3-synthesis",
       "validation_tier": "high-inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lucien Bonaparte",
@@ -14161,7 +14161,7 @@
       "type": "led-during",
       "confidence_origin": "synthesis [4]: Active executive role in crisis; commanding respect from military",
       "validation_tier": "high_confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lucien Bonaparte",
@@ -14169,7 +14169,7 @@
       "type": "held-role",
       "confidence_origin": "synthesis [3]: positioning within formal structures (Council president)",
       "validation_tier": "high_confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lucien Bonaparte",
@@ -14177,7 +14177,7 @@
       "type": "pursues",
       "confidence_origin": "synthesis [3]: preference for institutional leverage over personal charisma",
       "validation_tier": "high_confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14185,7 +14185,7 @@
       "type": "divergent-power-strategy-from",
       "confidence_origin": "synthesis [1] & [3]: contrasting relationships to power; opposite trajectory",
       "validation_tier": "high_confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lucien Bonaparte",
@@ -14193,7 +14193,7 @@
       "type": "exhibits",
       "confidence_origin": "synthesis [2]: developed tolerance for being written out of history; did not demand retroactive acknowledgment",
       "validation_tier": "high_confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Council presidency",
@@ -14201,7 +14201,7 @@
       "type": "enabled",
       "confidence_origin": "synthesis [3]: leveraging institutional position for decisive outcome",
       "validation_tier": "high_confidence",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14209,7 +14209,7 @@
       "type": "parent-of",
       "confidence_origin": "synthesized_insight",
       "validation_tier": "canonical",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14217,7 +14217,7 @@
       "type": "held-captive-in",
       "confidence_origin": "synthesized_insight_2_5",
       "validation_tier": "established_historical_fact",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14225,7 +14225,7 @@
       "type": "invoked-by",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "historical_interpretation",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14233,7 +14233,7 @@
       "type": "represented",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "historical_interpretation",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14241,7 +14241,7 @@
       "type": "denied-access-to",
       "confidence_origin": "synthesized_insight_5",
       "validation_tier": "established_historical_fact",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14249,7 +14249,7 @@
       "type": "subject-of",
       "confidence_origin": "synthesized_insight_5",
       "validation_tier": "established_historical_fact",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14257,7 +14257,7 @@
       "type": "held",
       "confidence_origin": "synthesized_insight_2",
       "validation_tier": "established_historical_fact",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14265,7 +14265,7 @@
       "type": "defined-by",
       "confidence_origin": "synthesized_insight_3",
       "validation_tier": "historical_interpretation",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon II",
@@ -14273,7 +14273,7 @@
       "type": "experienced",
       "confidence_origin": "synthesized_insight_5",
       "validation_tier": "psychological_inference",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14281,7 +14281,7 @@
       "type": "coordinated-with",
       "confidence_origin": "synthesis insight 1",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lucien Bonaparte",
@@ -14289,7 +14289,7 @@
       "type": "manipulated",
       "confidence_origin": "synthesis insight 1",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Napoleon Bonaparte",
@@ -14297,7 +14297,7 @@
       "type": "pursues",
       "confidence_origin": "synthesis insight 1",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "Lucien Bonaparte",
@@ -14305,7 +14305,7 @@
       "type": "pursues",
       "confidence_origin": "synthesis insight 1",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "18 Brumaire Year VIII",
@@ -14313,7 +14313,7 @@
       "type": "occurred-at",
       "confidence_origin": "synthesis insight 2",
       "validation_tier": "contextual",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "18 Brumaire Year VIII",
@@ -14321,7 +14321,7 @@
       "type": "manifests",
       "confidence_origin": "synthesis insight 3",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     },
     {
       "source": "18 Brumaire Year VIII",
@@ -14329,7 +14329,7 @@
       "type": "manifests",
       "confidence_origin": "synthesis insight 3",
       "validation_tier": "interpretive",
-      "extraction_pass": "convergence-pass-2"
+      "extraction_phase": "convergence-pass-2"
     }
   ],
   "memories": [
@@ -14348,7 +14348,7 @@
         "Pasquale Paoli"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14368,7 +14368,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14388,7 +14388,7 @@
       "salience_multiplier": 1.7,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14407,7 +14407,7 @@
         "French military academies"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14429,7 +14429,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14450,7 +14450,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14469,7 +14469,7 @@
       "other_agent": "Carlo Buonaparte",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -14488,7 +14488,7 @@
         "Corsica"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence (13-17)",
       "situation_types": "rejection, social_threat, social_exclusion, criticism_received, novelty_encountered, choice_available",
       "salience_multiplier": 1.6,
@@ -14511,7 +14511,7 @@
         "Caesar's commentaries"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence (13-17)",
       "situation_types": "rejection, social_threat, criticism_received, skill_challenge, achievement_opportunity, agency_denied",
       "salience_multiplier": 1.7,
@@ -14531,7 +14531,7 @@
         "Louis Antoine Fauvelet de Bourrienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "NEUTRAL",
       "other_agent": "Louis Antoine Fauvelet de Bourrienne",
       "trust_trajectory": "stable",
@@ -14550,7 +14550,7 @@
         "Napoleon's father"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence (13-17)",
       "situation_types": "relationship_loss, abandonment_threat, agency_granted, choice_restricted, psychological_threat",
       "salience_multiplier": 1.8,
@@ -14571,7 +14571,7 @@
         "Caesar's commentaries"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 2039,
       "source_end": 3799,
@@ -14585,7 +14585,7 @@
       "period": "1779-1785",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 2039,
       "source_end": 3799,
@@ -14602,7 +14602,7 @@
         "Corsicans"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -14616,7 +14616,7 @@
       "period": "1785",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "achievement_opportunity, social_threat, agency_granted",
       "salience_multiplier": 1.2,
@@ -14640,7 +14640,7 @@
         "Raynal"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -14659,7 +14659,7 @@
         "Raynal"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -14676,7 +14676,7 @@
         "Brienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "recognition_received, choice_available, agency_granted, novelty_encountered",
       "salience_multiplier": 1.3,
@@ -14699,7 +14699,7 @@
         "Bourrienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "social_threat, psychological_threat, achievement_opportunity",
       "salience_multiplier": 1.4,
@@ -14720,7 +14720,7 @@
         "The Revolution"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -14737,7 +14737,7 @@
         "The Revolution"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -14755,7 +14755,7 @@
         "Brienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence",
       "situation_types": "social_threat, rejection, criticism_received, achievement_opportunity",
       "salience_multiplier": 1.6,
@@ -14777,7 +14777,7 @@
         "Revolutionary government"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -14795,7 +14795,7 @@
         "Siege of Toulon"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -14813,7 +14813,7 @@
         "British fleet"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -14831,7 +14831,7 @@
         "Revolutionary government"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -14852,7 +14852,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -14873,7 +14873,7 @@
       "salience_multiplier": 1.9,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -14891,7 +14891,7 @@
         "Army of the Interior"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -14909,7 +14909,7 @@
         "The Directory"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -14927,7 +14927,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -14948,7 +14948,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -14965,7 +14965,7 @@
         "Marriage certificate"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -14984,7 +14984,7 @@
         "Possessiveness and control"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -15004,7 +15004,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "intermittent",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -15021,7 +15021,7 @@
         "Directory"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15037,7 +15037,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15058,7 +15058,7 @@
         "Rivoli"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15072,7 +15072,7 @@
       "period": "1796",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15090,7 +15090,7 @@
         "Italian states"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15107,7 +15107,7 @@
         "Paris"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15123,7 +15123,7 @@
         "Jean-Baptiste Bernadotte"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15139,7 +15139,7 @@
         "Jean-Baptiste Bernadotte"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15155,7 +15155,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15177,7 +15177,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -15196,7 +15196,7 @@
         "Eastern Mediterranean"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15215,7 +15215,7 @@
         "Syria"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15233,7 +15233,7 @@
         "Egypt"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15252,7 +15252,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15269,7 +15269,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15290,7 +15290,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15307,7 +15307,7 @@
         "Institut d'\u00c9gypte"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15324,7 +15324,7 @@
         "Egypt"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -15342,7 +15342,7 @@
         "British"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -15363,7 +15363,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -15384,7 +15384,7 @@
       "other_agent": "Lucien Bonaparte",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -15401,7 +15401,7 @@
         "Self-mythologising"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -15418,7 +15418,7 @@
         "Maintain a commanding self-image"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -15437,7 +15437,7 @@
         "lyc\u00e9e system"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15454,7 +15454,7 @@
         "Waterloo"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15471,7 +15471,7 @@
         "French"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15492,7 +15492,7 @@
       "salience_multiplier": 1.3,
       "reinforcement_schedule": "intermittent",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15509,7 +15509,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15525,7 +15525,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15539,7 +15539,7 @@
       "period": "1799-1815",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -15557,7 +15557,7 @@
         "French Empire"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15573,7 +15573,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15592,7 +15592,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15610,7 +15610,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15626,7 +15626,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15644,7 +15644,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15660,7 +15660,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -15678,7 +15678,7 @@
         "the Continental System"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -15699,7 +15699,7 @@
         "J\u00e9r\u00f4me"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -15717,7 +15717,7 @@
         "J\u00e9r\u00f4me"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "trust_betrayed, relationship_loss, criticism_received, agency_denied",
       "salience_multiplier": 1.2,
@@ -15739,7 +15739,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "failure_experienced, choice_restricted, psychological_threat",
       "salience_multiplier": 1.5,
@@ -15760,7 +15760,7 @@
         "the Continental System"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, agency_granted, choice_available",
       "salience_multiplier": 1.3,
@@ -15781,7 +15781,7 @@
         "Talleyrand"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -15800,7 +15800,7 @@
       "other_agent": "Talleyrand",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -15817,7 +15817,7 @@
         "Europe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "achievement_opportunity, choice_available, agency_granted",
       "salience_multiplier": 1.5,
@@ -15838,7 +15838,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15858,7 +15858,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15875,7 +15875,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15892,7 +15892,7 @@
         "Ch\u00e2teau de Malmaison"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15909,7 +15909,7 @@
         "Austria"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15925,7 +15925,7 @@
         "Napoleon II"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15943,7 +15943,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15962,7 +15962,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -15981,7 +15981,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -16000,7 +16000,7 @@
         "Continental System"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16016,7 +16016,7 @@
         "Paris"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16033,7 +16033,7 @@
         "Russian campaign"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16050,7 +16050,7 @@
         "Russian campaign"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16067,7 +16067,7 @@
         "Tsar Alexander I"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16085,7 +16085,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16107,7 +16107,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -16130,7 +16130,7 @@
         "Desertion"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, social_threat, failure_experienced, choice_restricted, agency_granted",
       "salience_multiplier": 2.0,
@@ -16152,7 +16152,7 @@
         "Berezina River"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -16170,7 +16170,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -16189,7 +16189,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -16206,7 +16206,7 @@
         "Grande Arm\u00e9e"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -16223,7 +16223,7 @@
         "The Retreat from Moscow"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, achievement_opportunity, choice_restricted, agency_denied",
       "salience_multiplier": 1.5,
@@ -16244,7 +16244,7 @@
         "Grande Arm\u00e9e"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -16265,7 +16265,7 @@
         "Britain"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -16287,7 +16287,7 @@
         "Talleyrand"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -16304,7 +16304,7 @@
         "Germany"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -16320,7 +16320,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "failure_experienced, choice_restricted, agency_denied, psychological_threat",
       "salience_multiplier": 1.8,
@@ -16340,7 +16340,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -16354,7 +16354,7 @@
       "period": "1813",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, failure_experienced, choice_restricted",
       "salience_multiplier": 1.7,
@@ -16379,7 +16379,7 @@
         "allied armies"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -16401,7 +16401,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -16423,7 +16423,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -16439,7 +16439,7 @@
         "Constant"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -16455,7 +16455,7 @@
         "Elba"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -16471,7 +16471,7 @@
         "Elba"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -16488,7 +16488,7 @@
         "Golfe-Juan"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16509,7 +16509,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16527,7 +16527,7 @@
         "Europe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16544,7 +16544,7 @@
         "Moscow"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16562,7 +16562,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16576,7 +16576,7 @@
       "period": "1815-03-20 to 1815-06",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16596,7 +16596,7 @@
       "other_agent": "Louis XVIII",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -16616,7 +16616,7 @@
         "Bl\u00fccher"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -16633,7 +16633,7 @@
         "Marshal Grouchy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -16651,7 +16651,7 @@
         "Duke of Wellington"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -16674,7 +16674,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -16691,7 +16691,7 @@
         "the Prince Regent"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -16708,7 +16708,7 @@
         "Marshal Grouchy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -16725,7 +16725,7 @@
         "Hudson Lowe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -16744,7 +16744,7 @@
       "other_agent": "Hudson Lowe",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -16763,7 +16763,7 @@
         "Bertrand"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -16779,7 +16779,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -16793,7 +16793,7 @@
       "period": "1815-1821",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -16814,7 +16814,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -16830,7 +16830,7 @@
         "Napoleon's father"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, novelty_encountered",
       "salience_multiplier": 1.8,
@@ -16851,7 +16851,7 @@
         "Vienna"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, abandonment_threat, rejection",
       "salience_multiplier": 1.9,
@@ -16871,7 +16871,7 @@
         "St Helena"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -16887,7 +16887,7 @@
         "St Helena"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -16904,7 +16904,7 @@
         "the French Revolution"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -16920,7 +16920,7 @@
         "Church"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -16937,7 +16937,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -16954,7 +16954,7 @@
         "Louis-Napoleon"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -16970,7 +16970,7 @@
         "Conviction of superiority",
         "Shame-to-triumph narrative"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -16984,7 +16984,7 @@
         "Political connections and luck",
         "Conviction of superiority"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -16998,7 +16998,7 @@
         "Toulon",
         "Establish authoritarian order and control over society"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17012,7 +17012,7 @@
         "isolation",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17026,7 +17026,7 @@
         "Grande Arm\u00e9e catastrophe",
         "Plutarch's Lives"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17040,7 +17040,7 @@
         "Master military science and strategy through rigorous study",
         "Addictive validation cycle"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17053,7 +17053,7 @@
         "Pathological detachment from human consequence",
         "Establish military dominance through superior tactical vision"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17067,7 +17067,7 @@
         "Inability to accept constraint",
         "Narcissistic identity defense through denial"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17083,7 +17083,7 @@
         "Empirical failure signals",
         "Narcissistic identity defense through denial"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17098,7 +17098,7 @@
         "France",
         "existential-terror"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17112,7 +17112,7 @@
         "France",
         "Narcissistic identity defense through denial"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17126,7 +17126,7 @@
         "Narcissistic identity defense through denial",
         "Inability to accept constraint"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17139,7 +17139,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Dynastic succession imperative"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17152,7 +17152,7 @@
         "Trust erosion through infidelity",
         "Jos\u00e9phine de Beauharnais"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17166,7 +17166,7 @@
         "Malmaison",
         "Emotional attachment despite political necessity"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17179,7 +17179,7 @@
         "Establish personal dominance and power",
         "Jos\u00e9phine de Beauharnais"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17193,7 +17193,7 @@
         "Dynastic succession imperative",
         "Emotional attachment despite political necessity"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17208,7 +17208,7 @@
         "Invasion of Russia (1812)",
         "Russia's strategic depth and vastness"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17222,7 +17222,7 @@
         "Invasion of Russia (1812)",
         "Grande Arm\u00e9e"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17236,7 +17236,7 @@
         "Russia",
         "Prague Negotiations (1813)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17250,7 +17250,7 @@
         "Grande Arm\u00e9e",
         "Russia's strategic depth and vastness"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17264,7 +17264,7 @@
         "epistemic framework collapse",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17278,7 +17278,7 @@
         "Power dynamic reversal compulsion",
         "Italian campaigns"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17292,7 +17292,7 @@
         "Directory",
         "Royalist uprising"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17306,7 +17306,7 @@
         "Directory",
         "Autonomy-seeking addiction"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17320,7 +17320,7 @@
         "Paris",
         "Denial and avoidance under distance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17332,7 +17332,7 @@
       "related_entities": [
         "Paris"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17346,7 +17346,7 @@
         "Paris",
         "Louis XVIII"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17360,7 +17360,7 @@
         "Power dynamic reversal compulsion",
         "Autonomy-seeking addiction"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17374,7 +17374,7 @@
         "1812 Russian campaign failure",
         "Logistics-as-calculable-system worldview"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17387,7 +17387,7 @@
         "Cognitive compartmentalization",
         "1812 Russian campaign failure"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17400,7 +17400,7 @@
         "1812 Russian campaign failure",
         "Cognitive compartmentalization"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17418,7 +17418,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17435,7 +17435,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17454,7 +17454,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17472,7 +17472,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17490,7 +17490,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17505,7 +17505,7 @@
         "Continental dominance",
         "Marie Louise of Austria"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17519,7 +17519,7 @@
         "Austria",
         "Conversion of defeated enemies into stable allies"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17534,7 +17534,7 @@
         "Coalition peace offers (1813)",
         "Limits on ambition"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17548,7 +17548,7 @@
         "Marie Louise of Austria",
         "Legitimacy anxiety"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17562,7 +17562,7 @@
         "Austria",
         "Coalition peace offers (1813)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17576,7 +17576,7 @@
         "Earned authority through decisive action",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17590,7 +17590,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Channeling romantic intensity into military obsession"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17604,7 +17604,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Emotional entanglement following conquest"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17617,7 +17617,7 @@
         "Italian Campaign (1796-1797)",
         "Italy"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17631,7 +17631,7 @@
         "Earned authority through decisive action",
         "Conviction of superiority"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17645,7 +17645,7 @@
         "Paris",
         "Blurring of public esteem and private connection"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17659,7 +17659,7 @@
         "Italy",
         "Avoidance of emotional introspection"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17672,7 +17672,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Reality rewriting as control mechanism"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17685,7 +17685,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Reality rewriting as control mechanism"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17699,7 +17699,7 @@
         "Avoidance of emotional introspection",
         "Achieve greatness and historical significance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17714,7 +17714,7 @@
         "Borodino",
         "Scorched earth strategy"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17728,7 +17728,7 @@
         "Borodino",
         "Fontainebleau"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17742,7 +17742,7 @@
         "Grande Arm\u00e9e",
         "Borodino"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17757,7 +17757,7 @@
         "Corsican identity",
         "France"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17771,7 +17771,7 @@
         "provincial constraint",
         "Corsican identity"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17785,7 +17785,7 @@
         "territorial allegiance as conditional on power",
         "political-philosophy"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17800,7 +17800,7 @@
         "France",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17815,7 +17815,7 @@
         "Corsican identity",
         "Surpass tormentors through excellence"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17829,7 +17829,7 @@
         "psychological reorientation",
         "Achieve greatness and historical significance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17843,7 +17843,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Maintain emotional distance and self-reliance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17858,7 +17858,7 @@
         "Mamluk resistance",
         "narrative reconstruction as coping mechanism"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17872,7 +17872,7 @@
         "gap between mythology and material reality",
         "Establish military dominance through superior tactical vision"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17886,7 +17886,7 @@
         "Jos\u00e9phine de Beauharnais",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17900,7 +17900,7 @@
         "Jos\u00e9phine de Beauharnais",
         "narrative reconstruction as coping mechanism"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17914,7 +17914,7 @@
         "The Moscow Campaign",
         "Rearguard organisation under catastrophic conditions"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17927,7 +17927,7 @@
         "The Retreat from Moscow",
         "Psychological compartmentalisation under extreme stress"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17941,7 +17941,7 @@
         "Psychological compartmentalisation under extreme stress",
         "isolation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17955,7 +17955,7 @@
         "The threshold between invincibility and fallibility",
         "Conviction of superiority"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17973,7 +17973,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -17990,7 +17990,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18007,7 +18007,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18024,7 +18024,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18042,7 +18042,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18060,7 +18060,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18077,7 +18077,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18095,7 +18095,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18113,7 +18113,7 @@
         "origin": "INFERRED",
         "value": 0.8
       },
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18127,7 +18127,7 @@
         "Psychological compensation through activity",
         "Narrative reconstruction"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18141,7 +18141,7 @@
         "Psychological compensation through activity",
         "isolation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18155,7 +18155,7 @@
         "Loss of dominance in social hierarchy collapse",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18169,7 +18169,7 @@
         "Narrative reconstruction",
         "Find expression through writing (novellas and political essays)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18183,7 +18183,7 @@
         "Alexander I of Russia",
         "Confusion of territorial occupation with political surrender"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18197,7 +18197,7 @@
         "Conviction-based resistance",
         "Moscow campaign"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18211,7 +18211,7 @@
         "Gap between occupation and legitimacy",
         "Resolve internal contradiction between revolutionary ideals and authoritarian instincts"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18224,7 +18224,7 @@
         "Moscow campaign",
         "Alexander I of Russia"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18238,7 +18238,7 @@
         "Aristocratic humiliation at Brienne",
         "Corsican identity"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18252,7 +18252,7 @@
         "Destruction of aristocratic privilege",
         "Brienne"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18266,7 +18266,7 @@
         "Aristocratic humiliation at Brienne",
         "Royal Military School at Brienne"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18280,7 +18280,7 @@
         "Corsican identity",
         "Humiliation transformed into revolutionary zeal"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18294,7 +18294,7 @@
         "Napoleonic invasion of Russia",
         "Moscow burning (1812)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18308,7 +18308,7 @@
         "Napoleon Bonaparte",
         "Russia"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18322,7 +18322,7 @@
         "Geography as strategic weapon",
         "Napoleonic invasion of Russia"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18335,7 +18335,7 @@
         "Moscow burning (1812)",
         "Napoleonic invasion of Russia"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18350,7 +18350,7 @@
         "Napoleonic invasion of Russia",
         "Geography as strategic weapon"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18363,7 +18363,7 @@
         "Defeat Wellington and the Anglo-allied army",
         "Coordination complexity constraint"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18376,7 +18376,7 @@
         "Defeat Wellington and the Anglo-allied army",
         "Prussian prevention requirement"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18389,7 +18389,7 @@
         "Battle of Waterloo",
         "Defeat Wellington and the Anglo-allied army"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18402,7 +18402,7 @@
         "June 1815 pre-Waterloo phase",
         "Defeat Wellington and the Anglo-allied army"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18415,7 +18415,7 @@
         "June 18, 1815 Waterloo engagement phase",
         "Battle of Waterloo"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18430,7 +18430,7 @@
         "Terrain analysis and reconnaissance",
         "Master military science and strategy through rigorous study"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18445,7 +18445,7 @@
         "Technical mastery as path to authority",
         "Revolutionary government"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18460,7 +18460,7 @@
         "Conviction of superiority",
         "Prove personal superiority and gain validation through success"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18475,7 +18475,7 @@
         "Pyrrhic victory pattern",
         "Napoleon Bonaparte"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18489,7 +18489,7 @@
         "Cognitive dissonance between tactical and strategic outcomes",
         "Russian Campaign 1812"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18504,7 +18504,7 @@
         "Napoleon Bonaparte",
         "Achieve greatness and historical significance"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18518,7 +18518,7 @@
         "Battle of Borodino",
         "Establish authoritarian order and control over society"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18533,7 +18533,7 @@
         "Egypt campaign (1798-1799)",
         "Waterloo to surrender (1815)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18547,7 +18547,7 @@
         "Egypt campaign (1798-1799)",
         "Waterloo to surrender (1815)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18561,7 +18561,7 @@
         "British fleet",
         "Post-surrender captivity period"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18574,7 +18574,7 @@
         "Egypt campaign (1798-1799)",
         "Establish personal dominance and power"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18586,7 +18586,7 @@
       "related_entities": [
         "Waterloo to surrender (1815)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18600,7 +18600,7 @@
         "Achieve greatness and historical significance",
         "Find expression through writing (novellas and political essays)"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18614,7 +18614,7 @@
         "Existential void",
         "Existential despair confrontation without resolution"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18628,7 +18628,7 @@
         "Active resistance through restoration attempts",
         "Passive surrender and self-annihilation ideation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18642,7 +18642,7 @@
         "Acceptance and meaning-construction divorced from dominion",
         "Existential void"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18656,7 +18656,7 @@
         "Bifurcation in coping",
         "Conviction of superiority"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18670,7 +18670,7 @@
         "Restoration fantasies",
         "Existential void"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18684,7 +18684,7 @@
         "Existential despair confrontation without resolution",
         "St. Helena imprisonment"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18698,7 +18698,7 @@
         "Council presidency",
         "Napoleon Bonaparte"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18711,7 +18711,7 @@
         "institutional leverage vs. personal charisma",
         "Napoleon Bonaparte"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18724,7 +18724,7 @@
         "Napoleon Bonaparte",
         "18 Brumaire coup"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18738,7 +18738,7 @@
         "Vienna",
         "France"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18752,7 +18752,7 @@
         "legitimacy",
         "displacement"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18766,7 +18766,7 @@
         "dynastic_threat_concept",
         "European_politics"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18781,7 +18781,7 @@
         "Austrian_ward_status",
         "isolation"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18797,7 +18797,7 @@
         "Control of coercive apparatus",
         "Control of symbolic apparatus"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18810,7 +18810,7 @@
         "Council of Five Hundred",
         "18 Brumaire Year VIII"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18824,7 +18824,7 @@
         "18 Brumaire Year VIII",
         "Resolve internal contradiction between revolutionary ideals and authoritarian instincts"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     },
@@ -18838,7 +18838,7 @@
         "18 Brumaire Year VIII",
         "Conviction of superiority"
       ],
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "extraction_method": "llm-convergence-extract",
       "convergence_pass": 2
     }

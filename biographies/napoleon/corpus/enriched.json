@@ -10006,7 +10006,7 @@
         "Pasquale Paoli"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -10318,7 +10318,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -10728,7 +10728,7 @@
       "salience_multiplier": 1.7,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -11096,7 +11096,7 @@
         "French military academies"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -11456,7 +11456,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -11840,7 +11840,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -12221,7 +12221,7 @@
       "other_agent": "Carlo Buonaparte",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-002",
       "source_start": 198,
       "source_end": 1991,
@@ -12581,7 +12581,7 @@
         "Corsica"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence (13-17)",
       "situation_types": "rejection, social_threat, social_exclusion, criticism_received, novelty_encountered, choice_available",
       "salience_multiplier": 1.6,
@@ -12999,7 +12999,7 @@
         "Caesar's commentaries"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence (13-17)",
       "situation_types": "rejection, social_threat, criticism_received, skill_challenge, achievement_opportunity, agency_denied",
       "salience_multiplier": 1.7,
@@ -13416,7 +13416,7 @@
         "Louis Antoine Fauvelet de Bourrienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "quality_signal": "NEUTRAL",
       "other_agent": "Louis Antoine Fauvelet de Bourrienne",
       "trust_trajectory": "stable",
@@ -13807,7 +13807,7 @@
         "Napoleon's father"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence (13-17)",
       "situation_types": "relationship_loss, abandonment_threat, agency_granted, choice_restricted, psychological_threat",
       "salience_multiplier": 1.8,
@@ -14160,7 +14160,7 @@
         "Caesar's commentaries"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 2039,
       "source_end": 3799,
@@ -14545,7 +14545,7 @@
       "period": "1779-1785",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-003",
       "source_start": 2039,
       "source_end": 3799,
@@ -14886,7 +14886,7 @@
         "Corsicans"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -15241,7 +15241,7 @@
       "period": "1785",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "achievement_opportunity, social_threat, agency_granted",
       "salience_multiplier": 1.2,
@@ -15620,7 +15620,7 @@
         "Raynal"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -15970,7 +15970,7 @@
         "Raynal"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -16312,7 +16312,7 @@
         "Brienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "recognition_received, choice_available, agency_granted, novelty_encountered",
       "salience_multiplier": 1.3,
@@ -16671,7 +16671,7 @@
         "Bourrienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "early_adulthood",
       "situation_types": "social_threat, psychological_threat, achievement_opportunity",
       "salience_multiplier": 1.4,
@@ -17047,7 +17047,7 @@
         "The Revolution"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -17421,7 +17421,7 @@
         "The Revolution"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-004",
       "source_start": 3850,
       "source_end": 5703,
@@ -17846,7 +17846,7 @@
         "Brienne"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adolescence",
       "situation_types": "social_threat, rejection, criticism_received, achievement_opportunity",
       "salience_multiplier": 1.6,
@@ -18215,7 +18215,7 @@
         "Revolutionary government"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -18559,7 +18559,7 @@
         "Siege of Toulon"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -18912,7 +18912,7 @@
         "British fleet"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -19293,7 +19293,7 @@
         "Revolutionary government"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -19662,7 +19662,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -20051,7 +20051,7 @@
       "salience_multiplier": 1.9,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-005",
       "source_start": 5743,
       "source_end": 7435,
@@ -20447,7 +20447,7 @@
         "Army of the Interior"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -20818,7 +20818,7 @@
         "The Directory"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -21193,7 +21193,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -21628,7 +21628,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -22047,7 +22047,7 @@
         "Marriage certificate"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -22427,7 +22427,7 @@
         "Possessiveness and control"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -22857,7 +22857,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "intermittent",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-006",
       "source_start": 7475,
       "source_end": 9192,
@@ -23264,7 +23264,7 @@
         "Directory"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -23650,7 +23650,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -24022,7 +24022,7 @@
         "Rivoli"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -24377,7 +24377,7 @@
       "period": "1796",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -24778,7 +24778,7 @@
         "Italian states"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -24795,7 +24795,7 @@
         "Paris"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -25160,7 +25160,7 @@
         "Jean-Baptiste Bernadotte"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -25541,7 +25541,7 @@
         "Jean-Baptiste Bernadotte"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -25947,7 +25947,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -26362,7 +26362,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-007",
       "source_start": 9251,
       "source_end": 11649,
@@ -26777,7 +26777,7 @@
         "Eastern Mediterranean"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -27125,7 +27125,7 @@
         "Syria"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -27504,7 +27504,7 @@
         "Egypt"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -27886,7 +27886,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -28278,7 +28278,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -28655,7 +28655,7 @@
       "salience_multiplier": 1.5,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -29051,7 +29051,7 @@
         "Institut d'\u00c9gypte"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -29381,7 +29381,7 @@
         "Egypt"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-008",
       "source_start": 11686,
       "source_end": 13564,
@@ -29754,7 +29754,7 @@
         "British"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -30130,7 +30130,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -30570,7 +30570,7 @@
       "other_agent": "Lucien Bonaparte",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -30915,7 +30915,7 @@
         "Self-mythologising"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -31313,7 +31313,7 @@
         "Maintain a commanding self-image"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-009",
       "source_start": 13601,
       "source_end": 15242,
@@ -31677,7 +31677,7 @@
         "lyc\u00e9e system"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -32056,7 +32056,7 @@
         "Waterloo"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -32398,7 +32398,7 @@
         "French"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -32768,7 +32768,7 @@
       "salience_multiplier": 1.3,
       "reinforcement_schedule": "intermittent",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -33171,7 +33171,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -33517,7 +33517,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -33880,7 +33880,7 @@
       "period": "1799-1815",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-010",
       "source_start": 15292,
       "source_end": 17247,
@@ -34258,7 +34258,7 @@
         "French Empire"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -34274,7 +34274,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -34662,7 +34662,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "increasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -35071,7 +35071,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -35426,7 +35426,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -35812,7 +35812,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -36179,7 +36179,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-011",
       "source_start": 17306,
       "source_end": 19230,
@@ -36556,7 +36556,7 @@
         "the Continental System"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -36943,7 +36943,7 @@
         "J\u00e9r\u00f4me"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -37310,7 +37310,7 @@
         "J\u00e9r\u00f4me"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "trust_betrayed, relationship_loss, criticism_received, agency_denied",
       "salience_multiplier": 1.2,
@@ -37695,7 +37695,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "failure_experienced, choice_restricted, psychological_threat",
       "salience_multiplier": 1.5,
@@ -38072,7 +38072,7 @@
         "the Continental System"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, agency_granted, choice_available",
       "salience_multiplier": 1.3,
@@ -38471,7 +38471,7 @@
         "Talleyrand"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -38850,7 +38850,7 @@
       "other_agent": "Talleyrand",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-012",
       "source_start": 19268,
       "source_end": 21293,
@@ -39233,7 +39233,7 @@
         "Europe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "achievement_opportunity, choice_available, agency_granted",
       "salience_multiplier": 1.5,
@@ -39611,7 +39611,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -40078,7 +40078,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -40448,7 +40448,7 @@
         "Italy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -40831,7 +40831,7 @@
         "Ch\u00e2teau de Malmaison"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -41199,7 +41199,7 @@
         "Austria"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -41575,7 +41575,7 @@
         "Napoleon II"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -41922,7 +41922,7 @@
         "Jos\u00e9phine"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -42330,7 +42330,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -42732,7 +42732,7 @@
       "other_agent": "Jos\u00e9phine",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-013",
       "source_start": 21335,
       "source_end": 23330,
@@ -43101,7 +43101,7 @@
         "Continental System"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -43448,7 +43448,7 @@
         "Paris"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -43901,7 +43901,7 @@
         "Russian campaign"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -44281,7 +44281,7 @@
         "Russian campaign"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -44696,7 +44696,7 @@
         "Tsar Alexander I"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -45083,7 +45083,7 @@
         "Battle of Austerlitz"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -45497,7 +45497,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-014",
       "source_start": 23374,
       "source_end": 24676,
@@ -45936,7 +45936,7 @@
         "Desertion"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, social_threat, failure_experienced, choice_restricted, agency_granted",
       "salience_multiplier": 2.0,
@@ -46374,7 +46374,7 @@
         "Berezina River"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -46737,7 +46737,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -47162,7 +47162,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -47569,7 +47569,7 @@
         "Grande Arm\u00e9e"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -48000,7 +48000,7 @@
         "The Retreat from Moscow"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, achievement_opportunity, choice_restricted, agency_denied",
       "salience_multiplier": 1.5,
@@ -48350,7 +48350,7 @@
         "Grande Arm\u00e9e"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-015",
       "source_start": 24728,
       "source_end": 26772,
@@ -48789,7 +48789,7 @@
         "Britain"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -49126,7 +49126,7 @@
         "Talleyrand"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -49521,7 +49521,7 @@
         "Germany"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -49902,7 +49902,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "failure_experienced, choice_restricted, agency_denied, psychological_threat",
       "salience_multiplier": 1.8,
@@ -50348,7 +50348,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-016",
       "source_start": 26808,
       "source_end": 28753,
@@ -50740,7 +50740,7 @@
       "period": "1813",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "psychological_threat, failure_experienced, choice_restricted",
       "salience_multiplier": 1.7,
@@ -51160,7 +51160,7 @@
         "allied armies"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -51604,7 +51604,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -51995,7 +51995,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -52389,7 +52389,7 @@
         "Constant"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -52792,7 +52792,7 @@
         "Elba"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -53172,7 +53172,7 @@
         "Elba"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-017",
       "source_start": 28795,
       "source_end": 30517,
@@ -53559,7 +53559,7 @@
         "Golfe-Juan"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -53925,7 +53925,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -54288,7 +54288,7 @@
         "Europe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -54662,7 +54662,7 @@
         "Moscow"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -55024,7 +55024,7 @@
       "salience_multiplier": 1.6,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -55405,7 +55405,7 @@
       "period": "1815-03-20 to 1815-06",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -55855,7 +55855,7 @@
       "other_agent": "Louis XVIII",
       "trust_trajectory": "stable",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-018",
       "source_start": 30570,
       "source_end": 32154,
@@ -56204,7 +56204,7 @@
         "Bl\u00fccher"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -56604,7 +56604,7 @@
         "Marshal Grouchy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -57031,7 +57031,7 @@
         "Duke of Wellington"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -57451,7 +57451,7 @@
       "salience_multiplier": 2.0,
       "reinforcement_schedule": "single",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -57839,7 +57839,7 @@
         "the Prince Regent"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -58254,7 +58254,7 @@
         "Marshal Grouchy"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-019",
       "source_start": 32185,
       "source_end": 33767,
@@ -58675,7 +58675,7 @@
         "Hudson Lowe"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -59047,7 +59047,7 @@
       "other_agent": "Hudson Lowe",
       "trust_trajectory": "decreasing",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -59423,7 +59423,7 @@
         "Bertrand"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -59826,7 +59826,7 @@
         "Russia"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -60214,7 +60214,7 @@
       "period": "1815-1821",
       "related_entities": [],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -60623,7 +60623,7 @@
       "salience_multiplier": 1.8,
       "reinforcement_schedule": "continuous",
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-020",
       "source_start": 33815,
       "source_end": 35558,
@@ -61065,7 +61065,7 @@
         "Napoleon's father"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "physical_threat, psychological_threat, novelty_encountered",
       "salience_multiplier": 1.8,
@@ -61426,7 +61426,7 @@
         "Vienna"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "developmental_period": "adulthood (30+)",
       "situation_types": "relationship_loss, abandonment_threat, rejection",
       "salience_multiplier": 1.9,
@@ -61793,7 +61793,7 @@
         "St Helena"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -62162,7 +62162,7 @@
         "St Helena"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -62540,7 +62540,7 @@
         "the French Revolution"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -62875,7 +62875,7 @@
         "Church"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -63203,7 +63203,7 @@
         "France"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -63586,7 +63586,7 @@
         "Louis-Napoleon"
       ],
       "extraction_method": "llm-extract",
-      "extraction_pass": "phase-1-structural",
+      "extraction_phase": "phase-1-structural",
       "source_passage": "p-021",
       "source_start": 35607,
       "source_end": 37966,
@@ -68163,7 +68163,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -68530,7 +68530,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -68946,7 +68946,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -69323,7 +69323,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -69724,7 +69724,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -70111,7 +70111,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -70486,7 +70486,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -70856,7 +70856,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -71227,7 +71227,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -71581,7 +71581,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -72033,7 +72033,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -72413,7 +72413,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -72834,7 +72834,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -73188,7 +73188,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -73570,7 +73570,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -73932,7 +73932,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -74295,7 +74295,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -74650,7 +74650,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -75041,7 +75041,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -75377,7 +75377,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -75769,7 +75769,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -76159,7 +76159,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -76499,7 +76499,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -76842,7 +76842,7 @@
       "subject": "Grande Arm\u00e9e",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -77175,7 +77175,7 @@
       "subject": "Grande Arm\u00e9e",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -77533,7 +77533,7 @@
       "subject": "Grande Arm\u00e9e",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -77882,7 +77882,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -78219,7 +78219,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -78574,7 +78574,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -78949,7 +78949,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -79326,7 +79326,7 @@
       "subject": "Austria",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -79623,7 +79623,7 @@
       "subject": "Austria",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -79940,7 +79940,7 @@
       "subject": "Austria",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -80304,7 +80304,7 @@
       "subject": "Italy",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -80646,7 +80646,7 @@
       "subject": "Italy",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -81023,7 +81023,7 @@
       "subject": "Italy",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -81368,7 +81368,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -81713,7 +81713,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -82087,7 +82087,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -82424,7 +82424,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -82798,7 +82798,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -83112,7 +83112,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -83482,7 +83482,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -83829,7 +83829,7 @@
       "subject": "Corsica",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -84180,7 +84180,7 @@
       "subject": "Corsica",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -84523,7 +84523,7 @@
       "subject": "Corsica",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -84883,7 +84883,7 @@
       "subject": "Egypt",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -85255,7 +85255,7 @@
       "subject": "Egypt",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -85657,7 +85657,7 @@
       "subject": "Egypt",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -86009,7 +86009,7 @@
       "subject": "The Retreat from Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -86350,7 +86350,7 @@
       "subject": "The Retreat from Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -86692,7 +86692,7 @@
       "subject": "The Retreat from Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -87059,7 +87059,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -87442,7 +87442,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -87833,7 +87833,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -88214,7 +88214,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -88571,7 +88571,7 @@
       "subject": "Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -88947,7 +88947,7 @@
       "subject": "Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -89279,7 +89279,7 @@
       "subject": "Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -89633,7 +89633,7 @@
       "subject": "St Helena",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -89992,7 +89992,7 @@
       "subject": "St Helena",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -90369,7 +90369,7 @@
       "subject": "St Helena",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -90719,7 +90719,7 @@
       "subject": "Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -91023,7 +91023,7 @@
       "subject": "Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -91352,7 +91352,7 @@
       "subject": "Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -91682,7 +91682,7 @@
       "subject": "Brienne",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -92057,7 +92057,7 @@
       "subject": "Brienne",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -92429,7 +92429,7 @@
       "subject": "Brienne",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -92826,7 +92826,7 @@
       "subject": "Tsar Alexander I",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -93161,7 +93161,7 @@
       "subject": "Tsar Alexander I",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -93501,7 +93501,7 @@
       "subject": "Tsar Alexander I",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -93823,7 +93823,7 @@
       "subject": "Defeat Wellington and the Anglo-allied army",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -94092,7 +94092,7 @@
       "subject": "Defeat Wellington and the Anglo-allied army",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -94417,7 +94417,7 @@
       "subject": "Defeat Wellington and the Anglo-allied army",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -94676,7 +94676,7 @@
       "subject": "Siege of Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -94987,7 +94987,7 @@
       "subject": "Siege of Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -95343,7 +95343,7 @@
       "subject": "Siege of Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -95683,7 +95683,7 @@
       "subject": "Battle of Borodino",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -96011,7 +96011,7 @@
       "subject": "Battle of Borodino",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -96291,7 +96291,7 @@
       "subject": "Battle of Borodino",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -96618,7 +96618,7 @@
       "subject": "British",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -96966,7 +96966,7 @@
       "subject": "British",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -97301,7 +97301,7 @@
       "subject": "British",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -97720,7 +97720,7 @@
       "subject": "Escape the annihilation of lost power and identity",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -98081,7 +98081,7 @@
       "subject": "Escape the annihilation of lost power and identity",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -98489,7 +98489,7 @@
       "subject": "Escape the annihilation of lost power and identity",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -98864,7 +98864,7 @@
       "subject": "Lucien Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -99207,7 +99207,7 @@
       "subject": "Lucien Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 56,
         "pad": {
@@ -99515,7 +99515,7 @@
       "subject": "Lucien Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -99834,7 +99834,7 @@
       "subject": "Napoleon II",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -100165,7 +100165,7 @@
       "subject": "Napoleon II",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -100510,7 +100510,7 @@
       "subject": "Napoleon II",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -100804,7 +100804,7 @@
       "subject": "Coup of 18 Brumaire",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -101141,7 +101141,7 @@
       "subject": "Coup of 18 Brumaire",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -101433,7 +101433,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -101897,7 +101897,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -102266,7 +102266,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -102611,7 +102611,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -103037,7 +103037,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -103392,7 +103392,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -103774,7 +103774,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -104159,7 +104159,7 @@
       "subject": "Napoleon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -104560,7 +104560,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -104976,7 +104976,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -105341,7 +105341,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -105732,7 +105732,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -106130,7 +106130,7 @@
       "subject": "Napoleon Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -106607,7 +106607,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -107026,7 +107026,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -107409,7 +107409,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -107810,7 +107810,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -108228,7 +108228,7 @@
       "subject": "France",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -108587,7 +108587,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -108971,7 +108971,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -109401,7 +109401,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -109815,7 +109815,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -110187,7 +110187,7 @@
       "subject": "Jos\u00e9phine",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -110538,7 +110538,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -110893,7 +110893,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -111319,7 +111319,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -111709,7 +111709,7 @@
       "subject": "Russia",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -112112,7 +112112,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -112474,7 +112474,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -112861,7 +112861,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -113251,7 +113251,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -113645,7 +113645,7 @@
       "subject": "Paris",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -114015,7 +114015,7 @@
       "subject": "Grande Arm\u00e9e",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -114364,7 +114364,7 @@
       "subject": "Grande Arm\u00e9e",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -114740,7 +114740,7 @@
       "subject": "Grande Arm\u00e9e",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "temporal_period": "1812-12",
@@ -115123,7 +115123,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -115508,7 +115508,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -115909,7 +115909,7 @@
       "subject": "Battle of Austerlitz",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -116288,7 +116288,7 @@
       "subject": "Austria",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -116663,7 +116663,7 @@
       "subject": "Austria",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -117037,7 +117037,7 @@
       "subject": "Austria",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -117420,7 +117420,7 @@
       "subject": "Italy",
       "enrichment_version": "v1.0-phase2b",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true
     },
     {
@@ -117434,7 +117434,7 @@
       "subject": "Italy",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -117767,7 +117767,7 @@
       "subject": "Italy",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -118141,7 +118141,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -118603,7 +118603,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -118990,7 +118990,7 @@
       "subject": "Jos\u00e9phine de Beauharnais",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -119370,7 +119370,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -119753,7 +119753,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -120140,7 +120140,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0-phase2b",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true
     },
     {
@@ -120154,7 +120154,7 @@
       "subject": "Russian campaign",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -120562,7 +120562,7 @@
       "subject": "Corsica",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -120905,7 +120905,7 @@
       "subject": "Corsica",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -121311,7 +121311,7 @@
       "subject": "Corsica",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -121689,7 +121689,7 @@
       "subject": "Egypt",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -122127,7 +122127,7 @@
       "subject": "Egypt",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -122514,7 +122514,7 @@
       "subject": "The Retreat from Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -122934,7 +122934,7 @@
       "subject": "The Retreat from Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -123402,7 +123402,7 @@
       "subject": "The Retreat from Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -123792,7 +123792,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -124206,7 +124206,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -124570,7 +124570,7 @@
       "subject": "Reject negotiated peace and continue military struggle",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -124952,7 +124952,7 @@
       "subject": "Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -125315,7 +125315,7 @@
       "subject": "St Helena",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -125782,7 +125782,7 @@
       "subject": "Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -126120,7 +126120,7 @@
       "subject": "Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -126521,7 +126521,7 @@
       "subject": "Moscow",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -126902,7 +126902,7 @@
       "subject": "Brienne",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -127340,7 +127340,7 @@
       "subject": "Brienne",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -127704,7 +127704,7 @@
       "subject": "Brienne",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -128028,7 +128028,7 @@
       "subject": "Tsar Alexander I",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -128436,7 +128436,7 @@
       "subject": "Tsar Alexander I",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -128838,7 +128838,7 @@
       "subject": "Tsar Alexander I",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -129210,7 +129210,7 @@
       "subject": "Defeat Wellington and the Anglo-allied army",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -129555,7 +129555,7 @@
       "subject": "Defeat Wellington and the Anglo-allied army",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -129959,7 +129959,7 @@
       "subject": "Siege of Toulon",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -130320,7 +130320,7 @@
       "subject": "Battle of Borodino",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -130690,7 +130690,7 @@
       "subject": "Battle of Borodino",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -131070,7 +131070,7 @@
       "subject": "Battle of Borodino",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -131514,7 +131514,7 @@
       "subject": "British",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -131906,7 +131906,7 @@
       "subject": "British",
       "enrichment_version": "v1.0-phase2b",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true
     },
     {
@@ -131920,7 +131920,7 @@
       "subject": "British",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -132282,7 +132282,7 @@
       "subject": "Escape the annihilation of lost power and identity",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -132697,7 +132697,7 @@
       "subject": "Escape the annihilation of lost power and identity",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -133106,7 +133106,7 @@
       "subject": "Escape the annihilation of lost power and identity",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "structurally_extracted": true,
       "cognitive": {
         "memory_index": 0,
@@ -133512,7 +133512,7 @@
       "subject": "Lucien Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -133877,7 +133877,7 @@
       "subject": "Lucien Bonaparte",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -134228,7 +134228,7 @@
       "subject": "Napoleon II",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -134622,7 +134622,7 @@
       "subject": "Napoleon II",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -135024,7 +135024,7 @@
       "subject": "Coup of 18 Brumaire",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {
@@ -135429,7 +135429,7 @@
       "subject": "Coup of 18 Brumaire",
       "enrichment_version": "v1.0",
       "convergence_pass": 1,
-      "extraction_pass": "convergence-pass-2",
+      "extraction_phase": "convergence-pass-2",
       "cognitive": {
         "memory_index": 0,
         "pad": {

@@ -1243,7 +1243,7 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
             'source_end': mem.get('source_end'),
             'enrichment_version': mem.get('enrichment_version', 'v1.0'),
         }
-        for key in ('extraction_method', 'extraction_pass', 'enrichment_timestamp',
+        for key in ('extraction_method', 'extraction_phase', 'enrichment_timestamp',
                      'developmental_period', 'situation_types', 'salience_multiplier',
                      'reinforcement_schedule', 'contradicts',
                      'pad_justification', 'drive_justification', 'confidence_justification',
@@ -1281,7 +1281,7 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
             'subject': ref.get('subject', ''),
             'enrichment_version': ref.get('enrichment_version', 'v1.0-phase2b'),
             'extraction_method': 'llm-synthesis',
-            'extraction_pass': 'phase-2b-entity',
+            'extraction_phase': 'phase-2b-entity',
             'reflection_level': ref.get('level', 1),
             'source_memory_indices': ref.get('source_memory_indices', []),
         }
@@ -1309,7 +1309,7 @@ def assemble(enriched: dict, llm_client=None, alias_file: str = None) -> dict:
             'pad': {'pleasure': mood.get('pleasure', 0), 'arousal': mood.get('arousal', 0), 'dominance': mood.get('dominance', 0)},
             'enrichment_version': mood.get('enrichment_version', 'v1.0-phase2b'),
             'extraction_method': 'llm-synthesis',
-            'extraction_pass': 'phase-2b-entity',
+            'extraction_phase': 'phase-2b-entity',
         })
 
     # Align memory subjects to canonical node names (first-name → full-name)

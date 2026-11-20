@@ -211,7 +211,7 @@ categories:
         stages: [extraction, corpus, importer]
         status: gap
       - id: M9
-        name: extraction_pass
+        name: extraction_phase
         ref: "§1.2"
         stages: [extraction, corpus, importer]
         status: gap
