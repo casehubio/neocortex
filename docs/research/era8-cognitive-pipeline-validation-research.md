@@ -143,17 +143,9 @@ Planned short-run scenarios:
 | #1180 | TheoryOfMindDivergenceTest — 4 tests | 2026-11-20 |
 | #1181 | EmotionRegulationDivergenceTest — 4 tests | 2026-11-20 |
 | #1182 | Delete PersonalityDifferentiationTest — migrated to divergence suite | 2026-11-20 |
-| #1171 | CAPS trajectory assertions — accessor mapping + both-agents-converge | 2026-11-20 |
-| #1165 | DevelopmentalPhaseResolver MindMapNode overload tests (5 paths) | 2026-11-20 |
-| #1164 | SituationalSnapshotAccessorProducer unit tests (6 tests) | 2026-11-20 |
-| #1153 | SituationalPersonalityParticipant coverage — evictIdle, TrustAccessor, facet clamping | 2026-11-20 |
-| #1079 | EffectiveCognitiveDefaults field classification test — resting vs effective | 2026-11-20 |
 | #1187 | TheoryOfMindBridgeDivergenceTest — 4 standalone Bayesian posterior tests | 2026-11-20 |
 | #1188 | TestAppraisalStrategy + withAppraisalEnabled + 2 tick-level appraisal tests | 2026-11-20 |
 | #1195 | Wire SituationClassifier for capsInputActivations divergence — 1 test | 2026-11-20 |
-| #930 | 300-tick scenario validation of CognitionCore re-tick — mood stability, drive coherence, baseline comparison | 2026-11-20 |
-| #1183 | evictIdle for 8 remaining cognition orchestrators — cache eviction pattern | 2026-11-20 |
-| #1184 | Wire registerTenant into CognitionCore tick — consolidation tenant discovery | 2026-11-20 |
 
 ### Blocked
 
@@ -171,8 +163,7 @@ Planned short-run scenarios:
 
 | Issue | Description | Status |
 |-------|------------|--------|
-| #1187 | Standalone TheoryOfMindBridge divergence tests | queued |
-| #1188 | Extend harness with lightweight appraisal for tick-level divergence | queued |
+| #1171 | CAPS settling trajectory assertions | landed (prior session) |
 
 ## Key Finding: The Tenant ID Trap
 
@@ -181,91 +172,3 @@ During #1160 implementation, CAPS initialization in the harness Builder used har
 **Fix:** Lazy initialization in `consolidate()` — checks each agent's CAPS state on first call and initializes with their descriptor's disposition axes using the caller's actual tenant ID.
 
 **Lesson:** Cross-component integration tests catch wiring bugs that unit tests cannot. The CAPS engine, the derivation engine, and the consolidation phase each worked correctly in isolation. The failure was in how they were connected — a tenant ID mismatch invisible to any single component's tests.
-
-## Key Finding: CAPS Trajectory Non-Divergence
-
-Issue #1171 tested whether contrasting personalities produce different settling trajectories (iterations, convergence type, saturation ratio). Both the open and cautious agents receive radically different CAPS input activations via `DriveCompetitionDetector.DRIVE_CAPS_MAPPINGS`:
-
-- **Open:** explore, BAS_activation, approach (adventure + curiosity drives)
-- **Cautious:** threat_sensitivity, distrust, BIS_activation, escape_assessment, FFFS_activation (suspicion + self-preservation drives)
-
-Despite different inputs and personality-dependent connection weights via `DispositionWeightMapper`, both agents converge in exactly 10 iterations with identical convergence type (CONVERGED) and zero saturation. The existing `behavioralAttractorsDiverge` test confirms the settling *destinations* differ — but the *paths* are identical.
-
-**Implication:** The current topology converges too quickly for trajectory to serve as a personality differentiation signal. The damping factor (0.4) and network structure produce rapid convergence regardless of input pattern. If trajectory divergence is desired as a test signal, the topology would need deeper feedback loops or tests would need to seed more extreme activation patterns that push some nodes toward saturation.
-
-**Status:** #1171 landed with accessor correctness tests (mapping from `SettlingResult` to `CapsTrajectory`) and both-agents-present assertions. Trajectory divergence assertion deferred — not achievable without topology changes.
-
-## Key Finding: Nearly All Derivation Paths Are Facet-Modulated
-
-Issue #1079's field classification test revealed that the resting-vs-effective partition in `EffectiveCognitiveDefaults` is much narrower than expected. Almost every derivation path in `CognitiveDerivationEngine` accepts PID-5 facets as input and modulates its output accordingly:
-
-| Classification | Fields |
-|---------------|--------|
-| **Displacement-independent** (3) | personality, personalityDominance, temporalFocus |
-| **Displacement-sensitive** (8+) | appraisalWeights, habituationConfig, recurringThoughtConfig, cbrStrategy, moodBaseline, curiosity, socialCognition, graphStructure, extractionBias, capacityConfig |
-
-The displacement-independent fields are only those derived from disposition profile terms (weighted Jungian functions) or goals alone. Everything else — including fields assumed to be "axes-only" like `cbrStrategy` — uses facets. For example, `deriveCbrStrategy` modulates `minSimilarity` via IMPULSIVITY and `decayDays` via RISK_TAKING.
-
-**Implication:** Situational personality displacement (transient facet shifts from stress/flow/social mode engagement) ripples through CBR retrieval parameters, graph inference style, extraction bias, mood baseline, and curiosity weights — not just the emotion-adjacent fields like appraisalWeights. The `restingFor()` / `forAgent()` split in `EffectiveCognitiveDefaults` is load-bearing for CBR similarity scoring: without it, the CBR engine would use situationally-distorted parameters for case matching.
-
-## Key Finding: Re-Tick Is Safe at 300 Ticks
-
-Issue #930 validated the post-DERIVED mood/drive re-tick (#919) at scale. When appraisal is enabled, `CognitionCore.tick()` ticks mood and drives twice per cognitive cycle — once in FOUNDATION, once post-DERIVED after appraisal emotions propagate. The concern was cumulative drift: double mood decay, double drive EMA smoothing.
-
-300-tick scenario with varied emotional stimuli (interest/distress/joy/fear cycling every 10 ticks) across two personality profiles:
-
-| Metric | Result |
-|--------|--------|
-| Mood bounded [-1, 1] | ✅ All three PAD axes |
-| No monotonic drift | ✅ First/last window delta < 0.5 |
-| Drive intensities bounded [0, 1] | ✅ All 4 axes |
-| Re-tick motivation vs baseline | ✅ Within 50% |
-
-**Why it works:** `clampAxis` bounds mood to `baseline ± maxDisplacement`, preventing walk-past regardless of decay frequency. Drive EMA's asymmetric smoothing (instant on upswing, alpha=0.3 on down-ramp) means the double-tick effect only manifests as slightly faster deactivation, bounded by the next activation signal.
-
-**Code review finding:** The initial drift assertion checked pleasure and arousal but omitted dominance — the axis most likely to drift under repeated appraisal emotion projections (high agency in positive emotions, low agency in fear/distress). Fixed before landing.
-
-## Key Finding: Orchestrator Key Format Inconsistency
-
-The evictIdle work (#1183) exposed that the 8 orchestrators don't agree on ConcurrentHashMap key format:
-
-| Format | Classes |
-|--------|---------|
-| `agentId:tenantId` | DriveOrchestrator, MoodOrchestrator, GutFeelingParticipant, NarrativeOrchestrator, SearchBudgetTickParticipant, StrategyLearningOrchestrator |
-| `agentId\|tenantId` | GoalProposalOrchestrator |
-| `tenancyId:agentId` | InnerLifeOrchestrator |
-
-No functional bug — each class's evictIdle uses the same key format as its tick method. But a generic eviction helper would need per-class key translation.
-
-## Key Finding: EdgeInferencePhase Regex Fragility
-
-Issue #1190 added edge-case tests for `EdgeInferencePhase.parseRelationships()`, exposing known limitations of the regex-based JSON parsing approach.
-
-The `RELATIONSHIP_PATTERN` regex assumes fixed key ordering (`source → target → type`). Seven edge-case tests now document this:
-
-| Scenario | Result |
-|----------|--------|
-| Standard key order | ✅ Matches |
-| Reordered keys (type before source) | ❌ No match — silent data loss |
-| Escaped quotes in entity names | ❌ No match — `[^"]+` can't handle `\"` |
-| Empty relationships array | ✅ Returns empty list |
-| Truncated JSON | ✅ Returns empty list |
-| Multiple relationships | ✅ Extracts all |
-| Mixed valid/reordered | ✅ Extracts only valid entries |
-
-**Risk:** The system prompt instructs the LLM to produce `source, target, type` order, so the regex works in practice. But LLM output is non-deterministic — a reordered response would silently produce zero edges with no error or warning. The regex approach is a known fragility point; a JSON parser would eliminate all three failure modes (key order, escaped quotes, structural robustness).
-
-## Finding: Embedding-Based Candidate Identification
-
-Issue #1191 extended `EdgeInferencePhase` with an optional second candidate identification layer using `DenseEmbedder` cosine similarity.
-
-**Problem addressed:** The co-occurrence approach only discovers entity pairs that appear together in the same experience memory. Conceptually related entities from separate contexts (e.g., two art movements discussed in different passages) are invisible to co-occurrence.
-
-**Approach:** After co-occurrence candidates are built, remaining `maxCandidates` slots are filled by embedding-based candidates: each under-connected node's text representation (name + traits + property values) is embedded via `DenseEmbedder.embedBatch()`, pairwise cosine similarity is computed, and pairs above the configurable threshold (default 0.7) are added.
-
-**Design decisions:**
-- Co-occurrence takes priority (stronger signal from shared context)
-- Embedding fills remaining capacity, not a separate allocation
-- Config-gated: `embeddingCandidatesEnabled=false` by default (requires DenseEmbedder on classpath)
-- Node text uses in-graph data only (name + traits + properties) — no additional store queries
-- Follows ExperienceConsolidationPhase's `Instance<DenseEmbedder>` graceful degradation pattern
