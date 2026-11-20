@@ -281,6 +281,13 @@ class InnerLifeOrchestratorTest {
             sectionRendered.set(true);
             return "Use expressive gestures when speaking.";
         };
+        // Sections are rendered with a CognitionRenderContext built from the profile's agent and
+        // tenant ids, which must be non-null — a mocked DriveProfile record returns null for both.
+        when(driveOrchestrator.currentDrives("agent-1", "tenant-1"))
+                .thenReturn(java.util.Optional.of(new DriveProfile(
+                        "agent-1", "tenant-1", java.util.Map.of(), 0.0,
+                        io.casehub.neocortex.cognition.drive.DriveAxis.CURIOSITY,
+                        java.time.Instant.now())));
 
         var orch = makeOrchestrator(
                 stubPipeline("{\"score\": 0.9, \"content\": \"Hey!\", \"channelHint\": null}"),
