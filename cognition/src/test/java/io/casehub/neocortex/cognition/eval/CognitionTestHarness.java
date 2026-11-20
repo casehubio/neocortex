@@ -468,6 +468,14 @@ public class CognitionTestHarness {
                         new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy());
             }
 
+            io.casehub.neocortex.caps.testing.InMemoryCapsEngine capsEngineInstance = null;
+            io.casehub.neocortex.caps.engine.RuleBasedSituationClassifier classifierInstance = null;
+            if (behavioralSynthesisEnabled) {
+                capsEngineInstance = new io.casehub.neocortex.caps.testing.InMemoryCapsEngine();
+                classifierInstance = new io.casehub.neocortex.caps.engine.RuleBasedSituationClassifier(capsEngineInstance.topology());
+                pipelineBuilder.situationClassifier(classifierInstance);
+            }
+
             var core = pipelineBuilder.build();
 
             io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant appraisalStub = null;
@@ -516,12 +524,11 @@ public class CognitionTestHarness {
             io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase bsp = null;
             io.casehub.neocortex.caps.CapsEngine capsEngineRef = null;
             if (behavioralSynthesisEnabled) {
-                var capsEngine = new io.casehub.neocortex.caps.testing.InMemoryCapsEngine();
-                var classifier = new io.casehub.neocortex.caps.engine.RuleBasedSituationClassifier(capsEngine.topology());
                 bsp = new io.casehub.neocortex.mindmap.intelligence.consolidation.BehavioralSynthesisPhase(
-                        store, capsEngine, classifier, 20, cbrStore, registry);
+                        store, capsEngineInstance, classifierInstance, 20, cbrStore, registry);
                 phases.add(bsp);
-                capsEngineRef = capsEngine;
+                capsEngineRef = capsEngineInstance;
+                core.configureBehavioralSynthesis(bsp);
             }
 
             return new CognitionTestHarness(core, store, memStore, curiosityDrive,

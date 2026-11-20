@@ -87,4 +87,36 @@ class ConsolidationDivergenceTest {
                         cautious.relationshipBias(), cautious.affectSensitivity())
                 .isTrue();
     }
+
+    @Test
+    void capsInputActivationsDiverge() {
+        var store = DivergenceFixtures.seededCognitiveStore();
+        var harness = DivergenceFixtures.fullBuilder(store)
+                                        .withAppraisalEnabled(true)
+                                        .build();
+
+        harness.consolidate("open", TENANT);
+
+        harness.observe("open", TENANT, "someone expressed strong disagreement");
+        harness.tick("open", TENANT);
+        harness.observe("cautious", TENANT, "someone expressed strong disagreement");
+        harness.tick("cautious", TENANT);
+
+        var openTrace     = harness.currentTrace("open", TENANT);
+        var cautiousTrace = harness.currentTrace("cautious", TENANT);
+
+        assertThat(openTrace).isPresent();
+        assertThat(cautiousTrace).isPresent();
+        assertThat(openTrace.get().capsInputActivations())
+                .as("open agent should have capsInputActivations")
+                .isNotEmpty();
+        assertThat(cautiousTrace.get().capsInputActivations())
+                .as("cautious agent should have capsInputActivations")
+                .isNotEmpty();
+        assertThat(openTrace.get().capsInputActivations())
+                .as("capsInputActivations should differ — open=%s vs cautious=%s",
+                    openTrace.get().capsInputActivations(), cautiousTrace.get().capsInputActivations())
+                .isNotEqualTo(cautiousTrace.get().capsInputActivations());
+    }
+
 }
