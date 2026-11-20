@@ -144,6 +144,7 @@ private final              java.util.concurrent.atomic.AtomicInteger            
 private volatile           io.casehub.neocortex.cognition.journal.CognitiveJournal                                                             cognitiveJournal = io.casehub.neocortex.cognition.journal.CognitiveJournal.NOOP;
 private volatile           io.casehub.neocortex.cognition.personality.@org.jspecify.annotations.Nullable DispositionSignalRecorder             dispositionSignalRecorder;
 private volatile @org.jspecify.annotations.Nullable CacheEvictionScheduler                                                                     cacheEvictionScheduler;
+private volatile @org.jspecify.annotations.Nullable Consumer<String>                                                                           tenantRegistrar;
 
 
     private final java.util.concurrent.atomic.AtomicLong moodSuccess = new java.util.concurrent.atomic.AtomicLong();
@@ -256,6 +257,11 @@ private volatile @org.jspecify.annotations.Nullable CacheEvictionScheduler      
         var tickEventRef = io.casehub.neocortex.cognition.journal.EventRef.tick(tickNumber);
         if (cognitiveJournal instanceof ScopedCognitiveJournal scoped) scoped.beginScope(e -> true);
         try {
+
+        var registrar = this.tenantRegistrar;
+        if (registrar != null) {
+            registrar.accept(tenantId);
+        }
 
         this.lastDescriptor    = descriptor;
         this.lastAgentId       = agentId;
@@ -1271,6 +1277,10 @@ public @Nullable String lastTargetAgentId() {
         }
     }
 
+
+    public void configureTenantRegistrar(Consumer<String> registrar) {
+        this.tenantRegistrar = registrar;
+    }
 
     public void configureTheoryOfMind() {
         this.theoryOfMindBridge = new io.casehub.neocortex.cognition.tom.TheoryOfMindBridge();
