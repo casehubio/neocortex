@@ -151,6 +151,9 @@ Planned short-run scenarios:
 | #1187 | TheoryOfMindBridgeDivergenceTest — 4 standalone Bayesian posterior tests | 2026-11-20 |
 | #1188 | TestAppraisalStrategy + withAppraisalEnabled + 2 tick-level appraisal tests | 2026-11-20 |
 | #1195 | Wire SituationClassifier for capsInputActivations divergence — 1 test | 2026-11-20 |
+| #930 | 300-tick scenario validation of CognitionCore re-tick — mood stability, drive coherence, baseline comparison | 2026-11-20 |
+| #1183 | evictIdle for 8 remaining cognition orchestrators — cache eviction pattern | 2026-11-20 |
+| #1184 | Wire registerTenant into CognitionCore tick — consolidation tenant discovery | 2026-11-20 |
 
 ### Blocked
 
@@ -204,3 +207,32 @@ Issue #1079's field classification test revealed that the resting-vs-effective p
 The displacement-independent fields are only those derived from disposition profile terms (weighted Jungian functions) or goals alone. Everything else — including fields assumed to be "axes-only" like `cbrStrategy` — uses facets. For example, `deriveCbrStrategy` modulates `minSimilarity` via IMPULSIVITY and `decayDays` via RISK_TAKING.
 
 **Implication:** Situational personality displacement (transient facet shifts from stress/flow/social mode engagement) ripples through CBR retrieval parameters, graph inference style, extraction bias, mood baseline, and curiosity weights — not just the emotion-adjacent fields like appraisalWeights. The `restingFor()` / `forAgent()` split in `EffectiveCognitiveDefaults` is load-bearing for CBR similarity scoring: without it, the CBR engine would use situationally-distorted parameters for case matching.
+
+## Key Finding: Re-Tick Is Safe at 300 Ticks
+
+Issue #930 validated the post-DERIVED mood/drive re-tick (#919) at scale. When appraisal is enabled, `CognitionCore.tick()` ticks mood and drives twice per cognitive cycle — once in FOUNDATION, once post-DERIVED after appraisal emotions propagate. The concern was cumulative drift: double mood decay, double drive EMA smoothing.
+
+300-tick scenario with varied emotional stimuli (interest/distress/joy/fear cycling every 10 ticks) across two personality profiles:
+
+| Metric | Result |
+|--------|--------|
+| Mood bounded [-1, 1] | ✅ All three PAD axes |
+| No monotonic drift | ✅ First/last window delta < 0.5 |
+| Drive intensities bounded [0, 1] | ✅ All 4 axes |
+| Re-tick motivation vs baseline | ✅ Within 50% |
+
+**Why it works:** `clampAxis` bounds mood to `baseline ± maxDisplacement`, preventing walk-past regardless of decay frequency. Drive EMA's asymmetric smoothing (instant on upswing, alpha=0.3 on down-ramp) means the double-tick effect only manifests as slightly faster deactivation, bounded by the next activation signal.
+
+**Code review finding:** The initial drift assertion checked pleasure and arousal but omitted dominance — the axis most likely to drift under repeated appraisal emotion projections (high agency in positive emotions, low agency in fear/distress). Fixed before landing.
+
+## Key Finding: Orchestrator Key Format Inconsistency
+
+The evictIdle work (#1183) exposed that the 8 orchestrators don't agree on ConcurrentHashMap key format:
+
+| Format | Classes |
+|--------|---------|
+| `agentId:tenantId` | DriveOrchestrator, MoodOrchestrator, GutFeelingParticipant, NarrativeOrchestrator, SearchBudgetTickParticipant, StrategyLearningOrchestrator |
+| `agentId\|tenantId` | GoalProposalOrchestrator |
+| `tenancyId:agentId` | InnerLifeOrchestrator |
+
+No functional bug — each class's evictIdle uses the same key format as its tick method. But a generic eviction helper would need per-class key translation.
