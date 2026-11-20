@@ -278,6 +278,7 @@ public class CognitionTestHarness {
         private CognitionConfig cognitionConfig;
         private boolean consolidationEnabled;
         private boolean behavioralSynthesisEnabled;
+        private boolean appraisalEnabled;
 
         private io.casehub.platform.agent.session.SessionPipeline sessionPipeline;
 
@@ -350,6 +351,11 @@ public class CognitionTestHarness {
 
         public Builder withBehavioralSynthesis(boolean enabled) {
             this.behavioralSynthesisEnabled = enabled;
+            return this;
+        }
+
+        public Builder withAppraisalEnabled(boolean enabled) {
+            this.appraisalEnabled = enabled;
             return this;
         }
 
@@ -441,15 +447,28 @@ public class CognitionTestHarness {
 
             var mediator = new ConsolidationMediator();
             var config   = cognitionConfig != null ? cognitionConfig : CognitionConfig.all();
+            if (appraisalEnabled) {
+                config = config.with("appraisal", true);
+            }
 
-            var core = io.casehub.neocortex.cognition.core.CognitivePipelineBuilder
+            var pipelineBuilder = io.casehub.neocortex.cognition.core.CognitivePipelineBuilder
                                .create(moodOrchestrator, driveOrchestrator)
                                .userModel(userModel).mentalModel(mentalModel).strategy(strategy)
                                .narrative(narrativeOrch).goals(goals).memoryHygiene(hygiene)
                                .innerLife(innerLife).config(config).mindMapStore(store)
                                .consolidationMediator(mediator).sessionPipeline(sessionPipeline)
-                               .effectiveDefaults(registry)
-                               .build();
+                               .effectiveDefaults(registry);
+
+            if (appraisalEnabled) {
+                if (!appraisalResults.isEmpty() || !habituationStates.isEmpty()) {
+                    throw new IllegalStateException(
+                            "withAppraisalEnabled and withAppraisalResult/withHabituationState are mutually exclusive");
+                }
+                pipelineBuilder.appraisal(new TestAppraisalStrategy(),
+                        new io.casehub.neocortex.cognition.appraisal.NoOpSalienceStrategy());
+            }
+
+            var core = pipelineBuilder.build();
 
             io.casehub.neocortex.cognition.appraisal.AppraisalTickParticipant appraisalStub = null;
             if (!habituationStates.isEmpty() || !appraisalResults.isEmpty()) {
