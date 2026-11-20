@@ -430,5 +430,11 @@ class KnowledgePipelineOrchestratorTest {
 
         @Override
         public Directions directions(String userId) {return null;}
+
+        @Override
+        public DevicePosition devicePosition(String userId) {return null;}
+
+        @Override
+        public AssetTracking assetTracking(String userId) {return null;}
     }
 }
