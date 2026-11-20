@@ -70,16 +70,24 @@ Full audit conducted 2026-11-19. 48 distinct capabilities identified across 6 pi
 
 ```
 cognition/src/test/java/.../eval/divergence/
-  DivergenceFixtures.java          — shared personality pairs and builder helpers
-  DerivationDivergenceTest.java    — 9 tests (derivation-only, no tick)
-  AppraisalDivergenceTest.java     — 6 tests (single tick)
-  ConsolidationDivergenceTest.java — 5 tests (seeded MindMap + consolidation)
-  PromptSectionDivergenceTest.java — 8 tests (tick + render)
-  TheoryOfMindDivergenceTest.java  — 4 tests (multi-agent)
-  EmotionRegulationDivergenceTest.java — 4 tests (multi-tick)
+  DivergenceFixtures.java                   — shared personality pairs and builder helpers
+  DerivationDivergenceTest.java             — 9 tests (derivation-only, no tick)
+  AppraisalDivergenceTest.java              — 8 tests (6 derivation + 2 tick-level via withAppraisalEnabled)
+  ConsolidationDivergenceTest.java          — 5 tests (seeded MindMap + consolidation)
+  PromptSectionDivergenceTest.java          — 8 tests (tick + render)
+  TheoryOfMindDivergenceTest.java           — 4 tests (derivation-level ToM)
+  TheoryOfMindBridgeDivergenceTest.java     — 4 tests (standalone Bayesian posterior inference)
+  EmotionRegulationDivergenceTest.java      — 4 tests (multi-tick)
+
+cognition/src/test/java/.../eval/
+  TestAppraisalStrategy.java                — rule-based AppraisalStrategy for tick-level tests
+  TestAppraisalStrategyTest.java            — 2 tests (SEC + action tendency divergence)
+  CognitionTestHarnessAppraisalTest.java    — 2 tests (harness wiring + mutual exclusion)
 ```
 
-6 test classes (after deleting PersonalityDifferentiationTest). 36 tests total (31 new + 5 migrated). All pass in <500ms, deterministic, no LLM.
+8 divergence test classes. 42 divergence tests total. All pass in <500ms, deterministic, no LLM.
+
+`TestAppraisalStrategy` computes SEC dimensions from personality-derived `AppraisalWeights` (fear onset threshold → conduciveness, urgency weight → controllability) and action tendencies from `DispositionAxes` (cooperative → APPROACH, avoidant → AVOIDANCE). Wired via `Builder.withAppraisalEnabled(true)` through `CognitivePipelineBuilder.appraisal()` to create a real `AppraisalTickParticipant`. This enables tick-level assertions on `PipelineTrace.appraisalResult()` — the trace field was always null before because `CognitionConfig.all()` has `appraisalEnabled=false` and the mock path (`withAppraisalResult()`) never runs `tick()`.
 
 ### Epic and issues
 
@@ -135,6 +143,8 @@ Planned short-run scenarios:
 | #1180 | TheoryOfMindDivergenceTest — 4 tests | 2026-11-20 |
 | #1181 | EmotionRegulationDivergenceTest — 4 tests | 2026-11-20 |
 | #1182 | Delete PersonalityDifferentiationTest — migrated to divergence suite | 2026-11-20 |
+| #1187 | TheoryOfMindBridgeDivergenceTest — 4 standalone Bayesian posterior tests | 2026-11-20 |
+| #1188 | TestAppraisalStrategy + withAppraisalEnabled + 2 tick-level appraisal tests | 2026-11-20 |
 
 ### Blocked
 
@@ -152,9 +162,7 @@ Planned short-run scenarios:
 
 | Issue | Description | Status |
 |-------|------------|--------|
-| #1171 | CAPS settling trajectory assertions | queued |
-| #1187 | Standalone TheoryOfMindBridge divergence tests | queued |
-| #1188 | Extend harness with lightweight appraisal for tick-level divergence | queued |
+| #1171 | CAPS settling trajectory assertions | landed (prior session) |
 
 ## Key Finding: The Tenant ID Trap
 
