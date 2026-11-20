@@ -101,6 +101,66 @@ class AppraisalDivergenceTest {
     }
 
     @Test
+    void appraisalResultDivergesAtTickLevel() {
+        var harness = DivergenceFixtures.pairedBuilder()
+                .withAppraisalEnabled(true)
+                .build();
+
+        harness.observe("open", TENANT, "someone expressed strong disagreement");
+        harness.tick("open", TENANT);
+        harness.observe("cautious", TENANT, "someone expressed strong disagreement");
+        harness.tick("cautious", TENANT);
+
+        var openTrace = harness.currentTrace("open", TENANT);
+        var cautiousTrace = harness.currentTrace("cautious", TENANT);
+
+        assertThat(openTrace).isPresent();
+        assertThat(cautiousTrace).isPresent();
+        assertThat(openTrace.get().appraisalResult()).isNotNull();
+        assertThat(cautiousTrace.get().appraisalResult()).isNotNull();
+
+        var openSec = openTrace.get().appraisalResult().secDimensions();
+        var cautiousSec = cautiousTrace.get().appraisalResult().secDimensions();
+
+        boolean secDiffers = openSec.entrySet().stream()
+                .anyMatch(e -> !e.getValue().equals(cautiousSec.get(e.getKey())));
+
+        assertThat(secDiffers)
+                .as("SEC dimensions should differ at tick level — open=%s vs cautious=%s",
+                        openSec, cautiousSec)
+                .isTrue();
+    }
+
+    @Test
+    void actionTendenciesDivergeAtTickLevel() {
+        var harness = DivergenceFixtures.pairedBuilder()
+                .withAppraisalEnabled(true)
+                .build();
+
+        harness.observe("open", TENANT, "someone expressed strong disagreement");
+        harness.tick("open", TENANT);
+        harness.observe("cautious", TENANT, "someone expressed strong disagreement");
+        harness.tick("cautious", TENANT);
+
+        var openTrace = harness.currentTrace("open", TENANT);
+        var cautiousTrace = harness.currentTrace("cautious", TENANT);
+
+        assertThat(openTrace).isPresent();
+        assertThat(cautiousTrace).isPresent();
+
+        var openTendencies = openTrace.get().appraisalResult().actionTendencies();
+        var cautiousTendencies = cautiousTrace.get().appraisalResult().actionTendencies();
+
+        assertThat(openTendencies).isNotEmpty();
+        assertThat(cautiousTendencies).isNotEmpty();
+
+        assertThat(openTendencies.getFirst().readiness())
+                .as("action tendencies should differ — open=%s vs cautious=%s",
+                        openTendencies, cautiousTendencies)
+                .isNotEqualTo(cautiousTendencies.getFirst().readiness());
+    }
+
+    @Test
     void curiosityChannelDiverges() {
         var store = new InMemoryMindMapStore();
         var subgraphId = store.createSubgraph(
