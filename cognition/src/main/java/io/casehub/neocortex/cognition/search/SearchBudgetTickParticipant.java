@@ -78,8 +78,8 @@ public class SearchBudgetTickParticipant implements CognitionTickParticipant {
     public void tick(CognitionTickContext context) {
         String agentId  = context.agentId();
         String tenantId = context.tenantId();
-        lastTickTimes.put(agentId + ":" + tenantId, java.time.Instant.now());
         String key      = agentId + ":" + tenantId;
+        lastTickTimes.put(key, java.time.Instant.now());
         results.remove(key);
 
         var driveOpt = driveOrchestrator.currentDrives(agentId, tenantId);

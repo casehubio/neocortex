@@ -249,12 +249,17 @@ class RetickScenarioValidationTest {
         double lastPleasure = lastWindow.stream().mapToDouble(MoodState::pleasure).average().orElse(0);
         double firstArousal = firstWindow.stream().mapToDouble(MoodState::arousal).average().orElse(0);
         double lastArousal = lastWindow.stream().mapToDouble(MoodState::arousal).average().orElse(0);
+        double firstDominance = firstWindow.stream().mapToDouble(MoodState::dominance).average().orElse(0);
+        double lastDominance = lastWindow.stream().mapToDouble(MoodState::dominance).average().orElse(0);
 
         assertThat(Math.abs(lastPleasure - firstPleasure))
             .as("%s pleasure drift (first window=%.3f, last window=%.3f)", agent, firstPleasure, lastPleasure)
             .isLessThan(0.5);
         assertThat(Math.abs(lastArousal - firstArousal))
             .as("%s arousal drift (first window=%.3f, last window=%.3f)", agent, firstArousal, lastArousal)
+            .isLessThan(0.5);
+        assertThat(Math.abs(lastDominance - firstDominance))
+            .as("%s dominance drift (first window=%.3f, last window=%.3f)", agent, firstDominance, lastDominance)
             .isLessThan(0.5);
     }
 
