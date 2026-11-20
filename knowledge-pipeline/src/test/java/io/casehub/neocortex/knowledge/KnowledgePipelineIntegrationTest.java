@@ -238,5 +238,7 @@ class KnowledgePipelineIntegrationTest {
         @Override public PlaceDetails placeDetails(String userId) { return null; }
         @Override public Geocoding geocoding(String userId) { return null; }
         @Override public Directions directions(String userId) { return null; }
+        @Override public DevicePosition devicePosition(String userId) { return null; }
+        @Override public AssetTracking assetTracking(String userId) { return null; }
     }
 }
