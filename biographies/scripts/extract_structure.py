@@ -187,6 +187,24 @@ When a passage describes a RELATIONSHIP change, create BOTH:
 
 Respond with JSON only: {"memories": [...]}"""
 
+CROSS_PASSAGE_EDGE_SYSTEM = """You are a knowledge graph edge inference agent. Given pairs of entities and the context where they co-occur in memories, determine if a relationship exists.
+
+For each pair with a relationship, produce an edge. Skip pairs with no relationship.
+
+Relationship vocabulary:
+  Kinship: child-of, sibling-of, parent-of
+  Romantic: married-to, affair-with, divorced-from
+  Professional: treated-by, taught-by, championed, collaborated-with
+  Goal: pursues, enables, blocks, requires, contributes-to, decomposes-into
+  Spatial: lives-at, located-in, at
+  Creative: inspired-by, created-by, depicted-in
+  Conceptual: embodies, exemplifies, contradicts, influenced-by
+  Activity: participated, occasion
+  Temporal: preceded-by, concurrent-with, succeeded-by
+  Causal: caused-by, resulted-in, motivated-by
+
+Respond with JSON only: {"edges": [..., {"source": "...", "target": "...", "type": "...", "confidence_origin": "INFERRED"}]}"""
+
 
 def build_entity_context(entities):
     """Format extracted entities as context text for the edge extraction prompt."""
@@ -207,6 +225,99 @@ def build_entity_context(entities):
         parts.append(')')
         lines.append(f"  - {''.join(parts)}")
     return '\n'.join(lines)
+
+
+def infer_cross_passage_edges(client, all_entities, all_memories, edge_dedup, top_n=50):
+    """Infer edges between entities that co-occur in memories but have no direct edge."""
+    if top_n <= 0:
+        print("  Cross-passage edge inference: skipped (top_n=0)")
+        return edge_dedup
+
+    cooccurrence = {}
+    for mem in all_memories:
+        subject = mem.get('subject', '')
+        related = mem.get('related_entities', [])
+        if isinstance(related, str):
+            related = [r.strip() for r in related.split(',') if r.strip()]
+        entities_in_mem = set()
+        if subject:
+            entities_in_mem.add(subject.lower())
+        for r in related:
+            entities_in_mem.add(r.lower())
+
+        for a in sorted(entities_in_mem):
+            for b in sorted(entities_in_mem):
+                if a >= b:
+                    continue
+                pair = (a, b)
+                if pair not in cooccurrence:
+                    cooccurrence[pair] = {'count': 0, 'contexts': []}
+                cooccurrence[pair]['count'] += 1
+                if len(cooccurrence[pair]['contexts']) < 3:
+                    cooccurrence[pair]['contexts'].append(mem.get('text', '')[:200])
+
+    candidates = []
+    for (a, b), info in cooccurrence.items():
+        has_edge = False
+        for ekey in edge_dedup:
+            parts = ekey.split('|')
+            if len(parts) >= 2:
+                if (parts[0] == a and parts[1] == b) or (parts[0] == b and parts[1] == a):
+                    has_edge = True
+                    break
+        if not has_edge:
+            candidates.append((a, b, info))
+
+    candidates.sort(key=lambda x: x[2]['count'], reverse=True)
+    candidates = candidates[:top_n]
+
+    if not candidates:
+        print("  No cross-passage edge candidates found")
+        return edge_dedup
+
+    entity_names = {e['name'].lower(): e['name'] for e in all_entities.values()}
+
+    batch_size = 20
+    total_inferred = 0
+    for i in range(0, len(candidates), batch_size):
+        batch = candidates[i:i + batch_size]
+        pairs_text = []
+        for a, b, info in batch:
+            name_a = entity_names.get(a, a)
+            name_b = entity_names.get(b, b)
+            ctx = ' | '.join(info['contexts'])
+            pairs_text.append(
+                f"  - {name_a} <-> {name_b} (co-occurs {info['count']}x): {ctx}")
+
+        user_prompt = "Entity pairs to evaluate:\n" + '\n'.join(pairs_text)
+        try:
+            response = client.messages.create(
+                model=model_id(),
+                max_tokens=4096,
+                system=CROSS_PASSAGE_EDGE_SYSTEM,
+                messages=[{'role': 'user', 'content': user_prompt}],
+            )
+            text = response.content[0].text
+            start = text.find('{')
+            end = text.rfind('}') + 1
+            result = json.loads(text[start:end]) if start >= 0 and end > start else {}
+        except Exception as e:
+            print(f"    Warning: cross-passage edge inference failed: {e}", file=sys.stderr)
+            result = {}
+        new_edges = result.get('edges', [])
+        for edge in new_edges:
+            if not edge.get('source') or not edge.get('target') or not edge.get('type'):
+                continue
+            ekey = f"{edge['source'].lower()}|{edge['target'].lower()}|{edge['type']}"
+            if ekey not in edge_dedup:
+                edge['extraction_pass'] = 'edge-inference-cross-passage'
+                edge['confidence_origin'] = 'INFERRED'
+                edge['validation_tier'] = 'UNVALIDATED'
+                edge_dedup[ekey] = edge
+                total_inferred += 1
+
+    print(f"  Cross-passage edge inference: {total_inferred} new edges from {len(candidates)} candidates")
+    return edge_dedup
 
 
 def call_llm(client, system_prompt, passage_text, candidates_text, chunk_name,
@@ -510,6 +621,8 @@ def main():
     parser.add_argument('--structure-base', help='Path to existing structure.json to merge into')
     parser.add_argument('--pass-num', type=int, default=1, help='Convergence pass number')
     parser.add_argument('--limit', type=int, default=0, help='Process only first N passages (0=all)')
+    parser.add_argument('--edge-inference-top-n', type=int, default=50,
+                        help='Max candidate pairs for cross-passage edge inference (0=skip)')
     args = parser.parse_args()
 
     if args.convergence:
@@ -666,6 +779,10 @@ def main():
         atomic_write(args.output, interim)
 
         time.sleep(0.2)
+
+    print("\nCross-passage edge inference...")
+    edge_dedup = infer_cross_passage_edges(client, all_entities, all_memories,
+                                            edge_dedup, args.edge_inference_top_n)
 
     derive_temporal_from_lifecycle(all_entities)
 
