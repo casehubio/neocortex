@@ -73,7 +73,7 @@ cognition/src/test/java/.../eval/divergence/
   DivergenceFixtures.java                   — shared personality pairs and builder helpers
   DerivationDivergenceTest.java             — 9 tests (derivation-only, no tick)
   AppraisalDivergenceTest.java              — 8 tests (6 derivation + 2 tick-level via withAppraisalEnabled)
-  ConsolidationDivergenceTest.java          — 5 tests (seeded MindMap + consolidation)
+  ConsolidationDivergenceTest.java          — 6 tests (seeded MindMap + consolidation + trace)
   PromptSectionDivergenceTest.java          — 8 tests (tick + render)
   TheoryOfMindDivergenceTest.java           — 4 tests (derivation-level ToM)
   TheoryOfMindBridgeDivergenceTest.java     — 4 tests (standalone Bayesian posterior inference)
@@ -85,7 +85,7 @@ cognition/src/test/java/.../eval/
   CognitionTestHarnessAppraisalTest.java    — 2 tests (harness wiring + mutual exclusion)
 ```
 
-8 divergence test classes. 42 divergence tests total. All pass in <500ms, deterministic, no LLM.
+8 divergence test classes. 43 divergence tests total. All pass in <500ms, deterministic, no LLM.
 
 `TestAppraisalStrategy` computes SEC dimensions from personality-derived `AppraisalWeights` (fear onset threshold → conduciveness, urgency weight → controllability) and action tendencies from `DispositionAxes` (cooperative → APPROACH, avoidant → AVOIDANCE). Wired via `Builder.withAppraisalEnabled(true)` through `CognitivePipelineBuilder.appraisal()` to create a real `AppraisalTickParticipant`. This enables tick-level assertions on `PipelineTrace.appraisalResult()` — the trace field was always null before because `CognitionConfig.all()` has `appraisalEnabled=false` and the mock path (`withAppraisalResult()`) never runs `tick()`.
 
@@ -145,6 +145,7 @@ Planned short-run scenarios:
 | #1182 | Delete PersonalityDifferentiationTest — migrated to divergence suite | 2026-11-20 |
 | #1187 | TheoryOfMindBridgeDivergenceTest — 4 standalone Bayesian posterior tests | 2026-11-20 |
 | #1188 | TestAppraisalStrategy + withAppraisalEnabled + 2 tick-level appraisal tests | 2026-11-20 |
+| #1195 | Wire SituationClassifier for capsInputActivations divergence — 1 test | 2026-11-20 |
 
 ### Blocked
 
