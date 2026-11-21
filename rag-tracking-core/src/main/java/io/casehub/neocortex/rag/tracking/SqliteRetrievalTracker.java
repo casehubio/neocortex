@@ -15,11 +15,6 @@ import io.casehub.neocortex.rag.RetrievalRecord;
 import io.casehub.neocortex.rag.RetrievalTracker;
 import io.casehub.neocortex.rag.RetrievedChunk;
 import io.casehub.neocortex.rag.RetrievedDocumentRef;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,32 +31,36 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@ApplicationScoped
-public class SqliteRetrievalTracker implements RetrievalTracker {
+/**
+ * SQLite-backed {@link RetrievalTracker} (HikariCP, WAL, Flyway migrations from
+ * {@code db/rag-tracking/migration}). Plain class: the Quarkus module produces it from
+ * {@code casehub.rag.tracking.sqlite.*}, the Spring module declares it as a bean.
+ */
+public class SqliteRetrievalTracker implements RetrievalTracker, AutoCloseable {
 
-    @ConfigProperty(name = "casehub.rag.tracking.sqlite.path")
-    String path;
+    private final ObjectMapper objectMapper;
+    private final HikariDataSource dataSource;
 
-    @ConfigProperty(name = "casehub.rag.tracking.sqlite.pool.max-size", defaultValue = "5")
-    int maxPoolSize;
-
-    @ConfigProperty(name = "casehub.rag.tracking.sqlite.busy-timeout-ms", defaultValue = "5000")
-    int busyTimeoutMs;
-
-    @Inject
-    ObjectMapper objectMapper;
-
-    private HikariDataSource dataSource;
-
-    @PostConstruct
-    void init() {
-        dataSource = SqliteDataSourceFactory.create(path, maxPoolSize, busyTimeoutMs, 64000);
-        SqliteDataSourceFactory.migrate(dataSource, "classpath:db/rag-tracking/migration");
+    /**
+     * Opens (or creates) the database at {@code path} and runs the migrations.
+     *
+     * @param path SQLite file path; {@code ":memory:"}, blank or {@code null} for an in-memory database
+     */
+    public SqliteRetrievalTracker(String path, int maxPoolSize, int busyTimeoutMs, ObjectMapper objectMapper) {
+        this.objectMapper = java.util.Objects.requireNonNull(objectMapper, "objectMapper");
+        this.dataSource = SqliteDataSourceFactory.create(path, maxPoolSize, busyTimeoutMs, 64000);
+        try {
+            SqliteDataSourceFactory.migrate(dataSource, "classpath:db/rag-tracking/migration");
+        } catch (RuntimeException e) {
+            dataSource.close();
+            throw e;
+        }
     }
 
-    @PreDestroy
-    void shutdown() {
-        if (dataSource != null) dataSource.close();
+    /** Closes the connection pool; safe to call more than once. */
+    @Override
+    public void close() {
+        dataSource.close();
     }
 
     @Override

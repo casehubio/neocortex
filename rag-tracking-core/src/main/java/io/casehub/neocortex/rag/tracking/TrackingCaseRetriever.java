@@ -7,21 +7,17 @@ import io.casehub.neocortex.rag.RetrievalRecorded;
 import io.casehub.neocortex.rag.RetrievalQuery;
 import io.casehub.neocortex.rag.RetrievalTracker;
 import io.casehub.neocortex.rag.RetrievedChunk;
-import io.quarkus.arc.properties.IfBuildProperty;
-import jakarta.annotation.Priority;
-import jakarta.decorator.Decorator;
-import jakarta.decorator.Delegate;
-import jakarta.enterprise.event.Event;
-import jakarta.enterprise.inject.Any;
-import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.util.List;
 import java.util.function.Consumer;
 
-@Decorator
-@Priority(40)
-@IfBuildProperty(name = "casehub.rag.tracking.enabled", stringValue = "true")
+/**
+ * Records every retrieval of the wrapped {@link CaseRetriever} into a {@link RetrievalTracker},
+ * publishes a {@link RetrievalRecorded} and stamps the returned chunks with the retrieval ID
+ * ({@code _trackingId}). A retrieval already stamped upstream is not recorded again; a tracking
+ * failure is logged and the delegate's chunks are returned unchanged.
+ */
 public class TrackingCaseRetriever implements CaseRetriever {
 
     private static final Logger LOG = Logger.getLogger(TrackingCaseRetriever.class);
@@ -30,18 +26,16 @@ public class TrackingCaseRetriever implements CaseRetriever {
     private final RetrievalTracker tracker;
     private final Consumer<RetrievalRecorded> eventSink;
 
-    @Inject
-    TrackingCaseRetriever(@Delegate @Any CaseRetriever delegate,
-                          RetrievalTracker tracker,
-                          Event<RetrievalRecorded> recordedEvent) {
-        this(delegate, tracker, recordedEvent::fire);
+    public TrackingCaseRetriever(CaseRetriever delegate, RetrievalTracker tracker,
+                                 Consumer<RetrievalRecorded> eventSink) {
+        this.delegate = java.util.Objects.requireNonNull(delegate, "delegate");
+        this.tracker = java.util.Objects.requireNonNull(tracker, "tracker");
+        this.eventSink = java.util.Objects.requireNonNull(eventSink, "eventSink");
     }
 
-    TrackingCaseRetriever(CaseRetriever delegate, RetrievalTracker tracker,
-                          Consumer<RetrievalRecorded> eventSink) {
-        this.delegate = delegate;
-        this.tracker = tracker;
-        this.eventSink = eventSink;
+    /** The retriever this one records for. */
+    public CaseRetriever delegate() {
+        return delegate;
     }
 
     @Override

@@ -35,9 +35,7 @@ class RetentionSchedulerTest {
             }
         };
 
-        var scheduler = new RetentionScheduler();
-        scheduler.tracker = tracker;
-        scheduler.retentionDays = 90;
+        var scheduler = new RetentionScheduler(tracker, 90);
 
         scheduler.purge();
 
@@ -56,21 +54,27 @@ class RetentionSchedulerTest {
             }
         };
 
-        var scheduler = new RetentionScheduler();
-        scheduler.tracker = tracker;
-        scheduler.retentionDays = 30;
+        var scheduler = new RetentionScheduler(tracker, 30);
 
         // Must not throw — exception is caught and logged
         scheduler.purge();
     }
 
     @Test
-    void start_doesNotCreateExecutorWhenDisabled() {
-        var scheduler = new RetentionScheduler();
-        scheduler.retentionDays = 0;
+    void start_withZeroDays_startsNothing() {
+        var scheduler = new RetentionScheduler(new StubTracker(), 0);
         scheduler.start();
 
-        // executor remains null — stop() is a no-op
+        assertThat(scheduler.started()).isFalse();
+        scheduler.stop();
+    }
+
+    @Test
+    void start_withPositiveDays_startsAndStops() {
+        var scheduler = new RetentionScheduler(new StubTracker(), 30);
+        scheduler.start();
+
+        assertThat(scheduler.started()).isTrue();
         scheduler.stop();
     }
 }

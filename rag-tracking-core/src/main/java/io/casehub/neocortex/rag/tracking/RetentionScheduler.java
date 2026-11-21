@@ -1,35 +1,38 @@
 package io.casehub.neocortex.rag.tracking;
 
 import io.casehub.neocortex.rag.RetrievalTracker;
-import io.quarkus.arc.properties.IfBuildProperty;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@ApplicationScoped
-@IfBuildProperty(name = "casehub.rag.tracking.enabled", stringValue = "true")
+/**
+ * Purges retrieval records older than the retention period: first after one hour, then every 24
+ * hours, on a daemon thread ({@code rag-retention-purge}). Plain class: the Quarkus and Spring
+ * modules call {@link #start()} and {@link #stop()} from their lifecycles.
+ */
 public class RetentionScheduler {
 
     private static final Logger LOG = Logger.getLogger(RetentionScheduler.class);
 
-    @Inject RetrievalTracker tracker;
-
-    @ConfigProperty(name = "casehub.rag.tracking.retention.days", defaultValue = "90")
-    int retentionDays;
+    private final RetrievalTracker tracker;
+    private final int retentionDays;
 
     private volatile ScheduledExecutorService executor;
 
-    @PostConstruct
-    void start() {
+    /**
+     * @param retentionDays records older than this many days are purged; {@code <= 0} disables purging
+     */
+    public RetentionScheduler(RetrievalTracker tracker, int retentionDays) {
+        this.tracker = Objects.requireNonNull(tracker, "tracker");
+        this.retentionDays = retentionDays;
+    }
+
+    public void start() {
         if (retentionDays <= 0) return;
         executor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "rag-retention-purge");
@@ -40,9 +43,12 @@ public class RetentionScheduler {
         LOG.infof("Retention scheduler started: %d-day retention, purge every 24h", retentionDays);
     }
 
-    @PreDestroy
-    void stop() {
+    public void stop() {
         if (executor != null) executor.shutdown();
+    }
+
+    boolean started() {
+        return executor != null;
     }
 
     void purge() {
