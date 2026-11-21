@@ -51,6 +51,7 @@
     <module>rag-testing</module>
     <module>rag-crossencoder</module>
     <module>rag-expansion</module>
+    <module>rag-tracking-core</module>
     <module>rag-tracking</module>
     <module>rag-scoring</module>
     <module>rag-query-augmentation</module>
@@ -363,6 +364,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-rag-expansion</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-rag-tracking-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

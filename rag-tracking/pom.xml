@@ -13,9 +13,10 @@
     <artifactId>casehub-neocortex-rag-tracking</artifactId>
     <packaging>jar</packaging>
     <name>CaseHub Neocortex - RAG Tracking</name>
-    <description>SQLite-backed RetrievalTracker. @ApplicationScoped — activated by classpath
-        presence. Manages its own HikariCP DataSource and runs Flyway programmatically at
-        startup. Configure casehub.rag.tracking.sqlite.path in application.properties.</description>
+    <description>Quarkus CDI wiring for rag-tracking-core: produces the SQLite RetrievalTracker from
+        casehub.rag.tracking.sqlite.* (activated by classpath presence), and with
+        casehub.rag.tracking.enabled=true adds the CaseRetriever tracking decorator and the
+        retention scheduler.</description>
 
     <dependencies>
         <dependency>
@@ -25,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>io.casehub</groupId>
-            <artifactId>casehub-neocortex-sqlite-support</artifactId>
+            <artifactId>casehub-neocortex-rag-tracking-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
