@@ -63,6 +63,36 @@ class RagTrackingAutoConfigurationTest {
         }
     }
 
+    /** A concrete retriever without a no-arg constructor, like neocortex's HybridCaseRetriever. */
+    static class ConcreteRetriever implements CaseRetriever {
+        private final String docId;
+
+        ConcreteRetriever(String docId) {
+            this.docId = docId;
+        }
+
+        @Override
+        public List<RetrievedChunk> retrieve(RetrievalQuery query, CorpusRef corpus, int maxResults,
+                                             io.casehub.neocortex.rag.PayloadFilter filter) {
+            return List.of(new RetrievedChunk("text", docId, 0.7, Map.of()));
+        }
+    }
+
+    record ConcreteConsumer(ConcreteRetriever retriever) {}
+
+    @Configuration(proxyBeanMethods = false)
+    static class ConcreteConfig {
+        @Bean
+        ConcreteRetriever concreteRetriever() {
+            return new ConcreteRetriever("doc-1");
+        }
+
+        @Bean
+        ConcreteConsumer concreteConsumer(ConcreteRetriever retriever) {
+            return new ConcreteConsumer(retriever);
+        }
+    }
+
     private static List<RetrievedChunk> retrieve(CaseRetriever retriever) {
         return retriever.retrieve(RetrievalQuery.of("q"), CORPUS, 5, null);
     }
@@ -101,13 +131,27 @@ class RagTrackingAutoConfigurationTest {
                 .withPropertyValues(path(), "casehub.rag.tracking.enabled=true")
                 .run(context -> {
                     CaseRetriever retriever = context.getBean(CaseRetriever.class);
-                    assertThat(retriever).isInstanceOf(TrackingCaseRetriever.class);
 
                     assertThat(retrieve(retriever)).singleElement()
                             .satisfies(c -> assertThat(c.metadata()).containsKey("_trackingId"));
                     assertThat(context.getBean(RetrievalTracker.class)
                             .findRecords(CORPUS, Instant.EPOCH, Instant.MAX)).hasSize(1);
                     assertThat(context.getBean(RecordedListener.class).received).hasSize(1);
+                });
+    }
+
+    @Test
+    void enabled_concreteType_keptForInjection_andTracked() {
+        runner.withUserConfiguration(ConcreteConfig.class)
+                .withPropertyValues(path(), "casehub.rag.tracking.enabled=true")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    ConcreteRetriever retriever = context.getBean(ConcreteConsumer.class).retriever();
+
+                    assertThat(retrieve(retriever)).singleElement()
+                            .satisfies(c -> assertThat(c.metadata()).containsKey("_trackingId"));
+                    assertThat(context.getBean(RetrievalTracker.class)
+                            .findRecords(CORPUS, Instant.EPOCH, Instant.MAX)).hasSize(1);
                 });
     }
 
@@ -125,7 +169,8 @@ class RagTrackingAutoConfigurationTest {
     @Test
     void notEnabled_notWrapped_noScheduler() {
         runner.withUserConfiguration(AppConfig.class).withPropertyValues(path()).run(context -> {
-            assertThat(context.getBean(CaseRetriever.class)).isNotInstanceOf(TrackingCaseRetriever.class);
+            assertThat(retrieve(context.getBean(CaseRetriever.class))).singleElement()
+                    .satisfies(c -> assertThat(c.metadata()).doesNotContainKey("_trackingId"));
             assertThat(context).doesNotHaveBean(RetentionScheduler.class);
         });
     }
