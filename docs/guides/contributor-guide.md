@@ -1721,8 +1721,8 @@ The same properties drive the Quarkus and Spring Boot modules.
 | LangChain4j | `rag`, `memory-cbr-embedding` | RAG pipeline, `OnnxEmbeddingModel`, Qdrant `EmbeddingStore`, `EmbeddingModel` for CBR semantic text similarity |
 | `io.qdrant:client` | `rag`, `memory-qdrant` | Qdrant gRPC client for hybrid search + CBR reconciliation |
 | `quarkus-scheduler` | `rag`, `rag-tracking`, `memory-cbr-tracking` | `@Scheduled` polling and retention scheduling |
-| HikariCP | `rag-tracking`, `memory-cbr-tracking`, `memory-sqlite` | SQLite connection pooling |
-| Flyway | `memory-jpa`, `memory-cbr-jpa`, `rag-tracking`, `memory-cbr-tracking` | Schema migrations |
+| HikariCP | `rag-tracking-core`, `memory-cbr-tracking`, `memory-sqlite` | SQLite connection pooling |
+| Flyway | `memory-jpa`, `memory-cbr-jpa`, `rag-tracking-core`, `memory-cbr-tracking` | Schema migrations |
 | ONNX Runtime JVM | `inference-runtime` | Model session management |
 | HuggingFace Tokenizers JNI | `inference-runtime` | Tokenization |
 | Apache Tika | `rag-tika` | Binary document parsing |
