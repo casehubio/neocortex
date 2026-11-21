@@ -45,7 +45,9 @@ Five related capabilities in one repo:
 | `rag-tika` | `casehub-neocortex-rag-tika` | Apache Tika document parser — extracts text + metadata from binary documents (PDF, DOCX) for RAG ingestion |
 | `rag-crossencoder` | `casehub-neocortex-rag-crossencoder` | Corrective RAG quality-gating + cross-encoder reranking. Config-gated decorators |
 | `rag-expansion` | `casehub-neocortex-rag-expansion` | Query expansion — HyDE, step-back, multi-query fan-out with RRF fusion. Config-gated decorator |
-| `rag-tracking` | `casehub-neocortex-rag-tracking` | SQLite-backed retrieval tracking with retention scheduling. Config-gated decorator |
+| `rag-tracking-core` | `casehub-neocortex-rag-tracking-core` | Framework-neutral retrieval tracking: `SqliteRetrievalTracker`, `TrackingCaseRetriever`, `RetentionScheduler` as plain classes — pure Java |
+| `rag-tracking` | `casehub-neocortex-rag-tracking` | Quarkus wiring: SQLite-backed retrieval tracking with retention scheduling. Config-gated decorator |
+| `rag-tracking-spring` | `casehub-neocortex-rag-tracking-spring` | Spring Boot wiring of the same: `SqliteRetrievalTracker` bean when `casehub.rag.tracking.sqlite.path` is set; with `casehub.rag.tracking.enabled=true`, every `CaseRetriever` bean is tracked (`RetrievalRecorded` as application events) and retention runs. Same properties as `rag-tracking` |
 | `rag-testing` | `casehub-neocortex-rag-testing` | In-memory stubs: `EmbeddingIngestor`, `CaseRetriever`, `CursorStore`, `RetrievalTracker`, `RelevanceEvaluator` for `@QuarkusTest` |
 
 ### Fusion

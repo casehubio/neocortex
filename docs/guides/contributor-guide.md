@@ -36,7 +36,9 @@
 | `rag-tika/` | `casehub-neocortex-rag-tika` | JVM library | Apache Tika document parser — `TikaDocumentParser` extracts text + metadata from binary documents (PDF, DOCX, etc.) |
 | `rag-crossencoder/` | `casehub-neocortex-rag-crossencoder` | JVM library | Two CDI decorators: `CorrectiveCaseRetriever` (@Priority(100), grades chunks via `evaluateChunks()` polymorphically); `RerankingCaseRetriever` (@Priority(75), cross-encoder score re-ordering). `CrossEncoderRelevanceEvaluator` (ONNX reranker). `CrossEncoderBeanProducer` (cross-encoder when available, ColBERT fallback). `CragConfig` with ColBERT sub-group (separate thresholds). Config-gated: `casehub.rag.crag.enabled`, `casehub.rag.reranking.enabled` |
 | `rag-expansion/` | `casehub-neocortex-rag-expansion` | JVM library | `QueryExpandingCaseRetriever` @Decorator. Expanders: `LlmQueryExpander` (HyDE), `TemplateQueryExpander`, `StepBackQueryExpander`. Multi-query fan-out with RRF fusion. `NoOpQueryExpander` @DefaultBean. `ExpansionConfigValidator` startup warning. `ExpansionConfig`. Config: `casehub.rag.expansion.mode=llm|step-back|template` |
-| `rag-tracking/` | `casehub-neocortex-rag-tracking` | JVM library | `TrackingCaseRetriever` (@Decorator @Priority(40), stamps chunks with retrieval ID). `SqliteRetrievalTracker` (SQLite + HikariCP WAL + Flyway). `RetentionScheduler` (ScheduledExecutorService daemon, purge every 24h). CDI events: `RetrievalRecorded`. Config: `casehub.rag.tracking.enabled=true`, `casehub.rag.tracking.retention.days` (default 90) |
+| `rag-tracking-core/` | `casehub-neocortex-rag-tracking-core` | JVM library | Plain Java, no CDI/Spring. `SqliteRetrievalTracker` (public constructor, `AutoCloseable`; SQLite + HikariCP WAL + Flyway migrations `db/rag-tracking/migration`). `TrackingCaseRetriever` (plain decorator, stamps chunks with retrieval ID). `RetentionScheduler` (daemon thread, purge every 24h). `TrackingLogic` |
+| `rag-tracking/` | `casehub-neocortex-rag-tracking` | JVM library | Quarkus wiring over `rag-tracking-core`: `TrackingProducers` (`@Singleton` tracker from `casehub.rag.tracking.sqlite.*`), `TrackingCaseRetrieverDecorator` (@Decorator @Priority(40)), `RetentionSchedulerBean`. CDI events: `RetrievalRecorded`. Config: `casehub.rag.tracking.enabled=true`, `casehub.rag.tracking.retention.days` (default 90) |
+| `rag-tracking-spring/` | `casehub-neocortex-rag-tracking-spring` | JVM library | `RagTrackingAutoConfiguration`: tracker bean (`@ConditionalOnProperty` path, `@ConditionalOnMissingBean`), and with `enabled=true` a `BeanPostProcessor` wrapping `CaseRetriever` beans plus the retention scheduler. spring-generator drift check against `rag-tracking` |
 
 ### Corpus Modules
 
@@ -184,7 +186,7 @@ Static utility in `rag-api` — pure computation over `RetrievalTracker` data, n
 
 ### Retrieval Tracking
 
-SQLite-backed retrieval tracking in `rag-tracking/`. `TrackingCaseRetriever` (Decorator Priority 50) stamps chunks with retrieval ID. `SqliteRetrievalTracker` with HikariCP + Flyway migrations. `RetentionScheduler` for trace purging (ScheduledExecutorService daemon thread, 24h interval). CDI events: `RetrievalRecorded`.
+SQLite-backed retrieval tracking: plain classes in `rag-tracking-core/` (`TrackingCaseRetriever` stamps chunks with retrieval ID, `SqliteRetrievalTracker` with HikariCP + Flyway migrations, `RetentionScheduler` for trace purging on a 24h daemon thread), wired by `rag-tracking/` (Quarkus: `TrackingCaseRetrieverDecorator` @Priority(40), CDI events `RetrievalRecorded`) and `rag-tracking-spring/` (Spring Boot: same properties, application events).
 
 ### MemoryOrder.SALIENCE and Confidence
 
@@ -329,7 +331,7 @@ Entity references are embedded directly in stored text as inline tokens (`{{enti
 | 100 | `CorrectiveCaseRetriever` | rag-crossencoder |
 | 75 | `RerankingCaseRetriever` | rag-crossencoder |
 | 60 | `PayloadBoostCaseRetriever` | rag |
-| 50 | `TrackingCaseRetriever` | rag-tracking |
+| 40 | `TrackingCaseRetrieverDecorator` | rag-tracking |
 | (expansion) | `QueryExpandingCaseRetriever` | rag-expansion |
 
 **EmbeddingIngestor chain (rag):**
@@ -1472,7 +1474,9 @@ Complete property reference for all neocortex modules. Properties marked with `�
 | `casehub.rag.expansion.drift.threshold` | `0.7` | Cosine similarity threshold for drift |
 | `casehub.rag.expansion.drift.action` | `OBSERVE` | Drift action: `OBSERVE` or `DROP` |
 
-### RAG — Retrieval Tracking (rag-tracking)
+### RAG — Retrieval Tracking (rag-tracking, rag-tracking-spring)
+
+The same properties drive the Quarkus and Spring Boot modules.
 
 | Property | Default | Description |
 |----------|---------|-------------|
