@@ -54,7 +54,7 @@ Query → Expansion Decorator → CRAG Decorator → Tracking Decorator → Hybr
 |-------|--------|-------------|
 | **Query expansion** | `rag-expansion` | Pre-retrieval query transformation. HyDE (hypothetical documents), step-back prompting, template expansion. Decorator always includes the original query as a safety net alongside expansions. |
 | **Corrective RAG** | `rag-crag` | Post-retrieval quality grading. `RelevanceEvaluator` scores each chunk; INCORRECT chunks are filtered; search expands if quality is poor. Cross-encoder default evaluator. |
-| **Retrieval tracking** | `rag-tracking` | Records retrieval events for analysis. SQLite + HikariCP WAL + Flyway. Fires `RetrievalRecorded` CDI events. |
+| **Retrieval tracking** | `rag-tracking-core`, `rag-tracking`, `rag-tracking-spring` | Records retrieval events for analysis. SQLite + HikariCP WAL + Flyway. Framework-neutral core with Quarkus (`RetrievalRecorded` CDI events) and Spring Boot (application events) wiring. |
 | **Hybrid retrieval** | `rag` | Dense + sparse + BM25 + ColBERT fusion via Qdrant. Three fusion strategies (RRF, DBSF, CC). Per-leg embedding separation: dense uses expanded text, sparse/ColBERT use original vocabulary. |
 
 ### Per-leg embedding separation
@@ -128,7 +128,9 @@ Semantic text fields use `EmbeddingTextSimilarity` (`memory-cbr-embedding`) for 
 | `rag-testing/` | In-memory stubs for both blocking and reactive SPIs |
 | `rag-crag/` | Corrective RAG — `RelevanceEvaluator` grading, INCORRECT chunk filtering, search expansion |
 | `rag-expansion/` | Query expansion — HyDE, step-back, template, multi-query RRF. Original query always included. |
-| `rag-tracking/` | Retrieval event recording. SQLite + HikariCP. `RetrievalRecorded` CDI events. |
+| `rag-tracking-core/` | Retrieval event recording, framework-neutral. SQLite + HikariCP. |
+| `rag-tracking/` | Quarkus wiring for retrieval tracking. `RetrievalRecorded` CDI events. |
+| `rag-tracking-spring/` | Spring Boot auto-configuration for retrieval tracking. |
 | **Corpus** | |
 | `corpus-api/` | `CorpusStore`, `CorpusReader`, `ChangeSource`, `CorpusIntegrity` SPIs. Zero deps. |
 | `corpus/` | Zip4j rolling archives, chain manifest, compaction |
