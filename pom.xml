@@ -53,6 +53,7 @@
     <module>rag-expansion</module>
     <module>rag-tracking-core</module>
     <module>rag-tracking</module>
+    <module>rag-tracking-spring</module>
     <module>rag-scoring</module>
     <module>rag-query-augmentation</module>
     <module>rag-cache</module>
@@ -374,6 +375,11 @@
       <dependency>
         <groupId>io.casehub</groupId>
         <artifactId>casehub-neocortex-rag-tracking</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.casehub</groupId>
+        <artifactId>casehub-neocortex-rag-tracking-spring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
