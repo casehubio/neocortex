@@ -104,6 +104,51 @@ class SituationalPersonalityParticipantTest {
     }
 
     @Test
+    void trustAccessor_numericEffectOnDetection() {
+        appraisalAccessor.situationInputs = Map.of("threat-physical", 0.7, "threat-social", 0.6);
+        appraisalAccessor.secDimensions   = Map.of("relevance", 0.8, "conduciveness", 0.2);
+        moodAccessor.pleasure             = -0.3;
+        moodAccessor.arousal              = 0.5;
+        moodAccessor.dominance            = -0.2;
+
+        var modeConfigs = buildModeConfigsWithRelational();
+        var config      = SituationalPersonalityConfig.withDefaults(modeConfigs);
+
+        var withoutTrust = new SituationalPersonalityParticipant(
+                stateService, new SituationalDetector(config),
+                new PersonalityStateIntegrator(config.dynamics()),
+                config, effectiveDefaults,
+                appraisalAccessor, moodAccessor,
+                journalEntries::add, clock);
+
+        var contextNoTarget = contextWith(descriptorWithStressProfile());
+        withoutTrust.tick(contextNoTarget);
+        double intensityWithout = stateService.currentState(TENANT, AGENT).intensity(SituationalMode.STRESS);
+
+        var                                             stateService2 = new PersonalityStateService(new InMemoryMindMapStore(), FACETS);
+        SituationalPersonalityParticipant.TrustAccessor trust         = (self, other, tenant) -> 0.9;
+        var withTrust = new SituationalPersonalityParticipant(
+                stateService2, new SituationalDetector(config),
+                new PersonalityStateIntegrator(config.dynamics()),
+                config, effectiveDefaults,
+                appraisalAccessor, moodAccessor,
+                trust,
+                journalEntries::add, clock);
+
+        var contextWithTarget = new CognitionTickContext(AGENT, TENANT,
+                                                         descriptorWithStressProfile(), (a, t) -> Set.of(),
+                                                         "test observation", null, "other-agent", null, EventRef.tick(1));
+        withTrust.tick(contextWithTarget);
+        double intensityWith = stateService2.currentState(TENANT, AGENT).intensity(SituationalMode.STRESS);
+
+        assertThat(intensityWithout).isGreaterThan(0);
+        assertThat(intensityWith).isGreaterThan(0);
+        assertThat(intensityWith).as("trust should amplify stress via relational component")
+                                 .isGreaterThan(intensityWithout);
+    }
+
+
+    @Test
     void noSituationalProfilesSkipsPull() {
         appraisalAccessor.situationInputs = Map.of("threat-physical", 0.9);
         appraisalAccessor.secDimensions   = Map.of("relevance", 0.9);
@@ -401,6 +446,24 @@ class SituationalPersonalityParticipantTest {
 
         return Map.of(SituationalMode.STRESS, stressMode);
     }
+
+    private Map<SituationalMode, ModeDetectionConfig> buildModeConfigsWithRelational() {
+        var stressExo = List.<SignalConfig>of(
+                new SignalConfig.SituationInputSignal(
+                        List.of("threat-physical", "threat-social"),
+                        SignalConfig.Aggregation.MAX, 0.5),
+                new SignalConfig.MoodSignal("pleasure", SignalTransform.NEGATIVE_PART, 0.3),
+                new SignalConfig.MoodSignal("dominance", SignalTransform.NEGATIVE_PART, 0.2));
+        var stressEndo = List.<SignalConfig>of(
+                new SignalConfig.SecSignal(List.of(
+                        new SignalConfig.SecFactor("relevance", SignalTransform.IDENTITY),
+                        new SignalConfig.SecFactor("conduciveness", SignalTransform.COMPLEMENT)), 1.0));
+        var relational = new SignalConfig.RelationalConfig("trust", SignalTransform.IDENTITY);
+        var stressMode = new ModeDetectionConfig(SituationalMode.Group.AFFECTIVE,
+                                                 stressExo, stressEndo, relational, 0.3, 0.1, Duration.ofMinutes(5));
+        return Map.of(SituationalMode.STRESS, stressMode);
+    }
+
 
     // --- Stubs ---
 
