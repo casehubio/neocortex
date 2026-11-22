@@ -146,6 +146,13 @@ Planned short-run scenarios:
 | #1187 | TheoryOfMindBridgeDivergenceTest — 4 standalone Bayesian posterior tests | 2026-11-20 |
 | #1188 | TestAppraisalStrategy + withAppraisalEnabled + 2 tick-level appraisal tests | 2026-11-20 |
 | #1195 | Wire SituationClassifier for capsInputActivations divergence — 1 test | 2026-11-20 |
+| #964 | YAML round-trip test + fix for AgentDisposition.ampdFacets deserialization (eidos) | 2026-11-22 |
+| #1080 | AgentRegistryEvents → EffectiveCognitiveDefaults base invalidation (CDI observer) | 2026-11-22 |
+| #1189 | Unify LLM call paths in extract_structure.py (Python biographies) | 2026-11-22 |
+| #1190 | EdgeInferencePhase.parseRelationships edge-case tests (regex fragility) | 2026-11-22 |
+| #1193 | SituationalSnapshotAccessorProducer unit tests (3 tests) | 2026-11-22 |
+| #1194 | trustAccessor numeric effect verification (βR amplification) | 2026-11-22 |
+| #1196 | Standardise orchestrator ConcurrentHashMap key format (agentId:tenantId) | 2026-11-22 |
 
 ### Blocked
 
