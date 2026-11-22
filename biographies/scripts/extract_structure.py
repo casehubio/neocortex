@@ -290,20 +290,8 @@ def infer_cross_passage_edges(client, all_entities, all_memories, edge_dedup, to
                 f"  - {name_a} <-> {name_b} (co-occurs {info['count']}x): {ctx}")
 
         user_prompt = "Entity pairs to evaluate:\n" + '\n'.join(pairs_text)
-        try:
-            response = client.messages.create(
-                model=model_id(),
-                max_tokens=4096,
-                system=CROSS_PASSAGE_EDGE_SYSTEM,
-                messages=[{'role': 'user', 'content': user_prompt}],
-            )
-            text = response.content[0].text
-            start = text.find('{')
-            end = text.rfind('}') + 1
-            result = json.loads(text[start:end]) if start >= 0 and end > start else {}
-        except Exception as e:
-            print(f"    Warning: cross-passage edge inference failed: {e}", file=sys.stderr)
-            result = {}
+        result = call_llm(client, CROSS_PASSAGE_EDGE_SYSTEM, None, None,
+                          'cross-passage edges', user_prompt=user_prompt)
         new_edges = result.get('edges', [])
         for edge in new_edges:
             if not edge.get('source') or not edge.get('target') or not edge.get('type'):
@@ -321,14 +309,15 @@ def infer_cross_passage_edges(client, all_entities, all_memories, edge_dedup, to
 
 
 def call_llm(client, system_prompt, passage_text, candidates_text, chunk_name,
-             entity_context=None):
+             entity_context=None, user_prompt=None):
     """Make a single focused LLM call and parse JSON response."""
-    sections = [f"Passage:\n\n{passage_text}\n\n---"]
-    sections.append(f"NLP candidate entities:\n{candidates_text if candidates_text else '  (none)'}")
-    if entity_context is not None:
-        sections.append(f"Extracted entities (use these as source/target for edges):\n{entity_context}")
-    sections.append(f"Extract {chunk_name} from this passage.")
-    user_prompt = '\n\n'.join(sections)
+    if user_prompt is None:
+        sections = [f"Passage:\n\n{passage_text}\n\n---"]
+        sections.append(f"NLP candidate entities:\n{candidates_text if candidates_text else '  (none)'}")
+        if entity_context is not None:
+            sections.append(f"Extracted entities (use these as source/target for edges):\n{entity_context}")
+        sections.append(f"Extract {chunk_name} from this passage.")
+        user_prompt = '\n\n'.join(sections)
 
     try:
         response = client.messages.create(
@@ -396,21 +385,8 @@ Respond with JSON only: {"entities": [], "edges": [], "memories": []}"""
 
 def call_convergence_llm(client, system_prompt, user_prompt, entity_name):
     """Make a single convergence extraction LLM call — direct prompt, no template."""
-    try:
-        response = client.messages.create(
-            model=model_id(),
-            max_tokens=4096,
-            system=system_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
-        )
-        text = response.content[0].text
-        start = text.find('{')
-        end = text.rfind('}') + 1
-        if start >= 0 and end > start:
-            return json.loads(text[start:end])
-    except Exception as e:
-        print(f"    Warning: convergence extraction failed for {entity_name}: {e}", file=sys.stderr)
-    return {}
+    return call_llm(client, system_prompt, None, None,
+                    f'convergence/{entity_name}', user_prompt=user_prompt)
 
 
 def group_memories_by_entity(memories: list) -> dict[str, list]:
