@@ -93,6 +93,11 @@ public class EffectiveCognitiveDefaults {
         }
     }
 
+    public void invalidateBase(String tenantId, String agentId) {
+        incrementBaseVersion(new TenantAgentKey(tenantId, agentId));
+    }
+
+
     public static EffectiveCognitiveDefaults forTesting(CognitiveDefaults... profiles) {
         var registry = CognitiveDefaultsRegistry.forTesting(profiles);
         var viewSource = new DescriptorViewSource() {
