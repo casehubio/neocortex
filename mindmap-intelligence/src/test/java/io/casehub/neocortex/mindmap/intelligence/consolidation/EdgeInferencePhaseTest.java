@@ -415,6 +415,62 @@ class EdgeInferencePhaseTest {
         assertThat(mindMapStore.neighbors(aliceId, TENANT)).hasSize(1);
     }
 
+    @Test
+    void parseRelationships_standardKeyOrder() {
+        var json = """
+                   {"relationships": [
+                       {"source": "Alice", "target": "Bob", "type": "collaborated-with"},
+                       {"source": "Carol", "target": "Dave", "type": "parent-of"}
+                   ]}""";
+        var result = EdgeInferencePhase.parseRelationships(json);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).source()).isEqualTo("Alice");
+        assertThat(result.get(0).target()).isEqualTo("Bob");
+        assertThat(result.get(0).type()).isEqualTo("collaborated-with");
+        assertThat(result.get(1).source()).isEqualTo("Carol");
+        assertThat(result.get(1).target()).isEqualTo("Dave");
+    }
+
+    @Test
+    void parseRelationships_differentKeyOrder() {
+        var json = """
+                   {"relationships": [
+                       {"type": "married-to", "source": "Alice", "target": "Bob"}
+                   ]}""";
+        var result = EdgeInferencePhase.parseRelationships(json);
+        assertThat(result).as("regex assumes source,target,type order — different order fails")
+                          .isEmpty();
+    }
+
+    @Test
+    void parseRelationships_malformedJson() {
+        var json = """
+                   {"relationships": [
+                       {"source": "Alice", "target": "Bob", "type": "kno""";
+        var result = EdgeInferencePhase.parseRelationships(json);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void parseRelationships_emptyArray() {
+        var json = """
+                   {"relationships": []}""";
+        var result = EdgeInferencePhase.parseRelationships(json);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void parseRelationships_escapedQuotesInEntityNames() {
+        var json = """
+                   {"relationships": [
+                       {"source": "Alice \\"The Great\\"", "target": "Bob", "type": "knows"}
+                   ]}""";
+        var result = EdgeInferencePhase.parseRelationships(json);
+        assertThat(result).as("escaped quotes break [^\"] character class")
+                          .isEmpty();
+    }
+
+
     static class TestableEdgeInferencePhase extends EdgeInferencePhase {
         private final List<ParsedRelationship> fixedResponse;
 
