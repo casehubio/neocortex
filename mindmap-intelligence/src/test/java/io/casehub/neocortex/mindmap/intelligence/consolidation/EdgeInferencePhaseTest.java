@@ -341,7 +341,7 @@ class EdgeInferencePhaseTest {
         var carolEdges = mindMapStore.neighbors(carol.id(), TENANT);
         assertThat(carolEdges)
             .as("embedding candidates should be excluded when co-occurrence fills maxCandidates")
-            .hasSizeLessThanOrEqualTo(1);
+            .isEmpty();
     }
 
     private EdgeInferencePhase embeddingPhase(int degreeThreshold, int maxCandidates,
