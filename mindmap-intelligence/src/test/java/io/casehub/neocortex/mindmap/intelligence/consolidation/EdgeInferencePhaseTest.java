@@ -522,8 +522,10 @@ class EdgeInferencePhaseTest {
                        {"type": "married-to", "source": "Alice", "target": "Bob"}
                    ]}""";
         var result = EdgeInferencePhase.parseRelationships(json);
-        assertThat(result).as("regex assumes source,target,type order — different order fails")
-                          .isEmpty();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().source()).isEqualTo("Alice");
+        assertThat(result.getFirst().target()).isEqualTo("Bob");
+        assertThat(result.getFirst().type()).isEqualTo("married-to");
     }
 
     @Test
@@ -550,8 +552,9 @@ class EdgeInferencePhaseTest {
                        {"source": "Alice \\"The Great\\"", "target": "Bob", "type": "knows"}
                    ]}""";
         var result = EdgeInferencePhase.parseRelationships(json);
-        assertThat(result).as("escaped quotes break [^\"] character class")
-                          .isEmpty();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().source()).isEqualTo("Alice \"The Great\"");
+        assertThat(result.getFirst().target()).isEqualTo("Bob");
     }
 
 
