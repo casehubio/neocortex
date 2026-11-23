@@ -17,6 +17,7 @@ import io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults;
 import io.casehub.neocortex.memory.mood.MoodState;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -589,7 +590,7 @@ class SearchBudgetTickParticipantTest {
         participant.tick(context());
         assertTrue(participant.currentBudget(AGENT, TENANT).isPresent());
 
-        participant.evictIdle(java.time.Duration.ZERO);
+        participant.evictIdle(Duration.ZERO);
 
         assertTrue(participant.currentBudget(AGENT, TENANT).isEmpty());
     }

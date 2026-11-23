@@ -4,6 +4,7 @@ import io.casehub.neocortex.cognition.drive.DriveAxis;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +169,7 @@ class NarrativeOrchestratorTest {
         orchestrator.tick("agent-1", "tenant-1");
         assertThat(orchestrator.currentNarrative("agent-1", "tenant-1")).isPresent();
 
-        orchestrator.evictIdle(java.time.Duration.ZERO);
+        orchestrator.evictIdle(Duration.ZERO);
 
         assertThat(orchestrator.currentNarrative("agent-1", "tenant-1")).isEmpty();
     }

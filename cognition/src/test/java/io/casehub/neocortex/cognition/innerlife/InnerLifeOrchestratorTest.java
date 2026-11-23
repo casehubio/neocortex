@@ -14,6 +14,7 @@ import io.smallrye.mutiny.Multi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -208,7 +209,7 @@ class InnerLifeOrchestratorTest {
         when(driveOrchestrator.currentDrives("agent-1", "tenant-1"))
                 .thenReturn(java.util.Optional.of(driveProfile));
 
-        var nvConfig = new NonVerbalConfig(java.time.Duration.ofMillis(1), 0.6, "knock");
+        var nvConfig = new NonVerbalConfig(Duration.ofMillis(1), 0.6, "knock");
         var config = new InnerLifeConfig(
                 InnerLifeConfig.DEFAULT_MOTIVATION_THRESHOLD,
                 ContentQualityGate.defaults(),
@@ -252,7 +253,7 @@ class InnerLifeOrchestratorTest {
         when(driveOrchestrator.currentDrives("agent-1", "tenant-1"))
                 .thenReturn(java.util.Optional.of(driveProfile));
 
-        var nvConfig = new NonVerbalConfig(java.time.Duration.ofMillis(1), 0.6, "knock");
+        var nvConfig = new NonVerbalConfig(Duration.ofMillis(1), 0.6, "knock");
         var config = new InnerLifeConfig(
                 InnerLifeConfig.DEFAULT_MOTIVATION_THRESHOLD,
                 ContentQualityGate.defaults(),
@@ -352,7 +353,7 @@ class InnerLifeOrchestratorTest {
         orch.observe(event("test observation"), descriptor);
         orch.tick(descriptor, "context");
 
-        orch.evictIdle(java.time.Duration.ZERO);
+        orch.evictIdle(Duration.ZERO);
 
         // After eviction, reportDropped sees no state and does not throw
         orch.reportDropped("agent-1", "tenant-1", java.time.Instant.now());

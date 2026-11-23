@@ -12,6 +12,7 @@ import io.casehub.neocortex.memory.mood.MoodState;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -248,7 +249,7 @@ class GutFeelingParticipantTest {
 
         assertThat(participant.currentResult("a1", "t1")).isPresent();
 
-        participant.evictIdle(java.time.Duration.ZERO);
+        participant.evictIdle(Duration.ZERO);
 
         assertThat(participant.currentResult("a1", "t1")).isEmpty();
     }
