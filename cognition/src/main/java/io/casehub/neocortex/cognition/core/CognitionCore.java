@@ -830,7 +830,7 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
             sections.add(new BehavioralPromptSection(mindMapStore, gutFeelingParticipant));
         }
         if (config.dissonanceEnabled() && dissonancePhase != null) {
-            var tensions = dissonancePhase.activeTensions(lastAgentId, lastTenantId);
+            var tensions = dissonancePhase.activeTensionSnapshots(lastAgentId, lastTenantId);
             if (!tensions.isEmpty()) {
                 sections.add(new io.casehub.neocortex.cognition.dissonance.DissonancePromptSection(
                         tensions, dissonancePhase.config()));

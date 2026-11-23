@@ -3,6 +3,7 @@ package io.casehub.neocortex.cognition.dissonance;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
@@ -57,6 +58,7 @@ class DissonanceTickParticipantTest {
 
     private TensionSnapshot snapshot(double strength) {
         return new TensionSnapshot("n1", "belief-belief",
-            "a", "b", "text-a", "text-b", strength, "reason");
+                                   "a", "b", "text-a", "text-b", strength, "reason",
+                                   Map.of(), Map.of());
     }
 }

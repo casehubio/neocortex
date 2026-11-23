@@ -4,6 +4,7 @@ import io.casehub.neocortex.cognition.prompt.BlockTag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,7 @@ class DissonancePromptSectionTest {
             "n1", "belief-belief", "a", "b",
             "I am a loyal friend",
             "I would betray anyone for power",
-            0.85, "reason"));
+            0.85, "reason", Map.of(), Map.of()));
         var section = new DissonancePromptSection(tensions, CONFIG);
         var text = section.render(null);
         assertThat(text).contains("loyal friend");
@@ -32,7 +33,7 @@ class DissonancePromptSectionTest {
             "n1", "belief-behavior", "a", "b",
             "honesty matters",
             "deliberate_provocation (driven by dominance)",
-            0.70, "reason"));
+            0.70, "reason", Map.of(), Map.of()));
         var section = new DissonancePromptSection(tensions, CONFIG);
         var text = section.render(null);
         assertThat(text).contains("pattern of");
@@ -42,7 +43,7 @@ class DissonancePromptSectionTest {
     void filtersBelowRenderingThreshold() {
         var tensions = List.of(
             new TensionSnapshot("n1", "belief-belief", "a", "b",
-                "belief-a", "belief-b", 0.20, "reason"));
+                "belief-a", "belief-b", 0.20, "reason", Map.of(), Map.of()));
         var section = new DissonancePromptSection(tensions, CONFIG);
         var text = section.render(null);
         assertThat(text).isNull();
@@ -52,9 +53,9 @@ class DissonancePromptSectionTest {
     void sortsStrongestFirst() {
         var tensions = List.of(
             new TensionSnapshot("n1", "belief-belief", "a", "b",
-                "weak-a", "weak-b", 0.4, "r"),
+                "weak-a", "weak-b", 0.4, "r", Map.of(), Map.of()),
             new TensionSnapshot("n2", "belief-belief", "c", "d",
-                "strong-a", "strong-b", 0.9, "r"));
+                "strong-a", "strong-b", 0.9, "r", Map.of(), Map.of()));
         var section = new DissonancePromptSection(tensions, CONFIG);
         var text = section.render(null);
         assertThat(text.indexOf("strong")).isLessThan(text.indexOf("weak"));
@@ -80,6 +81,7 @@ class DissonancePromptSectionTest {
 
     private TensionSnapshot snapshot(double strength, String a, String b) {
         return new TensionSnapshot("n", "belief-belief",
-            "id-" + a, "id-" + b, a, b, strength, "r");
+                                   "id-" + a, "id-" + b, a, b, strength, "r",
+                                   Map.of(), Map.of());
     }
 }

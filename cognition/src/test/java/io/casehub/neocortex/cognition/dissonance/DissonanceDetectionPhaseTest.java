@@ -165,11 +165,29 @@ class DissonanceDetectionPhaseTest {
             "belief-1", "I am kind", "belief-2", "I enjoy cruelty", 0.85));
         phase.run(TENANT, List.of());
 
-        var cached = phase.activeTensions(AGENT, TENANT);
+        var cached = phase.activeTensionSnapshots(AGENT, TENANT);
         assertThat(cached).hasSize(1);
         assertThat(cached.getFirst().strength()).isCloseTo(0.85,
             org.assertj.core.data.Offset.offset(0.001));
     }
+
+    @Test
+    void spiReturnsCapsActivationsFromCache() {
+        seedBeliefs("I am kind", "I enjoy cruelty");
+        response.set(contradictionJson(
+                "belief-1", "I am kind", "belief-2", "I enjoy cruelty", 0.85));
+        phase.run(TENANT, List.of());
+
+        DissonanceActivationSource source      = phase;
+        var                        activations = source.activeTensions(TENANT + ":" + AGENT);
+        assertThat(activations).hasSize(1);
+        var ta = activations.get(0);
+        assertThat(ta.strength()).isCloseTo(0.85,
+                                            org.assertj.core.data.Offset.offset(0.001));
+        assertThat(ta.capsActivationsA()).containsEntry("acceptance", 0.7);
+        assertThat(ta.capsActivationsB()).containsEntry("dominance", 0.8);
+    }
+
 
     // --- helpers ---
 

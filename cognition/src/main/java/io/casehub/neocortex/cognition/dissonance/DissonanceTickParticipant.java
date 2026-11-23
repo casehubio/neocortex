@@ -23,7 +23,7 @@ public class DissonanceTickParticipant implements CognitionTickParticipant {
 
     @Override
     public void tick(CognitionTickContext context) {
-        var tensions = phase.activeTensions(context.agentId(), context.tenantId());
+        var tensions = phase.activeTensionSnapshots(context.agentId(), context.tenantId());
         if (tensions.isEmpty()) return;
 
         var deltas = computePadDeltas(tensions, config);
