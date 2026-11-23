@@ -206,19 +206,19 @@ class SituationalPersonalityIntegrationTest {
                 new AmpdFacetShift("Anxiousness", 15),
                 new AmpdFacetShift("Emotional Lability", 10),
                 new AmpdFacetShift("Hostility", 5)
-        ), "estimated");
+                                                                    ), "estimated");
 
-        return new AgentDescriptor(AGENT, "Frida", "Artist", "1.0", null, null, null, null,
-                null, null, null, null, null, "test-slot", null, "creator-artist", null, null,
-                List.of(),
-                AgentDisposition.builder()
-                        .ampdFacets(List.of(
-                                new AmpdFacet("Anxiousness", 62),
-                                new AmpdFacet("Emotional Lability", 55),
-                                new AmpdFacet("Hostility", 30)))
-                        .situationalProfiles(stressProfile)
-                        .build(),
-                null, null, TENANT, null, null, null, List.of(), List.of(), List.of(), Map.of(), null);
+        return AgentDescriptor.builder()
+                              .agentId(AGENT).name("Frida").description("Artist").version("1.0")
+                              .slot("test-slot").archetype("creator-artist").tenancyId(TENANT)
+                              .disposition(AgentDisposition.builder()
+                                                           .ampdFacets(List.of(
+                                                                   new AmpdFacet("Anxiousness", 62),
+                                                                   new AmpdFacet("Emotional Lability", 55),
+                                                                   new AmpdFacet("Hostility", 30)))
+                                                           .situationalProfiles(stressProfile)
+                                                           .build())
+                              .build();
     }
 
     private Map<SituationalMode, ModeDetectionConfig> buildModeConfigs() {
