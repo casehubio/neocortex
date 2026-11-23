@@ -11,6 +11,7 @@ public enum BlockTag {
     // Tier 2 — State (how you feel right now)
     MOOD(200),
     DRIVES(210),
+    DISSONANCE(212),
     CURIOSITY(215),
     APPRAISAL(220),
     NEEDS(230),
