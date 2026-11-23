@@ -57,6 +57,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
     private final CbrRecordStore cbrRecordStore;
     private final java.util.Set<String> pid5FacetSet;
     private final io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor snapshotAccessor;
+    private final io.casehub.neocortex.cognition.dissonance.DissonanceActivationSource   dissonanceActivationSource;
 
 
     private final java.util.concurrent.ConcurrentHashMap<String, io.casehub.neocortex.caps.SettlingResult> lastSettlingResults = new java.util.concurrent.ConcurrentHashMap<>();
@@ -71,19 +72,21 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                     Instance<BehavioralSynthesisConfig> config,
                                     Instance<CbrRecordStore> cbrRecordStore,
                                     Instance<Pid5FacetsConfig> pid5Config,
-                                    Instance<io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor> snapshotAccessor) {
+                                    Instance<io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor> snapshotAccessor,
+                                    Instance<io.casehub.neocortex.cognition.dissonance.DissonanceActivationSource> dissonanceActivationSource) {
         this.store             = store;
         this.capsEngine        = capsEngine.isResolvable() ? capsEngine.get() : null;
         this.classifier        = classifier.isResolvable() ? classifier.get() : null;
         this.effectiveDefaults = effectiveDefaults.isResolvable() ? effectiveDefaults.get() : null;
         BehavioralSynthesisConfig c = config.isResolvable() ? config.get() : null;
-        this.maxPerPass            = c != null ? c.maxPerPass() : 20;
-        this.emaRetention          = c != null ? c.emaRetention() : 0.5;
-        this.reinforcementBoostCap = c != null ? c.reinforcementBoostCap() : 0.5;
-        this.reinforcementScale    = c != null ? c.reinforcementScale() : 20;
-        this.cbrRecordStore        = cbrRecordStore.isResolvable() ? cbrRecordStore.get() : null;
-        this.pid5FacetSet          = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
-        this.snapshotAccessor      = snapshotAccessor.isResolvable() ? snapshotAccessor.get() : null;
+        this.maxPerPass                 = c != null ? c.maxPerPass() : 20;
+        this.emaRetention               = c != null ? c.emaRetention() : 0.5;
+        this.reinforcementBoostCap      = c != null ? c.reinforcementBoostCap() : 0.5;
+        this.reinforcementScale         = c != null ? c.reinforcementScale() : 20;
+        this.cbrRecordStore             = cbrRecordStore.isResolvable() ? cbrRecordStore.get() : null;
+        this.pid5FacetSet               = pid5Config.isResolvable() ? pid5Config.get().pid5FacetSet() : null;
+        this.snapshotAccessor           = snapshotAccessor.isResolvable() ? snapshotAccessor.get() : null;
+        this.dissonanceActivationSource = dissonanceActivationSource.isResolvable() ? dissonanceActivationSource.get() : null;
     }
 
     public BehavioralSynthesisPhase(MindMapStore store,
@@ -117,17 +120,18 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
                                     CbrRecordStore cbrRecordStore,
                                     io.casehub.neocortex.cognitive.index.EffectiveCognitiveDefaults effectiveDefaults,
                                     io.casehub.neocortex.cognition.situational.SituationalSnapshotAccessor snapshotAccessor) {
-        this.store                 = store;
-        this.capsEngine            = capsEngine;
-        this.classifier            = classifier;
-        this.effectiveDefaults     = effectiveDefaults;
-        this.maxPerPass            = maxPerPass;
-        this.emaRetention          = 0.5;
-        this.reinforcementBoostCap = 0.5;
-        this.reinforcementScale    = 20;
-        this.cbrRecordStore        = cbrRecordStore;
-        this.pid5FacetSet          = null;
-        this.snapshotAccessor      = snapshotAccessor;
+        this.store                      = store;
+        this.capsEngine                 = capsEngine;
+        this.classifier                 = classifier;
+        this.effectiveDefaults          = effectiveDefaults;
+        this.maxPerPass                 = maxPerPass;
+        this.emaRetention               = 0.5;
+        this.reinforcementBoostCap      = 0.5;
+        this.reinforcementScale         = 20;
+        this.cbrRecordStore             = cbrRecordStore;
+        this.pid5FacetSet               = null;
+        this.snapshotAccessor           = snapshotAccessor;
+        this.dissonanceActivationSource = null;
     }
 
 
@@ -195,6 +199,7 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
 
             Map<String, Double> combinedActivations = new HashMap<>(experienceActivations);
             mergeDriveIntensities(combinedActivations, agentId, tenantId);
+            mergeDissonanceActivations(combinedActivations, agentId, tenantId);
 
             if (combinedActivations.isEmpty()) continue;
 
@@ -528,6 +533,35 @@ public class BehavioralSynthesisPhase implements ConsolidationPhase {
             }
         }
     }
+
+    private void mergeDissonanceActivations(Map<String, Double> combinedActivations,
+                                            String agentId, String tenantId) {
+        if (dissonanceActivationSource == null) {
+            return;
+        }
+
+        String cacheKey = tenantId + ":" + agentId;
+        var    tensions = dissonanceActivationSource.activeTensions(cacheKey);
+        if (tensions == null || tensions.isEmpty()) {
+            return;
+        }
+
+        for (var tension : tensions) {
+            double strength = tension.strength();
+            mergeActivationMap(combinedActivations, tension.capsActivationsA(), strength);
+            mergeActivationMap(combinedActivations, tension.capsActivationsB(), strength);
+        }
+    }
+
+    private static void mergeActivationMap(Map<String, Double> target,
+                                           Map<String, Double> source, double scale) {
+        if (source == null) {return;}
+        for (var entry : source.entrySet()) {
+            double scaled = entry.getValue() * scale;
+            target.merge(entry.getKey(), scaled, Math::max);
+        }
+    }
+
 
     private String findOrCreateBehavioralSubgraph(String tenantId) {
         return store.listSubgraphs(tenantId).stream()
