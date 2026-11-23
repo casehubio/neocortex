@@ -196,13 +196,13 @@ public class SituationalPersonalityParticipant implements CognitionTickParticipa
             String agentId, String tenantId, java.time.Instant now,
             java.util.List<io.casehub.eidos.api.SituationalProfile> profiles) {
         var store = this.mindMapStore;
-        if (store == null) {return java.util.Map.of();}
+        if (store == null) {return Map.of();}
 
         var personNodes = store.search(
                 io.casehub.neocortex.mindmap.MindMapQuery.of(tenantId, 10)
                                                          .withType(io.casehub.neocortex.mindmap.SubgraphTypes.PERSON)
                                                          .withText(agentId));
-        if (personNodes.isEmpty()) {return java.util.Map.of();}
+        if (personNodes.isEmpty()) {return Map.of();}
         var personNode = personNodes.getFirst();
 
         String phase         = io.casehub.neocortex.mindmap.DevelopmentalPhaseResolver.resolvePhase(personNode, now);

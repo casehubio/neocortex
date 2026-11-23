@@ -14,6 +14,7 @@ import io.casehub.neocortex.cognitive.index.DispositionAxes;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,7 +64,7 @@ public class CopingMicroLoop {
                                          @Nullable DispositionAxes axes,
                                          @Nullable CognitiveLoadLevel cognitiveLoad) {
         return execute(appraisalContext, appraisalResult, copingDefaults, axes, cognitiveLoad,
-                       null, java.util.Map.of());
+                       null, Map.of());
     }
 
     public @Nullable CopingState execute(AppraisalContext appraisalContext,
@@ -73,7 +74,7 @@ public class CopingMicroLoop {
                                          @Nullable CognitiveLoadLevel cognitiveLoad,
                                          @Nullable String tenantId) {
         return execute(appraisalContext, appraisalResult, copingDefaults, axes, cognitiveLoad,
-                       tenantId, java.util.Map.of());
+                       tenantId, Map.of());
     }
 
     public @Nullable CopingState execute(AppraisalContext appraisalContext,

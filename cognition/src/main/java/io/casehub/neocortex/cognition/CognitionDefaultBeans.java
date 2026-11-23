@@ -1,12 +1,12 @@
 package io.casehub.neocortex.cognition;
 
 import io.casehub.neocortex.cognition.belief.BeliefRevisionConfig;
-import io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig;
 import io.casehub.neocortex.cognition.core.CognitiveImpact;
 import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
 import io.casehub.neocortex.cognition.core.DefaultCognitiveResourcePool;
 import io.casehub.neocortex.cognition.core.InteractionMapper;
 import io.casehub.neocortex.cognition.core.SubjectResolver;
+import io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig;
 import io.casehub.neocortex.cognition.drive.DriveConfig;
 import io.casehub.neocortex.cognition.emergence.NormDetectionConfig;
 import io.casehub.neocortex.cognition.emergence.NormFilter;
@@ -40,6 +40,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
+import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
@@ -386,7 +387,7 @@ public class CognitionDefaultBeans {
     @DefaultBean
     @Singleton
     ConfidenceScorer confidenceScorer() {
-        return new io.casehub.neocortex.cognition.memory.CompositeConfidenceScorer(java.util.List.of(
+        return new io.casehub.neocortex.cognition.memory.CompositeConfidenceScorer(List.of(
                 new io.casehub.neocortex.cognition.memory.WeightedScorer(
                         new io.casehub.neocortex.cognition.memory.ArousalScorer(), 1.0),
                 new io.casehub.neocortex.cognition.memory.WeightedScorer(
@@ -399,9 +400,9 @@ public class CognitionDefaultBeans {
     IntegrityChecker integrityChecker(
             Instance<CbrRecordStore> cbrStore,
             SemanticIntegrityChecker semanticChecker) {
-        if (!cbrStore.isResolvable()) {return (agentId, tenantId, domain) -> java.util.List.of();}
+        if (!cbrStore.isResolvable()) {return (agentId, tenantId, domain) -> List.of();}
         return new io.casehub.neocortex.cognition.memory.DefaultIntegrityChecker(
-                cbrStore.get(), semanticChecker, java.util.List.of());
+                cbrStore.get(), semanticChecker, List.of());
     }
 
     @Produces

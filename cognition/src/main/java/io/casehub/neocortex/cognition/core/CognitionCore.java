@@ -756,10 +756,10 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
 
     public java.util.Map<String, Double> driveIntensities() {
         if (drives == null || lastAgentId == null || lastTenantId == null) {
-            return java.util.Map.of();
+            return Map.of();
         }
         var profileOpt = drives.currentDrives(lastAgentId, lastTenantId);
-        if (profileOpt.isEmpty()) return java.util.Map.of();
+        if (profileOpt.isEmpty()) return Map.of();
         var intensities = new java.util.LinkedHashMap<String, Double>();
         for (var di : profileOpt.get().drives().entrySet()) {
             intensities.put(di.getKey().name().toLowerCase(), di.getValue().intensity());
@@ -769,7 +769,7 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
 
     public java.util.List<io.casehub.neocortex.cognition.drive.DriveEvaluation> driveEvaluations() {
         if (drives == null || lastAgentId == null || lastTenantId == null) {
-            return java.util.List.of();
+            return List.of();
         }
         double threshold = appraisalParticipant != null
                            ? appraisalParticipant.thresholds().driveActivationThreshold()
@@ -1061,7 +1061,7 @@ public @Nullable String lastTargetAgentId() {
                     public java.util.Map<String, Double> currentSecDimensions(String agentId, String tenantId) {
                         return appraisalParticipant.currentResult(agentId, tenantId)
                                                    .map(io.casehub.neocortex.cognition.appraisal.AppraisalResult::secDimensions)
-                                                   .orElse(java.util.Map.of());
+                                                   .orElse(Map.of());
                     }
                 };
 

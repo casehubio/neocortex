@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 @Priority(46)
@@ -100,7 +101,7 @@ public class SituationalDeformationPhase implements ConsolidationPhase {
 
     private java.util.Map<String, Double> resolveBaselines(String tenantId, String agentId) {
         var defaults = effectiveDefaults.forAgent(tenantId, agentId);
-        if (defaults == null || defaults.descriptor() == null) {return java.util.Map.of();}
+        if (defaults == null || defaults.descriptor() == null) {return Map.of();}
         var baselines = new java.util.LinkedHashMap<String, Double>();
         for (var facet : defaults.descriptor().personalityFacets()) {
             baselines.put(facet.facet(), facet.score());

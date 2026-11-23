@@ -6,13 +6,14 @@ import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.cognition.trace.PipelineTrace;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Set;
 import java.util.function.BiFunction;
 
 public class ShadowArchetypePromptSection implements CognitionPromptRenderer {
 
     @FunctionalInterface
     public interface ModeProfileResolver {
-        java.util.Set<String> resolve(String agentId, String tenantId, String mode);
+        Set<String> resolve(String agentId, String tenantId, String mode);
     }
 
     private final           BiFunction<String, String, java.util.Optional<PipelineTrace.SituationalPersonalitySnapshot>> snapshotAccessor;
@@ -60,9 +61,9 @@ public class ShadowArchetypePromptSection implements CognitionPromptRenderer {
             sb.append(" (intensity ").append(String.format("%.0f%%", intensity * 100)).append(").\n");
         }
 
-        java.util.Set<String> modeProfileFacets = activeMode != null && modeProfileResolver != null
+        Set<String> modeProfileFacets = activeMode != null && modeProfileResolver != null
                                                   ? modeProfileResolver.resolve(context.agentId(), context.tenantId(), activeMode)
-                                                  : java.util.Set.of();
+                                                  : Set.of();
 
         String dominantAttractor = store != null
                                    ? resolveDominantAttractor(context.agentId(), context.tenantId()) : null;
