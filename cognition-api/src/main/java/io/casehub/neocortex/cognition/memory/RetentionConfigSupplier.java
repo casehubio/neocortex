@@ -7,4 +7,8 @@ public interface RetentionConfigSupplier {
     default RetentionConfig current(String tenantId) {
         return current();
     }
+
+    default RetentionConfig current(String tenantId, String agentId) {
+        return current(tenantId);
+    }
 }

@@ -7,9 +7,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @ApplicationScoped
 public class AdaptiveRetentionConfig implements RetentionConfigSupplier {
-    private final AtomicReference<RetentionConfig>           globalConfig  =
+    private final AtomicReference<RetentionConfig>                                      globalConfig  =
             new AtomicReference<>(RetentionConfig.DEFAULT);
-    private final ConcurrentHashMap<String, RetentionConfig> tenantConfigs =
+    private final ConcurrentHashMap<String, RetentionConfig>                            tenantConfigs =
+            new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ConcurrentHashMap<String, RetentionConfig>> agentConfigs  =
             new ConcurrentHashMap<>();
 
     @Override
@@ -22,6 +24,16 @@ public class AdaptiveRetentionConfig implements RetentionConfigSupplier {
         return tenantConfigs.getOrDefault(tenantId, globalConfig.get());
     }
 
+    @Override
+    public RetentionConfig current(String tenantId, String agentId) {
+        var perAgent = agentConfigs.get(tenantId);
+        if (perAgent != null) {
+            var config = perAgent.get(agentId);
+            if (config != null) {return config;}
+        }
+        return current(tenantId);
+    }
+
     public void update(RetentionConfig newConfig) {
         globalConfig.set(newConfig);
     }
@@ -30,7 +42,13 @@ public class AdaptiveRetentionConfig implements RetentionConfigSupplier {
         tenantConfigs.put(tenantId, newConfig);
     }
 
+    public void update(String tenantId, String agentId, RetentionConfig newConfig) {
+        agentConfigs.computeIfAbsent(tenantId, k -> new ConcurrentHashMap<>())
+                    .put(agentId, newConfig);
+    }
+
     public void evictAbsent(Set<String> activeTenantIds) {
         tenantConfigs.keySet().retainAll(activeTenantIds);
+        agentConfigs.keySet().retainAll(activeTenantIds);
     }
 }
