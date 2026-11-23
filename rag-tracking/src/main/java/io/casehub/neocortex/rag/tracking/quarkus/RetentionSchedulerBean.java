@@ -3,13 +3,18 @@ package io.casehub.neocortex.rag.tracking.quarkus;
 import io.casehub.neocortex.rag.RetrievalTracker;
 import io.casehub.neocortex.rag.tracking.RetentionScheduler;
 import io.quarkus.arc.properties.IfBuildProperty;
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-/** Runs the core {@link RetentionScheduler} for the bean's lifetime. */
+/**
+ * Runs the core {@link RetentionScheduler} for the bean's lifetime. {@link Startup}: nothing injects
+ * this bean, so without it ArC would remove it as unused and the purge would never be scheduled.
+ */
+@Startup
 @ApplicationScoped
 @IfBuildProperty(name = "casehub.rag.tracking.enabled", stringValue = "true")
 public class RetentionSchedulerBean {
