@@ -127,6 +127,8 @@ public class CognitionCore implements io.casehub.neocortex.cognition.prompt.Cogn
     private volatile io.casehub.neocortex.cognition.subthought.SubThoughtTickParticipant subThoughtParticipant;
     private volatile io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant regulationParticipant;
     private volatile io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalPersonalityParticipant situationalPersonalityParticipant;
+    private volatile io.casehub.neocortex.cognition.dissonance.@org.jspecify.annotations.Nullable DissonanceDetectionPhase           dissonancePhase;
+    private volatile io.casehub.neocortex.cognition.dissonance.@org.jspecify.annotations.Nullable DissonanceTickParticipant          dissonanceParticipant;
 
 
     private volatile @Nullable Consumer<MoodState> moodPersister;
@@ -827,6 +829,13 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
         if (config.behavioralEnabled() && mindMapStore != null) {
             sections.add(new BehavioralPromptSection(mindMapStore, gutFeelingParticipant));
         }
+        if (config.dissonanceEnabled() && dissonancePhase != null) {
+            var tensions = dissonancePhase.activeTensions(lastAgentId, lastTenantId);
+            if (!tensions.isEmpty()) {
+                sections.add(new io.casehub.neocortex.cognition.dissonance.DissonancePromptSection(
+                        tensions, dissonancePhase.config()));
+            }
+        }
         if (config.situationalPersonalityEnabled() && situationalPersonalityParticipant != null) {
             sections.add(new io.casehub.neocortex.cognition.situational.ShadowArchetypePromptSection(
                     situationalPersonalityParticipant::currentSnapshot,
@@ -914,6 +923,15 @@ public @Nullable String lastTargetAgentId() {
             io.casehub.neocortex.cognition.appraisal.AppraisalStrategy appraisalStrategy,
             io.casehub.neocortex.cognition.appraisal.SalienceStrategy salienceStrategy) {
         configureAppraisal(appraisalStrategy, salienceStrategy, this.effectiveDefaults);
+    }
+
+
+    public void configureDissonance(io.casehub.neocortex.cognition.dissonance.DissonanceDetectionPhase phase,
+                                    io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig dissonanceConfig) {
+        this.dissonancePhase       = phase;
+        this.dissonanceParticipant = new io.casehub.neocortex.cognition.dissonance.DissonanceTickParticipant(
+                phase, dissonanceConfig, mood);
+        addParticipant(CognitionPhase.DERIVED, this.dissonanceParticipant);
     }
 
     public void configureRegulation() {

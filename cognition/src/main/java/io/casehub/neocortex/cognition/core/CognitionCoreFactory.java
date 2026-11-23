@@ -88,6 +88,10 @@ public class CognitionCoreFactory {
     Instance<io.casehub.neocortex.cognition.situational.PersonalityStateIntegrator> situationalIntegrator;
     @Inject
     Instance<io.casehub.neocortex.cognition.situational.SituationalPersonalityConfig> situationalPersonalityConfig;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.dissonance.DissonanceDetectionPhase>      dissonancePhase;
+    @Inject
+    Instance<io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig>     dissonanceConfig;
 
 
     public CognitionCore create(CognitionConfig config) {
@@ -165,6 +169,9 @@ public class CognitionCoreFactory {
             builder.situationalPersonality(
                     situationalStateService.get(), situationalDetector.get(),
                     situationalIntegrator.get(), situationalPersonalityConfig.get());
+        }
+        if (dissonancePhase.isResolvable() && dissonanceConfig.isResolvable()) {
+            builder.dissonance(dissonancePhase.get(), dissonanceConfig.get());
         }
 
         return builder.build();

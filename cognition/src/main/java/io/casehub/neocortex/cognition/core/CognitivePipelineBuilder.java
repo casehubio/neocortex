@@ -85,6 +85,8 @@ public final class CognitivePipelineBuilder {
     private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalDetector             situationalDetector;
     private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable PersonalityStateIntegrator      situationalIntegrator;
     private           io.casehub.neocortex.cognition.situational.@org.jspecify.annotations.Nullable SituationalPersonalityConfig    situationalPersonalityConfig;
+    private           io.casehub.neocortex.cognition.dissonance.@org.jspecify.annotations.Nullable DissonanceDetectionPhase         dissonancePhase;
+    private           io.casehub.neocortex.cognition.dissonance.@org.jspecify.annotations.Nullable DissonanceDetectionConfig        dissonanceConfig;
 
 
     private CognitivePipelineBuilder(MoodOrchestrator mood, DriveOrchestrator drives) {
@@ -267,6 +269,14 @@ public final class CognitivePipelineBuilder {
         return this;
     }
 
+    public CognitivePipelineBuilder dissonance(
+            io.casehub.neocortex.cognition.dissonance.DissonanceDetectionPhase phase,
+            io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig config) {
+        this.dissonancePhase  = phase;
+        this.dissonanceConfig = config;
+        return this;
+    }
+
 
     public CognitionCore build() {
         var core = new CognitionCore(
@@ -327,6 +337,9 @@ public final class CognitivePipelineBuilder {
             core.configureSituationalPersonality(
                     situationalStateService, situationalDetector,
                     situationalIntegrator, situationalPersonalityConfig, effectiveDefaults);
+        }
+        if (dissonancePhase != null && dissonanceConfig != null) {
+            core.configureDissonance(dissonancePhase, dissonanceConfig);
         }
 
         return core;

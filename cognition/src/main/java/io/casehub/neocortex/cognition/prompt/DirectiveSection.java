@@ -46,7 +46,10 @@ public class DirectiveSection implements CognitionPromptRenderer {
             Map.entry("ChannelEmphasisPromptSection",
             "This situation shifts which channels of your inner experience are most "
                     + "vivid right now. Foreground the channels marked below — let them "
-                    + "shape your internal monologue and what you notice:")
+                    + "shape your internal monologue and what you notice:"),
+            Map.entry("DissonancePromptSection",
+            "Internal tension from contradictory beliefs or values — this shapes your "
+                    + "emotional state and may surface in conversation:")
     );
 
     private static final Map<String, BlockTag> TAGS = Map.ofEntries(
@@ -60,6 +63,7 @@ public class DirectiveSection implements CognitionPromptRenderer {
             Map.entry("EmergentGoalPromptSection", BlockTag.GOALS),
             Map.entry("StrategyPromptSection", BlockTag.STRATEGY),
             Map.entry("BehavioralPromptSection", BlockTag.BEHAVIORAL),
+            Map.entry("DissonancePromptSection", BlockTag.DISSONANCE),
             Map.entry("AppraisalPromptSection", BlockTag.APPRAISAL),
             Map.entry("NeedsPyramidPromptSection", BlockTag.NEEDS),
             Map.entry("AttentionPromptSection", BlockTag.ATTENTION),
