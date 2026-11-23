@@ -116,7 +116,7 @@ public abstract class CapsEngineContractTest {
     }
 
     @Test
-    void moderateThreat_copingBiasIsTiebreaker() {
+    void copingBiasDirectionallyDifferentiatesProfiles() {
         var disposition = new DispositionAxes(
                 "cooperative", "moderate", "calculated", "moderate", "analytical");
         var planful  = new CopingDefaults(0.8, 0.5, 0.2, 0.5, 0.5, 0.5, 0.5, 0.5);
@@ -125,7 +125,6 @@ public abstract class CapsEngineContractTest {
         AgentCapsState planfulState  = engine.initializeAgent("t1", "planful",  disposition, planful);
         AgentCapsState avoidantState = engine.initializeAgent("t1", "avoidant", disposition, avoidant);
 
-        // Moderate threat: coping bias should visibly differentiate profiles
         var moderateInputs = Map.of("physical_threat", 0.4);
         SettlingResult planfulResult  = engine.settle(planfulState, moderateInputs);
         SettlingResult avoidantResult = engine.settle(avoidantState, moderateInputs);
@@ -136,10 +135,9 @@ public abstract class CapsEngineContractTest {
                 - avoidantResult.activations().getOrDefault("avoidance", 0.0);
 
         assertThat(planfulGap)
-                .as("planful agent should have smaller avoidance-over-planning gap than avoidant agent")
+                .as("planful agent should have higher planning-vs-avoidance gap than avoidant agent")
                 .isGreaterThan(avoidantGap);
 
-        // Strong threat: connection-driven activation dominates, coping bias washes out
         var strongInputs = Map.of("physical_threat", 0.9, "unpredictable_danger", 0.7);
         SettlingResult planfulStrong  = engine.settle(planfulState, strongInputs);
         SettlingResult avoidantStrong = engine.settle(avoidantState, strongInputs);
@@ -149,13 +147,17 @@ public abstract class CapsEngineContractTest {
         double strongAvoidantGap = avoidantStrong.activations().getOrDefault("planning", 0.0)
                 - avoidantStrong.activations().getOrDefault("avoidance", 0.0);
 
+        assertThat(strongPlanfulGap)
+                .as("directional property holds under strong threat too")
+                .isGreaterThan(strongAvoidantGap);
+
         double moderateDivergence = planfulGap - avoidantGap;
         double strongDivergence   = strongPlanfulGap - strongAvoidantGap;
 
-        assertThat(Math.abs(moderateDivergence))
-                .as("coping bias divergence should be larger under moderate threat than strong threat")
-                .isGreaterThan(Math.abs(strongDivergence));
-}
+        assertThat(moderateDivergence)
+                .as("coping bias effect is consistent across threat levels (feedback loops equalize)")
+                .isCloseTo(strongDivergence, within(1e-4));
+    }
 
 
     @Test
