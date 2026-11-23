@@ -1,6 +1,7 @@
 package io.casehub.neocortex.cognition;
 
 import io.casehub.neocortex.cognition.belief.BeliefRevisionConfig;
+import io.casehub.neocortex.cognition.dissonance.DissonanceDetectionConfig;
 import io.casehub.neocortex.cognition.core.CognitiveImpact;
 import io.casehub.neocortex.cognition.core.CognitiveResourcePool;
 import io.casehub.neocortex.cognition.core.DefaultCognitiveResourcePool;
@@ -66,6 +67,14 @@ public class CognitionDefaultBeans {
     BeliefRevisionConfig beliefRevisionConfig() {
         return new BeliefRevisionConfig(false, 0.15, 0.3, 0.6);
     }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    DissonanceDetectionConfig dissonanceDetectionConfig() {
+        return DissonanceDetectionConfig.defaults();
+    }
+
 
     @Produces @DefaultBean @Singleton
     DriveConfig driveConfig() {
