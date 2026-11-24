@@ -40,7 +40,8 @@ public record CognitiveDefaults(
         EmotionDefaults emotionDefaults,
         CognitiveResourceDefaults cognitiveResourceDefaults,
         GraphDefaults graphDefaults,
-        BehavioralDefaults behavioralDefaults
+        BehavioralDefaults behavioralDefaults,
+        BriefingConfig briefing
 ) {
     public CognitiveDefaults {
         Objects.requireNonNull(agentId, "agentId required");
@@ -51,7 +52,7 @@ public record CognitiveDefaults(
     }
 
     public static CognitiveDefaults empty(String agentId) {
-        return new CognitiveDefaults(agentId, null, null, null, null, null, null, null);
+        return new CognitiveDefaults(agentId, null, null, null, null, null, null, null, null);
     }
 
     // --- Leaf accessors (delegates) ---
@@ -94,31 +95,35 @@ public record CognitiveDefaults(
     // --- Group-level withX() methods ---
 
     public CognitiveDefaults withTenantId(String tenantId) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     public CognitiveDefaults withPersonalityProfile(PersonalityProfile personalityProfile) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     public CognitiveDefaults withDescriptor(DescriptorView descriptor) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     public CognitiveDefaults withEmotionDefaults(EmotionDefaults emotionDefaults) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     public CognitiveDefaults withCognitiveResourceDefaults(CognitiveResourceDefaults cognitiveResourceDefaults) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     public CognitiveDefaults withGraphDefaults(GraphDefaults graphDefaults) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     public CognitiveDefaults withBehavioralDefaults(BehavioralDefaults behavioralDefaults) {
-        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults);
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
+    }
+
+    public CognitiveDefaults withBriefing(BriefingConfig briefing) {
+        return new CognitiveDefaults(agentId, tenantId, personalityProfile, descriptor, emotionDefaults, cognitiveResourceDefaults, graphDefaults, behavioralDefaults, briefing);
     }
 
     // --- Leaf-level withX() methods (delegates through groups) ---

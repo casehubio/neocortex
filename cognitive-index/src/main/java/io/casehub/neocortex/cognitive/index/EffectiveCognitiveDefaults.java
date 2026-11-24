@@ -200,7 +200,8 @@ public class EffectiveCognitiveDefaults {
                 .mergeWith(derived.behavioralDefaults());
         return new CognitiveDefaults(derived.agentId(), explicit.tenantId(),
                 mergedProfile, derived.descriptor(),
-                mergedEmotion, mergedResources, mergedGraph, mergedBehavioral);
+                mergedEmotion, mergedResources, mergedGraph, mergedBehavioral,
+                explicit.briefing());
     }
 
     private static PersonalityProfile mergePersonalityProfile(

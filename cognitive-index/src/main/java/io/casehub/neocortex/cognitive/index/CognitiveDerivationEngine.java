@@ -290,7 +290,7 @@ public final class CognitiveDerivationEngine {
         observer.onPipelineComplete(descriptor.agentId(), eventRef);
 
         return new CognitiveDefaults(descriptor.agentId(), null, personalityProf, descriptor,
-                emotionDefaults, resourceDefaults, graphDefs, behavioralDefaults);
+                emotionDefaults, resourceDefaults, graphDefs, behavioralDefaults, null);
     }
 
 
