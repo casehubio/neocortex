@@ -417,7 +417,7 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                             tenantId, agentId, tickEventRef, java.time.Instant.now(), regResult)));
         }
 
-        if (config.appraisalEnabled() && appraisalParticipant != null) {
+        if (config.appraisalEnabled() && appraisalParticipant != null && observation != null) {
             appraisalParticipant.currentResult(agentId, tenantId).ifPresent(r -> {
                 if (config.moodEnabled()) {
                     bridgeAppraisalToMood(r, agentId, tenantId);
@@ -438,9 +438,6 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
             }
             if (config.drivesEnabled() && descriptor != null) {
                 safeRun(() -> drives.tick(agentId, tenantId, descriptor));
-                cognitiveJournal.record(new io.casehub.neocortex.cognition.journal.CognitiveEntry.DriveActivated(
-                        tenantId, agentId, tickEventRef, java.time.Instant.now(),
-                        activatedDriveCategories(), driveIntensities()));
             }
         }
 
