@@ -48,6 +48,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.casehub</groupId>
             <artifactId>casehub-neocortex-memory-inmem</artifactId>
             <scope>test</scope>
