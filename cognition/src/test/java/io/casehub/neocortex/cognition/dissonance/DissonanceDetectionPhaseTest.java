@@ -188,6 +188,29 @@ class DissonanceDetectionPhaseTest {
         assertThat(ta.capsActivationsB()).containsEntry("dominance", 0.8);
     }
 
+    @Test
+    void parsesMultiEntryCapsActivations() {
+        seedBeliefs("I value freedom", "I enforce rules");
+        response.set(contradictionJson(
+                "belief-1", "I value freedom", "belief-2", "I enforce rules", 0.75,
+                "{\"autonomy\": 0.9, \"dominance\": 0.6, \"secure_attachment\": 0.3}",
+                "{\"submission\": 0.8, \"punishment\": 0.5}"));
+        phase.run(TENANT, List.of());
+
+        var activations = phase.activeTensions(TENANT + ":" + AGENT);
+        assertThat(activations).hasSize(1);
+        var ta = activations.get(0);
+        assertThat(ta.capsActivationsA())
+                .hasSize(3)
+                .containsEntry("autonomy", 0.9)
+                .containsEntry("dominance", 0.6)
+                .containsEntry("secure_attachment", 0.3);
+        assertThat(ta.capsActivationsB())
+                .hasSize(2)
+                .containsEntry("submission", 0.8)
+                .containsEntry("punishment", 0.5);
+    }
+
 
     // --- helpers ---
 
@@ -221,4 +244,22 @@ class DissonanceDetectionPhaseTest {
               "reasoning": "test contradiction"
             }]}""".formatted(idA, textA, idB, textB, strength);
     }
+
+    private String contradictionJson(String idA, String textA,
+                                     String idB, String textB,
+                                     double strength,
+                                     String capsActivationsA,
+                                     String capsActivationsB) {
+        return """
+               {"contradictions": [{
+                 "elementA": {"nodeId": "%s", "type": "belief", "text": "%s"},
+                 "elementB": {"nodeId": "%s", "type": "belief", "text": "%s"},
+                 "strength": %s,
+                 "capsActivationsA": %s,
+                 "capsActivationsB": %s,
+                 "reasoning": "test contradiction"
+               }]}""".formatted(idA, textA, idB, textB, strength,
+                                capsActivationsA, capsActivationsB);
+    }
+
 }

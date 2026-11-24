@@ -1,5 +1,7 @@
 package io.casehub.neocortex.cognition.dissonance;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.NodeInput;
@@ -32,6 +34,9 @@ public class DissonanceDetectionPhase implements ConsolidationPhase, DissonanceA
     private static final String TENSION_TRAIT        = "DissonanceTension";
     private static final String BELIEF_TRAIT         = "Belieflike";
     private static final String CAPS_GENERATED_TRAIT = "CapsGenerated";
+    private static final ObjectMapper MAPPER         = new ObjectMapper();
+    private static final TypeReference<Map<String, Double>> ACTIVATIONS_TYPE = new TypeReference<>() {};
+
 
     private static final String SYSTEM_PROMPT = """
                                                 You are analyzing a character's beliefs and behavioral patterns for \
@@ -300,21 +305,7 @@ public class DissonanceDetectionPhase implements ConsolidationPhase, DissonanceA
     private static Map<String, Double> parseCapsActivations(String json) {
         if (json == null || json.isBlank() || "{}".equals(json)) {return Map.of();}
         try {
-            var result   = new HashMap<String, Double>();
-            var stripped = json.strip();
-            if (stripped.startsWith("{")) {stripped = stripped.substring(1);}
-            if (stripped.endsWith("}")) {stripped = stripped.substring(0, stripped.length() - 1);}
-            for (var pair : stripped.split(",")) {
-                var parts = pair.split(":");
-                if (parts.length == 2) {
-                    var key = parts[0].strip().replace("\"", "");
-                    var val = parts[1].strip().replace("\"", "");
-                    if (!key.isEmpty()) {
-                        result.put(key, Double.parseDouble(val));
-                    }
-                }
-            }
-            return Map.copyOf(result);
+            return Map.copyOf(MAPPER.readValue(json, ACTIVATIONS_TYPE));
         } catch (Exception e) {
             return Map.of();
         }
