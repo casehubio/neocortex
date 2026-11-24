@@ -685,11 +685,11 @@ public final class CognitiveDerivationEngine {
             double rt = facetScore(facets, PersonalityFacet.RISK_TAKING, 0.5);
             double im = facetScore(facets, PersonalityFacet.IMPULSIVITY, 0.5);
             double f0 = fearRaw, u0 = urgencyRaw;
-            fearRaw += (ax - 0.5) * 0.2;
+            fearRaw -= (ax - 0.5) * 0.2;
             fearRaw -= (rt - 0.5) * 0.2;
             urgencyRaw += (im - 0.5) * 0.2;
-            ctx.mod(PersonalityFacet.ANXIOUSNESS, ax, "fearOnsetThreshold", 1.0 + f0 * SCALE_FACTOR, 1.0 + (f0 + (ax - 0.5) * 0.2) * SCALE_FACTOR);
-            ctx.mod(PersonalityFacet.RISK_TAKING, rt, "fearOnsetThreshold", 1.0 + (f0 + (ax - 0.5) * 0.2) * SCALE_FACTOR, 1.0 + fearRaw * SCALE_FACTOR);
+            ctx.mod(PersonalityFacet.ANXIOUSNESS, ax, "fearOnsetThreshold", 1.0 + f0 * SCALE_FACTOR, 1.0 + (f0 - (ax - 0.5) * 0.2) * SCALE_FACTOR);
+            ctx.mod(PersonalityFacet.RISK_TAKING, rt, "fearOnsetThreshold", 1.0 + (f0 - (ax - 0.5) * 0.2) * SCALE_FACTOR, 1.0 + fearRaw * SCALE_FACTOR);
             ctx.mod(PersonalityFacet.IMPULSIVITY, im, "urgencyWeight", 1.0 + u0 * SCALE_FACTOR, 1.0 + urgencyRaw * SCALE_FACTOR);
         }
         ctx.output("urgencyWeight", Math.max(1.0 + urgencyRaw * SCALE_FACTOR, 0.1));

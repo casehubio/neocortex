@@ -36,7 +36,8 @@ public class GoalRelevanceModulationFactor implements ModulationFactor<Memory> {
         if (entityNode == null) {return 1.0;}
 
         int minDistance = shortestPathToGoal(entityNode, goals);
-        if (minDistance <= 0) {return 1.0;}
+        if (minDistance < 0) {return 0.0;}
+        if (minDistance == 0) {return 1.0;}
         if (minDistance == 1) {return 1.0;}
         if (minDistance == 2) {return 0.7;}
         if (minDistance == 3) {return 0.4;}

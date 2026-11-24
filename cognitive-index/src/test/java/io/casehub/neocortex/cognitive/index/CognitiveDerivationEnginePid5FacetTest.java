@@ -157,7 +157,7 @@ class CognitiveDerivationEnginePid5FacetTest {
     void appraisalWeights_anxiousnessAmplifiesFear() {
         var anxious = CognitiveDerivationEngine.deriveAppraisalWeights(BALANCED_PROFILE, DEFAULT_AXES, facetsOf(PersonalityFacet.ANXIOUSNESS, 0.9));
         var calm = CognitiveDerivationEngine.deriveAppraisalWeights(BALANCED_PROFILE, DEFAULT_AXES, facetsOf(PersonalityFacet.ANXIOUSNESS, 0.1));
-        assertThat(anxious.fearOnsetThreshold()).isGreaterThan(calm.fearOnsetThreshold());
+        assertThat(anxious.fearOnsetThreshold()).isLessThan(calm.fearOnsetThreshold());
     }
 
     // --- Category B Tier 2: deriveExtractionBias ---

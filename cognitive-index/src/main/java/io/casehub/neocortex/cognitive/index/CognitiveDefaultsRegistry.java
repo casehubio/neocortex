@@ -119,6 +119,23 @@ public class CognitiveDefaultsRegistry {
                         }
                     }
                 }
+            } else if ("jar".equals(dirUrl.getProtocol())) {
+                var conn = (java.net.JarURLConnection) dirUrl.openConnection();
+                try (var jarFile = conn.getJarFile()) {
+                    var entries = jarFile.entries();
+                    while (entries.hasMoreElements()) {
+                        var entry = entries.nextElement();
+                        String entryName = entry.getName();
+                        if (entryName.startsWith(normalizedPath) && !entry.isDirectory()
+                                && (entryName.endsWith(".yaml") || entryName.endsWith(".yml"))) {
+                            String fileName = entryName.substring(entryName.lastIndexOf('/') + 1);
+                            try (InputStream is = jarFile.getInputStream(entry)) {
+                                CognitiveDefaults defaults = mapper.readValue(is, CognitiveDefaults.class);
+                                addProfile(loaded, defaults, fileName);
+                            }
+                        }
+                    }
+                }
             }
         }
 

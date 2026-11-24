@@ -119,7 +119,7 @@ final class PadDtw {
                              : compute(query, candidate);
 
         int n = candidate.length;
-        if (n < 3) {
+        if (n < 20) {
             return new SignificanceResult(observed.similarity(), Double.NaN,
                        CorrelationStrength.fromSimilarity(observed.similarity()));
         }
@@ -140,7 +140,7 @@ final class PadDtw {
             }
         }
 
-        double pValue = (double) atLeastAsGood / surrogates;
+        double pValue = (double) (atLeastAsGood + 1) / (surrogates + 1);
         return new SignificanceResult(observed.similarity(), pValue,
                    CorrelationStrength.fromSimilarity(observed.similarity(), pValue));
     }
