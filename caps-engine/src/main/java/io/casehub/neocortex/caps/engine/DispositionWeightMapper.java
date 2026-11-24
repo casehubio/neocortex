@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 public class DispositionWeightMapper {
 
     private static final Logger LOG = Logger.getLogger(DispositionWeightMapper.class.getName());
+    private static final double DEFAULT_ACTIVATION_THRESHOLD = 0.5;
 
     private final CapsTopology topology;
     private final Map<String, Set<String>> tagIndex;
@@ -113,8 +114,10 @@ public class DispositionWeightMapper {
             String nodeId = name.replace("_threshold", "");
             if (topology.nodes().containsKey(nodeId)) {
                 NodeState current = nodeStates.getOrDefault(nodeId, NodeState.DEFAULT);
+                double base = current.activationThreshold() == 0.0
+                        ? DEFAULT_ACTIVATION_THRESHOLD : current.activationThreshold();
                 nodeStates.put(nodeId, new NodeState(
-                    current.activationThreshold() * multiplier,
+                    base * multiplier,
                     current.restingActivation()));
                 return;
             }

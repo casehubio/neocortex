@@ -26,10 +26,9 @@ public class RuleBasedSituationClassifier implements SituationClassifier {
     public ClassificationResult classify(String description,
                                           Map<String, String> metadata,
                                           ClassificationContext context) {
-        return new ClassificationResult(List.of());
+        return classifyByKeyword(description, metadata, context);
     }
 
-    @SuppressWarnings("unused") // preserved for future NLP pipeline (#587)
     public ClassificationResult classifyByKeyword(String description,
                                                    Map<String, String> metadata,
                                                    ClassificationContext context) {

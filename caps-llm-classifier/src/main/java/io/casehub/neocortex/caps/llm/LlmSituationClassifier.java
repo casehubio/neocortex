@@ -74,7 +74,7 @@ public class LlmSituationClassifier implements SituationClassifier {
         boolean pathC = tension > tensionThreshold;
 
         var sessionId = context.agentId() != null
-                ? "classifier-" + context.agentId()
+                ? "classifier-" + context.agentId() + "-" + java.util.UUID.randomUUID()
                 : "classifier-" + java.util.UUID.randomUUID();
 
         AgentSessionInit init;
