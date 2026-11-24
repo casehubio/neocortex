@@ -759,6 +759,18 @@ public class SqliteMindMapStore implements MindMapStore {
             params.add("%," + caller + ",%");
         }
 
+        if (query.traits() != null && !query.traits().isEmpty()) {
+            var placeholders = new StringBuilder();
+            for (int i = 0; i < query.traits().size(); i++) {
+                if (i > 0) placeholders.append(",");
+                placeholders.append("?");
+            }
+            sql.append(" AND (SELECT COUNT(*) FROM json_each(n.traits) je WHERE je.value IN (")
+               .append(placeholders).append(")) >= ?");
+            params.addAll(query.traits());
+            params.add(query.traits().size());
+        }
+
         sql.append(" LIMIT ?");
         params.add(query.limit());
 
@@ -771,11 +783,6 @@ public class SqliteMindMapStore implements MindMapStore {
                 else if (p instanceof Integer n) ps.setInt(i + 1, n);
             }
             List<MindMapNode> results = collectNodes(ps);
-            if (query.traits() != null && !query.traits().isEmpty()) {
-                results = results.stream()
-                    .filter(n -> n.traits().containsAll(query.traits()))
-                    .toList();
-            }
             return results;
         } catch (SQLException e) {
             throw new IllegalStateException("search() failed", e);
