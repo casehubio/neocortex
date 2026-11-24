@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 @ApplicationScoped
@@ -33,6 +34,7 @@ import java.util.logging.Logger;
 public class GoalAffectPhase implements ConsolidationPhase {
 
     private static final Logger LOG = Logger.getLogger(GoalAffectPhase.class.getName());
+    private static final double EXPERIENCE_CHANGE_THRESHOLD = 0.1;
 
     private final MindMapStore          store;
     private final Clock                 clock;
@@ -40,6 +42,7 @@ public class GoalAffectPhase implements ConsolidationPhase {
     private final GoalLifecycleConfig   config;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
     private final CaseMemoryStore       memoryStore;
+    private final ConcurrentHashMap<String, PadProjection> previousGoalAffects = new ConcurrentHashMap<>();
 
 
     @Inject
@@ -153,14 +156,20 @@ public class GoalAffectPhase implements ConsolidationPhase {
 
         String agentId = node.property("agent-id").orElse(null);
         if (memoryStore != null && agentId != null) {
-            var metadata = new HashMap<String, String>();
-            metadata.put("emotion-type", dominant.type().name());
-            metadata.put("emotion-intensity", String.valueOf(dominant.intensity()));
-            var observation = new Observation(
-                    agentId, tenantId, null, null, now,
-                    "OCC emotion: " + dominant.type().name(),
-                    dominant.intensity(), metadata, node.name());
-            memoryStore.store(ExperienceEvents.toMemoryInput(observation));
+            var currentPad = new PadProjection(
+                    dominant.pad().pleasure(), dominant.pad().arousal(), dominant.pad().dominance());
+            var previousPad = previousGoalAffects.get(node.id());
+            if (previousPad == null || padDelta(currentPad, previousPad) > EXPERIENCE_CHANGE_THRESHOLD) {
+                previousGoalAffects.put(node.id(), currentPad);
+                var metadata = new HashMap<String, String>();
+                metadata.put("emotion-type", dominant.type().name());
+                metadata.put("emotion-intensity", String.valueOf(dominant.intensity()));
+                var observation = new Observation(
+                        agentId, tenantId, null, null, now,
+                        "OCC emotion: " + dominant.type().name(),
+                        dominant.intensity(), metadata, node.name());
+                memoryStore.store(ExperienceEvents.toMemoryInput(observation));
+            }
         }
 
         pendingSignals.add(new AttentionSignal(
@@ -245,5 +254,12 @@ public class GoalAffectPhase implements ConsolidationPhase {
 
     private static Instant parseInstant(String value) {
         try {return Instant.parse(value);} catch (Exception e) {return null;}
+    }
+
+    private static double padDelta(PadProjection a, PadProjection b) {
+        double dp = a.pleasure()  - b.pleasure();
+        double da = a.arousal()   - b.arousal();
+        double dd = a.dominance() - b.dominance();
+        return Math.sqrt(dp * dp + da * da + dd * dd);
     }
 }

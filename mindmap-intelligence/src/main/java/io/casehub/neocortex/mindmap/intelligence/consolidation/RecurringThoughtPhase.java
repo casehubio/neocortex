@@ -16,6 +16,7 @@ import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.RecurringThoughtScorer;
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 
 import java.time.Instant;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@ApplicationScoped
 @Priority(25)
 public class RecurringThoughtPhase implements ConsolidationPhase {
 

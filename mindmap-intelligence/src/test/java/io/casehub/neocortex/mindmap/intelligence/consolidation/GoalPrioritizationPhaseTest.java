@@ -229,7 +229,7 @@ class GoalPrioritizationPhaseTest {
     }
 
     @Test
-    void decay_activeGoalWithLowConfidenceButPositiveAffect_unchanged() {
+    void decay_activeGoalWithLowConfidenceButPositiveAffect_decaysNormally() {
         String goalId = store.addNode(NodeInput.of("Still valued", goalSubgraphId)
                                                .withConfidence(io.casehub.neocortex.cognitive.Confidence.stated(
                                                        0.3, java.time.Instant.parse("2026-08-01T00:00:00Z")))
@@ -239,8 +239,7 @@ class GoalPrioritizationPhaseTest {
         new GoalPrioritizationPhase(store).run(TENANT, List.of());
 
         MindMapNode goal = store.getNode(goalId, TENANT);
-        assertThat(goal.property("status")).contains("active");
-        assertThat(goal.property("decay-signal")).isEmpty();
+        assertThat(goal.property("status")).contains("dormant");
     }
 
 

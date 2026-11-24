@@ -17,6 +17,7 @@ import jakarta.inject.Inject;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +34,7 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
     private final Clock                 clock;
     private final GoalLifecycleConfig   config;
     private final List<AttentionSignal> pendingSignals = new ArrayList<>();
+    private final Set<String>           emittedSignals = new HashSet<>();
 
     @Inject
     public GoalPrioritizationPhase(Instance<MindMapStore> store, Instance<GoalLifecycleConfig> config) {
@@ -79,6 +81,7 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
     @Override
     public void beginTick() {
         pendingSignals.clear();
+        emittedSignals.clear();
     }
 
     @Override
@@ -134,7 +137,8 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
 
             String principalId = node.property("agent-id").orElse(null);
 
-            if (urgency > urgencySpikeThreshold()) {
+            String urgencyKey = node.id() + ":URGENCY_SPIKE";
+            if (urgency > urgencySpikeThreshold() && emittedSignals.add(urgencyKey)) {
                 pendingSignals.add(new AttentionSignal(
                         principalId, tenantId, SignalCategory.URGENCY_SPIKE,
                         node.id(), node.name(), urgency,
@@ -142,7 +146,8 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
             }
 
             double previousPriority = node.property("priority").map(Double::parseDouble).orElse(0.0);
-            if (Math.abs(priority - previousPriority) > priorityShiftThreshold()) {
+            String priorityKey = node.id() + ":PRIORITY_SHIFT";
+            if (Math.abs(priority - previousPriority) > priorityShiftThreshold() && emittedSignals.add(priorityKey)) {
                 pendingSignals.add(new AttentionSignal(
                         principalId, tenantId, SignalCategory.PRIORITY_SHIFT,
                         node.id(), node.name(), Math.abs(priority - previousPriority),
@@ -164,13 +169,11 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
             Confidence conf = node.confidence();
             if (conf == null || conf.value() >= dormantConfidenceThreshold()) {continue;}
 
-            double pleasure = node.pleasure() != null ? node.pleasure() : 0.0;
-            if (pleasure > 0) {continue;}
-
             boolean isLinked    = node.property("eidos-goal-name").isPresent();
             String  principalId = node.property("agent-id").orElse(null);
 
-            if (conf.value() < abandonConfidenceThreshold() && pleasure < 0) {
+            String decayKey = node.id() + ":DECAY_DETECTED";
+            if (conf.value() < abandonConfidenceThreshold()) {
                 if (isLinked) {
                     store.updateNode(node.id(),
                                      NodeUpdate.empty().withPropertiesToSet(
@@ -183,10 +186,12 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
                                                     "abandonment-reason", "Extended inactivity with declining affect")),
                                      tenantId);
                 }
-                pendingSignals.add(new AttentionSignal(
-                        principalId, tenantId, SignalCategory.DECAY_DETECTED,
-                        node.id(), node.name(), 1.0 - conf.value(),
-                        "goal abandoned — confidence " + String.format("%.2f", conf.value())));
+                if (emittedSignals.add(decayKey)) {
+                    pendingSignals.add(new AttentionSignal(
+                            principalId, tenantId, SignalCategory.DECAY_DETECTED,
+                            node.id(), node.name(), 1.0 - conf.value(),
+                            "goal abandoned — confidence " + String.format("%.2f", conf.value())));
+                }
                 LOG.fine("Decay: abandoned goal '" + node.name() + "'");
             } else {
                 if (isLinked) {
@@ -200,10 +205,12 @@ public class GoalPrioritizationPhase implements ConsolidationPhase {
                                              Map.of("status", "dormant")),
                                      tenantId);
                 }
-                pendingSignals.add(new AttentionSignal(
-                        principalId, tenantId, SignalCategory.DECAY_DETECTED,
-                        node.id(), node.name(), 1.0 - conf.value(),
-                        "goal dormant — confidence " + String.format("%.2f", conf.value())));
+                if (emittedSignals.add(decayKey)) {
+                    pendingSignals.add(new AttentionSignal(
+                            principalId, tenantId, SignalCategory.DECAY_DETECTED,
+                            node.id(), node.name(), 1.0 - conf.value(),
+                            "goal dormant — confidence " + String.format("%.2f", conf.value())));
+                }
                 LOG.fine("Decay: dormant goal '" + node.name() + "'");
             }
         }
