@@ -119,6 +119,12 @@ Five related capabilities in one repo:
 | `cognitive-index` | `casehub-neocortex-cognitive-index` | `TemporalIndex` (cross-store chronological aggregation), `CognitiveProfile` (entity resolution + multi-agent comparison), `SocialComparison` (perspectival divergence metrics), `DomainActivation` (cross-domain DTW correlation + mood/experience context correlation), `CognitiveDefaultsRegistry` (YAML-driven per-agent config), `CognitiveProfileWatcher` (file-watch hot-reload for profiles + rules via `casehub.cognitive.profiles-dir` / `casehub.cognitive.rules-dir`) |
 | `schema-generator` | `casehub-neocortex-schema-generator` | JSON Schema generation (Draft 2020-12) for cognitive types — sealed hierarchy `oneOf`, enum inlining, shorthand patterns, YAML output |
 
+### Cognitive Runtime
+
+| Module | artifactId | What you get |
+|--------|-----------|-------------|
+| `cognitive-runtime` | `casehub-neocortex-cognitive-runtime` | `CognitiveCapability` SPI (composable cognitive functions), `CognitiveAvatar` (composition root — wires capabilities from YAML profile), `BriefingCapability` (three-layer evocative identity: identity/grounding/echo), `GoalCapability` (active goals → prompt), `TemporalCapability` (temporal awareness → prompt), `MemoryCapability` (recent memories → prompt), `EntityKnowledgeCapability` (entity resolution → prompt), `DispositionCapability` (personality weights → prompt), `BriefingPromptSection`, `ProfileDescriptorViewSource` (@DefaultBean — YAML-backed, no eidos dependency). Depends on cognitive-index + cognition-api; does NOT depend on cognition or caps-* |
+
 ### Corpus
 
 | Module | artifactId | What you get |

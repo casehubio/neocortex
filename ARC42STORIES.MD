@@ -251,6 +251,12 @@ C4Container
   Rel(memory_cbr_crossencoder, inference_tasks, "uses CrossEncoderReranker")
   Rel(memory_cbr_tracking, memory_api, "decorates CbrRecordStore")
   Rel(memory_cbr_embedding, memory_api, "implements LocalSimilarityFunction")
+
+  Container_Boundary(b_cognitive_runtime, "Layer: Cognitive Runtime") {
+    Container(cognitive_runtime, "cognitive-runtime", "CDI library", "CognitiveAvatar composition root, CognitiveCapability SPI, 6 capabilities (Briefing, Goal, Temporal, Memory, EntityKnowledge, Disposition), ProfileDescriptorViewSource")
+  }
+
+  Rel(cognitive_runtime, memory_api, "CaseMemoryStore for MemoryCapability")
 ```
 
 ### Layers
@@ -278,6 +284,7 @@ C4Container
 | L19 MindMap Runtime | `mindmap-core`, `mindmap`, `mindmap-testing`, `mindmap-inmem`, `mindmap-sqlite` | CDI library + SQLite backend | casehub only |
 | L20 Annotation Runtime | `annotation-inmem`, `annotation-sqlite`, `annotation` | CDI library + SQLite backend | casehub only |
 | L21 Cognitive Index | `cognitive-index` | Pure Java, depends on L16, L17, L12 | casehub only |
+| L21b Cognitive Runtime | `cognitive-runtime` | CDI library, depends on L21 + `cognition-api` + L17 + L12 | casehub only |
 | L22 MindMap Intelligence | `mindmap-intelligence` | CDI library, LLM extraction, consolidation pipeline | casehub only |
 | L23 Cognitive Observability | `cognitive-observability-core`, `cognitive-observability`, `cognitive-observability-testing`, `cognitive-observability-sqlite` | CDI library + GraphQL + SQLite | casehub only |
 | L24 CAPS | `caps-api`, `caps-engine`, `caps-testing`, `caps-llm-classifier`, `caps-situation-cbr` | Pure Java (API) + CDI library (engine) + SQLite | casehub only |
@@ -682,6 +689,7 @@ flowchart LR
 | L19 MindMap Runtime | — | — | — | — | — | — | — | — | — | — | — | — | High |
 | L20 Annotation Runtime | — | — | — | — | — | — | — | — | — | — | — | — | High |
 | L21 Cognitive Index | — | — | — | — | — | — | — | — | — | — | — | — | High |
+| L21b Cognitive Runtime | — | — | — | — | — | — | — | — | — | — | — | — | High |
 | L22 MindMap Intelligence | — | — | — | — | — | — | — | — | — | — | — | — | High |
 | L23 Cognitive Observability | — | — | — | — | — | — | — | — | — | — | — | — | High |
 | L24 CAPS | — | — | — | — | — | — | — | — | — | — | — | — | High |
@@ -975,6 +983,7 @@ A passing prototype: ONNX Runtime JNI + HuggingFace Tokenizers JNI both load and
 | L19 MindMap Runtime | `mindmap-core`, `mindmap`, `mindmap-testing`, `mindmap-inmem`, `mindmap-sqlite` | CDI wiring, decorators (confidence decay, derived edges, affect trajectory), backends |
 | L20 Annotation Runtime | `annotation-inmem`, `annotation-sqlite`, `annotation` | In-memory + SQLite backends, CDI observers (merge repoint, erasure, biography anchor preprocessing) |
 | L21 Cognitive Index | `cognitive-index` | Cross-store query tier: `TemporalIndex`, `CognitiveProfile`, `DomainActivation`, `CognitiveDefaults` |
+| L21b Cognitive Runtime | `cognitive-runtime` | Composable cognitive avatars: `CognitiveCapability` SPI, `CognitiveAvatar` composition root, 6 capabilities (Briefing, Goal, Temporal, Memory, EntityKnowledge, Disposition), `ProfileDescriptorViewSource` |
 | L22 MindMap Intelligence | `mindmap-intelligence` | Trait interfaces, `MindMapExtractor`, `ConversationBridge`, consolidation pipeline (14 phases), `BulkReExtractionService` |
 | L23 Cognitive Observability | `cognitive-observability-core`, `cognitive-observability`, `cognitive-observability-testing`, `cognitive-observability-sqlite` | Graph mutation tracking, inspection, health, diff, trace — GraphQL MCP resolvers |
 | L24 CAPS | `caps-api`, `caps-engine`, `caps-testing`, `caps-llm-classifier`, `caps-situation-cbr` | CAPS graph engine: topology, settling, weight update, situation classification |
