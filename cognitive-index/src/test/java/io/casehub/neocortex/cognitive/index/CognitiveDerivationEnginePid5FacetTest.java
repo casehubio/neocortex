@@ -205,6 +205,27 @@ class CognitiveDerivationEnginePid5FacetTest {
 
     // --- Integration: full pipeline with facets ---
 
+
+    @Test
+    void expressionStyles_absentFacetsMatchNeutralScores() {
+        // One irrelevant facet so the list is non-empty (deriveExpressionStyles
+        // early-returns for empty lists). Expression-relevant facets are absent.
+        var withAbsent = CognitiveDerivationEngine.deriveExpressionStyles(
+                List.of(new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.5, "test")));
+
+        // Explicit 0.5 for all expression-relevant facets — should produce identical result
+        var withNeutral = CognitiveDerivationEngine.deriveExpressionStyles(List.of(
+                new PersonalityFacet(PersonalityFacet.ANXIOUSNESS, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.GRANDIOSITY, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.CALLOUSNESS, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.MANIPULATIVENESS, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.SUSPICIOUSNESS, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.HOSTILITY, 0.5, "test"),
+                new PersonalityFacet(PersonalityFacet.RISK_TAKING, 0.5, "test")));
+
+        assertThat(withAbsent).isEqualTo(withNeutral);
+    }
+
     @Test
     void fullPipeline_facetsModulateDerivedDefaults() {
         var facets = List.of(

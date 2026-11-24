@@ -1225,7 +1225,7 @@ public final class CognitiveDerivationEngine {
 
     private static boolean isLow(List<PersonalityFacet> facets, String name) {
         return facets.stream().filter(f -> name.equals(f.facet())).findFirst()
-                .map(PersonalityFacet::isLow).orElse(true);
+                .map(PersonalityFacet::isLow).orElse(false);
     }
 
 
