@@ -21,7 +21,7 @@ public class CognitiveMemoryRetriever {
     private final List<MemoryRecallObserver> observers;
     private final FederatedCorpusSearch federatedCorpusSearch;
 
-    private volatile ModulationContext tickContext;
+    private final java.util.concurrent.ConcurrentHashMap<String, ModulationContext> tickContexts = new java.util.concurrent.ConcurrentHashMap<>();
 
     public CognitiveMemoryRetriever(CaseMemoryStore store,
                                     List<ModulationFactor<Memory>> staticFactors,
@@ -54,8 +54,17 @@ public class CognitiveMemoryRetriever {
     }
 
     public void setTickContext(ModulationContext context) {
-        this.tickContext = context;
+        if (context != null && context.agentId() != null) {
+            tickContexts.put(context.agentId(), context);
+        }
     }
+
+    public void clearTickContext(String agentId) {
+        if (agentId != null) {
+            tickContexts.remove(agentId);
+        }
+    }
+
 
     public List<Memory> query(MemoryQuery query, ModulationContext context) {
         List<Memory> results = store.query(query);
@@ -69,12 +78,17 @@ public class CognitiveMemoryRetriever {
         return results;
     }
 
-    public List<Memory> query(MemoryQuery query) {
-        var ctx = tickContext;
+    public List<Memory> query(MemoryQuery query, String agentId) {
+        var ctx = agentId != null ? tickContexts.get(agentId) : null;
         if (ctx == null) {
-            ctx = new ModulationContext(null, query.tenantId(), null, null, null);
+            ctx = new ModulationContext(agentId, query.tenantId(), null, null, null);
         }
         return query(query, ctx);
+    }
+
+
+    public List<Memory> query(MemoryQuery query) {
+        return query(query, (String) null);
     }
 
     public List<CorpusSearchResult> queryCorpora(CorpusQuery query, String tenantId,

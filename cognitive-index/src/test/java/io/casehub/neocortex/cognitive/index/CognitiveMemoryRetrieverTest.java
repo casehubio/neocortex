@@ -168,10 +168,47 @@ class CognitiveMemoryRetrieverTest {
         retriever.setTickContext(new ModulationContext("a1", "t1", positiveMood, null, null));
 
         // With tick context — mood-congruent (happy) should rank higher
-        var withContext = retriever.query(query());
+        var withContext = retriever.query(query(), "a1");
         assertThat(withContext).extracting(Memory::memoryId)
                                .containsExactly("m1", "m2");
     }
+
+    @Test
+    void perAgentTickContextIsolation() {
+        var happy = memory("m1", NOW, Confidence.unknown(1.0), 0.8, 0.3, 0.5);
+        var sad   = memory("m2", NOW, Confidence.unknown(1.0), -0.7, -0.2, -0.3);
+
+        ContextualModulationFactory<Memory> moodFactory = ctx -> {
+            if (ctx.currentMood() == null) {return null;}
+            return ModulationFactors.moodCongruence(ctx.currentMood(), 1.0);
+        };
+
+        var retriever = new CognitiveMemoryRetriever(
+                stubStore(List.of(sad, happy)),
+                List.of(),
+                List.of(moodFactory));
+
+        // Agent A has positive mood
+        var positiveMood = new io.casehub.neocortex.memory.mood.MoodState(
+                "agentA", "t1", Instant.now(), 0.8, 0.3, 0.5, "test", null, Set.of(), Map.of());
+        retriever.setTickContext(new ModulationContext("agentA", "t1", positiveMood, null, null));
+
+        // Agent B has negative mood
+        var negativeMood = new io.casehub.neocortex.memory.mood.MoodState(
+                "agentB", "t1", Instant.now(), -0.8, 0.7, -0.5, "test", null, Set.of(), Map.of());
+        retriever.setTickContext(new ModulationContext("agentB", "t1", negativeMood, null, null));
+
+        // Agent A's query should still use positive mood (happy first)
+        var agentAResults = retriever.query(query(), "agentA");
+        assertThat(agentAResults).extracting(Memory::memoryId)
+                                 .containsExactly("m1", "m2");
+
+        // Agent B's query should use negative mood (sad first)
+        var agentBResults = retriever.query(query(), "agentB");
+        assertThat(agentBResults).extracting(Memory::memoryId)
+                                 .containsExactly("m2", "m1");
+    }
+
 
     @Test
     void staticAndContextualFactorsCompose() {
