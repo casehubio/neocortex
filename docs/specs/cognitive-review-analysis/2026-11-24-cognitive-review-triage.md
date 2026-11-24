@@ -6,19 +6,31 @@
 
 ---
 
+## Fix Status
+
+**Updated:** 2026-11-24 — after SE1 (Pipeline Spine) landed + prior mechanical fixes.
+
+23 of 107 findings now fixed. 8 partially addressed. 68 still valid. 2 not verifiable (agency-side).
+
+**Mechanical fixes (pre-SE1):** bff7afbe (C15), 37daaed8 (D2, A10), fccd7ae3 (B11, B13, B14), 1e320b85 (A9, F2, F9, F10, F15)
+**SE1 (#1221):** 91aa9b6c (A1, A13), 98c4577e (A3, C19, D13), ccf5915d (C1, C8 partial), bdb8b7c8 (A6, A7, A8, D7, E3, E11)
+**Deferred:** A2 partial → #1231, E2 → #1232
+
+---
+
 ## Overview
 
-The review contains 120+ findings across 9 sections. All were verified against current HEAD by reading the actual code paths. **Zero findings have been fully fixed since the review.** A handful are partially addressed. The vast majority remain valid.
+The review contains 120+ findings across 9 sections. All were verified against current HEAD by reading the actual code paths.
 
 | Section | Total | Still Valid | Partially Addressed | Fixed | Not Verifiable |
 |---------|-------|------------|--------------------:|------:|---------------:|
-| A — Wiring | 13 | 11 | 0 | 0 | 2 (agency-side) |
-| B — CAPS | 17 | 12 | 2 | 0 | 0 |
-| C — Affect | 21 | 14 | 4 | 0 | 0 |
-| D — Personality | 19 | 18 | 1 | 0 | 0 |
-| E — Higher cognition | 17 | 17 | 0 | 0 | 0 |
-| F — Consolidation | 20 | 19 | 1 | 0 | 0 |
-| **Total** | **107** | **91** | **8** | **0** | **2** |
+| A — Wiring | 13 | 3 | 0 | 8 | 2 (agency-side) |
+| B — CAPS | 17 | 9 | 2 | 3 | 0 |
+| C — Affect | 21 | 11 | 4 | 3 | 0 |
+| D — Personality | 19 | 15 | 1 | 3 | 0 |
+| E — Higher cognition | 17 | 15 | 0 | 2 | 0 |
+| F — Consolidation | 20 | 15 | 1 | 4 | 0 |
+| **Total** | **107** | **68** | **8** | **23** | **2** |
 
 Sections G (Evidence base), H (Direction), I (Recorded run data) are analysis/recommendations, not code findings.
 
@@ -49,103 +61,103 @@ Sections G (Evidence base), H (Direction), I (Recorded run data) are analysis/re
 
 ### P1: Unified pipeline composition
 
-The meta-issue. Production (CognitionConfig.all()), tests (withAllSubsystems()), and wacky-manor (ManorCognitivePipelineBuilder) each assemble a different pipeline. Tests validate a configuration production never runs. Fixing this is prerequisite to everything else.
+The meta-issue. ~~Production (CognitionConfig.all()), tests (withAllSubsystems()), and wacky-manor each assemble a different pipeline.~~ SE1 unified all paths via EnumSet-backed CognitionConfig. Builder wiring partially complete (search budget/curiosity deferred to #1231).
 
-| Finding | Summary |
-|---------|---------|
-| A1 | CognitionConfig.all() leaves 11 subsystems off |
-| A2 | Pipeline builder doesn't wire configureSearchBudget, configureCuriosity, etc. |
-| A9 | RecurringThoughtPhase missing CDI scope — never discovered |
-| A10 | Classpath profile loading fails inside jars |
-| A11 | Missing orchestrator implementations in this repo |
-| A13 | CognitionConfig is 27 positional booleans |
+| Finding | Summary | Status |
+|---------|---------|--------|
+| A1 | CognitionConfig.all() leaves 11 subsystems off | ✅ Fixed (91aa9b6c) |
+| A2 | Pipeline builder doesn't wire configureSearchBudget, configureCuriosity, etc. | ⚠️ Partial — ToM wired; search budget/curiosity → #1231 |
+| A9 | RecurringThoughtPhase missing CDI scope — never discovered | ✅ Fixed (1e320b85) |
+| A10 | Classpath profile loading fails inside jars | ✅ Fixed (37daaed8) |
+| A11 | Missing orchestrator implementations in this repo | — Not verifiable (agency-side) |
+| A13 | CognitionConfig is 27 positional booleans | ✅ Fixed (91aa9b6c) |
 
 ### P2: Per-agent state isolation
 
-One CognitionCore shared by all agents with agent-specific state in instance fields. Must be resolved before any multi-agent testing is meaningful.
+~~One CognitionCore shared by all agents with agent-specific state in instance fields.~~ SE1 added ConcurrentHashMap<AgentKey, PerTickState> for core state isolation. Drive sources, affect trajectories, memory retriever, and narrative still need agent-scoping (SE5, SE6, SE7).
 
-| Finding | Summary |
-|---------|---------|
-| A3 | Shared CognitionCore leaks lastAgentId, lastDescriptor, lastBriefing, etc. |
-| C9 | CuriosityDrive and other drive sources share state across agents |
-| D11 | Affect trajectories not agent-scoped |
-| D19 | CognitiveMemoryRetriever has one shared mutable tick context |
-| C19 | LLM session ids not tenant/subject scoped |
-| E7 | Narrative partitions by tenant not agent |
-| F3 | Cross-tenant leakage in attention path |
+| Finding | Summary | Status |
+|---------|---------|--------|
+| A3 | Shared CognitionCore leaks lastAgentId, lastDescriptor, lastBriefing, etc. | ✅ Fixed (98c4577e) |
+| C9 | CuriosityDrive and other drive sources share state across agents | Open (SE6) |
+| D11 | Affect trajectories not agent-scoped | Open (SE5) |
+| D19 | CognitiveMemoryRetriever has one shared mutable tick context | Open (SE5) |
+| C19 | LLM session ids not tenant/subject scoped | ✅ Fixed (98c4577e) |
+| E7 | Narrative partitions by tenant not agent | Open (SE7) |
+| F3 | Cross-tenant leakage in attention path | Open (SE4) |
 
 ### P3: State corruption — bugs that would corrupt any run
 
-These produce incorrect state that compounds over time. Must fix before any empirical measurement is valid.
+These produce incorrect state that compounds over time. Must fix before any empirical measurement is valid. 7 of 14 now fixed.
 
-| Finding | Summary |
-|---------|---------|
-| F1 | UUID cursor ordering skips memories on SQLite/JPA — **critical** |
-| C1 | Stale appraisal re-bridged to mood/drives every tick |
-| C2 | Mood additive deltas with no rate limit → pins at clamp |
-| C3 | Decay timing: fresh signal immediately decayed after idle gap |
-| C4 | Standing goal emotions added as delta every tick |
-| C5 | CognitiveResourcePool hardcoded null — fatigue gate never fires |
-| C6 | Coping drive modulations overwritten by put() |
-| C8 | drives.tick runs twice per core tick — double smoothing |
-| E4 | Mental-model confidence decay compounds (doesn't advance reference) |
-| D7 | Recency decay captures Instant.now() once at startup — frozen |
-| D13 | updateBase called every tick — invalidates cache, runs two full derivations |
-| F2 | GoalAffect writes synthetic experience every pass, every goal |
-| F12 | Uniform 30-day confidence decay, per-type half-life never read |
-| D2 | Fear threshold inverted — anxious agents harder to frighten |
+| Finding | Summary | Status |
+|---------|---------|--------|
+| F1 | UUID cursor ordering skips memories on SQLite/JPA — **critical** | Open (SE3) |
+| C1 | Stale appraisal re-bridged to mood/drives every tick | ✅ Fixed (ccf5915d) |
+| C2 | Mood additive deltas with no rate limit → pins at clamp | Open (SE6) |
+| C3 | Decay timing: fresh signal immediately decayed after idle gap | Open (SE6) |
+| C4 | Standing goal emotions added as delta every tick | Open (SE6) |
+| C5 | CognitiveResourcePool hardcoded null — fatigue gate never fires | Open (SE6) |
+| C6 | Coping drive modulations overwritten by put() | Open (SE6) |
+| C8 | drives.tick runs twice per core tick — double smoothing | ⚠️ Partial (ccf5915d) — gated on observation; full fix in SE6 |
+| E4 | Mental-model confidence decay compounds (doesn't advance reference) | Open (SE7) |
+| D7 | Recency decay captures Instant.now() once at startup — frozen | ✅ Fixed (bdb8b7c8) |
+| D13 | updateBase called every tick — invalidates cache, runs two full derivations | ✅ Fixed (98c4577e) |
+| F2 | GoalAffect writes synthetic experience every pass, every goal | ✅ Fixed (1e320b85) |
+| F12 | Uniform 30-day confidence decay, per-type half-life never read | Open (SE3) |
+| D2 | Fear threshold inverted — anxious agents harder to frighten | ✅ Fixed (37daaed8) |
 
 ### P4: Affect pipeline correctness
 
-Bugs in emotion mapping, regulation, and drive computation that produce wrong values but don't corrupt state cumulatively.
+Bugs in emotion mapping, regulation, and drive computation that produce wrong values but don't corrupt state cumulatively. 1 of 7 fixed.
 
-| Finding | Summary |
-|---------|---------|
-| C13 | Regulation triggers on JOY/PRIDE (no valence check) |
-| C14 | EmotionMapper missing 6 emotions; INTERRUPTION intensity inverted |
-| C15 | AlmaPadTable RELIEF dominance sign wrong (Gebhard 2005) |
-| C17 | CognitiveLoadEstimator: drives().size() always 4, LOW unreachable |
-| C11 | Appraisal weights and habituation config derived but never read |
-| C12 | Regulation never changes what reaches mood or drives |
-| C16 | Concern salience normalisation penalises short goals |
+| Finding | Summary | Status |
+|---------|---------|--------|
+| C13 | Regulation triggers on JOY/PRIDE (no valence check) | Open (SE6) |
+| C14 | EmotionMapper missing 6 emotions; INTERRUPTION intensity inverted | Open (SE6) |
+| C15 | AlmaPadTable RELIEF dominance sign wrong (Gebhard 2005) | ✅ Fixed (bff7afbe) |
+| C17 | CognitiveLoadEstimator: drives().size() always 4, LOW unreachable | Open (SE6) |
+| C11 | Appraisal weights and habituation config derived but never read | Open (SE6) |
+| C12 | Regulation never changes what reaches mood or drives | Open (SE6) |
+| C16 | Concern salience normalisation penalises short goals | Open (SE6) |
 
 ### P5: Higher cognition and consolidation wiring
 
-Features built but not integrated or producing meaningful output.
+Features built but not integrated or producing meaningful output. 6 of 13 fixed.
 
-| Finding | Summary |
-|---------|---------|
-| E1 | Mental-model/user-model/strategy LLM synthesis never fires (gate too strict) |
-| E2 | Interaction quality uses agent's pre-interaction mood |
-| E3 | configureTheoryOfMind never called in production |
-| E8 | Memory hygiene: nothing evicted (composite always above threshold) |
-| E10 | Goal tick results discarded; queryGoals returns all tenant goals |
-| E11 | Regex JSON parsing breaks on ] in text, rejects +0.3 |
-| F4 | SQLite LIMIT before trait filter; subgraph type/id confusion |
-| F7 | Graduation cursor skip; actions/outcomes always pass |
-| F9 | CuriosityRefreshPhase computes signals and discards them |
-| F10 | Attention signals re-fire every pass (level-triggered) |
-| F11 | Auto-merge at JW ≥ 0.9 merges similar but distinct entities |
-| F15 | Active goals default to HOPE → never go dormant |
-| F19 | Every paragraph becomes STATED 1.0 node; fuzzy name resolution errors |
+| Finding | Summary | Status |
+|---------|---------|--------|
+| E1 | Mental-model/user-model/strategy LLM synthesis never fires (gate too strict) | Open (SE7) |
+| E2 | Interaction quality uses agent's pre-interaction mood | Deferred → #1232 |
+| E3 | configureTheoryOfMind never called in production | ✅ Fixed (bdb8b7c8) |
+| E8 | Memory hygiene: nothing evicted (composite always above threshold) | Open (SE7) |
+| E10 | Goal tick results discarded; queryGoals returns all tenant goals | Open (SE7) |
+| E11 | Regex JSON parsing breaks on ] in text, rejects +0.3 | ✅ Fixed (bdb8b7c8) |
+| F4 | SQLite LIMIT before trait filter; subgraph type/id confusion | Open (SE3) |
+| F7 | Graduation cursor skip; actions/outcomes always pass | Open (SE4) |
+| F9 | CuriosityRefreshPhase computes signals and discards them | ✅ Fixed (1e320b85) |
+| F10 | Attention signals re-fire every pass (level-triggered) | ✅ Fixed (1e320b85) |
+| F11 | Auto-merge at JW ≥ 0.9 merges similar but distinct entities | Open (SE4) |
+| F15 | Active goals default to HOPE → never go dormant | ✅ Fixed (1e320b85) |
+| F19 | Every paragraph becomes STATED 1.0 node; fuzzy name resolution errors | Open (SE4) |
 
 ### P6: CAPS effectiveness (pending measurement)
 
-CAPS produces near-identical output across characters. The reviewer recommends "rebuild or retire" but this should wait until P1-P3 are resolved and the unified pipeline can be measured properly.
+CAPS produces near-identical output across characters. The reviewer recommends "rebuild or retire" but this should wait until P1-P3 are resolved and the unified pipeline can be measured properly. 3 of 11 fixed.
 
-| Finding | Summary |
-|---------|---------|
-| B1 | Unipolar nodes at 0.5 background swamp situation input |
-| B2 | Weight update is not multi-cue Rescorla-Wagner |
-| B3 | Regulation discards updated weights — learning is a no-op |
-| B5 | Distortions add positive constant regardless of sign |
-| B6 | Convergence threshold too generous (variance 0.05) |
-| B9 | ClassificationOutcomeEvaluator is roughly per-agent constant |
-| B10 | CBR cache: case id from query not hit; fewer filter fields |
-| B11 | RuleBasedSituationClassifier.classify() returns empty |
-| B13 | Threshold multipliers × 0 = 0 |
-| B14 | LlmSituationClassifier session reuse accumulates history |
-| B17 | Tests don't constrain behaviour |
+| Finding | Summary | Status |
+|---------|---------|--------|
+| B1 | Unipolar nodes at 0.5 background swamp situation input | Open (SE2) |
+| B2 | Weight update is not multi-cue Rescorla-Wagner | Open (SE2) |
+| B3 | Regulation discards updated weights — learning is a no-op | Open (SE2) |
+| B5 | Distortions add positive constant regardless of sign | Open (SE2) |
+| B6 | Convergence threshold too generous (variance 0.05) | Open (SE2) |
+| B9 | ClassificationOutcomeEvaluator is roughly per-agent constant | Open (SE2) |
+| B10 | CBR cache: case id from query not hit; fewer filter fields | Open (SE2) |
+| B11 | RuleBasedSituationClassifier.classify() returns empty | ✅ Fixed (fccd7ae3) |
+| B13 | Threshold multipliers × 0 = 0 | ✅ Fixed (fccd7ae3) |
+| B14 | LlmSituationClassifier session reuse accumulates history | ✅ Fixed (fccd7ae3) |
+| B17 | Tests don't constrain behaviour | Open (SE2) |
 
 ### Design disagreements (not issues — park for later)
 
@@ -170,15 +182,18 @@ CAPS produces near-identical output across characters. The reviewer recommends "
 
 ---
 
-## Recommended issue structure
+## Issue structure
 
-Create **6 epics** matching P1-P6, with child issues for each finding or natural grouping of related findings. The epics should be ordered and labelled to reflect the dependency chain:
+Epics created as #1220 (parent) with 7 sub-epics (#1221–#1227) + cross-repo #1228. Follow-up issues: #1231, #1232.
 
-1. **P1 (Unified pipeline)** blocks everything — can't validate any fix without it
-2. **P2 (Agent isolation)** blocks multi-agent testing
-3. **P3 (State corruption)** blocks measurement
-4. **P4 (Affect correctness)** can be done in parallel with P5
-5. **P5 (Higher cognition wiring)** can be done in parallel with P4
-6. **P6 (CAPS)** blocks on measurement results from P1-P3
+| Epic | Status | Remaining findings |
+|------|--------|-------------------|
+| SE1: Pipeline Spine (#1221) | **Closed** — landed as bdb8b7c8 | 0 (2 deferred to #1231, #1232) |
+| SE2: CAPS Rework (#1222) | Open | 8 |
+| SE3: Storage & Data Integrity (#1223) | Open | 4 |
+| SE4: Consolidation Phases (#1224) | Open | 9 (5 from P5 + 4 original) |
+| SE5: cognitive-index (#1225) | Open | 6 (2 from P2) |
+| SE6: Affect & Emotion (#1226) | Open — unblocked by SE1 | 14 (from P3 + P4) |
+| SE7: Orchestrators (#1227) | Open — unblocked by SE1 | 10 (from P2 + P5) |
 
 Design disagreements don't need issues — they're documented here for reference and can be revisited after measurement.
