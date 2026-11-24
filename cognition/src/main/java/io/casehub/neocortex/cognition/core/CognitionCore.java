@@ -159,6 +159,18 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
     private static final double MOOD_FALLBACK_DECAY = 0.5;
     private final java.util.concurrent.ConcurrentHashMap<String, double[]> lastMoodDelta = new java.util.concurrent.ConcurrentHashMap<>();
 
+    private record AgentKey(String agentId, String tenantId) {}
+
+    private static final class PerTickState {
+        volatile AgentDescriptor descriptor;
+        volatile AttentionBriefing briefing;
+        volatile List<ConsolidationArtifact> consolidationArtifacts;
+        volatile Map<String, io.casehub.neocortex.mindmap.ContinuumPosition> continuumMap;
+        volatile String targetAgentId;
+    }
+
+    private final java.util.concurrent.ConcurrentHashMap<AgentKey, PerTickState> agentState = new java.util.concurrent.ConcurrentHashMap<>();
+
     CognitionCore(MoodOrchestrator mood,
                   DriveOrchestrator drives,
                   @Nullable UserModelOrchestrator userModel,
@@ -296,6 +308,14 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                 }
             }
         }
+        var agentKey = new AgentKey(agentId, tenantId);
+        var perTick = agentState.computeIfAbsent(agentKey, k -> new PerTickState());
+        var previousDescriptor = perTick.descriptor;
+        perTick.descriptor = this.lastDescriptor;
+        perTick.briefing = this.lastBriefing;
+        perTick.consolidationArtifacts = this.lastConsolidationArtifacts;
+        perTick.continuumMap = this.lastContinuumMap;
+        perTick.targetAgentId = this.lastTargetAgentId;
         if (config.temporalFocusEnabled() && temporalFocus != null) {
             var subjects = resolver.relevantSubjects(agentId, tenantId);
             safeRun(() -> temporalFocus.tick(agentId, tenantId, subjects));
@@ -305,8 +325,10 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
         var context = new CognitionTickContext(agentId, tenantId, descriptor, resolver, observation, this.lastBriefing, targetAgentId, regulationContext);
 
         if (effectiveDefaults != null && descriptor != null && descriptor.disposition() != null) {
-            var view = io.casehub.neocortex.cognitive.eidos.EidosCognitiveProfileBridge.toDescriptorView(descriptor);
-            effectiveDefaults.updateBase(tenantId, view, tickEventRef.toString());
+            if (previousDescriptor == null || !descriptor.disposition().equals(previousDescriptor.disposition())) {
+                var view = io.casehub.neocortex.cognitive.eidos.EidosCognitiveProfileBridge.toDescriptorView(descriptor);
+                effectiveDefaults.updateBase(tenantId, view, tickEventRef.toString());
+            }
         }
 
         if (config.moodEnabled()) {
@@ -556,7 +578,7 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                                 ? response.substring(0, 200) + "..." : response;
             var userPrompt = "Other person said:\n" + truncatedMsg
                              + "\n\nAgent responded:\n" + truncatedResp;
-            var session = sessionPipeline.openSession("mood-appraisal-" + agentId, AgentSessionInit.of(MOOD_APPRAISAL_PROMPT));
+            var session = sessionPipeline.openSession("mood-appraisal-" + agentId + "-" + tenantId, AgentSessionInit.of(MOOD_APPRAISAL_PROMPT));
             var responseText = new StringBuilder();
             session.query(userPrompt).subscribe().asStream()
                 .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -644,7 +666,7 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                 var truncated = utterance.length() > 500
                                 ? utterance.substring(0, 500) + "..." : utterance;
                 var userPrompt = "What " + subjectId + " said:\n" + truncated;
-                var session = sessionPipeline.openSession("bdi-extraction-" + agentId, AgentSessionInit.of(BDI_EXTRACTION_PROMPT));
+                var session = sessionPipeline.openSession("bdi-extraction-" + agentId + "-" + tenantId, AgentSessionInit.of(BDI_EXTRACTION_PROMPT));
                 var responseText = new StringBuilder();
                 session.query(userPrompt).subscribe().asStream()
                     .filter(e -> e instanceof AgentEvent.TextDelta)
@@ -780,7 +802,25 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
     }
 
 
+    public List<CognitionPromptRenderer> promptSections(String agentId, String tenantId) {
+        var key = new AgentKey(agentId, tenantId);
+        var state = agentState.get(key);
+        if (state == null) return List.of();
+        this.lastDescriptor = state.descriptor;
+        this.lastAgentId = agentId;
+        this.lastTenantId = tenantId;
+        this.lastBriefing = state.briefing;
+        this.lastConsolidationArtifacts = state.consolidationArtifacts;
+        this.lastContinuumMap = state.continuumMap;
+        this.lastTargetAgentId = state.targetAgentId;
+        return promptSectionsInternal();
+    }
+
     public List<CognitionPromptRenderer> promptSections() {
+        return promptSectionsInternal();
+    }
+
+    private List<CognitionPromptRenderer> promptSectionsInternal() {
         var sections = new ArrayList<CognitionPromptRenderer>();
         var desc     = lastDescriptor;
         if (desc != null && desc.constraints() != null && !desc.constraints().isEmpty()) {
@@ -1368,7 +1408,7 @@ public @Nullable String lastTargetAgentId() {
         var renderContext = new io.casehub.neocortex.cognition.prompt.CognitionRenderContext(
                 agentId, tenantId, lastTargetAgentId, activatedDriveCategories());
         Map<String, String> renderedSections = new java.util.LinkedHashMap<>();
-        for (var renderer : promptSections()) {
+        for (var renderer : promptSections(agentId, tenantId)) {
             try {
                 String text = renderer.render(renderContext);
                 if (text != null) {
@@ -1396,10 +1436,10 @@ public @Nullable String lastTargetAgentId() {
 
     @Override
     public List<String> activeAgents(String tenantId) {
-        if (lastAgentId != null && tenantId.equals(lastTenantId)) {
-            return List.of(lastAgentId);
-        }
-        return List.of();
+        return agentState.keySet().stream()
+                .filter(k -> tenantId.equals(k.tenantId()))
+                .map(AgentKey::agentId)
+                .toList();
     }
 
 

@@ -554,7 +554,7 @@ public class CognitionObservationBuilder {
         var activatedDrives = cognitionCore.activatedDriveCategories();
         var ctx = new CognitionRenderContext(agentId, tenantId, cognitionCore.lastTargetAgentId(), activatedDrives);
         var sections = new ArrayList<ObservationSection>();
-        for (var section : cognitionCore.promptSections()) {
+        for (var section : cognitionCore.promptSections(agentId, tenantId)) {
             if (section.blockTag() != null) { continue; }
             var text = section.render(ctx);
             if (text != null && !text.isBlank()) {
@@ -569,7 +569,7 @@ public class CognitionObservationBuilder {
         var activatedDrives = cognitionCore.activatedDriveCategories();
         var ctx = new CognitionRenderContext(agentId, tenantId, cognitionCore.lastTargetAgentId(), activatedDrives);
         var tagged = new ArrayList<String>();
-        for (var section : cognitionCore.promptSections()) {
+        for (var section : cognitionCore.promptSections(agentId, tenantId)) {
             if (section.blockTag() == null) { continue; }
             var text = section.render(ctx);
             if (text != null && !text.isBlank()) {
