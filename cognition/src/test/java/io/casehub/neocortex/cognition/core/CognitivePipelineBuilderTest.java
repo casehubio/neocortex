@@ -162,7 +162,7 @@ class CognitivePipelineBuilderTest {
         var profile = new io.casehub.neocortex.cognitive.index.CognitiveProfile(mindMapStore, memoryStore);
 
         var core = CognitivePipelineBuilder.create(mood, drives)
-                                           .config(CognitionConfig.all().with("entityKnowledge", true))
+                                           .config(CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS))
                                            .cognitiveProfile(profile)
                                            .build();
 
@@ -188,7 +188,7 @@ class CognitivePipelineBuilderTest {
         mindMapStore.addNode(io.casehub.neocortex.mindmap.NodeInput.of("Bob", sgId), tenantId);
 
         var profile = new io.casehub.neocortex.cognitive.index.CognitiveProfile(mindMapStore, memoryStore);
-        var config  = CognitionConfig.all().with("entityKnowledge", false);
+        var config  = CognitionConfig.all().without("entityKnowledge").without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS);
 
         var core = CognitivePipelineBuilder.create(mood, drives)
                                            .config(config)

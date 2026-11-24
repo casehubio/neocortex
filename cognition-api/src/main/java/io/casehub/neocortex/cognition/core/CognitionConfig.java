@@ -1,121 +1,159 @@
 package io.casehub.neocortex.cognition.core;
 
-/**
- * Runtime feature toggles for the cognitive pipeline.
- *
- * <p>Each toggle corresponds to a section in the agency {@code CognitionDefinition} YAML schema.
- * The {@link #with(String, boolean)} keys are the canonical section names used by both systems.
- *
- * <h3>Toggle-to-section mapping</h3>
- * <table>
- *   <tr><th>Toggle</th><th>Definition section</th><th>Controls</th></tr>
- *   <tr><td>{@code moodEnabled}</td><td>{@code mood}</td><td>MoodOrchestrator, MoodPromptSection</td></tr>
- *   <tr><td>{@code drivesEnabled}</td><td>{@code drives}</td><td>DriveOrchestrator, DrivePromptSection</td></tr>
- *   <tr><td>{@code mentalModelEnabled}</td><td>{@code mentalModel}</td><td>MentalModelOrchestrator, MentalModelPromptSection</td></tr>
- *   <tr><td>{@code userModelEnabled}</td><td>{@code userModel}</td><td>UserModelOrchestrator, UserModelPromptSection</td></tr>
- *   <tr><td>{@code strategyEnabled}</td><td>{@code strategy}</td><td>StrategyLearningOrchestrator, StrategyPromptSection</td></tr>
- *   <tr><td>{@code narrativeEnabled}</td><td>{@code narrative}</td><td>NarrativeOrchestrator, NarrativePromptSection</td></tr>
- *   <tr><td>{@code goalsEnabled}</td><td>{@code goals}</td><td>GoalProposalOrchestrator, EmergentGoalPromptSection</td></tr>
- *   <tr><td>{@code memoryHygieneEnabled}</td><td>{@code memoryHygiene}</td><td>MemoryHygieneOrchestrator</td></tr>
- *   <tr><td>{@code innerLifeEnabled}</td><td>{@code innerLife}</td><td>InnerLifeOrchestrator</td></tr>
- *   <tr><td>{@code directivePrompts}</td><td>{@code directivePrompts}</td><td>DirectiveSection wrapping on all sections</td></tr>
- *   <tr><td>{@code characterDrivesEnabled}</td><td>{@code characterDrives}</td><td>CharacterDrivePromptSection (suppressed when appraisal active)</td></tr>
- *   <tr><td>{@code needsPyramidEnabled}</td><td>{@code needsPyramid}</td><td>NeedsPyramidPromptSection</td></tr>
- *   <tr><td>{@code attentionEnabled}</td><td>{@code attention}</td><td>AttentionPromptSection</td></tr>
- *   <tr><td>{@code temporalFocusEnabled}</td><td>{@code temporalFocus}</td><td>TemporalFocusOrchestrator, TemporalFocusPromptSection</td></tr>
- *   <tr><td>{@code reflectionEnabled}</td><td>{@code reflection}</td><td>ReflectionRetrievalOrchestrator, ReflectionPromptSection</td></tr>
- *   <tr><td>{@code consolidationEnabled}</td><td>{@code consolidation}</td><td>ConsolidationMediator, ConsolidationPromptSection</td></tr>
- *   <tr><td>{@code entityKnowledgeEnabled}</td><td>{@code entityKnowledge}</td><td>EntityKnowledgePromptSection</td></tr>
- *   <tr><td>{@code perspectiveComparisonEnabled}</td><td>{@code perspectiveComparison}</td><td>SocialComparisonPromptSection</td></tr>
- *   <tr><td>{@code domainActivationEnabled}</td><td>{@code domainActivation}</td><td>DomainActivationPromptSection</td></tr>
- *   <tr><td>{@code appraisalEnabled}</td><td>{@code appraisal}</td><td>AppraisalTickParticipant, AppraisalPromptSection, ChannelEmphasisPromptSection</td></tr>
- *   <tr><td>{@code salienceEnabled}</td><td>{@code salience}</td><td>ConcernBasedSalienceStrategy</td></tr>
- *   <tr><td>{@code behavioralEnabled}</td><td>{@code behavioral}</td><td>BehavioralPromptSection (CAPS attractors + gut feeling)</td></tr>
- *   <tr><td>{@code subThoughtsEnabled}</td><td>{@code subThoughts}</td><td>SubThoughtPromptSection</td></tr>
- *   <tr><td>{@code otherModelEnabled}</td><td>{@code otherModel}</td><td>OtherModelPromptSection</td></tr>
- *   <tr><td>{@code regulationEnabled}</td><td>{@code regulation}</td><td>EmotionRegulationTickParticipant (Gross 1998 post-appraisal)</td></tr>
- *   <tr><td>{@code copingEnabled}</td><td>{@code coping}</td><td>CopingMicroLoop (Marsella &amp; Gratch 2009 EMA, pre-regulation)</td></tr>
- *   <tr><td>{@code situationalPersonalityEnabled}</td><td>{@code situationalPersonality}</td><td>SituationalPersonalityParticipant (mode detection + personality deformation)</td></tr>
- *   <tr><td>{@code dissonanceEnabled}</td><td>{@code dissonance}</td><td>DissonanceTickParticipant, DissonancePromptSection (Festinger 1957 cognitive dissonance)</td></tr>
- * </table>
- *
- * @see CognitionCore#promptSections()
- */
-public record CognitionConfig(
-        boolean moodEnabled,
-        boolean drivesEnabled,
-        boolean mentalModelEnabled,
-        boolean userModelEnabled,
-        boolean strategyEnabled,
-        boolean narrativeEnabled,
-        boolean goalsEnabled,
-        boolean memoryHygieneEnabled,
-        boolean innerLifeEnabled,
-        boolean directivePrompts,
-        boolean characterDrivesEnabled,
-        boolean needsPyramidEnabled,
-        boolean attentionEnabled,
-        boolean temporalFocusEnabled,
-        boolean reflectionEnabled,
-        boolean consolidationEnabled,
-        boolean entityKnowledgeEnabled,
-        boolean perspectiveComparisonEnabled,
-        boolean domainActivationEnabled,
-        boolean appraisalEnabled,
-        boolean salienceEnabled,
-        boolean behavioralEnabled,
-        boolean subThoughtsEnabled,
-        boolean otherModelEnabled,
-        boolean regulationEnabled,
-        boolean copingEnabled,
-        boolean situationalPersonalityEnabled,
-        boolean dissonanceEnabled
-) {
-    public static CognitionConfig all()               {return new CognitionConfig(true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, false, false, false, false, false, false, true, true, false, false, false, false);}
+public final class CognitionConfig {
 
-    public static CognitionConfig withAllSubsystems() {return new CognitionConfig(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);}
+    public enum Subsystem {
+        MOOD, DRIVES, MENTAL_MODEL, USER_MODEL, STRATEGY, NARRATIVE, GOALS,
+        MEMORY_HYGIENE, INNER_LIFE, DIRECTIVE_PROMPTS, CHARACTER_DRIVES,
+        NEEDS_PYRAMID, ATTENTION, TEMPORAL_FOCUS, REFLECTION, CONSOLIDATION,
+        ENTITY_KNOWLEDGE, PERSPECTIVE_COMPARISON, DOMAIN_ACTIVATION,
+        APPRAISAL, SALIENCE, BEHAVIORAL, SUB_THOUGHTS, OTHER_MODEL,
+        REGULATION, COPING, SITUATIONAL_PERSONALITY, DISSONANCE
+    }
 
-    public static CognitionConfig none()              {return new CognitionConfig(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false);}
+    private static final java.util.Map<String, Subsystem> NAME_TO_SUBSYSTEM = java.util.Map.ofEntries(
+            java.util.Map.entry("mood", Subsystem.MOOD),
+            java.util.Map.entry("drives", Subsystem.DRIVES),
+            java.util.Map.entry("mentalModel", Subsystem.MENTAL_MODEL),
+            java.util.Map.entry("userModel", Subsystem.USER_MODEL),
+            java.util.Map.entry("strategy", Subsystem.STRATEGY),
+            java.util.Map.entry("narrative", Subsystem.NARRATIVE),
+            java.util.Map.entry("goals", Subsystem.GOALS),
+            java.util.Map.entry("memoryHygiene", Subsystem.MEMORY_HYGIENE),
+            java.util.Map.entry("innerLife", Subsystem.INNER_LIFE),
+            java.util.Map.entry("directivePrompts", Subsystem.DIRECTIVE_PROMPTS),
+            java.util.Map.entry("characterDrives", Subsystem.CHARACTER_DRIVES),
+            java.util.Map.entry("needsPyramid", Subsystem.NEEDS_PYRAMID),
+            java.util.Map.entry("attention", Subsystem.ATTENTION),
+            java.util.Map.entry("temporalFocus", Subsystem.TEMPORAL_FOCUS),
+            java.util.Map.entry("reflection", Subsystem.REFLECTION),
+            java.util.Map.entry("consolidation", Subsystem.CONSOLIDATION),
+            java.util.Map.entry("entityKnowledge", Subsystem.ENTITY_KNOWLEDGE),
+            java.util.Map.entry("perspectiveComparison", Subsystem.PERSPECTIVE_COMPARISON),
+            java.util.Map.entry("domainActivation", Subsystem.DOMAIN_ACTIVATION),
+            java.util.Map.entry("appraisal", Subsystem.APPRAISAL),
+            java.util.Map.entry("salience", Subsystem.SALIENCE),
+            java.util.Map.entry("behavioral", Subsystem.BEHAVIORAL),
+            java.util.Map.entry("subThoughts", Subsystem.SUB_THOUGHTS),
+            java.util.Map.entry("otherModel", Subsystem.OTHER_MODEL),
+            java.util.Map.entry("regulation", Subsystem.REGULATION),
+            java.util.Map.entry("coping", Subsystem.COPING),
+            java.util.Map.entry("situationalPersonality", Subsystem.SITUATIONAL_PERSONALITY),
+            java.util.Map.entry("dissonance", Subsystem.DISSONANCE)
+                                                                                                     );
+
+    private final java.util.EnumSet<Subsystem> enabled;
+
+    private CognitionConfig(java.util.EnumSet<Subsystem> enabled) {
+        this.enabled = java.util.EnumSet.copyOf(enabled);
+    }
+
+    private CognitionConfig(boolean empty) {
+        this.enabled = java.util.EnumSet.noneOf(Subsystem.class);
+    }
+
+    public boolean isEnabled(Subsystem subsystem) {
+        return enabled.contains(subsystem);
+    }
+
+    public java.util.Set<Subsystem> enabledSubsystems() {
+        return java.util.Collections.unmodifiableSet(enabled);
+    }
+
+    // --- Backward-compatible accessors ---
+    public boolean moodEnabled() {return isEnabled(Subsystem.MOOD);}
+
+    public boolean drivesEnabled()                 {return isEnabled(Subsystem.DRIVES);}
+
+    public boolean mentalModelEnabled()            {return isEnabled(Subsystem.MENTAL_MODEL);}
+
+    public boolean userModelEnabled()              {return isEnabled(Subsystem.USER_MODEL);}
+
+    public boolean strategyEnabled()               {return isEnabled(Subsystem.STRATEGY);}
+
+    public boolean narrativeEnabled()              {return isEnabled(Subsystem.NARRATIVE);}
+
+    public boolean goalsEnabled()                  {return isEnabled(Subsystem.GOALS);}
+
+    public boolean memoryHygieneEnabled()          {return isEnabled(Subsystem.MEMORY_HYGIENE);}
+
+    public boolean innerLifeEnabled()              {return isEnabled(Subsystem.INNER_LIFE);}
+
+    public boolean directivePrompts()              {return isEnabled(Subsystem.DIRECTIVE_PROMPTS);}
+
+    public boolean characterDrivesEnabled()        {return isEnabled(Subsystem.CHARACTER_DRIVES);}
+
+    public boolean needsPyramidEnabled()           {return isEnabled(Subsystem.NEEDS_PYRAMID);}
+
+    public boolean attentionEnabled()              {return isEnabled(Subsystem.ATTENTION);}
+
+    public boolean temporalFocusEnabled()          {return isEnabled(Subsystem.TEMPORAL_FOCUS);}
+
+    public boolean reflectionEnabled()             {return isEnabled(Subsystem.REFLECTION);}
+
+    public boolean consolidationEnabled()          {return isEnabled(Subsystem.CONSOLIDATION);}
+
+    public boolean entityKnowledgeEnabled()        {return isEnabled(Subsystem.ENTITY_KNOWLEDGE);}
+
+    public boolean perspectiveComparisonEnabled()  {return isEnabled(Subsystem.PERSPECTIVE_COMPARISON);}
+
+    public boolean domainActivationEnabled()       {return isEnabled(Subsystem.DOMAIN_ACTIVATION);}
+
+    public boolean appraisalEnabled()              {return isEnabled(Subsystem.APPRAISAL);}
+
+    public boolean salienceEnabled()               {return isEnabled(Subsystem.SALIENCE);}
+
+    public boolean behavioralEnabled()             {return isEnabled(Subsystem.BEHAVIORAL);}
+
+    public boolean subThoughtsEnabled()            {return isEnabled(Subsystem.SUB_THOUGHTS);}
+
+    public boolean otherModelEnabled()             {return isEnabled(Subsystem.OTHER_MODEL);}
+
+    public boolean regulationEnabled()             {return isEnabled(Subsystem.REGULATION);}
+
+    public boolean copingEnabled()                 {return isEnabled(Subsystem.COPING);}
+
+    public boolean situationalPersonalityEnabled() {return isEnabled(Subsystem.SITUATIONAL_PERSONALITY);}
+
+    public boolean dissonanceEnabled()             {return isEnabled(Subsystem.DISSONANCE);}
+
+    // --- Factory methods ---
+
+    public static CognitionConfig all() {
+        return new CognitionConfig(java.util.EnumSet.allOf(Subsystem.class));
+    }
+
+    @Deprecated
+    public static CognitionConfig withAllSubsystems() {
+        return all();
+    }
+
+    public static CognitionConfig none() {
+        return new CognitionConfig(false);
+    }
+
+    // --- Mutation (returns new instance) ---
 
     public CognitionConfig withDirectives() {
-        return new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled,
-                                   userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled,
-                                   memoryHygieneEnabled, innerLifeEnabled, true, characterDrivesEnabled,
-                                   needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
+        return with(Subsystem.DIRECTIVE_PROMPTS);
+    }
+
+    public CognitionConfig with(Subsystem subsystem) {
+        var copy = java.util.EnumSet.copyOf(enabled);
+        copy.add(subsystem);
+        return new CognitionConfig(copy);
+    }
+
+    public CognitionConfig without(Subsystem subsystem) {
+        var copy = java.util.EnumSet.copyOf(enabled);
+        copy.remove(subsystem);
+        return new CognitionConfig(copy);
     }
 
     public CognitionConfig with(String subsystem, boolean enabled) {
-        return switch (subsystem) {
-            case "mood" -> new CognitionConfig(enabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "drives" -> new CognitionConfig(moodEnabled, enabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "mentalModel" -> new CognitionConfig(moodEnabled, drivesEnabled, enabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "userModel" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, enabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "strategy" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, enabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "narrative" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, enabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "goals" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, enabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "memoryHygiene" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, enabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "innerLife" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, enabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "directivePrompts" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, enabled, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "characterDrives" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, enabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "needsPyramid" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, enabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "attention" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, enabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "temporalFocus" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, enabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "reflection" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, enabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "consolidation" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, enabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "entityKnowledge" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, enabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "perspectiveComparison" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, enabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "domainActivation" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, enabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "appraisal" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, enabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "salience" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, enabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "behavioral" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, enabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "subThoughts" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, enabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "otherModel" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, enabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "regulation" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, enabled, copingEnabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "coping" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, enabled, situationalPersonalityEnabled, dissonanceEnabled);
-            case "situationalPersonality" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, enabled, dissonanceEnabled);
-            case "dissonance" -> new CognitionConfig(moodEnabled, drivesEnabled, mentalModelEnabled, userModelEnabled, strategyEnabled, narrativeEnabled, goalsEnabled, memoryHygieneEnabled, innerLifeEnabled, directivePrompts, characterDrivesEnabled, needsPyramidEnabled, attentionEnabled, temporalFocusEnabled, reflectionEnabled, consolidationEnabled, entityKnowledgeEnabled, perspectiveComparisonEnabled, domainActivationEnabled, appraisalEnabled, salienceEnabled, behavioralEnabled, subThoughtsEnabled, otherModelEnabled, regulationEnabled, copingEnabled, situationalPersonalityEnabled, enabled);
-            default -> throw new IllegalArgumentException("Unknown subsystem: " + subsystem);
-        };
+        var s = NAME_TO_SUBSYSTEM.get(subsystem);
+        if (s == null) {throw new IllegalArgumentException("Unknown subsystem: " + subsystem);}
+        return enabled ? with(s) : without(s);
     }
 
     public CognitionConfig without(String... subsystems) {
@@ -124,5 +162,20 @@ public record CognitionConfig(
             config = config.with(s, false);
         }
         return config;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o || (o instanceof CognitionConfig c && enabled.equals(c.enabled));
+    }
+
+    @Override
+    public int hashCode() {
+        return enabled.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "CognitionConfig" + enabled;
     }
 }

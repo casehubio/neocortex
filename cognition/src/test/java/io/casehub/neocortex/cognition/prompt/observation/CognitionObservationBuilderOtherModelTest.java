@@ -32,7 +32,7 @@ class CognitionObservationBuilderOtherModelTest {
             "t1");
 
         var mood = new MoodOrchestrator(MoodConfig.defaults());
-        var config = CognitionConfig.all().with("otherModel", true);
+        var config = CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS);
         var core = CognitivePipelineBuilder.create(mood, null).config(config).mindMapStore(store).build();
 
         core.tick("agent1", "t1", null, (a, t) -> Set.of(), "obs", "target1");
@@ -58,7 +58,7 @@ class CognitionObservationBuilderOtherModelTest {
             "t1");
 
         var mood = new MoodOrchestrator(MoodConfig.defaults());
-        var config = CognitionConfig.all().with("otherModel", true);
+        var config = CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS);
         var core = CognitivePipelineBuilder.create(mood, null).config(config).mindMapStore(store).build();
 
         core.tick("agent1", "t1", null, (a, t) -> Set.of());

@@ -44,7 +44,7 @@ class CognitionStateProviderIntegrationTest {
         var trace = core.currentTrace("agent1", "t1");
         assertThat(trace).isPresent();
         assertThat(trace.get().promptSections()).isNotEmpty();
-        assertThat(trace.get().promptSections()).containsKey("MoodPromptSection");
+        assertThat(trace.get().promptSections()).containsKey("MOOD");
     }
 
     @Test

@@ -34,7 +34,7 @@ class CognitionCoreOtherModelTest {
     void promptSectionsIncludesOtherModelWhenEnabled() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
         var store = new InMemoryMindMapStore();
-        var config = CognitionConfig.all().with("otherModel", true);
+        var config = CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS);
         var core = new CognitionCore(mood, null, null, null, null, null, null, null,
             null, config, store, null, null, null, null, null, null, null);
 
@@ -48,7 +48,7 @@ class CognitionCoreOtherModelTest {
     void promptSectionsExcludesOtherModelWhenDisabled() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
         var store = new InMemoryMindMapStore();
-        var config = CognitionConfig.all().with("otherModel", false);
+        var config = CognitionConfig.all().without("otherModel").without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS);
         var core = new CognitionCore(mood, null, null, null, null, null, null, null,
             null, config, store, null, null, null, null, null, null, null);
 
@@ -61,7 +61,7 @@ class CognitionCoreOtherModelTest {
     @Test
     void promptSectionsExcludesOtherModelWhenNoMindMapStore() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
-        var config = CognitionConfig.all().with("otherModel", true);
+        var config = CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS);
         var core = new CognitionCore(mood, null, null, null, null, null, null, null,
             null, config, null, null, null, null, null, null, null, null);
 

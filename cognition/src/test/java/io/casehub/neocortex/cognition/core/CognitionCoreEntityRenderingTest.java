@@ -27,7 +27,7 @@ class CognitionCoreEntityRenderingTest {
     @Test
     void configureEntityRenderingWrapsSections() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
-        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null, null, CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS), null);
 
         core.configureEntityRendering((entityId, tenantId) ->
                 "p1".equals(entityId) ? FRIDA : null);
@@ -42,7 +42,7 @@ class CognitionCoreEntityRenderingTest {
     @Test
     void configureEntityRenderingWithNullLookupStillWraps() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
-        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null, null, CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS), null);
 
         core.configureEntityRendering(null);
 
@@ -56,7 +56,7 @@ class CognitionCoreEntityRenderingTest {
     @Test
     void entityRenderingCustomizerChainsWithExistingCustomizers() {
         var mood = new MoodOrchestrator(MoodConfig.defaults());
-        var core = new CognitionCore(mood, null, null, null, null, null, null, null);
+        var core = new CognitionCore(mood, null, null, null, null, null, null, null, null, CognitionConfig.all().without(CognitionConfig.Subsystem.DIRECTIVE_PROMPTS), null);
 
         CognitionPromptRenderer extra = ctx -> "extra content";
         core.chainSectionCustomizer(sections -> {

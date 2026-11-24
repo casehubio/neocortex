@@ -147,8 +147,8 @@ class AppraisalStatePropagationTest {
         var trace = harness.currentTrace("a1", "test-tenant");
         assertThat(trace).isPresent();
         var sections = trace.get().promptSections();
-        var driveSection = sections.get("DrivePromptSection");
-        assertThat(driveSection).as("DrivePromptSection should be present").isNotNull();
+        var driveSection = sections.get("DRIVES");
+        assertThat(driveSection).as("DRIVES section should be present").isNotNull();
         assertThat(driveSection).as("ANGER should boost competence above stub baseline")
                 .doesNotContain("Competence: 0.1");
     }
@@ -183,8 +183,8 @@ class AppraisalStatePropagationTest {
 
         var trace = harness.currentTrace("a1", "test-tenant");
         assertThat(trace).isPresent();
-        var driveSection = trace.get().promptSections().get("DrivePromptSection");
-        assertThat(driveSection).as("DrivePromptSection should be present").isNotNull();
+        var driveSection = trace.get().promptSections().get("DRIVES");
+        assertThat(driveSection).as("DRIVES section should be present").isNotNull();
         assertThat(driveSection)
                 .as("High-novelty HOPE should override curiosity trigger text")
                 .contains("elevated by HOPE");
