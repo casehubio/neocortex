@@ -111,7 +111,14 @@ public class DirectiveSection implements CognitionPromptRenderer {
     }
 
     public static CognitionPromptRenderer wrap(CognitionPromptRenderer section) {
-        var name = section.getClass().getSimpleName();
+        var target = section;
+        while (target instanceof DirectiveSection ds) {
+            target = ds.delegate();
+        }
+        if (target instanceof EntityRenderingSection ers) {
+            target = ers.delegate();
+        }
+        var name = target.getClass().getSimpleName();
         var directive = DIRECTIVES.getOrDefault(name,
                 "Consider this context in your response:");
         var tag = section.blockTag() != null

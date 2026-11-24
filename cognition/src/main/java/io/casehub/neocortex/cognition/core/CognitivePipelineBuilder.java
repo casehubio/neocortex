@@ -295,6 +295,9 @@ public final class CognitivePipelineBuilder {
         }
         core.configureRegulation();
         core.configureRegulationGoals();
+        if (cognitiveMemoryRetriever != null) {
+            core.configureCognitiveMemoryRetriever(cognitiveMemoryRetriever);
+        }
         if (gutFeelingMemoryStore != null) {
             core.configureGutFeeling(gutFeelingMemoryStore, mood);
         }
@@ -315,9 +318,6 @@ public final class CognitivePipelineBuilder {
         }
         if (goalEmotionMoodBridge != null) {
             core.configureGoalEmotionMoodBridge(goalEmotionMoodBridge);
-        }
-        if (cognitiveMemoryRetriever != null) {
-            core.configureCognitiveMemoryRetriever(cognitiveMemoryRetriever);
         }
         if (entityRenderingConfigured) {
             core.configureEntityRendering(entityIdentityLookup);
@@ -341,6 +341,7 @@ public final class CognitivePipelineBuilder {
         if (dissonancePhase != null && dissonanceConfig != null) {
             core.configureDissonance(dissonancePhase, dissonanceConfig);
         }
+        core.configureTheoryOfMind();
 
         return core;
     }

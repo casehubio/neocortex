@@ -27,6 +27,17 @@ public final class ModulationFactors {
         };
     }
 
+    public static <T> ModulationFactor<T> recencyDecay(Duration halfLife, java.time.Clock clock) {
+        double halfLifeHours = halfLife.toHours();
+        return (item, profile) -> {
+            Instant ts = profile.timestamp().apply(item);
+            if (ts == null) return 0.5;
+            double hoursElapsed = Duration.between(ts, clock.instant()).toMillis() / 3_600_000.0;
+            if (hoursElapsed < 0) hoursElapsed = 0;
+            return Math.exp(-hoursElapsed / halfLifeHours);
+        };
+    }
+
     public static <T> ModulationFactor<T> confidenceWeight() {
         return (item, profile) -> {
             Confidence conf = profile.confidence().apply(item);

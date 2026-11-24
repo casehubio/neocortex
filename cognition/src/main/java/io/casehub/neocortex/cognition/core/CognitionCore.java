@@ -689,36 +689,35 @@ private volatile @org.jspecify.annotations.Nullable Consumer<String>            
                 CueType.BELIEF_STATEMENT), agentId, subjectId, tenantId);
     }
 
+    private static final com.fasterxml.jackson.databind.ObjectMapper BDI_JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+
     private void recordExtractedSignals(String agentId, String subjectId,
                                         String tenantId, String json) {
         var jsonStart = json.indexOf('{');
         var jsonEnd = json.lastIndexOf('}');
         if (jsonStart < 0 || jsonEnd < 0) return;
         json = json.substring(jsonStart, jsonEnd + 1);
-
-        recordSignalArray(agentId, subjectId, tenantId, json,
-                          "beliefs", CueType.BELIEF_STATEMENT);
-        recordSignalArray(agentId, subjectId, tenantId, json,
-                          "desires", CueType.DESIRE_EXPRESSION);
-        recordSignalArray(agentId, subjectId, tenantId, json,
-                          "intentions", CueType.INTENTION_DECLARATION);
+        try {
+            var tree = BDI_JSON.readTree(json);
+            recordSignalArray(agentId, subjectId, tenantId, tree, "beliefs", CueType.BELIEF_STATEMENT);
+            recordSignalArray(agentId, subjectId, tenantId, tree, "desires", CueType.DESIRE_EXPRESSION);
+            recordSignalArray(agentId, subjectId, tenantId, tree, "intentions", CueType.INTENTION_DECLARATION);
+        } catch (Exception e) {
+            LOG.log(System.Logger.Level.WARNING, "Failed to parse BDI JSON", e);
+        }
     }
 
     private void recordSignalArray(String agentId, String subjectId,
-                                   String tenantId, String json,
+                                   String tenantId, com.fasterxml.jackson.databind.JsonNode tree,
                                    String arrayName, CueType cueType) {
-        var arrayPattern = Pattern.compile(
-                "\"" + arrayName + "\"\\s*:\\s*\\[([^\\]]*)]");
-        var arrayMatcher = arrayPattern.matcher(json);
-        if (!arrayMatcher.find()) return;
-        var arrayContent = arrayMatcher.group(1);
-
-        var itemPattern = Pattern.compile("\"text\"\\s*:\\s*\"([^\"]+)\"");
-        var itemMatcher = itemPattern.matcher(arrayContent);
-        while (itemMatcher.find()) {
-            var text = itemMatcher.group(1);
-            mentalModel.record(new MentalStateSignal.VerbalCue(text, cueType),
-                               agentId, subjectId, tenantId);
+        var array = tree.get(arrayName);
+        if (array == null || !array.isArray()) return;
+        for (var item : array) {
+            var textNode = item.get("text");
+            if (textNode != null && textNode.isTextual() && !textNode.asText().isEmpty()) {
+                mentalModel.record(new MentalStateSignal.VerbalCue(textNode.asText(), cueType),
+                                   agentId, subjectId, tenantId);
+            }
         }
     }
 
@@ -981,19 +980,8 @@ public @Nullable String lastTargetAgentId() {
                                       sessionPipeline, loadEstimator)
                               : null;
 
-        String cogSgId = null;
-        if (mindMapStore != null) {
-            var sgList = mindMapStore.listSubgraphs(lastTenantId != null ? lastTenantId : "default");
-            for (var sg : sgList) {
-                if (io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE.equals(sg.type())) {
-                    cogSgId = sg.id();
-                    break;
-                }
-            }
-        }
-
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
-                appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
+                appraisalParticipant, config, generationPhase, mindMapStore, null,
                 effectiveDefaults, loadEstimator);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }
@@ -1016,19 +1004,8 @@ public @Nullable String lastTargetAgentId() {
                 sessionPipeline, loadEstimator)
                               : null;
 
-        String cogSgId = null;
-        if (mindMapStore != null) {
-            var sgList = mindMapStore.listSubgraphs(lastTenantId != null ? lastTenantId : "default");
-            for (var sg : sgList) {
-                if (io.casehub.neocortex.mindmap.SubgraphTypes.COGNITIVE.equals(sg.type())) {
-                    cogSgId = sg.id();
-                    break;
-                }
-            }
-        }
-
         this.regulationParticipant = new io.casehub.neocortex.cognition.regulation.EmotionRegulationTickParticipant(
-                appraisalParticipant, config, generationPhase, mindMapStore, cogSgId,
+                appraisalParticipant, config, generationPhase, mindMapStore, null,
                 effectiveDefaults, loadEstimator, capsEngine, cascadeConfig);
         addParticipant(CognitionPhase.DERIVED, this.regulationParticipant);
     }

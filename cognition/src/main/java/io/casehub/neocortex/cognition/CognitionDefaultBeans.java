@@ -298,10 +298,9 @@ public class CognitionDefaultBeans {
             Instance<io.casehub.neocortex.cognition.journal.CognitiveJournal> cognitiveJournal) {
         if (!memoryStore.isResolvable()) {return null;}
         var staticFactors = new java.util.ArrayList<io.casehub.neocortex.cognitive.ModulationFactor<io.casehub.neocortex.memory.Memory>>();
-        var now = java.time.Instant.now();
         if (config.recencyEnabled()) {
             staticFactors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.recencyDecay(
-                    java.time.Duration.ofDays(config.recencyHalfLifeDays()), now));
+                    java.time.Duration.ofDays(config.recencyHalfLifeDays()), java.time.Clock.systemUTC()));
         }
         if (config.confidenceEnabled()) {
             staticFactors.add(io.casehub.neocortex.cognitive.index.ModulationFactors.confidenceWeight());

@@ -259,7 +259,7 @@ public class CognitionTestHarness {
 
     public String renderPrompt(String agentId, String tenantId) {
         var context = new CognitionRenderContext(agentId, tenantId, null, List.of());
-        return core.promptSections().stream()
+        return core.promptSections(agentId, tenantId).stream()
             .map(s -> s.render(context))
             .filter(Objects::nonNull)
             .filter(s -> !s.isBlank())
