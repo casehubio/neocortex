@@ -1392,3 +1392,7 @@ The detailed investigation continues in era-specific research journals. Each era
 - **Era 1** — `research/era1-character-taxonomy-research.md` — Taxonomy ablation, instruction design, L1 emotional echo. Complete.
 - **Era 2** — `research/drive-expression-evaluation-research.md` — CAPS pipeline, appraisal filtering, differentiation, regression recovery. Complete.
 - **Era 3** — `research/era3-cognitive-layering-research.md` — Self-conscious emotions, Theory of Mind, emotion regulation. Starting.
+
+## Applied in production
+
+- **Composable cognitive avatars** (`cognitive-runtime` module, #1219) — the practical application of era1/era3 echo research. The L1 emotional echo pattern (P16, P25, P26, P30) is used as a per-prompt identity anchor for briefed cognitive avatars. P26 (passive review suppresses drive expression) is a hard constraint on the echo mechanism — briefing text must be evocative, not prescriptive. This work validates the research finding that a good briefing gets you 90% of the way without the full emergent pipeline. See `specs/issue-1219-briefed-cognitive-avatars/2026-11-24-composable-cognitive-avatars-design.md`.

@@ -1811,3 +1811,7 @@ Standalone literature reviews and research that informed era3 implementation dec
 | `2026-09-14-measurement-driven-cognition-findings.md` | Design principles (P11 reinforcement) | A/B data: 7-orchestrator cognitive stack vs baseline. Empirical evidence that cognitive state as DATA beats INSTRUCTIONS (relocated from agency) |
 | `pre-era-needs-pyramid-2026-09-19.md` | Drive-to-tier routing | 5-tier Maslow-derived needs model, decay-toward-resting formula, saturation constraint, qualitative rendering |
 | `pre-era-proving-emergence-2026-09-28.md` | Eval methodology | Paired state probe methodology, per-subsystem emergence results (trust 5, persona 4, drives 3, mood 1→3), cognitive signal strength hierarchy |
+
+## Applied in
+
+- **Composable cognitive avatars** (`cognitive-runtime` module, #1219) — the template suppression finding (prescriptive text regressed protection drive from 4→2) directly shapes the BriefingConfig design constraint: echo text must be evocative, not prescriptive. Each persona's echo is hand-crafted, not template-generated. See `specs/issue-1219-briefed-cognitive-avatars/2026-11-24-composable-cognitive-avatars-design.md`.

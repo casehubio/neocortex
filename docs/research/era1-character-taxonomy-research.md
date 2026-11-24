@@ -422,3 +422,7 @@ These 4 regressions motivated Era 2 — the cognitive pipeline and drive express
 | `layer1-emotional-echo-generic-20261004/` | 320 | L1 | Emotional echo |
 | `layer1-thinking-capture-generic-20261004/` | 318 | L1 (thinking) | Emotional echo |
 | `layer1-long-run-generic-20261004/` | 732 | L1 long | Emotional echo |
+
+## Applied in
+
+- **Composable cognitive avatars** (`cognitive-runtime` module, #1219) — the three-layer briefing mechanism (identity, grounding, echo) is a direct application of the L1 emotional echo findings. The echo pattern (P16, P25, P30) anchors persona identity per-prompt. P26 (passive review suppresses) informs the design constraint that echo text must be evocative, not prescriptive. See `specs/issue-1219-briefed-cognitive-avatars/2026-11-24-composable-cognitive-avatars-design.md`.
