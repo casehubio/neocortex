@@ -73,7 +73,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
 
         MemoryEntry entry = new MemoryEntry();
-        entry.memoryId   = UUID.randomUUID().toString();
+        entry.memoryId   = io.casehub.neocortex.memory.MonotonicId.generate();
         entry.tenantId   = input.tenantId();
         entry.entityId   = input.subject().id();
         entry.domain     = input.domain().name();
@@ -101,7 +101,7 @@ public class JpaMemoryStore implements CaseMemoryStore {
         var entries = inputs.stream().map(input -> {
             MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
             MemoryEntry e = new MemoryEntry();
-            e.memoryId   = UUID.randomUUID().toString();
+            e.memoryId   = io.casehub.neocortex.memory.MonotonicId.generate();
             e.tenantId   = input.tenantId();
             e.entityId   = input.subject().id();
             e.domain     = input.domain().name();

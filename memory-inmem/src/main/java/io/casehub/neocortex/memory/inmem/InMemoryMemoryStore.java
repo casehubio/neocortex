@@ -75,7 +75,7 @@ public class InMemoryMemoryStore implements CaseMemoryStore {
     @Override
     public String store(MemoryInput input) {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
-        String memoryId = UUID.randomUUID().toString();
+        String memoryId = io.casehub.neocortex.memory.MonotonicId.generate();
         Memory memory = new Memory(
                 memoryId, input.subject(), input.domain(), input.tenantId(),
                 input.caseId(), input.text(), input.attributes(), Instant.now(),

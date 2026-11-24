@@ -107,7 +107,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
     @Override
     public String store(MemoryInput input) {
         MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
-        String memoryId = UUID.randomUUID().toString();
+        String memoryId = io.casehub.neocortex.memory.MonotonicId.generate();
         String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
         String sql = "INSERT INTO memory_entry (memory_id, tenant_id, entity_id, domain, case_id, text, attributes, created_at, confidence, pleasure, arousal, dominance, subject_type, principal_id, shared_with) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection conn = dataSource.getConnection();
@@ -146,7 +146,7 @@ public class SqliteMemoryStore implements CaseMemoryStore {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 for (MemoryInput input : inputs) {
                     MemoryPermissions.assertTenant(input.tenantId(), principal, requestContextActive());
-                    String memoryId = UUID.randomUUID().toString();
+                    String memoryId = io.casehub.neocortex.memory.MonotonicId.generate();
                     String createdAt = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
                     ps.setString(1, memoryId);
                     ps.setString(2, input.tenantId());
