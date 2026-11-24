@@ -32,4 +32,12 @@ public final class AffectEvents {
                                null, pleasure, arousal, dominance, null, null);
     }
 
+    public static MemoryInput toMemoryInput(String nodeId, String tenantId,
+                                            double pleasure, double arousal, double dominance,
+                                            AffectType affectType, io.casehub.platform.api.identity.PrincipalId principalId) {
+        var input = toMemoryInput(nodeId, tenantId, pleasure, arousal, dominance, affectType);
+        return principalId != null ? input.withPrincipalId(principalId) : input;
+    }
+
+
 }

@@ -8,12 +8,14 @@
 
 ## Fix Status
 
-**Updated:** 2026-11-24 — after SE1 (Pipeline Spine) landed + prior mechanical fixes.
+**Updated:** 2026-11-24 — after SE1 + SE3 + SE5 landed + prior mechanical fixes.
 
-23 of 107 findings now fixed. 8 partially addressed. 68 still valid. 2 not verifiable (agency-side).
+26 of 107 findings now fixed. 8 partially addressed. 65 still valid. 2 not verifiable (agency-side).
 
 **Mechanical fixes (pre-SE1):** bff7afbe (C15), 37daaed8 (D2, A10), fccd7ae3 (B11, B13, B14), 1e320b85 (A9, F2, F9, F10, F15)
 **SE1 (#1221):** 91aa9b6c (A1, A13), 98c4577e (A3, C19, D13), ccf5915d (C1, C8 partial), bdb8b7c8 (A6, A7, A8, D7, E3, E11)
+**SE3 (#1223):** adad3278 (F1), 38180173 (F4)
+**SE5 (#1225):** 442a998c (D14), 5b4b950f (D19), 552cb9ed (D11)
 **Deferred:** A2 partial → #1231, E2 → #1232
 
 ---
@@ -27,10 +29,10 @@ The review contains 120+ findings across 9 sections. All were verified against c
 | A — Wiring | 13 | 3 | 0 | 8 | 2 (agency-side) |
 | B — CAPS | 17 | 9 | 2 | 3 | 0 |
 | C — Affect | 21 | 11 | 4 | 3 | 0 |
-| D — Personality | 19 | 15 | 1 | 3 | 0 |
+| D — Personality | 19 | 12 | 1 | 6 | 0 |
 | E — Higher cognition | 17 | 15 | 0 | 2 | 0 |
 | F — Consolidation | 20 | 15 | 1 | 4 | 0 |
-| **Total** | **107** | **68** | **8** | **23** | **2** |
+| **Total** | **107** | **65** | **8** | **26** | **2** |
 
 Sections G (Evidence base), H (Direction), I (Recorded run data) are analysis/recommendations, not code findings.
 
@@ -74,14 +76,14 @@ The meta-issue. ~~Production (CognitionConfig.all()), tests (withAllSubsystems()
 
 ### P2: Per-agent state isolation
 
-~~One CognitionCore shared by all agents with agent-specific state in instance fields.~~ SE1 added ConcurrentHashMap<AgentKey, PerTickState> for core state isolation. Drive sources, affect trajectories, memory retriever, and narrative still need agent-scoping (SE5, SE6, SE7).
+~~One CognitionCore shared by all agents with agent-specific state in instance fields.~~ SE1 added ConcurrentHashMap<AgentKey, PerTickState> for core state isolation. SE5 fixed affect trajectories (D11) and memory retriever (D19). Drive sources and narrative still need agent-scoping (SE6, SE7).
 
 | Finding | Summary | Status |
 |---------|---------|--------|
 | A3 | Shared CognitionCore leaks lastAgentId, lastDescriptor, lastBriefing, etc. | ✅ Fixed (98c4577e) |
 | C9 | CuriosityDrive and other drive sources share state across agents | Open (SE6) |
-| D11 | Affect trajectories not agent-scoped | Open (SE5) |
-| D19 | CognitiveMemoryRetriever has one shared mutable tick context | Open (SE5) |
+| D11 | Affect trajectories not agent-scoped | ✅ Fixed (552cb9ed) |
+| D19 | CognitiveMemoryRetriever has one shared mutable tick context | ✅ Fixed (5b4b950f) |
 | C19 | LLM session ids not tenant/subject scoped | ✅ Fixed (98c4577e) |
 | E7 | Narrative partitions by tenant not agent | Open (SE7) |
 | F3 | Cross-tenant leakage in attention path | Open (SE4) |
@@ -190,9 +192,9 @@ Epics created as #1220 (parent) with 7 sub-epics (#1221–#1227) + cross-repo #1
 |------|--------|-------------------|
 | SE1: Pipeline Spine (#1221) | **Closed** — landed as bdb8b7c8 | 0 (2 deferred to #1231, #1232) |
 | SE2: CAPS Rework (#1222) | Open | 8 |
-| SE3: Storage & Data Integrity (#1223) | Open | 4 |
+| SE3: Storage & Data Integrity (#1223) | **Closed** — landed as 38180173 | 0 |
 | SE4: Consolidation Phases (#1224) | Open | 9 (5 from P5 + 4 original) |
-| SE5: cognitive-index (#1225) | Open | 6 (2 from P2) |
+| SE5: cognitive-index (#1225) | **Closed** — landed as 552cb9ed | 0 (D5 parked as design disagreement) |
 | SE6: Affect & Emotion (#1226) | Open — unblocked by SE1 | 14 (from P3 + P4) |
 | SE7: Orchestrators (#1227) | Open — unblocked by SE1 | 10 (from P2 + P5) |
 

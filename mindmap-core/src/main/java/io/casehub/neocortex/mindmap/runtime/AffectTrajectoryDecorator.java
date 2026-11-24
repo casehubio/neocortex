@@ -48,7 +48,14 @@ public class AffectTrajectoryDecorator extends AbstractForwardingMindMapStore {
             double a = newA != null ? newA : 0.0;
             double d = newD != null ? newD : 0.0;
 
-            var    input    = AffectEvents.toMemoryInput(nodeId, tenantId, p, a, d);
+            io.casehub.platform.api.identity.PrincipalId principalId = null;
+            String                                       agentId     = before.properties().get(io.casehub.neocortex.mindmap.OverlayRef.AGENT_ID);
+            if (agentId != null) {
+                principalId = io.casehub.platform.api.identity.PrincipalId.agent(agentId);
+            }
+
+            var input = AffectEvents.toMemoryInput(nodeId, tenantId, p, a, d,
+                                                   io.casehub.neocortex.cognitive.AffectType.INHERENT, principalId);
             String memoryId = memoryStore.store(input);
             eventSink.accept(new AffectRecorded(nodeId, tenantId, memoryId));
         } catch (Exception e) {

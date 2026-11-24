@@ -82,6 +82,31 @@ class AffectTrajectoryDecoratorTest {
         assertThat(memoryStore.stored).isEmpty();
     }
 
+    @Test
+    void updateNode_overlayNode_storesAgentPrincipalId() {
+        String nodeId = decorator.addNode(new NodeInput("overlay-alice", SUBGRAPH, CONF,
+                                                        null, null, null, null, null, 0.5, 0.3, 0.2,
+                                                        Map.of(io.casehub.neocortex.mindmap.OverlayRef.AGENT_ID, "agent-007")), TENANT);
+        decorator.updateNode(nodeId, new NodeUpdate(null, null, null, null, null, null,
+                                                    null, null, 0.9, 0.1, 0.8, null, null), TENANT);
+        assertThat(memoryStore.stored).hasSize(1);
+        MemoryInput stored = memoryStore.stored.getFirst();
+        assertThat(stored.principalId()).isNotNull();
+        assertThat(stored.principalId()).isEqualTo(io.casehub.platform.api.identity.PrincipalId.agent("agent-007"));
+    }
+
+    @Test
+    void updateNode_sharedNode_noPrincipalId() {
+        String nodeId = decorator.addNode(new NodeInput("shared-bob", SUBGRAPH, CONF,
+                                                        null, null, null, null, null, 0.5, 0.3, 0.2, Map.of()), TENANT);
+        decorator.updateNode(nodeId, new NodeUpdate(null, null, null, null, null, null,
+                                                    null, null, 0.9, 0.1, 0.8, null, null), TENANT);
+        assertThat(memoryStore.stored).hasSize(1);
+        MemoryInput stored = memoryStore.stored.getFirst();
+        assertThat(stored.principalId()).isNull();
+    }
+
+
     static class StubMemoryStore implements CaseMemoryStore {
         final List<MemoryInput> stored = new CopyOnWriteArrayList<>();
         @Override public String store(MemoryInput input) { stored.add(input); return UUID.randomUUID().toString(); }
