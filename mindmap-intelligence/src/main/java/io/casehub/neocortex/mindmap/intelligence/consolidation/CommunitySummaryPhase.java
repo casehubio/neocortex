@@ -11,6 +11,7 @@ import io.casehub.platform.agent.session.SessionPipeline;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -36,10 +37,14 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
     private final int k;
     private final int minClusterSize;
     private final int maxPerPass;
+    private final boolean enabled;
+
 
     @Inject
-    public CommunitySummaryPhase(MindMapStore store) {
-        this(store, 3, 4, 5);
+    public CommunitySummaryPhase(MindMapStore store,
+                                 @ConfigProperty(name = "casehub.mindmap.consolidation.community-summary.enabled",
+                                                 defaultValue = "false") boolean enabled) {
+        this(store, 3, 4, 5, enabled);
     }
 
     CommunitySummaryPhase(MindMapStore store, int k, int minClusterSize, int maxPerPass) {
@@ -47,7 +52,17 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
         this.k              = k;
         this.minClusterSize = minClusterSize;
         this.maxPerPass     = maxPerPass;
+        this.enabled        = true;
     }
+
+    CommunitySummaryPhase(MindMapStore store, int k, int minClusterSize, int maxPerPass, boolean enabled) {
+        this.store          = store;
+        this.k              = k;
+        this.minClusterSize = minClusterSize;
+        this.maxPerPass     = maxPerPass;
+        this.enabled        = enabled;
+    }
+
 
     @Override
     public String name() {
@@ -62,6 +77,7 @@ public class CommunitySummaryPhase implements ConsolidationPhase {
 
     @Override
     public void run(String tenantId, List<String> subgraphPriority) {
+        if (!enabled) return;
         List<String> sgIds     = orderedSubgraphs(tenantId, subgraphPriority);
         int          generated = 0;
 
