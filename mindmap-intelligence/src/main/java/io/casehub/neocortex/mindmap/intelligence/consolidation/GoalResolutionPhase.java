@@ -210,10 +210,17 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                 if (merged.contains(b.id())) {continue;}
 
                 double similarity = JaroWinkler.similarity(a.name(), b.name());
+                if (similarity < 0.90) continue;
+
+                Set<String> wordsA = Set.of(a.name().toLowerCase().split("\\s+"));
+                Set<String> wordsB = Set.of(b.name().toLowerCase().split("\\s+"));
+                double wordJaccard = jaccard(wordsA, wordsB);
+                if (wordJaccard < 0.67) continue;
+
                 String domainA = a.property("contentDomain").orElse(null);
                 String domainB = b.property("contentDomain").orElse(null);
-                boolean domainCompatible = domainA == null || domainB == null || domainA.equals(domainB);
-                if (similarity >= 0.90 && domainCompatible) {
+                boolean domainCompatible = java.util.Objects.equals(domainA, domainB);
+                if (domainCompatible) {
                     try {
                         store.mergeNodes(a.id(), b.id(), tenantId);
                         merged.add(b.id());
@@ -235,6 +242,13 @@ public class GoalResolutionPhase implements ConsolidationPhase {
                 }
             }
         }
+    }
+
+    private static double jaccard(Set<String> a, Set<String> b) {
+        if (a.isEmpty() && b.isEmpty()) {return 1.0;}
+        long intersection = a.stream().filter(b::contains).count();
+        long union        = a.size() + b.size() - intersection;
+        return union == 0 ? 0.0 : (double) intersection / union;
     }
 
 

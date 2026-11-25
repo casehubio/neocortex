@@ -367,6 +367,43 @@ class GoalResolutionPhaseTest {
         assertThat(subGoalCount).isEqualTo(2);
     }
 
+    @Test
+    void merge_doesNotMergeGoalsWithDifferentWordTokens() {
+        String parent = store.addNode(NodeInput.of("Write book", goalSubgraphId)
+                                               .withProperties(Map.of("description", "write book", "status", "active")), TENANT);
+        String ch1 = store.addNode(NodeInput.of("Write chapter 1", goalSubgraphId)
+                                            .withProperties(Map.of("description", "ch1", "status", "active")), TENANT);
+        String ch2 = store.addNode(NodeInput.of("Write chapter 2", goalSubgraphId)
+                                            .withProperties(Map.of("description", "ch2", "status", "active")), TENANT);
+
+        store.addEdge(EdgeInput.of(parent, ch1, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(parent, ch2, "decomposes-into"), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        assertThat(store.getNode(ch1, TENANT)).as("Chapter 1 should survive").isNotNull();
+        assertThat(store.getNode(ch2, TENANT)).as("Chapter 2 should survive").isNotNull();
+    }
+
+    @Test
+    void merge_blocksWhenOneDomainNullOtherSet() {
+        String parent = store.addNode(NodeInput.of("Learn skills", goalSubgraphId)
+                                               .withProperties(Map.of("description", "learn", "status", "active")), TENANT);
+        String g1 = store.addNode(NodeInput.of("Learn Python", goalSubgraphId)
+                                           .withProperties(Map.of("description", "learn python", "status", "active",
+                                                                  "contentDomain", "data-science")), TENANT);
+        String g2 = store.addNode(NodeInput.of("Learn Python", goalSubgraphId)
+                                           .withProperties(Map.of("description", "learn python", "status", "active")), TENANT);
+
+        store.addEdge(EdgeInput.of(parent, g1, "decomposes-into"), TENANT);
+        store.addEdge(EdgeInput.of(parent, g2, "decomposes-into"), TENANT);
+
+        noOpPhase().run(TENANT, List.of());
+
+        assertThat(store.getNode(g1, TENANT)).as("Domain-tagged goal should survive").isNotNull();
+        assertThat(store.getNode(g2, TENANT)).as("No-domain goal should survive — null != 'data-science'").isNotNull();
+    }
+
 
     // --- Progress computation ---
 
