@@ -1,21 +1,20 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
 import io.casehub.neocortex.cognitive.Confidence;
-
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.Memory;
 import io.casehub.neocortex.memory.MemoryScanRequest;
 import io.casehub.neocortex.memory.experience.ExperienceEvents;
 import io.casehub.neocortex.memory.experience.SubThoughtAttributeKeys;
 import io.casehub.neocortex.mindmap.AttentionSignal;
+import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
-import io.casehub.neocortex.mindmap.EdgeInput;
 import io.casehub.neocortex.mindmap.NodeInput;
-import io.casehub.neocortex.mindmap.SignalCategory;
-import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.NodeRef;
+import io.casehub.neocortex.mindmap.NodeUpdate;
+import io.casehub.neocortex.mindmap.SignalCategory;
 import io.casehub.neocortex.mindmap.SubThoughtRef;
 import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.intelligence.SubgraphUtils;
@@ -84,7 +83,11 @@ public class SubThoughtConsolidationPhase implements ConsolidationPhase {
     }
 
     @Override
-    public List<AttentionSignal> signals() { return List.copyOf(pendingSignals); }
+    public List<AttentionSignal> signals() {
+        var result = List.copyOf(pendingSignals);
+        pendingSignals.clear();
+        return result;
+    }
 
     public List<String> unresolvedIntentions() { return List.copyOf(unresolvedIntentions); }
 

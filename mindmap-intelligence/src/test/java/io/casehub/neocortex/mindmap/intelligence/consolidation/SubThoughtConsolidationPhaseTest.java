@@ -123,6 +123,24 @@ class SubThoughtConsolidationPhaseTest {
         return attrs;
     }
 
+
+    @Test
+    void signals_drainsAfterRead() {
+        for (int i = 0; i < 3; i++) {
+            storeMemoryWithSubThought(SubThoughtTypes.CONCERN,
+                                      "Worried about " + i, "DrainTest");
+        }
+
+        phase.beginTick();
+        phase.run(TENANT, List.of());
+
+        var first = phase.signals();
+        assertThat(first).as("Should have signals after run").isNotEmpty();
+
+        var second = phase.signals();
+        assertThat(second).as("signals() should drain on read").isEmpty();
+    }
+
     @Test
     void concernEscalation_emitsUrgencySpike() {
         for (int i = 0; i < 3; i++) {
