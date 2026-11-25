@@ -18,6 +18,7 @@ package io.casehub.neocortex.cognitive.runtime;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfilesReloaded;
+import io.casehub.neocortex.cognition.prompt.CognitiveLifecycle;
 import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.mindmap.MindMapStore;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,6 +36,7 @@ public class CognitiveAvatarProducer {
     private final Instance<MindMapStore> mindMapStore;
     private final Instance<CaseMemoryStore> memoryStore;
     private final Instance<CognitiveProfile> cognitiveProfile;
+    private final Instance<CognitiveLifecycle> cognitiveLifecycle;
 
     private final ConcurrentHashMap<String, CognitiveAvatar> cache = new ConcurrentHashMap<>();
 
@@ -42,11 +44,13 @@ public class CognitiveAvatarProducer {
     public CognitiveAvatarProducer(CognitiveDefaultsRegistry registry,
                                    Instance<MindMapStore> mindMapStore,
                                    Instance<CaseMemoryStore> memoryStore,
-                                   Instance<CognitiveProfile> cognitiveProfile) {
+                                   Instance<CognitiveProfile> cognitiveProfile,
+                                   Instance<CognitiveLifecycle> cognitiveLifecycle) {
         this.registry = registry;
         this.mindMapStore = mindMapStore;
         this.memoryStore = memoryStore;
         this.cognitiveProfile = cognitiveProfile;
+        this.cognitiveLifecycle = cognitiveLifecycle;
     }
 
     public CognitiveAvatar create(String agentId, String tenantId) {
@@ -78,7 +82,7 @@ public class CognitiveAvatarProducer {
 
         capabilities.add(new DispositionCapability(profile));
 
-        boolean cognitionActive = false;
+        boolean cognitionActive = cognitiveLifecycle.isResolvable();
         if (mindMapStore.isResolvable()) {
             capabilities.add(new NeedsCapability(mindMapStore.get(), cognitionActive));
             capabilities.add(new ConsolidationCapability(mindMapStore.get(), cognitionActive));

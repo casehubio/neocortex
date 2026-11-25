@@ -18,11 +18,11 @@ package io.casehub.neocortex.cognitive.runtime;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfilesReloaded;
-import io.casehub.neocortex.cognition.prompt.CognitionRenderContext;
 import io.casehub.neocortex.memory.MemoryDomain;
 import io.casehub.neocortex.memory.MemoryInput;
 import io.casehub.neocortex.memory.Subject;
@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +48,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CapabilityCompositionTest {
 
@@ -341,7 +344,8 @@ class CapabilityCompositionTest {
             registry,
             resolvedInstance(mindMapStore),
             resolvedInstance(memoryStore),
-            resolvedInstance(cognitiveProfile));
+            resolvedInstance(cognitiveProfile),
+            unresolvedInstance());
 
         var before = producer.create("stoic-mentor", TENANT);
         var beforeCtx = new CognitionRenderContext("stoic-mentor", TENANT, null);
@@ -354,7 +358,8 @@ class CapabilityCompositionTest {
             updatedRegistry,
             resolvedInstance(mindMapStore),
             resolvedInstance(memoryStore),
-            resolvedInstance(cognitiveProfile));
+            resolvedInstance(cognitiveProfile),
+            unresolvedInstance());
 
         updatedProducer.create("bold-strategist", TENANT);
         updatedProducer.onProfileReload(new CognitiveProfilesReloaded(List.of()));
@@ -374,7 +379,8 @@ class CapabilityCompositionTest {
             registry,
             resolvedInstance(mindMapStore),
             resolvedInstance(memoryStore),
-            resolvedInstance(cognitiveProfile));
+            resolvedInstance(cognitiveProfile),
+            unresolvedInstance());
 
         producer.create("stoic-mentor", TENANT);
         producer.onProfileReload(new CognitiveProfilesReloaded(List.of()));
@@ -405,4 +411,43 @@ class CapabilityCompositionTest {
             @Override public Iterator<T> iterator() { return List.of(value).iterator(); }
         };
     }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Instance<T> unresolvedInstance() {
+        return new Instance<T>() {
+            @Override
+            public T get()                                                                                                    {throw new IllegalStateException("unresolved");}
+
+            @Override
+            public boolean isResolvable()                                                                                     {return false;}
+
+            @Override
+            public boolean isAmbiguous()                                                                                      {return false;}
+
+            @Override
+            public boolean isUnsatisfied()                                                                                    {return true;}
+
+            @Override
+            public Instance<T> select(Annotation... qualifiers)                                                               {return this;}
+
+            @Override
+            public <U extends T> Instance<U> select(Class<U> subtype, Annotation... qualifiers)                               {return (Instance<U>) this;}
+
+            @Override
+            public <U extends T> Instance<U> select(jakarta.enterprise.util.TypeLiteral<U> subtype, Annotation... qualifiers) {return (Instance<U>) this;}
+
+            @Override
+            public void destroy(T instance)                                                                                   {}
+
+            @Override
+            public Handle<T> getHandle()                                                                                      {return null;}
+
+            @Override
+            public Iterable<Handle<T>> handles()                                                                              {return List.of();}
+
+            @Override
+            public Iterator<T> iterator()                                                                                     {return List.<T>of().iterator();}
+        };
+    }
+
 }

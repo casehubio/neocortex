@@ -15,14 +15,13 @@
  */
 package io.casehub.neocortex.cognitive.runtime;
 
+import io.casehub.neocortex.cognition.prompt.CognitiveLifecycle;
 import io.casehub.neocortex.cognitive.index.BriefingConfig;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaults;
 import io.casehub.neocortex.cognitive.index.CognitiveDefaultsRegistry;
 import io.casehub.neocortex.cognitive.index.CognitiveProfile;
 import io.casehub.neocortex.cognitive.index.CognitiveProfilesReloaded;
-import io.casehub.neocortex.memory.CaseMemoryStore;
 import io.casehub.neocortex.memory.inmem.InMemoryMemoryStore;
-import io.casehub.neocortex.mindmap.MindMapStore;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import io.casehub.platform.api.identity.CurrentPrincipal;
 import jakarta.enterprise.inject.Instance;
@@ -33,7 +32,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CognitiveAvatarProducerTest {
 
@@ -59,7 +62,8 @@ class CognitiveAvatarProducerTest {
             registry,
             resolvedInstance(mindMap),
             resolvedInstance(memory),
-            resolvedInstance(profile));
+            resolvedInstance(profile),
+            unresolvedInstance());
 
         var avatar = producer.create("mentor", TENANT);
         assertNotNull(avatar);
@@ -73,7 +77,7 @@ class CognitiveAvatarProducerTest {
     void cachesAvatarByTenantAndAgent() {
         var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-1"));
         var producer = new CognitiveAvatarProducer(
-            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
+            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
 
         var first = producer.create("agent-1", TENANT);
         var second = producer.create("agent-1", TENANT);
@@ -84,7 +88,7 @@ class CognitiveAvatarProducerTest {
     void differentTenantsGetDifferentInstances() {
         var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-1"));
         var producer = new CognitiveAvatarProducer(
-            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
+            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
 
         var a = producer.create("agent-1", "tenant-a");
         var b = producer.create("agent-1", "tenant-b");
@@ -95,7 +99,7 @@ class CognitiveAvatarProducerTest {
     void clearsCacheOnProfileReload() {
         var registry = CognitiveDefaultsRegistry.forTesting(CognitiveDefaults.empty("agent-1"));
         var producer = new CognitiveAvatarProducer(
-            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
+            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
 
         var before = producer.create("agent-1", TENANT);
         producer.onProfileReload(new CognitiveProfilesReloaded(List.of()));
@@ -110,7 +114,7 @@ class CognitiveAvatarProducerTest {
         var registry = CognitiveDefaultsRegistry.forTesting(defaults);
 
         var producer = new CognitiveAvatarProducer(
-            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
+            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
 
         var avatar = producer.create("minimal", TENANT);
         assertNotNull(avatar);
@@ -133,13 +137,65 @@ class CognitiveAvatarProducerTest {
             registry,
             resolvedInstance(mindMap),
             resolvedInstance(memory),
-            resolvedInstance(profile));
+            resolvedInstance(profile),
+            unresolvedInstance());
 
         var avatar = producer.create("mentor", TENANT);
         assertTrue(avatar.capability(InnerThoughtsCapability.class).isPresent());
         assertTrue(avatar.capability(AppraisalCapability.class).isPresent());
         assertTrue(avatar.capability(NeedsCapability.class).isPresent());
         assertTrue(avatar.capability(ConsolidationCapability.class).isPresent());
+    }
+
+
+    @Test
+    void newCapabilities_active_whenCognitionNotOnClasspath() {
+        var mindMap  = new InMemoryMindMapStore();
+        var memory   = new InMemoryMemoryStore(PRINCIPAL);
+        var profile  = new CognitiveProfile(mindMap, memory);
+        var briefing = new BriefingConfig("identity", "grounding", "echo");
+        var defaults = CognitiveDefaults.empty("mentor").withBriefing(briefing);
+        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+
+        var producer = new CognitiveAvatarProducer(
+                registry,
+                resolvedInstance(mindMap),
+                resolvedInstance(memory),
+                resolvedInstance(profile),
+                unresolvedInstance());
+
+        var avatar = producer.create("mentor", TENANT);
+        assertTrue(avatar.capability(NeedsCapability.class).get().isActive());
+        assertTrue(avatar.capability(AppraisalCapability.class).get().isActive());
+        assertTrue(avatar.capability(InnerThoughtsCapability.class).get().isActive());
+        assertTrue(avatar.capability(ConsolidationCapability.class).get().isActive());
+    }
+
+    @Test
+    void newCapabilities_inactive_whenCognitionActive() {
+        var mindMap  = new InMemoryMindMapStore();
+        var memory   = new InMemoryMemoryStore(PRINCIPAL);
+        var profile  = new CognitiveProfile(mindMap, memory);
+        var briefing = new BriefingConfig("identity", "grounding", "echo");
+        var defaults = CognitiveDefaults.empty("mentor").withBriefing(briefing);
+        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+
+        var producer = new CognitiveAvatarProducer(
+                registry,
+                resolvedInstance(mindMap),
+                resolvedInstance(memory),
+                resolvedInstance(profile),
+                resolvedInstance((CognitiveLifecycle) null));
+
+        var avatar = producer.create("mentor", TENANT);
+        assertTrue(avatar.capability(NeedsCapability.class).isPresent());
+        assertFalse(avatar.capability(NeedsCapability.class).get().isActive());
+        assertTrue(avatar.capability(AppraisalCapability.class).isPresent());
+        assertFalse(avatar.capability(AppraisalCapability.class).get().isActive());
+        assertTrue(avatar.capability(InnerThoughtsCapability.class).isPresent());
+        assertFalse(avatar.capability(InnerThoughtsCapability.class).get().isActive());
+        assertTrue(avatar.capability(ConsolidationCapability.class).isPresent());
+        assertFalse(avatar.capability(ConsolidationCapability.class).get().isActive());
     }
 
     @Test
@@ -149,7 +205,7 @@ class CognitiveAvatarProducerTest {
         var registry = CognitiveDefaultsRegistry.forTesting(defaults);
 
         var producer = new CognitiveAvatarProducer(
-            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
+            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
 
         var avatar = producer.create("minimal", TENANT);
         assertFalse(avatar.capability(InnerThoughtsCapability.class).isPresent());
