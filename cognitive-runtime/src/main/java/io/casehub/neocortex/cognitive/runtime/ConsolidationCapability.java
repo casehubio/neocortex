@@ -26,15 +26,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class ConsolidationCapability implements CognitiveCapability {
 
     static final String TRAIT_GRADUATED = "graduated-sub-thought";
     static final String TRAIT_SUMMARY = "Summary";
     static final String TRAIT_CURIOSITY = "CuriosityDescriptionGenerated";
-    static final Set<String> CONSOLIDATION_TRAITS = Set.of(TRAIT_GRADUATED, TRAIT_SUMMARY, TRAIT_CURIOSITY);
-
     private final MindMapStore mindMapStore;
     private final boolean cognitionActive;
     private String tenantId;

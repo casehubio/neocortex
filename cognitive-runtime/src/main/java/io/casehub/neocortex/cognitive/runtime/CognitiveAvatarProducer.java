@@ -78,6 +78,16 @@ public class CognitiveAvatarProducer {
 
         capabilities.add(new DispositionCapability(profile));
 
+        boolean cognitionActive = false;
+        if (mindMapStore.isResolvable()) {
+            capabilities.add(new NeedsCapability(mindMapStore.get(), cognitionActive));
+            capabilities.add(new ConsolidationCapability(mindMapStore.get(), cognitionActive));
+        }
+        if (memoryStore.isResolvable()) {
+            capabilities.add(new AppraisalCapability(memoryStore.get(), cognitionActive));
+            capabilities.add(new InnerThoughtsCapability(memoryStore.get(), cognitionActive));
+        }
+
         var avatar = new CognitiveAvatar(profile, capabilities);
         avatar.initialize(agentId, tenantId);
         return avatar;

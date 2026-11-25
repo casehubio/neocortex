@@ -90,7 +90,11 @@ class CapabilityCompositionTest {
             new TemporalCapability(mindMapStore),
             new MemoryCapability(memoryStore),
             new EntityKnowledgeCapability(cognitiveProfile),
-            new DispositionCapability(profile));
+            new DispositionCapability(profile),
+            new NeedsCapability(mindMapStore, false),
+            new ConsolidationCapability(mindMapStore, false),
+            new AppraisalCapability(memoryStore, false),
+            new InnerThoughtsCapability(memoryStore, false));
         var avatar = new CognitiveAvatar(profile, capabilities);
         avatar.initialize(profile.agentId(), TENANT);
         return avatar;
@@ -116,10 +120,10 @@ class CapabilityCompositionTest {
             TENANT, "Alice suggested using junction trees for inference"));
     }
 
-    // --- Scenario 1: Prompt ordering with all 6 capabilities ---
+    // --- Scenario 1: Prompt ordering with all capabilities ---
 
     @Test
-    void allSixCapabilities_renderInBlockTagOrder() throws IOException {
+    void allCapabilities_renderInBlockTagOrder() throws IOException {
         seedStores();
         var profile = loadProfile("stoic-mentor");
         var avatar = buildFullAvatar(profile);
@@ -153,13 +157,13 @@ class CapabilityCompositionTest {
     }
 
     @Test
-    void allSixCapabilities_promptSectionsOrderedByBlockTag() throws IOException {
+    void allCapabilities_promptSectionsOrderedByBlockTag() throws IOException {
         seedStores();
         var profile = loadProfile("stoic-mentor");
         var avatar = buildFullAvatar(profile);
 
         var sections = avatar.promptSections();
-        assertEquals(6, sections.size(), "All 6 capabilities should produce a prompt section");
+        assertEquals(10, sections.size(), "All 10 capabilities should produce a prompt section");
 
         int prevOrdinal = -1;
         for (var section : sections) {

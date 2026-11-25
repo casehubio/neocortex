@@ -120,6 +120,44 @@ class CognitiveAvatarProducerTest {
         assertFalse(blocks.isEmpty());
     }
 
+    @Test
+    void createsAvatarWithNewCapabilities_whenStoresAvailable() {
+        var mindMap = new InMemoryMindMapStore();
+        var memory = new InMemoryMemoryStore(PRINCIPAL);
+        var profile = new CognitiveProfile(mindMap, memory);
+        var briefing = new BriefingConfig("identity", "grounding", "echo");
+        var defaults = CognitiveDefaults.empty("mentor").withBriefing(briefing);
+        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+
+        var producer = new CognitiveAvatarProducer(
+            registry,
+            resolvedInstance(mindMap),
+            resolvedInstance(memory),
+            resolvedInstance(profile));
+
+        var avatar = producer.create("mentor", TENANT);
+        assertTrue(avatar.capability(InnerThoughtsCapability.class).isPresent());
+        assertTrue(avatar.capability(AppraisalCapability.class).isPresent());
+        assertTrue(avatar.capability(NeedsCapability.class).isPresent());
+        assertTrue(avatar.capability(ConsolidationCapability.class).isPresent());
+    }
+
+    @Test
+    void newCapabilities_notCreated_whenStoresUnavailable() {
+        var briefing = new BriefingConfig("identity", null, null);
+        var defaults = CognitiveDefaults.empty("minimal").withBriefing(briefing);
+        var registry = CognitiveDefaultsRegistry.forTesting(defaults);
+
+        var producer = new CognitiveAvatarProducer(
+            registry, unresolvedInstance(), unresolvedInstance(), unresolvedInstance());
+
+        var avatar = producer.create("minimal", TENANT);
+        assertFalse(avatar.capability(InnerThoughtsCapability.class).isPresent());
+        assertFalse(avatar.capability(AppraisalCapability.class).isPresent());
+        assertFalse(avatar.capability(NeedsCapability.class).isPresent());
+        assertFalse(avatar.capability(ConsolidationCapability.class).isPresent());
+    }
+
     @SuppressWarnings("unchecked")
     private static <T> Instance<T> resolvedInstance(T value) {
         return new Instance<T>() {
