@@ -415,7 +415,7 @@ public class MindMapExtractor {
         if (node != null) {return node.id();}
 
         if (fuzzyResolver != null) {
-            Optional<MindMapNode> fuzzy = fuzzyResolver.resolve(store, name, 0.85, null, tenantId);
+            Optional<MindMapNode> fuzzy = fuzzyResolver.resolve(store, name, 0.95, null, tenantId);
             if (fuzzy.isPresent()) {
                 LOG.fine("Fuzzy-resolved '" + name + "' to '" + fuzzy.get().name() + "'");
                 return fuzzy.get().id();
