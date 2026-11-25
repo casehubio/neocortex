@@ -150,9 +150,18 @@ public class MergeDetectionPhase implements ConsolidationPhase {
                     double      neighborOverlap = jaccard(neighborsA, neighborsB);
 
                     double combined = nameWeight() * nameSim + neighborWeight() * neighborOverlap;
+
+                    int totalNeighborCount = neighborsA.size() + neighborsB.size();
+                    long sharedCount = neighborsA.stream().filter(neighborsB::contains).count();
+                    boolean thinEvidence = nameSim < 0.95 && sharedCount < 2 && totalNeighborCount > 0;
+                    if (thinEvidence) {
+                        combined = Math.min(combined, autoMergeThreshold() - 0.01);
+                    }
+
                     if (combined >= candidateMinScore()) {
-                        String reason = neighborOverlap > 0
-                                        ? "name+neighbors" : "name-similarity";
+                        String reason = thinEvidence
+                                        ? "name-similarity (insufficient neighbors for auto-merge)"
+                                        : neighborOverlap > 0 ? "name+neighbors" : "name-similarity";
                         candidates.add(new MergeCandidate(
                                 a.id(), b.id(), combined, reason, Instant.now()));
                     }

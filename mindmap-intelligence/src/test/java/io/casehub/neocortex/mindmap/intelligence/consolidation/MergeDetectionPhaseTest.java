@@ -69,6 +69,36 @@ class MergeDetectionPhaseTest {
     }
 
     @Test
+    void autoMerge_blockedBySingleSharedNeighborWhenNameNotExact() {
+        String john   = store.addNode(NodeInput.of("John Smith", subgraphId), "t1");
+        String joan   = store.addNode(NodeInput.of("Joan Smith", subgraphId), "t1");
+        String shared = store.addNode(NodeInput.of("Project X", subgraphId), "t1");
+        store.addEdge(EdgeInput.of(john, shared, "works-on"), "t1");
+        store.addEdge(EdgeInput.of(joan, shared, "works-on"), "t1");
+
+        phase.run("t1", List.of());
+
+        assertThat(store.getNode(john, "t1")).isNotNull();
+        assertThat(store.getNode(joan, "t1")).isNotNull();
+    }
+
+    @Test
+    void autoMerge_allowedForIdenticalNamesWithSingleNeighbor() {
+        String id1    = store.addNode(NodeInput.of("Alice", subgraphId), "t1");
+        String id2    = store.addNode(NodeInput.of("Alice", subgraphId), "t1");
+        String shared = store.addNode(NodeInput.of("Project", subgraphId), "t1");
+        store.addEdge(EdgeInput.of(id1, shared, "works-on"), "t1");
+        store.addEdge(EdgeInput.of(id2, shared, "works-on"), "t1");
+
+        phase.run("t1", List.of());
+
+        var  nodes      = store.nodesIn(subgraphId, "t1");
+        long aliceCount = nodes.stream().filter(n -> n.name().equals("Alice")).count();
+        assertThat(aliceCount).as("Identical names should still auto-merge").isEqualTo(1);
+    }
+
+
+    @Test
     void run_excludesSummaryTraitNodes() {
         store.addNode(NodeInput.of("Summary of cluster", subgraphId)
             .withTraits(Set.of("Summary")), "t1");
