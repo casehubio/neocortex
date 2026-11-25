@@ -77,6 +77,32 @@ class PersonaProfileTest {
     }
 
     @Test
+    void stoicMentorHasDisposition() throws IOException {
+        var profile = loadProfile("stoic-mentor");
+        assertNotNull(profile.descriptor(), "stoic-mentor should have a descriptor");
+        var axes = profile.descriptor().disposition();
+        assertNotNull(axes, "stoic-mentor should have disposition axes");
+        assertEquals("high", axes.ruleFollowing());
+        assertEquals("low", axes.riskAppetite());
+        assertEquals("high", axes.autonomy());
+        assertEquals("moderate", axes.socialOrient());
+        assertEquals("collaborative", axes.conflictMode());
+    }
+
+    @Test
+    void boldStrategistHasDisposition() throws IOException {
+        var profile = loadProfile("bold-strategist");
+        assertNotNull(profile.descriptor(), "bold-strategist should have a descriptor");
+        var axes = profile.descriptor().disposition();
+        assertNotNull(axes, "bold-strategist should have disposition axes");
+        assertEquals("low", axes.ruleFollowing());
+        assertEquals("high", axes.riskAppetite());
+        assertEquals("high", axes.autonomy());
+        assertEquals("high", axes.socialOrient());
+        assertEquals("competitive", axes.conflictMode());
+    }
+
+    @Test
     void contrastingCuriosityConfig() throws IOException {
         var stoic = loadProfile("stoic-mentor");
         var bold = loadProfile("bold-strategist");
