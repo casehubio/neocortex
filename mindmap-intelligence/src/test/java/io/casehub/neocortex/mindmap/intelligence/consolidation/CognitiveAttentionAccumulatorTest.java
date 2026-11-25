@@ -44,6 +44,36 @@ class CognitiveAttentionAccumulatorTest {
     }
 
     @Test
+    void signals_isolatedByTenant_samePrincipal() {
+        var fired = new ArrayList<CognitiveAttentionRequired>();
+        var registry = EffectiveCognitiveDefaults.forTesting(
+                CognitiveDefaults.empty("agent-1"));
+        var acc = new CognitiveAttentionAccumulator(
+                registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
+
+        // Same principal, tenant-a: significance 3.0 (below 5.0 threshold)
+        acc.addSignals(List.of(
+                new AttentionSignal("agent-1", "tenant-a", SignalCategory.URGENCY_SPIKE,
+                                    "n1", "G1", 3.0, "r1")));
+        assertTrue(fired.isEmpty(), "tenant-a alone should not fire");
+
+        // Same principal, tenant-b: significance 3.0 (below 5.0 threshold)
+        acc.addSignals(List.of(
+                new AttentionSignal("agent-1", "tenant-b", SignalCategory.URGENCY_SPIKE,
+                                    "n2", "G2", 3.0, "r2")));
+        // Before fix: pooled = 6.0 >= 5.0, fires. After fix: each tenant at 3.0, neither fires.
+        assertTrue(fired.isEmpty(), "tenant-b alone should not fire — signals must not pool across tenants");
+
+        // Push tenant-a over threshold
+        acc.addSignals(List.of(
+                new AttentionSignal("agent-1", "tenant-a", SignalCategory.DECAY_DETECTED,
+                                    "n3", "G3", 3.0, "r3")));
+        assertEquals(1, fired.size(), "tenant-a should fire at 6.0");
+        assertEquals("tenant-a", fired.get(0).briefing().tenantId());
+    }
+
+
+    @Test
     void adaptive_threshold_lowers_with_high_urgency_p75() {
         var fired = new ArrayList<CognitiveAttentionRequired>();
         var registry = EffectiveCognitiveDefaults.forTesting(
@@ -51,7 +81,7 @@ class CognitiveAttentionAccumulatorTest {
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
 
-        acc.updateUrgencyP75("a", 0.8);
+        acc.updateUrgencyP75("a", "t", 0.8);
         // adjusted = 5.0 * (1.0 - 0.2) = 4.0
         acc.addSignals(List.of(
             new AttentionSignal("a", "t", SignalCategory.URGENCY_SPIKE,
@@ -125,7 +155,7 @@ class CognitiveAttentionAccumulatorTest {
         var acc = new CognitiveAttentionAccumulator(
             registry, null, fired::add, Clock.systemUTC(), 5.0, 0);
 
-        acc.updateUrgencyP75("a", 1.0);
+        acc.updateUrgencyP75("a", "t", 1.0);
         // adjusted = 5.0 * (1.0 - 0.4) = 3.0 (floor = 5.0 * 0.6 = 3.0)
         acc.addSignals(List.of(
             new AttentionSignal("a", "t", SignalCategory.URGENCY_SPIKE,

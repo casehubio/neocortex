@@ -170,7 +170,7 @@ public class CognitionService implements CognitionApi {
     public AttentionBriefing attention(String tenancyId, String principalId, Integer topN) {
         if (attentionAccumulator == null) {return null;}
         int n = topN != null ? topN : 10;
-        return attentionAccumulator.currentBriefing(principalId, n);
+        return attentionAccumulator.currentBriefing(principalId, tenancyId, n);
     }
 
     @Override

@@ -13,6 +13,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -200,6 +201,18 @@ public class ConsolidationScheduler {
         knownTenants.add(tenantId);
     }
 
+    void onExperienceRecorded(@Observes io.casehub.neocortex.memory.experience.ExperienceRecorded event) {
+        String tenantId = event.event().tenantId();
+        if (tenantId != null) {
+            knownTenants.add(tenantId);
+        }
+    }
+
+    Set<String> knownTenants() {
+        return Set.copyOf(knownTenants);
+    }
+
+
     public void seedTenantsFromStore() {
         try {
             var tenants = memoryStore.discoverTenants(null, null);
@@ -325,17 +338,23 @@ public List<MissingCapability> validateCapabilities(String tenantId,
     }
 
     private void refreshUrgencyP75(List<AttentionSignal> signals) {
-        var byPrincipal = new java.util.HashMap<String, List<Double>>();
+        var byKey      = new java.util.HashMap<String, List<Double>>();
+        var keyTenants = new java.util.HashMap<String, String>();
         for (var signal : signals) {
             if (signal.category() == SignalCategory.URGENCY_SPIKE && signal.principalId() != null) {
-                byPrincipal.computeIfAbsent(signal.principalId(), k -> new ArrayList<>())
-                           .add(signal.significance());
+                String key = signal.principalId() + "::" + signal.tenantId();
+                byKey.computeIfAbsent(key, k -> new ArrayList<>())
+                     .add(signal.significance());
+                keyTenants.put(key, signal.tenantId());
             }
         }
-        for (var entry : byPrincipal.entrySet()) {
-            double[] values = entry.getValue().stream().mapToDouble(Double::doubleValue).toArray();
-            double   p75    = FeatureStatistics.compute(values).p75();
-            attentionAccumulator.updateUrgencyP75(entry.getKey(), p75);
+        for (var entry : byKey.entrySet()) {
+            double[] values      = entry.getValue().stream().mapToDouble(Double::doubleValue).toArray();
+            double   p75         = FeatureStatistics.compute(values).p75();
+            String   key         = entry.getKey();
+            String   principalId = key.substring(0, key.indexOf("::"));
+            String   tenantId    = keyTenants.get(key);
+            attentionAccumulator.updateUrgencyP75(principalId, tenantId, p75);
         }
     }
 

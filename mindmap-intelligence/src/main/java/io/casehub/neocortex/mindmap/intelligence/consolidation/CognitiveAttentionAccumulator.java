@@ -51,6 +51,23 @@ public class CognitiveAttentionAccumulator {
         volatile double urgencyP75 = 0.0;
     }
 
+    private static String compositeKey(String principalId, String tenantId) {
+        return principalId + "::" + (tenantId != null ? tenantId : "__global__");
+    }
+
+    private static String principalFromKey(String key) {
+        int sep = key.indexOf("::");
+        return sep >= 0 ? key.substring(0, sep) : key;
+    }
+
+    private static String tenantFromKey(String key) {
+        int sep = key.indexOf("::");
+        if (sep < 0) {return "";}
+        String tenant = key.substring(sep + 2);
+        return "__global__".equals(tenant) ? "" : tenant;
+    }
+
+
     @Inject
     public CognitiveAttentionAccumulator(
             Instance<EffectiveCognitiveDefaults> registry,
@@ -93,18 +110,19 @@ public class CognitiveAttentionAccumulator {
     }
 
     public void addSignals(List<AttentionSignal> signals) {
-        var byPrincipal = new HashMap<String, List<AttentionSignal>>();
+        var byKey = new HashMap<String, List<AttentionSignal>>();
         for (var signal : signals) {
             String key = signal.principalId() != null
-                ? signal.principalId() : "__broadcast__";
-            byPrincipal.computeIfAbsent(key, k -> new ArrayList<>()).add(signal);
+                         ? compositeKey(signal.principalId(), signal.tenantId())
+                         : "__broadcast__";
+            byKey.computeIfAbsent(key, k -> new ArrayList<>()).add(signal);
         }
 
-        var broadcastSignals = byPrincipal.remove("__broadcast__");
+        var broadcastSignals = byKey.remove("__broadcast__");
 
-        for (var entry : byPrincipal.entrySet()) {
+        for (var entry : byKey.entrySet()) {
             var pa = perPrincipal.computeIfAbsent(
-                entry.getKey(), k -> new PrincipalAttention());
+                    entry.getKey(), k -> new PrincipalAttention());
             deduplicateAndAdd(pa, entry.getValue());
             evaluateThreshold(entry.getKey(), pa);
         }
@@ -112,17 +130,18 @@ public class CognitiveAttentionAccumulator {
         if (broadcastSignals != null && registry != null) {
             String broadcastTenantId = broadcastSignals.get(0).tenantId();
             for (String agentId : registry.agentIds(broadcastTenantId)) {
+                String cKey = compositeKey(agentId, broadcastTenantId);
                 var pa = perPrincipal.computeIfAbsent(
-                    agentId, k -> new PrincipalAttention());
+                        cKey, k -> new PrincipalAttention());
                 deduplicateAndAdd(pa, broadcastSignals);
-                evaluateThreshold(agentId, pa);
+                evaluateThreshold(cKey, pa);
             }
         }
     }
 
-    public void updateUrgencyP75(String principalId, double urgencyP75) {
-        var pa = perPrincipal.computeIfAbsent(
-            principalId, k -> new PrincipalAttention());
+    public void updateUrgencyP75(String principalId, String tenantId, double urgencyP75) {
+        String key = compositeKey(principalId, tenantId);
+        var    pa  = perPrincipal.computeIfAbsent(key, k -> new PrincipalAttention());
         pa.urgencyP75 = Math.min(1.0, urgencyP75);
     }
 
@@ -196,32 +215,32 @@ public class CognitiveAttentionAccumulator {
     }
 
 
-    public AttentionBriefing currentBriefing(String principalId, int topN) {
-        PrincipalAttention pa = perPrincipal.get(principalId);
+    public AttentionBriefing currentBriefing(String principalId, String tenantId, int topN) {
+        String             key = compositeKey(principalId, tenantId);
+        PrincipalAttention pa  = perPrincipal.get(key);
         if (pa == null) {
-            return new AttentionBriefing(principalId, "", List.of(), 0.0, clock.instant());
+            return new AttentionBriefing(principalId, tenantId != null ? tenantId : "", List.of(), 0.0, clock.instant());
         }
         var signals = new ArrayList<>(pa.pending);
         signals.sort(Comparator.comparingDouble(AttentionSignal::significance).reversed());
         if (topN > 0 && signals.size() > topN) {
             signals = new ArrayList<>(signals.subList(0, topN));
         }
-        String tenantId = signals.isEmpty() ? "" : signals.get(0).tenantId();
-        return new AttentionBriefing(principalId, tenantId, signals, pa.urgencyP75, clock.instant());
+        return new AttentionBriefing(principalId, tenantId != null ? tenantId : "", signals, pa.urgencyP75, clock.instant());
     }
 
-    private void evaluateThreshold(String principalId, PrincipalAttention pa) {
+    private void evaluateThreshold(String key, PrincipalAttention pa) {
         double urgencyP75 = Math.min(1.0, pa.urgencyP75);
         double adjusted = urgencyP75 > 0.6
-            ? baseThreshold * (1.0 - (urgencyP75 - 0.6))
-            : baseThreshold;
+                          ? baseThreshold * (1.0 - (urgencyP75 - 0.6))
+                          : baseThreshold;
         adjusted = Math.max(adjusted, baseThreshold * 0.6);
 
         double total = 0;
         for (var s : pa.pending) {
             total += s.significance();
         }
-        if (total < adjusted) return;
+        if (total < adjusted) {return;}
 
         Instant now = clock.instant();
         if (Duration.between(pa.lastPushAt, now).getSeconds() < minIntervalSeconds) {
@@ -230,13 +249,14 @@ public class CognitiveAttentionAccumulator {
 
         var signalList = new ArrayList<>(pa.pending);
         signalList.sort(
-            Comparator.comparingDouble(AttentionSignal::significance).reversed());
+                Comparator.comparingDouble(AttentionSignal::significance).reversed());
         pa.pending.clear();
         pa.lastPushAt = now;
 
-        String tenantId = signalList.isEmpty() ? "" : signalList.get(0).tenantId();
+        String principalId = principalFromKey(key);
+        String tenantId    = tenantFromKey(key);
         var briefing = new AttentionBriefing(
-            principalId, tenantId, signalList, urgencyP75, now);
+                principalId, tenantId, signalList, urgencyP75, now);
         eventSink.accept(new CognitiveAttentionRequired(briefing, now));
     }
 }

@@ -549,6 +549,25 @@ class ConsolidationSchedulerTest {
     }
 
     @Test
+    void onExperienceRecorded_registersNewTenant() {
+        var newScheduler = new ConsolidationScheduler(
+                List.of(), idleTracker, memoryStore, null);
+
+        assertThat(newScheduler.knownTenants()).doesNotContain("brand-new-tenant");
+
+        var event = new io.casehub.neocortex.memory.experience.ExperienceRecorded(
+                new io.casehub.neocortex.memory.experience.Observation(
+                        "agent-1", "brand-new-tenant", null, "turn-1",
+                        java.time.Instant.now(), "something happened", null,
+                        java.util.Map.of(), "entity-1"),
+                "mem-1");
+        newScheduler.onExperienceRecorded(event);
+
+        assertThat(newScheduler.knownTenants()).contains("brand-new-tenant");
+    }
+
+
+    @Test
     void tick_whenNotIdle_runsStarvedTenants() {
         var testScheduler = new ConsolidationScheduler(
                 List.of(new ConsolidationPhase() {
