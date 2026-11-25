@@ -34,7 +34,7 @@ class SubThoughtExtractorTest {
     @BeforeEach
     void setUp() {
         memoryStore = new InMemoryMemoryStore(principal);
-        extractor = new SubThoughtExtractor(memoryStore, new NoOpEvent<>());
+        extractor = new SubThoughtExtractor(memoryStore, new NoOpEvent<>(), (io.casehub.neocortex.entity.token.SurfaceFormTrie) null);
     }
 
     @Test
@@ -123,6 +123,28 @@ class SubThoughtExtractorTest {
     }
 
     @Test
+    void extractFromText_resolvesEntityViaTrie() {
+        var forms = List.of(
+                new io.casehub.neocortex.entity.token.SurfaceForm("Alice", "canonical", "alice-node-id"));
+        var trie          = io.casehub.neocortex.entity.token.SurfaceFormTrie.build(forms);
+        var trieExtractor = new SubThoughtExtractor(memoryStore, new NoOpEvent<>(), trie);
+
+        var subThoughts = trieExtractor.extractFromText("Alice seemed frustrated about the deadline");
+        assertThat(subThoughts).isNotEmpty();
+        assertThat(subThoughts.stream().filter(st -> "alice-node-id".equals(st.entity())).toList())
+                .as("At least one sub-thought should resolve Alice as entity")
+                .isNotEmpty();
+    }
+
+    @Test
+    void extractFromText_nullEntityWhenNoTrieAndNoMatch() {
+        var subThoughts = extractor.extractFromText("I felt worried about everything going wrong");
+        assertThat(subThoughts).as("Classifier should detect affect/concern keywords").isNotEmpty();
+        assertThat(subThoughts.get(0).entity()).as("No trie means no entity resolution").isNull();
+    }
+
+
+    @Test
     void extractFromTextSkipsUnmatchedSentences() {
         var result = extractor.extractFromText("The weather was nice. We walked to the park.");
         assertThat(result).isEmpty();
@@ -134,7 +156,7 @@ class SubThoughtExtractorTest {
                 SUBJECT, ExperienceEvents.DOMAIN, TENANT, "She seemed distracted."));
 
         var recording          = new RecordingEvent<SubThoughtsEnriched>();
-        var enrichingExtractor = new SubThoughtExtractor(memoryStore, recording);
+        var enrichingExtractor = new SubThoughtExtractor(memoryStore, recording, (io.casehub.neocortex.entity.token.SurfaceFormTrie) null);
 
         enrichingExtractor.onExtractionRequested(new SubThoughtExtractionRequested(
                 memoryId, TENANT, "She seemed distracted.",

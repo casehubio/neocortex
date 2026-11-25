@@ -21,13 +21,26 @@ public class SubThoughtExtractor {
 
     private final CaseMemoryStore memoryStore;
     private final jakarta.enterprise.event.Event<SubThoughtsEnriched> enrichedEvent;
+    private final io.casehub.neocortex.entity.token.SurfaceFormTrie   trie;
+
 
     @Inject
     public SubThoughtExtractor(CaseMemoryStore memoryStore,
-                                jakarta.enterprise.event.Event<SubThoughtsEnriched> enrichedEvent) {
-        this.memoryStore = memoryStore;
+                               jakarta.enterprise.event.Event<SubThoughtsEnriched> enrichedEvent,
+                               jakarta.enterprise.inject.Instance<io.casehub.neocortex.entity.token.SurfaceFormTrie> trieInstance) {
+        this.memoryStore   = memoryStore;
         this.enrichedEvent = enrichedEvent;
+        this.trie          = trieInstance.isResolvable() ? trieInstance.get() : null;
     }
+
+    SubThoughtExtractor(CaseMemoryStore memoryStore,
+                        jakarta.enterprise.event.Event<SubThoughtsEnriched> enrichedEvent,
+                        io.casehub.neocortex.entity.token.SurfaceFormTrie trie) {
+        this.memoryStore   = memoryStore;
+        this.enrichedEvent = enrichedEvent;
+        this.trie          = trie;
+    }
+
 
     public void onExtractionRequested(@ObservesAsync SubThoughtExtractionRequested event) {
         try {
@@ -46,9 +59,17 @@ public class SubThoughtExtractor {
 
     List<ParsedSubThought> extractFromText(String text) {
         return SubThoughtClassifier.classify(text).stream()
-                .map(m -> new ParsedSubThought(m.type(), m.text(), null, 0.8))
-                .toList();
+                                   .map(m -> new ParsedSubThought(m.type(), m.text(),
+                                                                  resolveEntity(m.text()), 0.8))
+                                   .toList();
     }
+
+    private String resolveEntity(String text) {
+        if (trie == null || text == null) {return null;}
+        var matches = trie.scan(text);
+        return matches.isEmpty() ? null : matches.get(0).form().entityId();
+    }
+
 
     public void applySubThoughts(String memoryId, List<ParsedSubThought> subThoughts,
                                   String tenantId) {
