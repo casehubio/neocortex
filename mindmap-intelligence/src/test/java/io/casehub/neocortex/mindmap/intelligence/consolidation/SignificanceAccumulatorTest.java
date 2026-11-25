@@ -70,6 +70,37 @@ class SignificanceAccumulatorTest {
     }
 
     @Test
+    void swapAndReset_withTenantSet_onlyDrainsSpecifiedTenants() {
+        accumulator.onExperienceRecorded(event("t1"));
+        accumulator.onExperienceRecorded(event("t1"));
+        accumulator.onExperienceRecorded(event("t2"));
+        accumulator.onExperienceRecorded(event("t2"));
+
+        var snapshot = accumulator.swapAndReset(java.util.Set.of("t1"));
+
+        assertThat(snapshot.perTenant()).containsEntry("t1", 2.0);
+        assertThat(snapshot.perTenant()).doesNotContainKey("t2");
+
+        var fullSnapshot = accumulator.swapAndReset();
+        assertThat(fullSnapshot.perTenant()).containsEntry("t2", 2.0);
+        assertThat(fullSnapshot.perTenant()).doesNotContainKey("t1");
+    }
+
+    @Test
+    void swapAndReset_withTenantSet_preservesTriggeredStateForOtherTenants() {
+        accumulator.onExperienceRecorded(event("t1"));
+        accumulator.onExperienceRecorded(event("t1"));
+        accumulator.onExperienceRecorded(event("t2"));
+        accumulator.onExperienceRecorded(event("t2"));
+
+        accumulator.swapAndReset(java.util.Set.of("t1"));
+
+        accumulator.onExperienceRecorded(event("t2"));
+        assertThat(consolidatedTenants).containsExactly("t2");
+    }
+
+
+    @Test
     void customExtractor_affectsAccumulation() {
         var weighted = new SignificanceAccumulator(
             e -> 5.0, 10.0, consolidatedTenants::add);

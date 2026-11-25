@@ -174,7 +174,7 @@ public class ConsolidationScheduler {
                             .toList();
                     if (tenantsToRun.isEmpty()) {return;}
                 }
-                beginTickAllPhases();
+                beginTickAllPhases(Set.copyOf(tenantsToRun));
                 for (String tenantId : tenantsToRun) {
                     runPhases(tenantId);
                     lastRunTick.put(tenantId, tickCount);
@@ -220,7 +220,7 @@ public class ConsolidationScheduler {
         }
         try {
             tickCount++;
-            beginTickAllPhases();
+            beginTickAllPhases(Set.of(tenantId));
             runPhases(tenantId);
             lastRunTick.put(tenantId, tickCount);
         } finally {
@@ -340,9 +340,9 @@ public List<MissingCapability> validateCapabilities(String tenantId,
     }
 
 
-    private void beginTickAllPhases() {
+    private void beginTickAllPhases(Set<String> tenantsToRun) {
         if (significanceAccumulator != null) {
-            significanceAccumulator.swapAndReset();
+            significanceAccumulator.swapAndReset(tenantsToRun);
         }
         for (ConsolidationPhase phase : phases) {
             phase.beginTick();
