@@ -103,6 +103,48 @@ class PersonaProfileTest {
     }
 
     @Test
+    void thoroughPlannerLoads() throws IOException {
+        var profile = loadProfile("thorough-planner");
+        assertEquals("thorough-planner", profile.agentId());
+        assertNotNull(profile.briefing());
+        assertTrue(profile.briefing().identity().contains("thorough planner"));
+        assertTrue(profile.briefing().echo().contains("methodical"));
+    }
+
+    @Test
+    void thoroughPlannerHasDisposition() throws IOException {
+        var profile = loadProfile("thorough-planner");
+        assertNotNull(profile.descriptor());
+        var axes = profile.descriptor().disposition();
+        assertNotNull(axes);
+        assertEquals("high", axes.ruleFollowing());
+        assertEquals("low", axes.riskAppetite());
+        assertEquals("moderate", axes.autonomy());
+        assertEquals("cooperative", axes.conflictMode());
+    }
+
+    @Test
+    void pragmaticAssistantLoads() throws IOException {
+        var profile = loadProfile("pragmatic-assistant");
+        assertEquals("pragmatic-assistant", profile.agentId());
+        assertNotNull(profile.briefing());
+        assertTrue(profile.briefing().identity().contains("pragmatic assistant"));
+        assertTrue(profile.briefing().echo().contains("actionable") || profile.briefing().echo().contains("achievable"));
+    }
+
+    @Test
+    void pragmaticAssistantHasDisposition() throws IOException {
+        var profile = loadProfile("pragmatic-assistant");
+        assertNotNull(profile.descriptor());
+        var axes = profile.descriptor().disposition();
+        assertNotNull(axes);
+        assertEquals("moderate", axes.ruleFollowing());
+        assertEquals("moderate", axes.riskAppetite());
+        assertEquals("high", axes.socialOrient());
+        assertEquals("accommodating", axes.conflictMode());
+    }
+
+    @Test
     void contrastingCuriosityConfig() throws IOException {
         var stoic = loadProfile("stoic-mentor");
         var bold = loadProfile("bold-strategist");
