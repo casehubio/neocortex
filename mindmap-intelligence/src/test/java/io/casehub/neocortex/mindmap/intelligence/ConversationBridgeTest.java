@@ -90,11 +90,11 @@ class ConversationBridgeTest {
     }
 
     @Test
-    void process_nullConfidence_defaultsToStated() {
+    void process_nullConfidence_defaultsToInferred() {
         var         result = bridge.process("Some text.", "t1", List.of(), null, null);
         MindMapNode node   = store.getNode(result.createdNodeIds().getFirst(), "t1");
-        assertThat(node.confidence().origin()).isEqualTo(ConfidenceOrigin.STATED);
-        assertThat(node.confidence().value()).isEqualTo(1.0);
+        assertThat(node.confidence().origin()).isEqualTo(ConfidenceOrigin.INFERRED);
+        assertThat(node.confidence().value()).isEqualTo(0.7);
     }
 
     @Test

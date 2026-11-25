@@ -59,7 +59,7 @@ public class ConversationBridge {
             List<TextSegment> segments   = segment(cleanedText);
             String            subgraphId = findOrCreateGeneralSubgraph(tenantId);
 
-            ConfidenceOrigin origin = confidenceOrigin != null ? confidenceOrigin : ConfidenceOrigin.STATED;
+            ConfidenceOrigin origin = confidenceOrigin != null ? confidenceOrigin : ConfidenceOrigin.INFERRED;
 
             List<String> createdNodeIds = new ArrayList<>();
             for (TextSegment seg : segments) {
