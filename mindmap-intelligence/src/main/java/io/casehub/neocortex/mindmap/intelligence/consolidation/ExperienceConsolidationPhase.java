@@ -15,7 +15,6 @@ import io.casehub.neocortex.mindmap.MindMapConfidenceDefaults;
 import io.casehub.neocortex.mindmap.MindMapNode;
 import io.casehub.neocortex.mindmap.MindMapQuery;
 import io.casehub.neocortex.mindmap.MindMapStore;
-import io.casehub.neocortex.mindmap.MindMapSubgraph;
 import io.casehub.neocortex.mindmap.NodeInput;
 import io.casehub.neocortex.mindmap.NodeUpdate;
 import io.casehub.neocortex.mindmap.SignalCategory;
@@ -46,6 +45,9 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         ExperienceConsolidationPhase.class.getName());
     private static final String SENTINEL_NAME = "_consolidation-state";
     private static final String CURSOR_PROPERTY = "graduation-cursor";
+    private static final int    MAX_BLOCKED_TICKS = 10;
+    private static final String BLOCKED_TICKS_PREFIX = "blocked-ticks:";
+
 
     private final CaseMemoryStore memoryStore;
     private final MindMapStore mindMapStore;
@@ -154,17 +156,19 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
         LOG.info("Experience consolidation: cursor=" + cursor + " found=" + experiences.size() + " memories for tenant=" + tenantId);
         if (experiences.isEmpty()) {return;}
 
-        Map<String, String> agentSubgraphs = new HashMap<>();
-        Set<String> existingSourceIds = loadExistingSourceMemoryIds(tenantId);
+        Map<String, String> agentSubgraphs    = new HashMap<>();
+        Set<String>         existingSourceIds = loadExistingSourceMemoryIds(tenantId);
         Map<String, GraduationContext> corroborationMap =
                 buildCorroborationMap(experiences, tenantId);
-        String lastProcessedId = cursor;
+        String               lastProcessedId   = cursor;
+        String               lowestBlockedId   = null;
+        Map<String, Integer> blockedTickCounts = loadBlockedTickCounts(tenantId);
 
         List<NodeInput> graduatedInputs = new ArrayList<>();
 
         for (Memory memory : experiences) {
             try {
-                String observed = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
+                String observed      = memory.attributes().get(ExperienceAttributeKeys.SUBJECT);
                 String memoryAgentId = memory.subject() != null ? memory.subject().id() : null;
                 GraduationContext context = observed != null
                                             ? withAgent(corroborationMap.getOrDefault(observed, new GraduationContext(0, tenantId)), memoryAgentId)
@@ -173,7 +177,20 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                 if (score < threshold) {
                     boolean corroborationBlocked = observed != null
                                                    && context.corroboratingCount() < minCorroboration;
-                    if (!corroborationBlocked) {
+                    if (corroborationBlocked) {
+                        int ticks = blockedTickCounts.getOrDefault(memory.memoryId(), 0) + 1;
+                        if (ticks >= MAX_BLOCKED_TICKS) {
+                            LOG.info("Abandoning permanently-blocked memory " + memory.memoryId()
+                                     + " after " + ticks + " ticks for tenant=" + tenantId);
+                            blockedTickCounts.remove(memory.memoryId());
+                            lastProcessedId = memory.memoryId();
+                        } else {
+                            blockedTickCounts.put(memory.memoryId(), ticks);
+                            if (lowestBlockedId == null) {
+                                lowestBlockedId = memory.memoryId();
+                            }
+                        }
+                    } else {
                         lastProcessedId = memory.memoryId();
                     }
                     continue;
@@ -197,13 +214,10 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
 
                 String agentId = memory.subject().id();
                 String subgraphId = agentSubgraphs.computeIfAbsent(agentId,
-                    id -> SubgraphUtils.ensureNamedSubgraph(mindMapStore,
-                        "cognitive-" + id, SubgraphTypes.COGNITIVE, tenantId));
+                                                                   id -> SubgraphUtils.ensureNamedSubgraph(mindMapStore,
+                                                                                                           "cognitive-" + id, SubgraphTypes.COGNITIVE, tenantId));
 
-                String rawText = memory.text() != null ? memory.text() : "";
-                String name = rawText.length() > 100
-                              ? rawText.substring(0, 100) + "..."
-                              : rawText;
+                String name = graduatedNodeName(result, memory);
 
                 NodeInput nodeInput = NodeInput.of(name, subgraphId)
                                                .withConfidence(MindMapConfidenceDefaults.forOrigin(
@@ -216,6 +230,7 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
                 if (memory.dominance() != null) {nodeInput = nodeInput.withDominance(memory.dominance());}
 
                 graduatedInputs.add(nodeInput);
+                blockedTickCounts.remove(memory.memoryId());
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to graduate memory "
                                        + memory.memoryId() + " for tenant " + tenantId, e);
@@ -223,23 +238,111 @@ public class ExperienceConsolidationPhase implements ConsolidationPhase {
             lastProcessedId = memory.memoryId();
         }
 
+        // Watermark: cursor must not advance past blocked memories
+        if (lowestBlockedId != null && (lastProcessedId == null || lowestBlockedId.compareTo(lastProcessedId) < 0)) {
+            lastProcessedId = cursor;
+        }
+
         LOG.info("Experience consolidation: " + graduatedInputs.size() + " memories graduated for tenant=" + tenantId);
         if (!graduatedInputs.isEmpty()) {
             mindMapStore.addNodes(graduatedInputs, tenantId);
             for (NodeInput input : graduatedInputs) {
                 pendingSignals.add(new AttentionSignal(
-                    input.properties().get("agent-id"), tenantId,
-                    SignalCategory.EXPERIENCE_GRADUATED,
-                    null, input.name(), 0.6,
-                    "experience graduated to " + input.properties().getOrDefault("cognitiveKind", "unknown")));
+                        input.properties().get("agent-id"), tenantId,
+                        SignalCategory.EXPERIENCE_GRADUATED,
+                        null, input.name(), 0.6,
+                        "experience graduated to " + input.properties().getOrDefault("cognitiveKind", "unknown")));
             }
         }
 
         if (lastProcessedId != null && !lastProcessedId.equals(cursor)) {
             saveCursor(tenantId, lastProcessedId);
         }
+        saveBlockedTickCounts(tenantId, blockedTickCounts);
     }
 
+
+    private Map<String, Integer> loadBlockedTickCounts(String tenantId) {
+        var result = new HashMap<String, Integer>();
+        findSentinelNode(tenantId).ifPresent(sentinel -> {
+            for (var entry : sentinel.properties().entrySet()) {
+                if (entry.getKey().startsWith(BLOCKED_TICKS_PREFIX)) {
+                    String memoryId = entry.getKey().substring(BLOCKED_TICKS_PREFIX.length());
+                    try {
+                        result.put(memoryId, Integer.parseInt(entry.getValue()));
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        });
+        return result;
+    }
+
+    private void saveBlockedTickCounts(String tenantId, Map<String, Integer> counts) {
+        Optional<MindMapNode> sentinel = findSentinelNode(tenantId);
+        if (sentinel.isEmpty()) {
+            if (counts.isEmpty()) return;
+            String sgId = findOrCreateTypeSystemSubgraph(tenantId);
+            var props = new HashMap<String, String>();
+            for (var entry : counts.entrySet()) {
+                props.put(BLOCKED_TICKS_PREFIX + entry.getKey(), String.valueOf(entry.getValue()));
+            }
+            mindMapStore.addNode(
+                NodeInput.of(SENTINEL_NAME, sgId)
+                    .withProperties(props)
+                    .withProvenance("experience-consolidation"),
+                tenantId);
+            return;
+        }
+        var propsToSet    = new HashMap<String, String>();
+        var propsToRemove = new java.util.HashSet<String>();
+        for (var entry : sentinel.get().properties().entrySet()) {
+            if (entry.getKey().startsWith(BLOCKED_TICKS_PREFIX)) {
+                String memoryId = entry.getKey().substring(BLOCKED_TICKS_PREFIX.length());
+                if (!counts.containsKey(memoryId)) {
+                    propsToRemove.add(entry.getKey());
+                }
+            }
+        }
+        for (var entry : counts.entrySet()) {
+            propsToSet.put(BLOCKED_TICKS_PREFIX + entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        if (!propsToSet.isEmpty() || !propsToRemove.isEmpty()) {
+            NodeUpdate update = NodeUpdate.empty();
+            if (!propsToSet.isEmpty()) {update = update.withPropertiesToSet(propsToSet);}
+            if (!propsToRemove.isEmpty()) {update = update.withPropertiesToRemove(propsToRemove);}
+            mindMapStore.updateNode(sentinel.get().id(), update, tenantId);
+        }
+    }
+
+    static String graduatedNodeName(GraduationResult result, Memory memory) {
+        String rawText = memory.text() != null ? memory.text() : "";
+        return switch (result.cognitiveKind()) {
+            case "belief" -> {
+                String subject = result.properties().getOrDefault("subject", "");
+                yield subject.isEmpty()
+                      ? truncate("Belief: " + rawText, 70)
+                      : truncate("Belief: " + subject + " — " + rawText, 70);
+            }
+            case "intention" -> {
+                String capability = result.properties().getOrDefault("goal", "");
+                yield capability.isEmpty()
+                      ? truncate("Intention: " + rawText, 70)
+                      : truncate("Intention: " + capability + " — " + rawText, 70);
+            }
+            case "judgment" -> {
+                String target = result.properties().getOrDefault("target", "");
+                yield target.isEmpty()
+                      ? truncate("Judgment: " + rawText, 70)
+                      : truncate("Judgment: " + target + " — " + rawText, 70);
+            }
+            case "formative-experience" -> truncate("Formative: " + rawText, 92);
+            default -> truncate(rawText, 100);
+        };
+    }
+
+    private static String truncate(String text, int maxLen) {
+        return text.length() > maxLen ? text.substring(0, maxLen) + "..." : text;
+    }
 
     private Map<String, GraduationContext> buildCorroborationMap(
             List<Memory> experiences, String tenantId) {

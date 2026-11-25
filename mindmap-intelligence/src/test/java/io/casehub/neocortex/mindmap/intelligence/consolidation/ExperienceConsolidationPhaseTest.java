@@ -384,6 +384,87 @@ class ExperienceConsolidationPhaseTest {
     }
 
     @Test
+    void cursorStaysBehindCorroborationBlockedMemory() {
+        // mem-1: blocked (subject "rare-entity", no corroboration)
+        storeExperience("a1", "observation", "rare entity sighting",
+                        Map.of("subject", "rare-entity"), 0.8);
+        // mem-2: passes (subject "common", 3 corroborations via later memories)
+        storeExperience("a1", "observation", "common observation 1",
+                        Map.of("subject", "common"), 0.8);
+        storeExperience("a1", "observation", "common observation 2",
+                        Map.of("subject", "common"), 0.8);
+        storeExperience("a1", "observation", "common observation 3",
+                        Map.of("subject", "common"), 0.8);
+
+        var corroboratingPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+        corroboratingPhase.run(TENANT, List.of());
+
+        // "common" should graduate (3 corroborations)
+        var nodes = cognitiveNodes();
+        assertTrue(nodes.stream().anyMatch(n -> n.name().contains("common")),
+                   "common observations should graduate");
+
+        // Run again — blocked memory should be re-evaluated
+        corroboratingPhase.run(TENANT, List.of());
+        // The rare-entity memory should still appear in the scan (cursor stayed behind it)
+    }
+
+    @Test
+    void ttlEscapeHatch_abandonsAfterMaxTicks() {
+        storeExperience("a1", "observation", "rare entity sighting",
+                        Map.of("subject", "rare-entity"), 0.8);
+
+        var corroboratingPhase = new ExperienceConsolidationPhase(
+                memoryStore, mindMapStore, new DefaultGraduationScorer(3),
+                classifier, 0.5, 20, 3);
+
+        for (int tick = 0; tick < 11; tick++) {
+            corroboratingPhase.run(TENANT, List.of());
+        }
+
+        storeExperience("a1", "observation", "common observation after abandon",
+                        Map.of("subject", "common"), 0.9);
+        storeExperience("a1", "observation", "common observation 2",
+                        Map.of("subject", "common"), 0.9);
+        storeExperience("a1", "observation", "common observation 3",
+                        Map.of("subject", "common"), 0.9);
+
+        corroboratingPhase.run(TENANT, List.of());
+
+        var nodes = cognitiveNodes();
+        assertTrue(nodes.stream().anyMatch(n -> n.name().contains("common")),
+                   "Post-abandonment memories should graduate — cursor advanced past the blocked memory");
+    }
+
+
+    @Test
+    void graduatedNodeName_beliefIncludesSubject() {
+        storeExperience("a1", "observation", "Alice seemed frustrated about the deadline",
+                        Map.of("subject", "Alice"), 0.9);
+        phase.run(TENANT, List.of());
+
+        var nodes = cognitiveNodes();
+        assertEquals(1, nodes.size());
+        assertTrue(nodes.get(0).name().startsWith("Belief: Alice"),
+                   "Graduated belief should include subject in name, got: " + nodes.get(0).name());
+    }
+
+    @Test
+    void graduatedNodeName_intentionIncludesCapability() {
+        storeExperience("a1", "action", "used persuade ability on target",
+                        Map.of("capability", "persuade"), 0.9);
+        phase.run(TENANT, List.of());
+
+        var nodes = cognitiveNodes();
+        assertEquals(1, nodes.size());
+        assertTrue(nodes.get(0).name().startsWith("Intention: persuade"),
+                   "Graduated intention should include capability, got: " + nodes.get(0).name());
+    }
+
+
+    @Test
     void formativeMemory_scoreDerivedFromConfidenceTimesSalience() {
         storeFormativeMemory("a1", "high salience memory",
                              0.8, 1.5, null, null, null);

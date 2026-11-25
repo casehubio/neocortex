@@ -1,10 +1,16 @@
 package io.casehub.neocortex.mindmap.intelligence.consolidation;
 
-import io.casehub.neocortex.mindmap.*;
+import io.casehub.neocortex.mindmap.EdgeInput;
+import io.casehub.neocortex.mindmap.MindMapQuery;
+import io.casehub.neocortex.mindmap.NodeInput;
+import io.casehub.neocortex.mindmap.SubgraphInput;
+import io.casehub.neocortex.mindmap.SubgraphTypes;
 import io.casehub.neocortex.mindmap.inmem.InMemoryMindMapStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CommunitySummaryPhaseTest {
@@ -77,6 +83,19 @@ class CommunitySummaryPhaseTest {
         assertThat(store.nodesIn(subgraphId, "t1").stream()
             .filter(n -> n.traits().contains("Summary")).count()).isEqualTo(0);
     }
+
+    @Test
+    void run_disabledByDefault_doesNothing() {
+        createTriangle("X", "Y", "Z");
+
+        var disabledPhase = new CommunitySummaryPhase(store, 2, 3, 5, false);
+        disabledPhase.run("t1", List.of());
+
+        var summaries = store.search(
+                MindMapQuery.of("t1", 100).withTraits(java.util.Set.of("Summary")));
+        assertThat(summaries).isEmpty();
+    }
+
 
     @Test
     void name_returnsCommunitySummary() {
