@@ -599,3 +599,7 @@ evidence.
   *arXiv:2601.10025*.
 - Li, W. et al. (2026). Activation steering for cognitive function control in
   LLMs. *arXiv:2607.20803*.
+
+## Applied in production
+
+- **Composable cognitive avatars** (`cognitive-runtime` module, #1219) — `DispositionAxes` from this framework drive the `CognitiveDerivationEngine` pathways for briefed avatars. 4 pre-built personas (stoic-mentor, bold-strategist, thorough-planner, pragmatic-assistant) each declare disposition axes that derive personality weights, CBR strategy, social cognition, and graph structure defaults without requiring the full eidos stack. `ProfileDescriptorViewSource` (#1236) bridges YAML profiles to the derivation engine as a `@DefaultBean DescriptorViewSource`.
